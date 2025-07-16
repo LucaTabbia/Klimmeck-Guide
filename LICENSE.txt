@@ -1,0 +1,70 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2025 Luca Tabbia
+
+# ITALIANO
+
+Tutti i diritti riservati.
+
+Il presente software, denominato **Klimmeck's Guide**, è distribuito come applicazione pubblica per l’uso da parte degli utenti finali, ma il codice sorgente e tutti i relativi diritti sono di proprietà esclusiva dell’autore.
+
+L’uso di questo software è soggetto alle seguenti condizioni:
+
+1. USO CONSENTITO
+   - L’utente è autorizzato a installare e utilizzare l’applicazione esclusivamente per scopi personali e non commerciali.
+   - L’uso è limitato alla versione ufficialmente pubblicata tramite store autorizzati (es. App Store, Google Play).
+
+2. RESTRIZIONI
+   - È vietata qualsiasi forma di copia, modifica, distribuzione, pubblicazione o utilizzo commerciale del software o di parti di esso.
+   - È espressamente vietato il reverse engineering, la decompilazione o qualunque tentativo di ottenere il codice sorgente.
+   - Non è consentito includere, integrare o derivare altri software basati su questo progetto senza autorizzazione scritta.
+
+3. PROPRIETÀ INTELLETTUALE
+   - Tutti i diritti relativi al codice, al design, alle funzionalità, ai contenuti e al nome **Klimmeck's Guide** appartengono esclusivamente a **Luca Tabbia (alias LordReavor)**.
+
+4. ASSENZA DI GARANZIA
+   - Questo software è fornito "così com’è", senza alcuna garanzia implicita o esplicita. L’autore non sarà responsabile per eventuali danni, perdite di dati o malfunzionamenti derivanti dall’uso dell’applicazione.
+
+5. CONTATTI E RICHIESTE DI LICENZA
+   - Per richieste di utilizzo, licenze commerciali o collaborazioni, contattare:
+     📧 **lordreavor@gmail.com**
+
+---
+
+Il download, l’installazione o l’utilizzo dell’applicazione implica l’accettazione piena di questi termini.
+
+# ENGLISH
+
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2025 Luca Tabbia
+
+All rights reserved.
+
+This software, named **Klimmeck's Guide**, is distributed as a public application for end-user access, but the source code and all related rights are the exclusive property of the author.
+
+Use of this software is subject to the following terms:
+
+1. PERMITTED USE
+   - Users are allowed to install and use the application solely for personal, non-commercial purposes.
+   - Usage is limited to the official version published through authorized platforms (e.g., App Store, Google Play).
+
+2. RESTRICTIONS
+   - Copying, modifying, redistributing, publishing, or commercially using this software, in whole or in part, is strictly prohibited.
+   - Reverse engineering, decompilation, or any attempt to access or extract the source code is expressly forbidden.
+   - Derivative works, integrations, or reusing this software in other projects is not permitted without written authorization.
+
+3. INTELLECTUAL PROPERTY
+   - All rights related to the source code, design, features, content, and the name **Klimmeck's Guide** are solely owned by **Luca Tabbia (aka LordReavor)**.
+
+4. DISCLAIMER OF WARRANTY
+   - This software is provided “as is” without any express or implied warranty. The author is not liable for any damage, data loss, or issues resulting from the use of the application.
+
+5. CONTACT AND LICENSE REQUESTS
+   - For licensing, commercial use, or collaboration inquiries, contact:
+     📧 **lordreavor@gmail.com**
+
+---
+
+By downloading, installing, or using this application, the user fully agrees to the terms listed above.
+
