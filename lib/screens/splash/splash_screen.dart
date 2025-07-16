@@ -67,15 +67,9 @@ class _SplashScreenState extends State<SplashScreen> {
             height: MediaQuery.of(context).size.height,
             child: Center(
               child: SvgPicture.asset(
-                'assets/icons/splash/lucySplash.svg',
+                'assets/icons/svg/tavernSign.svg',
                 width: MediaQuery.of(context).size.width * 0.5,
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 80),
-            child: SvgPicture.asset(
-              'assets/icons/splash/poweredBy.svg',
             ),
           ),
         ],
