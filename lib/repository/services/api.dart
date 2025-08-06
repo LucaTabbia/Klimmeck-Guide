@@ -1,9 +1,6 @@
-
-import 'package:graphql/client.dart';
-
 import 'package:dio/dio.dart' as dio_http;
+import 'package:graphql/client.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
-
 
 class Api {
   final dio = dio_http.Dio();
@@ -19,31 +16,21 @@ class Api {
   late GraphQLClient client;
 
   Api() {
-    httpLink = HttpLink("https://energialocale.bitboss.link/graphql");
-    client = GraphQLClient(
-      cache: GraphQLCache(),
-      link: httpLink,
-    );
+    httpLink = HttpLink("https://test/graphql");
+    client = GraphQLClient(cache: GraphQLCache(), link: httpLink);
   }
 
   Future<void> getClientWithBearer() async {
     token = await KGStorageManager.getToken();
-    authLink = AuthLink(
-      getToken: () async => 'Bearer $token',
-    );
+    authLink = AuthLink(getToken: () async => 'Bearer $token');
 
     Link link = authLink.concat(httpLink);
 
-    client = GraphQLClient(
-      cache: GraphQLCache(),
-      link: link,
-    );
+    client = GraphQLClient(cache: GraphQLCache(), link: link);
   }
 
-  Future<QueryResult> performQuery(String query,
-      {Map<String, dynamic>? variables}) async {
-    QueryOptions options =
-    QueryOptions(document: gql(query), variables: variables ?? {});
+  Future<QueryResult> performQuery(String query, {Map<String, dynamic>? variables}) async {
+    QueryOptions options = QueryOptions(document: gql(query), variables: variables ?? {});
 
     final result = await client.query(options);
 
@@ -51,15 +38,12 @@ class Api {
   }
 
   Future<QueryResult> performMutation(String query, {Map<String, dynamic>? variables}) async {
-    MutationOptions options =
-    MutationOptions(document: gql(query), variables: variables ?? {});
+    MutationOptions options = MutationOptions(document: gql(query), variables: variables ?? {});
 
     final result = await client.mutate(options);
 
     return result;
   }
-
-
 
   ///FIREBASE
   /*Future<Map<String, String>> getHeaders() async {
@@ -116,43 +100,6 @@ class Api {
       }
     } catch (error) {
       throw Exception('Errore login apple');
-    }
-    return null;
-  }
-
-  Future<User?> signInWithGoogle() async {
-    GoogleSignIn googleSignIn = GoogleSignIn();
-    late GoogleSignInAccount? googleSignInAccount;
-    late GoogleSignInAuthentication googleSignInAuthentication;
-    final FirebaseAuth auth = FirebaseAuth.instance;
-
-    googleSignIn = GoogleSignIn();
-
-    await googleSignIn.signOut();
-    googleSignInAccount = await googleSignIn.signIn();
-
-    if (googleSignInAccount != null) {
-      googleSignInAuthentication = await googleSignInAccount.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
-        idToken: googleSignInAuthentication.idToken,
-      );
-
-      final UserCredential authResult = await auth.signInWithCredential(credential);
-
-      final User? user = authResult.user;
-
-      if (user != null && user.email != null) {
-        assert(!user.isAnonymous);
-
-        final User? currentUser = auth.currentUser;
-
-        assert(user.uid == currentUser?.uid);
-        return user;
-      } else {
-        throw Exception('Errore login google');
-      }
     }
     return null;
   }

@@ -1,0 +1,130 @@
+[{
+  "id": "1",
+  "type": "liberiaCapital",
+  "name": "Liberia",
+  "markerLocation": {"latitude": 62.0, "longitude": 15.0},
+  "area": [
+    {"latitude": 57.0, "longitude": 10.0},
+    {"latitude": 67.0, "longitude": 20.0}
+  ],
+  "relatedLore": [
+
+  ]
+},
+  {
+    "id": "2",
+    "type": "mirwaCapital",
+    "name": "Mirwen",
+    "markerLocation": {"latitude": 53.0, "longitude": 81.0},
+    "area": [
+      {"latitude": 48.0, "longitude": 78.0},
+      {"latitude": 58.0, "longitude": 88.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "3",
+    "type": "drusteaCapital",
+    "name": "Cliffbreak",
+    "markerLocation": {"latitude": 72.0, "longitude": 75.0},
+    "area": [
+      {"latitude": 75.0, "longitude": 83.0},
+      {"latitude": 85.0, "longitude": 73.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "4",
+    "type": "flameNorthCapital",
+    "name": "Bellport",
+    "markerLocation": {"latitude": 53.0, "longitude": 142.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "5",
+    "type": "harkenCity",
+    "name": "Ferrion",
+    "markerLocation": {"latitude": 79.0, "longitude": 118.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "6",
+    "type": "motherCapital",
+    "name": "Morrulir",
+    "markerLocation": {"latitude": 66.0, "longitude": 43.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "7",
+    "type": "necrorianCity",
+    "name": "Necrorian",
+    "markerLocation": {"latitude": 72.5, "longitude": 128.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "8",
+    "type": "talmvereVillage",
+    "name": "Talmvere",
+    "markerLocation": {"latitude": 61.0, "longitude": 55.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "9",
+    "type": "valanCapital",
+    "name": "Valantar",
+    "markerLocation": {"latitude": 34.0, "longitude": 68.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  },
+  {
+    "id": "10",
+    "type": "flameCenterCapital",
+    "name": "Virnen",
+    "markerLocation": {"latitude": 19.0, "longitude": 152.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+
+    ]
+  }]

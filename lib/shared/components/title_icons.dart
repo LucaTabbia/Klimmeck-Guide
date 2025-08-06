@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../main.dart';
 import '../../models/user.dart';
-import '../../routes/routes.dart';
 import '../../theme/kg_theme.dart';
 
 class TitleAndIcons extends StatelessWidget {
@@ -33,48 +32,47 @@ class TitleAndIcons extends StatelessWidget {
       padding: const EdgeInsets.only(top: 20.0, left: 30, right: 30),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            if (hasBackButton)
-              Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: InkWell(
-                  onTap: onBack ??
-                      () {
-                        navigatorKey.currentState?.pop();
-                      },
-                  child: SvgPicture.asset(
-                    'assets/icons/utils/back.svg',
-                    height: 30,
-                    width: 30,
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (hasBackButton)
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: InkWell(
+                    onTap:
+                        onBack ??
+                        () {
+                          navigatorKey.currentState?.pop();
+                        },
+                    child: SvgPicture.asset('assets/icons/utils/back.svg', height: 30, width: 30),
                   ),
                 ),
-              ),
-            SizedBox(
-              height: 70,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AutoSizeText(
-                    title,
-                    maxLines: 1,
-                    minFontSize: 8,
-                    style: KlimmeckGuideTheme.instance.titleMedium,
-                  ),
-                  SizedBox(
-                    width: constraints.maxWidth * 0.4,
-                    child: AutoSizeText(subTitle,
+              SizedBox(
+                height: 70,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AutoSizeText(
+                      title,
+                      maxLines: 1,
+                      minFontSize: 8,
+                      style: KlimmeckGuideTheme.instance.titleMedium,
+                    ),
+                    SizedBox(
+                      width: constraints.maxWidth * 0.4,
+                      child: AutoSizeText(
+                        subTitle,
                         maxLines: 1,
                         minFontSize: 8,
-                        style: KlimmeckGuideTheme.instance.bodyMedium),
-                  )
-                ],
+                        style: KlimmeckGuideTheme.instance.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Spacer(
-              flex: 2,
-            ),
-            /*InkWell(
+              const Spacer(flex: 2),
+              /*InkWell(
                 onTap: () => {
                       if (isNotification == true)
                         {navigatorKey.currentState?.pop()}
@@ -95,32 +93,20 @@ class TitleAndIcons extends StatelessWidget {
                   width: 35,
                   color: isNotification == true ? KlimmeckGuideTheme.primary : null,
                 )),*/
-            const SizedBox(width: 30),
-            InkWell(
+              const SizedBox(width: 30),
+              InkWell(
                 onTap: () => {
-                      if (isProfile == true)
-                        {navigatorKey.currentState?.pop()}
-                      else
-                        {
-                          if (isNotification == true)
-                            {
-                              navigatorKey.currentState
-                                  ?.pushReplacement(profileRoute(user))
-                            }
-                          else
-                            {
-                              navigatorKey.currentState
-                                  ?.push(profileRoute(user))
-                            }
-                        }
-                    },
+                  if (isProfile == true) {navigatorKey.currentState?.pop()} else {},
+                },
                 child: SvgPicture.asset(
                   'assets/icons/utils/profile_fill.svg',
                   height: 35,
                   width: 35,
                   color: isProfile == true ? KlimmeckGuideTheme.primaryGold : null,
-                )),
-          ]);
+                ),
+              ),
+            ],
+          );
         },
       ),
     );

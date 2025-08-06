@@ -59,41 +59,21 @@ class KlimmeckGuideTheme {
       color: base,
     );
 
-    titleMedium = GoogleFonts.cinzel(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      color: base,
-    );
+    titleMedium = GoogleFonts.cinzel(fontSize: 20, fontWeight: FontWeight.w600, color: base);
 
     bodyLarge = GoogleFonts.cormorantGaramond(
-      fontSize: 16,
+      fontSize: 22,
       fontWeight: FontWeight.w200,
       color: base,
     );
 
-    bodyMedium = GoogleFonts.sourceSans3(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      color: base,
-    );
+    bodyMedium = GoogleFonts.sourceSans3(fontSize: 16, fontWeight: FontWeight.w500, color: base);
 
-    specialText = GoogleFonts.uncialAntiqua(
-      fontSize: 30,
-      fontWeight: FontWeight.w300,
-      color: base,
-    );
+    specialText = GoogleFonts.uncialAntiqua(fontSize: 30, fontWeight: FontWeight.w300, color: base);
 
-    lightText = GoogleFonts.ebGaramond(
-      fontSize: 16,
-      fontWeight: FontWeight.w300,
-      color: parchment,
-    );
+    lightText = GoogleFonts.ebGaramond(fontSize: 16, fontWeight: FontWeight.w300, color: parchment);
 
-    errorText = GoogleFonts.cinzel(
-      fontSize: 12,
-      fontWeight: FontWeight.w500,
-      color: bloodRed,
-    );
+    errorText = GoogleFonts.cinzel(fontSize: 12, fontWeight: FontWeight.w500, color: bloodRed);
 
     textTheme = TextTheme(
       headlineLarge: headlineLarge,
@@ -119,21 +99,14 @@ class KlimmeckGuideTheme {
     colorScheme: colorScheme,
     textTheme: textTheme,
     scaffoldBackgroundColor: parchment,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: darkBronze,
-      foregroundColor: primaryGold,
-    ),
+    appBarTheme: const AppBarTheme(backgroundColor: darkBronze, foregroundColor: primaryGold),
   );
 
   static BoxDecoration getBackgroundDecoration() => const BoxDecoration(
     gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        primaryGold,
-        darkBronze,
-        darkBronze,
-      ],
+      colors: [primaryGold, darkBronze, darkBronze],
     ),
   );
 
@@ -145,13 +118,10 @@ class KlimmeckGuideTheme {
     ),
   );
 
-  static BoxDecoration getParchmentBackground() => const BoxDecoration(
-    color: parchment,
-  );
+  static BoxDecoration getParchmentBackground() => const BoxDecoration(color: parchment);
 
   static bool isDarkMode(BuildContext context) =>
       MediaQuery.of(context).platformBrightness == Brightness.dark;
 
-  Color getBackgroundColor(BuildContext context) =>
-      isDarkMode(context) ? deepNight : parchment;
+  Color getBackgroundColor(BuildContext context) => isDarkMode(context) ? deepNight : parchment;
 }

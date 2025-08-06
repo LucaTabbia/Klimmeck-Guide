@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/city.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/user.dart';
@@ -7,9 +10,6 @@ import '../../models/user.dart';
 class KGStorageManager {
   static const String firebaseTokenKey = "token_firebase";
   static const String userTokenKey = "user_token";
-  static const String amityTokenKey = "amity_token";
-  static const String loggedCustomer = "customer";
-  static const String hasManyCustomers = "check_many_customers";
   static const String loggedUser = "user";
   static const String login = "login";
   static const String showOnBoarding = "show_on_boarding";
@@ -29,19 +29,40 @@ class KGStorageManager {
     }
   }
 
+  static Future<Character?> getCharacter() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/testCharacter.json');
+      return Character.fromJson(jsonDecode(jsonString));
+        } catch (e) {
+      print('Errore nel parsing del personaggio: $e');
+      return null;
+    }
+  }
+
+  static Future<List<City>?> getCities() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/testCities.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+      return jsonList.map((json) => City.fromJson(json)).toList();
+        } catch (e) {
+      print('Errore nel parsing delle città: $e');
+      return null;
+    }
+  }
+
   static Future<User?> getLoggedUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var jsonString = prefs.getString(loggedUser);
-    if(jsonString != null){
+    if (jsonString != null) {
       return User.fromJson(jsonDecode(jsonString));
-    }else{
+    } else {
       return null;
     }
   }
 
   static Future<void> saveLoggedUser(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-     prefs.setString(loggedUser, jsonEncode(user));
+    prefs.setString(loggedUser, jsonEncode(user));
   }
 
   static Future<void> saveToken(String token) async {
@@ -83,6 +104,7 @@ class KGStorageManager {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool(login, isLogged);
   }
+
   static Future<void> logOut() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     for (String key in prefs.getKeys()) {

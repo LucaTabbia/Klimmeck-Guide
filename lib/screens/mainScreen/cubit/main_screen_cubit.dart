@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
-import '../../../models/user.dart';
+
 import '../../../repository/services/api.dart';
 
 part 'main_screen_state.dart';
@@ -14,11 +16,13 @@ class MainScreenCubit extends Cubit<MainScreenState> {
   Future<void> loadData() async {
     emit(MainScreenLoading());
     try {
-      var user = await KGStorageManager.getLoggedUser();
-      if(user != null){
-        emit(MainScreenLoadData(user));
-      }else{
-        emit(MainScreenError("no customer found"));
+      final Character? character = await KGStorageManager.getCharacter();
+      final List<City>? cities = await KGStorageManager.getCities();
+
+      if (character != null && cities != null) {
+        emit(MainScreenLoadData(character, cities));
+      } else {
+        emit(MainScreenError("Personaggio o città non presenti"));
       }
     } catch (e) {
       print(e.toString());

@@ -1,24 +1,39 @@
+import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/pending_quest.dart';
+import 'package:klimmeck_guide/models/quest.dart';
 
 class User {
   User({
     required this.id,
-    required this.name,
-    required this.email,
+    required this.twitchId,
+    required this.twitchPoints,
+    required this.completedQuests,
+    required this.pendingQuest,
+    required this.currentCharacter,
   });
 
   final String id;
-  final String name;
-  final String email;
+  final String twitchId;
+  int twitchPoints;
+  List<Quest> completedQuests = const [];
+  PendingQuest? pendingQuest;
+  Character currentCharacter;
 
   factory User.fromJson(Map<String, dynamic> json) => User(
     id: json["id"],
-    name: json["name"],
-    email: json["email"],
+    twitchId: json["twitchId"],
+    twitchPoints: json["twitchId"].toInt(),
+    completedQuests: List<Quest>.from(json['completedQuests'].map((x) => Quest.fromJson(x))),
+    pendingQuest: PendingQuest.fromJson(json['pendingQuest']),
+    currentCharacter: Character.fromJson(json["currentCharacter"]),
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
-    "name": name,
-    "email": email,
+    "twitchId": twitchId,
+    "twitchPoints": twitchPoints,
+    "completedQuests": completedQuests.map((s) => s.id).toList(),
+    "pendingQuest": pendingQuest?.id,
+    "currentCharacter": currentCharacter.id,
   };
 }

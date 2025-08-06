@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
@@ -11,10 +10,8 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../main.dart';
-import '../../models/user.dart';
 import '../../routes/routes.dart';
 import '../../utils/notification.dart';
-import 'cubit/splash_cubit.dart';
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   //await Firebase.initializeApp();
@@ -78,7 +75,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> goToPage() async {
-    var showOnBoarding = await KGStorageManager.getShowOnBoarding();
+    navigatorKey.currentState?.pushReplacement(mainScreenRoute());
+    /*var showOnBoarding = await KGStorageManager.getShowOnBoarding();
     Timer(const Duration(seconds: 3), () async {
       if (showOnBoarding == null || showOnBoarding == true) {
         Navigator.of(context).pushReplacement(onBoardingRoute());
@@ -103,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> {
           }
         }
       }
-    });
+    })*/
   }
 
   Future<void> firebaseConfiguration() async {

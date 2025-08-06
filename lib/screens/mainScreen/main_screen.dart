@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../models/user.dart';
+import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/radial_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
+
 import '../../shared/components/kg_error.dart';
 import '../../shared/components/kg_loader.dart';
 import '../../theme/kg_theme.dart';
-import 'components/navbar.dart';
-import '../../shared/components/title_icons.dart';
 import 'cubit/main_screen_cubit.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,14 +20,9 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with AutomaticKeepAliveClientMixin {
+class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMixin {
   late PageController pageController;
   int currentPage = 0;
-
-  bool loadingZendeskKeys = false;
-  String androidZendeskKey = "";
-  String iosZendeskKey = "";
 
   @override
   void initState() {
@@ -41,44 +41,23 @@ class _MainScreenState extends State<MainScreen>
     super.build(context);
     return BlocBuilder<MainScreenCubit, MainScreenState>(
       builder: (context, state) {
-        if (state is MainScreenLoadData && !loadingZendeskKeys) {
+        if (state is MainScreenLoadData) {
           return Scaffold(
-            backgroundColor: KlimmeckGuideTheme.deepNight,
-            bottomNavigationBar: Padding(
-              padding: const EdgeInsets.only(bottom: 20.0),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.width * 0.15 + 50,
-                child: ELBottomNavigationBar(
-                    currentPage: currentPage, onItemTap: onItemTap),
-              ),
-            ),
-            body: SafeArea(
-              child: Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 90),
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height -
-                          (125 +
-                              MediaQuery.of(context).size.width * 0.15 +
-                              MediaQuery.of(context).viewPadding.bottom +
-                              MediaQuery.of(context).viewPadding.top),
-                      child: PageView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        controller: pageController,
-                        onPageChanged: onPageChanged,
-                        children: _buildTabs(state.user),
-                      ),
-                    ),
-                  ),
-                  TitleAndIcons(
-                    title: getTitle(),
-                    subTitle: getSubTitle(state.user),
-                    user: state.user,
-                  )
-                ],
-              ),
+            body: Stack(
+              alignment: Alignment.bottomLeft,
+              children: [
+                PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: pageController,
+                  onPageChanged: onPageChanged,
+                  children: _buildPages(state.character, state.cities),
+                ),
+                Positioned(
+                  left: -110,
+                  bottom: -60,
+                  child: RadialMenu(currentPage: currentPage, onItemTap: onItemTap),
+                ),
+              ],
             ),
           );
         }
@@ -91,66 +70,38 @@ class _MainScreenState extends State<MainScreen>
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: SizedBox(
-                      height: MediaQuery.of(context).size.height -
-                          (MediaQuery.of(context).viewPadding.top +
-                              MediaQuery.of(context).viewPadding.bottom),
-                      child: const KGError()),
+                    height:
+                        MediaQuery.of(context).size.height -
+                        (MediaQuery.of(context).viewPadding.top +
+                            MediaQuery.of(context).viewPadding.bottom),
+                    child: const KGError(),
+                  ),
                 ),
               ),
             ),
           );
         }
-
-        if (loadingZendeskKeys) {
-          return Scaffold(
-            backgroundColor: KlimmeckGuideTheme.deepNight,
-            body: SizedBox(
-                height: MediaQuery.of(context).size.height -
-                    (MediaQuery.of(context).viewPadding.bottom +
-                        MediaQuery.of(context).viewPadding.top),
-                child: const Column(
-                  children: [Spacer(), KGLoader(), Spacer()],
-                )),
-          );
-        }
         return Scaffold(
           backgroundColor: KlimmeckGuideTheme.deepNight,
           body: SizedBox(
-              height: MediaQuery.of(context).size.height -
-                  (MediaQuery.of(context).viewPadding.bottom +
-                      MediaQuery.of(context).viewPadding.top),
-              child: const Column(
-                children: [Spacer(), KGLoader(), Spacer()],
-              )),
+            height:
+                MediaQuery.of(context).size.height -
+                (MediaQuery.of(context).viewPadding.bottom +
+                    MediaQuery.of(context).viewPadding.top),
+            child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
+          ),
         );
       },
     );
   }
 
-  String getTitle() {
-    switch (currentPage) {
-      case 0:
-        return 'bills';
-      case 1:
-        return 'selfReading';
-      case 2:
-        return 'support';
-      default:
-        return '';
-    }
-  }
-
-  String getSubTitle(User user) {
-    switch (currentPage) {
-      case 0:
-        return 'paymentsSummary';
-      case 1:
-        return 'manageInAutonomy';
-      case 2:
-        return 'supportSubtitle';
-      default:
-        return '';
-    }
+  List<Widget> _buildPages(Character character, List<City> cities) {
+    return [
+      WorldMap(character: character, cities: cities),
+      Profile(character: character),
+      Journal(character: character),
+      Library(),
+    ];
   }
 
   void onPageChanged(int page) {
@@ -164,18 +115,7 @@ class _MainScreenState extends State<MainScreen>
     if (!currentFocus.hasPrimaryFocus) {
       currentFocus.unfocus();
     }
-
-    if (index == 2) {
-
-    } else {
-      pageController.jumpToPage(index);
-    }
-  }
-
-  List<Widget> _buildTabs(User user) {
-    return [
-
-    ];
+    pageController.jumpToPage(index);
   }
 
   @override

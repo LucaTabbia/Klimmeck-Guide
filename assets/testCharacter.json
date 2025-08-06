@@ -1,0 +1,92 @@
+{
+  "id": "1",
+  "imagePath": null,
+  "name": "Reavor",
+  "race": "halfelf",
+  "classType": "rogue",
+  "location": {
+    "latitude": 55.0,
+    "longitude": 80.0
+  },
+  "age": 30,
+  "xp": 30000,
+  "background": "Un locandiere piuttosto giovane, ma con un passato oscuro e pieno di mistero. Si dice abbia combattuto in battaglie importanti per l'intero continente e che per questo sia una figura rinomata e molto rispettata anche dalle alte cariche",
+  "spells": [{
+    "id": "13",
+    "name": "Palla di fuoco",
+    "useType": "attack",
+    "energyType": "fire",
+    "power": 1000
+  },{
+    "id": "14",
+    "name": "Dardo incantato",
+    "useType": "attack",
+    "energyType": "none",
+    "power": 100
+  }],
+  "ownedEquipment": [
+    {
+      "id": "11",
+      "name": "Elmo di ferro",
+      "baseTypes": ["blunt", "cut"],
+      "equipType": "helm",
+      "energyType": "acid",
+      "addedSpell": {
+        "id": "12",
+        "name": "Darkvision",
+        "useType": "defense",
+        "energyType": "enhancing",
+        "power": 100
+      },
+      "energyPower": 500,
+      "basePower": 1000,
+      "buyPrice": 500,
+      "sellPrice": 150
+    },
+    {
+      "id": "15",
+      "name": "Elmo di ossidiana",
+      "baseTypes": ["blunt", "pierce", "cut"],
+      "equipType": "helm",
+      "energyType": null,
+      "addedSpell": null,
+      "energyPower": 0,
+      "basePower": 1000,
+      "buyPrice": 1000,
+      "sellPrice": 200
+    }],
+  "wearedEquipment": {
+    "head": {
+      "id": "11",
+      "name": "Elmo di ferro",
+      "baseTypes": ["blunt"],
+      "equipType": "helm",
+      "energyType": "acid",
+      "addedSpell": {
+        "id": "12",
+        "name": "Darkvision",
+        "useType": "defense",
+        "energyType": "enhancing",
+        "power": 100
+      },
+      "energyPower": 500,
+      "basePower": 1000,
+      "buyPrice": 500,
+      "sellPrice": 150
+    },
+    "chest": null,
+    "arms": null,
+    "legs": null,
+    "foots": null,
+    "leftHand": null,
+    "rightHand": null,
+    "firstAccessory": null,
+    "secondAccessory": null
+  },
+  "coins": 30000,
+  "pet": null,
+  "ownedLoot": [],
+  "injuries": ["headConcussion", "deepCut"],
+  "currentLifePoints": 30000,
+  "maxLifePoints": 40000
+}
