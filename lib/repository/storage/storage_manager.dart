@@ -1,13 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:graphql/client.dart';
 import 'package:klimmeck_guide/models/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../graphql/character_queries.dart';
+import '../../graphql/city_queries.dart';
+import '../../models/lore.dart';
 import '../../models/user.dart';
 
 class KGStorageManager {
+  static bool useMockData = true; // toggle JSON / GraphQL
+
+  // GraphQL client
+  static final GraphQLClient client = GraphQLClient(link: HttpLink('test'), cache: GraphQLCache());
   static const String firebaseTokenKey = "token_firebase";
   static const String userTokenKey = "user_token";
   static const String loggedUser = "user";
@@ -26,27 +34,6 @@ class KGStorageManager {
       prefs.setDouble(key, value);
     } else if (value is List<String>) {
       prefs.setStringList(key, value);
-    }
-  }
-
-  static Future<Character?> getCharacter() async {
-    try {
-      final String jsonString = await rootBundle.loadString('assets/testCharacter.json');
-      return Character.fromJson(jsonDecode(jsonString));
-        } catch (e) {
-      print('Errore nel parsing del personaggio: $e');
-      return null;
-    }
-  }
-
-  static Future<List<City>?> getCities() async {
-    try {
-      final String jsonString = await rootBundle.loadString('assets/testCities.json');
-      final List<dynamic> jsonList = jsonDecode(jsonString);
-      return jsonList.map((json) => City.fromJson(json)).toList();
-        } catch (e) {
-      print('Errore nel parsing delle città: $e');
-      return null;
     }
   }
 
@@ -113,4 +100,63 @@ class KGStorageManager {
       }
     }
   }
+
+  static Future<Character?> getCharacterLocal() async {
+    final jsonString = await rootBundle.loadString('assets/testCharacter.json');
+    return Character.fromJson(jsonDecode(jsonString));
+  }
+
+  static Future<List<City>?> getAllCitiesLocal() async {
+    final jsonString = await rootBundle.loadString('assets/testCities.json');
+    final jsonList = jsonDecode(jsonString) as List<dynamic>;
+    return jsonList.map((json) => City.fromJson(json)).toList();
+  }
+
+  static Future<Lore?> getLoreById(String id) async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/testLore.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+
+      final loreJson = jsonList.firstWhere((json) => json['id'] == id, orElse: () => null);
+
+      if (loreJson != null) {
+        return Lore.fromJson(loreJson);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Errore nel parsing di Lore: $e');
+      return null;
+    }
+  }
+
+  static Future<Character?> getCharacterRemote() async {
+    final result = await client.query(QueryOptions(document: gql(CharacterQueries.getCharacter)));
+
+    if (result.hasException) {
+      print('GraphQL Error: ${result.exception}');
+      return null;
+    }
+
+    final data = result.data?['character'];
+    return data != null ? Character.fromJson(data) : null;
+  }
+
+  static Future<List<City>?> getAllCitiesRemote() async {
+    final result = await client.query(QueryOptions(document: gql(CityQueries.getAllCities)));
+
+    if (result.hasException) {
+      print('GraphQL Error: ${result.exception}');
+      return null;
+    }
+
+    final data = result.data?['cities'] as List<dynamic>?;
+    return data?.map((json) => City.fromJson(json)).toList();
+  }
+
+  static Future<Character?> getCharacter() async =>
+      useMockData ? getCharacterLocal() : getCharacterRemote();
+
+  static Future<List<City>?> getAllCities() async =>
+      useMockData ? getAllCitiesLocal() : getAllCitiesRemote();
 }

@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/models/spell.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'enums/class_type.dart';
+import 'enums/title_type.dart';
 
 class Character {
   Character({
@@ -31,70 +32,86 @@ class Character {
     required this.maxLifePoints,
     required this.pet,
     required this.ownedLoot,
+    required this.title,
   });
 
   final String id;
   final String? imagePath;
-  final String name;
-  final RaceType race;
-  final ClassType classType;
-  final int age;
-  final int xp;
-  final String background;
-  LatLng location;
-  List<InjuryType> injuries = const [];
-  List<Spell> spells = const [];
-  List<EquipmentItem> ownedEquipment = const [];
-  Equipment wearedEquipment;
-  int coins;
-  int currentLifePoints;
-  int maxLifePoints;
+  final String? name;
+  final RaceType? race;
+  final ClassType? classType;
+  final int? age;
+  final int? xp;
+  final String? background;
+  LatLng? location;
+  TitleType? title;
+  List<InjuryType>? injuries = const [];
+  List<Spell>? spells = const [];
+  List<EquipmentItem>? ownedEquipment = const [];
+  Equipment? wearedEquipment;
+  int? coins;
+  int? currentLifePoints;
+  int? maxLifePoints;
   Pet? pet;
-  List<LootItem> ownedLoot;
+  List<LootItem>? ownedLoot;
 
   File? get image => imagePath != null ? File(imagePath!) : null;
 
   factory Character.fromJson(Map<String, dynamic> json) => Character(
     id: json["id"],
     name: json["name"],
-    race: RaceType.values.byName(json['race']),
-    classType: ClassType.values.byName(json['classType']),
-    location: LatLng(json['location']['latitude'], json['location']['longitude']),
-    age: json["age"].toInt(),
-    xp: json["xp"].toInt(),
-    coins: json["coins"].toInt(),
+    race: json['race'] != null ? RaceType.values.byName(json['race']) : null,
+    classType: json['classType'] != null ? ClassType.values.byName(json['classType']) : null,
+    location: json['location'] != null
+        ? LatLng(json['location']['latitude'], json['location']['longitude'])
+        : null,
+    age: json["age"]?.toInt(),
+    xp: json["xp"]?.toInt(),
+    coins: json["coins"]?.toInt(),
     background: json["background"],
-    spells: List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x))),
-    ownedEquipment: List<EquipmentItem>.from(
-      json['ownedEquipment'].map((x) => EquipmentItem.fromJson(x)),
-    ),
-    wearedEquipment: Equipment.fromJson(json['wearedEquipment']),
+    spells: json['spells'] != null
+        ? List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x)))
+        : [],
+    ownedEquipment: json['ownedEquipment'] != null
+        ? List<EquipmentItem>.from(json['ownedEquipment'].map((x) => EquipmentItem.fromJson(x)))
+        : [],
+    wearedEquipment: json['wearedEquipment'] != null
+        ? Equipment.fromJson(json['wearedEquipment'])
+        : null,
     imagePath: json["imagePath"],
-    injuries: List<InjuryType>.from(json['injuries'].map((x) => InjuryType.values.byName(x))),
-    currentLifePoints: json["currentLifePoints"].toInt(),
-    maxLifePoints: json["maxLifePoints"].toInt(),
-    pet: Pet.fromJson(json['pet']),
-    ownedLoot: List<LootItem>.from(json['ownedLoot'].map((x) => LootItem.fromJson(x))),
+    injuries: json['injuries'] != null
+        ? List<InjuryType>.from(json['injuries'].map((x) => InjuryType.values.byName(x)))
+        : [],
+    currentLifePoints: json["currentLifePoints"]?.toInt(),
+    maxLifePoints: json["maxLifePoints"]?.toInt(),
+    pet: json['pet'] != null ? Pet.fromJson(json['pet']) : null,
+    ownedLoot: json['ownedLoot'] != null
+        ? List<LootItem>.from(json['ownedLoot'].map((x) => LootItem.fromJson(x)))
+        : [],
+    title: json['title'] != null ? TitleType.values.byName(json['title']) : null,
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
-    "race": race.name,
-    "classType": classType.name,
+    "race": race?.name,
+    "classType": classType?.name,
     "age": age,
-    "location": location.toJson(),
+    "location": location != null
+        ? {"latitude": location!.latitude, "longitude": location!.longitude}
+        : null,
     "xp": xp,
     "background": background,
-    "spells": spells.map((s) => s.id).toList(),
-    "ownedEquipment": ownedEquipment.map((s) => s.id).toList(),
-    "wearedEquipment": wearedEquipment.toJson(),
+    "spells": spells?.map((s) => s.id).toList(),
+    "ownedEquipment": ownedEquipment?.map((s) => s.id).toList(),
+    "wearedEquipment": wearedEquipment?.toJson(),
     "imagePath": imagePath,
     "coins": coins,
-    "injuries": injuries.map((e) => e.name).toList(),
+    "injuries": injuries?.map((e) => e.name).toList(),
     "currentLifePoints": currentLifePoints,
     "maxLifePoints": maxLifePoints,
     "pet": pet?.id,
-    "ownedLoot": ownedLoot.map((s) => s.id).toList(),
+    "ownedLoot": ownedLoot?.map((s) => s.id).toList(),
+    "title": title?.name,
   };
 }

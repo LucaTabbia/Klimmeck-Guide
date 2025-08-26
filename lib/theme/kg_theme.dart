@@ -12,6 +12,12 @@ class KlimmeckGuideTheme {
   static const double radius = 15.0;
   static const double inputTextHeight = 42;
   static const double inputTextWidth = 250;
+  static const List<Shadow> bordersForText = [
+    Shadow(offset: Offset(-1, -1), color: deepNight),
+    Shadow(offset: Offset(1, -1), color: deepNight),
+    Shadow(offset: Offset(-1, 1), color: deepNight),
+    Shadow(offset: Offset(1, 1), color: deepNight),
+  ];
 
   // Colors
   static const Color primaryGold = Color(0xFFFFD700);

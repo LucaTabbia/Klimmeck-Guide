@@ -10,44 +10,50 @@ class TextSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxWidth = constraints.maxWidth;
+
+        return Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 5.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width - 50,
-                child: AutoSizeText(
-                  sectionName,
-                  maxFontSize: 20,
-                  minFontSize: 12,
-                  style: KlimmeckGuideTheme.instance.titleMedium,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 5.0),
+                  child: SizedBox(
+                    width: maxWidth - (maxWidth / 5),
+                    child: AutoSizeText(
+                      sectionName,
+                      maxFontSize: 20,
+                      minFontSize: 12,
+                      style: KlimmeckGuideTheme.instance.titleMedium,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width / 2,
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: KlimmeckGuideTheme.darkBronze, width: 1)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width - 50,
-                child: AutoSizeText(
-                  data,
-                  maxFontSize: 22,
-                  style: KlimmeckGuideTheme.instance.bodyLarge,
+                Container(
+                  width: maxWidth - (maxWidth / 5),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: KlimmeckGuideTheme.darkBronze, width: 1)),
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
+                  child: SizedBox(
+                    width: maxWidth - maxWidth / 5,
+                    child: AutoSizeText(
+                      data,
+                      maxFontSize: 22,
+                      style: KlimmeckGuideTheme.instance.bodyLarge,
+                    ),
+                  ),
+                ),
+              ],
             ),
+            Spacer(),
           ],
-        ),
-        Spacer(),
-      ],
+        );
+      },
     );
   }
 }

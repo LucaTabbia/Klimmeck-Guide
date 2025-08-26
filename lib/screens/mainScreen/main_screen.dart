@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
-import 'package:klimmeck_guide/screens/mainScreen/components/radial_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 
 import '../../shared/components/kg_error.dart';
 import '../../shared/components/kg_loader.dart';
@@ -20,12 +23,21 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMixin {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late AnimationController _animationController;
+  late Animation<double> _opacityAnimation;
   late PageController pageController;
   int currentPage = 0;
 
   @override
   void initState() {
+    _animationController = AnimationController(duration: Duration(milliseconds: 500), vsync: this);
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.linear));
+
     pageController = PageController(initialPage: 0);
     pageController.addListener(() {
       setState(() {
@@ -44,7 +56,7 @@ class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMi
         if (state is MainScreenLoadData) {
           return Scaffold(
             body: Stack(
-              alignment: Alignment.bottomLeft,
+              alignment: Alignment.topLeft,
               children: [
                 PageView(
                   physics: const NeverScrollableScrollPhysics(),
@@ -52,10 +64,15 @@ class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMi
                   onPageChanged: onPageChanged,
                   children: _buildPages(state.character, state.cities),
                 ),
-                Positioned(
-                  left: -110,
-                  bottom: -60,
-                  child: RadialMenu(currentPage: currentPage, onItemTap: onItemTap),
+                MenuBackground(
+                  selectedIndex: currentPage,
+                  onTap: onItemTap,
+                  opacityAnimation: _opacityAnimation,
+                ),
+                SatchelMenu(
+                  currentPage: currentPage,
+                  onItemTap: onItemTap,
+                  parentAnimationController: _animationController,
                 ),
               ],
             ),
@@ -101,6 +118,8 @@ class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMi
       Profile(character: character),
       Journal(character: character),
       Library(),
+      Board(),
+      Shop(),
     ];
   }
 
@@ -112,6 +131,7 @@ class _MainScreenState extends State<MainScreen> with AutomaticKeepAliveClientMi
 
   Future<void> onItemTap(int index) async {
     FocusScopeNode currentFocus = FocusScope.of(context);
+
     if (!currentFocus.hasPrimaryFocus) {
       currentFocus.unfocus();
     }

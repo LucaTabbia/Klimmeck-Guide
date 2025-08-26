@@ -18,27 +18,51 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20.0, top: 10),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height - 80,
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ProfileImage(),
-                  TextSection(sectionName: "Nome", data: widget.character.name),
-                  TextSection(sectionName: "Razza", data: widget.character.race.label),
-                  TextSection(sectionName: "Classe", data: widget.character.classType.label),
-                  TextSection(sectionName: "Età (anni)", data: widget.character.age.toString()),
-                  TextSection(sectionName: "Background", data: widget.character.background),
-                  SizedBox(height: 80),
-                ],
-              ),
+    return Container(
+      decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height - 80,
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 40),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      ProfileImage(),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width - 300,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: Column(
+                            children: [
+                              TextSection(sectionName: "Nome", data: widget.character.name ?? ""),
+                              TextSection(
+                                sectionName: "Razza",
+                                data: widget.character.race?.label ?? "",
+                              ),
+                              TextSection(
+                                sectionName: "Classe",
+                                data: widget.character.classType?.label ?? "",
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                TextSection(sectionName: "Età (anni)", data: widget.character.age.toString()),
+                TextSection(sectionName: "Background", data: widget.character.background ?? ""),
+                SizedBox(height: 80),
+              ],
             ),
           ),
         ),

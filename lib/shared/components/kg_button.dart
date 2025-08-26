@@ -16,12 +16,13 @@ class KGButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 42,
         decoration: BoxDecoration(
-            color: color ?? KlimmeckGuideTheme.primaryGold,
-            borderRadius: const BorderRadius.all(Radius.circular(KlimmeckGuideTheme.radius))),
+          color: KlimmeckGuideTheme.parchment,
+          border: Border.all(color: KlimmeckGuideTheme.darkBronze),
+          borderRadius: const BorderRadius.all(Radius.circular(KlimmeckGuideTheme.radius)),
+        ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 35),
+          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15),
           child: Center(
             child: AutoSizeText(
               text,

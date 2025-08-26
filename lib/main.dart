@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/repository/services/api.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -29,8 +30,8 @@ Future<void> main() async {
   );
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]).then((_) {
     runApp(const KlimmeckGuideApp());
   });
@@ -75,7 +76,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
-        BlocProvider<MainScreenCubit>(create: (context) => MainScreenCubit(api)),
+        BlocProvider<MainScreenCubit>(create: (context) => MainScreenCubit()),
+        BlocProvider<WorldMapCubit>(create: (context) => WorldMapCubit()),
         BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
         BlocProvider<SignInCubit>(create: (context) => SignInCubit(api)),
       ],
@@ -85,7 +87,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
             : const SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.light,
-                systemNavigationBarIconBrightness: Brightness.light,
+                systemNavigationBarIconBrightness: Brightness.dark,
+                systemNavigationBarColor: Colors.transparent,
               ),
         child: MaterialApp(
           theme: KlimmeckGuideTheme.instance.materialTheme,

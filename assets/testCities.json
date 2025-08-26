@@ -2,129 +2,149 @@
   "id": "1",
   "type": "liberiaCapital",
   "name": "Liberia",
-  "markerLocation": {"latitude": 62.0, "longitude": 15.0},
+  "image": "assets/images/liberia.png",
+  "size": 50,
+  "markerLocation": {"latitude": 64.0, "longitude": 24.1},
   "area": [
-    {"latitude": 57.0, "longitude": 10.0},
-    {"latitude": 67.0, "longitude": 20.0}
+    {"latitude": 59.0, "longitude": 10.0},
+    {"latitude": 69.0, "longitude": 20.0}
   ],
-  "relatedLore": [
-
-  ]
+  "relatedLore": {
+    "id": "1"
+  }
 },
   {
     "id": "2",
     "type": "mirwaCapital",
     "name": "Mirwen",
+    "image": "assets/images/mirwen.png",
+    "size": 60,
     "markerLocation": {"latitude": 53.0, "longitude": 81.0},
     "area": [
       {"latitude": 48.0, "longitude": 78.0},
       {"latitude": 58.0, "longitude": 88.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "2"
+    }
   },
   {
     "id": "3",
     "type": "drusteaCapital",
     "name": "Cliffbreak",
-    "markerLocation": {"latitude": 72.0, "longitude": 75.0},
+    "image": "assets/images/cliffbreak.png",
+    "size": 55,
+    "markerLocation": {"latitude": 70.0, "longitude": 75.0},
     "area": [
-      {"latitude": 75.0, "longitude": 83.0},
-      {"latitude": 85.0, "longitude": 73.0}
+      {"latitude": 65.0, "longitude": 83.0},
+      {"latitude": 75.0, "longitude": 73.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "3"
+    }
   },
   {
     "id": "4",
     "type": "flameNorthCapital",
     "name": "Bellport",
-    "markerLocation": {"latitude": 53.0, "longitude": 142.0},
+    "image": "assets/images/bellport.png",
+    "size": 44,
+    "markerLocation": {"latitude": 53.0, "longitude": 135.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "4"
+    }
   },
   {
     "id": "5",
     "type": "harkenCity",
     "name": "Ferrion",
-    "markerLocation": {"latitude": 79.0, "longitude": 118.0},
+    "image": "assets/images/ferrion.png",
+    "size": 53,
+    "markerLocation": {"latitude": 77.1, "longitude": 110.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "5"
+    }
   },
   {
     "id": "6",
     "type": "motherCapital",
     "name": "Morrulir",
-    "markerLocation": {"latitude": 66.0, "longitude": 43.0},
+    "image": "assets/images/morrulir.png",
+    "size": 60,
+    "markerLocation": {"latitude": 64.0, "longitude": 47.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "6"
+    }
   },
   {
     "id": "7",
     "type": "necrorianCity",
     "name": "Necrorian",
-    "markerLocation": {"latitude": 72.5, "longitude": 128.0},
+    "image": "assets/images/necrorian.png",
+    "size": 60,
+    "markerLocation": {"latitude": 72.4, "longitude": 123.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "7"
+    }
   },
   {
     "id": "8",
     "type": "talmvereVillage",
     "name": "Talmvere",
-    "markerLocation": {"latitude": 61.0, "longitude": 55.0},
+    "image": "assets/images/talmvere.png",
+    "size": 40,
+    "markerLocation": {"latitude": 59.0, "longitude": 59.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "8"
+    }
   },
   {
     "id": "9",
     "type": "valanCapital",
     "name": "Valantar",
-    "markerLocation": {"latitude": 34.0, "longitude": 68.0},
+    "image": "assets/images/valantar.png",
+    "size": 70,
+    "markerLocation": {"latitude": 37.0, "longitude": 72.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "9"
+    }
   },
   {
     "id": "10",
     "type": "flameCenterCapital",
     "name": "Virnen",
-    "markerLocation": {"latitude": 19.0, "longitude": 152.0},
+    "image": "assets/images/virnen.png",
+    "size": 40,
+    "markerLocation": {"latitude": 25.0, "longitude": 145.0},
     "area": [
       {"latitude": 60.0, "longitude": 155.0},
       {"latitude": 70.0, "longitude": 165.0}
     ],
-    "relatedLore": [
-
-    ]
+    "relatedLore": {
+      "id": "10"
+    }
   }]

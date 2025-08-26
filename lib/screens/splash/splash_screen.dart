@@ -44,6 +44,12 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(AssetImage('assets/images/worldMap.png'), context);
+  }
+
   Future<void> getConfigurations() async {
     final status = await Permission.notification.status;
     if (status.isDenied || status.isPermanentlyDenied) {
@@ -75,7 +81,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> goToPage() async {
-    navigatorKey.currentState?.pushReplacement(mainScreenRoute());
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      navigatorKey.currentState?.pushReplacement(mainScreenRoute());
+    });
     /*var showOnBoarding = await KGStorageManager.getShowOnBoarding();
     Timer(const Duration(seconds: 3), () async {
       if (showOnBoarding == null || showOnBoarding == true) {
@@ -105,16 +113,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> firebaseConfiguration() async {
-    var initializationSettingsAndroid =
-        const AndroidInitializationSettings('@drawable/lucy_icona_app');
+    var initializationSettingsAndroid = const AndroidInitializationSettings(
+      '@drawable/lucy_icona_app',
+    );
 
     var initializationSettingsIOs = const DarwinInitializationSettings();
 
     var initSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOs);
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOs,
+    );
 
-    var isInitialized =
-        await flutterLocalNotificationsPlugin.initialize(initSettings);
+    var isInitialized = await flutterLocalNotificationsPlugin.initialize(initSettings);
     if (isInitialized == true) {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         AndroidNotification? android = message.notification?.android;
@@ -135,24 +145,19 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       });
 
-      FirebaseMessaging.onMessageOpenedApp
-          .listen((RemoteMessage message) async {
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
         onSelectNotification(jsonEncode(message.data));
       });
 
-      FirebaseMessaging.instance
-          .getInitialMessage()
-          .then((RemoteMessage? message) => {
-                if (message == null)
-                  {goToPage()}
-                else
-                  {onSelectNotification(jsonEncode(message.data))}
-              });
+      FirebaseMessaging.instance.getInitialMessage().then(
+        (RemoteMessage? message) => {
+          if (message == null) {goToPage()} else {onSelectNotification(jsonEncode(message.data))},
+        },
+      );
 
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
       await getFirebaseToken();
     }
@@ -184,18 +189,20 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void showNotification(RemoteMessage message) async {
     var notificationsChannel = AndroidNotificationDetails(
-        channel.id, channel.name,
-        channelDescription: channel.description,
-        importance: Importance.max,
-        priority: Priority.high);
+      channel.id,
+      channel.name,
+      channelDescription: channel.description,
+      importance: Importance.max,
+      priority: Priority.high,
+    );
     var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
     var platformChannelSpecifics = NotificationDetails(
-        android: notificationsChannel, iOS: iOSPlatformChannelSpecifics);
+      android: notificationsChannel,
+      iOS: iOSPlatformChannelSpecifics,
+    );
     String title = message.data['title'] ?? message.notification?.title ?? '';
-    String body = message.data['message'] ??
-        message.data['body'] ??
-        message.notification?.body ??
-        '';
+    String body =
+        message.data['message'] ?? message.data['body'] ?? message.notification?.body ?? '';
     await flutterLocalNotificationsPlugin.show(
       message.messageId.hashCode,
       title,

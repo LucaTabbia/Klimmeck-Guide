@@ -19,34 +19,36 @@ class EquipmentItem {
   });
 
   final String id;
-  final String name;
-  final EquipType equipType;
+  final String? name;
+  final EquipType? equipType;
   final Spell? addedSpell;
-  final List<DamageType> baseTypes;
+  final List<DamageType>? baseTypes;
   final EnergyType? energyType;
-  final int basePower;
-  final int energyPower;
-  final int sellPrice;
-  final int buyPrice;
+  final int? basePower;
+  final int? energyPower;
+  final int? sellPrice;
+  final int? buyPrice;
 
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
     name: json['name'],
-    baseTypes: List<DamageType>.from(json['baseTypes'].map((x) => DamageType.values.byName(x))),
-    equipType: EquipType.values.byName(json['equipType']),
+    baseTypes: json['baseTypes'] != null
+        ? List<DamageType>.from(json['baseTypes'].map((x) => DamageType.values.byName(x)))
+        : [],
+    equipType: json['equipType'] != null ? EquipType.values.byName(json['equipType']) : null,
     energyType: json['energyType'] != null ? EnergyType.values.byName(json['energyType']) : null,
     addedSpell: json['addedSpell'] != null ? Spell.fromJson(json['addedSpell']) : null,
-    energyPower: (json['energyPower'] as num).toInt(),
-    basePower: (json['basePower'] as num).toInt(),
-    sellPrice: (json['sellPrice'] as num).toInt(),
-    buyPrice: (json['buyPrice'] as num).toInt(),
+    energyPower: json['energyPower'] != null ? (json['energyPower'] as num).toInt() : null,
+    basePower: json['basePower'] != null ? (json['basePower'] as num).toInt() : null,
+    sellPrice: json['sellPrice'] != null ? (json['sellPrice'] as num).toInt() : null,
+    buyPrice: json['buyPrice'] != null ? (json['buyPrice'] as num).toInt() : null,
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
-    'baseTypes': baseTypes.map((s) => s.name).toList(),
-    'equipType': equipType.name,
+    'baseTypes': baseTypes?.map((s) => s.name).toList(),
+    'equipType': equipType?.name,
     'energyType': energyType?.name,
     'addedSpell': addedSpell?.toJson(),
     'energyPower': energyPower,

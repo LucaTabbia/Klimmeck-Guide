@@ -16,13 +16,17 @@
     "name": "Palla di fuoco",
     "useType": "attack",
     "energyType": "fire",
-    "power": 1000
+    "power": 1000,
+    "requiredLearnTime": 150000,
+    "minXpToLearn": 20000
   },{
     "id": "14",
     "name": "Dardo incantato",
     "useType": "attack",
     "energyType": "none",
-    "power": 100
+    "power": 100,
+    "requiredLearnTime": 10000,
+    "minXpToLearn": 5000
   }],
   "ownedEquipment": [
     {
@@ -36,7 +40,9 @@
         "name": "Darkvision",
         "useType": "defense",
         "energyType": "enhancing",
-        "power": 100
+        "power": 100,
+        "requiredLearnTime": 10000,
+        "minXpToLearn": 5000
       },
       "energyPower": 500,
       "basePower": 1000,
@@ -67,7 +73,9 @@
         "name": "Darkvision",
         "useType": "defense",
         "energyType": "enhancing",
-        "power": 100
+        "power": 100,
+        "requiredLearnTime": 10000,
+        "minXpToLearn": 5000
       },
       "energyPower": 500,
       "basePower": 1000,
@@ -88,5 +96,6 @@
   "ownedLoot": [],
   "injuries": ["headConcussion", "deepCut"],
   "currentLifePoints": 30000,
-  "maxLifePoints": 40000
+  "maxLifePoints": 40000,
+  "title": "legend"
 }

@@ -22,46 +22,50 @@ class Enemy {
   });
 
   final String id;
-  final List<LatLng> locations;
-  final String name;
-  final List<EnergyType> energyWeaknesses;
-  final List<DamageType> baseWeaknesses;
-  final List<Lore> relatedLore;
-  final int xp;
+  final List<LatLng>? locations;
+  final String? name;
+  final List<EnergyType>? energyWeaknesses;
+  final List<DamageType>? baseWeaknesses;
+  final List<Lore>? relatedLore;
+  final int? xp;
   final String? imagePath;
-  List<Spell> spells = const [];
-  int lifePoints;
+  List<Spell>? spells = const [];
+  int? lifePoints;
 
   File? get image => imagePath != null ? File(imagePath!) : null;
 
   factory Enemy.fromJson(Map<String, dynamic> json) => Enemy(
     id: json["id"],
     name: json["name"],
-    locations: List<LatLng>.from(
-      json['locations'].map((x) => LatLng(x['latitude'], x['longitude'])),
-    ),
-    energyWeaknesses: List<EnergyType>.from(
-      json["energyWeaknesses"].map((x) => EnergyType.values.byName(x)),
-    ),
-    baseWeaknesses: List<DamageType>.from(
-      json["baseWeaknesses"].map((x) => DamageType.values.byName(x)),
-    ),
-    relatedLore: List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x))),
-    xp: json["xp"].toInt(),
-    spells: List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x))),
-    lifePoints: json["lifePoints"].toInt(),
+    locations: json['locations'] != null
+        ? List<LatLng>.from(json['locations'].map((x) => LatLng(x['latitude'], x['longitude'])))
+        : [],
+    energyWeaknesses: json['energyWeaknesses'] != null
+        ? List<EnergyType>.from(json["energyWeaknesses"].map((x) => EnergyType.values.byName(x)))
+        : [],
+    baseWeaknesses: json['baseWeaknesses'] != null
+        ? List<DamageType>.from(json["baseWeaknesses"].map((x) => DamageType.values.byName(x)))
+        : [],
+    relatedLore: json['relatedLore'] != null
+        ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
+        : [],
+    xp: json["xp"]?.toInt(),
+    spells: json['spells'] != null
+        ? List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x)))
+        : [],
+    lifePoints: json["lifePoints"]?.toInt(),
     imagePath: json["imagePath"],
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
-    "locations": locations.map((s) => s.toJson()).toList(),
-    "energyWeaknesses": energyWeaknesses.map((s) => s.name).toList(),
-    "baseWeaknesses": baseWeaknesses.map((s) => s.name).toList(),
-    "relatedLore": relatedLore.map((s) => s.id).toList(),
+    "locations": locations?.map((s) => {"latitude": s.latitude, "longitude": s.longitude}).toList(),
+    "energyWeaknesses": energyWeaknesses?.map((s) => s.name).toList(),
+    "baseWeaknesses": baseWeaknesses?.map((s) => s.name).toList(),
+    "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "xp": xp,
-    "spells": spells.map((s) => s.id).toList(),
+    "spells": spells?.map((s) => s.id).toList(),
     "lifePoints": lifePoints,
     "imagePath": imagePath,
   };

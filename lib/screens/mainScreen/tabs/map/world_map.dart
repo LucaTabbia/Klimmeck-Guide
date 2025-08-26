@@ -2,12 +2,17 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:klimmeck_guide/models/character.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_modal.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
+import '../../../../models/lore.dart';
+import 'components/city_card.dart';
 
 class WorldMap extends StatefulWidget {
   const WorldMap({super.key, required this.character, required this.cities});
@@ -24,22 +29,22 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
   double velocityX = 0.0;
   double velocityY = 0.0;
   Timer? smoothTimer;
+  double currentZoom = 3.06;
+
+  City? selectedCity;
+  Lore? selectedLore;
 
   late AnimationController animationController;
   late Animation<LatLng> latTween;
   late LatLng animationStart;
   late LatLng animationEnd;
 
-  // Modalità admin abilitata per drag
   bool adminMode = true;
   final MapController mapController = MapController();
 
   @override
   void initState() {
-    animationController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 100), // Puoi regolare la durata
-    );
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
 
     animationController.addListener(() {
       final LatLng current = latTween.value;
@@ -49,106 +54,174 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
   }
 
   @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FlutterMap(
-      mapController: mapController,
-      options: MapOptions(
-        initialCenter: LatLng(55, 90),
-        initialZoom: 3.06,
-        minZoom: 2.3,
-        maxZoom: 6.0,
-        interactionOptions: InteractionOptions(
-          flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
-          rotationThreshold: 0,
+    return BlocListener<WorldMapCubit, WorldMapState>(
+      listener: (context, state) {
+        if (state is WorldMapLoadData) {
+          setState(() {
+            selectedLore = state.lore;
+          });
+          showModalCityInfo();
+        }
+      },
+      child: FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          onPositionChanged: (camera, hasGesture) {
+            setState(() {
+              currentZoom = camera.zoom;
+            });
+          },
+          onTap: (tapPosition, latLong) {
+            if (selectedCity != null) {
+              setState(() {
+                selectedCity = null;
+              });
+            }
+          },
+          initialCenter: LatLng(55, 90),
+          initialZoom: 3.06,
+          minZoom: 2.3,
+          maxZoom: 6.0,
+          interactionOptions: InteractionOptions(
+            flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+            rotationThreshold: 0,
+          ),
+          cameraConstraint: CameraConstraint.contain(
+            bounds: LatLngBounds(LatLng(0, 0), LatLng(79.9, 180)),
+          ),
         ),
-        cameraConstraint: CameraConstraint.contain(
-          bounds: LatLngBounds(LatLng(-8, 0), LatLng(80.03, 180)),
-        ),
-      ),
-      children: [
-        OverlayImageLayer(
-          overlayImages: [
-            OverlayImage(
-              bounds: LatLngBounds(LatLng(0, 0), LatLng(80, 180)),
-              imageProvider: AssetImage('assets/images/worldMap.png'),
-            ),
-          ],
-        ),
+        children: [
+          OverlayImageLayer(
+            overlayImages: [
+              OverlayImage(
+                bounds: LatLngBounds(LatLng(0, 0), LatLng(80, 180)),
+                imageProvider: AssetImage('assets/images/worldMap.png'),
+              ),
+            ],
+          ),
+          MarkerLayer(
+            markers: widget.cities
+                .map(
+                  (city) => Marker(
+                    point: city.markerLocation!,
+                    height: 200,
+                    width: 200,
+                    child: CityMarker(
+                      city: city,
+                      zoom: currentZoom,
+                      onTap: () => setState(() {
+                        selectedCity = city;
+                      }),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          MarkerLayer(
+            markers: [
+              Marker(
+                point: widget.character.location!,
+                width: 60,
+                height: 60,
+                child: Draggable(
+                  feedback: Icon(Icons.person_pin_circle, color: Colors.red, size: 40),
+                  childWhenDragging: Opacity(
+                    opacity: 0,
+                    child: Icon(Icons.person_pin_circle, size: 40),
+                  ),
+                  onDragUpdate: (details) {
+                    final renderObject = context.findRenderObject();
+                    if (!mounted || renderObject == null) return;
 
-        // Marker città (cliccabili)
-        MarkerLayer(
-          markers: widget.cities
-              .map(
-                (city) => CityMarker.build(
-                  city: city,
-                  zoom: context.findRenderObject() != null ? mapController.camera.zoom : 3.2,
-                ),
-              )
-              .toList(),
-        ),
+                    if (renderObject is RenderBox &&
+                        renderObject.hasSize &&
+                        renderObject.attached) {
+                      final RenderBox mapRenderBox = renderObject;
+                      final Offset localOffsetOnMap = mapRenderBox.globalToLocal(
+                        details.globalPosition,
+                      );
 
-        // Marker posizione utente (può essere trascinato in modalità admin)
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: widget.character.location,
-              width: 60,
-              height: 60,
-              child: Draggable(
-                feedback: Icon(Icons.person_pin_circle, color: Colors.red, size: 40),
-                childWhenDragging: Opacity(
-                  opacity: 0,
-                  child: Icon(Icons.person_pin_circle, size: 40),
-                ),
-                onDragUpdate: (details) {
-                  final renderObject = context.findRenderObject();
-                  if (!mounted || renderObject == null) return;
+                      final LatLng newLatLng = mapController.camera.screenOffsetToLatLng(
+                        localOffsetOnMap,
+                      );
 
-                  if (renderObject is RenderBox && renderObject.hasSize && renderObject.attached) {
-                    final RenderBox mapRenderBox = renderObject;
-                    final Offset localOffsetOnMap = mapRenderBox.globalToLocal(
-                      details.globalPosition,
-                    );
+                      setState(() {
+                        widget.character.location = newLatLng;
+                      });
 
-                    final LatLng newLatLng = mapController.camera.screenOffsetToLatLng(
-                      localOffsetOnMap,
-                    );
+                      final Size screenSize = mapRenderBox.size;
+                      final Offset screenCenter = Offset(
+                        screenSize.width / 2,
+                        screenSize.height / 2,
+                      );
 
-                    setState(() {
-                      widget.character.location = newLatLng;
-                    });
+                      final Offset dragOffset = localOffsetOnMap - screenCenter;
+                      final LatLng newCenter = mapController.camera.screenOffsetToLatLng(
+                        screenCenter + dragOffset,
+                      );
 
-                    final Size screenSize = mapRenderBox.size;
-                    final Offset screenCenter = Offset(screenSize.width / 2, screenSize.height / 2);
+                      final LatLngBounds mapLimits = LatLngBounds(LatLng(0, 0), LatLng(80, 180));
 
-                    final Offset dragOffset = localOffsetOnMap - screenCenter;
-                    final LatLng newCenter = mapController.camera.screenOffsetToLatLng(
-                      screenCenter + dragOffset,
-                    );
+                      final LatLng clampedCenter = LatLng(
+                        newCenter.latitude.clamp(mapLimits.south, mapLimits.north),
+                        newCenter.longitude.clamp(mapLimits.west, mapLimits.east),
+                      );
 
-                    final LatLngBounds mapLimits = LatLngBounds(LatLng(0, 0), LatLng(80, 180));
-
-                    final LatLng clampedCenter = LatLng(
-                      newCenter.latitude.clamp(mapLimits.south, mapLimits.north),
-                      newCenter.longitude.clamp(mapLimits.west, mapLimits.east),
-                    );
-
-                    animateMapTo(clampedCenter);
-                  }
-                },
-                onDragEnd: (details) {
-                  stopSmoothAnimation();
-                },
-                child: Icon(
-                  Icons.person_pin_circle,
-                  color: adminMode ? Colors.red : Colors.green,
-                  size: 40,
+                      animateMapTo(clampedCenter);
+                    }
+                  },
+                  onDragEnd: (details) {
+                    stopAnimation();
+                  },
+                  child: Icon(
+                    Icons.person_pin_circle,
+                    color: adminMode ? Colors.red : Colors.green,
+                    size: 40,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+          if (selectedCity != null) getSelectedCityCard(),
+        ],
+      ),
+    );
+  }
+
+  void showModalCityInfo() {
+    if (selectedCity != null && selectedLore != null) {
+      showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext context) {
+          return CityModal(city: selectedCity!, lore: selectedLore!);
+        },
+      );
+    }
+  }
+
+  Positioned getSelectedCityCard() {
+    Offset startOffset = mapController.camera
+        .latLngToScreenOffset(selectedCity!.markerLocation!)
+        .translate(-100.0, -155.0);
+
+    if (startOffset.dy <= 40) {
+      startOffset = startOffset.translate(0.0, 190.0);
+    }
+    return Positioned(
+      left: startOffset.dx,
+      top: startOffset.dy,
+      child: CityCard(
+        city: selectedCity!,
+        onTap: () => context.read<WorldMapCubit>().loadLoreData(selectedCity!.relatedLore!.id),
+      ),
     );
   }
 
@@ -190,18 +263,12 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
     });
   }
 
-  void stopSmoothAnimation() {
+  void stopAnimation() {
     velocityX = 0.0;
     velocityY = 0.0;
 
     smoothTimer?.cancel();
     smoothTimer = null;
-  }
-
-  @override
-  void dispose() {
-    animationController.dispose();
-    super.dispose();
   }
 }
 
