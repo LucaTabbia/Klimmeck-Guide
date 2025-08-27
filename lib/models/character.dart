@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'coins.dart';
 import 'enums/class_type.dart';
 import 'enums/title_type.dart';
 
@@ -49,7 +50,7 @@ class Character {
   List<Spell>? spells = const [];
   List<EquipmentItem>? ownedEquipment = const [];
   Equipment? wearedEquipment;
-  int? coins;
+  Coins? coins;
   int? currentLifePoints;
   int? maxLifePoints;
   Pet? pet;
@@ -67,7 +68,7 @@ class Character {
         : null,
     age: json["age"]?.toInt(),
     xp: json["xp"]?.toInt(),
-    coins: json["coins"]?.toInt(),
+    coins: json['coins'] != null ? Coins.fromJson(json["coins"]) : null,
     background: json["background"],
     spells: json['spells'] != null
         ? List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x)))
@@ -106,7 +107,7 @@ class Character {
     "ownedEquipment": ownedEquipment?.map((s) => s.id).toList(),
     "wearedEquipment": wearedEquipment?.toJson(),
     "imagePath": imagePath,
-    "coins": coins,
+    "coins": coins?.toJson(),
     "injuries": injuries?.map((e) => e.name).toList(),
     "currentLifePoints": currentLifePoints,
     "maxLifePoints": maxLifePoints,

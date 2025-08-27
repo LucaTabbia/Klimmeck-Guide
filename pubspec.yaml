@@ -68,3 +68,8 @@ flutter:
     - assets/testLore.json
     - assets/icons/appIcon/
     - assets/images/
+    - assets/images/menu/
+    - assets/images/placeholders/
+    - assets/images/cities/
+    - assets/images/library/
+    - assets/icons/svg/

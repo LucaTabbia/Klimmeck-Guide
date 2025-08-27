@@ -2,6 +2,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'character.dart';
+import 'coins.dart';
 import 'enemy.dart';
 import 'enums/quest_type.dart';
 import 'enums/title_type.dart';
@@ -40,7 +41,7 @@ class Quest {
   final LatLngBounds? area;
   final LatLng? markerLocation;
   final int? requiredPoints;
-  final int? prizeCoins;
+  final Coins? prizeCoins;
   final int? xpPrize;
   final EquipmentItem? prizeItem;
   final List<Lore>? relatedLore;
@@ -63,7 +64,7 @@ class Quest {
           : null,
       requiredPoints: (json["requiredPoints"] as num?)?.toInt(),
       area: bounds,
-      prizeCoins: (json["prizeCoins"] as num?)?.toInt(),
+      prizeCoins: json["prizeCoins"] != null ? Coins.fromJson(json["prizeCoins"]) : null,
       xpPrize: (json["xpPrize"] as num?)?.toInt(),
       prizeItem: json["prizeItem"] != null ? EquipmentItem.fromJson(json['prizeItem']) : null,
       relatedLore: json['relatedLore'] != null
@@ -98,7 +99,7 @@ class Quest {
             {"latitude": area!.northEast.latitude, "longitude": area!.northEast.longitude},
           ]
         : null,
-    "prizeCoins": prizeCoins,
+    "prizeCoins": prizeCoins?.toJson(),
     "xpPrize": xpPrize,
     "prizeItem": prizeItem?.id,
     "relatedLore": relatedLore?.map((s) => s.id).toList(),

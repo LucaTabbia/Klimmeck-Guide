@@ -1,10 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_section.dart';
+import 'package:klimmeck_guide/shared/components/background_image.dart';
 
 import '../../../theme/kg_theme.dart';
 
-class MenuBackground extends StatefulWidget {
+class MenuBackground extends StatelessWidget {
   const MenuBackground({
     super.key,
     required this.selectedIndex,
@@ -17,27 +18,17 @@ class MenuBackground extends StatefulWidget {
   final Animation<double> opacityAnimation;
 
   @override
-  State<MenuBackground> createState() => _MenuBackgroundState();
-}
-
-class _MenuBackgroundState extends State<MenuBackground> {
-  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.opacityAnimation,
+      animation: opacityAnimation,
       builder: (context, child) {
-        return Stack(
-          children: [
-            Opacity(
-              opacity: widget.opacityAnimation.value,
-              child: SizedBox(
-                width: widget.opacityAnimation.value < 1.0 ? 0 : double.infinity,
-                child: Image.asset('assets/images/menuBackground.png', fit: BoxFit.cover),
-              ),
-            ),
-            SizedBox(
-              width: widget.opacityAnimation.value < 1.0 ? 0 : double.infinity,
-              height: widget.opacityAnimation.value < 1.0 ? 0 : double.infinity,
+        return Opacity(
+          opacity: opacityAnimation.value,
+          child: BackgroundImage(
+            size: opacityAnimation.value == 0 ? 0 : double.infinity,
+            child: SizedBox(
+              width: opacityAnimation.value == 0 ? 0 : double.infinity,
+              height: opacityAnimation.value == 0 ? 0 : double.infinity,
               child: Row(
                 children: [
                   SizedBox(
@@ -70,9 +61,9 @@ class _MenuBackgroundState extends State<MenuBackground> {
                     children: [
                       Row(
                         children: [
-                          MenuSection("Mappa", onTap: widget.onTap, index: 0),
-                          MenuSection("Profilo", onTap: widget.onTap, index: 1),
-                          MenuSection("Diario", onTap: widget.onTap, index: 2),
+                          MenuSection("Mappa", onTap: onTap, index: 0),
+                          MenuSection("Profilo", onTap: onTap, index: 1),
+                          MenuSection("Diario", onTap: onTap, index: 2),
                         ],
                       ),
                       Container(
@@ -85,9 +76,9 @@ class _MenuBackgroundState extends State<MenuBackground> {
                       ),
                       Row(
                         children: [
-                          MenuSection("Libreria", onTap: widget.onTap, index: 3),
-                          MenuSection("Bacheca", onTap: widget.onTap, index: 4),
-                          MenuSection("Negozio", onTap: widget.onTap, index: 5),
+                          MenuSection("Libreria", onTap: onTap, index: 3),
+                          MenuSection("Bacheca", onTap: onTap, index: 4),
+                          MenuSection("Negozio", onTap: onTap, index: 5),
                         ],
                       ),
                     ],
@@ -95,7 +86,7 @@ class _MenuBackgroundState extends State<MenuBackground> {
                 ],
               ),
             ),
-          ],
+          ),
         );
       },
     );

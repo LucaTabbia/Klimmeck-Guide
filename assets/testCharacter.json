@@ -46,8 +46,16 @@
       },
       "energyPower": 500,
       "basePower": 1000,
-      "buyPrice": 500,
-      "sellPrice": 150
+      "buyPrice": {
+        "gold": 0,
+        "silver": 2,
+        "copper": 3000
+      },
+      "sellPrice": {
+        "gold": 0,
+        "silver": 0,
+        "copper": 9000
+      }
     },
     {
       "id": "15",
@@ -58,8 +66,16 @@
       "addedSpell": null,
       "energyPower": 0,
       "basePower": 1000,
-      "buyPrice": 1000,
-      "sellPrice": 200
+      "buyPrice": {
+        "gold": 0,
+        "silver": 5,
+        "copper": 6500
+      },
+      "sellPrice": {
+        "gold": 100,
+        "silver": 90,
+        "copper": 9000
+      }
     }],
   "wearedEquipment": {
     "head": {
@@ -79,8 +95,16 @@
       },
       "energyPower": 500,
       "basePower": 1000,
-      "buyPrice": 500,
-      "sellPrice": 150
+      "buyPrice": {
+        "gold": 0,
+        "silver": 2,
+        "copper": 3000
+      },
+      "sellPrice": {
+        "gold": 0,
+        "silver": 0,
+        "copper": 9000
+      }
     },
     "chest": null,
     "arms": null,
@@ -91,7 +115,11 @@
     "firstAccessory": null,
     "secondAccessory": null
   },
-  "coins": 30000,
+  "coins": {
+    "gold": 100,
+    "silver": 90,
+    "copper": 9000
+  },
   "pet": null,
   "ownedLoot": [],
   "injuries": ["headConcussion", "deepCut"],

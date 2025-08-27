@@ -2,13 +2,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-import '../../../../../models/city.dart';
 import '../../../../../models/lore.dart';
 
 class CityModal extends StatefulWidget {
-  const CityModal({super.key, required this.city, required this.lore});
+  const CityModal({super.key, required this.lore});
 
-  final City city;
   final Lore lore;
 
   @override
@@ -38,15 +36,15 @@ class _CityModalState extends State<CityModal> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              if (widget.city.image != null)
-                Image.asset(widget.city.image!, width: 200, height: 200),
+              if (widget.lore.image != null)
+                Image.asset(widget.lore.image!, width: 200, height: 200),
               AutoSizeText(
                 maxFontSize: 24,
-                widget.city.name ?? "",
+                widget.lore.name ?? "",
                 style: KlimmeckGuideTheme.instance.specialText.copyWith(fontSize: 24),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 10.0),
+                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0),
                 child: AutoSizeText(
                   maxFontSize: 18,
                   widget.lore.description ?? "",

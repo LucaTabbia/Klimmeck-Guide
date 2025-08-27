@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 
 class Lore {
   Lore({
+    required this.image,
     required this.id,
     required this.locations,
     required this.type,
@@ -14,6 +15,7 @@ class Lore {
 
   final String id;
   final LoreType? type;
+  final String? image;
   final List<LatLng>? locations;
   final String? name;
   final String? description;
@@ -32,6 +34,7 @@ class Lore {
         ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
         : [],
     unlocked: json["unlocked"] ?? false,
+    image: json["image"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -42,5 +45,6 @@ class Lore {
     "description": description,
     "locations": locations?.map((s) => {"latitude": s.latitude, "longitude": s.longitude}).toList(),
     "unlocked": unlocked,
+    "image": image,
   };
 }

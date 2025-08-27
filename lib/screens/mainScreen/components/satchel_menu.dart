@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class SatchelMenu extends StatefulWidget {
@@ -18,13 +19,37 @@ class SatchelMenu extends StatefulWidget {
 }
 
 class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin {
-  final double radius = 150.0;
-  double itemSize = 100.0;
   late AnimationController _animationController;
   late AnimationController _itemAnimationController;
-
   late Animation<double> _sizeAnimation;
 
+  final double _itemSize = 100.0;
+  final List menuImages = [
+    {
+      "selectedImagePath": "assets/images/menu/menuMap.png",
+      "unselectedImagePath": "assets/images/menu/menuMap.png",
+    },
+    {
+      "selectedImagePath": "assets/images/menu/mirror.png",
+      "unselectedImagePath": "assets/images/menu/mirror.png",
+    },
+    {
+      "selectedImagePath": "assets/images/menu/journal.png",
+      "unselectedImagePath": "assets/images/menu/journal.png",
+    },
+    {
+      "selectedImagePath": "assets/images/menu/library.png",
+      "unselectedImagePath": "assets/images/menu/library.png",
+    },
+    {
+      "selectedImagePath": "assets/images/menu/board.png",
+      "unselectedImagePath": "assets/images/menu/board.png",
+    },
+    {
+      "selectedImagePath": "assets/images/menu/shop.png",
+      "unselectedImagePath": "assets/images/menu/shop.png",
+    },
+  ];
   bool _isOpen = false;
   bool _showItems = false;
 
@@ -38,8 +63,8 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
     );
 
     _sizeAnimation = Tween<double>(
-      begin: itemSize / 2,
-      end: itemSize,
+      begin: _itemSize / 2,
+      end: _itemSize,
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
 
     _animationController.addStatusListener((status) {
@@ -104,12 +129,19 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
         child: Stack(
           alignment: Alignment.bottomLeft,
           children: [
-            _buildRadialItem('assets/images/menuMap.png', 'assets/images/menuMap.png', 0),
-            _buildRadialItem('assets/images/mirror.png', 'assets/images/mirror.png', 1),
-            _buildRadialItem('assets/images/journal.png', 'assets/images/journal.png', 2),
-            _buildRadialItem('assets/images/library.png', 'assets/images/library.png', 3),
-            _buildRadialItem('assets/images/board.png', 'assets/images/board.png', 4),
-            _buildRadialItem('assets/images/shop.png', 'assets/images/shop.png', 5),
+            ...List.generate(menuImages.length, (index) {
+              final images = menuImages[index];
+              return MenuItem(
+                imagePath: index == widget.currentPage
+                    ? images["selectedImagePath"]
+                    : images["unselectedImagePath"],
+                index: index,
+                onTap: _selectItem,
+                itemAnimationController: _itemAnimationController,
+                itemSize: _itemSize,
+                showItems: _showItems,
+              );
+            }),
             LayoutBuilder(
               builder: (context, constraints) {
                 final screenHeight = constraints.maxHeight;
@@ -146,7 +178,7 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                              child: Image.asset("assets/images/pouch.png"),
+                              child: Image.asset("assets/images/menu/pouch.png"),
                             ),
                           ),
                         ),
@@ -159,72 +191,6 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
           ],
         ),
       ),
-    );
-  }
-
-  List<double> _parabolaCoefficients(Offset start, Offset end, double apexHeight) {
-    double x0 = start.dx, y0 = start.dy;
-    double x2 = end.dx, y2 = end.dy;
-    double xm = (x0 + x2) / 2;
-    double ym = apexHeight;
-
-    double a =
-        ((y2 - y0) * (x0 - xm) - (ym - y0) * (x0 - x2)) /
-        ((x2 * x2 - x0 * x0) * (x0 - xm) - (xm * xm - x0 * x0) * (x0 - x2));
-    double b = (ym - y0 - a * (xm * xm - x0 * x0)) / (xm - x0);
-    double c = y0 - a * x0 * x0 - b * x0;
-
-    return [a, b, c];
-  }
-
-  Offset _pointOnParabola(double x, List<double> coeffs) {
-    double a = coeffs[0], b = coeffs[1], c = coeffs[2];
-    double y = a * x * x + b * x + c;
-    return Offset(x, y);
-  }
-
-  Widget _buildRadialItem(String selectedSvg, String unselectedSvg, int index) {
-    return AnimatedBuilder(
-      animation: _itemAnimationController,
-      builder: (context, child) {
-        final start = Offset(25, -(MediaQuery.of(context).size.height / 2) + 50);
-        double distance;
-        Offset end;
-        if (index <= 2) {
-          distance = 150.0 + 25 + (50 * (index)) + (itemSize * (index));
-          end = Offset(distance, -((MediaQuery.of(context).size.height / 4 * 3)) + 50);
-        } else {
-          distance = 150.0 + 25 + (50 * (index - 3)) + (itemSize * (index - 3));
-          end = Offset(distance, -((MediaQuery.of(context).size.height / 4)) + 50);
-        }
-
-        final coefficients = _parabolaCoefficients(
-          start,
-          end,
-          -(MediaQuery.of(context).size.height / 2 + 100),
-        );
-        double progress = _itemAnimationController.value;
-        double x = start.dx + (end.dx - start.dx) * progress;
-        Offset pos = _pointOnParabola(x, coefficients);
-
-        return Transform.translate(
-          offset: pos,
-          child: GestureDetector(
-            onTap: () => _selectItem(index),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              width: _showItems ? itemSize : 0,
-              height: _showItems ? itemSize : 0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-
-                boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 7, offset: Offset(0, 2))],
-              ),
-              child: Image.asset(index == widget.currentPage ? selectedSvg : unselectedSvg),
-            ),
-          ),
-        );
-      },
     );
   }
 }

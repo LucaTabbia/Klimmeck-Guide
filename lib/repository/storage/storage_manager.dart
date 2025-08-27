@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:graphql/client.dart';
 import 'package:klimmeck_guide/models/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/lore_type.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../graphql/character_queries.dart';
@@ -124,6 +125,35 @@ class KGStorageManager {
       } else {
         return null;
       }
+    } catch (e) {
+      print('Errore nel parsing di Lore: $e');
+      return null;
+    }
+  }
+
+  static Future<List<Lore>?> getLoreByType(LoreType loreType) async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/testLore.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+
+      final loreListJson = jsonList.where(
+        (json) => json['type'] == loreType && json['unlocked'] == true,
+      );
+      return List<Lore>.from(loreListJson.map((x) => Lore.fromJson(x)));
+    } catch (e) {
+      print('Errore nel parsing di Lore: $e');
+      return null;
+    }
+  }
+
+  static Future<List<Lore>?> getLoreByTypes(List<LoreType> loreTypes) async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/testLore.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+      final loreList = jsonList.map((x) => Lore.fromJson(x)).toList();
+      return loreList.where((lore) {
+        return loreTypes.contains(lore.type) && lore.unlocked == true;
+      }).toList();
     } catch (e) {
       print('Errore nel parsing di Lore: $e');
       return null;

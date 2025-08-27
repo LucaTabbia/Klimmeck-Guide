@@ -196,12 +196,12 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
   }
 
   void showModalCityInfo() {
-    if (selectedCity != null && selectedLore != null) {
+    if (selectedLore != null) {
       showModalBottomSheet(
         isScrollControlled: true,
         context: context,
         builder: (BuildContext context) {
-          return CityModal(city: selectedCity!, lore: selectedLore!);
+          return CityModal(lore: selectedLore!);
         },
       );
     }
@@ -226,7 +226,14 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
   }
 
   void animateMapTo(LatLng target) {
-    lastTarget = target;
+    final LatLngBounds mapLimits = LatLngBounds(LatLng(0, 0), LatLng(79.9, 180));
+
+    final clampedTarget = LatLng(
+      target.latitude.clamp(mapLimits.south, mapLimits.north),
+      target.longitude.clamp(mapLimits.west, mapLimits.east),
+    );
+
+    lastTarget = clampedTarget;
 
     if (smoothTimer?.isActive == true) return;
 
@@ -256,8 +263,8 @@ class _WorldMapState extends State<WorldMap> with SingleTickerProviderStateMixin
       velocityX = (velocityX + deltaLng * acceleration) * damping;
       velocityY = (velocityY + deltaLat * acceleration) * damping;
 
-      final newLat = current.latitude + velocityY;
-      final newLng = current.longitude + velocityX;
+      final newLat = (current.latitude + velocityY).clamp(mapLimits.south, mapLimits.north);
+      final newLng = (current.longitude + velocityX).clamp(mapLimits.west, mapLimits.east);
 
       mapController.move(LatLng(newLat, newLng), mapController.camera.zoom);
     });

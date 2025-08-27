@@ -1,1 +1,1 @@
-enum TitleType { rookie, paladin, mage, hero, legend }
+enum TitleType { rookie, adventurer, paladin, mage, hero, legend }

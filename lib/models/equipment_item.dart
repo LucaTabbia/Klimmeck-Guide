@@ -1,6 +1,7 @@
 import 'package:klimmeck_guide/models/enums/damage_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 
+import 'coins.dart';
 import 'enums/energy_type.dart';
 import 'enums/equip_type.dart';
 
@@ -26,8 +27,8 @@ class EquipmentItem {
   final EnergyType? energyType;
   final int? basePower;
   final int? energyPower;
-  final int? sellPrice;
-  final int? buyPrice;
+  final Coins? sellPrice;
+  final Coins? buyPrice;
 
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
@@ -40,8 +41,8 @@ class EquipmentItem {
     addedSpell: json['addedSpell'] != null ? Spell.fromJson(json['addedSpell']) : null,
     energyPower: json['energyPower'] != null ? (json['energyPower'] as num).toInt() : null,
     basePower: json['basePower'] != null ? (json['basePower'] as num).toInt() : null,
-    sellPrice: json['sellPrice'] != null ? (json['sellPrice'] as num).toInt() : null,
-    buyPrice: json['buyPrice'] != null ? (json['buyPrice'] as num).toInt() : null,
+    sellPrice: json['sellPrice'] != null ? Coins.fromJson(json['sellPrice']) : null,
+    buyPrice: json['buyPrice'] != null ? Coins.fromJson(json['buyPrice']) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -53,7 +54,7 @@ class EquipmentItem {
     'addedSpell': addedSpell?.toJson(),
     'energyPower': energyPower,
     'basePower': basePower,
-    'sellPrice': sellPrice,
-    'buyPrice': buyPrice,
+    'sellPrice': sellPrice?.toJson(),
+    'buyPrice': buyPrice?.toJson(),
   };
 }

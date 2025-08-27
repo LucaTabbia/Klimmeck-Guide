@@ -20,7 +20,9 @@ class ProfileImage extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(30)),
           border: Border.all(color: KlimmeckGuideTheme.darkWood, width: 2),
         ),
-        child: image != null ? Image.file(image!) : Image.asset('assets/images/silhouette.jpeg'),
+        child: image != null
+            ? Image.file(image!)
+            : Image.asset('assets/images/placeholders/silhouette.jpeg'),
       ),
     );
   }
