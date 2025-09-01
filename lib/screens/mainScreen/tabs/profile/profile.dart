@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/class_type.dart';
+import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/components/profile_image.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
@@ -43,14 +44,17 @@ class _ProfileState extends State<Profile> {
                             padding: const EdgeInsets.only(left: 10.0),
                             child: Column(
                               children: [
-                                TextSection(sectionName: "Nome", data: widget.character.name ?? ""),
+                                TextSection(
+                                  sectionName: "Nome",
+                                  data: widget.character.infos?.name ?? "",
+                                ),
                                 TextSection(
                                   sectionName: "Razza",
-                                  data: widget.character.race?.label ?? "",
+                                  data: widget.character.infos?.race?.label ?? "",
                                 ),
                                 TextSection(
                                   sectionName: "Classe",
-                                  data: widget.character.classType?.label ?? "",
+                                  data: widget.character.infos?.classType?.label ?? "",
                                 ),
                               ],
                             ),
@@ -59,9 +63,18 @@ class _ProfileState extends State<Profile> {
                       ],
                     ),
                   ),
-
-                  TextSection(sectionName: "Età (anni)", data: widget.character.age.toString()),
-                  TextSection(sectionName: "Background", data: widget.character.background ?? ""),
+                  TextSection(
+                    sectionName: "Pronome",
+                    data: widget.character.infos?.pronoun?.label ?? "",
+                  ),
+                  TextSection(
+                    sectionName: "Età (anni)",
+                    data: widget.character.infos?.age.toString() ?? "",
+                  ),
+                  TextSection(
+                    sectionName: "Background",
+                    data: widget.character.infos?.background ?? "",
+                  ),
                   SizedBox(height: 80),
                 ],
               ),

@@ -1,25 +1,22 @@
+import 'package:klimmeck_guide/models/asset_item.dart';
+
 import 'coins.dart';
 import 'enums/effect_type.dart';
 import 'enums/rarity_type.dart';
 
-class LootItem {
+class LootItem extends AssetItem {
   LootItem({
-    required this.id,
-    required this.name,
-    required this.effect,
-    required this.rarity,
-    required this.buyPrice,
-    required this.sellPrice,
+    required super.id,
+    required super.name,
+    required super.rarity,
+    required super.buyPrice,
+    required super.sellPrice,
     required this.power,
+    required this.effect,
   });
 
   final EffectType? effect;
-  final RarityType? rarity;
-  final Coins? buyPrice;
-  final Coins? sellPrice;
   final int? power;
-  final String id;
-  final String? name;
 
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
     id: json["id"],

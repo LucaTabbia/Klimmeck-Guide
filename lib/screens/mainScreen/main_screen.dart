@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -62,7 +63,7 @@ class _MainScreenState extends State<MainScreen>
                   physics: const NeverScrollableScrollPhysics(),
                   controller: pageController,
                   onPageChanged: onPageChanged,
-                  children: _buildPages(state.character, state.cities),
+                  children: _buildPages(state.character, state.cities, state.quests),
                 ),
                 MenuBackground(
                   selectedIndex: currentPage,
@@ -112,13 +113,13 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
-  List<Widget> _buildPages(Character character, List<City> cities) {
+  List<Widget> _buildPages(Character character, List<City> cities, List<Quest> quests) {
     return [
-      WorldMap(character: character, cities: cities),
+      WorldMap(character: character, cities: cities, quests: quests),
       Profile(character: character),
       Journal(character: character),
       Library(),
-      Board(),
+      Board(quests: quests),
       Shop(),
     ];
   }

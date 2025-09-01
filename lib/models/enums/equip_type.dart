@@ -1,4 +1,4 @@
-enum EquipType { helm, chestPiece, boots, greaves, weapon, shield, gloves, accessory }
+enum EquipType { helm, chestPiece, boots, greaves, weapon, shield, gloves, ring, necklace }
 
 extension EquipTypeExtension on EquipType {
   String get label {
@@ -17,8 +17,10 @@ extension EquipTypeExtension on EquipType {
         return 'Arma';
       case EquipType.shield:
         return 'Scudo';
-      case EquipType.accessory:
-        return 'Accessorio';
+      case EquipType.ring:
+        return 'Anello';
+      case EquipType.necklace:
+        return 'Collana';
     }
   }
 }

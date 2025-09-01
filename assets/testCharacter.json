@@ -1,129 +1,133 @@
 {
   "id": "1",
-  "imagePath": null,
-  "name": "Reavor",
-  "race": "halfelf",
-  "classType": "rogue",
-  "location": {
-    "latitude": 55.0,
-    "longitude": 80.0
+  "infos": {
+    "imagePath": null,
+    "name": "Reavor",
+    "race": "halfelf",
+    "sex": "male",
+    "classType": "rogue",
+    "age": 30,
+    "background": "Un locandiere piuttosto giovane, ma con un passato oscuro e pieno di mistero. Si dice abbia combattuto in battaglie importanti per l'intero continente e che per questo sia una figura rinomata e molto rispettata anche dalle alte cariche"
   },
-  "age": 30,
-  "xp": 30000,
-  "background": "Un locandiere piuttosto giovane, ma con un passato oscuro e pieno di mistero. Si dice abbia combattuto in battaglie importanti per l'intero continente e che per questo sia una figura rinomata e molto rispettata anche dalle alte cariche",
-  "spells": [{
-    "id": "13",
-    "name": "Palla di fuoco",
-    "useType": "attack",
-    "energyType": "fire",
-    "power": 1000,
-    "requiredLearnTime": 150000,
-    "minXpToLearn": 20000
-  },{
-    "id": "14",
-    "name": "Dardo incantato",
-    "useType": "attack",
-    "energyType": "none",
-    "power": 100,
-    "requiredLearnTime": 10000,
-    "minXpToLearn": 5000
-  }],
-  "ownedEquipment": [
-    {
-      "id": "11",
-      "name": "Elmo di ferro",
-      "baseTypes": ["blunt", "cut"],
-      "equipType": "helm",
-      "energyType": "acid",
-      "addedSpell": {
-        "id": "12",
-        "name": "Darkvision",
-        "useType": "defense",
-        "energyType": "enhancing",
-        "power": 100,
-        "requiredLearnTime": 10000,
-        "minXpToLearn": 5000
-      },
-      "energyPower": 500,
-      "basePower": 1000,
-      "buyPrice": {
-        "gold": 0,
-        "silver": 2,
-        "copper": 3000
-      },
-      "sellPrice": {
-        "gold": 0,
-        "silver": 0,
-        "copper": 9000
-      }
+  "status": {
+    "location": {
+      "latitude": 55.0,
+      "longitude": 80.0
     },
-    {
-      "id": "15",
-      "name": "Elmo di ossidiana",
-      "baseTypes": ["blunt", "pierce", "cut"],
-      "equipType": "helm",
-      "energyType": null,
-      "addedSpell": null,
-      "energyPower": 0,
-      "basePower": 1000,
-      "buyPrice": {
-        "gold": 0,
-        "silver": 5,
-        "copper": 6500
-      },
-      "sellPrice": {
-        "gold": 100,
-        "silver": 90,
-        "copper": 9000
-      }
+    "xp": 30000,
+    "spells": [{
+      "id": "13",
+      "name": "Palla di fuoco",
+      "useType": "attack",
+      "energyType": "fire",
+      "power": 1000,
+      "requiredLearnTime": 150000,
+      "minXpToLearn": 20000
+    },{
+      "id": "14",
+      "name": "Dardo incantato",
+      "useType": "attack",
+      "energyType": "none",
+      "power": 100,
+      "requiredLearnTime": 10000,
+      "minXpToLearn": 5000
     }],
-  "wearedEquipment": {
-    "head": {
-      "id": "11",
-      "name": "Elmo di ferro",
-      "baseTypes": ["blunt"],
-      "equipType": "helm",
-      "energyType": "acid",
-      "addedSpell": {
-        "id": "12",
-        "name": "Darkvision",
-        "useType": "defense",
-        "energyType": "enhancing",
-        "power": 100,
-        "requiredLearnTime": 10000,
-        "minXpToLearn": 5000
+    "injuries": ["headConcussion", "deepCut"],
+    "currentLifePoints": 30000,
+    "maxLifePoints": 40000,
+    "title": "legend"
+  },
+  "assets": {
+    "ownedItems": [
+      {
+        "item": {
+          "id": "11"
+        },
+        "quantity": 1
       },
-      "energyPower": 500,
-      "basePower": 1000,
-      "buyPrice": {
-        "gold": 0,
-        "silver": 2,
-        "copper": 3000
+      {
+        "item": {
+          "id": "12"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "13"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "14"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "15"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "16"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "17"
+        },
+        "quantity": 1
+      },{
+        "item": {
+          "id": "18"
+        },
+        "quantity": 1
       },
-      "sellPrice": {
-        "gold": 0,
-        "silver": 0,
-        "copper": 9000
+      {
+        "item": {
+          "id": "19"
+        },
+        "quantity": 1
+      },
+      {
+        "item": {
+          "id": "20"
+        },
+        "quantity": 1
+      }
+    ],
+    "wearedEquipment": {
+      "head": {
+        "id": "11"
+      },
+      "chest": {
+        "id": "12"
+      },
+      "arms":  {
+        "id": "13"
+      },
+      "legs": {
+        "id": "14"
+      },
+      "foots":  {
+        "id": "15"
+      },
+      "leftHand":  {
+        "id": "16"
+      },
+      "rightHand":   {
+        "id": "17"
+      },
+      "firstAccessory":  {
+        "id": "18"
+      },
+      "secondAccessory":  {
+        "id": "19"
       }
     },
-    "chest": null,
-    "arms": null,
-    "legs": null,
-    "foots": null,
-    "leftHand": null,
-    "rightHand": null,
-    "firstAccessory": null,
-    "secondAccessory": null
-  },
-  "coins": {
-    "gold": 100,
-    "silver": 90,
-    "copper": 9000
-  },
-  "pet": null,
-  "ownedLoot": [],
-  "injuries": ["headConcussion", "deepCut"],
-  "currentLifePoints": 30000,
-  "maxLifePoints": 40000,
-  "title": "legend"
+    "coins": {
+      "gold": 100,
+      "silver": 90,
+      "copper": 9000
+    },
+    "pet": null
+  }
 }

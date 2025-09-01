@@ -1,0 +1,210 @@
+[
+  {
+    "id": "11",
+    "name": "Elmo di ferro",
+    "baseTypes": ["blunt", "cut"],
+    "equipType": "helm",
+    "energyType": "acid",
+    "addedSpell": {
+      "id": "12",
+      "name": "Darkvision",
+      "useType": "defense",
+      "energyType": "enhancing",
+      "power": 100,
+      "requiredLearnTime": 10000,
+      "minXpToLearn": 5000
+    },
+    "energyPower": 500,
+    "basePower": 1000,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 2,
+      "copper": 3000
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 9000
+    }
+  },
+  {
+    "id": "12",
+    "name": "Corazza di pelle",
+    "baseTypes": ["cut"],
+    "equipType": "chestPiece",
+    "energyType": null,
+    "addedSpell": null,
+    "energyPower": 0,
+    "basePower": 300,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 1000
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 200
+    }
+  },
+  {
+    "id": "13",
+    "name": "Guanti d'acciaio",
+    "baseTypes": ["cut", "pierce"],
+    "equipType": "gloves",
+    "energyType": null,
+    "addedSpell": null,
+    "energyPower": 0,
+    "basePower": 500,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 1800
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 600
+    }
+  },
+  {
+    "id": "14",
+    "name": "Gambali elfici",
+    "baseTypes": ["blunt", "pierce"],
+    "equipType": "greaves",
+    "energyType": "radiant",
+    "addedSpell": null,
+    "energyPower": 200,
+    "basePower": 1500,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 3,
+      "copper": 700
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 1,
+      "copper": 500
+    }
+  },
+  {
+    "id": "15",
+    "name": "Stivali di cuoio",
+    "baseTypes": ["cut"],
+    "equipType": "boots",
+    "energyType": null,
+    "addedSpell": null,
+    "energyPower": 0,
+    "basePower": 400,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 1500
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 300
+    }
+  },
+  {
+    "id": "16",
+    "name": "Pugnale d'ossidiana",
+    "baseTypes": ["cut", "pierce"],
+    "equipType": "weapon",
+    "energyType": "enhancing",
+    "addedSpell": null,
+    "energyPower": 3000,
+    "basePower": 4000,
+    "buyPrice": {
+      "gold": 4,
+      "silver": 5,
+      "copper": 8000
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 1
+    }
+  },
+  {
+    "id": "17",
+    "name": "Daga d'acciaio",
+    "baseTypes": ["cut", "pierce"],
+    "equipType": "weapon",
+    "energyType": "force",
+    "addedSpell": null,
+    "energyPower": 1000,
+    "basePower": 3000,
+    "buyPrice": {
+      "gold": 2,
+      "silver": 7,
+      "copper": 9900
+    },
+    "sellPrice": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 1
+    }
+  },
+  {
+  "id": "18",
+  "name": "Anello d'argento",
+  "baseTypes": [],
+  "equipType": "ring",
+  "energyType": "fire",
+  "addedSpell": null,
+  "energyPower": 500,
+  "basePower": 0,
+  "buyPrice": {
+    "gold": 0,
+    "silver": 5,
+    "copper": 4000
+  },
+  "sellPrice": {
+    "gold": 0,
+    "silver": 3,
+    "copper": 1250
+  }
+},
+  {
+  "id": "19",
+  "name": "Collana di Mirwa",
+  "baseTypes": [],
+  "equipType": "necklace",
+  "energyType": "poison",
+  "addedSpell": null,
+  "energyPower": 1000,
+  "basePower": 0,
+  "buyPrice": {
+    "gold": 0,
+    "silver": 8,
+    "copper": 7650
+  },
+  "sellPrice": {
+    "gold": 0,
+    "silver": 5,
+    "copper": 2000
+  }
+},
+  {
+    "id": "20",
+    "name": "Elmo di ossidiana",
+    "baseTypes": ["blunt", "pierce", "cut"],
+    "equipType": "helm",
+    "energyType": null,
+    "addedSpell": null,
+    "energyPower": 0,
+    "basePower": 1000,
+    "buyPrice": {
+      "gold": 0,
+      "silver": 5,
+      "copper": 6500
+    },
+    "sellPrice": {
+      "gold": 100,
+      "silver": 90,
+      "copper": 9000
+    }
+  }
+]

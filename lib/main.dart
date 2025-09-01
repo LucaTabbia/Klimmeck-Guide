@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/repository/services/api.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
@@ -81,6 +82,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
         BlocProvider<WorldMapCubit>(create: (context) => WorldMapCubit()),
         BlocProvider<LibraryCubit>(create: (context) => LibraryCubit()),
         BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
+        BlocProvider<JournalCubit>(create: (context) => JournalCubit()),
         BlocProvider<SignInCubit>(create: (context) => SignInCubit(api)),
       ],
       child: AnnotatedRegion<SystemUiOverlayStyle>(

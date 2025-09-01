@@ -2,13 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:graphql/client.dart';
-import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/graphql/quest_queries.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/enums/lore_type.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../graphql/character_queries.dart';
 import '../../graphql/city_queries.dart';
+import '../../models/equipment_item.dart';
 import '../../models/lore.dart';
 import '../../models/user.dart';
 
@@ -113,6 +116,12 @@ class KGStorageManager {
     return jsonList.map((json) => City.fromJson(json)).toList();
   }
 
+  static Future<List<Quest>?> getAllQuestsLocal() async {
+    final jsonString = await rootBundle.loadString('assets/testQuests.json');
+    final jsonList = jsonDecode(jsonString) as List<dynamic>;
+    return jsonList.map((x) => Quest.fromJson(x)).toList();
+  }
+
   static Future<Lore?> getLoreById(String id) async {
     try {
       final jsonString = await rootBundle.loadString('assets/testLore.json');
@@ -131,15 +140,31 @@ class KGStorageManager {
     }
   }
 
+  static Future<List<EquipmentItem>?> getEquipmentItems(List<String> ids) async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/testEquipments.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+
+      final equipmentList = jsonList.map((x) => EquipmentItem.fromJson(x)).toList();
+      return equipmentList.where((equipItem) {
+        return ids.contains(equipItem.id);
+      }).toList();
+    } catch (e) {
+      print('Errore nel parsing di Lore: $e');
+      return null;
+    }
+  }
+
   static Future<List<Lore>?> getLoreByType(LoreType loreType) async {
     try {
       final jsonString = await rootBundle.loadString('assets/testLore.json');
       final List<dynamic> jsonList = jsonDecode(jsonString);
 
-      final loreListJson = jsonList.where(
-        (json) => json['type'] == loreType && json['unlocked'] == true,
-      );
-      return List<Lore>.from(loreListJson.map((x) => Lore.fromJson(x)));
+      final loreList = jsonList.map((x) => Lore.fromJson(x)).toList();
+
+      return loreList.where((lore) {
+        return loreType == lore.type && lore.unlocked == true;
+      }).toList();
     } catch (e) {
       print('Errore nel parsing di Lore: $e');
       return null;
@@ -180,8 +205,20 @@ class KGStorageManager {
       return null;
     }
 
-    final data = result.data?['cities'] as List<dynamic>?;
+    final data = result.data?['allCities'] as List<dynamic>?;
     return data?.map((json) => City.fromJson(json)).toList();
+  }
+
+  static Future<List<Quest>?> getAllQuestsRemote() async {
+    final result = await client.query(QueryOptions(document: gql(QuestQueries.getAllQuests)));
+
+    if (result.hasException) {
+      print('GraphQL Error: ${result.exception}');
+      return null;
+    }
+
+    final data = result.data?['allQuests'] as List<dynamic>?;
+    return data?.map((json) => Quest.fromJson(json)).toList();
   }
 
   static Future<Character?> getCharacter() async =>
@@ -189,4 +226,7 @@ class KGStorageManager {
 
   static Future<List<City>?> getAllCities() async =>
       useMockData ? getAllCitiesLocal() : getAllCitiesRemote();
+
+  static Future<List<Quest>?> getAllQuests() async =>
+      useMockData ? getAllQuestsLocal() : getAllQuestsRemote();
 }

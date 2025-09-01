@@ -1,34 +1,33 @@
+import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/enums/damage_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 
 import 'coins.dart';
 import 'enums/energy_type.dart';
 import 'enums/equip_type.dart';
+import 'enums/rarity_type.dart';
 
-class EquipmentItem {
+class EquipmentItem extends AssetItem {
   EquipmentItem({
-    required this.id,
-    required this.name,
+    required super.id,
+    required super.name,
+    required super.rarity,
+    required super.sellPrice,
+    required super.buyPrice,
     required this.equipType,
     required this.baseTypes,
     required this.energyType,
     required this.addedSpell,
     required this.basePower,
     required this.energyPower,
-    required this.sellPrice,
-    required this.buyPrice,
   });
 
-  final String id;
-  final String? name;
   final EquipType? equipType;
   final Spell? addedSpell;
   final List<DamageType>? baseTypes;
   final EnergyType? energyType;
   final int? basePower;
   final int? energyPower;
-  final Coins? sellPrice;
-  final Coins? buyPrice;
 
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
@@ -43,6 +42,7 @@ class EquipmentItem {
     basePower: json['basePower'] != null ? (json['basePower'] as num).toInt() : null,
     sellPrice: json['sellPrice'] != null ? Coins.fromJson(json['sellPrice']) : null,
     buyPrice: json['buyPrice'] != null ? Coins.fromJson(json['buyPrice']) : null,
+    rarity: json['rarity'] != null ? RarityType.values.byName(json['rarity']) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -56,5 +56,6 @@ class EquipmentItem {
     'basePower': basePower,
     'sellPrice': sellPrice?.toJson(),
     'buyPrice': buyPrice?.toJson(),
+    'rarity': rarity?.name,
   };
 }

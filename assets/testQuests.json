@@ -1,0 +1,194 @@
+[{
+  "id": "1",
+  "requirements": {
+    "requiredAdventurers": 1,
+    "recommendedLoot": null,
+    "requiredPoints": null,
+    "minTitle": "rookie"
+  },
+  "infos": {
+    "title": "Lavora nella locanda",
+    "enemy": null,
+    "type": "job",
+    "markerLocation": {"latitude": 59.0, "longitude": 59.0},
+    "area": [
+      {"latitude": 60.0, "longitude": 155.0},
+      {"latitude": 70.0, "longitude": 165.0}
+    ],
+    "relatedLore": [
+      {
+        "id":"8"
+      }
+    ],
+    "timeToComplete": 7200000
+  },
+  "prizes": {
+    "randomLoot": null,
+    "prizeCoins": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 50
+    },
+    "xpPrize": 0,
+    "prizeItem":  null
+  },
+  "registeredAdventurers": []
+  },
+  {
+    "id": "2",
+    "infos": {
+      "title": "Vai in clinica",
+      "enemy": null,
+      "type": "heal",
+      "markerLocation": {"latitude": 59.0, "longitude": 59.0},
+      "area": [
+        {"latitude": 60.0, "longitude": 155.0},
+        {"latitude": 70.0, "longitude": 165.0}
+      ],
+      "relatedLore": [
+        {
+          "id":"8"
+        }
+      ],
+      "timeToComplete": 18000000
+    },
+    "requirements": {
+      "requiredAdventurers": 1,
+      "recommendedLoot": [],
+      "requiredPoints": null,
+      "minTitle": "rookie"
+    },
+    "prizes": {
+      "randomLoot": [],
+      "prizeCoins": null,
+      "xpPrize": 0,
+      "prizeItem": {
+        "id": "1",
+        "name": "Cura",
+        "buyPrice": null,
+        "sellPrice": null,
+        "power": 1000,
+        "effect": "heal",
+        "rarity": "uncommon"
+      }
+    },
+    "registeredAdventurers": []
+  },
+  {
+    "id": "3",
+    "infos": {
+      "title": "Inizia la tua storia",
+      "enemy": null,
+      "type": "worldMission",
+      "markerLocation": null,
+      "area": null,
+      "relatedLore": []
+    },
+    "requirements": {
+      "requiredAdventurers": 1,
+      "requiredPoints": 5000,
+      "minTitle": "rookie",
+      "recommendedLoot": []
+    },
+    "prizes": {
+      "randomLoot": [],
+      "prizeCoins": {
+        "gold": 0,
+        "silver": 10,
+        "copper": 2000
+      },
+      "xpPrize": 550,
+      "prizeItem": {
+        "id": "11",
+        "name": "Elmo di ferro",
+        "baseTypes": ["blunt", "cut"],
+        "equipType": "helm",
+        "energyType": "acid",
+        "addedSpell": {
+          "id": "12",
+          "name": "Darkvision",
+          "useType": "defense",
+          "energyType": "enhancing",
+          "power": 100,
+          "requiredLearnTime": 10000,
+          "minXpToLearn": 5000
+        },
+        "energyPower": 500,
+        "basePower": 1000,
+        "buyPrice": {
+          "gold": 0,
+          "silver": 2,
+          "copper": 3000
+        },
+        "sellPrice": {
+          "gold": 0,
+          "silver": 0,
+          "copper": 9000
+        }
+      }
+    },
+    "registeredAdventurers": [{
+      "id": "1"
+    }]
+  },
+  {
+    "id": "3",
+    "infos": {
+      "title": "Caccia l'Arbusto Maligno",
+      "enemy": {
+        "id": "1",
+        "name": "Arbusto Maligno",
+        "locations": [],
+        "energyWeaknesses": ["fire"],
+        "baseWeaknesses": ["cut"],
+        "relatedLore": [],
+        "xp": 25,
+        "spells": [],
+        "lifePoints": 100,
+        "imagePath": "assets/images/arbustoMaligno.png"
+      },
+      "type": "enemy",
+      "markerLocation": {"latitude": 20.0, "longitude": 130.0},
+      "area": [
+        {"latitude": 60.0, "longitude": 155.0},
+        {"latitude": 70.0, "longitude": 165.0}
+      ],
+      "relatedLore": []
+    },
+    "requirements": {
+      "requiredAdventurers": 1,
+      "requiredPoints": 3000,
+      "minTitle": "rookie",
+      "recommendedLoot": []
+    },
+    "prizes": {
+      "randomLoot": [],
+      "prizeCoins": {
+        "gold": 0,
+        "silver": 0,
+        "copper": 100
+      },
+      "xpPrize": 50,
+      "prizeItem": {
+        "id": "2",
+        "name": "Pietra comune",
+        "buyPrice": {
+          "gold": 0,
+          "silver": 0,
+          "copper":15
+        },
+        "sellPrice": {
+          "gold": 0,
+          "silver": 0,
+          "copper": 10
+        },
+        "power": 0,
+        "effect": "munition",
+        "rarity": "common"
+      }
+    },
+    "registeredAdventurers": [{
+      "id": "1"
+    }]
+  }
+]

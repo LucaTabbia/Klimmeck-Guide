@@ -1,5 +1,5 @@
-import 'package:klimmeck_guide/models/quest.dart';
-import 'package:klimmeck_guide/models/user.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 
 class PendingQuest {
   PendingQuest({
@@ -7,21 +7,23 @@ class PendingQuest {
     required this.startDate,
     required this.waitingTime,
     required this.quest,
-    required this.requestingUser,
+    required this.requestingCharacter,
   });
 
   final String id;
   final DateTime? startDate;
   final int? waitingTime;
   final Quest? quest;
-  final User? requestingUser;
+  final Character? requestingCharacter;
 
   factory PendingQuest.fromJson(Map<String, dynamic> json) => PendingQuest(
     id: json["id"],
     startDate: json["startDate"] != null ? DateTime.parse(json["startDate"]) : null,
     waitingTime: json["waitingTime"] != null ? (json["waitingTime"] as num).toInt() : null,
     quest: json["quest"] != null ? Quest.fromJson(json["quest"]) : null,
-    requestingUser: json["requestingUser"] != null ? User.fromJson(json["requestingUser"]) : null,
+    requestingCharacter: json["requestingCharacter"] != null
+        ? Character.fromJson(json["requestingCharacter"])
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -29,6 +31,6 @@ class PendingQuest {
     "startDate": startDate?.toIso8601String(),
     "waitingTime": waitingTime,
     "quest": quest?.id,
-    "requestingUser": requestingUser?.id,
+    "requestingUser": requestingCharacter?.id,
   };
 }
