@@ -104,9 +104,10 @@
         "baseTypes": ["blunt", "cut"],
         "equipType": "helm",
         "energyType": "acid",
+        "rarity": "uncommon",
         "addedSpell": {
           "id": "12",
-          "name": "Darkvision",
+          "name": "Scurovisione",
           "useType": "defense",
           "energyType": "enhancing",
           "power": 100,

@@ -27,7 +27,7 @@
       "id": "14",
       "name": "Dardo incantato",
       "useType": "attack",
-      "energyType": "none",
+      "energyType": "force",
       "power": 100,
       "requiredLearnTime": 10000,
       "minXpToLearn": 5000

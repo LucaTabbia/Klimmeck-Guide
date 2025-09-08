@@ -51,3 +51,17 @@ class Equipment {
     "secondAccessory": secondAccessory?.id,
   };
 }
+
+extension EquipmentValues on Equipment {
+  List<EquipmentItem?> get values => [
+    head,
+    chest,
+    arms,
+    legs,
+    foots,
+    leftHand,
+    rightHand,
+    firstAccessory,
+    secondAccessory,
+  ];
+}

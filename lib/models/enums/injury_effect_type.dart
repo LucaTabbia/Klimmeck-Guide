@@ -1,5 +1,4 @@
 enum InjuryEffect {
-  none,
   movementImpairment,
   visionLoss,
   bleeding,
@@ -9,4 +8,5 @@ enum InjuryEffect {
   consciousnessLoss,
   staminaDrain,
   poisoned,
+  burned,
 }

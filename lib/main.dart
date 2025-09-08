@@ -50,18 +50,22 @@ class KlimmeckGuideApp extends StatefulWidget {
 
 class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   Future<void> loadSvg() async {
-    final manifestJson = await rootBundle.loadString('AssetManifest.json');
-    List svgsPaths =
-        (json
-                    .decode(manifestJson)
-                    .keys
-                    .where((String key) => key.startsWith('assets/icons/') && key.endsWith('.svg'))
-                as Iterable)
-            .toList();
+    try {
+      final manifestJson = await rootBundle.loadString('AssetManifest.json');
+      final Map<String, dynamic> manifestMap = json.decode(manifestJson);
 
-    for (var svgPath in svgsPaths as List<String>) {
-      var loader = SvgAssetLoader(svgPath);
-      await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+      final svgPaths = manifestMap.keys
+          .where((String key) => key.startsWith('assets/icons/') && key.endsWith('.svg'))
+          .toList();
+
+      await Future.wait(
+        svgPaths.map((svgPath) async {
+          final loader = SvgAssetLoader(svgPath);
+          await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+        }),
+      );
+    } catch (e, stack) {
+      debugPrint('Error during Svg loading: $e\n$stack');
     }
   }
 

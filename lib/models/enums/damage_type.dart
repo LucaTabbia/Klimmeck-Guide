@@ -1,14 +1,9 @@
-enum DamageType { blunt, cut, pierce }
+enum DamageType {
+  blunt(label: 'Contundente', imagePath: "assets/icons/svg/damageTypes/bluntDamage.svg"),
+  cut(label: 'Tagliente', imagePath: "assets/icons/svg/damageTypes/cutDamage.svg"),
+  pierce(label: 'Perforante', imagePath: "assets/icons/svg/damageTypes/pierceDamage.svg");
 
-extension DamageTypeExtension on DamageType {
-  String get label {
-    switch (this) {
-      case DamageType.blunt:
-        return 'Contundente';
-      case DamageType.cut:
-        return 'Tagliente';
-      case DamageType.pierce:
-        return 'Perforante';
-    }
-  }
+  final String imagePath;
+  final String label;
+  const DamageType({required this.label, required this.imagePath});
 }

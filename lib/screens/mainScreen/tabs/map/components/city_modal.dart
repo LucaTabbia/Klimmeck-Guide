@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../../../models/lore.dart';
@@ -16,45 +17,64 @@ class CityModal extends StatefulWidget {
 class _CityModalState extends State<CityModal> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScopeNode currentFocus = FocusScope.of(context);
-        if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
-          currentFocus.focusedChild?.unfocus();
-        }
-      },
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: KlimmeckGuideTheme.parchment,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(KlimmeckGuideTheme.radius),
-            topRight: Radius.circular(KlimmeckGuideTheme.radius),
+    return DraggableScrollableSheet(
+      expand: true,
+      initialChildSize: 0.5,
+      minChildSize: 0.3,
+      maxChildSize: 1,
+      builder: (context, scrollController) {
+        return Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              if (widget.lore.image != null)
-                Image.asset(widget.lore.image!, width: 200, height: 200),
-              AutoSizeText(
-                maxFontSize: 24,
-                widget.lore.name ?? "",
-                style: KlimmeckGuideTheme.instance.specialText.copyWith(fontSize: 24),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0),
-                child: AutoSizeText(
-                  maxFontSize: 18,
-                  widget.lore.description ?? "",
-                  style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(fontSize: 18),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            physics: const ClampingScrollPhysics(),
+            child: Stack(
+              children: [
+                SvgPicture.asset(
+                  "assets/icons/svg/sheets/bottomEmptySheet.svg",
+                  width: MediaQuery.of(context).size.width,
+                  fit: BoxFit.cover,
                 ),
-              ),
-            ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 7),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height / 7),
+                      if (widget.lore.image != null)
+                        Image.asset(widget.lore.image!, width: 200, height: 200),
+                      AutoSizeText(
+                        widget.lore.name ?? "",
+                        maxFontSize: 24,
+                        minFontSize: 16,
+                        textAlign: TextAlign.center,
+                        style: KlimmeckGuideTheme.instance.specialText.copyWith(fontSize: 24),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      AutoSizeText(
+                        widget.lore.description ?? "",
+                        maxFontSize: 18,
+                        minFontSize: 12,
+                        textAlign: TextAlign.left,
+                        style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+                          fontSize: 18,
+                          height: 1.5, // Better line height for readability
+                        ),
+                      ),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'injury_effect.dart';
+import 'injury_effect_type.dart';
 
 enum InjuryType {
   headConcussion(severity: 40, effects: [InjuryEffect.consciousnessLoss]),

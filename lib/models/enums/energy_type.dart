@@ -1,45 +1,17 @@
 enum EnergyType {
-  none,
-  fire,
-  cold,
-  lightning,
-  acid,
-  poison,
-  thunder,
-  force,
-  necrotic,
-  radiant,
-  psychic,
-  enhancing,
-}
+  fire(label: "Fuoco", imagePath: "assets/icons/svg/energyTypes/fireEnergy.svg"),
+  cold(label: "Gelo", imagePath: "assets/icons/svg/energyTypes/coldEnergy.svg"),
+  lightning(label: "Fulmine", imagePath: "assets/icons/svg/energyTypes/lightningEnergy.svg"),
+  acid(label: "Acido", imagePath: "assets/icons/svg/energyTypes/acidEnergy.svg"),
+  poison(label: "Veleno", imagePath: "assets/icons/svg/energyTypes/poisonEnergy.svg"),
+  thunder(label: "Tuono", imagePath: "assets/icons/svg/energyTypes/thunderEnergy.svg"),
+  force(label: "Forza", imagePath: "assets/icons/svg/energyTypes/forceEnergy.svg"),
+  necrotic(label: "Necrotico", imagePath: "assets/icons/svg/energyTypes/necroticEnergy.svg"),
+  radiant(label: "Radioso", imagePath: "assets/icons/svg/energyTypes/radiantEnergy.svg"),
+  psychic(label: "Psichico", imagePath: "assets/icons/svg/energyTypes/psychicEnergy.svg"),
+  enhancing(label: "Potenziante", imagePath: "assets/icons/svg/energyTypes/enhancingEnergy.svg");
 
-extension EnergyTypeExtension on EnergyType {
-  String get label {
-    switch (this) {
-      case EnergyType.none:
-        return 'Nessuno';
-      case EnergyType.fire:
-        return 'Fuoco';
-      case EnergyType.cold:
-        return 'Gelo';
-      case EnergyType.lightning:
-        return 'Fulmine';
-      case EnergyType.acid:
-        return 'Acido';
-      case EnergyType.poison:
-        return 'Veleno';
-      case EnergyType.thunder:
-        return 'Tuono';
-      case EnergyType.force:
-        return 'Forza';
-      case EnergyType.necrotic:
-        return 'Necrotico';
-      case EnergyType.radiant:
-        return 'Radioso';
-      case EnergyType.psychic:
-        return 'Psichico';
-      case EnergyType.enhancing:
-        return 'Potenziante';
-    }
-  }
+  final String imagePath;
+  final String label;
+  const EnergyType({required this.label, required this.imagePath});
 }

@@ -3,6 +3,7 @@
   "type": "liberiaCapital",
   "name": "Liberia",
   "image": "assets/images/cities/liberia.png",
+  "citySize": "capital",
   "size": 50,
   "markerLocation": {"latitude": 64.0, "longitude": 24.1},
   "area": [
@@ -18,6 +19,7 @@
     "type": "mirwaCapital",
     "name": "Mirwen",
     "image": "assets/images/cities/mirwen.png",
+    "citySize": "capital",
     "size": 60,
     "markerLocation": {"latitude": 53.0, "longitude": 81.0},
     "area": [
@@ -33,6 +35,7 @@
     "type": "drusteaCapital",
     "name": "Cliffbreak",
     "image": "assets/images/cities/cliffbreak.png",
+    "citySize": "capital",
     "size": 55,
     "markerLocation": {"latitude": 70.0, "longitude": 75.0},
     "area": [
@@ -48,6 +51,7 @@
     "type": "flameNorthCapital",
     "name": "Bellport",
     "image": "assets/images/cities/bellport.png",
+    "citySize": "capital",
     "size": 44,
     "markerLocation": {"latitude": 53.0, "longitude": 135.0},
     "area": [
@@ -63,6 +67,7 @@
     "type": "harkenCity",
     "name": "Ferrion",
     "image": "assets/images/cities/ferrion.png",
+    "citySize": "capital",
     "size": 53,
     "markerLocation": {"latitude": 77.1, "longitude": 110.0},
     "area": [
@@ -78,6 +83,7 @@
     "type": "motherCapital",
     "name": "Morrulir",
     "image": "assets/images/cities/morrulir.png",
+    "citySize": "capital",
     "size": 60,
     "markerLocation": {"latitude": 64.0, "longitude": 47.0},
     "area": [
@@ -93,6 +99,7 @@
     "type": "necrorianCity",
     "name": "Necrorian",
     "image": "assets/images/cities/necrorian.png",
+    "citySize": "capital",
     "size": 60,
     "markerLocation": {"latitude": 72.4, "longitude": 123.0},
     "area": [
@@ -108,6 +115,7 @@
     "type": "talmvereVillage",
     "name": "Talmvere",
     "image": "assets/images/cities/talmvere.png",
+    "citySize": "capital",
     "size": 40,
     "markerLocation": {"latitude": 59.0, "longitude": 59.0},
     "area": [
@@ -123,6 +131,7 @@
     "type": "valanCapital",
     "name": "Valantar",
     "image": "assets/images/cities/valantar.png",
+    "citySize": "capital",
     "size": 70,
     "markerLocation": {"latitude": 37.0, "longitude": 72.0},
     "area": [
@@ -138,6 +147,7 @@
     "type": "flameCenterCapital",
     "name": "Virnen",
     "image": "assets/images/cities/virnen.png",
+    "citySize": "capital",
     "size": 40,
     "markerLocation": {"latitude": 25.0, "longitude": 145.0},
     "area": [

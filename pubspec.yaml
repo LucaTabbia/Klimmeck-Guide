@@ -78,6 +78,15 @@ flutter:
     - assets/icons/svg/sheets/
     - assets/icons/svg/coins/
     - assets/icons/svg/equipment/
-    - assets/icons/svg/effects/
+    - assets/icons/svg/effectTypes/
+    - assets/icons/svg/equipTypes/
+    - assets/icons/svg/damageTypes/
+    - assets/icons/svg/useTypes/
+    - assets/icons/svg/injuryTypes/
+    - assets/icons/svg/energyTypes/
+
+
+
+
 
 

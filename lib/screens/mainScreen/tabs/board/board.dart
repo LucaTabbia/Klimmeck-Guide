@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/quest_info_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
+import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 
 import '../../../../models/quest/quest.dart';
 
@@ -104,7 +104,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                 alignment: Alignment.centerRight,
                 child: SizedBox(
                   height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.height * 1.3 * (315 / 375),
+                  width: MediaQuery.of(context).size.height * 1.5 * (315 / 375),
                   child: _selectedQuest != null
                       ? SingleChildScrollView(child: QuestInfoSheet(quest: _selectedQuest))
                       : null,

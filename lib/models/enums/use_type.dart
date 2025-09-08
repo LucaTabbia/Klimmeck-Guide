@@ -1,24 +1,15 @@
-enum UseType { defense, attack, control, illusion, charm, confuse, enhance, infuse }
+enum UseType {
+  defense(imagePath: "assets/icons/svg/useTypes/defenseUse.svg", label: "Difesa"),
+  attack(imagePath: "assets/icons/svg/useTypes/attackUse.svg", label: "Attacco"),
+  control(imagePath: "assets/icons/svg/useTypes/controlUse.svg", label: "Controllo"),
+  illusion(imagePath: "assets/icons/svg/useTypes/illusionUse.svg", label: "Illusione"),
+  charm(imagePath: "assets/icons/svg/useTypes/charmUse.svg", label: "Ammaliare"),
+  confuse(imagePath: "assets/icons/svg/useTypes/confuseUse.svg", label: "Confondere"),
+  enhance(imagePath: "assets/icons/svg/useTypes/enhanceUse.svg", label: "Potenziare"),
+  infuse(imagePath: "assets/icons/svg/useTypes/infuseUse.svg", label: "Infondere");
 
-extension UseTypeExtension on UseType {
-  String get label {
-    switch (this) {
-      case UseType.defense:
-        return 'Difesa';
-      case UseType.attack:
-        return 'Attacco';
-      case UseType.control:
-        return 'Controllo';
-      case UseType.illusion:
-        return 'Illusione';
-      case UseType.charm:
-        return 'Ammaliare';
-      case UseType.confuse:
-        return 'Confondere';
-      case UseType.enhance:
-        return 'Potenziare';
-      case UseType.infuse:
-        return 'Infondere';
-    }
-  }
+  final String imagePath;
+  final String label;
+
+  const UseType({required this.label, required this.imagePath});
 }

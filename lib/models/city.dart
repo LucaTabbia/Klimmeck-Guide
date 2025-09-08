@@ -1,4 +1,5 @@
 import 'package:flutter_map/flutter_map.dart';
+import 'package:klimmeck_guide/models/enums/city_size_type.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'enums/city_type.dart';
@@ -11,6 +12,7 @@ class City {
     required this.area,
     required this.type,
     required this.name,
+    required this.citySize,
     required this.size,
     required this.markerLocation,
     required this.relatedLore,
@@ -19,6 +21,7 @@ class City {
   final String id;
   final String? image;
   final CityType? type;
+  final CitySizeType? citySize;
   final LatLngBounds? area;
   final String? name;
   final int? size;
@@ -39,6 +42,7 @@ class City {
     return City(
       id: json["id"],
       type: json["type"] != null ? CityType.values.byName(json["type"]) : null,
+      citySize: json["citySize"] != null ? CitySizeType.values.byName(json["citySize"]) : null,
       area: bounds,
       image: json["image"],
       name: json["name"],
@@ -53,6 +57,7 @@ class City {
   Map<String, dynamic> toJson() => {
     "id": id,
     "type": type?.name,
+    "citySize": citySize?.name,
     "name": name,
     "image": image,
     "size": size,
