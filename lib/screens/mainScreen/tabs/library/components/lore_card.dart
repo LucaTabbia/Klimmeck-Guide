@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../models/lore.dart';
 import '../../../../../theme/kg_theme.dart';
@@ -44,7 +45,7 @@ class LoreCard extends StatelessWidget {
                   ),
                 ),
                 if (lore.image != null)
-                  SizedBox(height: 200, width: 200, child: Image.asset(lore.image!)),
+                  SizedBox(height: 200, width: 200, child: CachedSvg(url: lore.image!)),
               ],
             ),
             Padding(

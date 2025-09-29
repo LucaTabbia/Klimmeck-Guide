@@ -1,9 +1,21 @@
 class CityQueries {
   static const String getAllCities = r'''
-    query GetAllCities {
-      allCities {
+    query cities {
+      cities {
         id
+        image
+        type
         name
+        citySize
+        size
+        markerLocation {
+          latitude
+          longitude
+        }
+        relatedLore {
+          id
+          description
+        }
       }
     }
   ''';

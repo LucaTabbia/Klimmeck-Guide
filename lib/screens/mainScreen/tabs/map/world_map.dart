@@ -4,13 +4,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
@@ -34,9 +35,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   double _velocityX = 0.0;
   double _velocityY = 0.0;
   Timer? _smoothTimer;
-  double _currentZoom = 3.06;
+  final ValueNotifier<double> zoomNotifier = ValueNotifier(3.06);
 
-  City? _selectedCity;
   Lore? _selectedLore;
   Quest? _selectedQuest;
   List<Quest> _showableQuests = [];
@@ -101,7 +101,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         }
       },
       onPositionChanged: (camera, hasGesture) {
-        setState(() => _currentZoom = camera.zoom);
+        zoomNotifier.value = camera.zoom;
         final clamped = LatLng(
           camera.center.latitude.clamp(_bounds.south, _bounds.north),
           camera.center.longitude.clamp(_bounds.west, _bounds.east),
@@ -159,39 +159,46 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                 markers: widget.cities
                     .map(
                       (city) => Marker(
+                        key: ValueKey(city.id),
                         point: city.markerLocation!,
-                        height: 200,
-                        width: 200,
-                        child: CityMarker(
-                          city: city,
-                          zoom: _currentZoom,
-                          onTap: () => setState(() {
-                            if (_selectedQuest != null) {
-                              _selectedQuest = null;
-                            }
-                            context.read<WorldMapCubit>().loadLoreData(city.relatedLore!.id);
-                          }),
+                        child: ValueListenableBuilder<double>(
+                          valueListenable: zoomNotifier,
+                          builder: (_, zoom, child) {
+                            return Transform.scale(scale: zoom * 0.8, child: child);
+                          },
+                          child: CityMarker(
+                            city: city,
+                            onTap: () =>
+                                context.read<WorldMapCubit>().loadLoreData(city.relatedLore!.id),
+                          ),
                         ),
                       ),
                     )
                     .toList(),
               ),
-              if (_currentZoom > 4)
-                MarkerLayer(
-                  markers: _showableQuests
-                      .map(
-                        (quest) => Marker(
-                          point: quest.infos!.markerLocation!,
-                          width: 40,
-                          height: 40,
+              MarkerLayer(
+                markers: _showableQuests
+                    .map(
+                      (quest) => Marker(
+                        key: ValueKey(quest.id),
+                        point: quest.infos!.markerLocation!,
+                        child: ValueListenableBuilder<double>(
+                          valueListenable: zoomNotifier,
+                          builder: (_, zoom, child) {
+                            if (zoom <= 4) {
+                              return const SizedBox.shrink();
+                            }
+                            return Transform.scale(scale: zoom * 0.4, child: child!);
+                          },
                           child: GestureDetector(
                             onTap: () => _selectQuest(quest),
-                            child: SvgPicture.asset(quest.infos!.type!.imagePath),
+                            child: CachedSvg(url: quest.infos!.type!.imagePath),
                           ),
                         ),
-                      )
-                      .toList(),
-                ),
+                      ),
+                    )
+                    .toList(),
+              ),
               MarkerLayer(
                 markers: [
                   Marker(
@@ -202,11 +209,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                       feedback: SizedBox(
                         width: 40,
                         height: 40,
-                        child: SvgPicture.asset(widget.character.infos!.sex!.pawnPath),
+                        child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
                       ),
                       childWhenDragging: Opacity(
                         opacity: 0,
-                        child: SvgPicture.asset(widget.character.infos!.sex!.pawnPath),
+                        child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
                       ),
                       onDragUpdate: (details) {
                         final renderObject = context.findRenderObject();
@@ -255,7 +262,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                       onDragEnd: (details) {
                         _stopAnimation();
                       },
-                      child: SvgPicture.asset(widget.character.infos!.sex!.pawnPath),
+                      child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
                     ),
                   ),
                 ],
@@ -295,7 +302,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         backgroundColor: Colors.transparent,
         context: context,
         builder: (BuildContext context) {
-          return CityModal(lore: _selectedLore!);
+          return PaperSheetModal(child: CityModal(lore: _selectedLore!));
         },
       );
     }

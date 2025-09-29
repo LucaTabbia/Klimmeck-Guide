@@ -2,17 +2,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../models/lore.dart';
-import '../../../../../repository/storage/storage_manager.dart';
+import '../../../../../repository/services/graphql/graphql.dart';
 
 part 'world_map_state.dart';
 
 class WorldMapCubit extends Cubit<WorldMapState> {
-  WorldMapCubit() : super(WorldMapInitial());
+  WorldMapCubit(this.graphQl) : super(WorldMapInitial());
+
+  final KlimmeckGraphQl graphQl;
 
   Future<void> loadLoreData(String id) async {
     emit(WorldMapLoading());
     try {
-      final lore = await KGStorageManager.getLoreById(id);
+      final lore = await graphQl.getLoreById(id);
 
       if (lore != null) {
         emit(WorldMapLoadData(lore));

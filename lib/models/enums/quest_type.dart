@@ -1,11 +1,27 @@
 enum QuestType {
-  hunt(imagePath: "assets/icons/svg/pawns/huntPawn.svg"),
-  aid(imagePath: "assets/icons/svg/pawns/aidPawn.svg"),
-  enemy(imagePath: "assets/icons/svg/pawns/enemyPawn.svg"),
-  worldMission(imagePath: "assets/icons/svg/pawns/worldMissionPawn.svg"),
-  boss(imagePath: "assets/icons/svg/pawns/bossPawn.svg"),
-  dungeon(imagePath: "assets/icons/svg/pawns/dungeonPawn.svg"),
-  story(imagePath: "assets/icons/svg/pawns/storyPawn.svg"),
+  hunt(
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660721/huntPawn_h7bdwj.svg",
+  ),
+  aid(
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660712/aidPawn_zyoz99.svg",
+  ),
+  enemy(
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660715/enemyPawn_c4vstz.svg",
+  ),
+  worldMission(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660713/worldMissionPawn_bjjzc0.svg",
+  ),
+  boss(
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660719/bossPawn_vsz4pf.svg",
+  ),
+  dungeon(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660716/dungeonPawn_bhbatx.svg",
+  ),
+  story(
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660718/storyPawn_rvclmp.svg",
+  ),
   study(imagePath: ""),
   heal(imagePath: ""),
   job(imagePath: ""),

@@ -1,0 +1,59 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
+
+class KlimmeckRest {
+  KlimmeckRest();
+
+  Future<List<String>> fetchCloudinarySubfoldersUrls(String folder) async {
+    try {
+      final response = await RestClient().dio.post(
+        "cloudinary/getSubfoldersUrls",
+        data: {"folder": folder},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['urls'] as List<dynamic>;
+        return data.cast<String>();
+      } else {
+        throw Exception("Failed to fetch Cloudinary URLs: ${response.statusCode}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<String>> fetchCloudinaryFolderUrls(String folder) async {
+    try {
+      final response = await RestClient().dio.post("cloudinary/getUrls", data: {"folder": folder});
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['urls'] as List<dynamic>;
+        return data.cast<String>();
+      } else {
+        throw Exception("Failed to fetch Cloudinary URLs: ${response.statusCode}");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<String?> uploadImage(File file) async {
+    try {
+      final formData = FormData.fromMap({
+        "file": await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+      });
+
+      final response = await RestClient().dio.post("uploadImage", data: formData);
+
+      if (response.statusCode == 200) {
+        return response.data['url'] as String;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error uploading image: $e");
+      return null;
+    }
+  }
+}

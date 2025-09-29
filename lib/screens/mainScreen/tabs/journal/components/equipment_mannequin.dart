@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_area.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_box.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_image.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../theme/kg_theme.dart';
 
@@ -52,42 +52,42 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                   child: SizedBox(
                     width: mannequinWidth,
                     height: mannequinHeight,
-                    child: SvgPicture.asset(widget.sexType.mannequinPath),
+                    child: CachedSvg(url: widget.sexType.mannequinPath),
                   ),
                 ),
                 if (widget.equipment.head != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
-                    assetPath: widget.sexType.helmetPath,
+                    imagePath: widget.sexType.helmetPath,
                     type: EquipType.helm,
                   ),
                 if (widget.equipment.legs != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
-                    assetPath: widget.sexType.gravesPath,
+                    imagePath: widget.sexType.gravesPath,
                     type: EquipType.greaves,
                   ),
                 if (widget.equipment.foots != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
-                    assetPath: widget.sexType.bootsPath,
+                    imagePath: widget.sexType.bootsPath,
                     type: EquipType.boots,
                   ),
                 if (widget.equipment.chest != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
-                    assetPath: widget.sexType.chestPiecePath,
+                    imagePath: widget.sexType.chestPiecePath,
                     type: EquipType.chestPiece,
                   ),
                 if (widget.equipment.arms != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
-                    assetPath: widget.sexType.glovesPath,
+                    imagePath: widget.sexType.glovesPath,
                     type: EquipType.gloves,
                   ),
                 EquipmentArea(

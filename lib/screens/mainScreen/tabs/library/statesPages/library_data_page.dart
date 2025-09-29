@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
 import '../../../../../models/enums/lore_type.dart';
@@ -85,7 +85,7 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                 child: SizedBox(
                   width: 100,
                   height: 100,
-                  child: SvgPicture.asset(widget.bookmarkImagePath),
+                  child: CachedSvg(url: widget.bookmarkImagePath),
                 ),
               ),
             ),

@@ -15,9 +15,11 @@ class CharacterStatus {
     required this.currentLifePoints,
     required this.maxLifePoints,
     required this.title,
+    required this.level,
   });
 
   int? xp;
+  int? level;
   LatLng? location;
   TitleType? title;
   List<InjuryType>? injuries = const [];
@@ -28,7 +30,10 @@ class CharacterStatus {
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) => CharacterStatus(
     location: json['location'] != null
-        ? LatLng(json['location']['latitude'], json['location']['longitude'])
+        ? LatLng(
+            (json['location']['latitude'] as num).toDouble(),
+            (json['location']['longitude'] as num).toDouble(),
+          )
         : null,
     xp: json["xp"]?.toInt(),
     coins: json['coins'] != null ? Coins.fromJson(json["coins"]) : null,
@@ -40,6 +45,7 @@ class CharacterStatus {
         : [],
     currentLifePoints: json["currentLifePoints"]?.toInt(),
     maxLifePoints: json["maxLifePoints"]?.toInt(),
+    level: json["level"]?.toInt(),
     title: json['title'] != null ? TitleType.values.byName(json['title']) : null,
   );
 
@@ -48,6 +54,7 @@ class CharacterStatus {
         ? {"latitude": location!.latitude, "longitude": location!.longitude}
         : null,
     "xp": xp,
+    "level": level,
     "spells": spells?.map((s) => s.id).toList(),
     "coins": coins?.toJson(),
     "injuries": injuries?.map((e) => e.name).toList(),

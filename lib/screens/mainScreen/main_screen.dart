@@ -120,7 +120,7 @@ class _MainScreenState extends State<MainScreen>
       Journal(character: character),
       Library(),
       Board(quests: quests),
-      Shop(),
+      Shop(character: character),
     ];
   }
 

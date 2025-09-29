@@ -18,7 +18,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
 
   #HTTP
-  graphql: ^5.1.3
+  graphql_flutter: ^5.2.1
   dio: ^5.4.0
 
   #Firebase
@@ -26,6 +26,7 @@ dependencies:
   firebase_auth: ^5.6.2
   firebase_core: ^3.15.1
 
+  flutter_cache_manager: ^3.3.1
   latlong2: ^0.9.1
   flutter_map: ^8.2.1
   shared_preferences: ^2.0.12
@@ -63,27 +64,13 @@ flutter:
 
   assets:
     - assets/
-    - assets/testCharacter.json
-    - assets/testCities.json
-    - assets/testLore.json
-    - assets/testEquipments.json
     - assets/icons/appIcon/
     - assets/images/
-    - assets/images/menu/
     - assets/images/placeholders/
-    - assets/images/cities/
-    - assets/images/library/
-    - assets/icons/svg/
-    - assets/icons/svg/pawns/
-    - assets/icons/svg/sheets/
-    - assets/icons/svg/coins/
-    - assets/icons/svg/equipment/
-    - assets/icons/svg/effectTypes/
-    - assets/icons/svg/equipTypes/
-    - assets/icons/svg/damageTypes/
-    - assets/icons/svg/useTypes/
-    - assets/icons/svg/injuryTypes/
-    - assets/icons/svg/energyTypes/
+
+
+
+
 
 
 

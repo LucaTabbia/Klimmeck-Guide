@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:klimmeck_guide/models/damages.dart';
 import 'package:klimmeck_guide/models/enums/damage_type.dart';
 import 'package:klimmeck_guide/models/enums/energy_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
@@ -19,11 +20,13 @@ class Enemy {
     required this.lifePoints,
     required this.relatedLore,
     required this.imagePath,
+    required this.damages,
   });
 
   final String id;
   final List<LatLng>? locations;
   final String? name;
+  final Damages? damages;
   final List<EnergyType>? energyWeaknesses;
   final List<DamageType>? baseWeaknesses;
   final List<Lore>? relatedLore;
@@ -55,11 +58,13 @@ class Enemy {
         : [],
     lifePoints: json["lifePoints"]?.toInt(),
     imagePath: json["imagePath"],
+    damages: json["damages"] != null ? Damages.fromJson(json["damages"]) : null,
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
+    "damages": damages?.toJson(),
     "locations": locations?.map((s) => {"latitude": s.latitude, "longitude": s.longitude}).toList(),
     "energyWeaknesses": energyWeaknesses?.map((s) => s.name).toList(),
     "baseWeaknesses": baseWeaknesses?.map((s) => s.name).toList(),

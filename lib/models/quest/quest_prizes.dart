@@ -1,7 +1,7 @@
 import 'package:klimmeck_guide/models/asset_item.dart';
 
+import '../asset_quantity.dart';
 import '../coins.dart';
-import '../equipment_quantity.dart';
 
 class QuestPrizes {
   QuestPrizes({

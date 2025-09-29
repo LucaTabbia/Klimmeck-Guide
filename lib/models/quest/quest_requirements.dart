@@ -1,5 +1,5 @@
+import '../asset_quantity.dart';
 import '../enums/title_type.dart';
-import '../equipment_quantity.dart';
 
 class QuestRequirements {
   QuestRequirements({

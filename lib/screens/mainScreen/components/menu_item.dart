@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 class MenuItem extends StatelessWidget {
   const MenuItem({
@@ -77,7 +78,7 @@ class MenuItem extends StatelessWidget {
 
                 boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 7, offset: Offset(0, 2))],
               ),
-              child: Image.asset(imagePath),
+              child: CachedSvg(url: imagePath),
             ),
           ),
         );

@@ -26,7 +26,11 @@ class Lore {
     id: json["id"],
     type: json["type"] != null ? LoreType.values.byName(json["type"]) : null,
     locations: json['locations'] != null
-        ? List<LatLng>.from(json['locations'].map((x) => LatLng(x['latitude'], x['longitude'])))
+        ? List<LatLng>.from(
+            json['locations'].map(
+              (x) => LatLng((x['latitude'] as num).toDouble(), (x['longitude'] as num).toDouble()),
+            ),
+          )
         : [],
     name: json["name"],
     description: json["description"],

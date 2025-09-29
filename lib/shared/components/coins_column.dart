@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class CoinsColumn extends StatelessWidget {
@@ -20,7 +20,11 @@ class CoinsColumn extends StatelessWidget {
         children: [
           Row(
             children: [
-              SvgPicture.asset(height: height / 3 - 5, "assets/icons/svg/coins/goldCoin.svg"),
+              CachedSvg(
+                height: height / 3 - 5,
+                url:
+                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757595152/goldCoin_newd9b.svg",
+              ),
               Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: AutoSizeText(
@@ -33,7 +37,11 @@ class CoinsColumn extends StatelessWidget {
           ),
           Row(
             children: [
-              SvgPicture.asset(height: height / 3 - 5, "assets/icons/svg/coins/silverCoin.svg"),
+              CachedSvg(
+                height: height / 3 - 5,
+                url:
+                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757595153/silverCoin_u1j3xr.svg",
+              ),
               Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: AutoSizeText(
@@ -46,7 +54,11 @@ class CoinsColumn extends StatelessWidget {
           ),
           Row(
             children: [
-              SvgPicture.asset(height: height / 3 - 5, "assets/icons/svg/coins/copperCoin.svg"),
+              CachedSvg(
+                height: height / 3 - 5,
+                url:
+                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757595153/copperCoin_hgiilc.svg",
+              ),
               Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: AutoSizeText(

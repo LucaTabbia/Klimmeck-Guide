@@ -7,8 +7,10 @@ class JournalInitial extends JournalState {}
 
 class JournalLoadData extends JournalState {
   final List<EquipmentItem> equipmentItems;
+  final Equipment equipment;
+  final List<LootItem> lootItems;
 
-  JournalLoadData(this.equipmentItems);
+  JournalLoadData(this.equipmentItems, this.lootItems, this.equipment);
 }
 
 class JournalLoading extends JournalState {}

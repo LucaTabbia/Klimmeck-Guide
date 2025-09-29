@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../models/quest/quest.dart';
 
@@ -19,40 +19,40 @@ class Sheet extends StatefulWidget {
 
 class _SheetState extends State<Sheet> {
   final List<String> _questImages = [
-    "assets/icons/svg/sheets/questSheet1.svg",
-    "assets/icons/svg/sheets/questSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660778/questSheet2_ekuuzv.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660768/questSheet1_c0hswz.svg",
   ];
   final List<String> _questTornImages = [
-    "assets/icons/svg/sheets/questTornSheet1.svg",
-    "assets/icons/svg/sheets/questTornSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660760/questSheetTorn1_ds3oyp.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660756/questSheetTorn2_guqkvh.svg",
   ];
   final List<String> _jobImages = [
-    "assets/icons/svg/sheets/jobSheet1.svg",
-    "assets/icons/svg/sheets/jobSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660765/jobSheet1_osfobz.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660773/jobSheet2_dgkg6x.svg",
   ];
   final List<String> _announcementImages = [
-    "assets/icons/svg/sheets/announcementSheet1.svg",
-    "assets/icons/svg/sheets/announcementSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660770/announcementSheet1_bmh8f2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660776/announcementSheet2_tpub5j.svg",
   ];
   final List<String> _crimeImages = [
-    "assets/icons/svg/sheets/crimeSheet1.svg",
-    "assets/icons/svg/sheets/crimeSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660763/crimeSheet1_yhl3tp.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660761/crimeSheet2_q0aysa.svg",
   ];
   final List<String> _storyImages = [
-    "assets/icons/svg/sheets/storySheet1.svg",
-    "assets/icons/svg/sheets/storySheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660783/storySheet1_evrqbp.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660774/storySheet2_jsq0nv.svg",
   ];
   final List<String> _storyTornImages = [
-    "assets/icons/svg/sheets/storyTornSheet1.svg",
-    "assets/icons/svg/sheets/storyTornSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660754/storyTornSheet2_bhl8um.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660766/storyTornSheet1_sxqcw0.svg",
   ];
   final List<String> _huntImages = [
-    "assets/icons/svg/sheets/huntSheet1.svg",
-    "assets/icons/svg/sheets/huntSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660781/huntSheet1_ufnh7p.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660779/huntSheet2_to0gfr.svg",
   ];
   final List<String> _huntTornImages = [
-    "assets/icons/svg/sheets/huntTornSheet1.svg",
-    "assets/icons/svg/sheets/huntTornSheet2.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660753/huntTornSheet1_j8irp4.svg",
+    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660749/huntTornSheet2_kqqouj.svg",
   ];
 
   late String _imagePath;
@@ -111,7 +111,7 @@ class _SheetState extends State<Sheet> {
       child: SizedBox(
         width: widget.randomizer + 150,
         height: widget.randomizer + 150,
-        child: SvgPicture.asset(_imagePath),
+        child: CachedSvg(url: _imagePath),
       ),
     );
   }

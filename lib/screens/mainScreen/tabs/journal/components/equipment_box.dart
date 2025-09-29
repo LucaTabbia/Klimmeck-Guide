@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../theme/kg_theme.dart';
 
@@ -35,7 +35,7 @@ class EquipmentBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
           border: Border.all(color: KlimmeckGuideTheme.deepNight, width: 2),
         ),
-        child: item != null ? SvgPicture.asset(item!.equipType!.imagePath) : null,
+        child: item != null ? CachedSvg(url: item!.equipType!.imagePath) : null,
       ),
     );
   }

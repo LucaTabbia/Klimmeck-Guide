@@ -1,42 +1,52 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../theme/kg_theme.dart';
 
 class LootItemCard extends StatelessWidget {
-  const LootItemCard({super.key, required this.lootItem, required this.size});
+  static const _cardBackgroundUrl =
+      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660771/emptyCardSheet_tva16h.svg";
 
+  final Function(LootItem)? onTap;
+  final bool? isSelected;
   final LootItem lootItem;
   final double size;
 
+  const LootItemCard({
+    super.key,
+    required this.lootItem,
+    required this.size,
+    this.isSelected,
+    this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        SvgPicture.asset("assets/icons/svg/sheets/emptySheet.svg", height: size, width: size),
-        SizedBox(
-          height: size / 1.3,
-          width: size / 1.5,
-          child: Align(
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SvgPicture.asset(lootItem.effect!.imagePath, height: size / 2.5, width: size),
-                _buildTextSection(
-                  text: lootItem.name?.toString() ?? "",
-                  color: lootItem.rarity!.color,
-                ),
-                if (lootItem.power != 0)
-                  _buildTextSection(text: lootItem.power?.toString() ?? "", color: null),
-              ],
+    return GestureDetector(
+      onTap: onTap != null ? () => onTap!(lootItem) : null,
+      child: RepaintBoundary(
+        child: Stack(
+          children: [
+            // sfondo
+            const CachedSvg(url: _cardBackgroundUrl),
+
+            // contenuto
+            Align(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CachedSvg(url: lootItem.effect!.imagePath, height: size / 2.5, width: size),
+                  _buildTextSection(text: lootItem.name ?? "", color: lootItem.rarity!.color),
+                  if (lootItem.power != 0) _buildTextSection(text: lootItem.power.toString()),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -54,7 +64,7 @@ class LootItemCard extends StatelessWidget {
           fontWeight: FontWeight.w800,
           shadows: [
             Shadow(
-              offset: const Offset(0, 0),
+              offset: Offset.zero,
               blurRadius: 0.7,
               color: KlimmeckGuideTheme.deepNight.withAlpha(150),
             ),

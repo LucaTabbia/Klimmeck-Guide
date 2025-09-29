@@ -1,15 +1,15 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_column.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../models/quest/quest.dart';
-import '../equipment_item_card.dart';
+import '../cards/equipment_item_card.dart';
 
 class QuestInfoSheet extends StatefulWidget {
   const QuestInfoSheet({super.key, required this.quest});
@@ -59,8 +59,9 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        SvgPicture.asset(
-          "assets/icons/svg/sheets/emptySheet.svg",
+        CachedSvg(
+          url:
+              "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660751/emptySheet_jiip7r.svg",
           height: sheetHeight,
           width: sheetWidth,
         ),

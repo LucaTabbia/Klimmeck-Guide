@@ -20,20 +20,22 @@ class LibraryInitialPage extends StatelessWidget {
             children: [
               BookType(
                 title: "Bestiario",
-                imagePath: 'assets/images/library/bestiary.png',
+                imagePath:
+                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660651/bestiary_w68j2y.svg',
                 onTap: () => onTap(
                   [LoreType.enemy, LoreType.animal, LoreType.plant],
                   "Bestiario",
-                  "assets/icons/svg/bookmarkRed.svg",
+                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg",
                 ),
               ),
               BookType(
                 title: "Luoghi",
-                imagePath: 'assets/images/library/locations.png',
+                imagePath:
+                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660653/locations_rpz9fc.svg',
                 onTap: () => onTap(
                   [LoreType.city, LoreType.region, LoreType.state],
                   "Luoghi",
-                  "assets/icons/svg/bookmarkGreen.svg",
+                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683911/bookmarkGreen_qdtvdj.svg",
                 ),
               ),
             ],
@@ -43,20 +45,22 @@ class LibraryInitialPage extends StatelessWidget {
             children: [
               BookType(
                 title: "Religioni",
-                imagePath: 'assets/images/library/religions.png',
+                imagePath:
+                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660649/religions_vwlitf.svg',
                 onTap: () => onTap(
                   [LoreType.religion, LoreType.ceremony, LoreType.god],
                   "Religioni",
-                  "assets/icons/svg/bookmarkYellow.svg",
+                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683906/bookmarkYellow_z6jbcp.svg",
                 ),
               ),
               BookType(
                 title: "Conoscenze",
-                imagePath: 'assets/images/library/knowledge.png',
+                imagePath:
+                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660650/knowledge_jhr4ad.svg',
                 onTap: () => onTap(
                   [LoreType.character, LoreType.knowledge, LoreType.material],
                   "Conoscenze",
-                  "assets/icons/svg/bookmarkBlue.svg",
+                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683915/bookmarkBlue_shxrk6.svg",
                 ),
               ),
             ],

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/user.dart';
 import '../screens/mainScreen/main_screen.dart';
-import '../screens/notifications/notifications_screen.dart';
 import '../screens/onBoarding/on_boarding_screen.dart';
 import '../screens/signIn/sign_in_screen.dart';
 
@@ -48,13 +46,5 @@ Route signInRoute() {
 
       return SlideTransition(position: animation.drive(tween), child: page);
     },
-  );
-}
-
-Route notificationRoute(User user) {
-  return PageRouteBuilder(
-    transitionDuration: const Duration(milliseconds: 400),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) => NotificationsScreen(user: user),
   );
 }

@@ -56,6 +56,6 @@ class _LibraryState extends State<Library> {
       _title = title;
       _bookmarkImagePath = bookmarkImagePath;
     });
-    context.read<LibraryCubit>().loadLoreData(types);
+    context.read<LibraryCubit>().loadLoreData();
   }
 }

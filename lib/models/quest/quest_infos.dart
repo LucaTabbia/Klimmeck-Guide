@@ -27,7 +27,12 @@ class QuestInfos {
   factory QuestInfos.fromJson(Map<String, dynamic> json) {
     final bounds = json['area'] != null
         ? LatLngBounds.fromPoints(
-            List<LatLng>.from(json['area'].map((x) => LatLng(x['latitude'], x['longitude']))),
+            List<LatLng>.from(
+              json['area'].map(
+                (x) =>
+                    LatLng((x['latitude'] as num).toDouble(), (x['longitude'] as num).toDouble()),
+              ),
+            ),
           )
         : null;
 
@@ -36,7 +41,10 @@ class QuestInfos {
       enemy: json["enemy"] != null ? Enemy.fromJson(json["enemy"]) : null,
       type: json["type"] != null ? QuestType.values.byName(json["type"]) : null,
       markerLocation: json["markerLocation"] != null
-          ? LatLng(json["markerLocation"]['latitude'], json["markerLocation"]['longitude'])
+          ? LatLng(
+              (json["markerLocation"]['latitude'] as num).toDouble(),
+              (json["markerLocation"]['longitude'] as num).toDouble(),
+            )
           : null,
       area: bounds,
       relatedLore: json['relatedLore'] != null

@@ -1,7 +1,19 @@
 enum DamageType {
-  blunt(label: 'Contundente', imagePath: "assets/icons/svg/damageTypes/bluntDamage.svg"),
-  cut(label: 'Tagliente', imagePath: "assets/icons/svg/damageTypes/cutDamage.svg"),
-  pierce(label: 'Perforante', imagePath: "assets/icons/svg/damageTypes/pierceDamage.svg");
+  blunt(
+    label: 'Contundente',
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/bluntDamage_wwusuu.svg",
+  ),
+  cut(
+    label: 'Tagliente',
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660749/huntTornSheet2_kqqouj.svg",
+  ),
+  pierce(
+    label: 'Perforante',
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/pierceDamage_lr2wyv.svg",
+  );
 
   final String imagePath;
   final String label;

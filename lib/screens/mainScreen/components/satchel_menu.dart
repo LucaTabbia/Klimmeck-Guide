@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class SatchelMenu extends StatefulWidget {
@@ -26,28 +27,40 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
   final double _itemSize = 100.0;
   final List menuImages = [
     {
-      "selectedImagePath": "assets/images/menu/menuMap.png",
-      "unselectedImagePath": "assets/images/menu/menuMap.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660699/map_tl5hyy.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660699/map_tl5hyy.svg",
     },
     {
-      "selectedImagePath": "assets/images/menu/mirror.png",
-      "unselectedImagePath": "assets/images/menu/mirror.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660698/mirror_bhcd8f.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660698/mirror_bhcd8f.svg",
     },
     {
-      "selectedImagePath": "assets/images/menu/journal.png",
-      "unselectedImagePath": "assets/images/menu/journal.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660692/journal_qcnxzk.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660692/journal_qcnxzk.svg",
     },
     {
-      "selectedImagePath": "assets/images/menu/library.png",
-      "unselectedImagePath": "assets/images/menu/library.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660694/library_klogbm.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660694/library_klogbm.svg",
     },
     {
-      "selectedImagePath": "assets/images/menu/board.png",
-      "unselectedImagePath": "assets/images/menu/board.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660697/board_vlwoja.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660697/board_vlwoja.svg",
     },
     {
-      "selectedImagePath": "assets/images/menu/shop.png",
-      "unselectedImagePath": "assets/images/menu/shop.png",
+      "selectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660695/shop_xllxop.svg",
+      "unselectedImagePath":
+          "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660695/shop_xllxop.svg",
     },
   ];
   bool _isOpen = false;
@@ -178,7 +191,10 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
                                   ),
                                 ],
                               ),
-                              child: Image.asset("assets/images/menu/pouch.png"),
+                              child: CachedSvg(
+                                url:
+                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660701/pouch_u5gqtk.svg",
+                              ),
                             ),
                           ),
                         ),

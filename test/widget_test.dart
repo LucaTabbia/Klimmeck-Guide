@@ -7,13 +7,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:klimmeck_guide/main.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const KlimmeckGuideApp());
+    final client = initGraphQLClient();
+
+    await tester.pumpWidget(KlimmeckGuideApp(client: client));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

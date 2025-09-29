@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../theme/kg_theme.dart';
 
@@ -18,7 +18,7 @@ class EquipmentName extends StatelessWidget {
         SizedBox(
           height: height,
           width: height,
-          child: SvgPicture.asset(equipmentItem.equipType!.imagePath),
+          child: CachedSvg(url: equipmentItem.equipType!.imagePath),
         ),
         Padding(
           padding: const EdgeInsets.only(left: 10.0),

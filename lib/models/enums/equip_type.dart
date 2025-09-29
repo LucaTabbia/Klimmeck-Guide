@@ -5,7 +5,8 @@ const double mannequinBaseHeight = 400;
 enum EquipType {
   helm(
     label: "Elmo",
-    imagePath: "assets/icons/svg/equipTypes/helmetType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660597/helmetType_u3gvxz.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: mannequinBaseHeight / 80,
@@ -16,7 +17,7 @@ enum EquipType {
   ),
   chestPiece(
     label: "Corazza",
-    imagePath: "assets/icons/svg/equipTypes/chestType.svg",
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660600/chestType_ythx19.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: mannequinBaseHeight / 136,
@@ -27,7 +28,7 @@ enum EquipType {
   ),
   boots(
     label: "Stivali",
-    imagePath: "assets/icons/svg/equipTypes/bootsType.svg",
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660599/bootsType_w772pg.svg",
     ratios: EquipRatios(
       aspectRatio: 375 / 374.999991,
       mannequinRatio: mannequinBaseHeight / 117,
@@ -38,7 +39,8 @@ enum EquipType {
   ),
   greaves(
     label: "Gambali",
-    imagePath: "assets/icons/svg/equipTypes/greavesType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660601/greavesType_enhgpl.svg",
     ratios: EquipRatios(
       aspectRatio: 300 / 337.499995,
       mannequinRatio: mannequinBaseHeight / 145,
@@ -49,7 +51,8 @@ enum EquipType {
   ),
   weapon(
     label: "Arma",
-    imagePath: "assets/icons/svg/equipTypes/weaponType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660594/weaponType_i5qe0s.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: mannequinBaseHeight / 85,
@@ -60,7 +63,8 @@ enum EquipType {
   ),
   shield(
     label: "Scudo",
-    imagePath: "assets/icons/svg/equipTypes/shieldType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660603/shieldType_mbquox.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: mannequinBaseHeight / 85,
@@ -71,7 +75,8 @@ enum EquipType {
   ),
   gloves(
     label: "Guanti",
-    imagePath: "assets/icons/svg/equipTypes/glovesType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660596/glovesType_dyybio.svg",
     ratios: EquipRatios(
       aspectRatio: 375 / 225,
       mannequinRatio: mannequinBaseHeight / 87,
@@ -82,7 +87,7 @@ enum EquipType {
   ),
   ring(
     label: "Anello",
-    imagePath: "assets/icons/svg/equipTypes/ringType.svg",
+    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660595/ringType_qmb6bn.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: 0,
@@ -93,7 +98,8 @@ enum EquipType {
   ),
   necklace(
     label: "Collana",
-    imagePath: "assets/icons/svg/equipTypes/necklaceType.svg",
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660598/necklaceType_wrpomm.svg",
     ratios: EquipRatios(
       aspectRatio: 1,
       mannequinRatio: 0,

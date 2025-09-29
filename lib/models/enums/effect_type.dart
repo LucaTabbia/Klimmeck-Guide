@@ -1,9 +1,24 @@
 enum EffectType {
-  none(imagePath: "assets/icons/svg/effectTypes/noneEffect.svg"),
-  heal(imagePath: "assets/icons/svg/effectTypes/healEffect.svg"),
-  hunger(imagePath: "assets/icons/svg/effectTypes/hungerEffect.svg"),
-  munition(imagePath: "assets/icons/svg/effectTypes/munitionEffect.svg"),
-  exploration(imagePath: "assets/icons/svg/effectTypes/explorationEffect.svg");
+  none(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660482/noneEffect_e6g4b5.svg",
+  ),
+  heal(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660480/healEffect_jc9bsg.svg",
+  ),
+  hunger(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660483/hungerEffect_mxqqze.svg",
+  ),
+  munition(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660484/munitionEffect_cdhllj.svg",
+  ),
+  exploration(
+    imagePath:
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660481/explorationEffect_owljlv.svg",
+  );
 
   final String imagePath;
 

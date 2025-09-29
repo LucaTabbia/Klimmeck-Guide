@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../theme/kg_theme.dart';
 
@@ -22,7 +23,7 @@ class BookType extends StatelessWidget {
           children: [
             SizedBox(
               height: MediaQuery.of(context).size.height / 2 - 40,
-              child: Image.asset(imagePath),
+              child: CachedSvg(url: imagePath),
             ),
             SizedBox(
               height: 40,

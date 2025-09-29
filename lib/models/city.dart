@@ -32,7 +32,9 @@ class City {
     LatLngBounds? bounds;
     if (json['area'] != null) {
       final List<LatLng> points = List<LatLng>.from(
-        json['area'].map((x) => LatLng(x['latitude'], x['longitude'])),
+        json['area'].map(
+          (x) => LatLng((x['latitude'] as num).toDouble(), (x['longitude'] as num).toDouble()),
+        ),
       );
       if (points.isNotEmpty) {
         bounds = LatLngBounds.fromPoints(points);
@@ -48,7 +50,10 @@ class City {
       name: json["name"],
       size: json["size"]?.toInt(),
       markerLocation: json['markerLocation'] != null
-          ? LatLng(json['markerLocation']['latitude'], json['markerLocation']['longitude'])
+          ? LatLng(
+              (json['markerLocation']['latitude'] as num).toDouble(),
+              (json['markerLocation']['longitude'] as num).toDouble(),
+            )
           : null,
       relatedLore: json['relatedLore'] != null ? Lore.fromJson(json['relatedLore']) : null,
     );

@@ -1,8 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 
 import '../../../theme/kg_theme.dart';
 
@@ -30,8 +31,9 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        SvgPicture.asset(
-          "assets/icons/svg/sheets/emptySheet.svg",
+        CachedSvg(
+          url:
+              "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660751/emptySheet_jiip7r.svg",
           height: svgHeight,
           width: svgWidth,
         ),
@@ -55,8 +57,8 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                         height: constraints.maxHeight,
                         child: Column(
                           children: [
-                            SvgPicture.asset(
-                              widget.equipmentItem!.equipType!.imagePath,
+                            CachedSvg(
+                              url: widget.equipmentItem!.equipType!.imagePath,
                               height: constraints.maxHeight / 3,
                               width: constraints.maxHeight / 3,
                             ),
@@ -116,33 +118,41 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                                 : "Danno base: ",
                                             style: KlimmeckGuideTheme.instance.bodyMedium,
                                           ),
-                                          Row(
-                                            children: [
-                                              ...List.generate(
-                                                widget.equipmentItem!.baseTypes!.length,
-                                                (index) {
-                                                  return SvgPicture.asset(
-                                                    widget
+                                          ...List.generate(
+                                            widget.equipmentItem!.damages!.base!.length,
+                                            (index) {
+                                              return Row(
+                                                children: [
+                                                  CachedSvg(
+                                                    url: widget
                                                         .equipmentItem!
-                                                        .baseTypes![index]
+                                                        .damages!
+                                                        .base![index]
+                                                        .type!
                                                         .imagePath,
                                                     height: (constraints.maxWidth / 2) / 4 - 5,
                                                     width: (constraints.maxWidth / 2) / 4 - 5,
-                                                  );
-                                                },
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(left: 10.0),
-                                                child: Text(
-                                                  maxLines: 1,
-                                                  textAlign: TextAlign.center,
-                                                  widget.equipmentItem!.basePower!.toString(),
-                                                  style: KlimmeckGuideTheme.instance.bodyMedium,
-                                                ),
-                                              ),
-                                            ],
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(left: 10.0),
+                                                    child: Text(
+                                                      maxLines: 1,
+                                                      textAlign: TextAlign.center,
+                                                      widget
+                                                          .equipmentItem!
+                                                          .damages!
+                                                          .base![index]
+                                                          .power!
+                                                          .toString(),
+                                                      style: KlimmeckGuideTheme.instance.bodyMedium,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
                                           ),
-                                          if (widget.equipmentItem!.energyType != null)
+                                          if (widget.equipmentItem!.damages!.energy != null &&
+                                              widget.equipmentItem!.damages!.energy!.isNotEmpty)
                                             AutoSizeText(
                                               maxFontSize: 24,
                                               minFontSize: 12,
@@ -153,24 +163,41 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                                   : "Danno magico: ",
                                               style: KlimmeckGuideTheme.instance.bodyMedium,
                                             ),
-                                          if (widget.equipmentItem!.energyType != null)
-                                            Row(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  widget.equipmentItem!.energyType!.imagePath,
-                                                  height: (constraints.maxWidth / 2) / 4 - 5,
-                                                  width: (constraints.maxWidth / 2) / 4 - 5,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.only(left: 10.0),
-                                                  child: Text(
-                                                    maxLines: 1,
-                                                    textAlign: TextAlign.center,
-                                                    widget.equipmentItem!.energyPower!.toString(),
-                                                    style: KlimmeckGuideTheme.instance.bodyMedium,
-                                                  ),
-                                                ),
-                                              ],
+                                          if (widget.equipmentItem!.damages!.energy != null &&
+                                              widget.equipmentItem!.damages!.energy!.isNotEmpty)
+                                            ...List.generate(
+                                              widget.equipmentItem!.damages!.energy!.length,
+                                              (index) {
+                                                return Row(
+                                                  children: [
+                                                    CachedSvg(
+                                                      url: widget
+                                                          .equipmentItem!
+                                                          .damages!
+                                                          .energy![index]
+                                                          .type!
+                                                          .imagePath,
+                                                      height: (constraints.maxWidth / 2) / 4 - 5,
+                                                      width: (constraints.maxWidth / 2) / 4 - 5,
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.only(left: 10.0),
+                                                      child: Text(
+                                                        maxLines: 1,
+                                                        textAlign: TextAlign.center,
+                                                        widget
+                                                            .equipmentItem!
+                                                            .damages!
+                                                            .energy![index]
+                                                            .power!
+                                                            .toString(),
+                                                        style:
+                                                            KlimmeckGuideTheme.instance.bodyMedium,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             ),
                                         ],
                                       ),
@@ -211,84 +238,10 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                                 style: KlimmeckGuideTheme.instance.titleMedium,
                                               ),
                                             ),
-                                            AutoSizeText(
-                                              maxFontSize: 24,
-                                              minFontSize: 12,
-                                              maxLines: 1,
-                                              textAlign: TextAlign.left,
-                                              widget.equipmentItem!.addedSpell!.name ?? "",
-                                              style: KlimmeckGuideTheme.instance.bodyMedium,
+                                            SpellCard(
+                                              spell: widget.equipmentItem!.addedSpell!,
+                                              size: constraints.maxWidth / 2,
                                             ),
-                                            Row(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  widget
-                                                      .equipmentItem!
-                                                      .addedSpell!
-                                                      .useType!
-                                                      .imagePath,
-                                                  height: (constraints.maxWidth / 2) / 4,
-                                                  width: (constraints.maxWidth / 2) / 4,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.only(left: 10.0),
-                                                  child: AutoSizeText(
-                                                    maxFontSize: 24,
-                                                    minFontSize: 12,
-                                                    maxLines: 1,
-                                                    textAlign: TextAlign.center,
-                                                    widget.equipmentItem!.addedSpell!.power!
-                                                        .toString(),
-                                                    style: KlimmeckGuideTheme.instance.bodyMedium,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            if (widget.equipmentItem!.energyType != null)
-                                              AutoSizeText(
-                                                maxFontSize: 24,
-                                                minFontSize: 12,
-                                                maxLines: 1,
-                                                textAlign: TextAlign.left,
-                                                "Tipo: ",
-                                                style: KlimmeckGuideTheme.instance.bodyMedium,
-                                              ),
-                                            if (widget.equipmentItem!.energyType != null)
-                                              Row(
-                                                children: [
-                                                  SvgPicture.asset(
-                                                    widget
-                                                        .equipmentItem!
-                                                        .addedSpell!
-                                                        .energyType!
-                                                        .imagePath,
-                                                    height: (constraints.maxWidth / 2) / 4,
-                                                    width: (constraints.maxWidth / 2) / 4,
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets.only(left: 10.0),
-                                                    child: SizedBox(
-                                                      width:
-                                                          (constraints.maxWidth / 2) -
-                                                          ((constraints.maxWidth / 2) / 4 + 30.5),
-                                                      child: AutoSizeText(
-                                                        maxFontSize: 24,
-                                                        minFontSize: 12,
-                                                        maxLines: 1,
-                                                        textAlign: TextAlign.left,
-                                                        widget
-                                                            .equipmentItem!
-                                                            .addedSpell!
-                                                            .energyType!
-                                                            .label
-                                                            .toString(),
-                                                        style:
-                                                            KlimmeckGuideTheme.instance.bodyMedium,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
                                           ],
                                         ),
                                       ),
@@ -316,8 +269,9 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
             onTap: () => widget.onEquip(),
             child: RotatedBox(
               quarterTurns: 3,
-              child: SvgPicture.asset(
-                "assets/icons/svg/bookmarkRed.svg",
+              child: CachedSvg(
+                url:
+                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg",
                 height: MediaQuery.of(context).size.height / 3,
               ),
             ),
