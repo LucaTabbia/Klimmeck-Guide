@@ -6,8 +6,8 @@ abstract class ShopState {}
 class ShopInitial extends ShopState {}
 
 class ShopLoadData extends ShopState {
-  final List<EquipmentItem> equipmentItems;
-  final List<LootItem> lootItems;
+  final List<AssetQuantity> equipmentItems;
+  final List<AssetQuantity> lootItems;
 
   ShopLoadData(this.equipmentItems, this.lootItems);
 }

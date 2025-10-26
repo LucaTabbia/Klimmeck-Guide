@@ -58,7 +58,10 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                     SizedBox(height: 40),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20.0),
-                      child: Text(widget.title, style: KlimmeckGuideTheme.instance.headlineLarge),
+                      child: Text(
+                        widget.title,
+                        style: KlimmeckGuideTheme.instance.headlineLarge,
+                      ),
                     ),
                     ...List.generate(widget.types.length, (typesIndex) {
                       return Dropdown(
@@ -66,14 +69,18 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                         data: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ...List.generate(_loreLists[typesIndex].length, (loreIndex) {
-                              return LoreCard(lore: _loreLists[typesIndex][loreIndex]);
+                            ...List.generate(_loreLists[typesIndex].length, (
+                              loreIndex,
+                            ) {
+                              return LoreCard(
+                                lore: _loreLists[typesIndex][loreIndex],
+                              );
                             }),
                           ],
                         ),
                       );
                     }),
-                    SizedBox(height: 80),
+                    SizedBox(height: 120),
                   ],
                 ),
               ),

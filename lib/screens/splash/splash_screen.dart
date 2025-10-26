@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../main.dart';
 import '../../routes/routes.dart';
+import 'cubit/splash_cubit.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

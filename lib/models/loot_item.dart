@@ -8,6 +8,7 @@ class LootItem extends AssetItem {
   LootItem({
     required super.id,
     required super.name,
+    required super.description,
     required super.rarity,
     required super.buyPrice,
     required super.sellPrice,
@@ -21,6 +22,7 @@ class LootItem extends AssetItem {
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
     id: json["id"],
     name: json["name"],
+    description: json['description'],
     sellPrice: json['sellPrice'] != null ? Coins.fromJson(json['sellPrice']) : null,
     buyPrice: json['buyPrice'] != null ? Coins.fromJson(json['buyPrice']) : null,
     power: json["power"] != null ? (json["power"] as num).toInt() : null,
@@ -31,6 +33,7 @@ class LootItem extends AssetItem {
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
+    "description": description,
     "buyPrice": buyPrice?.toJson(),
     "sellPrice": sellPrice?.toJson(),
     "power": power,

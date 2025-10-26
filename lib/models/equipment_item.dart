@@ -10,6 +10,7 @@ class EquipmentItem extends AssetItem {
   EquipmentItem({
     required super.id,
     required super.name,
+    required super.description,
     required super.rarity,
     required super.sellPrice,
     required super.buyPrice,
@@ -25,6 +26,7 @@ class EquipmentItem extends AssetItem {
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
     name: json['name'],
+    description: json['description'],
     equipType: json['equipType'] != null ? EquipType.values.byName(json['equipType']) : null,
     addedSpell: json['addedSpell'] != null ? Spell.fromJson(json['addedSpell']) : null,
     sellPrice: json['sellPrice'] != null ? Coins.fromJson(json['sellPrice']) : null,
@@ -36,6 +38,7 @@ class EquipmentItem extends AssetItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
+    'description': description,
     'equipType': equipType?.name,
     'addedSpell': addedSpell?.toJson(),
     'sellPrice': sellPrice?.toJson(),

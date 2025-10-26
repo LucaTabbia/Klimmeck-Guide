@@ -9,9 +9,11 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/request/transaction_request.dart';
 
 import '../../../graphql/city_queries.dart';
 import '../../../main.dart';
+import '../../../models/asset_quantity.dart';
 import '../../../models/lore.dart';
 import '../../../models/quest/quest.dart';
 import '../../storage/storage_manager.dart';
@@ -27,14 +29,19 @@ class KlimmeckGraphQl {
         return 'Network error: ${exception.linkException}';
       }
       if (exception.graphqlErrors.isNotEmpty) {
-        final String graphqlError = exception.graphqlErrors.map((e) => e.message).join(', ');
+        final String graphqlError = exception.graphqlErrors
+            .map((e) => e.message)
+            .join(', ');
         return 'Server error: $graphqlError';
       }
     }
     return 'Generic server error';
   }
 
-  Future<QueryResult> performQuery(String query, {Map<String, dynamic>? variables}) async {
+  Future<QueryResult> performQuery(
+    String query, {
+    Map<String, dynamic>? variables,
+  }) async {
     final QueryOptions options = QueryOptions(
       document: gql(query),
       variables: variables ?? {},
@@ -99,16 +106,21 @@ class KlimmeckGraphQl {
       throw Exception(errorMessage);
     }
 
-    final List<dynamic>? equipmentItemsData = result.data?['equipmentItemsByIds'];
+    final List<dynamic>? equipmentItemsData =
+        result.data?['equipmentItemsByIds'];
     if (equipmentItemsData == null) {
-      throw Exception('No equipmentItems found');
+      throw Exception('No equipmentItem found');
     }
 
-    return equipmentItemsData.map((json) => EquipmentItem.fromJson(json)).toList();
+    return equipmentItemsData
+        .map((json) => EquipmentItem.fromJson(json))
+        .toList();
   }
 
   Future<List<EquipmentItem>> getAllEquipmentItems() async {
-    final result = await performQuery(EquipmentItemQueries.getAllEquipmentItems);
+    final result = await performQuery(
+      EquipmentItemQueries.getAllEquipmentItems,
+    );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);
@@ -116,14 +128,39 @@ class KlimmeckGraphQl {
 
     final List<dynamic>? equipmentItemsData = result.data?['equipmentItems'];
     if (equipmentItemsData == null) {
-      throw Exception('No quest found');
+      throw Exception('No equipmentItem found');
     }
 
-    return equipmentItemsData.map((json) => EquipmentItem.fromJson(json)).toList();
+    return equipmentItemsData
+        .map((json) => EquipmentItem.fromJson(json))
+        .toList();
+  }
+
+  Future<List<AssetQuantity>> getAllEquipmentAssetsQuantity() async {
+    final result = await performQuery(
+      EquipmentItemQueries.getAllEquipmentAssetsQuantity,
+    );
+    if (result.hasException) {
+      final errorMessage = getGenericErrorMessage(result.exception);
+      throw Exception(errorMessage);
+    }
+
+    final List<dynamic>? equipmentAssetsQuantityData =
+        result.data?['equipmentAssetsQuantity'];
+    if (equipmentAssetsQuantityData == null) {
+      throw Exception('No equipmentItem found');
+    }
+
+    return equipmentAssetsQuantityData
+        .map((json) => AssetQuantity.fromJson(json))
+        .toList();
   }
 
   Future<List<LootItem>> getLootItems(List<String> ids) async {
-    final result = await performQuery(LootItemQueries.getLootItemsByIds, variables: {"ids": ids});
+    final result = await performQuery(
+      LootItemQueries.getLootItemsByIds,
+      variables: {"ids": ids},
+    );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);
@@ -131,7 +168,7 @@ class KlimmeckGraphQl {
 
     final List<dynamic>? lootItemsData = result.data?['lootItemsByIds'];
     if (lootItemsData == null) {
-      throw Exception('No quest found');
+      throw Exception('No lootItem found');
     }
 
     return lootItemsData.map((json) => LootItem.fromJson(json)).toList();
@@ -146,14 +183,35 @@ class KlimmeckGraphQl {
 
     final List<dynamic>? lootItemsData = result.data?['lootItems'];
     if (lootItemsData == null) {
-      throw Exception('No quest found');
+      throw Exception('No lootItem found');
     }
 
     return lootItemsData.map((json) => LootItem.fromJson(json)).toList();
   }
 
+  Future<List<AssetQuantity>> getAllLootAssetsQuantity() async {
+    final result = await performQuery(LootItemQueries.getAllLootAssetsQuantity);
+    if (result.hasException) {
+      final errorMessage = getGenericErrorMessage(result.exception);
+      throw Exception(errorMessage);
+    }
+
+    final List<dynamic>? lootAssetsQuantityData =
+        result.data?['lootAssetsQuantity'];
+    if (lootAssetsQuantityData == null) {
+      throw Exception('No lootItem found');
+    }
+
+    return lootAssetsQuantityData
+        .map((json) => AssetQuantity.fromJson(json))
+        .toList();
+  }
+
   Future<Character> getCharacter(String id) async {
-    final result = await performQuery(CharacterQueries.getCharacter, variables: {"id": id});
+    final result = await performQuery(
+      CharacterQueries.getCharacter,
+      variables: {"id": id},
+    );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);
@@ -168,7 +226,10 @@ class KlimmeckGraphQl {
   }
 
   Future<Equipment> getEquipment(String id) async {
-    final result = await performQuery(CharacterQueries.getEquipment, variables: {"id": id});
+    final result = await performQuery(
+      CharacterQueries.getEquipment,
+      variables: {"id": id},
+    );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);
@@ -176,7 +237,7 @@ class KlimmeckGraphQl {
 
     final dynamic equipmentData = result.data?['equipment'];
     if (equipmentData == null) {
-      throw Exception('No quest found');
+      throw Exception('No equipment found');
     }
 
     return Equipment.fromJson(equipmentData);
@@ -191,14 +252,17 @@ class KlimmeckGraphQl {
 
     final List<dynamic>? loresData = result.data?['lores'];
     if (loresData == null) {
-      throw Exception('No cities found');
+      throw Exception('No lore found');
     }
 
     return loresData.map((json) => Lore.fromJson(json)).toList();
   }
 
   Future<Lore> getLoreById(String id) async {
-    final result = await performQuery(LoreQueries.getLoreById, variables: {"id": id});
+    final result = await performQuery(
+      LoreQueries.getLoreById,
+      variables: {"id": id},
+    );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);
@@ -206,9 +270,27 @@ class KlimmeckGraphQl {
 
     final dynamic loreData = result.data?['lore'];
     if (loreData == null) {
-      throw Exception('No cities found');
+      throw Exception('No lore found');
     }
 
     return Lore.fromJson(loreData);
+  }
+
+  Future<String> doTransaction(TransactionRequest request) async {
+    final result = await performMutation(
+      query: CharacterQueries.doTransaction,
+      variables: {"input": request},
+    );
+    if (result.hasException) {
+      final errorMessage = getGenericErrorMessage(result.exception);
+      throw Exception(errorMessage);
+    }
+
+    final dynamic transactionResult = result.data?['doTransaction'];
+    if (transactionResult == null) {
+      throw Exception('Bad Transaction');
+    }
+
+    return transactionResult["response"];
   }
 }

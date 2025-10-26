@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
@@ -8,7 +9,6 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_mannequin.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/injury_name_icon.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/shared/components/text_section.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../../shared/components/item_grid.dart';
+import 'cubit/journal_cubit.dart';
 
 class Journal extends StatefulWidget {
   const Journal({super.key, required this.character});
@@ -34,11 +35,9 @@ class Journal extends StatefulWidget {
 
 class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   late Equipment _tempEquipment;
-  List<EquipmentItem> _allEquipmentItems = [];
   List<EquipmentItem> _equippedItems = [];
   EquipmentItem? _selectedEquipment;
   List<EquipmentItem> _filteredItems = [];
-  List<LootItem> _lootItems = [];
 
   List<EquipType>? _selectedTypes;
 
@@ -54,10 +53,9 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    _positionAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+    _positionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
 
     _animationController.addStatusListener((status) {
       if (status.isDismissed) {
@@ -65,28 +63,27 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       }
     });
 
-    context.read<JournalCubit>().getData(
-      widget.character.assets!.ownedEquipments!.map((e) => e.item!.id).toList(),
-      widget.character.assets!.ownedItems!.map((e) => e.item!.id).toList(),
-      widget.character.id,
-    );
+    context.read<JournalCubit>().getData(widget.character.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    _positionAnimation = Tween<double>(
-      begin: MediaQuery.of(context).size.height,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+    _positionAnimation =
+        Tween<double>(
+          begin: MediaQuery.of(context).size.height,
+          end: 0.0,
+        ).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+        );
 
     return BlocConsumer<JournalCubit, JournalState>(
       listener: (context, state) {
         if (state is JournalLoadData) {
           setState(() {
             _tempEquipment = state.equipment;
-            _equippedItems = _tempEquipment.values.whereType<EquipmentItem>().toList();
-            _allEquipmentItems = state.equipmentItems;
-            _lootItems = state.lootItems;
+            _equippedItems = _tempEquipment.values
+                .whereType<EquipmentItem>()
+                .toList();
             _filteredItems = _equippedItems;
           });
         }
@@ -107,7 +104,9 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: Container(
-                    decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
+                    decoration: BoxDecoration(
+                      color: KlimmeckGuideTheme.parchment,
+                    ),
                     height: MediaQuery.of(context).size.height,
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20),
@@ -120,7 +119,9 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                             _buildLifePointsSection(),
                             TextSection(
                               sectionName: "XP ottenuti",
-                              data: widget.character.status?.xp?.toString() ?? "0",
+                              data:
+                                  widget.character.status?.xp?.toString() ??
+                                  "0",
                             ),
                             Section(
                               sectionName: "Monete",
@@ -136,7 +137,8 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                               data: ItemGrid(
                                 items: widget.character.status!.spells!,
                                 size: spellSize,
-                                itemBuilder: (spell, size) => SpellCard(spell: spell, size: size),
+                                itemBuilder: (spell, size) =>
+                                    SpellCard(spell: spell, size: size),
                               ),
                             ),
                             Dropdown(
@@ -160,18 +162,22 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                           maxFontSize: 20,
                                           minFontSize: 10,
                                           textAlign: TextAlign.center,
-                                          style: KlimmeckGuideTheme.instance.headlineLarge,
+                                          style: KlimmeckGuideTheme
+                                              .instance
+                                              .headlineLarge,
                                         ),
                                         ItemGrid<EquipmentItem>(
                                           items: _filteredItems,
                                           size: equipmentSize,
-                                          itemBuilder: (item, size) => EquipmentItemCard(
-                                            equipmentItem: item,
-                                            size: size,
-                                            isSelected: _equippedItems.contains(item),
-                                            onTap: _equipItem,
-                                            onLongPress: _selectEquipment,
-                                          ),
+                                          itemBuilder: (item, size) =>
+                                              EquipmentItemCard(
+                                                equipmentItem: item,
+                                                size: size,
+                                                isSelected: _equippedItems
+                                                    .contains(item),
+                                                onTap: _equipItem,
+                                                onLongPress: _selectEquipment,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -181,14 +187,16 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                             ),
                             Dropdown(
                               sectionName: "Oggetti",
-                              data: ItemGrid<LootItem>(
-                                items: _lootItems,
+                              data: ItemGrid<AssetQuantity>(
+                                items: widget.character.assets!.ownedItems!,
                                 size: lootSize,
-                                itemBuilder: (item, size) =>
-                                    LootItemCard(lootItem: item, size: size),
+                                itemBuilder: (item, size) => LootItemCard(
+                                  lootItem: item.item! as LootItem,
+                                  size: size,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 80),
+                            const SizedBox(height: 120),
                           ],
                         ),
                       ),
@@ -269,7 +277,14 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       _selectedTypes = isSame ? null : types;
       _filteredItems = isSame
           ? _equippedItems
-          : _allEquipmentItems.where((item) => _selectedTypes!.contains(item.equipType)).toList();
+          : widget.character.assets!.ownedEquipments!
+                .where(
+                  (item) => _selectedTypes!.contains(
+                    (item.item as EquipmentItem).equipType,
+                  ),
+                )
+                .map((item) => item.item as EquipmentItem)
+                .toList();
     });
   }
 

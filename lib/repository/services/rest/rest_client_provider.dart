@@ -8,7 +8,7 @@ class RestClient {
   static final RestClient _instance = RestClient._internal(
     Dio(
       BaseOptions(
-        baseUrl: "http://192.168.11.173:3000/",
+        baseUrl: "http://192.168.0.11:3000/",
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {'Content-Type': 'application/json'},

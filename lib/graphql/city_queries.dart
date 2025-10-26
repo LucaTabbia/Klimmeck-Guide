@@ -3,11 +3,8 @@ class CityQueries {
     query cities {
       cities {
         id
-        image
         type
         name
-        citySize
-        size
         markerLocation {
           latitude
           longitude

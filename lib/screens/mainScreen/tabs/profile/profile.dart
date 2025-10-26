@@ -50,11 +50,18 @@ class _ProfileState extends State<Profile> {
                                 ),
                                 TextSection(
                                   sectionName: "Razza",
-                                  data: widget.character.infos?.race?.label ?? "",
+                                  data:
+                                      widget.character.infos?.race?.label ?? "",
                                 ),
                                 TextSection(
                                   sectionName: "Classe",
-                                  data: widget.character.infos?.classType?.label ?? "",
+                                  data:
+                                      widget
+                                          .character
+                                          .infos
+                                          ?.classType
+                                          ?.label ??
+                                      "",
                                 ),
                               ],
                             ),
@@ -75,7 +82,7 @@ class _ProfileState extends State<Profile> {
                     sectionName: "Background",
                     data: widget.character.infos?.background ?? "",
                   ),
-                  SizedBox(height: 80),
+                  SizedBox(height: 120),
                 ],
               ),
             ),

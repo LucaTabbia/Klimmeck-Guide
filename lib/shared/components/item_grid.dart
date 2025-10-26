@@ -27,7 +27,7 @@ class ItemGrid<T> extends StatelessWidget {
       height: gridHeight,
       child: GridView.builder(
         padding: const EdgeInsets.only(top: 10, bottom: 0, right: 15),
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: crossAxisSpacing,

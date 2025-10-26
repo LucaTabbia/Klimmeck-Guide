@@ -8,7 +8,6 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_modal.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
@@ -18,6 +17,7 @@ import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../shared/components/popup/quest_info_sheet.dart';
+import 'cubit/world_map_cubit.dart';
 
 class WorldMap extends StatefulWidget {
   const WorldMap({super.key, required this.character, required this.cities, required this.quests});

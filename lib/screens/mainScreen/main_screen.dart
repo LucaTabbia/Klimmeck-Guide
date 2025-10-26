@@ -33,11 +33,13 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
-    _animationController = AnimationController(duration: Duration(milliseconds: 500), vsync: this);
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     pageController = PageController(initialPage: 0);
     pageController.addListener(() {
@@ -63,7 +65,11 @@ class _MainScreenState extends State<MainScreen>
                   physics: const NeverScrollableScrollPhysics(),
                   controller: pageController,
                   onPageChanged: onPageChanged,
-                  children: _buildPages(state.character, state.cities, state.quests),
+                  children: _buildPages(
+                    state.character,
+                    state.cities,
+                    state.quests,
+                  ),
                 ),
                 MenuBackground(
                   selectedIndex: currentPage,
@@ -113,7 +119,11 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
-  List<Widget> _buildPages(Character character, List<City> cities, List<Quest> quests) {
+  List<Widget> _buildPages(
+    Character character,
+    List<City> cities,
+    List<Quest> quests,
+  ) {
     return [
       WorldMap(character: character, cities: cities, quests: quests),
       Profile(character: character),

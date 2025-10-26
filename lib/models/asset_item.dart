@@ -7,6 +7,7 @@ import 'loot_item.dart';
 abstract class AssetItem {
   AssetItem({
     required this.id,
+    required this.description,
     required this.name,
     required this.sellPrice,
     required this.buyPrice,
@@ -14,6 +15,7 @@ abstract class AssetItem {
   });
 
   final String id;
+  final String description;
   final String? name;
   final Coins? sellPrice;
   final Coins? buyPrice;

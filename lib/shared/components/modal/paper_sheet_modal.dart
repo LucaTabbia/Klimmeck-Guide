@@ -15,7 +15,8 @@ class PaperSheetModal extends StatelessWidget {
       maxChildSize: 1,
       builder: (context, scrollController) {
         return Container(
-          width: double.infinity,
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -31,8 +32,13 @@ class PaperSheetModal extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 7),
-                  child: child,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width / 7,
+                  ),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.width,
+                    child: child,
+                  ),
                 ),
               ],
             ),

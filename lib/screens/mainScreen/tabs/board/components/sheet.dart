@@ -7,7 +7,12 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import '../../../../../models/quest/quest.dart';
 
 class Sheet extends StatefulWidget {
-  const Sheet({super.key, required this.onTap, required this.quest, required this.randomizer});
+  const Sheet({
+    super.key,
+    required this.onTap,
+    required this.quest,
+    required this.randomizer,
+  });
 
   final Function(Quest) onTap;
   final double randomizer;
@@ -74,11 +79,15 @@ class _SheetState extends State<Sheet> {
     if (widget.quest.infos?.type != null) {
       switch (widget.quest.infos!.type!) {
         case QuestType.boss || QuestType.enemy:
-          _imagePath = isFull ? _randomFrom(_huntTornImages) : _randomFrom(_huntImages);
+          _imagePath = isFull
+              ? _randomFrom(_huntTornImages)
+              : _randomFrom(_huntImages);
           break;
 
         case QuestType.dungeon || QuestType.aid:
-          _imagePath = isFull ? _randomFrom(_questTornImages) : _randomFrom(_questImages);
+          _imagePath = isFull
+              ? _randomFrom(_questTornImages)
+              : _randomFrom(_questImages);
           break;
 
         case QuestType.crime:
@@ -98,7 +107,9 @@ class _SheetState extends State<Sheet> {
           break;
 
         case QuestType.worldMission:
-          _imagePath = isFull ? _randomFrom(_storyTornImages) : _randomFrom(_storyImages);
+          _imagePath = isFull
+              ? _randomFrom(_storyTornImages)
+              : _randomFrom(_storyImages);
           break;
       }
     }

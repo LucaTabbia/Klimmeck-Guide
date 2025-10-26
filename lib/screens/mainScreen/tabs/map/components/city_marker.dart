@@ -21,9 +21,9 @@ class _CityMarkerState extends State<CityMarker> {
       child: Align(
         alignment: Alignment.center,
         child: CachedSvg(
-          url: widget.city.image ?? "",
-          width: widget.city.size!.toDouble(),
-          height: widget.city.size!.toDouble(),
+          url: widget.city.type!.imagePath,
+          width: widget.city.type!.size.toDouble(),
+          height: widget.city.type!.size.toDouble(),
         ),
       ),
     );

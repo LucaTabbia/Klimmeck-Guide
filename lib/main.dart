@@ -14,7 +14,8 @@ import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/cubit/shop_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
@@ -65,13 +66,19 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
       final Map<String, dynamic> manifestMap = json.decode(manifestJson);
 
       final svgPaths = manifestMap.keys
-          .where((String key) => key.startsWith('assets/icons/') && key.endsWith('.svg'))
+          .where(
+            (String key) =>
+                key.startsWith('assets/icons/') && key.endsWith('.svg'),
+          )
           .toList();
 
       await Future.wait(
         svgPaths.map((svgPath) async {
           final loader = SvgAssetLoader(svgPath);
-          await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+          await svg.cache.putIfAbsent(
+            loader.cacheKey(null),
+            () => loader.loadBytes(null),
+          );
         }),
       );
     } catch (e, stack) {
@@ -88,11 +95,15 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
           .where(
             (key) =>
                 key.startsWith('assets/images/') &&
-                (key.endsWith('.png') || key.endsWith('.jpg') || key.endsWith('.jpeg')),
+                (key.endsWith('.png') ||
+                    key.endsWith('.jpg') ||
+                    key.endsWith('.jpeg')),
           )
           .toList();
 
-      await Future.wait(imagePaths.map((path) => precacheImage(AssetImage(path), context)));
+      await Future.wait(
+        imagePaths.map((path) => precacheImage(AssetImage(path), context)),
+      );
 
       debugPrint('Precached ${imagePaths.length} images');
     } catch (e, stack) {
@@ -113,12 +124,23 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
-          BlocProvider<MainScreenCubit>(create: (context) => MainScreenCubit(graphQl)),
-          BlocProvider<WorldMapCubit>(create: (context) => WorldMapCubit(graphQl)),
+          BlocProvider<TransactionCubit>(
+            create: (context) => TransactionCubit(graphQl),
+          ),
+          BlocProvider<MainScreenCubit>(
+            create: (context) => MainScreenCubit(graphQl),
+          ),
+          BlocProvider<WorldMapCubit>(
+            create: (context) => WorldMapCubit(graphQl),
+          ),
           BlocProvider<ShopCubit>(create: (context) => ShopCubit(graphQl)),
-          BlocProvider<LibraryCubit>(create: (context) => LibraryCubit(graphQl)),
+          BlocProvider<LibraryCubit>(
+            create: (context) => LibraryCubit(graphQl),
+          ),
           BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
-          BlocProvider<JournalCubit>(create: (context) => JournalCubit(graphQl)),
+          BlocProvider<JournalCubit>(
+            create: (context) => JournalCubit(graphQl),
+          ),
           BlocProvider<SplashCubit>(create: (context) => SplashCubit(rest)),
           BlocProvider<SignInCubit>(create: (context) => SignInCubit(graphQl)),
         ],

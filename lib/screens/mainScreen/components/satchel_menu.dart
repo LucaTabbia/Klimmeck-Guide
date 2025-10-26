@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
-import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class SatchelMenu extends StatefulWidget {
   final AnimationController parentAnimationController;
@@ -19,7 +18,8 @@ class SatchelMenu extends StatefulWidget {
   State<SatchelMenu> createState() => _SatchelMenuState();
 }
 
-class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin {
+class _SatchelMenuState extends State<SatchelMenu>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _itemAnimationController;
   late Animation<double> _sizeAnimation;
@@ -69,16 +69,22 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(duration: Duration(milliseconds: 500), vsync: this);
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 500),
+      vsync: this,
+    );
     _itemAnimationController = AnimationController(
       duration: Duration(milliseconds: 300),
       vsync: this,
     );
 
-    _sizeAnimation = Tween<double>(
-      begin: _itemSize / 2,
-      end: _itemSize,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
+    _sizeAnimation = Tween<double>(begin: _itemSize * 2, end: _itemSize)
+        .animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed && _isOpen) {
@@ -159,10 +165,32 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
               builder: (context, constraints) {
                 final screenHeight = constraints.maxHeight;
 
-                final positionAnimation = Tween<double>(
-                  begin: 25,
-                  end: (screenHeight / 2) - 50,
-                ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack));
+                final verticalPositionAnimation =
+                    Tween<double>(
+                      begin: -80,
+                      end: (screenHeight / 2) - 50,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeOutBack,
+                      ),
+                    );
+
+                final horizontalPositionAnimation =
+                    Tween<double>(begin: -60, end: 25).animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeOutBack,
+                      ),
+                    );
+
+                final rotationAnimation = Tween<double>(begin: 0.3, end: 0.0)
+                    .animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeOutBack,
+                      ),
+                    );
 
                 return AnimatedBuilder(
                   animation: _animationController,
@@ -170,30 +198,19 @@ class _SatchelMenuState extends State<SatchelMenu> with TickerProviderStateMixin
                     return Stack(
                       children: [
                         Positioned(
-                          bottom: positionAnimation.value,
-                          left: 25,
+                          bottom: verticalPositionAnimation.value,
+                          left: horizontalPositionAnimation.value,
                           child: GestureDetector(
                             onTap: _toggleMenu,
-                            child: Container(
-                              width: _sizeAnimation.value,
-                              height: _sizeAnimation.value,
-                              decoration: BoxDecoration(
-                                color: !_isOpen ? KlimmeckGuideTheme.primaryGold : null,
-                                shape: BoxShape.circle,
-                                border: !_isOpen
-                                    ? Border.all(color: KlimmeckGuideTheme.darkBronze)
-                                    : null,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black45,
-                                    blurRadius: 7,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: CachedSvg(
-                                url:
-                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660701/pouch_u5gqtk.svg",
+                            child: Transform.rotate(
+                              angle: rotationAnimation.value,
+                              child: SizedBox(
+                                width: _sizeAnimation.value,
+                                height: _sizeAnimation.value,
+                                child: CachedSvg(
+                                  url:
+                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660701/pouch_u5gqtk.svg",
+                                ),
                               ),
                             ),
                           ),
