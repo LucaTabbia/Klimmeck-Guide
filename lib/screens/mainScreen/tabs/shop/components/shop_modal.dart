@@ -20,6 +20,7 @@ class ShopModal extends StatefulWidget {
     required this.selectedItems,
     required this.isBuy,
     required this.isAdd,
+    required this.onEquipmentInfo,
   });
 
   final List<AssetQuantity> equipments;
@@ -28,6 +29,7 @@ class ShopModal extends StatefulWidget {
   final bool isBuy;
   final bool? isAdd;
   final Function(List<AssetQuantity>) onSelect;
+  final Function(EquipmentItem) onEquipmentInfo;
 
   @override
   State<ShopModal> createState() => _ShopModalState();
@@ -47,6 +49,7 @@ class _ShopModalState extends State<ShopModal> {
     setState(() {
       selectedItems = widget.selectedItems;
     });
+
     super.initState();
   }
 
@@ -71,90 +74,97 @@ class _ShopModalState extends State<ShopModal> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Column(
+        return Stack(
           children: [
-            const SizedBox(height: 40),
-            Dropdown(
-              key: const ValueKey('armor_dropdown'),
-              sectionName: "Armatura",
-              maxHeight: isEquipOpen && isItemOpen
-                  ? (constraints.maxHeight - (180 + 43)) / 2
-                  : constraints.maxHeight - (180 + 43),
-              onToggle: () => setState(() {
-                isEquipOpen = !isEquipOpen;
-              }),
-              data: Column(
-                children: [
-                  ItemsFilter(
-                    values: EquipType.values,
-                    current: selectedEquipFilter,
-                    onTap: (value) => setState(() {
-                      selectedEquipFilter = value;
-                    }),
-                    getImage: (EquipType value) => value.imagePath,
-                  ),
-                  ...List.generate(filteredEquipments.length, (index) {
-                    final selectedAsset = selectedItems.firstWhereOrNull(
-                      (q) => q.item?.id == filteredEquipments[index].item!.id,
-                    );
-
-                    return ItemRow(
-                      key: ValueKey(filteredEquipments[index].item!.id),
-                      assetItem: filteredEquipments[index].item!,
-                      size: itemSize,
-                      isBuy: widget.isBuy,
-                      quantity: selectedAsset?.quantity,
-                      onSelect: () => _onSelect(
-                        filteredEquipments[index].item!,
-                        widget.isAdd,
-                        widget.equipments,
-                      ),
-                    );
+            Column(
+              children: [
+                const SizedBox(height: 40),
+                Dropdown(
+                  key: const ValueKey('armor_dropdown'),
+                  sectionName: "Armatura",
+                  maxHeight: isEquipOpen && isItemOpen
+                      ? (constraints.maxHeight - (180 + 43)) / 2
+                      : constraints.maxHeight - (180 + 43),
+                  onToggle: () => setState(() {
+                    isEquipOpen = !isEquipOpen;
                   }),
-                ],
-              ),
-            ),
-            Dropdown(
-              key: const ValueKey('items_dropdown'),
-              sectionName: "Oggetti",
-              maxHeight: isEquipOpen && isItemOpen
-                  ? (constraints.maxHeight - (180 + 43)) / 2
-                  : constraints.maxHeight - (180 + 43),
-              onToggle: () => setState(() {
-                isItemOpen = !isItemOpen;
-              }),
-              data: Column(
-                children: [
-                  ItemsFilter(
-                    values: EffectType.values,
-                    current: selectedEffectFilter,
-                    onTap: (value) => setState(() {
-                      selectedEffectFilter = value;
-                    }),
-                    getImage: (EffectType value) => value.imagePath,
-                  ),
-                  ...List.generate(filteredItems.length, (index) {
-                    final selectedAsset = selectedItems.firstWhereOrNull(
-                      (q) => q.item?.id == filteredItems[index].item!.id,
-                    );
-
-                    return ItemRow(
-                      key: ValueKey(filteredItems[index].item!.id),
-                      assetItem: filteredItems[index].item!,
-                      size: itemSize,
-                      isBuy: widget.isBuy,
-                      quantity: selectedAsset?.quantity,
-                      onSelect: () => _onSelect(
-                        filteredItems[index].item!,
-                        widget.isAdd,
-                        widget.items,
+                  data: Column(
+                    children: [
+                      ItemsFilter(
+                        values: EquipType.values,
+                        current: selectedEquipFilter,
+                        onTap: (value) => setState(() {
+                          selectedEquipFilter = value;
+                        }),
+                        getImage: (EquipType value) => value.imagePath,
                       ),
-                    );
+                      ...List.generate(filteredEquipments.length, (index) {
+                        final selectedAsset = selectedItems.firstWhereOrNull(
+                          (q) =>
+                              q.item?.id == filteredEquipments[index].item!.id,
+                        );
+
+                        return ItemRow(
+                          key: ValueKey(filteredEquipments[index].item!.id),
+                          assetItem: filteredEquipments[index].item!,
+                          size: itemSize,
+                          isBuy: widget.isBuy,
+                          onLongTap: (selectedEquip) =>
+                              widget.onEquipmentInfo(selectedEquip),
+                          quantity: selectedAsset?.quantity,
+                          onSelect: (item) => _onSelect(
+                            item as EquipmentItem,
+                            widget.isAdd,
+                            widget.equipments,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                Dropdown(
+                  key: const ValueKey('items_dropdown'),
+                  sectionName: "Oggetti",
+                  maxHeight: isEquipOpen && isItemOpen
+                      ? (constraints.maxHeight - (180 + 43)) / 2
+                      : constraints.maxHeight - (180 + 43),
+                  onToggle: () => setState(() {
+                    isItemOpen = !isItemOpen;
                   }),
-                ],
-              ),
+                  data: Column(
+                    children: [
+                      ItemsFilter(
+                        values: EffectType.values,
+                        current: selectedEffectFilter,
+                        onTap: (value) => setState(() {
+                          selectedEffectFilter = value;
+                        }),
+                        getImage: (EffectType value) => value.imagePath,
+                      ),
+                      ...List.generate(filteredItems.length, (index) {
+                        final selectedAsset = selectedItems.firstWhereOrNull(
+                          (q) => q.item?.id == filteredItems[index].item!.id,
+                        );
+
+                        return ItemRow(
+                          key: ValueKey(filteredItems[index].item!.id),
+                          assetItem: filteredItems[index].item!,
+                          size: itemSize,
+                          isBuy: widget.isBuy,
+                          quantity: selectedAsset?.quantity,
+                          onSelect: (item) => _onSelect(
+                            item as LootItem,
+                            widget.isAdd,
+                            widget.items,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 140),
+              ],
             ),
-            const SizedBox(height: 140),
           ],
         );
       },
@@ -163,8 +173,9 @@ class _ShopModalState extends State<ShopModal> {
 
   void _onSelect(AssetItem item, bool? isAdd, List<AssetQuantity> ownedItems) {
     if (isAdd == null) return;
+    final List<AssetQuantity> updatedSelectedItems = List.from(selectedItems);
+    final index = updatedSelectedItems.indexWhere((q) => q.item?.id == item.id);
 
-    final index = selectedItems.indexWhere((q) => q.item?.id == item.id);
     final owned = !widget.isBuy
         ? ownedItems.firstWhere(
             (ownedItem) => ownedItem.item?.id == item.id,
@@ -173,23 +184,23 @@ class _ShopModalState extends State<ShopModal> {
         : null;
 
     if (index != -1) {
-      final selected = selectedItems[index];
+      final selected = updatedSelectedItems[index];
       final newQty = (selected.quantity ?? 0) + (isAdd ? 1 : -1);
-
       final canUpdate = widget.isBuy || newQty <= (owned?.quantity ?? 0);
-
       if (!canUpdate) {
         return;
       }
 
       if (newQty > 0) {
-        selected.quantity = newQty;
+        final newSelected = selected.copyWith(quantity: newQty);
+        updatedSelectedItems[index] = newSelected;
       } else {
-        selectedItems.removeAt(index);
+        updatedSelectedItems.removeAt(index);
       }
     } else if (isAdd) {
-      selectedItems.add(AssetQuantity(item: item, quantity: 1));
+      updatedSelectedItems.add(AssetQuantity(item: item, quantity: 1));
     }
+    selectedItems = updatedSelectedItems;
 
     setState(() {});
     widget.onSelect(selectedItems);

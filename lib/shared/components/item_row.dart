@@ -6,23 +6,29 @@ import '../../models/loot_item.dart';
 import '../../theme/kg_theme.dart';
 import 'cards/equipment_item_card.dart';
 import 'cards/loot_item_card.dart';
-import 'coins_column.dart';
+import 'coins_display.dart';
 
 class ItemRow extends StatelessWidget {
   const ItemRow({
     super.key,
     required this.assetItem,
-    required this.onSelect,
-    required this.isBuy,
+    this.onSelect,
+    this.showCoins = true,
+    this.isBuy = true,
+    this.isSelected,
     required this.size,
     this.quantity,
+    this.onLongTap,
   });
 
   final int? quantity;
   final double size;
   final AssetItem assetItem;
   final bool isBuy;
-  final Function onSelect;
+  final bool showCoins;
+  final bool? isSelected;
+  final Function(AssetItem)? onSelect;
+  final Function(EquipmentItem)? onLongTap;
 
   @override
   Widget build(BuildContext context) {
@@ -33,27 +39,28 @@ class ItemRow extends StatelessWidget {
           assetItem.runtimeType == EquipmentItem
               ? EquipmentItemCard(
                   key: ValueKey(assetItem.id),
-                  onTap: _handleEquipmentTap,
+                  onLongPress: (equip) => onLongTap?.call(equip),
+                  onTap: (item) => onSelect?.call(item),
                   quantity: quantity,
-                  isSelected: true,
+                  isSelected: isSelected,
                   size: size,
                   equipmentItem: assetItem as EquipmentItem,
                 )
               : LootItemCard(
                   key: ValueKey(assetItem.id),
-                  onTap: _handleLootTap,
+                  onTap: (item) => onSelect?.call(item),
                   quantity: quantity,
-                  isSelected: true,
                   size: size,
                   lootItem: assetItem as LootItem,
                 ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: CoinsColumn(
-              coins: isBuy ? assetItem.buyPrice : assetItem.sellPrice,
-              height: size,
+          if (showCoins)
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: CoinsDisplay(
+                coins: isBuy ? assetItem.buyPrice : assetItem.sellPrice,
+                height: size,
+              ),
             ),
-          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
@@ -66,13 +73,5 @@ class ItemRow extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _handleEquipmentTap(EquipmentItem item) {
-    onSelect();
-  }
-
-  void _handleLootTap(LootItem item) {
-    onSelect();
   }
 }

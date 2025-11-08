@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 
-import '../../../../../models/enums/equip_type.dart';
 import '../../../../../theme/kg_theme.dart';
 
 class EquipmentArea extends StatelessWidget {
@@ -9,32 +9,36 @@ class EquipmentArea extends StatelessWidget {
     required this.borderColor,
     required this.onTap,
     required this.baseWidth,
-    required this.selectedTypes,
+    required this.selectedSlot,
     required this.baseHeight,
-    required this.type,
+    required this.slot,
     this.isRight = false,
   });
 
   final double baseWidth;
   final double baseHeight;
-  final EquipType type;
-  final List<EquipType>? selectedTypes;
+  final SlotType slot;
+  final SlotType? selectedSlot;
   final Color borderColor;
   final bool isRight;
-  final Function(List<EquipType>) onTap;
+  final Function(SlotType) onTap;
 
   @override
   Widget build(BuildContext context) {
-    final double height = baseHeight / type.ratios.mannequinRatio;
-    final double originalWidth = height * type.ratios.aspectRatio;
+    final double height = baseHeight / slot.ratios.mannequinRatio;
+    final double originalWidth = height * slot.ratios.aspectRatio;
     final actualWidth = getActualWidth(originalWidth);
 
     final left = isRight
         ? null
-        : (baseWidth / 2) - (type == EquipType.greaves ? actualWidth / 2 : originalWidth / 2) + 5;
+        : slot == SlotType.arms
+        ? 0.0
+        : (baseWidth / 2) - (actualWidth / 2) + 5;
     final right = isRight ? (baseWidth / 2) - (originalWidth / 2) + 4 : null;
 
-    final top = baseHeight / type.ratios.positionRatio + baseHeight * type.ratios.addedTop;
+    final top =
+        baseHeight / slot.ratios.positionRatio +
+        baseHeight * slot.ratios.addedTop;
 
     return Positioned(
       right: right,
@@ -42,12 +46,12 @@ class EquipmentArea extends StatelessWidget {
       top: top,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () => onTap([type]),
+        onTap: () => onTap(slot),
         child: Container(
-          height: height * type.ratios.areaHeightRatio,
+          height: height * slot.ratios.areaHeightRatio,
           width: actualWidth,
           decoration: BoxDecoration(
-            color: selectedTypes != null && selectedTypes?.contains(type) == true
+            color: selectedSlot != null && selectedSlot == slot
                 ? borderColor.withAlpha(70)
                 : null,
             borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
@@ -59,10 +63,10 @@ class EquipmentArea extends StatelessWidget {
   }
 
   double getActualWidth(double originalWidth) {
-    switch (type) {
-      case EquipType.gloves:
+    switch (slot) {
+      case SlotType.arms:
         return originalWidth / 3.5;
-      case EquipType.greaves:
+      case SlotType.legs:
         return originalWidth / 2.1;
       default:
         return originalWidth;

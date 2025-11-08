@@ -1,9 +1,11 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:klimmeck_guide/graphql/character_queries.dart';
-import 'package:klimmeck_guide/graphql/equipment_item_queries.dart';
-import 'package:klimmeck_guide/graphql/loot_item_queries.dart';
-import 'package:klimmeck_guide/graphql/lore_queries.dart';
-import 'package:klimmeck_guide/graphql/quest_queries.dart';
+import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
@@ -11,11 +13,12 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 
-import '../../../graphql/city_queries.dart';
+import '../../../graphql/queries/city_queries.dart';
 import '../../../main.dart';
 import '../../../models/asset_quantity.dart';
 import '../../../models/lore.dart';
 import '../../../models/quest/quest.dart';
+import '../../../models/request/equip_item_request.dart';
 import '../../storage/storage_manager.dart';
 
 class KlimmeckGraphQl {
@@ -64,6 +67,38 @@ class KlimmeckGraphQl {
     final client = GraphQLProvider.of(navigatorKey.currentContext!).value;
     final result = await client.mutate(options);
     return result;
+  }
+
+  Stream<QueryResult<Object?>> performSubscription(
+    String query, {
+    Map<String, dynamic>? variables,
+  }) {
+    final SubscriptionOptions options = SubscriptionOptions(
+      document: gql(query),
+      variables: variables ?? {},
+      fetchPolicy: FetchPolicy.noCache,
+    );
+    final client = GraphQLProvider.of(navigatorKey.currentContext!).value;
+    return client.subscribe(options);
+  }
+
+  Stream<Character> subscribeToCharacter(String id) {
+    return performSubscription(
+      CharacterSubscriptions.characterUpdated,
+      variables: {'id': id},
+    ).map((result) {
+      if (result.hasException) {
+        final errorMessage = getGenericErrorMessage(result.exception);
+        throw Exception(errorMessage);
+      }
+
+      final data = result.data?['characterUpdated'];
+      if (data == null) {
+        throw Exception('No character data in subscription event');
+      }
+
+      return Character.fromJson(data);
+    });
   }
 
   Future<List<City>> getCities() async {
@@ -136,9 +171,16 @@ class KlimmeckGraphQl {
         .toList();
   }
 
-  Future<List<AssetQuantity>> getAllEquipmentAssetsQuantity() async {
+  Future<List<AssetQuantity>> getAllEquipmentAssetsQuantity({
+    bool? sellable,
+  }) async {
+    final Map<String, dynamic> variables = sellable != null
+        ? {"sellable": sellable}
+        : {};
+
     final result = await performQuery(
       EquipmentItemQueries.getAllEquipmentAssetsQuantity,
+      variables: variables,
     );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
@@ -278,8 +320,8 @@ class KlimmeckGraphQl {
 
   Future<String> doTransaction(TransactionRequest request) async {
     final result = await performMutation(
-      query: CharacterQueries.doTransaction,
-      variables: {"input": request},
+      query: CharacterMutations.doTransaction,
+      variables: {"request": request},
     );
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
@@ -289,6 +331,24 @@ class KlimmeckGraphQl {
     final dynamic transactionResult = result.data?['doTransaction'];
     if (transactionResult == null) {
       throw Exception('Bad Transaction');
+    }
+
+    return transactionResult["response"];
+  }
+
+  Future<String> equipItem(EquipItemRequest request) async {
+    final result = await performMutation(
+      query: CharacterMutations.equipItem,
+      variables: {"request": request},
+    );
+    if (result.hasException) {
+      final errorMessage = getGenericErrorMessage(result.exception);
+      throw Exception(errorMessage);
+    }
+
+    final dynamic transactionResult = result.data?['equipItem'];
+    if (transactionResult == null) {
+      throw Exception("Can't equip item");
     }
 
     return transactionResult["response"];

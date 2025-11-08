@@ -1,0 +1,1 @@
+enum CoinLayoutType { column, row }

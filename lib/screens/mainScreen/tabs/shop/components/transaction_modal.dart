@@ -2,13 +2,15 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../../../models/coins.dart';
+import '../../../../../models/enums/column_layout_type.dart';
 import '../../../../../shared/components/animated_pencil_text.dart';
-import '../../../../../shared/components/cached_svg.dart';
 import '../../../../../shared/components/dropdown.dart';
 
 class TransactionModal extends StatefulWidget {
@@ -20,6 +22,7 @@ class TransactionModal extends StatefulWidget {
     required this.onChangedList,
     required this.character,
     this.isAdd,
+    required this.onEquipmentInfo,
   });
 
   final List<AssetQuantity> itemsToSell;
@@ -28,6 +31,7 @@ class TransactionModal extends StatefulWidget {
   final Character character;
   final bool? isAdd;
   final Function(List<AssetQuantity>, bool) onChangedList;
+  final Function(EquipmentItem) onEquipmentInfo;
 
   @override
   State<TransactionModal> createState() => _TransactionModalState();
@@ -89,8 +93,10 @@ class _TransactionModalState extends State<TransactionModal> {
                       assetItem: _finalItemsToBuy[index].item!,
                       size: itemSize,
                       isBuy: true,
+                      onLongTap: (equipItem) =>
+                          widget.onEquipmentInfo(equipItem),
                       quantity: _finalItemsToBuy[index].quantity,
-                      onSelect: () => _onSelect(
+                      onSelect: (item) => _onSelect(
                         _finalItemsToBuy[index],
                         widget.isAdd,
                         true,
@@ -116,10 +122,12 @@ class _TransactionModalState extends State<TransactionModal> {
                     (index) => ItemRow(
                       key: ValueKey(_finalItemsToSell[index].item!.id),
                       assetItem: _finalItemsToSell[index].item!,
+                      onLongTap: (equipItem) =>
+                          widget.onEquipmentInfo(equipItem),
                       size: itemSize,
                       quantity: _finalItemsToSell[index].quantity,
                       isBuy: false,
-                      onSelect: () => _onSelect(
+                      onSelect: (item) => _onSelect(
                         _finalItemsToSell[index],
                         widget.isAdd,
                         false,
@@ -171,48 +179,11 @@ class _TransactionModalState extends State<TransactionModal> {
                                   ),
                             ),
                           ),
-                          CachedSvg(
-                            height: 50,
-                            width: 50,
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1761328247/goldCoin_newd9b.svg",
-                          ),
                           Expanded(
-                            child: AutoSizeText(
-                              "${total.gold}",
-                              minFontSize: 10,
-                              textAlign: TextAlign.center,
-                              style: KlimmeckGuideTheme.instance.bodyMedium,
-                            ),
-                          ),
-                          CachedSvg(
-                            height: 50,
-                            width: 50,
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1761328260/silverCoin_u1j3xr.svg",
-                          ),
-                          Expanded(
-                            child: AutoSizeText(
-                              "${total.silver}",
-                              minFontSize: 10,
-                              textAlign: TextAlign.center,
-
-                              style: KlimmeckGuideTheme.instance.bodyMedium,
-                            ),
-                          ),
-                          CachedSvg(
-                            height: 50,
-                            width: 50,
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1761328274/copperCoin_hgiilc.svg",
-                          ),
-                          Expanded(
-                            child: AutoSizeText(
-                              "${total.copper}",
-                              minFontSize: 10,
-                              textAlign: TextAlign.center,
-
-                              style: KlimmeckGuideTheme.instance.bodyMedium,
+                            child: CoinsDisplay(
+                              coins: total,
+                              height: 50,
+                              layout: CoinLayoutType.row,
                             ),
                           ),
                         ],
@@ -239,7 +210,7 @@ class _TransactionModalState extends State<TransactionModal> {
                 Spacer(),
                 GestureDetector(
                   onTap: () {
-                    if (canAfford) {
+                    if (canAfford && !_showSignature) {
                       setState(() {
                         _showSignature = !_showSignature;
                       });
@@ -290,45 +261,49 @@ class _TransactionModalState extends State<TransactionModal> {
   }
 
   void _onSelect(AssetQuantity assetQuantity, bool? isAdd, bool isBuy) {
-    if (isAdd != null) {
-      final price = isBuy
-          ? assetQuantity.item!.buyPrice!
-          : assetQuantity.item!.sellPrice!;
+    if (isAdd == null) return;
+    List<AssetQuantity> currentList = isBuy
+        ? _finalItemsToBuy
+        : _finalItemsToSell;
+    List<AssetQuantity> updatedList = List.from(currentList);
+    final price = isBuy
+        ? assetQuantity.item!.buyPrice!
+        : assetQuantity.item!.sellPrice!;
 
-      if (isAdd) {
-        if (isBuy) {
-          totalBuy = totalBuy + price;
-        } else {
-          totalSell = totalSell + price;
-        }
+    if (isAdd) {
+      if (isBuy) {
+        totalBuy = totalBuy + price;
       } else {
-        if (isBuy) {
-          totalBuy = totalBuy - price;
-        } else {
-          totalSell = totalSell - price;
-        }
+        totalSell = totalSell + price;
       }
-      final int index = isBuy
-          ? _finalItemsToBuy.indexWhere(
-              (q) => q.item?.id == assetQuantity.item!.id,
-            )
-          : _finalItemsToSell.indexWhere(
-              (q) => q.item?.id == assetQuantity.item!.id,
-            );
-
-      final newQty = (assetQuantity.quantity ?? 0) + (isAdd ? 1 : -1);
-      if (newQty > 0) {
-        assetQuantity.quantity = newQty;
+    } else {
+      if (isBuy) {
+        totalBuy = totalBuy - price;
       } else {
-        if (isBuy) {
-          _finalItemsToBuy.removeAt(index);
-        } else {
-          _finalItemsToSell.removeAt(index);
-        }
+        totalSell = totalSell - price;
       }
-      setState(() {});
-      widget.onChangedList(isBuy ? _finalItemsToBuy : _finalItemsToSell, isBuy);
     }
+
+    final int index = updatedList.indexWhere(
+      (q) => q.item?.id == assetQuantity.item!.id,
+    );
+
+    final newQty = (assetQuantity.quantity ?? 0) + (isAdd ? 1 : -1);
+
+    if (newQty > 0) {
+      final newAssetQuantity = assetQuantity.copyWith(quantity: newQty);
+      updatedList[index] = newAssetQuantity;
+    } else if (index != -1) {
+      updatedList.removeAt(index);
+    }
+
+    if (isBuy) {
+      _finalItemsToBuy = updatedList;
+    } else {
+      _finalItemsToSell = updatedList;
+    }
+    setState(() {});
+    widget.onChangedList(isBuy ? _finalItemsToBuy : _finalItemsToSell, isBuy);
   }
 }
 

@@ -1,11 +1,12 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 
 import 'coins.dart';
 import 'equipment_item.dart';
 import 'loot_item.dart';
 
-abstract class AssetItem {
-  AssetItem({
+abstract class AssetItem extends Equatable {
+  const AssetItem({
     required this.id,
     required this.description,
     required this.name,
@@ -30,4 +31,14 @@ abstract class AssetItem {
   }
 
   Map<String, dynamic> toJson();
+
+  @override
+  List<Object?> get props => [
+    id,
+    description,
+    name,
+    sellPrice,
+    buyPrice,
+    rarity,
+  ];
 }

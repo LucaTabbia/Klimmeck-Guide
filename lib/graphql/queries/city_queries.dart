@@ -6,8 +6,8 @@ class CityQueries {
         type
         name
         markerLocation {
-          latitude
-          longitude
+          id
+          location
         }
         relatedLore {
           id

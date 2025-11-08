@@ -13,6 +13,7 @@ dependencies:
 
   #Bloc
   flutter_bloc: ^9.1.1
+  equatable: ^2.0.0
 
   #App Icon
   flutter_launcher_icons: ^0.14.4

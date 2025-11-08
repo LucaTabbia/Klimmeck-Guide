@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 
-class PendingQuest {
-  PendingQuest({
+class PendingQuest extends Equatable {
+  const PendingQuest({
     required this.id,
     required this.startDate,
     required this.waitingTime,
@@ -15,8 +16,12 @@ class PendingQuest {
 
   factory PendingQuest.fromJson(Map<String, dynamic> json) => PendingQuest(
     id: json["id"],
-    startDate: json["startDate"] != null ? DateTime.parse(json["startDate"]) : null,
-    waitingTime: json["waitingTime"] != null ? (json["waitingTime"] as num).toInt() : null,
+    startDate: json["startDate"] != null
+        ? DateTime.parse(json["startDate"])
+        : null,
+    waitingTime: json["waitingTime"] != null
+        ? (json["waitingTime"] as num).toInt()
+        : null,
     quest: json["quest"] != null ? Quest.fromJson(json["quest"]) : null,
   );
 
@@ -26,4 +31,21 @@ class PendingQuest {
     "waitingTime": waitingTime,
     "quest": quest?.id,
   };
+
+  PendingQuest copyWith({
+    String? id,
+    DateTime? startDate,
+    int? waitingTime,
+    Quest? quest,
+  }) {
+    return PendingQuest(
+      id: id ?? this.id,
+      startDate: startDate ?? this.startDate,
+      waitingTime: waitingTime ?? this.waitingTime,
+      quest: quest ?? this.quest,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, startDate, waitingTime, quest];
 }

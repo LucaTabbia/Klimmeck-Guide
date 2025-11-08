@@ -1,11 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/lore_type.dart';
-import 'package:latlong2/latlong.dart';
 
-class Lore {
-  Lore({
+class Lore extends Equatable {
+  const Lore({
     required this.image,
     required this.id,
-    required this.locations,
     required this.type,
     required this.name,
     required this.description,
@@ -16,22 +15,14 @@ class Lore {
   final String id;
   final LoreType? type;
   final String? image;
-  final List<LatLng>? locations;
   final String? name;
   final String? description;
   final List<Lore>? relatedLore;
-  bool? unlocked;
+  final bool? unlocked;
 
   factory Lore.fromJson(Map<String, dynamic> json) => Lore(
     id: json["id"],
     type: json["type"] != null ? LoreType.values.byName(json["type"]) : null,
-    locations: json['locations'] != null
-        ? List<LatLng>.from(
-            json['locations'].map(
-              (x) => LatLng((x['latitude'] as num).toDouble(), (x['longitude'] as num).toDouble()),
-            ),
-          )
-        : [],
     name: json["name"],
     description: json["description"],
     relatedLore: json['relatedLore'] != null
@@ -47,8 +38,38 @@ class Lore {
     "name": name,
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "description": description,
-    "locations": locations?.map((s) => {"latitude": s.latitude, "longitude": s.longitude}).toList(),
     "unlocked": unlocked,
     "image": image,
   };
+
+  Lore copyWith({
+    String? image,
+    String? id,
+    LoreType? type,
+    String? name,
+    String? description,
+    List<Lore>? relatedLore,
+    bool? unlocked,
+  }) {
+    return Lore(
+      image: image ?? this.image,
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      relatedLore: relatedLore ?? this.relatedLore,
+      unlocked: unlocked ?? this.unlocked,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    type,
+    image,
+    name,
+    description,
+    relatedLore,
+    unlocked,
+  ];
 }

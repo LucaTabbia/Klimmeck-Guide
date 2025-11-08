@@ -1,9 +1,11 @@
-class Coins {
+import 'package:equatable/equatable.dart';
+
+class Coins extends Equatable {
   final int gold;
   final int silver;
   final int copper;
 
-  Coins({this.gold = 0, this.silver = 0, this.copper = 0});
+  const Coins({this.gold = 0, this.silver = 0, this.copper = 0});
 
   factory Coins.fromJson(Map<String, dynamic> json) {
     return Coins(
@@ -76,4 +78,15 @@ class Coins {
 
   @override
   String toString() => "${gold}g ${silver}s ${copper}c";
+
+  @override
+  List<Object?> get props => [gold, silver, copper];
+
+  Coins copyWith({int? gold, int? silver, int? copper}) {
+    return Coins(
+      gold: gold ?? this.gold,
+      silver: silver ?? this.silver,
+      copper: copper ?? this.copper,
+    );
+  }
 }

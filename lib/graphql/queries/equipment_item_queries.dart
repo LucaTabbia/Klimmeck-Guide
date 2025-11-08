@@ -41,8 +41,8 @@ class EquipmentItemQueries {
   ''';
 
   static const String getAllEquipmentAssetsQuantity = r'''
-    query equipmentAssetsQuantity {
-      equipmentAssetsQuantity {
+    query equipmentAssetsQuantity($sellable: Boolean) {
+      equipmentAssetsQuantity(sellable: $sellable) {
         quantity
         item {
           ... on EquipmentItem {

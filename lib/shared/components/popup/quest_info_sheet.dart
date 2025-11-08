@@ -4,7 +4,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
-import 'package:klimmeck_guide/shared/components/coins_column.dart';
+import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
@@ -84,7 +84,8 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
         child: Column(
           children: [
             Expanded(flex: 3, child: _buildQuestInfo()),
-            if (widget.quest!.prizes != null) Expanded(flex: 2, child: _buildRewards()),
+            if (widget.quest!.prizes != null)
+              Expanded(flex: 2, child: _buildRewards()),
           ],
         ),
       ),
@@ -184,7 +185,7 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (widget.quest!.prizes?.prizeCoins != null)
-                    CoinsColumn(
+                    CoinsDisplay(
                       coins: widget.quest!.prizes!.prizeCoins!,
                       height: constraints.maxHeight - 30,
                       width: constraints.maxWidth * 0.5,
@@ -195,10 +196,13 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
                           ? EquipmentItemCard(
                               isSelected: false,
                               size: constraints.maxHeight - 30,
-                              equipmentItem: widget.quest!.prizes!.prizeItem as EquipmentItem,
+                              equipmentItem:
+                                  widget.quest!.prizes!.prizeItem
+                                      as EquipmentItem,
                             )
                           : LootItemCard(
-                              lootItem: widget.quest!.prizes!.prizeItem as LootItem,
+                              lootItem:
+                                  widget.quest!.prizes!.prizeItem as LootItem,
                               size: constraints.maxHeight - 30,
                             ),
                     ),

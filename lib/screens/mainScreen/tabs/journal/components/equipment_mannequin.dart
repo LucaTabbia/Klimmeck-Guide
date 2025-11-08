@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_area.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/equipment_box.dart';
@@ -14,15 +13,15 @@ class EquipmentMannequin extends StatefulWidget {
   const EquipmentMannequin({
     super.key,
     required this.sexType,
-    required this.selectedTypes,
+    required this.selectedSlot,
     required this.equipment,
     required this.onTap,
   });
 
   final SexType sexType;
   final Equipment equipment;
-  final List<EquipType>? selectedTypes;
-  final Function(List<EquipType>, bool) onTap;
+  final SlotType? selectedSlot;
+  final Function(SlotType) onTap;
 
   @override
   State<EquipmentMannequin> createState() => _EquipmentMannequinState();
@@ -30,7 +29,6 @@ class EquipmentMannequin extends StatefulWidget {
 
 class _EquipmentMannequinState extends State<EquipmentMannequin> {
   final double mannequinAspectRatio = 127.5 / 374.999989;
-  int? selectedBox;
 
   @override
   Widget build(BuildContext context) {
@@ -60,84 +58,84 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.helmetPath,
-                    type: EquipType.helm,
+                    ratios: SlotType.head.ratios,
                   ),
                 if (widget.equipment.legs != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.gravesPath,
-                    type: EquipType.greaves,
+                    ratios: SlotType.legs.ratios,
                   ),
                 if (widget.equipment.foots != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.bootsPath,
-                    type: EquipType.boots,
+                    ratios: SlotType.foots.ratios,
                   ),
                 if (widget.equipment.chest != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.chestPiecePath,
-                    type: EquipType.chestPiece,
+                    ratios: SlotType.chest.ratios,
                   ),
                 if (widget.equipment.arms != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.glovesPath,
-                    type: EquipType.gloves,
+                    ratios: SlotType.arms.ratios,
                   ),
                 EquipmentArea(
-                  selectedTypes: widget.selectedTypes,
+                  selectedSlot: widget.selectedSlot,
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.chestPiece,
+                  slot: SlotType.chest,
                   borderColor: KlimmeckGuideTheme.deepNight,
-                  onTap: (types) => selectBox(0, types),
+                  onTap: (slot) => widget.onTap(slot),
                 ),
                 EquipmentArea(
-                  selectedTypes: widget.selectedTypes,
+                  selectedSlot: widget.selectedSlot,
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.boots,
+                  slot: SlotType.foots,
                   borderColor: KlimmeckGuideTheme.darkBronze,
-                  onTap: (types) => selectBox(0, types),
+                  onTap: (slot) => widget.onTap(slot),
                 ),
                 EquipmentArea(
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.greaves,
+                  slot: SlotType.legs,
                   borderColor: KlimmeckGuideTheme.royalCrimson,
-                  onTap: (types) => selectBox(0, types),
-                  selectedTypes: widget.selectedTypes,
+                  onTap: (slot) => widget.onTap(slot),
+                  selectedSlot: widget.selectedSlot,
                 ),
                 EquipmentArea(
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.helm,
+                  slot: SlotType.head,
                   borderColor: KlimmeckGuideTheme.mysticBlue,
-                  onTap: (types) => selectBox(0, types),
-                  selectedTypes: widget.selectedTypes,
+                  onTap: (slot) => widget.onTap(slot),
+                  selectedSlot: widget.selectedSlot,
                 ),
                 EquipmentArea(
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.gloves,
+                  slot: SlotType.arms,
                   borderColor: KlimmeckGuideTheme.primaryGold,
-                  onTap: (types) => selectBox(0, types),
-                  selectedTypes: widget.selectedTypes,
+                  onTap: (slot) => widget.onTap(slot),
+                  selectedSlot: widget.selectedSlot,
                 ),
                 EquipmentArea(
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  type: EquipType.gloves,
+                  slot: SlotType.arms,
                   borderColor: KlimmeckGuideTheme.primaryGold,
-                  onTap: (types) => selectBox(0, types),
+                  onTap: (slot) => widget.onTap(slot),
                   isRight: true,
-                  selectedTypes: widget.selectedTypes,
+                  selectedSlot: widget.selectedSlot,
                 ),
               ],
             ),
@@ -148,38 +146,34 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
               children: [
                 Spacer(),
                 EquipmentBox(
-                  selectedBox: selectedBox,
-                  index: 1,
+                  selectedBox: widget.selectedSlot,
+                  slotType: SlotType.firstAccessory,
                   size: mannequinHeight / 4 - 10,
-                  expectedTypes: [EquipType.necklace, EquipType.ring],
-                  onTap: selectBox,
+                  onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.firstAccessory,
                 ),
                 Spacer(),
                 EquipmentBox(
-                  selectedBox: selectedBox,
-                  index: 2,
+                  selectedBox: widget.selectedSlot,
+                  slotType: SlotType.secondAccessory,
                   size: mannequinHeight / 4 - 10,
-                  expectedTypes: [EquipType.necklace, EquipType.ring],
-                  onTap: selectBox,
+                  onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.secondAccessory,
                 ),
                 Spacer(),
                 EquipmentBox(
-                  selectedBox: selectedBox,
-                  index: 3,
+                  selectedBox: widget.selectedSlot,
+                  slotType: SlotType.leftHand,
                   size: mannequinHeight / 4 - 10,
-                  expectedTypes: [EquipType.weapon, EquipType.shield],
-                  onTap: selectBox,
+                  onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.leftHand,
                 ),
                 Spacer(),
                 EquipmentBox(
-                  selectedBox: selectedBox,
-                  index: 4,
+                  selectedBox: widget.selectedSlot,
+                  slotType: SlotType.rightHand,
                   size: mannequinHeight / 4 - 10,
-                  expectedTypes: [EquipType.weapon, EquipType.shield],
-                  onTap: selectBox,
+                  onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.rightHand,
                 ),
                 Spacer(),
@@ -189,13 +183,5 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
         ],
       ),
     );
-  }
-
-  void selectBox(int index, List<EquipType> types) {
-    bool isSame = selectedBox == index && listEquals(types, widget.selectedTypes);
-    setState(() {
-      selectedBox = isSame ? 0 : index;
-    });
-    widget.onTap(types, isSame);
   }
 }

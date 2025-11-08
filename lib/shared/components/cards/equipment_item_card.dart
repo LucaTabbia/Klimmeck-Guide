@@ -6,65 +6,101 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import '../../../theme/kg_theme.dart';
 import '../animated_pencil_text.dart';
 
-class EquipmentItemCard extends StatelessWidget {
+class EquipmentItemCard extends StatefulWidget {
   const EquipmentItemCard({
     super.key,
     required this.equipmentItem,
     required this.size,
-    required this.isSelected,
+    this.isSelected,
     this.onTap,
     this.onLongPress,
     this.quantity,
   });
 
-  static const _cardBackgroundUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
-  static const _bookmarkUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg";
-
   final EquipmentItem equipmentItem;
   final double size;
-  final bool isSelected;
+  final bool? isSelected;
   final int? quantity;
   final Function(EquipmentItem)? onTap;
   final Function(EquipmentItem)? onLongPress;
 
   @override
+  State<EquipmentItemCard> createState() => _EquipmentItemCardState();
+}
+
+class _EquipmentItemCardState extends State<EquipmentItemCard> {
+  static const _cardBackgroundUrl =
+      "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
+  static const _bookmarkUrl =
+      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg";
+  late bool? _isSelected;
+
+  @override
+  void initState() {
+    _isSelected = widget.isSelected;
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant EquipmentItemCard oldWidget) {
+    if (oldWidget.isSelected != widget.isSelected) {
+      setState(() {
+        _isSelected = widget.isSelected;
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap != null ? () => onTap!(equipmentItem) : null,
-      onLongPress: onLongPress != null
-          ? () => onLongPress!(equipmentItem)
+      onTap: () {
+        if (_isSelected != null) {
+          setState(() {
+            _isSelected = !_isSelected!;
+          });
+        }
+        Future.delayed(
+          Duration(milliseconds: 300),
+          () => widget.onTap?.call(widget.equipmentItem),
+        );
+      },
+      onLongPress: widget.onLongPress != null
+          ? () => widget.onLongPress!(widget.equipmentItem)
           : null,
       child: RepaintBoundary(
         child: Stack(
           children: [
-            CachedSvg(url: _cardBackgroundUrl, width: size, height: size),
+            CachedSvg(
+              url: _cardBackgroundUrl,
+              width: widget.size,
+              height: widget.size,
+            ),
             Align(
               alignment: Alignment.center,
               child: SizedBox(
-                height: size,
-                width: size,
+                height: widget.size,
+                width: widget.size,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Spacer(),
                     CachedSvg(
-                      url: equipmentItem.equipType!.imagePath,
-                      height: size / 1.8,
-                      width: size,
+                      url: widget.equipmentItem.equipType!.imagePath,
+                      height: widget.size / 1.8,
+                      width: widget.size,
                     ),
                     Spacer(),
                     SizedBox(
-                      height: (size / 6),
+                      height: (widget.size / 6),
                       child: AutoSizeText(
-                        equipmentItem.name ?? "",
+                        widget.equipmentItem.name ?? "",
                         maxFontSize: 24,
                         minFontSize: 4,
                         maxLines: 2,
                         textAlign: TextAlign.center,
                         style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-                          color: equipmentItem.rarity!.color,
+                          color: widget.equipmentItem.rarity!.color,
                           fontWeight: FontWeight.w800,
                           shadows: [
                             Shadow(
@@ -83,7 +119,7 @@ class EquipmentItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (quantity != null && quantity! > 0)
+            if (widget.quantity != null && widget.quantity! > 0)
               Positioned(
                 right: 7,
                 top: 5,
@@ -129,37 +165,41 @@ class EquipmentItemCard extends StatelessWidget {
                         );
                       },
                       child: AnimatedPencilText(
-                        key: ValueKey<int>(quantity!),
-                        text: quantity!.toString(),
+                        key: ValueKey<int>(widget.quantity!),
+                        text: widget.quantity!.toString(),
                       ),
                     ),
                   ),
                 ),
               ),
-            _BookmarkMarker(isSelected: isSelected, size: size),
+            if (_isSelected != null)
+              Padding(
+                padding: EdgeInsets.only(top: widget.size / 25),
+                child: SizedBox(
+                  height: widget.size - widget.size / 25,
+                  width: widget.size,
+                  child: Stack(
+                    children: [
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        top: !_isSelected! ? -(widget.size / 2.5) + 20 : 0,
+                        left: 5,
+                        child: RotatedBox(
+                          quarterTurns: 3,
+                          child: SizedBox(
+                            height: (widget.size / 2.5),
+                            width: (widget.size / 2.5),
+                            child: CachedSvg(url: _bookmarkUrl),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _BookmarkMarker extends StatelessWidget {
-  final bool isSelected;
-  final double size;
-
-  const _BookmarkMarker({required this.isSelected, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      top: !isSelected ? -(size / 2.5) : 0,
-      left: 5,
-      child: const RotatedBox(
-        quarterTurns: 3,
-        child: CachedSvg(url: EquipmentItemCard._bookmarkUrl),
       ),
     );
   }

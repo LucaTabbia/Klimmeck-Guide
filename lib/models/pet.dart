@@ -1,11 +1,10 @@
-import 'dart:io';
-
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/damages.dart';
 
 import 'coins.dart';
 
-class Pet {
-  Pet({
+class Pet extends Equatable {
+  const Pet({
     required this.id,
     required this.name,
     required this.damages,
@@ -26,10 +25,8 @@ class Pet {
   final Coins? sellPrice;
   final int? maxXp;
   final int? xp;
-  int? currentLifePoints;
-  int? maxLifePoints;
-
-  File? get image => imagePath != null ? File(imagePath!) : null;
+  final int? currentLifePoints;
+  final int? maxLifePoints;
 
   factory Pet.fromJson(Map<String, dynamic> json) => Pet(
     id: json["id"],
@@ -37,8 +34,12 @@ class Pet {
     xp: json["xp"] != null ? (json["xp"] as num).toInt() : null,
     maxXp: json["maxXp"] != null ? (json["maxXp"] as num).toInt() : null,
     damages: json["damages"] != null ? Damages.fromJson(json["damages"]) : null,
-    sellPrice: json['sellPrice'] != null ? Coins.fromJson(json['sellPrice']) : null,
-    buyPrice: json['buyPrice'] != null ? Coins.fromJson(json['buyPrice']) : null,
+    sellPrice: json['sellPrice'] != null
+        ? Coins.fromJson(json['sellPrice'])
+        : null,
+    buyPrice: json['buyPrice'] != null
+        ? Coins.fromJson(json['buyPrice'])
+        : null,
     imagePath: json["imagePath"],
     currentLifePoints: json["currentLifePoints"]?.toInt(),
     maxLifePoints: json["maxLifePoints"]?.toInt(),
@@ -56,4 +57,44 @@ class Pet {
     "maxLifePoints": maxLifePoints,
     "imagePath": imagePath,
   };
+
+  Pet copyWith({
+    String? imagePath,
+    String? id,
+    String? name,
+    Damages? damages,
+    Coins? buyPrice,
+    Coins? sellPrice,
+    int? maxXp,
+    int? xp,
+    int? currentLifePoints,
+    int? maxLifePoints,
+  }) {
+    return Pet(
+      imagePath: imagePath ?? this.imagePath,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      damages: damages ?? this.damages,
+      buyPrice: buyPrice ?? this.buyPrice,
+      sellPrice: sellPrice ?? this.sellPrice,
+      maxXp: maxXp ?? this.maxXp,
+      xp: xp ?? this.xp,
+      currentLifePoints: currentLifePoints ?? this.currentLifePoints,
+      maxLifePoints: maxLifePoints ?? this.maxLifePoints,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    imagePath,
+    id,
+    name,
+    damages,
+    buyPrice,
+    sellPrice,
+    maxXp,
+    xp,
+    currentLifePoints,
+    maxLifePoints,
+  ];
 }

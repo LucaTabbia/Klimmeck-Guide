@@ -4,8 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_modal.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
@@ -14,17 +15,16 @@ import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
+import '../../../../models/enums/city_size_type.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../shared/components/popup/quest_info_sheet.dart';
 import 'cubit/world_map_cubit.dart';
 
 class WorldMap extends StatefulWidget {
-  const WorldMap({super.key, required this.character, required this.cities, required this.quests});
+  const WorldMap({super.key, required this.cities});
 
-  final Character character;
   final List<City> cities;
-  final List<Quest> quests;
 
   @override
   State<WorldMap> createState() => _WorldMapState();
@@ -35,11 +35,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   double _velocityX = 0.0;
   double _velocityY = 0.0;
   Timer? _smoothTimer;
-  final ValueNotifier<double> zoomNotifier = ValueNotifier(3.06);
+  final ValueNotifier<double> zoomNotifier = ValueNotifier(2);
 
   Lore? _selectedLore;
   Quest? _selectedQuest;
-  List<Quest> _showableQuests = [];
+  LatLng? _tmpLocation;
 
   late AnimationController _animationController;
   late AnimationController _questAnimationController;
@@ -49,31 +49,27 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   late Animation<LatLng> _latTween;
 
   late final MapOptions _mapOptions;
-  final _bounds = LatLngBounds(LatLng(0, 0), LatLng(79.9, 180));
+  late final LatLngBounds _bounds;
 
   final MapController _mapController = MapController();
 
   @override
   void initState() {
-    _showableQuests = widget.quests
-        .where(
-          (quest) =>
-              quest.infos?.markerLocation != null &&
-              !widget.cities.any((city) => city.markerLocation == quest.infos?.markerLocation),
-        )
-        .toList();
+    _bounds = LatLngBounds(LatLng(-90, -180), LatLng(90, 180));
 
-    _animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 100),
+    );
 
     _questAnimationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 300),
     );
 
-    _positionAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _questAnimationController, curve: Curves.easeIn));
+    _positionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _questAnimationController, curve: Curves.easeIn),
+    );
 
     _questAnimationController.addStatusListener((status) {
       if (status.isDismissed) {
@@ -84,10 +80,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     });
 
     _mapOptions = MapOptions(
-      initialCenter: LatLng(55, 90),
-      initialZoom: 3.06,
-      minZoom: 2.3,
-      maxZoom: 6.0,
+      initialCenter: LatLng(0, 0),
+      initialZoom: 2,
+      crs: Epsg4326(),
+      minZoom: 0,
+      maxZoom: 5,
       interactionOptions: const InteractionOptions(
         flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
         rotationThreshold: 0,
@@ -150,122 +147,243 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
               OverlayImageLayer(
                 overlayImages: [
                   OverlayImage(
-                    bounds: LatLngBounds(LatLng(0, 0), LatLng(80, 180)),
+                    bounds: _bounds,
                     imageProvider: AssetImage('assets/images/worldMap.png'),
                   ),
                 ],
               ),
-              MarkerLayer(
-                markers: widget.cities
-                    .map(
-                      (city) => Marker(
+              ValueListenableBuilder<double>(
+                valueListenable: zoomNotifier,
+                builder: (context, zoom, _) {
+                  final visibleCities = widget.cities.where((city) {
+                    switch (city.type?.cityClass) {
+                      case CitySizeType.capital:
+                        return zoom >= 0;
+                      case CitySizeType.city:
+                        return zoom >= 2.5;
+                      case CitySizeType.village:
+                        return zoom >= 3.2;
+                      default:
+                        return false;
+                    }
+                  }).toList();
+
+                  return MarkerLayer(
+                    markers: visibleCities.map((city) {
+                      return Marker(
                         key: ValueKey(city.id),
-                        point: city.markerLocation!,
-                        child: ValueListenableBuilder<double>(
-                          valueListenable: zoomNotifier,
-                          builder: (_, zoom, child) {
-                            return Transform.scale(scale: zoom * 0.8, child: child);
-                          },
+                        point: city.markerLocation!.location!,
+                        child: Transform.scale(
+                          scale: (zoom * 0.2 + 0.1) * 0.08 * city.type!.size,
                           child: CityMarker(
                             city: city,
-                            onTap: () =>
-                                context.read<WorldMapCubit>().loadLoreData(city.relatedLore!.id),
+                            onTap: () => context
+                                .read<WorldMapCubit>()
+                                .loadLoreData(city.relatedLore!.id),
                           ),
                         ),
-                      ),
-                    )
-                    .toList(),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
-              MarkerLayer(
-                markers: _showableQuests
-                    .map(
-                      (quest) => Marker(
-                        key: ValueKey(quest.id),
-                        point: quest.infos!.markerLocation!,
-                        child: ValueListenableBuilder<double>(
-                          valueListenable: zoomNotifier,
-                          builder: (_, zoom, child) {
-                            if (zoom <= 4) {
-                              return const SizedBox.shrink();
-                            }
-                            return Transform.scale(scale: zoom * 0.4, child: child!);
-                          },
-                          child: GestureDetector(
-                            onTap: () => _selectQuest(quest),
-                            child: CachedSvg(url: quest.infos!.type!.imagePath),
+              BlocBuilder<QuestCubit, QuestState>(
+                builder: (context, state) {
+                  if (state is QuestLoaded) {
+                    List<Quest> showableQuests = state.quests
+                        .where(
+                          (quest) =>
+                              quest.infos?.markerLocation != null &&
+                              !widget.cities.any(
+                                (city) =>
+                                    city.markerLocation ==
+                                    quest.infos?.markerLocation,
+                              ),
+                        )
+                        .toList();
+                    return MarkerLayer(
+                      markers: showableQuests
+                          .map(
+                            (quest) => Marker(
+                              key: ValueKey(quest.id),
+                              point: quest.infos!.markerLocation!.location!,
+                              child: ValueListenableBuilder<double>(
+                                valueListenable: zoomNotifier,
+                                builder: (_, zoom, child) {
+                                  if (zoom <= 4) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Transform.scale(
+                                    scale: (zoom * 0.4 + 0.1),
+                                    child: child!,
+                                  );
+                                },
+                                child: GestureDetector(
+                                  onTap: () => _selectQuest(quest),
+                                  child: CachedSvg(
+                                    url: quest.infos!.type!.imagePath,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    );
+                  }
+                  return SizedBox();
+                },
+              ),
+              BlocConsumer<CharacterCubit, CharacterState>(
+                listener: (context, state) {
+                  if (state is CharacterLoaded) {
+                    setState(() {
+                      _tmpLocation =
+                          state.character.status!.location!.location!;
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  if (state is CharacterLoaded) {
+                    final LatLng characterLocation =
+                        state.character.status!.location!.location!;
+                    _tmpLocation ??= characterLocation;
+
+                    final LatLng displayLocation =
+                        _tmpLocation ?? characterLocation;
+                    return MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: displayLocation,
+                          child: ValueListenableBuilder<double>(
+                            valueListenable: zoomNotifier,
+                            builder: (_, zoom, child) {
+                              return Transform.scale(
+                                scale: (zoom * 0.05 + 0.4) * 0.08 * 60,
+                                child: child!,
+                              );
+                            },
+                            child: Draggable(
+                              feedback: SizedBox(
+                                width: 60,
+                                height: 60,
+                                child: CachedSvg(
+                                  url: state.character.infos!.sex!.pawnPath,
+                                ),
+                              ),
+                              childWhenDragging: Opacity(
+                                opacity: 0,
+                                child: CachedSvg(
+                                  url: state.character.infos!.sex!.pawnPath,
+                                ),
+                              ),
+                              onDragUpdate: (details) {
+                                final renderObject = context.findRenderObject();
+                                if (!mounted || renderObject == null) return;
+
+                                if (renderObject is RenderBox &&
+                                    renderObject.hasSize &&
+                                    renderObject.attached) {
+                                  final RenderBox mapRenderBox = renderObject;
+                                  final Offset localOffsetOnMap = mapRenderBox
+                                      .globalToLocal(details.globalPosition);
+
+                                  final LatLng newLatLng = _mapController.camera
+                                      .screenOffsetToLatLng(localOffsetOnMap);
+
+                                  setState(() {
+                                    _tmpLocation = newLatLng;
+                                  });
+
+                                  final Size screenSize = mapRenderBox.size;
+                                  final Offset screenCenter = Offset(
+                                    screenSize.width / 2,
+                                    screenSize.height / 2,
+                                  );
+
+                                  final Offset dragOffset =
+                                      localOffsetOnMap - screenCenter;
+                                  final LatLng newCenter = _mapController.camera
+                                      .screenOffsetToLatLng(
+                                        screenCenter + dragOffset,
+                                      );
+
+                                  final LatLngBounds mapLimits = _bounds;
+
+                                  final LatLng clampedCenter = LatLng(
+                                    newCenter.latitude.clamp(
+                                      mapLimits.south,
+                                      mapLimits.north,
+                                    ),
+                                    newCenter.longitude.clamp(
+                                      mapLimits.west,
+                                      mapLimits.east,
+                                    ),
+                                  );
+
+                                  _animateMapTo(clampedCenter);
+                                }
+                              },
+                              onDragEnd: (details) {
+                                _stopAnimation();
+
+                                if (_tmpLocation == null) return;
+
+                                LatLng finalPosition = _tmpLocation!;
+                                City? targetCity;
+
+                                // 1. Verifica se è all'interno di un'area cittadina
+                                for (final city in widget.cities) {
+                                  // City.area è List<List<double>> con [Lat, Lon]
+                                  final area = city.area;
+                                  if (area != null && area.isNotEmpty) {
+                                    if (_pointInPolygon(
+                                      finalPosition.latitude,
+                                      finalPosition.longitude,
+                                      city.area!,
+                                    )) {
+                                      targetCity = city;
+                                      break;
+                                    }
+                                  }
+                                }
+
+                                targetCity ??= _findNearestCity(finalPosition);
+
+                                if (targetCity != null) {
+                                  final LatLng newLocation =
+                                      targetCity.markerLocation!.location!;
+
+                                  context
+                                      .read<CharacterCubit>()
+                                      .changeCharacterLocation(
+                                        newLocation,
+                                        targetCity.markerLocation!.id,
+                                      );
+
+                                  // Resetta la posizione temporanea
+                                  setState(() {
+                                    _tmpLocation = newLocation;
+                                  });
+                                } else {
+                                  // Nessuna città trovata, annulla il drag e ritorna alla posizione originale
+                                  setState(() {
+                                    _tmpLocation = null;
+                                  });
+                                }
+                              },
+                              child: CachedSvg(
+                                height: 60,
+                                width: 60,
+                                url: state.character.infos!.sex!.pawnPath,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                    .toList(),
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: widget.character.status!.location!,
-                    width: 60,
-                    height: 60,
-                    child: Draggable(
-                      feedback: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
-                      ),
-                      childWhenDragging: Opacity(
-                        opacity: 0,
-                        child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
-                      ),
-                      onDragUpdate: (details) {
-                        final renderObject = context.findRenderObject();
-                        if (!mounted || renderObject == null) return;
-
-                        if (renderObject is RenderBox &&
-                            renderObject.hasSize &&
-                            renderObject.attached) {
-                          final RenderBox mapRenderBox = renderObject;
-                          final Offset localOffsetOnMap = mapRenderBox.globalToLocal(
-                            details.globalPosition,
-                          );
-
-                          final LatLng newLatLng = _mapController.camera.screenOffsetToLatLng(
-                            localOffsetOnMap,
-                          );
-
-                          setState(() {
-                            widget.character.status?.location = newLatLng;
-                          });
-
-                          final Size screenSize = mapRenderBox.size;
-                          final Offset screenCenter = Offset(
-                            screenSize.width / 2,
-                            screenSize.height / 2,
-                          );
-
-                          final Offset dragOffset = localOffsetOnMap - screenCenter;
-                          final LatLng newCenter = _mapController.camera.screenOffsetToLatLng(
-                            screenCenter + dragOffset,
-                          );
-
-                          final LatLngBounds mapLimits = LatLngBounds(
-                            LatLng(0, 0),
-                            LatLng(80, 180),
-                          );
-
-                          final LatLng clampedCenter = LatLng(
-                            newCenter.latitude.clamp(mapLimits.south, mapLimits.north),
-                            newCenter.longitude.clamp(mapLimits.west, mapLimits.east),
-                          );
-
-                          _animateMapTo(clampedCenter);
-                        }
-                      },
-                      onDragEnd: (details) {
-                        _stopAnimation();
-                      },
-                      child: CachedSvg(url: widget.character.infos!.sex!.pawnPath),
-                    ),
-                  ),
-                ],
+                      ],
+                    );
+                  }
+                  return SizedBox();
+                },
               ),
               AnimatedBuilder(
                 animation: _questAnimationController,
@@ -277,9 +395,14 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                       alignment: Alignment.centerRight,
                       child: SizedBox(
                         height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.height * 1.5 * (315 / 375),
+                        width:
+                            MediaQuery.of(context).size.height *
+                            1.5 *
+                            (315 / 375),
                         child: _selectedQuest != null
-                            ? SingleChildScrollView(child: QuestInfoSheet(quest: _selectedQuest))
+                            ? SingleChildScrollView(
+                                child: QuestInfoSheet(quest: _selectedQuest),
+                              )
                             : null,
                       ),
                     ),
@@ -293,12 +416,74 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
   }
 
+  bool _pointInPolygon(double lat, double lon, List<LatLng> polygon) {
+    bool inside = false;
+
+    List<List<double>> closedPolygon = List.from(polygon);
+    if (closedPolygon.length > 1 &&
+        (closedPolygon.first[0] != closedPolygon.last[0] ||
+            closedPolygon.first[1] != closedPolygon.last[1])) {
+      closedPolygon.add(closedPolygon.first);
+    }
+
+    // Nota: Il tuo formato Area è [[Lat, Lon]]. Usiamo Lat come Y, Lon come X.
+    for (
+      int i = 0, j = closedPolygon.length - 1;
+      i < closedPolygon.length;
+      j = i++
+    ) {
+      double yi = closedPolygon[i][0]; // Latitudine (Y)
+      double xi = closedPolygon[i][1]; // Longitudine (X)
+      double yj = closedPolygon[j][0];
+      double xj = closedPolygon[j][1];
+
+      bool intersect =
+          ((yi > lat) != (yj > lat)) &&
+          (lon <
+              (xj - xi) *
+                      (lat - yi) /
+                      ((yj - yi).abs() < 1e-12 ? 1e-12 : (yj - yi)) +
+                  xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  /// Trova la città più vicina al punto dato, misurando la distanza in LatLng.
+  City? _findNearestCity(LatLng point) {
+    City? nearestCity;
+    double minDistanceSquared = double.infinity;
+
+    for (final city in widget.cities) {
+      final markerLocation = city.markerLocation?.location;
+      if (markerLocation == null) continue;
+
+      // Distanza al quadrato per evitare math.sqrt (più veloce)
+      final distanceSquared =
+          math.pow(markerLocation.latitude - point.latitude, 2) +
+          math.pow(markerLocation.longitude - point.longitude, 2);
+
+      if (distanceSquared < minDistanceSquared) {
+        minDistanceSquared = distanceSquared.toDouble();
+        nearestCity = city;
+      }
+    }
+    return nearestCity;
+  }
+
+  // character_cubit.dart (file esterno)
+
+  // ...
+  // ...
+
   void _showModalCityInfo() {
     if (_selectedLore != null) {
       showModalBottomSheet(
         useSafeArea: false,
         isScrollControlled: true,
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width,
+        ),
         backgroundColor: Colors.transparent,
         context: context,
         builder: (BuildContext context) {
@@ -309,7 +494,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _animateMapTo(LatLng target) {
-    final LatLngBounds mapLimits = LatLngBounds(LatLng(0, 0), LatLng(79.9, 180));
+    final LatLngBounds mapLimits = _bounds;
 
     final clampedTarget = LatLng(
       target.latitude.clamp(mapLimits.south, mapLimits.north),
@@ -340,14 +525,20 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         return;
       }
 
-      const acceleration = 0.02;
+      const acceleration = 0.01;
       const damping = 0.8;
 
       _velocityX = (_velocityX + deltaLng * acceleration) * damping;
       _velocityY = (_velocityY + deltaLat * acceleration) * damping;
 
-      final newLat = (current.latitude + _velocityY).clamp(mapLimits.south, mapLimits.north);
-      final newLng = (current.longitude + _velocityX).clamp(mapLimits.west, mapLimits.east);
+      final newLat = (current.latitude + _velocityY).clamp(
+        mapLimits.south,
+        mapLimits.north,
+      );
+      final newLng = (current.longitude + _velocityX).clamp(
+        mapLimits.west,
+        mapLimits.east,
+      );
 
       _mapController.move(LatLng(newLat, newLng), _mapController.camera.zoom);
     });
@@ -370,7 +561,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 }
 
 class LatLngTween extends Tween<LatLng> {
-  LatLngTween({required LatLng begin, required LatLng end}) : super(begin: begin, end: end);
+  LatLngTween({required LatLng begin, required LatLng end})
+    : super(begin: begin, end: end);
 
   @override
   LatLng lerp(double t) {

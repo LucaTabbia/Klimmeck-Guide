@@ -11,7 +11,6 @@ class LootItemCard extends StatelessWidget {
     super.key,
     required this.lootItem,
     required this.size,
-    this.isSelected,
     this.onTap,
     this.quantity,
   });
@@ -20,7 +19,6 @@ class LootItemCard extends StatelessWidget {
       "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
 
   final Function(LootItem)? onTap;
-  final bool? isSelected;
   final LootItem lootItem;
   final double size;
   final int? quantity;

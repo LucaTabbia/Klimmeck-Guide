@@ -1,56 +1,8 @@
 class CharacterQueries {
   static const String getCharacter = r'''
-    query character($id: String!) {
-  character(id: $id) {
-    assets {
-      ownedEquipments {
-        item {
-          ... on EquipmentItem {
-            addedSpell {
-              energyDamage {
-                power
-                type
-              }
-              id
-              maxUsages
-              minXpToLearn
-              name
-              recoveryTime
-              requiredLearnTime
-              useType
-            }
-            buyPrice {
-              copper
-              gold
-              silver
-            }
-            damages {
-              base {
-                type
-                power
-              }
-              energy {
-                power
-                type
-              }
-            }
-            description
-            equipType
-            id
-            name
-            rarity
-            sellPrice {
-              copper
-              gold
-              silver
-            }
-          }
-        }
-        quantity
-      }
-      activeSpells {
-        spell {
-          energyDamage {
+  
+  fragment SpellFields on Spell {
+  energyDamage {
             power
             type
           }
@@ -61,6 +13,65 @@ class CharacterQueries {
           recoveryTime
           requiredLearnTime
           useType
+          description
+  }
+  
+   fragment EquipmentItemFields on EquipmentItem {
+      id
+      name
+      equipType
+      description
+      rarity
+      damages {
+        base {
+        power
+        type
+        }
+        energy{
+        power
+        type
+        }
+      }
+      sellPrice {
+        gold
+        silver
+        copper
+      }
+      buyPrice {
+        gold
+        silver
+        copper
+      }
+      addedSpell {
+        ...SpellFields
+      }
+    }
+    
+    query character($id: String!) {
+  character(id: $id) {
+    assets {
+    wearedEquipment {
+    head { ...EquipmentItemFields }
+        chest { ...EquipmentItemFields }
+        legs { ...EquipmentItemFields }
+        arms { ...EquipmentItemFields }
+        leftHand { ...EquipmentItemFields }
+        rightHand { ...EquipmentItemFields }
+        firstAccessory { ...EquipmentItemFields }
+        secondAccessory { ...EquipmentItemFields }
+        foots { ...EquipmentItemFields }
+    }
+      ownedEquipments {
+        item {
+          ... on EquipmentItem {
+            ...EquipmentItemFields
+          }
+        }
+        quantity
+      }
+      activeSpells {
+        spell {
+          ...SpellFields
         }
         usages
       }
@@ -109,22 +120,12 @@ class CharacterQueries {
       injuries
       level
       location {
-        latitude
-        longitude
+         id
+         location
       }
       maxLifePoints
       spells {
-        energyDamage {
-          power
-          type
-        }
-        id
-        maxUsages
-        minXpToLearn
-        name
-        recoveryTime
-        requiredLearnTime
-        useType
+        ...SpellFields
       }
       title
       xp
@@ -182,28 +183,4 @@ class CharacterQueries {
       }
     }
   ''';
-
-  static const String getOwnedEquipments = r'''
-    query ownedEquipments($id: String!) {
-      equipment(id: $id) {
-        head { ...EquipmentItemFields }
-        chest { ...EquipmentItemFields }
-        legs { ...EquipmentItemFields }
-        arms { ...EquipmentItemFields }
-        leftHand { ...EquipmentItemFields }
-        rightHand { ...EquipmentItemFields }
-        firstAccessory { ...EquipmentItemFields }
-        secondAccessory { ...EquipmentItemFields }
-        foots { ...EquipmentItemFields }
-      }
-    }
-  ''';
-
-  static const String doTransaction = r'''
-    mutation doTransaction($input: TransactionInput!) {
-      doTransaction(input: $input) {
-        response
-        successful
-      }
-    }''';
 }

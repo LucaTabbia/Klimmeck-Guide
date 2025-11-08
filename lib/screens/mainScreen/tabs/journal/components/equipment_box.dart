@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
@@ -11,27 +11,27 @@ class EquipmentBox extends StatelessWidget {
     required this.size,
     required this.item,
     required this.selectedBox,
-    required this.index,
-    required this.expectedTypes,
+    required this.slotType,
     required this.onTap,
   });
 
   final double size;
   final EquipmentItem? item;
-  final List<EquipType> expectedTypes;
-  final int? selectedBox;
-  final int index;
-  final Function(int, List<EquipType>) onTap;
+  final SlotType? selectedBox;
+  final SlotType slotType;
+  final Function(SlotType) onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(index, expectedTypes),
+      onTap: () => onTap(slotType),
       child: Container(
         height: size,
         width: size,
         decoration: BoxDecoration(
-          color: index == selectedBox ? KlimmeckGuideTheme.primaryGold.withAlpha(100) : null,
+          color: slotType == selectedBox
+              ? KlimmeckGuideTheme.primaryGold.withAlpha(100)
+              : null,
           borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
           border: Border.all(color: KlimmeckGuideTheme.deepNight, width: 2),
         ),

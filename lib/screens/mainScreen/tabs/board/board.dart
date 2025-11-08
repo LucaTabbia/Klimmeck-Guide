@@ -1,15 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 
 import '../../../../models/quest/quest.dart';
 
 class Board extends StatefulWidget {
-  const Board({super.key, required this.quests});
-
-  final List<Quest> quests;
+  const Board({super.key});
 
   @override
   State<Board> createState() => _BoardState();
@@ -20,18 +20,18 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
 
   late AnimationController _animationController;
   late Animation<double> _positionAnimation;
-  late final Map<Quest, Offset> _questOffsets;
-  late final Map<Quest, double> _questRandomizers;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
 
-    _positionAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+    _positionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
 
     _animationController.addStatusListener((status) {
       if (status.isDismissed) {
@@ -40,21 +40,18 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
         });
       }
     });
-    final rnd = Random();
-    _questOffsets = {
-      for (var quest in widget.quests)
-        quest: Offset((rnd.nextDouble() - 0.5) * 30, (rnd.nextDouble() - 0.5) * 30),
-    };
-    _questRandomizers = {for (var quest in widget.quests) quest: rnd.nextDouble() * 20};
   }
 
   @override
   Widget build(BuildContext context) {
     setState(() {
-      _positionAnimation = Tween<double>(
-        begin: MediaQuery.of(context).size.height,
-        end: 0.0,
-      ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+      _positionAnimation =
+          Tween<double>(
+            begin: MediaQuery.of(context).size.height,
+            end: 0.0,
+          ).animate(
+            CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+          );
     });
 
     return Stack(
@@ -68,7 +65,10 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                 },
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  child: Image.asset('assets/images/boardBackground.png', fit: BoxFit.cover),
+                  child: Image.asset(
+                    'assets/images/boardBackground.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               Padding(
@@ -76,19 +76,39 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                   horizontal: MediaQuery.of(context).size.width / 6.5,
                   vertical: MediaQuery.of(context).size.height / 2.3,
                 ),
-                child: Wrap(
-                  spacing: 30,
-                  runSpacing: 20,
-                  children: widget.quests.map((quest) {
-                    return Transform.translate(
-                      offset: _questOffsets[quest]!,
-                      child: Sheet(
-                        onTap: selectQuest,
-                        quest: quest,
-                        randomizer: _questRandomizers[quest]!,
-                      ),
-                    );
-                  }).toList(),
+                child: BlocBuilder<QuestCubit, QuestState>(
+                  builder: (context, state) {
+                    if (state is QuestLoaded) {
+                      final rnd = Random();
+                      Map<Quest, Offset> questOffsets = {
+                        for (var quest in state.quests)
+                          quest: Offset(
+                            (rnd.nextDouble() - 0.5) * 30,
+                            (rnd.nextDouble() - 0.5) * 30,
+                          ),
+                      };
+                      Map<Quest, double> questRandomizers = {
+                        for (var quest in state.quests)
+                          quest: rnd.nextDouble() * 20,
+                      };
+
+                      return Wrap(
+                        spacing: 30,
+                        runSpacing: 20,
+                        children: state.quests.map((quest) {
+                          return Transform.translate(
+                            offset: questOffsets[quest]!,
+                            child: Sheet(
+                              onTap: selectQuest,
+                              quest: quest,
+                              randomizer: questRandomizers[quest]!,
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }
+                    return Placeholder();
+                  },
                 ),
               ),
             ],
@@ -106,7 +126,9 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                   height: MediaQuery.of(context).size.height,
                   width: MediaQuery.of(context).size.height * 1.5 * (315 / 375),
                   child: _selectedQuest != null
-                      ? SingleChildScrollView(child: QuestInfoSheet(quest: _selectedQuest))
+                      ? SingleChildScrollView(
+                          child: QuestInfoSheet(quest: _selectedQuest),
+                        )
                       : null,
                 ),
               ),

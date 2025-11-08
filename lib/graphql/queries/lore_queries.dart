@@ -8,10 +8,6 @@ class LoreQueries {
         name
         description
         unlocked
-        locations {
-          latitude
-          longitude
-        }
         relatedLore {
           id
           name
@@ -29,10 +25,6 @@ class LoreQueries {
         name
         description
         unlocked
-        locations {
-          latitude
-          longitude
-        }
         relatedLore {
           id
           name

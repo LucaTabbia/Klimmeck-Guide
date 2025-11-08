@@ -10,7 +10,9 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
@@ -124,6 +126,10 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
+          BlocProvider<CharacterCubit>(
+            create: (context) => CharacterCubit(graphQl),
+          ),
+          BlocProvider<QuestCubit>(create: (context) => QuestCubit(graphQl)),
           BlocProvider<TransactionCubit>(
             create: (context) => TransactionCubit(graphQl),
           ),

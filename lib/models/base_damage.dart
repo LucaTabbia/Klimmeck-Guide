@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/damage_type.dart';
 
-class BaseDamage {
-  BaseDamage({required this.type, required this.power});
+class BaseDamage extends Equatable {
+  const BaseDamage({required this.type, required this.power});
 
   final DamageType? type;
   final int? power;
@@ -12,4 +13,11 @@ class BaseDamage {
   );
 
   Map<String, dynamic> toJson() => {'type': type?.name, 'power': power};
+
+  BaseDamage copyWith({DamageType? type, int? power}) {
+    return BaseDamage(type: type ?? this.type, power: power ?? this.power);
+  }
+
+  @override
+  List<Object?> get props => [type, power];
 }

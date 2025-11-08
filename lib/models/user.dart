@@ -1,8 +1,10 @@
+import 'package:equatable/equatable.dart';
+
 import 'character/character.dart';
 import 'enums/role_type.dart';
 
-class User {
-  User({
+class User extends Equatable {
+  const User({
     required this.id,
     required this.twitchId,
     required this.twitchPoints,
@@ -13,8 +15,8 @@ class User {
   final String id;
   final String? twitchId;
   final RoleType? role;
-  int? twitchPoints;
-  Character? currentCharacter;
+  final int? twitchPoints; // Reso final
+  final Character? currentCharacter; // Reso final
 
   factory User.fromJson(Map<String, dynamic> json) => User(
     id: json["id"],
@@ -33,4 +35,29 @@ class User {
     "currentCharacter": currentCharacter?.id,
     "role": role?.name,
   };
+
+  User copyWith({
+    String? id,
+    String? twitchId,
+    RoleType? role,
+    int? twitchPoints,
+    Character? currentCharacter,
+  }) {
+    return User(
+      id: id ?? this.id,
+      twitchId: twitchId ?? this.twitchId,
+      role: role ?? this.role,
+      twitchPoints: twitchPoints ?? this.twitchPoints,
+      currentCharacter: currentCharacter ?? this.currentCharacter,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    twitchId,
+    role,
+    twitchPoints,
+    currentCharacter,
+  ];
 }

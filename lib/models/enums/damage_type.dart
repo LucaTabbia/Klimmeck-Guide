@@ -7,7 +7,7 @@ enum DamageType {
   cut(
     label: 'Tagliente',
     imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660749/huntTornSheet2_kqqouj.svg",
+        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/cutDamage_kgophy.svg",
   ),
   pierce(
     label: 'Perforante',

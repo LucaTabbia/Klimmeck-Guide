@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/equip_ratios.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 class EquipmentImage extends StatelessWidget {
@@ -7,13 +7,13 @@ class EquipmentImage extends StatelessWidget {
     super.key,
     required this.baseWidth,
     required this.imagePath,
-    required this.type,
+    required this.ratios,
     required this.baseHeight,
   });
 
   final double baseWidth;
   final double baseHeight;
-  final EquipType type;
+  final EquipRatios ratios;
   final String imagePath;
 
   @override
@@ -21,12 +21,12 @@ class EquipmentImage extends StatelessWidget {
     return Positioned(
       left:
           (baseWidth / 2) -
-          (baseHeight / type.ratios.mannequinRatio * type.ratios.aspectRatio / 2) +
+          (baseHeight / ratios.mannequinRatio * ratios.aspectRatio / 2) +
           5,
-      top: baseHeight / type.ratios.positionRatio,
+      top: baseHeight / ratios.positionRatio,
       child: SizedBox(
-        height: baseHeight / type.ratios.mannequinRatio,
-        width: baseHeight / type.ratios.mannequinRatio * type.ratios.aspectRatio,
+        height: baseHeight / ratios.mannequinRatio,
+        width: baseHeight / ratios.mannequinRatio * ratios.aspectRatio,
         child: CachedSvg(url: imagePath),
       ),
     );

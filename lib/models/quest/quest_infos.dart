@@ -1,17 +1,16 @@
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:equatable/equatable.dart';
+import 'package:klimmeck_guide/models/pointOfInterest.dart';
 
 import '../enemy.dart';
 import '../enums/quest_type.dart';
 import '../lore.dart';
 
-class QuestInfos {
-  QuestInfos({
+class QuestInfos with EquatableMixin {
+  const QuestInfos({
     required this.timeToComplete,
     required this.title,
     required this.enemy,
     required this.type,
-    required this.area,
     required this.markerLocation,
     required this.relatedLore,
   });
@@ -20,33 +19,17 @@ class QuestInfos {
   final String? title;
   final Enemy? enemy;
   final QuestType? type;
-  final LatLngBounds? area;
-  final LatLng? markerLocation;
+  final PointOfInterest? markerLocation;
   final List<Lore>? relatedLore;
 
   factory QuestInfos.fromJson(Map<String, dynamic> json) {
-    final bounds = json['area'] != null
-        ? LatLngBounds.fromPoints(
-            List<LatLng>.from(
-              json['area'].map(
-                (x) =>
-                    LatLng((x['latitude'] as num).toDouble(), (x['longitude'] as num).toDouble()),
-              ),
-            ),
-          )
-        : null;
-
     return QuestInfos(
       title: json["title"],
       enemy: json["enemy"] != null ? Enemy.fromJson(json["enemy"]) : null,
       type: json["type"] != null ? QuestType.values.byName(json["type"]) : null,
       markerLocation: json["markerLocation"] != null
-          ? LatLng(
-              (json["markerLocation"]['latitude'] as num).toDouble(),
-              (json["markerLocation"]['longitude'] as num).toDouble(),
-            )
+          ? PointOfInterest.fromJson(json["markerLocation"])
           : null,
-      area: bounds,
       relatedLore: json['relatedLore'] != null
           ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
           : null,
@@ -58,16 +41,36 @@ class QuestInfos {
     "title": title,
     "enemy": enemy?.id,
     "type": type?.name,
-    "markerLocation": markerLocation != null
-        ? {"latitude": markerLocation!.latitude, "longitude": markerLocation!.longitude}
-        : null,
-    "area": area != null
-        ? [
-            {"latitude": area!.southWest.latitude, "longitude": area!.southWest.longitude},
-            {"latitude": area!.northEast.latitude, "longitude": area!.northEast.longitude},
-          ]
-        : null,
+    "markerLocation": markerLocation?.toJson(),
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "timeToComplete": timeToComplete,
   };
+
+  QuestInfos copyWith({
+    int? timeToComplete,
+    String? title,
+    Enemy? enemy,
+    QuestType? type,
+    PointOfInterest? markerLocation,
+    List<Lore>? relatedLore,
+  }) {
+    return QuestInfos(
+      timeToComplete: timeToComplete ?? this.timeToComplete,
+      title: title ?? this.title,
+      enemy: enemy ?? this.enemy,
+      type: type ?? this.type,
+      markerLocation: markerLocation ?? this.markerLocation,
+      relatedLore: relatedLore ?? this.relatedLore,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    timeToComplete,
+    title,
+    enemy,
+    type,
+    markerLocation,
+    relatedLore,
+  ];
 }

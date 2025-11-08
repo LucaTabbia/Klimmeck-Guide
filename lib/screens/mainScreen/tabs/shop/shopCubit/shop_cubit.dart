@@ -14,7 +14,9 @@ class ShopCubit extends Cubit<ShopState> {
   Future<void> getData() async {
     emit(ShopLoading());
     try {
-      final equipments = await graphQl.getAllEquipmentAssetsQuantity();
+      final equipments = await graphQl.getAllEquipmentAssetsQuantity(
+        sellable: true,
+      );
       final items = await graphQl.getAllLootAssetsQuantity();
       emit(ShopLoadData(equipments, items));
     } catch (e) {

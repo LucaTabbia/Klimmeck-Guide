@@ -1,10 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 
-class AssetQuantity {
-  AssetQuantity({required this.item, required this.quantity});
-
+class AssetQuantity extends Equatable {
+  const AssetQuantity({required this.item, required this.quantity});
   final AssetItem? item;
-  int? quantity;
+  final int? quantity;
 
   factory AssetQuantity.fromJson(Map<String, dynamic> json) => AssetQuantity(
     item: json['item'] != null ? AssetItem.fromJson(json['item']) : null,
@@ -17,6 +17,16 @@ class AssetQuantity {
     "item": item?.toJson(),
     "quantity": quantity,
   };
+
+  AssetQuantity copyWith({AssetItem? item, int? quantity}) {
+    return AssetQuantity(
+      item: item ?? this.item,
+      quantity: quantity ?? this.quantity,
+    );
+  }
+
+  @override
+  List<Object?> get props => [item, quantity];
 }
 
 class AssetQuantityInput {

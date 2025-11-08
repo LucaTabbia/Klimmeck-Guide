@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
-import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
@@ -30,6 +30,7 @@ class _MainScreenState extends State<MainScreen>
   late Animation<double> _opacityAnimation;
   late PageController pageController;
   int currentPage = 0;
+  bool isFirstLoading = true;
 
   @override
   void initState() {
@@ -47,90 +48,93 @@ class _MainScreenState extends State<MainScreen>
         currentPage = pageController.page!.toInt();
       });
     });
-    context.read<MainScreenCubit>().loadData();
+    context.read<CharacterCubit>().loadCharacter("68c191de541d89c481b8322b");
+    context.read<QuestCubit>().loadQuest();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<MainScreenCubit, MainScreenState>(
-      builder: (context, state) {
-        if (state is MainScreenLoadData) {
-          return Scaffold(
-            body: Stack(
-              alignment: Alignment.topLeft,
-              children: [
-                PageView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: pageController,
-                  onPageChanged: onPageChanged,
-                  children: _buildPages(
-                    state.character,
-                    state.cities,
-                    state.quests,
-                  ),
-                ),
-                MenuBackground(
-                  selectedIndex: currentPage,
-                  onTap: onItemTap,
-                  opacityAnimation: _opacityAnimation,
-                ),
-                SatchelMenu(
-                  currentPage: currentPage,
-                  onItemTap: onItemTap,
-                  parentAnimationController: _animationController,
-                ),
-              ],
-            ),
-          );
+    return BlocListener<CharacterCubit, CharacterState>(
+      listener: (context, state) {
+        if (state is CharacterLoaded && isFirstLoading) {
+          setState(() {
+            isFirstLoading = false;
+          });
+          context.read<MainScreenCubit>().loadData();
         }
-        if (state is MainScreenError) {
-          return Scaffold(
-            backgroundColor: KlimmeckGuideTheme.deepNight,
-            body: SafeArea(
-              child: RefreshIndicator(
-                onRefresh: () => context.read<MainScreenCubit>().loadData(),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height:
-                        MediaQuery.of(context).size.height -
-                        (MediaQuery.of(context).viewPadding.top +
-                            MediaQuery.of(context).viewPadding.bottom),
-                    child: const KGError(),
+      },
+      child: BlocBuilder<MainScreenCubit, MainScreenState>(
+        builder: (context, state) {
+          if (state is MainScreenLoadData) {
+            return Scaffold(
+              body: Stack(
+                alignment: Alignment.topLeft,
+                children: [
+                  PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: pageController,
+                    onPageChanged: onPageChanged,
+                    children: _buildPages(state.cities),
+                  ),
+                  MenuBackground(
+                    selectedIndex: currentPage,
+                    onTap: onItemTap,
+                    opacityAnimation: _opacityAnimation,
+                  ),
+                  SatchelMenu(
+                    currentPage: currentPage,
+                    onItemTap: onItemTap,
+                    parentAnimationController: _animationController,
+                  ),
+                ],
+              ),
+            );
+          }
+          if (state is MainScreenError) {
+            return Scaffold(
+              backgroundColor: KlimmeckGuideTheme.deepNight,
+              body: SafeArea(
+                child: RefreshIndicator(
+                  onRefresh: () => context.read<MainScreenCubit>().loadData(),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height:
+                          MediaQuery.of(context).size.height -
+                          (MediaQuery.of(context).viewPadding.top +
+                              MediaQuery.of(context).viewPadding.bottom),
+                      child: const KGError(),
+                    ),
                   ),
                 ),
               ),
+            );
+          }
+          return Scaffold(
+            backgroundColor: KlimmeckGuideTheme.deepNight,
+            body: SizedBox(
+              height:
+                  MediaQuery.of(context).size.height -
+                  (MediaQuery.of(context).viewPadding.bottom +
+                      MediaQuery.of(context).viewPadding.top),
+              child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
             ),
           );
-        }
-        return Scaffold(
-          backgroundColor: KlimmeckGuideTheme.deepNight,
-          body: SizedBox(
-            height:
-                MediaQuery.of(context).size.height -
-                (MediaQuery.of(context).viewPadding.bottom +
-                    MediaQuery.of(context).viewPadding.top),
-            child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 
-  List<Widget> _buildPages(
-    Character character,
-    List<City> cities,
-    List<Quest> quests,
-  ) {
+  List<Widget> _buildPages(List<City> cities) {
     return [
-      WorldMap(character: character, cities: cities, quests: quests),
-      Profile(character: character),
-      Journal(character: character),
+      WorldMap(cities: cities),
+      Profile(),
+      Journal(),
       Library(),
-      Board(quests: quests),
-      Shop(character: character),
+      Board(),
+      Shop(),
     ];
   }
 

@@ -6,11 +6,9 @@ abstract class MainScreenState {}
 class MainScreenInitial extends MainScreenState {}
 
 class MainScreenLoadData extends MainScreenState {
-  final Character character;
   final List<City> cities;
-  final List<Quest> quests;
 
-  MainScreenLoadData(this.character, this.cities, this.quests);
+  MainScreenLoadData(this.cities);
 }
 
 class MainScreenLoading extends MainScreenState {}

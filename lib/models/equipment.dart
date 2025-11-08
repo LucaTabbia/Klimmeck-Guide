@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 
-class Equipment {
-  Equipment({
+class Equipment extends Equatable {
+  const Equipment({
     required this.head,
     required this.chest,
     required this.arms,
@@ -13,15 +14,15 @@ class Equipment {
     required this.secondAccessory,
   });
 
-  EquipmentItem? head;
-  EquipmentItem? chest;
-  EquipmentItem? arms;
-  EquipmentItem? legs;
-  EquipmentItem? foots;
-  EquipmentItem? leftHand;
-  EquipmentItem? rightHand;
-  EquipmentItem? firstAccessory;
-  EquipmentItem? secondAccessory;
+  final EquipmentItem? head;
+  final EquipmentItem? chest;
+  final EquipmentItem? arms;
+  final EquipmentItem? legs;
+  final EquipmentItem? foots;
+  final EquipmentItem? leftHand;
+  final EquipmentItem? rightHand;
+  final EquipmentItem? firstAccessory;
+  final EquipmentItem? secondAccessory;
 
   factory Equipment.fromJson(Map<String, dynamic> json) => Equipment(
     head: json["head"] != null ? EquipmentItem.fromJson(json["head"]) : null,
@@ -29,8 +30,12 @@ class Equipment {
     arms: json["arms"] != null ? EquipmentItem.fromJson(json["arms"]) : null,
     legs: json["legs"] != null ? EquipmentItem.fromJson(json["legs"]) : null,
     foots: json["foots"] != null ? EquipmentItem.fromJson(json["foots"]) : null,
-    leftHand: json["leftHand"] != null ? EquipmentItem.fromJson(json["leftHand"]) : null,
-    rightHand: json["rightHand"] != null ? EquipmentItem.fromJson(json["rightHand"]) : null,
+    leftHand: json["leftHand"] != null
+        ? EquipmentItem.fromJson(json["leftHand"])
+        : null,
+    rightHand: json["rightHand"] != null
+        ? EquipmentItem.fromJson(json["rightHand"])
+        : null,
     firstAccessory: json["firstAccessory"] != null
         ? EquipmentItem.fromJson(json["firstAccessory"])
         : null,
@@ -50,6 +55,43 @@ class Equipment {
     "firstAccessory": firstAccessory?.id,
     "secondAccessory": secondAccessory?.id,
   };
+
+  Equipment copyWith({
+    EquipmentItem? head,
+    EquipmentItem? chest,
+    EquipmentItem? arms,
+    EquipmentItem? foots,
+    EquipmentItem? legs,
+    EquipmentItem? leftHand,
+    EquipmentItem? rightHand,
+    EquipmentItem? firstAccessory,
+    EquipmentItem? secondAccessory,
+  }) {
+    return Equipment(
+      head: head ?? this.head,
+      chest: chest ?? this.chest,
+      arms: arms ?? this.arms,
+      foots: foots ?? this.foots,
+      legs: legs ?? this.legs,
+      leftHand: leftHand ?? this.leftHand,
+      rightHand: rightHand ?? this.rightHand,
+      firstAccessory: firstAccessory ?? this.firstAccessory,
+      secondAccessory: secondAccessory ?? this.secondAccessory,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    head,
+    chest,
+    arms,
+    foots,
+    legs,
+    leftHand,
+    rightHand,
+    firstAccessory,
+    secondAccessory,
+  ];
 }
 
 extension EquipmentValues on Equipment {
