@@ -14,4 +14,20 @@ class CharacterMutations {
         successful
       }
     }''';
+
+  static const String equipSpell = r'''
+    mutation equipSpell($request: EquipSpellRequest!) {
+      equipSpell(request: $request) {
+        response
+        successful
+      }
+    }''';
+
+  static const String unequipSpell = r'''
+    mutation unequipSpell($request: EquipSpellRequest!) {
+      unequipSpell(request: $request) {
+        response
+        successful
+      }
+    }''';
 }

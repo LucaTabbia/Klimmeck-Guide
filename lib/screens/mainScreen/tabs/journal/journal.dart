@@ -5,14 +5,14 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
+import 'package:klimmeck_guide/shared/components/spell_row.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
 import '../../../../models/enums/slot_type.dart';
 import '../../../../models/equipment_item.dart';
 import '../../../../models/request/equip_item_request.dart';
-import '../../../../models/spell.dart';
-import '../../../../shared/components/cards/spell_card.dart';
 import '../../../../shared/components/coins_display.dart';
 import '../../../../shared/components/dropdown.dart';
 import '../../../../shared/components/item_row.dart';
@@ -144,24 +144,65 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildSpellsSection() {
-    return BlocSelector<CharacterCubit, CharacterState, List<Spell>?>(
+  Widget _buildSpellsSection(double lootSize) {
+    return BlocSelector<CharacterCubit, CharacterState, Character?>(
       selector: (state) {
         if (state is CharacterLoaded) {
-          return state.character.status!.spells;
+          return state.character;
         }
         return null;
       },
-      builder: (context, spells) {
+      builder: (context, character) {
         return Dropdown(
           sectionName: "Magie imparate",
-          data: Column(
-            children: [
-              ...List.generate(
-                spells!.length,
-                (index) => SpellCard(spell: spells[index], size: 50),
-              ),
-            ],
+          data: Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    ...List.generate(
+                      character!.status!.maxActiveSpells!,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: Container(
+                          height: lootSize,
+                          width: lootSize,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            border: Border.all(
+                              color: KlimmeckGuideTheme.deepNight,
+                              width: 2,
+                            ),
+                          ),
+                          child: character.assets!.activeSpells!.length > index
+                              ? SpellCard(
+                                  spell: character
+                                      .assets!
+                                      .activeSpells![index]
+                                      .spell!,
+                                  size: lootSize,
+                                  usages: character
+                                      .assets!
+                                      .activeSpells![index]
+                                      .usages,
+                                )
+                              : SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                ...List.generate(
+                  character.status!.spells!.length,
+                  (index) => SpellRow(
+                    spell: character.status!.spells![index],
+                    size: lootSize,
+                    usages: character.status!.spells![index].maxUsages,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -417,7 +458,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                               ),
                               _buildCoinsSection(),
                               _buildInjuriesSection(),
-                              _buildSpellsSection(),
+                              _buildSpellsSection(lootSize),
                               _buildArmorSection(
                                 character,
                                 screenWidth,

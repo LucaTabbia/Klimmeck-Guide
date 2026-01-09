@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 ValueNotifier<GraphQLClient> initGraphQLClient() {
-  final String httpUrl = 'http://192.168.0.11:3000/api/graphql';
-  final String wsUrl = 'ws://192.168.0.11:3000/api/graphql';
+  final String httpUrl = 'http://192.168.0.6:3000/api/graphql';
+  final String wsUrl = 'ws://192.168.0.6:3000/api/graphql';
 
   final HttpLink httpLink = HttpLink(httpUrl);
 

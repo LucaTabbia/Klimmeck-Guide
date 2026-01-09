@@ -124,6 +124,7 @@ class CharacterQueries {
          location
       }
       maxLifePoints
+      maxActiveSpells
       spells {
         ...SpellFields
       }

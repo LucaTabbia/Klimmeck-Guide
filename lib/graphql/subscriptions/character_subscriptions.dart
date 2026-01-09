@@ -124,6 +124,7 @@ class CharacterSubscriptions {
         location
       }
       maxLifePoints
+      maxActiveSpells
       spells {
         ...SpellFields
       }

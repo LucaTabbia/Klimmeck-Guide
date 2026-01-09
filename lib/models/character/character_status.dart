@@ -17,6 +17,7 @@ class CharacterStatus extends Equatable {
     required this.maxLifePoints,
     required this.title,
     required this.level,
+    required this.maxActiveSpells,
   });
 
   final int? xp;
@@ -28,6 +29,7 @@ class CharacterStatus extends Equatable {
   final Coins? coins;
   final int? currentLifePoints;
   final int? maxLifePoints;
+  final int? maxActiveSpells;
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
@@ -50,6 +52,7 @@ class CharacterStatus extends Equatable {
         title: json['title'] != null
             ? TitleType.values.byName(json['title'])
             : null,
+        maxActiveSpells: json['maxActiveSpells']?.toInt(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -74,6 +77,7 @@ class CharacterStatus extends Equatable {
     Coins? coins,
     int? currentLifePoints,
     int? maxLifePoints,
+    int? maxActiveSpells,
   }) {
     return CharacterStatus(
       location: location ?? this.location,
@@ -85,6 +89,7 @@ class CharacterStatus extends Equatable {
       coins: coins ?? this.coins,
       currentLifePoints: currentLifePoints ?? this.currentLifePoints,
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
+      maxActiveSpells: maxActiveSpells ?? this.maxActiveSpells,
     );
   }
 
@@ -99,5 +104,6 @@ class CharacterStatus extends Equatable {
     coins,
     currentLifePoints,
     maxLifePoints,
+    maxActiveSpells,
   ];
 }
