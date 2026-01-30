@@ -3,9 +3,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 import '../../../config/env_config.dart';
 
-/// Initializes the GraphQL client with HTTP and WebSocket links.
-///
-/// HTTP is used for queries and mutations, WebSocket for subscriptions.
 ValueNotifier<GraphQLClient> initGraphQLClient() {
   final HttpLink httpLink = HttpLink(EnvConfig.graphqlHttpUrl);
 
