@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
@@ -29,10 +30,8 @@ class EquipmentItemCard extends StatefulWidget {
 }
 
 class _EquipmentItemCardState extends State<EquipmentItemCard> {
-  static const _cardBackgroundUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
-  static const _bookmarkUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg";
+  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
+  static final _bookmarkUrl = CloudinaryAssets.url(CloudinaryAssets.bookmarkRed);
   late bool? _isSelected;
 
   @override

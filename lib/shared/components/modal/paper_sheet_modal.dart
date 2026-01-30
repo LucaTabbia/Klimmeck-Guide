@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 class PaperSheetModal extends StatelessWidget {
@@ -26,8 +27,7 @@ class PaperSheetModal extends StatelessWidget {
             child: Stack(
               children: [
                 CachedSvg(
-                  url:
-                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660758/bottomEmptySheet_se1k2l.svg",
+                  url: CloudinaryAssets.url(CloudinaryAssets.bottomEmptySheet),
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.cover,
                 ),

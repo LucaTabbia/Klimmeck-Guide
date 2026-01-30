@@ -1,34 +1,32 @@
+/// Fragment for Lore fields
+class _LoreFields {
+  static const String full = '''
+    id
+    image
+    type
+    name
+    description
+    unlocked
+    relatedLore {
+      id
+      name
+    }
+  ''';
+}
+
 class LoreQueries {
-  static const String getAllLores = r'''
+  static String get getAllLores => '''
     query lores {
       lores {
-        id
-        image
-        type
-        name
-        description
-        unlocked
-        relatedLore {
-          id
-          name
-        }
+        ${_LoreFields.full}
       }
     }
   ''';
 
-  static const String getLoreById = r'''
-    query lore($id: String!) {
-      lore(id: $id) {
-        id
-        image
-        type
-        name
-        description
-        unlocked
-        relatedLore {
-          id
-          name
-        }
+  static String get getLoreById => '''
+    query lore(\$id: String!) {
+      lore(id: \$id) {
+        ${_LoreFields.full}
       }
     }
   ''';

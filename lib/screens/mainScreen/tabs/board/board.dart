@@ -19,18 +19,17 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   Quest? _selectedQuest;
 
   late AnimationController _animationController;
-  late Animation<double> _positionAnimation;
+
+  final Map<String, Offset> _questOffsets = {};
+  final Map<String, double> _questRandomizers = {};
+  final Random _random = Random();
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 300),
-    );
-
-    _positionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+      duration: const Duration(milliseconds: 300),
     );
 
     _animationController.addStatusListener((status) {
@@ -43,16 +42,34 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Offset _getQuestOffset(Quest quest) {
+    final key = quest.id ?? quest.hashCode.toString();
+    return _questOffsets.putIfAbsent(
+      key,
+      () => Offset(
+        (_random.nextDouble() - 0.5) * 30,
+        (_random.nextDouble() - 0.5) * 30,
+      ),
+    );
+  }
+
+  double _getQuestRandomizer(Quest quest) {
+    final key = quest.id ?? quest.hashCode.toString();
+    return _questRandomizers.putIfAbsent(
+      key,
+      () => _random.nextDouble() * 20,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    setState(() {
-      _positionAnimation =
-          Tween<double>(
-            begin: MediaQuery.of(context).size.height,
-            end: 0.0,
-          ).animate(
-            CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-          );
-    });
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Stack(
       children: [
@@ -60,11 +77,13 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
           child: Stack(
             children: [
               GestureDetector(
-                onTap: () => {
-                  if (_selectedQuest != null) {_animationController.reverse()},
+                onTap: () {
+                  if (_selectedQuest != null) {
+                    _animationController.reverse();
+                  }
                 },
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
+                  width: screenWidth,
                   child: Image.asset(
                     'assets/images/boardBackground.png',
                     fit: BoxFit.cover,
@@ -73,73 +92,71 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width / 6.5,
-                  vertical: MediaQuery.of(context).size.height / 2.3,
+                  horizontal: screenWidth / 6.5,
+                  vertical: screenHeight / 2.3,
                 ),
                 child: BlocBuilder<QuestCubit, QuestState>(
                   builder: (context, state) {
                     if (state is QuestLoaded) {
-                      final rnd = Random();
-                      Map<Quest, Offset> questOffsets = {
-                        for (var quest in state.quests)
-                          quest: Offset(
-                            (rnd.nextDouble() - 0.5) * 30,
-                            (rnd.nextDouble() - 0.5) * 30,
-                          ),
-                      };
-                      Map<Quest, double> questRandomizers = {
-                        for (var quest in state.quests)
-                          quest: rnd.nextDouble() * 20,
-                      };
-
                       return Wrap(
                         spacing: 30,
                         runSpacing: 20,
                         children: state.quests.map((quest) {
                           return Transform.translate(
-                            offset: questOffsets[quest]!,
+                            offset: _getQuestOffset(quest),
                             child: Sheet(
-                              onTap: selectQuest,
+                              onTap: _selectQuest,
                               quest: quest,
-                              randomizer: questRandomizers[quest]!,
+                              randomizer: _getQuestRandomizer(quest),
                             ),
                           );
                         }).toList(),
                       );
                     }
-                    return Placeholder();
+                    return const SizedBox.shrink();
                   },
                 ),
               ),
             ],
           ),
         ),
-        AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Positioned(
-              top: _positionAnimation.value,
-              right: 0,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.height * 1.5 * (315 / 375),
-                  child: _selectedQuest != null
-                      ? SingleChildScrollView(
-                          child: QuestInfoSheet(quest: _selectedQuest),
-                        )
-                      : null,
-                ),
-              ),
-            );
-          },
-        ),
+        _buildQuestInfoSheet(screenHeight),
       ],
     );
   }
 
-  void selectQuest(Quest quest) {
+  Widget _buildQuestInfoSheet(double screenHeight) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        final position = Tween<double>(
+          begin: screenHeight,
+          end: 0.0,
+        ).evaluate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+        );
+
+        return Positioned(
+          top: position,
+          right: 0,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              height: screenHeight,
+              width: screenHeight * 1.5 * (315 / 375),
+              child: _selectedQuest != null
+                  ? SingleChildScrollView(
+                      child: QuestInfoSheet(quest: _selectedQuest),
+                    )
+                  : null,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _selectQuest(Quest quest) {
     setState(() {
       _selectedQuest = quest;
     });

@@ -143,7 +143,6 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
           BlocProvider<LibraryCubit>(
             create: (context) => LibraryCubit(graphQl),
           ),
-          BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
           BlocProvider<JournalCubit>(
             create: (context) => JournalCubit(graphQl),
           ),

@@ -1,13 +1,14 @@
+import '../fragments/fragments.dart';
+
 class CityQueries {
-  static const String getAllCities = r'''
+  static String get getAllCities => '''
     query cities {
       cities {
         id
         type
         name
         markerLocation {
-          id
-          location
+          ${LocationFragment.fields}
         }
         relatedLore {
           id

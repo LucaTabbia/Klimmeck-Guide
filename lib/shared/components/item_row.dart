@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../models/asset_item.dart';
 import '../../models/equipment_item.dart';
-import '../../models/loot_item.dart';
 import '../../theme/kg_theme.dart';
 import 'cards/equipment_item_card.dart';
 import 'cards/loot_item_card.dart';
@@ -36,7 +35,7 @@ class ItemRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
         children: [
-          assetItem.runtimeType == EquipmentItem
+          assetItem.isEquipment
               ? EquipmentItemCard(
                   key: ValueKey(assetItem.id),
                   onLongPress: (equip) => onLongTap?.call(equip),
@@ -44,14 +43,14 @@ class ItemRow extends StatelessWidget {
                   quantity: quantity,
                   isSelected: isSelected,
                   size: size,
-                  equipmentItem: assetItem as EquipmentItem,
+                  equipmentItem: assetItem.asEquipment!,
                 )
               : LootItemCard(
                   key: ValueKey(assetItem.id),
                   onTap: (item) => onSelect?.call(item),
                   quantity: quantity,
                   size: size,
-                  lootItem: assetItem as LootItem,
+                  lootItem: assetItem.asLoot!,
                 ),
           if (showCoins)
             Padding(

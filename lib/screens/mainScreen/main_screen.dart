@@ -154,5 +154,12 @@ class _MainScreenState extends State<MainScreen>
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   bool get wantKeepAlive => true;
 }

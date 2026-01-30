@@ -32,6 +32,14 @@ abstract class AssetItem extends Equatable {
 
   Map<String, dynamic> toJson();
 
+  bool get isEquipment => this is EquipmentItem;
+
+  bool get isLoot => this is LootItem;
+
+  EquipmentItem? get asEquipment => this is EquipmentItem ? this as EquipmentItem : null;
+
+  LootItem? get asLoot => this is LootItem ? this as LootItem : null;
+
   @override
   List<Object?> get props => [
     id,

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-ValueNotifier<GraphQLClient> initGraphQLClient() {
-  final String httpUrl = 'http://192.168.0.6:3000/api/graphql';
-  final String wsUrl = 'ws://192.168.0.6:3000/api/graphql';
+import '../../../config/env_config.dart';
 
-  final HttpLink httpLink = HttpLink(httpUrl);
+/// Initializes the GraphQL client with HTTP and WebSocket links.
+///
+/// HTTP is used for queries and mutations, WebSocket for subscriptions.
+ValueNotifier<GraphQLClient> initGraphQLClient() {
+  final HttpLink httpLink = HttpLink(EnvConfig.graphqlHttpUrl);
 
   final WebSocketLink wsLink = WebSocketLink(
-    wsUrl,
+    EnvConfig.graphqlWsUrl,
     config: SocketClientConfig(
       autoReconnect: true,
-      inactivityTimeout: const Duration(seconds: 30),
+      inactivityTimeout: Duration(seconds: EnvConfig.wsInactivityTimeoutSeconds),
       initialPayload: () => <String, dynamic>{},
     ),
     subProtocol: GraphQLProtocol.graphqlTransportWs,
@@ -27,7 +29,7 @@ ValueNotifier<GraphQLClient> initGraphQLClient() {
     GraphQLClient(
       link: link,
       cache: GraphQLCache(store: InMemoryStore()),
-      queryRequestTimeout: const Duration(seconds: 30),
+      queryRequestTimeout: Duration(seconds: EnvConfig.queryTimeoutSeconds),
     ),
   );
 }

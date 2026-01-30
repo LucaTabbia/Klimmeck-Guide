@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
@@ -7,8 +8,7 @@ import '../../../theme/kg_theme.dart';
 import '../animated_pencil_text.dart';
 
 class SpellCard extends StatelessWidget {
-  static const _cardBackgroundUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
+  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
 
   final Spell spell;
   final double size;

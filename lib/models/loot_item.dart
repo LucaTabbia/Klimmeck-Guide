@@ -39,6 +39,7 @@ class LootItem extends AssetItem with EquatableMixin {
         : null,
   );
 
+  @override
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
@@ -74,12 +75,7 @@ class LootItem extends AssetItem with EquatableMixin {
 
   @override
   List<Object?> get props => [
-    id,
-    name,
-    description,
-    rarity,
-    buyPrice,
-    sellPrice,
+    ...super.props,
     power,
     effect,
   ];

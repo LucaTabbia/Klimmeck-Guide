@@ -1,34 +1,22 @@
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+
 enum QuestType {
-  hunt(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660721/huntPawn_h7bdwj.svg",
-  ),
-  aid(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660712/aidPawn_zyoz99.svg",
-  ),
-  enemy(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660715/enemyPawn_c4vstz.svg",
-  ),
-  worldMission(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660713/worldMissionPawn_bjjzc0.svg",
-  ),
-  boss(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660719/bossPawn_vsz4pf.svg",
-  ),
-  dungeon(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660716/dungeonPawn_bhbatx.svg",
-  ),
-  story(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660718/storyPawn_rvclmp.svg",
-  ),
-  study(imagePath: ""),
-  heal(imagePath: ""),
-  job(imagePath: ""),
-  crime(imagePath: ""),
-  guard(imagePath: "");
+  hunt(imageId: CloudinaryAssets.huntPawn),
+  aid(imageId: CloudinaryAssets.aidPawn),
+  enemy(imageId: CloudinaryAssets.enemyPawn),
+  worldMission(imageId: CloudinaryAssets.worldMissionPawn),
+  boss(imageId: CloudinaryAssets.bossPawn),
+  dungeon(imageId: CloudinaryAssets.dungeonPawn),
+  story(imageId: CloudinaryAssets.storyPawn),
+  study(imageId: ''),
+  heal(imageId: ''),
+  job(imageId: ''),
+  crime(imageId: ''),
+  guard(imageId: '');
 
-  final String imagePath;
+  final String _imageId;
 
-  const QuestType({required this.imagePath});
+  String get imagePath => _imageId.isEmpty ? '' : CloudinaryAssets.url(_imageId);
+
+  const QuestType({required String imageId}) : _imageId = imageId;
 }

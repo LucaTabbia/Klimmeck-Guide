@@ -1,60 +1,22 @@
-enum EnergyType {
-  fire(
-    label: "Fuoco",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660512/fireEnergy_cbz3fo.svg",
-  ),
-  cold(
-    label: "Gelo",
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660519/iceEnergy_igf4o0.svg",
-  ),
-  lightning(
-    label: "Fulmine",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660512/lightningEnergy_xldvl8.svg",
-  ),
-  acid(
-    label: "Acido",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660513/acidEnergy_frxlo5.svg",
-  ),
-  poison(
-    label: "Veleno",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660514/poisonEnergy_vplheq.svg",
-  ),
-  thunder(
-    label: "Tuono",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660517/thunderEnergy_nx8anb.svg",
-  ),
-  force(
-    label: "Forza",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660514/forceEnergy_blou6p.svg",
-  ),
-  necrotic(
-    label: "Necrotico",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660518/necroticEnergy_vknlaj.svg",
-  ),
-  radiant(
-    label: "Radioso",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660516/radiantEnergy_zhv2ay.svg",
-  ),
-  psychic(
-    label: "Psichico",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660516/psychicEnergy_isslea.svg",
-  ),
-  enhancing(
-    label: "Potenziante",
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660519/enhancingEnergy_sdt2ao.svg",
-  );
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 
-  final String imagePath;
+enum EnergyType {
+  fire(label: "Fuoco", imageId: CloudinaryAssets.fireEnergy),
+  cold(label: "Gelo", imageId: CloudinaryAssets.iceEnergy),
+  lightning(label: "Fulmine", imageId: CloudinaryAssets.lightningEnergy),
+  acid(label: "Acido", imageId: CloudinaryAssets.acidEnergy),
+  poison(label: "Veleno", imageId: CloudinaryAssets.poisonEnergy),
+  thunder(label: "Tuono", imageId: CloudinaryAssets.thunderEnergy),
+  force(label: "Forza", imageId: CloudinaryAssets.forceEnergy),
+  necrotic(label: "Necrotico", imageId: CloudinaryAssets.necroticEnergy),
+  radiant(label: "Radioso", imageId: CloudinaryAssets.radiantEnergy),
+  psychic(label: "Psichico", imageId: CloudinaryAssets.psychicEnergy),
+  enhancing(label: "Potenziante", imageId: CloudinaryAssets.enhancingEnergy);
+
+  final String _imageId;
   final String label;
-  const EnergyType({required this.label, required this.imagePath});
+
+  String get imagePath => CloudinaryAssets.url(_imageId);
+
+  const EnergyType({required this.label, required String imageId}) : _imageId = imageId;
 }

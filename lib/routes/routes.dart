@@ -4,47 +4,51 @@ import '../screens/mainScreen/main_screen.dart';
 import '../screens/onBoarding/on_boarding_screen.dart';
 import '../screens/signIn/sign_in_screen.dart';
 
-Route mainScreenRoute() {
-  return PageRouteBuilder(
-    transitionDuration: const Duration(milliseconds: 400),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) => const MainScreen(),
-    transitionsBuilder: (context, animation, secondaryAnimation, page) {
-      var begin = const Offset(1.0, 0.0);
-      var end = Offset.zero;
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.linear));
+const Duration _defaultTransitionDuration = Duration(milliseconds: 400);
 
-      return SlideTransition(position: animation.drive(tween), child: page);
+Route<T> createSlideRoute<T>({
+  required Widget page,
+  Duration transitionDuration = _defaultTransitionDuration,
+}) {
+  return PageRouteBuilder<T>(
+    transitionDuration: transitionDuration,
+    reverseTransitionDuration: transitionDuration,
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      final tween = Tween(begin: begin, end: end).chain(
+        CurveTween(curve: Curves.easeInOut),
+      );
+
+      return SlideTransition(
+        position: animation.drive(tween),
+        child: child,
+      );
     },
   );
 }
 
-Route onBoardingRoute() {
-  return PageRouteBuilder(
-    transitionDuration: const Duration(milliseconds: 400),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) => const OnBoardingScreen(),
-    transitionsBuilder: (context, animation, secondaryAnimation, page) {
-      var begin = const Offset(1.0, 0.0);
-      var end = Offset.zero;
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.linear));
-
-      return SlideTransition(position: animation.drive(tween), child: page);
+Route<T> createFadeRoute<T>({
+  required Widget page,
+  Duration transitionDuration = _defaultTransitionDuration,
+}) {
+  return PageRouteBuilder<T>(
+    transitionDuration: transitionDuration,
+    reverseTransitionDuration: transitionDuration,
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: child,
+      );
     },
   );
 }
 
-Route signInRoute() {
-  return PageRouteBuilder(
-    transitionDuration: const Duration(milliseconds: 400),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) => const SignInScreen(),
-    transitionsBuilder: (context, animation, secondaryAnimation, page) {
-      var begin = const Offset(1.0, 0.0);
-      var end = Offset.zero;
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.linear));
 
-      return SlideTransition(position: animation.drive(tween), child: page);
-    },
-  );
-}
+Route mainScreenRoute() => createSlideRoute(page: const MainScreen());
+
+Route onBoardingRoute() => createSlideRoute(page: const OnBoardingScreen());
+
+Route signInRoute() => createSlideRoute(page: const SignInScreen());

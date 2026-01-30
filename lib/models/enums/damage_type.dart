@@ -1,21 +1,14 @@
-enum DamageType {
-  blunt(
-    label: 'Contundente',
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/bluntDamage_wwusuu.svg",
-  ),
-  cut(
-    label: 'Tagliente',
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/cutDamage_kgophy.svg",
-  ),
-  pierce(
-    label: 'Perforante',
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660455/pierceDamage_lr2wyv.svg",
-  );
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 
-  final String imagePath;
+enum DamageType {
+  blunt(label: 'Contundente', imageId: CloudinaryAssets.bluntDamage),
+  cut(label: 'Tagliente', imageId: CloudinaryAssets.cutDamage),
+  pierce(label: 'Perforante', imageId: CloudinaryAssets.pierceDamage);
+
+  final String _imageId;
   final String label;
-  const DamageType({required this.label, required this.imagePath});
+
+  String get imagePath => CloudinaryAssets.url(_imageId);
+
+  const DamageType({required this.label, required String imageId}) : _imageId = imageId;
 }

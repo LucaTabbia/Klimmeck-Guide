@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/equipment_item.dart';
-import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
@@ -60,8 +59,7 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
       alignment: Alignment.topCenter,
       children: [
         CachedSvg(
-          url:
-              "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660751/emptySheet_jiip7r.svg",
+          url: CloudinaryAssets.url(CloudinaryAssets.emptySheet),
           height: sheetHeight,
           width: sheetWidth,
         ),
@@ -192,17 +190,16 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
                     ),
                   if (widget.quest!.prizes!.prizeItem != null)
                     Flexible(
-                      child: widget.quest!.prizes!.prizeItem is EquipmentItem
+                      child: widget.quest!.prizes!.prizeItem!.isEquipment
                           ? EquipmentItemCard(
                               isSelected: false,
                               size: constraints.maxHeight - 30,
                               equipmentItem:
-                                  widget.quest!.prizes!.prizeItem
-                                      as EquipmentItem,
+                                  widget.quest!.prizes!.prizeItem!.asEquipment!,
                             )
                           : LootItemCard(
                               lootItem:
-                                  widget.quest!.prizes!.prizeItem as LootItem,
+                                  widget.quest!.prizes!.prizeItem!.asLoot!,
                               size: constraints.maxHeight - 30,
                             ),
                     ),

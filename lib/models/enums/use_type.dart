@@ -1,44 +1,43 @@
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+
 enum UseType {
   defense(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660804/defenseUse_tuhdja.svg",
+    imageId: CloudinaryAssets.defenseUse,
     label: "Difesa",
   ),
   attack(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660802/attackUse_plbzx7.svg",
+    imageId: CloudinaryAssets.attackUse,
     label: "Attacco",
   ),
   control(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660807/controlUse_ua2bpj.svg",
+    imageId: CloudinaryAssets.controlUse,
     label: "Controllo",
   ),
   illusion(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660809/illusionUse_gxy4x3.svg",
+    imageId: CloudinaryAssets.illusionUse,
     label: "Illusione",
   ),
   charm(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660815/charmUse_fcehsb.svg",
+    imageId: CloudinaryAssets.charmUse,
     label: "Ammaliare",
   ),
   confuse(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660811/confuseUse_v9ciyh.svg",
+    imageId: CloudinaryAssets.confuseUse,
     label: "Confondere",
   ),
   enhance(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660813/enhanceUse_sodazm.svg",
+    imageId: CloudinaryAssets.enhanceUse,
     label: "Potenziare",
   ),
   infuse(
-    imagePath: "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660806/infuseUse_rvzfmm.svg",
+    imageId: CloudinaryAssets.infuseUse,
     label: "Infondere",
   );
 
-  final String imagePath;
+  final String _imageId;
   final String label;
 
-  const UseType({required this.label, required this.imagePath});
+  String get imagePath => CloudinaryAssets.url(_imageId);
+
+  const UseType({required this.label, required String imageId}) : _imageId = imageId;
 }

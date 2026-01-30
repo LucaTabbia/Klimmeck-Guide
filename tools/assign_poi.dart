@@ -20,9 +20,8 @@ List<double> roundCoord(List<double> coord, [int decimals = 6]) {
   ];
 }
 
-/** * Verifica se un punto (lon, lat) è all'interno di un poligono i cui vertici sono [lon, lat].
- * Utilizza l'algoritmo Ray Casting (o Point-in-Polygon).
- */
+/// * Verifica se un punto (lon, lat) è all'interno di un poligono i cui vertici sono [lon, lat].
+/// Utilizza l'algoritmo Ray Casting (o Point-in-Polygon).
 bool pointInPolygon(double lon, double lat, List<List<double>> polygon) {
   bool inside = false;
 
@@ -57,10 +56,8 @@ bool pointInPolygon(double lon, double lat, List<List<double>> polygon) {
   return inside;
 }
 
-/**
- * Verifica se un POI (tramite le sue coordinate centrali [punto_x=Lon, punto_y=Lat])
- * cade all'interno dell'Area di una Città.
- */
+/// Verifica se un POI (tramite le sue coordinate centrali [punto_x=Lon, punto_y=Lat])
+/// cade all'interno dell'Area di una Città.
 bool poiInCity(Map<String, dynamic> poi, Map<String, dynamic> city) {
   final properties = poi['properties'] ?? {};
 
@@ -199,8 +196,8 @@ void main(List<String> args) async {
   ).writeAsString(JsonEncoder.withIndent('  ').convert(cities));
 
   print('\n--- Risultato Assegnazione POI ---');
-  print('Iniziale (File): ${totalFeatures} elementi');
-  print('Assegnati ad almeno una città: ${totalAssigned} elementi');
+  print('Iniziale (File): $totalFeatures elementi');
+  print('Assegnati ad almeno una città: $totalAssigned elementi');
   print('Scartati/Non Assegnati: ${excludedPois.length} elementi');
 
   if (excludedPois.isNotEmpty) {

@@ -1,128 +1,31 @@
+import '../fragments/fragments.dart';
+
 class EquipmentItemQueries {
-  static const String getAllEquipmentItems = r'''
+  static String get getAllEquipmentItems => '''
     query equipmentItems {
       equipmentItems {
-        id
-        name
-        description
-        rarity
-        buyPrice {
-          gold
-          silver
-          copper
-        }
-        sellPrice {
-          gold
-          silver
-          copper
-        }
-        equipType 
-        addedSpell {
-          id
-          name
-          useType
-          energyDamage {
-            type
-            power
-          }
-        }
-        damages {
-          base {
-            type
-            power
-          }
-          energy {
-            type
-            power
-          }
-        }
+        ${EquipmentFragment.fields}
       }
     }
   ''';
 
-  static const String getAllEquipmentAssetsQuantity = r'''
-    query equipmentAssetsQuantity($sellable: Boolean) {
-      equipmentAssetsQuantity(sellable: $sellable) {
+  static String get getAllEquipmentAssetsQuantity => '''
+    query equipmentAssetsQuantity(\$sellable: Boolean) {
+      equipmentAssetsQuantity(sellable: \$sellable) {
         quantity
         item {
           ... on EquipmentItem {
-            id
-            name
-            description
-            rarity
-            buyPrice {
-              gold
-              silver
-              copper
-            }
-            sellPrice {
-              gold
-              silver
-              copper
-            }
-            equipType 
-            addedSpell {
-              id
-              name
-              useType
-              energyDamage {
-                type
-                power
-              }
-            }
-            damages {
-              base {
-                type
-                power
-              }
-              energy {
-                type
-                power
-              }
-            }
+            ${EquipmentFragment.fields}
           }
         }
       }
     }
   ''';
 
-  static const String getEquipmentItemsByIds = r'''
-    query equipmentItemsByIds($ids: [String!]!) {
-      equipmentItemsByIds(ids: $ids) {
-        id
-        name
-        description
-        rarity
-        buyPrice {
-          gold
-          silver
-          copper
-        }
-        sellPrice {
-          gold
-          silver
-          copper
-        }
-        equipType 
-        addedSpell {
-          id
-          name
-          useType
-          energyDamage {
-            type
-            power
-          }
-        }
-        damages {
-          base {
-            type
-            power
-          }
-          energy {
-            type
-            power
-          }
-        }
+  static String get getEquipmentItemsByIds => '''
+    query equipmentItemsByIds(\$ids: [String!]!) {
+      equipmentItemsByIds(ids: \$ids) {
+        ${EquipmentFragment.fields}
       }
     }
   ''';

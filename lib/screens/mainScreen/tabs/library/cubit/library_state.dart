@@ -1,20 +1,35 @@
 part of 'library_cubit.dart';
 
 @immutable
-abstract class LibraryState {}
+abstract class LibraryState extends Equatable {
+  const LibraryState();
 
-class LibraryInitial extends LibraryState {}
+  @override
+  List<Object?> get props => [];
+}
+
+class LibraryInitial extends LibraryState {
+  const LibraryInitial();
+}
+
+class LibraryLoading extends LibraryState {
+  const LibraryLoading();
+}
 
 class LibraryLoadData extends LibraryState {
   final List<Lore> lore;
 
-  LibraryLoadData(this.lore);
-}
+  const LibraryLoadData(this.lore);
 
-class LibraryLoading extends LibraryState {}
+  @override
+  List<Object?> get props => [lore];
+}
 
 class LibraryError extends LibraryState {
   final String errorMessage;
 
-  LibraryError(this.errorMessage);
+  const LibraryError(this.errorMessage);
+
+  @override
+  List<Object?> get props => [errorMessage];
 }

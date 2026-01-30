@@ -1,74 +1,31 @@
+import '../fragments/fragments.dart';
+
 class LootItemQueries {
-  static const String getAllLootItems = r'''
+  static String get getAllLootItems => '''
     query lootItems {
       lootItems {
-        id
-        name
-        description
-        rarity
-        buyPrice {
-          gold
-          silver
-          copper
-        }
-        sellPrice {
-          gold
-          silver
-          copper
-        }
-        effect
-        power
+        ${LootFragment.fields}
       }
     }
   ''';
 
-  static const String getAllLootAssetsQuantity = r'''
+  static String get getAllLootAssetsQuantity => '''
     query lootAssetsQuantity {
       lootAssetsQuantity {
         quantity
         item {
           ... on LootItem {
-            id
-            name
-            description
-            rarity
-            buyPrice {
-              gold
-              silver
-              copper
-            }
-            sellPrice {
-              gold
-              silver
-              copper
-            }
-            effect
-            power
+            ${LootFragment.fields}
           }
         }
       }
     }
   ''';
 
-  static const String getLootItemsByIds = r'''
-    query lootItemsByIds($ids: [String!]!) {
-      lootItemsByIds(ids: $ids) {
-        id
-        name
-        description
-        rarity
-        buyPrice {
-          gold
-          silver
-          copper
-        }
-        sellPrice {
-          gold
-          silver
-          copper
-        }
-        effect
-        power
+  static String get getLootItemsByIds => '''
+    query lootItemsByIds(\$ids: [String!]!) {
+      lootItemsByIds(ids: \$ids) {
+        ${LootFragment.fields}
       }
     }
   ''';

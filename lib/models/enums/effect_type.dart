@@ -1,26 +1,15 @@
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+
 enum EffectType {
-  none(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660482/noneEffect_e6g4b5.svg",
-  ),
-  heal(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660480/healEffect_jc9bsg.svg",
-  ),
-  hunger(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660483/hungerEffect_mxqqze.svg",
-  ),
-  munition(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660484/munitionEffect_cdhllj.svg",
-  ),
-  exploration(
-    imagePath:
-        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660481/explorationEffect_owljlv.svg",
-  );
+  none(imageId: CloudinaryAssets.noneEffect),
+  heal(imageId: CloudinaryAssets.healEffect),
+  hunger(imageId: CloudinaryAssets.hungerEffect),
+  munition(imageId: CloudinaryAssets.munitionEffect),
+  exploration(imageId: CloudinaryAssets.explorationEffect);
 
-  final String imagePath;
+  final String _imageId;
 
-  const EffectType({required this.imagePath});
+  String get imagePath => CloudinaryAssets.url(_imageId);
+
+  const EffectType({required String imageId}) : _imageId = imageId;
 }

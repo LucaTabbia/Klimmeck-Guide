@@ -1,57 +1,48 @@
+import '../fragments/fragments.dart';
+
 class QuestQueries {
-  static const String getAllQuests = r'''
+  static String get getAllQuests => '''
     query quests {
-  quests {
-  id
-    infos {
-      markerLocation {
+      quests {
         id
-        location
-      }
-      timeToComplete
-      title
-      type
-    }
-    prizes {
-      prizeCoins {
-        copper
-        gold
-        silver
-      }
-      randomLoot {
-        item {
-          ... on EquipmentItem {
-            id
-            itemType
-            name
+        infos {
+          markerLocation {
+            ${LocationFragment.fields}
           }
-          ... on LootItem {
-            id
-            name
-            itemType
+          timeToComplete
+          title
+          type
+        }
+        prizes {
+          prizeCoins {
+            ${CoinsFragment.fields}
+          }
+          xpPrize
+          randomLoot {
+            quantity
+            item {
+              ... on EquipmentItem {
+                ${EquipmentFragment.simpleFields}
+              }
+              ... on LootItem {
+                ${LootFragment.simpleFields}
+              }
+            }
+          }
+          prizeItem {
+            quantity
+            item {
+              ... on EquipmentItem {
+                ${EquipmentFragment.simpleFields}
+              }
+              ... on LootItem {
+                ${LootFragment.simpleFields}
+                description
+              }
+            }
           }
         }
-        quantity
       }
-      prizeItem {
-        item {
-          ... on EquipmentItem {
-            id
-            itemType
-            name
-          }
-          ... on LootItem {
-            description
-            id
-            name
-            itemType
-          }
-        }
-        quantity
-      }
-      xpPrize
     }
-  }
-}
   ''';
 }

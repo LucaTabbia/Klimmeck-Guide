@@ -16,7 +16,7 @@ class CharacterLoaded extends CharacterState {
   const CharacterLoaded(this.character);
 
   @override
-  List<Object> get props => [character, DateTime.now()];
+  List<Object> get props => [character];
 }
 
 class CharacterLoading extends CharacterState {

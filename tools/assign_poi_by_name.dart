@@ -145,7 +145,7 @@ void main(List<String> args) async {
 
   print('\n--- Risultato Assegnazione POI per Nome Città ---');
   print('POI totali nel file: ${poiFeatures.length}');
-  print('POI assegnati correttamente: ${totalAssigned}');
+  print('POI assegnati correttamente: $totalAssigned');
   print('POI scartati: ${excludedPois.length}');
 
   if (excludedPois.isNotEmpty) {

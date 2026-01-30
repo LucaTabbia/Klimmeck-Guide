@@ -85,12 +85,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
 
   @override
   List<Object?> get props => [
-    id,
-    name,
-    description,
-    rarity,
-    sellPrice,
-    buyPrice,
+    ...super.props,
     equipType,
     addedSpell,
     damages,

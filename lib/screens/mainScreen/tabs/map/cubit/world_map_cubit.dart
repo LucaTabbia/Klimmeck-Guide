@@ -16,12 +16,8 @@ class WorldMapCubit extends Cubit<WorldMapState> {
     try {
       final lore = await graphQl.getLoreById(id);
 
-      if (lore != null) {
-        emit(WorldMapLoadData(lore));
-      } else {
-        emit(WorldMapError("Personaggio o città non presenti"));
-      }
-    } catch (e) {
+      emit(WorldMapLoadData(lore));
+        } catch (e) {
       print(e.toString());
       emit(WorldMapError(e.toString()));
     }

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
@@ -24,40 +25,40 @@ class Sheet extends StatefulWidget {
 
 class _SheetState extends State<Sheet> {
   final List<String> _questImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660778/questSheet2_ekuuzv.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660768/questSheet1_c0hswz.svg",
+    CloudinaryAssets.url(CloudinaryAssets.questSheet2),
+    CloudinaryAssets.url(CloudinaryAssets.questSheet1),
   ];
   final List<String> _questTornImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660760/questSheetTorn1_ds3oyp.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660756/questSheetTorn2_guqkvh.svg",
+    CloudinaryAssets.url(CloudinaryAssets.questSheetTorn1),
+    CloudinaryAssets.url(CloudinaryAssets.questSheetTorn2),
   ];
   final List<String> _jobImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660765/jobSheet1_osfobz.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660773/jobSheet2_dgkg6x.svg",
+    CloudinaryAssets.url(CloudinaryAssets.jobSheet1),
+    CloudinaryAssets.url(CloudinaryAssets.jobSheet2),
   ];
   final List<String> _announcementImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660770/announcementSheet1_bmh8f2.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660776/announcementSheet2_tpub5j.svg",
+    CloudinaryAssets.url(CloudinaryAssets.announcementSheet1),
+    CloudinaryAssets.url(CloudinaryAssets.announcementSheet2),
   ];
   final List<String> _crimeImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660763/crimeSheet1_yhl3tp.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660761/crimeSheet2_q0aysa.svg",
+    CloudinaryAssets.url(CloudinaryAssets.crimeSheet1),
+    CloudinaryAssets.url(CloudinaryAssets.crimeSheet2),
   ];
   final List<String> _storyImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660783/storySheet1_evrqbp.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660774/storySheet2_jsq0nv.svg",
+    CloudinaryAssets.url(CloudinaryAssets.storySheet1),
+    CloudinaryAssets.url(CloudinaryAssets.storySheet2),
   ];
   final List<String> _storyTornImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660754/storyTornSheet2_bhl8um.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660766/storyTornSheet1_sxqcw0.svg",
+    CloudinaryAssets.url(CloudinaryAssets.storyTornSheet2),
+    CloudinaryAssets.url(CloudinaryAssets.storyTornSheet1),
   ];
   final List<String> _huntImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660781/huntSheet1_ufnh7p.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660779/huntSheet2_to0gfr.svg",
+    CloudinaryAssets.url(CloudinaryAssets.huntSheet1),
+    CloudinaryAssets.url(CloudinaryAssets.huntSheet2),
   ];
   final List<String> _huntTornImages = [
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660753/huntTornSheet1_j8irp4.svg",
-    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660749/huntTornSheet2_kqqouj.svg",
+    CloudinaryAssets.url(CloudinaryAssets.huntTornSheet1),
+    CloudinaryAssets.url(CloudinaryAssets.huntTornSheet2),
   ];
 
   late String _imagePath;

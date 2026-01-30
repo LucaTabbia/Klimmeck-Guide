@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../theme/kg_theme.dart';
@@ -95,12 +96,11 @@ class _DropdownState extends State<Dropdown>
                           begin: 0,
                           end: 0.5,
                         ).animate(_sizeFactor),
-                        child: const SizedBox(
+                        child: SizedBox(
                           width: 40,
                           height: 40,
                           child: CachedSvg(
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683903/arrowDown_byudlt.svg",
+                            url: CloudinaryAssets.url(CloudinaryAssets.arrowDown),
                           ),
                         ),
                       ),

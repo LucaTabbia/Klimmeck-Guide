@@ -1,66 +1,68 @@
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+
 enum SexType { male, female }
 
 extension SextTypeExtension on SexType {
   String get pawnPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660709/adventurerFemalePawn_btrphw.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.adventurerFemalePawn);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660710/adventurerMalePawn_eruq7l.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.adventurerMalePawn);
     }
   }
 
   String get helmetPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757682307/femaleHelmet_owbdne.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.femaleHelmet);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660564/maleHelmet_zcqpao.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.maleHelmet);
     }
   }
 
   String get chestPiecePath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660571/femaleChestPiece_g3xa67.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.femaleChestPiece);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660572/maleChestPiece_ao3f8d.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.maleChestPiece);
     }
   }
 
   String get glovesPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660562/femaleGloves_v09nho.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.femaleGloves);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660570/maleGloves_vw0mf1.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.maleGloves);
     }
   }
 
   String get bootsPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660573/femaleBoots_ptmefq.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.femaleBoots);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660560/maleBoots_pyhlnf.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.maleBoots);
     }
   }
 
   String get gravesPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660574/skirt_cfenoz.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.skirt);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660563/pants_hrweqf.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.pants);
     }
   }
 
   String get mannequinPath {
     switch (this) {
       case SexType.female:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660559/femaleMannequin_y04ola.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.femaleMannequin);
       case SexType.male:
-        return "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660558/maleMannequin_ll7j5l.svg";
+        return CloudinaryAssets.url(CloudinaryAssets.maleMannequin);
     }
   }
 }

@@ -32,10 +32,10 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
 
   @override
   void initState() {
+    super.initState();
     _loreLists = widget.types
         .map((type) => widget.lore.where((lore) => lore.type == type).toList())
         .toList();
-    super.initState();
   }
 
   @override
@@ -51,11 +51,11 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20.0),
                       child: Text(
@@ -66,21 +66,10 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                     ...List.generate(widget.types.length, (typesIndex) {
                       return Dropdown(
                         sectionName: widget.types[typesIndex].name,
-                        data: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ...List.generate(_loreLists[typesIndex].length, (
-                              loreIndex,
-                            ) {
-                              return LoreCard(
-                                lore: _loreLists[typesIndex][loreIndex],
-                              );
-                            }),
-                          ],
-                        ),
+                        data: _LoreList(lores: _loreLists[typesIndex]),
                       );
                     }),
-                    SizedBox(height: 120),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -99,6 +88,25 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LoreList extends StatelessWidget {
+  const _LoreList({required this.lores});
+
+  final List<Lore> lores;
+
+  @override
+  Widget build(BuildContext context) {
+    if (lores.isEmpty) return const SizedBox.shrink();
+
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      itemCount: lores.length,
+      itemBuilder: (context, index) => LoreCard(lore: lores[index]),
     );
   }
 }

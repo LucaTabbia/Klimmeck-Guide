@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/shared/components/animated_pencil_text.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
@@ -15,8 +16,7 @@ class LootItemCard extends StatelessWidget {
     this.quantity,
   });
 
-  static const _cardBackgroundUrl =
-      "https://res.cloudinary.com/dzuhywp53/image/upload/v1761305419/emptyCardSheet_tva16h.svg";
+  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
 
   final Function(LootItem)? onTap;
   final LootItem lootItem;

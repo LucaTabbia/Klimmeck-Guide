@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 
 import '../../../../../models/enums/lore_type.dart';
 import '../components/book_type.dart';
@@ -20,22 +21,20 @@ class LibraryInitialPage extends StatelessWidget {
             children: [
               BookType(
                 title: "Bestiario",
-                imagePath:
-                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660651/bestiary_w68j2y.svg',
+                imagePath: CloudinaryAssets.url(CloudinaryAssets.bestiary),
                 onTap: () => onTap(
                   [LoreType.enemy, LoreType.animal, LoreType.plant],
                   "Bestiario",
-                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683920/bookmarkRed_jms0vk.svg",
+                  CloudinaryAssets.url(CloudinaryAssets.bookmarkRed),
                 ),
               ),
               BookType(
                 title: "Luoghi",
-                imagePath:
-                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660653/locations_rpz9fc.svg',
+                imagePath: CloudinaryAssets.url(CloudinaryAssets.locations),
                 onTap: () => onTap(
                   [LoreType.city, LoreType.region, LoreType.state],
                   "Luoghi",
-                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683911/bookmarkGreen_qdtvdj.svg",
+                  CloudinaryAssets.url(CloudinaryAssets.bookmarkGreen),
                 ),
               ),
             ],
@@ -45,22 +44,20 @@ class LibraryInitialPage extends StatelessWidget {
             children: [
               BookType(
                 title: "Religioni",
-                imagePath:
-                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660649/religions_vwlitf.svg',
+                imagePath: CloudinaryAssets.url(CloudinaryAssets.religions),
                 onTap: () => onTap(
                   [LoreType.religion, LoreType.ceremony, LoreType.god],
                   "Religioni",
-                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683906/bookmarkYellow_z6jbcp.svg",
+                  CloudinaryAssets.url(CloudinaryAssets.bookmarkYellow),
                 ),
               ),
               BookType(
                 title: "Conoscenze",
-                imagePath:
-                    'https://res.cloudinary.com/dzuhywp53/image/upload/v1757660650/knowledge_jhr4ad.svg',
+                imagePath: CloudinaryAssets.url(CloudinaryAssets.knowledge),
                 onTap: () => onTap(
                   [LoreType.character, LoreType.knowledge, LoreType.material],
                   "Conoscenze",
-                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683915/bookmarkBlue_shxrk6.svg",
+                  CloudinaryAssets.url(CloudinaryAssets.bookmarkBlue),
                 ),
               ),
             ],
