@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:klimmeck_guide/config/env_config.dart';
 
 class RestClient {
   final Dio _dio;
@@ -8,7 +9,7 @@ class RestClient {
   static final RestClient _instance = RestClient._internal(
     Dio(
       BaseOptions(
-        baseUrl: "http://192.168.0.13:3000/",
+        baseUrl: EnvConfig.baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {'Content-Type': 'application/json'},

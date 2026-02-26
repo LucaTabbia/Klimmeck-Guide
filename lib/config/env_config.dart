@@ -12,6 +12,11 @@ class EnvConfig {
 
   // ============== GraphQL Configuration ==============
 
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'http://192.168.0.20:3000/',
+  );
+
   static const String graphqlHttpUrl = String.fromEnvironment(
     'GRAPHQL_HTTP_URL',
     defaultValue: 'http://192.168.0.20:3000/api/graphql',
@@ -36,10 +41,7 @@ class EnvConfig {
 
   // ============== Environment Flags ==============
 
-  static const bool isDebug = bool.fromEnvironment(
-    'DEBUG',
-    defaultValue: true,
-  );
+  static const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: true);
 
   static const bool enableLogging = bool.fromEnvironment(
     'ENABLE_LOGGING',
@@ -53,7 +55,8 @@ class EnvConfig {
     defaultValue: 'https://res.cloudinary.com/dzuhywp53/image/upload',
   );
 
-  static String cloudinaryUrl(String assetPath) => '$cloudinaryBaseUrl/$assetPath';
+  static String cloudinaryUrl(String assetPath) =>
+      '$cloudinaryBaseUrl/$assetPath';
 
   // ============== App Info ==============
 
@@ -64,4 +67,3 @@ class EnvConfig {
     defaultValue: '1.0.0',
   );
 }
-
