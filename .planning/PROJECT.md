@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Un'app mobile Flutter che trasforma i punti canale Twitch in un RPG: i viewer di un singolo canale spendono punti canale che diventano valuta di gioco (1:1), usata per accettare quest, comprare equipaggiamento, cibo e oggetti. Un backend NestJS con MongoDB gestisce la logica di combattimento algoritmica, la mappa con spostamenti in tempo reale, e il sistema di ferite. Lo streamer funge da game master per le quest story e worldMission durante le live.
+Un'app mobile Flutter che trasforma i punti canale Twitch in un RPG: i viewer di un singolo canale spendono punti canale che diventano valuta di gioco (1:1), usata per accettare quest. Un backend NestJS con MongoDB gestisce la logica di combattimento algoritmica, la mappa con spostamenti in tempo reale, e il sistema di ferite. Lo streamer funge da game master per le quest story e worldMission durante le live.
 
 ## Core Value
 
@@ -22,33 +22,30 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Sistema enums completo (12 tipi quest, 26 tipi ferite, 10 effetti ferite) — existing
 - ✓ Navigazione a 6 tab (board, journal, library, map, shop, profile) — existing
 - ✓ SVG caching multi-livello (memory, disk, network via Cloudinary) — existing
+- ✓ Enum classi personaggio (ClassType) — existing
 
 ### Active
 
 - [ ] Login OAuth Twitch con persistenza solo dell'ID account
 - [ ] Integrazione API Twitch per ottenere punti canale spesi sul canale target
 - [ ] Conversione 1:1 punti canale → valuta di gioco
-- [ ] Sistema quest: accettazione nei villaggi in base ai POI di influenza
-- [ ] Spostamento personaggio sulla mappa con timer reale basato su distanza e velocità strade
-- [ ] Pet/cavalcature come modificatori di velocità di spostamento
-- [ ] Algoritmo di combattimento backend (stats equipaggiamento, attacco, difesa, debolezze)
-- [ ] Esiti combattimento: nessun danno / ferite di varia gravità / morte
-- [ ] Quest "aid" generate automaticamente dalla morte di un personaggio
-- [ ] Quest "heal" per rimozione ferite presso ospedali/cliniche
-- [ ] Quest "job" sempre disponibili in tutti i villaggi, non esclusive
-- [ ] Quest "hunt" con varianti nemico specifiche e premi diversi
-- [ ] Quest "enemy" (nemici semplici), "boss" (nemici speciali), "dungeon" (sequenza nemici)
-- [ ] Sistema livelli con aumento HP per livello
-- [ ] Classi personaggio (solo flavor per quest story/worldMission)
-- [ ] Sistema magie: 3 slot max, sbloccati dopo title "mage" (3a quest story)
-- [ ] Magie apprendibili a Valantar (capital) tramite quest study, basate su minXpToLearn
-- [ ] Magie con utilizzi limitati e recoveryTime
-- [ ] Magie da equipaggiamenti incantati
-- [ ] Negozi per acquisto equipaggiamento, cibo, oggetti
-- [ ] Pannello admin: lista pendingRequest per quest story/worldMission
-- [ ] Admin: spostamento istantaneo personaggio utente su qualsiasi POI
-- [ ] Admin: selezione mostri per POI e grado quest, scelta premi, applicazione ferite
-- [ ] Sezione lore con oggetti collegati tra loro
+- [ ] UI sistema quest: accettazione nei villaggi in base ai POI di influenza
+- [ ] UI spostamento personaggio sulla mappa con timer reale basato su distanza e velocità strade
+- [ ] UI pet/cavalcature come modificatori di velocità di spostamento
+- [ ] UI esiti combattimento: visualizzazione risultato (nessun danno / ferite / morte)
+- [ ] UI quest "aid" generate dalla morte di un personaggio
+- [ ] UI quest "heal" per rimozione ferite presso ospedali/cliniche
+- [ ] UI quest "job" sempre disponibili in tutti i villaggi
+- [ ] UI quest "hunt", "enemy", "boss", "dungeon" con relativi flussi
+- [ ] UI sistema livelli con visualizzazione HP e progressione
+- [ ] UI sistema magie: 3 slot, sbloccati dopo title "mage" (3a quest story)
+- [ ] UI apprendimento magie a Valantar (capital) tramite quest study
+- [ ] UI magie con utilizzi limitati e recoveryTime
+- [ ] UI negozi per acquisto equipaggiamento, cibo, oggetti
+- [ ] UI pannello admin: lista pendingRequest per quest story/worldMission
+- [ ] UI admin: spostamento istantaneo personaggio utente su qualsiasi POI
+- [ ] UI admin: selezione mostri per POI e grado quest, scelta premi, applicazione ferite
+- [ ] UI sezione lore (senza collegamenti tra oggetti)
 
 ### Out of Scope
 
@@ -60,7 +57,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - Upload e playback audio quest story/worldMission — v2, richiede storage media
 - Speech-to-text per quest audio — v2, dipende da upload audio
 - Sistema allineamento buono/cattivo (crime/guard) — v2, meccanica complessa
-- Lore con link ipertestuali navigabili — v2, v1 ha lore senza collegamenti attivi
+- Lore con link ipertestuali navigabili tra oggetti — v2
 - Riepilogo quest completate con dettagli — v2
 
 ## Context
@@ -82,19 +79,20 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 
 ## Key Decisions
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Conversione punti 1:1 | Semplicità, trasparenza per i viewer | — Pending |
-| Backend NestJS + MongoDB | Stack già esistente e funzionante | ✓ Good |
+| Decision                                        | Rationale                                                      | Outcome   |
+| ----------------------------------------------- | -------------------------------------------------------------- | --------- |
+| Conversione punti 1:1                           | Semplicità, trasparenza per i viewer                           | — Pending |
+| Backend NestJS + MongoDB                        | Stack già esistente e funzionante                              | ✓ Good    |
 | Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo | — Pending |
-| Magie sbloccate dopo 3a quest story | Gate di progressione narrativa, evita overload iniziale | — Pending |
-| Morte genera quest aid | Meccanica sociale emergente tra giocatori | — Pending |
+| Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale        | — Pending |
+| Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                      | — Pending |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 **After each phase transition** (via `/gsd-transition`):
+
 1. Requirements invalidated? → Move to Out of Scope with reason
 2. Requirements validated? → Move to Validated with phase reference
 3. New requirements emerged? → Add to Active
@@ -102,10 +100,12 @@ This document evolves at phase transitions and milestone boundaries.
 5. "What This Is" still accurate? → Update if drifted
 
 **After each milestone** (via `/gsd-complete-milestone`):
+
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after initialization*
+
+_Last updated: 2026-04-10 after initialization_
