@@ -16,7 +16,7 @@ class QuestLoaded extends QuestState {
   const QuestLoaded(this.quests);
 
   @override
-  List<Object> get props => [quests, DateTime.now()];
+  List<Object> get props => [quests];
 }
 
 class QuestLoading extends QuestState {
