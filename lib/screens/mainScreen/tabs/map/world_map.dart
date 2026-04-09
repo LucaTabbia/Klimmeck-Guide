@@ -68,11 +68,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       duration: MapConstants.questSheetAnimationDuration,
     );
 
-    _questAnimationController.addStatusListener((status) {
-      if (status.isDismissed) {
-        setState(() => _selectedQuest = null);
-      }
-    });
+    _questAnimationController.addStatusListener(_onQuestAnimationStatusChanged);
   }
 
   void _initializeMapOptions() {
@@ -92,8 +88,15 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
   }
 
+  void _onQuestAnimationStatusChanged(AnimationStatus status) {
+    if (status.isDismissed) {
+      setState(() => _selectedQuest = null);
+    }
+  }
+
   @override
   void dispose() {
+    _questAnimationController.removeStatusListener(_onQuestAnimationStatusChanged);
     _questAnimationController.dispose();
     _smoothTimer?.cancel();
     _zoomNotifier.dispose();
