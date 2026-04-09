@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../repository/cache/svg_cache.dart';
+import '../../repository/cache/svg_cache_manager.dart';
 
 class CachedSvg extends StatefulWidget {
   final String url;
@@ -22,12 +25,45 @@ class CachedSvg extends StatefulWidget {
 }
 
 class _CachedSvgState extends State<CachedSvg> {
-  // Cache the file lookup result to avoid repeated calls
+  File? _file;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSvg();
+  }
+
+  @override
+  void didUpdateWidget(CachedSvg oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _loadSvg();
+    }
+  }
+
+  Future<void> _loadSvg() async {
+    // Check in-memory cache first (instant)
+    final cached = SvgCache().getFile(widget.url);
+    if (cached != null) {
+      if (mounted) setState(() { _file = cached; _loading = false; });
+      return;
+    }
+
+    // Fall back to disk cache via SvgCacheManager
+    try {
+      final fileInfo = await SvgCacheManager().getSingleFile(widget.url);
+      SvgCache().add(widget.url, fileInfo);
+      if (mounted) setState(() { _file = fileInfo; _loading = false; });
+    } catch (e) {
+      debugPrint('CachedSvg: failed to load $e');
+      if (mounted) setState(() { _loading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final file = SvgCache().getFile(widget.url);
-
-    if (file == null) {
+    if (_loading) {
       return SizedBox(
         width: widget.width,
         height: widget.height,
@@ -37,20 +73,10 @@ class _CachedSvgState extends State<CachedSvg> {
       );
     }
 
-    return SvgPicture.file(file, width: widget.width, height: widget.height, fit: widget.fit);
+    if (_file == null) {
+      return SizedBox(width: widget.width, height: widget.height);
+    }
+
+    return SvgPicture.file(_file!, width: widget.width, height: widget.height, fit: widget.fit);
   }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _CachedSvgState &&
-          runtimeType == other.runtimeType &&
-          widget.url == other.widget.url &&
-          widget.width == other.widget.width &&
-          widget.height == other.widget.height &&
-          widget.fit == other.widget.fit;
-
-  @override
-  int get hashCode =>
-      widget.url.hashCode ^ widget.width.hashCode ^ widget.height.hashCode ^ widget.fit.hashCode;
 }
