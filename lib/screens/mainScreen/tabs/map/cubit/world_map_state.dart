@@ -1,14 +1,22 @@
 part of 'world_map_cubit.dart';
 
 @immutable
-abstract class WorldMapState {}
+abstract class WorldMapState extends Equatable {
+  const WorldMapState();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class WorldMapInitial extends WorldMapState {}
 
 class WorldMapLoadData extends WorldMapState {
   final Lore lore;
 
-  WorldMapLoadData(this.lore);
+  const WorldMapLoadData(this.lore);
+
+  @override
+  List<Object?> get props => [lore];
 }
 
 class WorldMapLoading extends WorldMapState {}
@@ -16,5 +24,8 @@ class WorldMapLoading extends WorldMapState {}
 class WorldMapError extends WorldMapState {
   final String errorMessage;
 
-  WorldMapError(this.errorMessage);
+  const WorldMapError(this.errorMessage);
+
+  @override
+  List<Object?> get props => [errorMessage];
 }
