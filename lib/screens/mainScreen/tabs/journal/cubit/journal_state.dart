@@ -1,14 +1,22 @@
 part of 'journal_cubit.dart';
 
 @immutable
-abstract class JournalState {}
+abstract class JournalState extends Equatable {
+  const JournalState();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class JournalInitial extends JournalState {}
 
 class JournalLoadData extends JournalState {
   final Equipment equipment;
 
-  JournalLoadData(this.equipment);
+  const JournalLoadData(this.equipment);
+
+  @override
+  List<Object?> get props => [equipment];
 }
 
 class JournalLoading extends JournalState {}
@@ -16,5 +24,8 @@ class JournalLoading extends JournalState {}
 class JournalError extends JournalState {
   final String errorMessage;
 
-  JournalError(this.errorMessage);
+  const JournalError(this.errorMessage);
+
+  @override
+  List<Object?> get props => [errorMessage];
 }
