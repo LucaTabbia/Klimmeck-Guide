@@ -40,6 +40,7 @@ class Quest extends Equatable {
     "id": id,
     "infos": infos?.toJson(),
     "requirements": requirements?.toJson(),
+    "prizes": prizes?.toJson(),
     "registeredAdventurers": registeredAdventurers?.map((s) => s.id).toList(),
   };
 
