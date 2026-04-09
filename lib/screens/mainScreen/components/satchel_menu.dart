@@ -52,10 +52,10 @@ class _SatchelMenuState extends State<SatchelMenu>
       "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.shop),
     },
   ];
-  
+
   bool _isOpen = false;
   bool _showItems = false;
-  bool _isAnimating = false; 
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -83,7 +83,7 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   void _onMainAnimationStatus(AnimationStatus status) {
     if (!mounted) return;
-    
+
     if (status == AnimationStatus.completed && _isOpen) {
       _itemAnimationController.forward();
       setState(() {
@@ -98,7 +98,7 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   void _onItemAnimationStatus(AnimationStatus status) {
     if (!mounted) return;
-    
+
     if (status == AnimationStatus.dismissed && !_isOpen) {
       _animationController.reverse();
       widget.parentAnimationController.reverse();
@@ -112,7 +112,12 @@ class _SatchelMenuState extends State<SatchelMenu>
   @override
   void didUpdateWidget(SatchelMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentPage != widget.currentPage && _isOpen && !_isAnimating) {
+    if (oldWidget.currentPage != widget.currentPage &&
+        _isOpen &&
+        !_isAnimating) {
+      setState(() {
+        _isOpen = false;
+      });
       _closeMenu();
     }
   }
@@ -128,12 +133,12 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   void _toggleMenu() {
     if (_isAnimating) return;
-    
+
     setState(() {
       _isAnimating = true;
       _isOpen = !_isOpen;
     });
-    
+
     if (_isOpen) {
       _openMenu();
     } else {
@@ -156,9 +161,9 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   void _selectItem(int index) {
     if (_isAnimating || !_isOpen) return;
-    
+
     widget.onItemTap(index);
-    
+
     setState(() {
       _isOpen = false;
       _isAnimating = true;
@@ -199,30 +204,23 @@ class _SatchelMenuState extends State<SatchelMenu>
       builder: (context, constraints) {
         final screenHeight = constraints.maxHeight;
 
-        final verticalPositionAnimation = Tween<double>(
-          begin: -80,
-          end: (screenHeight / 2) - 50,
-        ).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutBack,
-          ),
-        );
+        final verticalPositionAnimation =
+            Tween<double>(begin: -80, end: (screenHeight / 2) - 50).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Curves.easeOutBack,
+              ),
+            );
 
-        final horizontalPositionAnimation = Tween<double>(
-          begin: -60,
-          end: 25,
-        ).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutBack,
-          ),
-        );
+        final horizontalPositionAnimation = Tween<double>(begin: -60, end: 25)
+            .animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Curves.easeOutBack,
+              ),
+            );
 
-        final rotationAnimation = Tween<double>(
-          begin: 0.3,
-          end: 0.0,
-        ).animate(
+        final rotationAnimation = Tween<double>(begin: 0.3, end: 0.0).animate(
           CurvedAnimation(
             parent: _animationController,
             curve: Curves.easeOutBack,
