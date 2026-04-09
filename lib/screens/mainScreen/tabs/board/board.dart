@@ -32,17 +32,20 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    _animationController.addStatusListener((status) {
-      if (status.isDismissed) {
-        setState(() {
-          _selectedQuest = null;
-        });
-      }
-    });
+    _animationController.addStatusListener(_onAnimationStatusChanged);
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (status.isDismissed) {
+      setState(() {
+        _selectedQuest = null;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _animationController.removeStatusListener(_onAnimationStatusChanged);
     _animationController.dispose();
     super.dispose();
   }
