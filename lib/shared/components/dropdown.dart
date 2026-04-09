@@ -123,7 +123,7 @@ class _DropdownState extends State<Dropdown>
             widget.maxHeight != null
                 ? AnimatedContainer(
                     height: _isOpen ? widget.maxHeight! - 43 : 0,
-                    duration: Duration(microseconds: 250),
+                    duration: const Duration(milliseconds: 250),
                     child: Padding(
                       padding: const EdgeInsets.only(
                         left: 10,
