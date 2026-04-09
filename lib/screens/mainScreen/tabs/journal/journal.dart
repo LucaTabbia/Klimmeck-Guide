@@ -54,15 +54,18 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
-    _animationController.addStatusListener((status) {
-      if (status.isDismissed) {
-        setState(() => _selectedEquipment = null);
-      }
-    });
+    _animationController.addStatusListener(_onAnimationStatusChanged);
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (status.isDismissed) {
+      setState(() => _selectedEquipment = null);
+    }
   }
 
   @override
   void dispose() {
+    _animationController.removeStatusListener(_onAnimationStatusChanged);
     _animationController.dispose();
     super.dispose();
   }
@@ -383,7 +386,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       itemIdToSend = null;
     } else {
       if (_selectedSlot == null) {
-        print("Impossibile equipaggiare: Selezionare prima uno slot.");
+        debugPrint("Impossibile equipaggiare: Selezionare prima uno slot.");
         return;
       }
       targetSlot = _selectedSlot;
@@ -391,7 +394,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     }
 
     if (targetSlot == null) {
-      print("Errore: Impossibile determinare lo slot target per l'azione.");
+      debugPrint("Errore: Impossibile determinare lo slot target per l'azione.");
       return;
     }
 
@@ -405,15 +408,18 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
-    _positionAnimation =
-        Tween<double>(
-          begin: MediaQuery.of(context).size.height,
-          end: 0.0,
-        ).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-        );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _positionAnimation = Tween<double>(
+      begin: MediaQuery.of(context).size.height,
+      end: 0.0,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
