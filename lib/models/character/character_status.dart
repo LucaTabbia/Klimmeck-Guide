@@ -65,6 +65,7 @@ class CharacterStatus extends Equatable {
     "currentLifePoints": currentLifePoints,
     "maxLifePoints": maxLifePoints,
     "title": title?.name,
+    "maxActiveSpells": maxActiveSpells,
   };
 
   CharacterStatus copyWith({

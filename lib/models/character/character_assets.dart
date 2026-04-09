@@ -43,9 +43,9 @@ class CharacterAssets extends Equatable {
       );
 
   Map<String, dynamic> toJson() => {
-    "ownedEquipments": ownedEquipments,
-    "ownedItems": ownedItems,
-    "activeSpells": activeSpells,
+    "ownedEquipments": ownedEquipments?.map((e) => e.toJson()).toList(),
+    "ownedItems": ownedItems?.map((e) => e.toJson()).toList(),
+    "activeSpells": activeSpells?.map((e) => e.toJson()).toList(),
     "wearedEquipment": wearedEquipment?.toJson(),
     "pet": pet?.id,
   };
