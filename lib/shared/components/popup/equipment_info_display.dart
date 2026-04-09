@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/popup/equipment_info_sheet.dart';
 
-class EquipmentInfoSheetDisplay extends StatelessWidget {
+class EquipmentInfoSheetDisplay extends StatefulWidget {
   final EquipmentItem? selectedEquipment;
   final AnimationController animationController;
 
@@ -13,41 +13,55 @@ class EquipmentInfoSheetDisplay extends StatelessWidget {
   });
 
   @override
+  State<EquipmentInfoSheetDisplay> createState() =>
+      _EquipmentInfoSheetDisplayState();
+}
+
+class _EquipmentInfoSheetDisplayState extends State<EquipmentInfoSheetDisplay> {
+  late Animation<double> _positionAnimation;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _positionAnimation = Tween<double>(
+      begin: MediaQuery.of(context).size.height,
+      end: 0.0,
+    ).animate(
+      CurvedAnimation(
+          parent: widget.animationController, curve: Curves.easeIn),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Animation<double> positionAnimation =
-        Tween<double>(
-          begin: MediaQuery.of(context).size.height,
-          end: 0.0,
-        ).animate(
-          CurvedAnimation(parent: animationController, curve: Curves.easeIn),
-        );
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Stack(
       children: [
-        if (selectedEquipment != null)
+        if (widget.selectedEquipment != null)
           Positioned.fill(
             child: GestureDetector(
-              onTap: () => animationController.reverse(),
+              onTap: () => widget.animationController.reverse(),
               behavior: HitTestBehavior.opaque,
               child: Container(),
             ),
           ),
         AnimatedBuilder(
-          animation: animationController,
+          animation: widget.animationController,
           builder: (context, child) {
             return Positioned(
-              top: positionAnimation.value,
+              top: _positionAnimation.value,
               right: 0,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.height * 1.3 * (315 / 375),
-                  child: selectedEquipment != null
+                  height: screenHeight,
+                  width: screenHeight * 1.3 * (315 / 375),
+                  child: widget.selectedEquipment != null
                       ? SingleChildScrollView(
                           child: EquipmentInfoSheet(
-                            equipmentItem: selectedEquipment!,
-                            onEquip: () {}, // Implementa logica se necessario
+                            equipmentItem: widget.selectedEquipment!,
+                            onEquip: () {},
                           ),
                         )
                       : null,
