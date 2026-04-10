@@ -26,3 +26,5 @@ Last activity: 2026-04-10 — Milestone v1.0 Core Loop started
 - Scelta libreria push notification Flutter (firebase_messaging è standard)
 - Scelta client GraphQL subscription (ferry / graphql_flutter già in uso?)
 - Flusso OAuth Twitch: webview in-app vs deep link / universal link
+- **QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.
+- **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
