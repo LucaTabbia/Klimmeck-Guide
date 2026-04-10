@@ -8,6 +8,22 @@ Un'app mobile Flutter che trasforma i punti canale Twitch in un RPG: i viewer di
 
 I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
 
+## Current Milestone: v1.0 Core Loop
+
+**Goal:** Chiudere il loop di gioco base — il viewer si logga via Twitch, riceve punti canale/stato personaggio via subscription, accetta quest con gesture swipe, viaggia con notifiche, vede esiti combattimento, gestisce magie possedute. Lo streamer amministra tutto via admin panel.
+
+**Target features:**
+
+- Auth Twitch (OAuth + refresh + logout/switch) e sezione Impostazioni
+- Sync utente real-time via GraphQL subscription (punti canale, stato, progressione)
+- Quest accept gesture (swipe-left "strappa foglio") + quest info sheets per tipo
+- Viaggio con conferma (ETA + costo) e timer live
+- Notifiche Firebase (FCM/APNs) + in-app per fine viaggio, streamer live, fine quest
+- Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
+- UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite, premi, XP
+- Admin panel completo: pendingRequest, teleport, gestione mostri/grado/premi/ferite
+- Fase finale di hardening: bug fixing, security audit, gestione concurrency
+
 ## Requirements
 
 ### Validated
@@ -23,29 +39,33 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Navigazione a 6 tab (board, journal, library, map, shop, profile) — existing
 - ✓ SVG caching multi-livello (memory, disk, network via Cloudinary) — existing
 - ✓ Enum classi personaggio (ClassType) — existing
+- ✓ UI negozi (shop) per acquisto equipaggiamento, cibo, oggetti — existing
+- ✓ Sezione lore (library) senza link ipertestuali — existing
+- ✓ UI lista quest nel tab board — existing (quasi definitiva, solo layout info per tipo mancanti)
 
 ### Active
 
-- [ ] Login OAuth Twitch con persistenza solo dell'ID account
-- [ ] Integrazione API Twitch per ottenere punti canale spesi sul canale target
-- [ ] Conversione 1:1 punti canale → valuta di gioco
-- [ ] UI sistema quest: accettazione nei villaggi in base ai POI di influenza
-- [ ] UI spostamento personaggio sulla mappa con timer reale basato su distanza e velocità strade
+**v1.0 Core Loop (in corso):**
+
+- [ ] Login OAuth Twitch con persistenza account ID + refresh token handling + logout/switch account
+- [ ] Sezione Impostazioni (nuova) — logout + setting notifiche
+- [ ] Sync utente via GraphQL subscription (punti canale, valuta, stato personaggio)
+- [ ] Gesture swipe-left "strappa foglio" per accettare quest nel tab board (tutti i tipi)
+- [ ] Layout quest info sheets distinti per tipo (hunt, enemy, boss, dungeon, heal, aid, job, study, story, worldMission)
+- [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
+- [ ] UI conferma viaggio con ETA + costo
+- [ ] Notifiche Firebase (FCM/APNs) + in-app: fine viaggio, streamer live, fine quest
+- [ ] Sezione Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
+- [ ] UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite subite, premi, XP
+- [ ] Admin panel: lista pendingRequest story/worldMission
+- [ ] Admin panel: spostamento istantaneo personaggio su qualsiasi POI
+- [ ] Admin panel: selezione mostri/grado quest, scelta premi, applicazione ferite
+- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency
+
+**Future (post v1.0):**
+
 - [ ] UI pet/cavalcature come modificatori di velocità di spostamento
-- [ ] UI esiti combattimento: visualizzazione risultato (nessun danno / ferite / morte)
-- [ ] UI quest "aid" generate dalla morte di un personaggio
-- [ ] UI quest "heal" per rimozione ferite presso ospedali/cliniche
-- [ ] UI quest "job" sempre disponibili in tutti i villaggi
-- [ ] UI quest "hunt", "enemy", "boss", "dungeon" con relativi flussi
-- [ ] UI sistema livelli con visualizzazione HP e progressione
-- [ ] UI sistema magie: 3 slot, sbloccati dopo title "mage" (3a quest story)
-- [ ] UI apprendimento magie a Valantar (capital) tramite quest study
-- [ ] UI magie con utilizzi limitati e recoveryTime
-- [ ] UI negozi per acquisto equipaggiamento, cibo, oggetti
-- [ ] UI pannello admin: lista pendingRequest per quest story/worldMission
-- [ ] UI admin: spostamento istantaneo personaggio utente su qualsiasi POI
-- [ ] UI admin: selezione mostri per POI e grado quest, scelta premi, applicazione ferite
-- [ ] UI sezione lore (senza collegamenti tra oggetti)
+- [ ] Log round-per-round esiti combattimento
 
 ### Out of Scope
 
@@ -59,6 +79,9 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - Sistema allineamento buono/cattivo (crime/guard) — v2, meccanica complessa
 - Lore con link ipertestuali navigabili tra oggetti — v2
 - Riepilogo quest completate con dettagli — v2
+- UI sistema livelli / progressione HP — backend only, frontend puramente reattivo ai valori calcolati dal server
+- UI apprendimento magie a Valantar — backend only, gestito come outcome di quest study lato server
+- UI sblocco slot magie dopo title "mage" — backend determina disponibilità slot, frontend visualizza stato
 
 ## Context
 
@@ -79,13 +102,17 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 
 ## Key Decisions
 
-| Decision                                        | Rationale                                                      | Outcome   |
-| ----------------------------------------------- | -------------------------------------------------------------- | --------- |
-| Conversione punti 1:1                           | Semplicità, trasparenza per i viewer                           | — Pending |
-| Backend NestJS + MongoDB                        | Stack già esistente e funzionante                              | ✓ Good    |
-| Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo | — Pending |
-| Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale        | — Pending |
-| Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                      | — Pending |
+| Decision                                        | Rationale                                                                           | Outcome   |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------- | --------- |
+| Conversione punti 1:1                           | Semplicità, trasparenza per i viewer                                                | — Pending |
+| Backend NestJS + MongoDB                        | Stack già esistente e funzionante                                                   | ✓ Good    |
+| Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo                      | — Pending |
+| Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale                             | — Pending |
+| Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                                           | — Pending |
+| Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | — Pending |
+| Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
+| Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | — Pending |
+| Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
 
 ## Evolution
 
@@ -108,4 +135,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-04-10 after initialization_
+_Last updated: 2026-04-10 — milestone v1.0 Core Loop started_
