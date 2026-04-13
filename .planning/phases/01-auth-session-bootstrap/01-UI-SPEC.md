@@ -1,10 +1,11 @@
 ---
 phase: 1
 slug: auth-session-bootstrap
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-13
+reviewed_at: 2026-04-13
 ---
 
 # Phase 1 — UI Design Contract: Auth & Session Bootstrap
