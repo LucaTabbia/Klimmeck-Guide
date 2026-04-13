@@ -100,6 +100,23 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - **Mappa:** POI e sfondo gestiti manualmente dallo streamer, non generati
 - **Single channel:** L'app è legata a un solo canale Twitch
 
+## Workflow Conventions
+
+### Branching & PR (mandatory per ogni fase)
+
+- **Inizio fase:** prima di qualsiasi lavoro di una fase, creare un branch nuovo partendo da `develop`:
+  ```bash
+  git checkout develop && git pull
+  git checkout -b <prefix>/<phase-slug>
+  ```
+- **Prefissi consentiti** (Conventional Commits):
+  - `feat/` — fasi che aggiungono nuove capability (es. `feat/auth-session-bootstrap`)
+  - `fix/` — fasi di bug-fix mirato
+  - `refactor/` — fasi di refactor/hardening senza nuove feature visibili
+- **Slug del branch:** usare lo stesso slug della directory di fase (`.planning/phases/NN-<slug>/`), così Phase 1 → `feat/auth-session-bootstrap`.
+- **Fine fase:** aprire una **PR verso `develop`** (non verso `main`). La PR è il punto di review prima del merge — ogni fase si chiude con una PR aperta che lo streamer/dev può controllare.
+- **Niente push diretti su `develop` o `main`** durante una fase.
+
 ## Key Decisions
 
 | Decision                                        | Rationale                                                                           | Outcome   |
