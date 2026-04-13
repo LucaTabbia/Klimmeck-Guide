@@ -1,5 +1,23 @@
 # Testing
 
+## TDD — regola operativa
+
+**Nessuna feature o bugfix senza test scritto prima.**
+
+Ciclo **Red → Green → Refactor**:
+
+1. **Red.** Scrivi il test minimo che esprime il comportamento desiderato. Lancialo: deve fallire per il motivo giusto (non per errore di compilazione banale).
+2. **Green.** Scrivi il **minimo codice** necessario per far passare il test. Niente feature extra, niente ottimizzazioni premature.
+3. **Refactor.** Con i test verdi, pulisci: nomi, duplicazione, separazione responsabilità. I test restano verdi a ogni micro-step.
+
+**Regole TDD di progetto:**
+
+- Bugfix: il primo commit della fix contiene il test di regressione **che falliva prima**. Dimostra la fix.
+- Nuovo Cubit: test della sequenza di stati prima dell'implementazione del metodo.
+- Nuovo modello: test `fromJson`/`toJson` e `Equatable` prima dei campi.
+- Widget di dominio critico (quest accept, travel confirm, combat outcome): almeno un interaction test prima di implementare il widget finale.
+- Eccezioni giustificate: puro cambio estetico (tema, padding), rinomine meccaniche, refactor strutturali senza cambio comportamento. Anche qui: i test esistenti restano verdi.
+
 ## Struttura
 
 ```

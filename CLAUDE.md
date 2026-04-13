@@ -25,16 +25,23 @@ Prima di qualsiasi lavoro non triviale, leggere:
 
 ## Rule files (leggere solo quelli rilevanti al task)
 
-| File | Quando leggerlo |
-|---|---|
-| [docs/rules/naming.md](docs/rules/naming.md) | Prima di creare file, classi, variabili, widget, eventi BLoC |
-| [docs/rules/architecture.md](docs/rules/architecture.md) | Prima di decidere dove posizionare codice nuovo (layer, cartelle) |
-| [docs/rules/state-management.md](docs/rules/state-management.md) | Prima di creare/modificare BLoC, Cubit, State, Event |
-| [docs/rules/graphql.md](docs/rules/graphql.md) | Prima di toccare query/mutation/subscription o service GraphQL/REST |
-| [docs/rules/ui-ux.md](docs/rules/ui-ux.md) | Prima di costruire/modificare schermate, widget, loading, navigazione |
-| [docs/rules/testing.md](docs/rules/testing.md) | Prima di scrivere test widget, bloc_test, integration |
-| [docs/rules/workflow.md](docs/rules/workflow.md) | Inizio/fine fase GSD, commit, branch, PR |
-| [docs/rules/assets.md](docs/rules/assets.md) | Prima di aggiungere SVG/immagini, toccare caching o Cloudinary |
+| File                                                             | Quando leggerlo                                                       |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [docs/rules/naming.md](docs/rules/naming.md)                     | Prima di creare file, classi, variabili, widget, eventi BLoC          |
+| [docs/rules/architecture.md](docs/rules/architecture.md)         | Prima di decidere dove posizionare codice nuovo (layer, cartelle)     |
+| [docs/rules/state-management.md](docs/rules/state-management.md) | Prima di creare/modificare BLoC, Cubit, State, Event                  |
+| [docs/rules/graphql.md](docs/rules/graphql.md)                   | Prima di toccare query/mutation/subscription o service GraphQL/REST   |
+| [docs/rules/ui-ux.md](docs/rules/ui-ux.md)                       | Prima di costruire/modificare schermate, widget, loading, navigazione |
+| [docs/rules/testing.md](docs/rules/testing.md)                   | Prima di scrivere test widget, bloc_test, integration                 |
+| [docs/rules/workflow.md](docs/rules/workflow.md)                 | Inizio/fine fase GSD, commit, branch, PR                              |
+| [docs/rules/assets.md](docs/rules/assets.md)                     | Prima di aggiungere SVG/immagini, toccare caching o Cloudinary        |
+
+## Principi trasversali (sempre applicati)
+
+- **Clean Code.** Nomi parlanti, funzioni piccole a singolo scopo, zero duplicazione, niente commenti che spiegano "cosa" (lo dice il codice). Early return, niente nesting profondo, niente flag booleani che cambiano comportamento.
+- **Separation of Concerns (SoC).** Una responsabilità per modulo/classe/funzione. UI non fa networking, Cubit non costruisce widget, Repository non conosce `BuildContext`, Model non dipende da Flutter. Layer in `docs/rules/architecture.md`.
+- **TDD (Test-Driven Development).** Red → Green → Refactor. Nessuna feature o bugfix senza test scritto **prima** dell'implementazione. Dettagli in `docs/rules/testing.md`.
+- **Boy Scout Rule.** Lascia il codice più pulito di come l'hai trovato. Se tocchi un file e vedi nome scadente, micro-duplicazione, import morto, magic number → sistema nello stesso commit (se resta in scope). Refactor massivi fuori scope → PR separata.
 
 ## Regole invalicabili (mai derogare)
 
