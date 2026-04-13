@@ -54,12 +54,13 @@ Declared values (multiples of 4, in Flutter logical pixels):
 | md | 16px | Default element spacing, button internal padding |
 | lg | 24px | Section padding, card internal padding |
 | xl | 32px | Layout gaps between major blocks |
-| 2xl | 48px | Vertical breathing room (logo → tagline gap) |
+| 2xl | 48px | Vertical breathing room (logo → tagline gap); bottom offset of animated loading text in SplashScreen |
 | 3xl | 64px | Bottom safe area padding on splash |
 
 Exceptions:
 - Touch targets for all interactive elements: minimum 44×44 logical px (Flutter `semantics` tap target). Source: docs/rules/ui-ux.md "Target tap ≥ 44x44 logical px".
-- Splash animated loading text bottom offset: 50px (matches existing `SplashScreen` bottom padding — do not change).
+
+> Note: SplashScreen existing code uses `50px` bottom padding for `_AnimatedLoadingText`. This must be changed to `48px` to comply with the 4-point grid. This is a minor adjustment with no visual regression risk.
 
 ---
 
@@ -67,16 +68,19 @@ Exceptions:
 
 All styles are sourced from `KlimmeckGuideTheme.instance` — never inline `TextStyle`. Reference `kg_theme.dart`.
 
+Declared font sizes: **12, 16, 20, 32** (4 sizes max).
+Declared font weights: **w400** (regular) and **w600** (semibold).
+
 | Role | Style Ref | Font | Size | Weight | Line Height | Color |
 |------|-----------|------|------|--------|-------------|-------|
 | Display / Logo | `headlineLarge` | Cinzel Decorative | 32px | w400 | 1.2 | `deepNight` on light; `parchment` on dark backgrounds |
 | Title / Section header | `titleMedium` | Cinzel | 20px | w600 | 1.2 | `deepNight` |
-| Body narrative | `bodyLarge` | Cormorant Garamond | 22px | w200 | 1.5 | `deepNight` |
-| Body UI / labels | `bodyMedium` | Source Sans 3 | 16px | w500 | 1.4 | `deepNight` |
-| Special / Flavor / Loading | `specialText` | Uncial Antiqua | 30px | w300 | 1.2 | `parchment` (on dark backgrounds) |
-| Error inline | `errorText` | Cinzel | 12px | w500 | 1.3 | `bloodRed` `#9B1C1C` |
+| Body narrative | `bodyLarge` | Cormorant Garamond | 16px | w400 | 1.5 | `deepNight` |
+| Body UI / labels | `bodyMedium` | Source Sans 3 | 16px | w600 | 1.4 | `deepNight` |
+| Special / Flavor / Loading | `specialText` | Uncial Antiqua | 20px | w400 | 1.2 | `parchment` (on dark backgrounds) |
+| Error inline | `errorText` | Cinzel | 12px | w600 | 1.3 | `bloodRed` `#9B1C1C` |
 
-> 2 declared weights in use: **w400/w200/w300** (light/display) and **w500/w600** (medium/semibold). For the executor: on SignInScreen, tagline uses `bodyLarge`, CTA button label uses `bodyMedium`. Error messages use `errorText`.
+> Declared weights: **w400** (regular — Display, Body narrative, Special/Flavor) and **w600** (semibold — Title, Body UI, Error). For the executor: on SignInScreen, tagline uses `bodyLarge`, CTA button label uses `titleMedium`. Error messages use `errorText`.
 
 ---
 
@@ -118,7 +122,7 @@ Destructive (`bloodRed`) reserved for:
 │                             │
 │                             │
 │                             │
-│  [animated loading text]    │  ← bottom: 50px (existing value, preserve)
+│  [animated loading text]    │  ← bottom: 48px (token 2xl)
 └─────────────────────────────┘
 ```
 
@@ -176,7 +180,7 @@ Destructive (`bloodRed`) reserved for:
 
 **Error display:**
 - Inline below the CTA button, not a snackbar
-- Style: `errorText` (Cinzel 12px w500 bloodRed)
+- Style: `errorText` (Cinzel 12px w600 bloodRed)
 - Content: `"Errore di connessione, riprova"` (D-22)
 - Visibility: shown only when `SignInCubit` emits error state. Hidden (zero-height) otherwise — use `AnimatedSwitcher` or `Visibility` with `maintainSize: false`.
 
@@ -184,7 +188,7 @@ Destructive (`bloodRed`) reserved for:
 
 **Footer:**
 - Two `TextButton`s: "Termini di servizio" and "Privacy" side by side, centered
-- Style: `lightText` (EB Garamond 16px w300 parchment)
+- Style: `lightText` (EB Garamond 16px w400 parchment)
 - URLs: placeholder `#` for v1
 
 **AppBar:** `AppBarTheme` defaults from `materialTheme` (`darkBronze` bg, `primaryGold` fg). No title text. No back arrow (this is root route).
@@ -206,7 +210,7 @@ Destructive (`bloodRed`) reserved for:
 │  Sei sicuro di voler uscire?│  ← titleMedium (Cinzel 20px w600)
 │                             │
 │  La tua sessione verrà      │
-│  terminata.                 │  ← bodyMedium (Source Sans 3 16px w500)
+│  terminata.                 │  ← bodyMedium (Source Sans 3 16px w600)
 │                             │
 │  [Annulla]    [Esci]        │
 │   TextButton   ElevatedBtn  │
@@ -267,7 +271,7 @@ Components to build or extend in this phase, with their `lib/` path:
 
 | Component | Path | Status | Notes |
 |-----------|------|--------|-------|
-| `SplashScreen` | `lib/screens/splash/splash_screen.dart` | Extend (exists) | Add auth-resolve states; preserve existing `_AnimatedLoadingText` and `splash.png` |
+| `SplashScreen` | `lib/screens/splash/splash_screen.dart` | Extend (exists) | Add auth-resolve states; preserve existing `_AnimatedLoadingText` and `splash.png`. Change bottom offset from 50px to 48px. |
 | `SplashCubit` / `SplashState` | `lib/screens/splash/cubit/` | Extend (exists) | Add `SplashNetworkDelayed`, `SplashSessionExpired`, `SplashAuthenticated`, `SplashUnauthenticated` states |
 | `SignInScreen` | `lib/screens/signIn/sign_in_screen.dart` | Build (stub only) | Full layout per spec above |
 | `SignInCubit` / `SignInState` | `lib/screens/signIn/cubit/` | Build (stub only) | Drive OAuth flow, error state, loading state |
@@ -301,3 +305,4 @@ Components to build or extend in this phase, with their `lib/` path:
 
 *Phase: 01-auth-session-bootstrap*
 *UI-SPEC generated: 2026-04-13*
+*UI-SPEC revised: 2026-04-13 — Typography consolidated to 4 sizes / 2 weights; Spacing 50px exception removed, replaced with 48px (token 2xl)*
