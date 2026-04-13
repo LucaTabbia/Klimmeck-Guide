@@ -77,7 +77,12 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Decisions to make during discuss step**:
   - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md).
   - Secure storage wrapper (`flutter_secure_storage` wrapper service shape).
-**Plans**: TBD
+**Plans**: 5 plans
+  - [ ] 01-01-PLAN.md — Wave 0: dependencies + platform manifests + TDD scaffolding
+  - [ ] 01-02-PLAN.md — AuthTokenService core (SecureStorage, PKCE, TwitchApi, refresh mutex, bootstrap/login/logout)
+  - [ ] 01-03-PLAN.md — GraphqlClientProvider auth-aware + AuthDioInterceptor (401 refresh retry, client recreate)
+  - [ ] 01-04-PLAN.md — AuthCubit + SignInCubit + LogoutConfirmationDialog
+  - [ ] 01-05-PLAN.md — main.dart restructure + SplashCubit gate + SignInScreen + AuthGate + BACKEND-NOTES + manual E2E checkpoint
 
 ### Phase 2: Character Creation
 **Goal**: A logged-in user with no character is routed into a multi-step creation flow and exits into the main tab shell with a valid `currentCharacter`.
@@ -251,7 +256,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Auth & Session Bootstrap | 0/0 | Not started | - |
+| 1. Auth & Session Bootstrap | 0/5 | Planned | - |
 | 2. Character Creation | 0/0 | Not started | - |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
