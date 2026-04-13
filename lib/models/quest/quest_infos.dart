@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:klimmeck_guide/models/pointOfInterest.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 
 import '../enemy.dart';
 import '../enums/quest_type.dart';

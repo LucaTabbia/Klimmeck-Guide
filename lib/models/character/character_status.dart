@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
-import 'package:klimmeck_guide/models/pointOfInterest.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 
 import '../coins.dart';
