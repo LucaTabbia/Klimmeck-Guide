@@ -4,11 +4,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/config/env_config.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
@@ -25,9 +29,15 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Firebase.initializeApp();
-  //await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true,badge: true,sound: true,);
-  final client = initGraphQLClient();
+
+  await dotenv.load(fileName: '.env');
+
+  final AuthTokenService authTokenService = _buildAuthTokenService();
+  await authTokenService.initialize(); // polimorfico — NO type-check is DevAuthTokenService
+
+  final restClient = RestClient(authTokenService: authTokenService);
+  final graphQlClient = await initGraphQLClient(authTokenService);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
@@ -39,28 +49,63 @@ Future<void> main() async {
     ),
   );
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
-  ]).then((_) {
-    runApp(KlimmeckGuideApp(client: client));
-  });
+  ]);
+
+  runApp(
+    KlimmeckGuideApp(
+      authTokenService: authTokenService,
+      restClient: restClient,
+      graphQlClient: graphQlClient,
+    ),
+  );
+}
+
+/// Factory che seleziona l'implementazione di `AuthTokenService` in base
+/// alla configurazione runtime.
+///
+/// Phase 1: `DevAuthTokenService` quando `EnvConfig.devAuthEnabled == true`.
+/// Phase 11: sostituirà il branch `else` con `OAuthTokenService` senza
+/// toccare `main()` né i consumer (D-02 CONTEXT.md drop-in replacement).
+AuthTokenService _buildAuthTokenService() {
+  if (EnvConfig.devAuthEnabled) {
+    return DevAuthTokenService();
+  }
+  throw UnimplementedError(
+    'RealAuthTokenService not yet implemented — see Phase 11 (Auth & Session Bootstrap)',
+  );
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class KlimmeckGuideApp extends StatefulWidget {
-  const KlimmeckGuideApp({super.key, required this.client});
+  const KlimmeckGuideApp({
+    super.key,
+    required this.authTokenService,
+    required this.restClient,
+    required this.graphQlClient,
+  });
 
-  final ValueNotifier<GraphQLClient> client;
+  final AuthTokenService authTokenService;
+  final RestClient restClient;
+  final ValueNotifier<GraphQLClient> graphQlClient;
 
   @override
   State<KlimmeckGuideApp> createState() => _KlimmeckGuideAppState();
 }
 
 class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
-  final KlimmeckRest rest = KlimmeckRest();
+  late final KlimmeckRest rest;
   final KlimmeckGraphQl graphQl = KlimmeckGraphQl();
+
+  @override
+  void initState() {
+    super.initState();
+    rest = KlimmeckRest(widget.restClient);
+    loadSvg();
+  }
 
   Future<void> loadSvg() async {
     try {
@@ -114,61 +159,61 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    loadSvg();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GraphQLProvider(
-      client: widget.client,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
-          BlocProvider<CharacterCubit>(
-            create: (context) => CharacterCubit(graphQl),
-          ),
-          BlocProvider<QuestCubit>(create: (context) => QuestCubit(graphQl)),
-          BlocProvider<TransactionCubit>(
-            create: (context) => TransactionCubit(graphQl),
-          ),
-          BlocProvider<MainScreenCubit>(
-            create: (context) => MainScreenCubit(graphQl),
-          ),
-          BlocProvider<WorldMapCubit>(
-            create: (context) => WorldMapCubit(graphQl),
-          ),
-          BlocProvider<ShopCubit>(create: (context) => ShopCubit(graphQl)),
-          BlocProvider<LibraryCubit>(
-            create: (context) => LibraryCubit(graphQl),
-          ),
-          BlocProvider<JournalCubit>(
-            create: (context) => JournalCubit(graphQl),
-          ),
-          BlocProvider<SplashCubit>(create: (context) => SplashCubit(rest)),
-          BlocProvider<SignInCubit>(create: (context) => SignInCubit(graphQl)),
-        ],
-        child: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: Platform.isIOS
-              ? SystemUiOverlayStyle.light
-              : const SystemUiOverlayStyle(
-                  statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.light,
-                  systemNavigationBarIconBrightness: Brightness.dark,
-                  systemNavigationBarColor: Colors.transparent,
-                ),
-          child: MaterialApp(
-            theme: KlimmeckGuideTheme.instance.materialTheme,
-            color: KlimmeckGuideTheme.deepNight,
-            debugShowCheckedModeBanner: false,
-            title: 'Guida di Klimmeck',
-            navigatorKey: navigatorKey,
-            home: Builder(
-              builder: (context) {
-                preloadImages(context);
-                return const SplashScreen();
-              },
+    return RepositoryProvider<AuthTokenService>(
+      create: (_) => widget.authTokenService,
+      dispose: (svc) => svc.dispose(),
+      child: GraphQLProvider(
+        client: widget.graphQlClient,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
+            BlocProvider<CharacterCubit>(
+              create: (context) => CharacterCubit(graphQl),
+            ),
+            BlocProvider<QuestCubit>(create: (context) => QuestCubit(graphQl)),
+            BlocProvider<TransactionCubit>(
+              create: (context) => TransactionCubit(graphQl),
+            ),
+            BlocProvider<MainScreenCubit>(
+              create: (context) => MainScreenCubit(graphQl),
+            ),
+            BlocProvider<WorldMapCubit>(
+              create: (context) => WorldMapCubit(graphQl),
+            ),
+            BlocProvider<ShopCubit>(create: (context) => ShopCubit(graphQl)),
+            BlocProvider<LibraryCubit>(
+              create: (context) => LibraryCubit(graphQl),
+            ),
+            BlocProvider<JournalCubit>(
+              create: (context) => JournalCubit(graphQl),
+            ),
+            BlocProvider<SplashCubit>(create: (context) => SplashCubit(rest)),
+            BlocProvider<SignInCubit>(
+              create: (context) => SignInCubit(graphQl),
+            ),
+          ],
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: Platform.isIOS
+                ? SystemUiOverlayStyle.light
+                : const SystemUiOverlayStyle(
+                    statusBarColor: Colors.transparent,
+                    statusBarIconBrightness: Brightness.light,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    systemNavigationBarColor: Colors.transparent,
+                  ),
+            child: MaterialApp(
+              theme: KlimmeckGuideTheme.instance.materialTheme,
+              color: KlimmeckGuideTheme.deepNight,
+              debugShowCheckedModeBanner: false,
+              title: 'Guida di Klimmeck',
+              navigatorKey: navigatorKey,
+              home: Builder(
+                builder: (context) {
+                  preloadImages(context);
+                  return const SplashScreen();
+                },
+              ),
             ),
           ),
         ),
