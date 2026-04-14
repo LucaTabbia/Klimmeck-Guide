@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gql_http_link/gql_http_link.dart';
+import 'package:gql/ast.dart';
+import 'package:gql_exec/gql_exec.dart';
 import 'package:gql_link/gql_link.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/graphql/auth_link.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:gql/ast.dart';
 
 /// RED — GraphQL AuthLink (DEV-AUTH-05).
 /// Diventerà GREEN dopo Plan 03.
@@ -23,8 +23,9 @@ void main() {
     test(
       'aggiunge Authorization: Bearer <token> agli header della Request',
       () async {
-        when(() => mockService.getAccessToken())
-            .thenAnswer((_) async => 'token-xyz');
+        when(
+          () => mockService.getAccessToken(),
+        ).thenAnswer((_) async => 'token-xyz');
 
         // Richiesta GraphQL minimale.
         final request = Request(
@@ -36,7 +37,7 @@ void main() {
         // Link terminale che cattura gli header.
         final terminalLink = Link.function((req, [nextLink]) async* {
           capturedHeaders = req.context.entry<HttpLinkHeaders>();
-          yield Response(data: const {}, errors: null);
+          yield const Response(response: {'data': null});
         });
 
         final linked = Link.concat(authLink, terminalLink);
