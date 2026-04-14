@@ -85,9 +85,9 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - Scelta package `.env` (dotenv / flutter_dotenv) — probabilmente `flutter_dotenv`, già uso comune.
   - Naming finale del service class (`AuthTokenService` è il contratto; la concrete stub class può chiamarsi `DevAuthTokenService` e essere la sola registrata quando `DEV_AUTH_ENABLED=true`).
 **Plans**: 3 plans
-  - [ ] 01-01-PLAN.md — Wave 0: install flutter_dotenv + bloc_test + mocktail, register .env asset, scaffold RED test stubs
-  - [ ] 01-02-PLAN.md — AuthTokenService contract + AuthState sealed + DevAuthTokenService (.env-backed stub) + EnvConfig.devAuthEnabled flag
-  - [ ] 01-03-PLAN.md — Wiring: RepositoryProvider + dio AuthInterceptor + graphql AuthLink + main.dart dotenv.load
+  - [x] 01-01-PLAN.md — Wave 0: install flutter_dotenv + bloc_test + mocktail, register .env asset, scaffold RED test stubs
+  - [x] 01-02-PLAN.md — AuthTokenService contract + AuthState sealed + DevAuthTokenService (.env-backed stub) + EnvConfig.devAuthEnabled flag
+  - [x] 01-03-PLAN.md — Wiring: RepositoryProvider + dio AuthInterceptor + graphql AuthLink + main.dart dotenv.load
 **Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
 
 ### Phase 2: Character Creation
