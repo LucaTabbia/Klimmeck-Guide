@@ -84,7 +84,10 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Decisions to make during discuss step**:
   - Scelta package `.env` (dotenv / flutter_dotenv) — probabilmente `flutter_dotenv`, già uso comune.
   - Naming finale del service class (`AuthTokenService` è il contratto; la concrete stub class può chiamarsi `DevAuthTokenService` e essere la sola registrata quando `DEV_AUTH_ENABLED=true`).
-**Plans**: TBD (create with `/gsd-plan-phase 1`)
+**Plans**: 3 plans
+  - [ ] 01-01-PLAN.md — Wave 0: install flutter_dotenv + bloc_test + mocktail, register .env asset, scaffold RED test stubs
+  - [ ] 01-02-PLAN.md — AuthTokenService contract + AuthState sealed + DevAuthTokenService (.env-backed stub) + EnvConfig.devAuthEnabled flag
+  - [ ] 01-03-PLAN.md — Wiring: RepositoryProvider + dio AuthInterceptor + graphql AuthLink + main.dart dotenv.load
 **Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
 
 ### Phase 2: Character Creation
@@ -282,7 +285,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dev Auth Stub | 0/0 | Planned | - |
+| 1. Dev Auth Stub | 0/3 | Planned | - |
 | 2. Character Creation | 0/0 | Not started | - |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
