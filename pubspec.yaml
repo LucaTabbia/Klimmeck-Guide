@@ -22,6 +22,9 @@ dependencies:
   #HTTP
   graphql_flutter: ^5.2.1
   dio: ^5.4.0
+  gql_exec: any
+  gql_link: any
+  gql_http_link: any
 
   #Firebase
   firebase_messaging: ^15.2.9
