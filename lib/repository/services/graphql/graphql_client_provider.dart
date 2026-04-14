@@ -26,7 +26,9 @@ Future<ValueNotifier<GraphQLClient>> initGraphQLClient(
     EnvConfig.graphqlWsUrl,
     config: SocketClientConfig(
       autoReconnect: true,
-      inactivityTimeout: Duration(seconds: EnvConfig.wsInactivityTimeoutSeconds),
+      inactivityTimeout: Duration(
+        seconds: EnvConfig.wsInactivityTimeoutSeconds,
+      ),
       initialPayload: () => <String, dynamic>{
         if (bootstrapToken != null && bootstrapToken.isNotEmpty)
           'Authorization': 'Bearer $bootstrapToken',

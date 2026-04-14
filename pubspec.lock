@@ -577,7 +577,7 @@ packages:
     source: hosted
     version: "6.2.1"
   gql:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: gql
       sha256: "650e79ed60c21579ca3bd17ebae8a8c8d22cde267b03a19bf3b35996baaa843a"

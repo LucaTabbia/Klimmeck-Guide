@@ -13,7 +13,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 /// solo header injection.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({required AuthTokenService authService})
-      : _authService = authService;
+    : _authService = authService;
 
   final AuthTokenService _authService;
 

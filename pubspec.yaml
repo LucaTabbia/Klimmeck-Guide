@@ -25,6 +25,7 @@ dependencies:
   gql_exec: any
   gql_link: any
   gql_http_link: any
+  gql: any
 
   #Firebase
   firebase_messaging: ^15.2.9

@@ -11,14 +11,14 @@ import 'package:klimmeck_guide/repository/services/rest/auth_interceptor.dart';
 /// Phase 11 senza modificare il layer REST.
 class RestClient {
   RestClient({required AuthTokenService authTokenService})
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: EnvConfig.baseUrl,
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 10),
-            headers: {'Content-Type': 'application/json'},
-          ),
-        ) {
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: EnvConfig.baseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ) {
     _dio.interceptors.add(AuthInterceptor(authService: authTokenService));
   }
 

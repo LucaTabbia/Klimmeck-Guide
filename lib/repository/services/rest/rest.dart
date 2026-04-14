@@ -61,7 +61,10 @@ class KlimmeckRest {
         ),
       });
 
-      final response = await _restClient.dio.post('uploadImage', data: formData);
+      final response = await _restClient.dio.post(
+        'uploadImage',
+        data: formData,
+      );
 
       if (response.statusCode == 200) {
         return response.data['url'] as String;

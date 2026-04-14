@@ -33,7 +33,8 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
 
   final AuthTokenService authTokenService = _buildAuthTokenService();
-  await authTokenService.initialize(); // polimorfico — NO type-check is DevAuthTokenService
+  await authTokenService
+      .initialize(); // polimorfico — NO type-check is DevAuthTokenService
 
   final restClient = RestClient(authTokenService: authTokenService);
   final graphQlClient = await initGraphQLClient(authTokenService);

@@ -17,7 +17,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 /// (coerente con la regola "no loading bloccante in sessione attiva").
 class AuthAuthLink extends Link {
   AuthAuthLink({required AuthTokenService authService})
-      : _authService = authService;
+    : _authService = authService;
 
   final AuthTokenService _authService;
 
@@ -34,10 +34,7 @@ class AuthAuthLink extends Link {
     if (token != null && token.isNotEmpty) {
       updated = request.updateContextEntry<HttpLinkHeaders>(
         (prev) => HttpLinkHeaders(
-          headers: {
-            ...?prev?.headers,
-            'Authorization': 'Bearer $token',
-          },
+          headers: {...?prev?.headers, 'Authorization': 'Bearer $token'},
         ),
       );
     } else {
