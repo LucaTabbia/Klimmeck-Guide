@@ -19,15 +19,16 @@ void main() {
 
   group('DevAuthTokenService init', () {
     test('initialize() emette AuthBootstrapping poi AuthAuthenticated', () async {
-      await service.initialize();
-
-      await expectLater(
+      final expectation = expectLater(
         service.authStateStream,
         emitsInOrder([
           isA<AuthBootstrapping>(),
           isA<AuthAuthenticated>(),
         ]),
       );
+
+      await service.initialize();
+      await expectation;
     });
 
     test('AuthAuthenticated ha user.id == testUserId dopo initialize()', () async {

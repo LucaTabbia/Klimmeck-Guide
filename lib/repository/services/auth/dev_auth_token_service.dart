@@ -24,9 +24,26 @@ class DevAuthTokenService extends AuthTokenService {
   DevAuthTokenService() : _controller = StreamController<AuthState>.broadcast();
 
   final StreamController<AuthState> _controller;
+  AuthState? _lastState;
 
   @override
-  Stream<AuthState> get authStateStream => _controller.stream;
+  Stream<AuthState> get authStateStream => Stream<AuthState>.multi((listener) {
+        final cached = _lastState;
+        if (cached != null) {
+          listener.add(cached);
+        }
+        final subscription = _controller.stream.listen(
+          listener.add,
+          onError: listener.addError,
+          onDone: listener.close,
+        );
+        listener.onCancel = subscription.cancel;
+      });
+
+  void _emit(AuthState state) {
+    _lastState = state;
+    _controller.add(state);
+  }
 
   /// Bootstrap hook: emette `AuthBootstrapping` → `AuthAuthenticated` con
   /// il test user costruito dai valori `.env`.
@@ -34,7 +51,7 @@ class DevAuthTokenService extends AuthTokenService {
   /// Da chiamare esattamente una volta da `main.dart` prima di `runApp`.
   @override
   Future<void> initialize() async {
-    _controller.add(const AuthBootstrapping());
+    _emit(const AuthBootstrapping());
 
     final accessToken = dotenv.env['DEV_AUTH_ACCESS_TOKEN'] ?? '';
     final userId = dotenv.env['DEV_AUTH_USER_ID'] ?? '';
@@ -49,7 +66,7 @@ class DevAuthTokenService extends AuthTokenService {
       role: role,
     );
 
-    _controller.add(AuthAuthenticated(user: user, accessToken: accessToken));
+    _emit(AuthAuthenticated(user: user, accessToken: accessToken));
   }
 
   /// Ritorna il token di accesso corrente letto da dotenv.

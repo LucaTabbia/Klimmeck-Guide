@@ -3,6 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/auth/dev_auth_token_service.dart';
 
 /// RED — contratto AuthTokenService (DEV-AUTH-01).
 /// Questi test falliscono perché le classi sotto test non esistono ancora.
