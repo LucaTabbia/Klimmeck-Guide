@@ -1,4 +1,4 @@
-# Phase 1: Auth & Session Bootstrap - Context
+# Phase 11: Auth & Session Bootstrap - Context
 
 **Gathered:** 2026-04-13
 **Status:** Ready for planning
@@ -69,7 +69,7 @@ Out of scope for this phase: character creation flow, settings screen, notificat
 ### Project-level
 - `.planning/PROJECT.md` — Vision, constraints (single Twitch channel, OAuth-only identity).
 - `.planning/REQUIREMENTS.md` — AUTH-01..07 acceptance criteria.
-- `.planning/ROADMAP.md` §"Phase 1: Auth & Session Bootstrap" — phase goal, success criteria, dependencies.
+- `.planning/ROADMAP.md` §"Phase 11: Auth & Session Bootstrap" — phase goal, success criteria, dependencies.
 - `.planning/STATE.md` — Open questions including OAuth flow choice (now resolved here).
 
 ### Research (already produced for v1.0)
@@ -146,5 +146,5 @@ Out of scope for this phase: character creation flow, settings screen, notificat
 
 ---
 
-*Phase: 01-auth-session-bootstrap*
+*Phase: 11-auth-session-bootstrap*
 *Context gathered: 2026-04-13*

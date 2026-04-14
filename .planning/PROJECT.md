@@ -110,10 +110,10 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
   git checkout -b <prefix>/<phase-slug>
   ```
 - **Prefissi consentiti** (Conventional Commits):
-  - `feat/` — fasi che aggiungono nuove capability (es. `feat/auth-session-bootstrap`)
+  - `feat/` — fasi che aggiungono nuove capability (es. `feat/dev-auth-stub`)
   - `fix/` — fasi di bug-fix mirato
   - `refactor/` — fasi di refactor/hardening senza nuove feature visibili
-- **Slug del branch:** usare lo stesso slug della directory di fase (`.planning/phases/NN-<slug>/`), così Phase 1 → `feat/auth-session-bootstrap`.
+- **Slug del branch:** usare lo stesso slug della directory di fase (`.planning/phases/NN-<slug>/`), così Phase 1 → `feat/dev-auth-stub`.
 - **Fine fase:** aprire una **PR verso `develop`** (non verso `main`). La PR è il punto di review prima del merge — ogni fase si chiude con una PR aperta che lo streamer/dev può controllare.
 - **Niente push diretti su `develop` o `main`** durante una fase.
 

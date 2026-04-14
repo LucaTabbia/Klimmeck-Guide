@@ -25,6 +25,16 @@ Questi requirements si riferiscono ai modelli esistenti in `lib/models/`:
 
 ## v1 Requirements
 
+### Dev Auth Stub (Phase 1 — sostituita da Phase 11)
+
+Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Phase 11 sostituisce l'implementazione concreta mantenendo invariato il contratto.
+
+- [ ] **DEV-AUTH-01**: `AuthTokenService` stub espone la stessa public surface del servizio finale — `Stream<AuthState>`, `Future<String?> getAccessToken()`, `Future<void> login()`, `Future<void> logout()`, `Future<void> handleRevocation()`
+- [ ] **DEV-AUTH-02**: Lo stub legge identità e token da `.env` (`DEV_AUTH_ACCESS_TOKEN`, `DEV_AUTH_USER_ID`, `DEV_AUTH_TWITCH_ID`, `DEV_AUTH_ROLE`); niente secure storage, niente OAuth
+- [ ] **DEV-AUTH-03**: Lo stub supporta role switching via `DEV_AUTH_ROLE` (`guard | adventurer | innkeeper`) per abilitare test di fasi role-gated (Admin Panel)
+- [ ] **DEV-AUTH-04**: `login()` e `logout()` sono no-op (warning log in debug builds only); nessun sign-in screen viene costruito in questa fase
+- [ ] **DEV-AUTH-05**: `AuthTokenService` è esposto via `RepositoryProvider` sopra il `BlocProvider` tree, stesso wiring previsto per l'implementazione finale di Phase 11 (nessun consumer downstream cambia quando Phase 11 atterra)
+
 ### Authentication
 
 - [ ] **AUTH-01**: User can log in with Twitch OAuth via system browser using PKCE flow (WebView is prohibited by Twitch TOS)
@@ -188,7 +198,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement                 | Phase | Status  |
 | --------------------------- | ----- | ------- |
-| AUTH-01 through AUTH-07     | TBD   | Pending |
+| DEV-AUTH-01 through DEV-AUTH-05 | Phase 1 | Pending |
+| AUTH-01 through AUTH-07     | Phase 11 | Pending |
 | CHAR-01 through CHAR-09     | TBD   | Pending |
 | SET-01 through SET-04       | TBD   | Pending |
 | SYNC-01 through SYNC-07     | TBD   | Pending |
@@ -202,11 +213,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 **Coverage:**
 
-- v1 requirements: 74 total
-- Mapped to phases: 0 (to be filled by roadmapper)
-- Unmapped: 74 (pending roadmap)
+- v1 requirements: 79 total (74 original + 5 DEV-AUTH)
+- Mapped to phases: 12 (DEV-AUTH → Phase 1, AUTH → Phase 11); rest still TBD
+- Unmapped: 67 (pending roadmap)
 
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-04-10 after design review — clarified QUEST/TRAVEL scope, removed FE-only concerns that belong to backend, deferred accessibility_
+_Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_
