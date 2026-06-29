@@ -1,10 +1,10 @@
-# Phase 1: Auth & Session Bootstrap - Discussion Log
+# Phase 11: Auth & Session Bootstrap - Discussion Log
 
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
 **Date:** 2026-04-13
-**Phase:** 01-auth-session-bootstrap
+**Phase:** 11-auth-session-bootstrap
 **Areas discussed:** Token lifecycle, Logout teardown, Bootstrap & Splash UX, Sign-in UX + account switch
 
 ---

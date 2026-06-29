@@ -7,7 +7,7 @@ wave_0_complete: false
 created: 2026-04-13
 ---
 
-# Phase 1 — Validation Strategy
+# Phase 11 — Validation Strategy
 
 > Per-phase validation contract for feedback sampling during execution.
 

@@ -14,6 +14,7 @@ dependencies:
   #Bloc
   flutter_bloc: ^9.1.1
   equatable: ^2.0.0
+  flutter_dotenv: ^6.0.0
 
   #App Icon
   flutter_launcher_icons: ^0.14.4
@@ -21,6 +22,10 @@ dependencies:
   #HTTP
   graphql_flutter: ^5.2.1
   dio: ^5.4.0
+  gql_exec: any
+  gql_link: any
+  gql_http_link: any
+  gql: any
 
   #Firebase
   firebase_messaging: ^15.2.9
@@ -49,6 +54,8 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.5
 
 flutter_icons:
   ios: true
@@ -65,11 +72,13 @@ flutter:
   generate: true
 
   assets:
+    - .env
     - assets/
     - assets/icons/
     - assets/icons/appIcon/
     - assets/images/
     - assets/images/placeholders/
+    - .env
 
 
 

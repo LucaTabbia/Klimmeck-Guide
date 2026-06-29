@@ -145,3 +145,8 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Dev Auth env — secret locali, mai in VCS
+.env
+.env.local
+!.env.example

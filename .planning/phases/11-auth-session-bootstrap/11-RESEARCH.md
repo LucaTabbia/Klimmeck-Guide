@@ -1,4 +1,4 @@
-# Phase 1: Auth & Session Bootstrap — Research
+# Phase 11: Auth & Session Bootstrap — Research
 
 **Researched:** 2026-04-13
 **Domain:** Twitch OAuth PKCE, secure token storage, AuthTokenService, Cubit/BLoC auth state, GraphQL + WebSocket auth injection, logout teardown
@@ -579,7 +579,7 @@ Future<String> _refreshAccessToken() async {
    - Recommendation: Verificare con il backend team prima di implementare D-07. Se serve reconnect esplicito post-refresh, questo è un task separato nel piano.
 
 2. **Scope OAuth Twitch necessari**
-   - What we know: Phase 1 richiede solo identità (login). Phase 3 (sync) potrebbe richiedere scope aggiuntivi.
+   - What we know: Phase 11 richiede solo identità (login). Phase 3 (sync) potrebbe richiedere scope aggiuntivi.
    - What's unclear: Quali scope Twitch sono necessari per il game backend? `user:read:email`? Scope canale?
    - Recommendation: Definire gli scope nella `EnvConfig` come costante, non hardcoded nell'URL. Chiedere al backend team quali scope sono richiesti per il server a convalidare l'identità del viewer.
 
@@ -697,7 +697,7 @@ dev_dependencies:
 |---------------|---------|-----------------|
 | V2 Authentication | yes | PKCE + system browser (no WebView); `force_verify=true`; `state` parameter validation |
 | V3 Session Management | yes | Refresh token rotation; proactive expiry; full teardown on logout |
-| V4 Access Control | no | Phase 1 scope solo auth; gating BLoC tree è conseguenza, non enforcement ASVS |
+| V4 Access Control | no | Phase 11 scope solo auth; gating BLoC tree è conseguenza, non enforcement ASVS |
 | V5 Input Validation | yes | Validare `state` parameter nel callback OAuth; non fidarsi del `code` senza verifica `code_verifier` |
 | V6 Cryptography | yes | `Random.secure()` per `code_verifier`; SHA-256 per `code_challenge`; mai `plain` method |
 | V8 Data Protection | yes | Token solo in `flutter_secure_storage`; access token solo in memoria; mai in log |

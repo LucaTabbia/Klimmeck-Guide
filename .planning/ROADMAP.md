@@ -1,35 +1,41 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
+**Last updated:** 2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.
 **Milestone:** v1.0 Core Loop
-**Granularity:** Standard (10 phases)
-**Coverage:** 74/74 v1 requirements mapped
+**Granularity:** Standard (12 phases)
+**Coverage:** 79/79 v1 requirements mapped
 
 ## Phase Ordering Rationale
 
-The suggested ordering from the project brief is adopted with one minor deviation: **Settings + Notifications infra are split into two adjacent phases** rather than fused into one. Notifications (NOTIF) have cross-cutting runtime concerns (FCM init, tap routing via `NotificationRouter`, three-app-states handling) whose scope is substantially larger than Settings (a simple screen + `PreferencesCubit`). Keeping them separate lets the Settings phase ship fast as a parallel QA unblocker, while the Notifications phase owns the non-trivial Firebase wiring. Both still precede Quest/Travel, since those phases consume permission prompts, FCM tokens, and tap-routing surfaces.
+L'ordine originale del brief è adottato con due deviazioni:
+
+1. **Settings + Notifications sono split** in due fasi adiacenti (erano fuse). Notifications ha preoccupazioni cross-cutting (FCM init, tap routing via `NotificationRouter`, tre app states) la cui scope è molto maggiore di Settings (schermata + `PreferencesCubit`). Mantenere separate permette a Settings di shippare veloce come quick win, mentre Notifications possiede il wiring Firebase non banale. Entrambe precedono Quest/Travel perché queste fasi consumano permission prompts, FCM tokens e tap-routing.
+2. **Auth è split in due fasi**: una stub iniziale (Phase 1, "Dev Auth Stub") che fornisce `AuthTokenService` con token e identità hardcoded da `.env` — così le fasi gameplay 2–10 possono essere sviluppate e testate manualmente senza attrito OAuth — e una fase di auth reale (Phase 11, "Auth & Session Bootstrap") che sostituisce l'implementazione concreta dello stub con OAuth PKCE, secure storage, refresh mutex, logout atomico e detection della revoca esterna. La sostituzione è per costruzione trasparente: Phase 11 cambia solo l'implementazione di `AuthTokenService`, non il contratto pubblico né i consumer. Auth reale atterra prima di Hardening (che diventa Phase 12) così Phase 12 può auditare l'auth reale insieme al resto.
 
 Dependency shape:
 
 ```
-Phase 1 (Auth)
+Phase 1 (Dev Auth Stub)       ← foundational; fornisce AuthTokenService stub + identità di test
    |
-Phase 2 (Character Creation)     ← needs Auth
+Phase 2 (Character Creation)  ← needs identity token
    |
-Phase 3 (Real-Time Sync)         ← needs Auth; foundation for all reactive features
+Phase 3 (Real-Time Sync)      ← needs identity token; foundation for all reactive features
    |
-   +-- Phase 4 (Settings)        ← parallel quick win
-   +-- Phase 5 (Notifications)   ← needs Auth + Sync for FCM token sync + in-app banner model
+   +-- Phase 4 (Settings)     ← parallel quick win
+   +-- Phase 5 (Notifications)← needs identity + Sync for FCM token sync + in-app banner model
    |
-   +-- Phase 6 (Quest Accept)    ← needs Sync; needs BE prereq QUEST-04
-   +-- Phase 7 (Travel)          ← needs Sync + Notifications; needs BE prereq TRAVEL-01
-   +-- Phase 8 (Spells)          ← needs Sync; self-contained, parallelizable with 6/7
+   +-- Phase 6 (Quest Accept) ← needs Sync; needs BE prereq QUEST-04
+   +-- Phase 7 (Travel)       ← needs Sync + Notifications; needs BE prereq TRAVEL-01
+   +-- Phase 8 (Spells)       ← needs Sync; self-contained, parallelizable with 6/7
    |
-Phase 9 (Combat Result)          ← needs Sync + Notifications + Spells (for spell list in payload)
+Phase 9 (Combat Result)       ← needs Sync + Notifications + Spells
    |
-Phase 10 (Admin Panel)           ← needs Sync; built after quests/travel are flowing
+Phase 10 (Admin Panel)        ← needs Sync; built after quests/travel flowing
    |
-Phase 11 (Hardening)             ← always last
+Phase 11 (Auth & Session)     ← sostituisce l'implementazione di AuthTokenService con OAuth reale
+   |
+Phase 12 (Hardening)          ← always last; auditing include auth reale
 ```
 
 ## UX Principles (non-phase, cross-cutting)
@@ -49,7 +55,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ## Phases
 
-- [ ] **Phase 1: Auth & Session Bootstrap** — Twitch OAuth identity, secure token storage, refresh/logout, and `AuthTokenService` wired above the BLoC tree.
+- [ ] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [ ] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell.
 - [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
@@ -59,29 +65,34 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
-- [ ] **Phase 11: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
+- [ ] **Phase 11: Auth & Session Bootstrap** — Twitch OAuth identity, secure token storage, refresh/logout, `AuthTokenService` reale che sostituisce lo stub di Phase 1 senza cambiare il contratto. 5 plan già pronti.
+- [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 ## Phase Details
 
-### Phase 1: Auth & Session Bootstrap
-**Goal**: User can log in with their Twitch account, the session persists safely across restarts, and logout fully tears down state. Identity becomes available to every downstream phase.
+### Phase 1: Dev Auth Stub
+**Goal**: Fornire un `AuthTokenService` stub con la stessa public surface del servizio finale (vedi Phase 11), backed da `.env`. Ogni fase downstream consuma l'auth service reale-per-contratto; Phase 11 atterrerà sostituendo solo l'implementazione.
 **Depends on**: Nothing (foundational)
-**Scope**: M
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
+**Scope**: S
+**Requirements**: DEV-AUTH-01, DEV-AUTH-02, DEV-AUTH-03, DEV-AUTH-04, DEV-AUTH-05
 **Success Criteria** (what must be TRUE):
-  1. A new user can complete Twitch OAuth via the system browser (PKCE, no WebView) and land in the app authenticated.
-  2. After killing and relaunching the app, the previous session resumes without re-prompting for Twitch credentials.
-  3. Logging out returns the user to sign-in, and no tokens, GraphQL cache entries, or subscriptions from the previous session survive.
-  4. Logging in with a different Twitch account after logout cleanly swaps the identity with no bleed-through from the previous account.
-  5. If the user revokes the app externally on Twitch, the next authenticated request detects the invalidation and returns the user to sign-in with a clear message.
+  1. `AuthTokenService` espone `Stream<AuthState>`, `getAccessToken()`, `login()`, `logout()`, `handleRevocation()` identici al contratto finale di Phase 11.
+  2. Al cold start lo stub legge `.env` e emette immediatamente `Authenticated` con il test user; `getAccessToken()` ritorna il token hardcoded.
+  3. Cambiare `DEV_AUTH_ROLE` in `.env` (tra `guard`, `adventurer`, `innkeeper`) e rilanciare l'app produce un User con quel role, permettendo il test di fasi role-gated (Admin Panel).
+  4. `login()` e `logout()` sono no-op (log di warning in debug builds solamente); nessun sign-in screen viene mostrato in questa fase.
+  5. `AuthTokenService` è wire-ato via `RepositoryProvider` sopra il `BlocProvider` tree; il GraphQL client e il `dio` interceptor consumano il token tramite `getAccessToken()` — stesso pattern di Phase 11.
 **Decisions to make during discuss step**:
-  - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md).
-  - Secure storage wrapper (`flutter_secure_storage` wrapper service shape).
-**Plans**: TBD
+  - Scelta package `.env` (dotenv / flutter_dotenv) — probabilmente `flutter_dotenv`, già uso comune.
+  - Naming finale del service class (`AuthTokenService` è il contratto; la concrete stub class può chiamarsi `DevAuthTokenService` e essere la sola registrata quando `DEV_AUTH_ENABLED=true`).
+**Plans**: 3 plans
+  - [x] 01-01-PLAN.md — Wave 0: install flutter_dotenv + bloc_test + mocktail, register .env asset, scaffold RED test stubs
+  - [x] 01-02-PLAN.md — AuthTokenService contract + AuthState sealed + DevAuthTokenService (.env-backed stub) + EnvConfig.devAuthEnabled flag
+  - [x] 01-03-PLAN.md — Wiring: RepositoryProvider + dio AuthInterceptor + graphql AuthLink + main.dart dotenv.load
+**Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
 
 ### Phase 2: Character Creation
 **Goal**: A logged-in user with no character is routed into a multi-step creation flow and exits into the main tab shell with a valid `currentCharacter`.
-**Depends on**: Phase 1 (requires an authenticated User)
+**Depends on**: Phase 1 (requires an authenticated User, stub or real)
 **Scope**: M
 **Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06, CHAR-07, CHAR-08, CHAR-09
 **Success Criteria** (what must be TRUE):
@@ -98,7 +109,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ### Phase 3: Real-Time Sync Foundation
 **Goal**: Live `User` and `Character` GraphQL subscriptions are established session-wide so that every downstream feature consumes authoritative state reactively, with silent reconnect and clean teardown.
-**Depends on**: Phase 1 (needs authenticated token for `connection_init`), Phase 2 (needs a real `currentCharacter.id` for the Character subscription)
+**Depends on**: Phase 1 (needs an auth token for `connection_init`, stub or real), Phase 2 (needs a real `currentCharacter.id` for the Character subscription)
 **Scope**: M
 **Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, SYNC-06, SYNC-07
 **Success Criteria** (what must be TRUE):
@@ -114,13 +125,13 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ### Phase 4: Settings Screen
 **Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
-**Depends on**: Phase 1 (logout wiring), Phase 3 (not strictly required, but SET shares infra with NOTIF)
+**Depends on**: Phase 1 (logout wiring — in Phase 1 è no-op; Phase 11 sostituirà con logout reale), Phase 3 (not strictly required, but SET shares infra with NOTIF)
 **Scope**: S
 **Requirements**: SET-01, SET-02, SET-03, SET-04
 **Success Criteria** (what must be TRUE):
   1. User can reach a Settings screen from the main menu.
   2. User can individually toggle travel-end, streamer-live, and quest-end notification categories.
-  3. User can log out from Settings and is returned to sign-in (delegates to the Phase 1 atomic logout path).
+  3. User can log out from Settings and is returned to sign-in (in Phase 1 stub: no-op + log; con Phase 11 atterrato: logout atomico reale).
   4. Notification preferences survive app kill/restart.
 **Decisions to make during discuss step**:
   - Storage backend for preferences (shared_preferences is acceptable here — these are non-sensitive).
@@ -130,7 +141,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ### Phase 5: Notifications Infrastructure
 **Goal**: The app receives and displays push + in-app notifications for travel end, streamer live, and quest end across all three app states, with permission requested contextually and taps routed uniformly to the Map tab.
-**Depends on**: Phase 1 (auth for FCM token sync), Phase 3 (backend identifies the device/user; in-app banner feeds off the Character subscription where applicable), Phase 4 (respects per-category toggles)
+**Depends on**: Phase 1 (auth token for FCM token sync), Phase 3 (backend identifies the device/user; in-app banner feeds off the Character subscription where applicable), Phase 4 (respects per-category toggles)
 **Scope**: M
 **Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08
 **Success Criteria** (what must be TRUE):
@@ -215,7 +226,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ### Phase 10: Admin Panel (innkeeper)
 **Goal**: When `User.role == innkeeper`, the streamer has a dedicated admin surface to review and approve/reject pending story/worldMission requests, teleport characters, and assign monsters/grade/rewards/injuries as combat outcomes — with every mutation enforced server-side and audit-logged.
-**Depends on**: Phase 1 (auth), Phase 3 (`role` and real-time pending request data), Phase 6 (real quest data flowing), Phase 7 (`activeTravel` filtering)
+**Depends on**: Phase 1 (auth, stub o reale), Phase 3 (`role` and real-time pending request data), Phase 6 (real quest data flowing), Phase 7 (`activeTravel` filtering)
 **Scope**: L
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
 **Success Criteria** (what must be TRUE):
@@ -232,9 +243,31 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 11: Hardening
+### Phase 11: Auth & Session Bootstrap
+**Goal**: Sostituire il `DevAuthTokenService` di Phase 1 con un'implementazione reale OAuth PKCE: login Twitch via system browser, secure token storage, refresh mutex, logout atomico, detection della revoca esterna. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia.
+**Depends on**: Phase 1 (fornisce il contratto che questa fase soddisfa con l'implementazione reale). Tutte le fasi 2–10 si devono essere integrate con `AuthTokenService` via lo stub, in modo che la sostituzione sia drop-in.
+**Scope**: M
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
+**Success Criteria** (what must be TRUE):
+  1. A new user can complete Twitch OAuth via the system browser (PKCE, no WebView) and land in the app authenticated.
+  2. After killing and relaunching the app, the previous session resumes without re-prompting for Twitch credentials.
+  3. Logging out returns the user to sign-in, and no tokens, GraphQL cache entries, or subscriptions from the previous session survive.
+  4. Logging in with a different Twitch account after logout cleanly swaps the identity with no bleed-through from the previous account.
+  5. If the user revokes the app externally on Twitch, the next authenticated request detects the invalidation and returns the user to sign-in with a clear message.
+  6. La sostituzione di `DevAuthTokenService` → `AuthTokenService` reale non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
+**Decisions to make during discuss step**:
+  - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md) — già pre-deciso nei plan esistenti, da confermare.
+  - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
+**Plans**: 5 plans (pre-esistenti, elaborati nella vecchia Phase 1 e migrati qui senza modifiche di contenuto)
+  - [ ] 11-01-PLAN.md — Wave 0: dependencies + platform manifests + TDD scaffolding
+  - [ ] 11-02-PLAN.md — AuthTokenService core (SecureStorage, PKCE, TwitchApi, refresh mutex, bootstrap/login/logout)
+  - [ ] 11-03-PLAN.md — GraphqlClientProvider auth-aware + AuthDioInterceptor (401 refresh retry, client recreate)
+  - [ ] 11-04-PLAN.md — AuthCubit + SignInCubit + LogoutConfirmationDialog
+  - [ ] 11-05-PLAN.md — main.dart restructure + SplashCubit gate + SignInScreen + AuthGate + BACKEND-NOTES + manual E2E checkpoint
+
+### Phase 12: Hardening
 **Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
-**Depends on**: All prior phases feature-complete
+**Depends on**: All prior phases feature-complete (incluso Phase 11 che rimpiazza lo stub con auth reale)
 **Scope**: L
 **Requirements**: HARDEN-01, HARDEN-02, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-06
 **Success Criteria** (what must be TRUE):
@@ -243,6 +276,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   3. An automated test demonstrates that logout is atomic end-to-end: Twitch token revoked, secure storage cleared, GraphQL cache reset, subscriptions cancelled, cubits reset, navigation to sign-in — all verified in a single flow.
   4. A concurrency test confirms that two simultaneous 401 responses produce exactly one refresh call (mutex-guarded), with no silent logout.
   5. A memory profiler run after logout shows no retained subscriptions or owning blocs; a dual-device test (same Twitch account on two devices) shows graceful identity/subscription conflict handling with no state corruption on the client.
+  6. Audit aggiuntivo: nessun riferimento residuo a `DevAuthTokenService` / `DEV_AUTH_*` nel codice di produzione; il flag `DEV_AUTH_ENABLED` in `.env` è rimosso dai build release.
 **Decisions to make during discuss step**:
   - Concrete test harness(es) for memory profiling and dual-device simulation.
 **Plans**: TBD
@@ -251,7 +285,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Auth & Session Bootstrap | 0/0 | Not started | - |
+| 1. Dev Auth Stub | 0/3 | Planned | - |
 | 2. Character Creation | 0/0 | Not started | - |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
@@ -261,19 +295,18 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Hardening | 0/0 | Not started | - |
+| 11. Auth & Session Bootstrap | 0/5 | Planned | - |
+| 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
-| AUTH-06 | Phase 1 | Pending |
-| AUTH-07 | Phase 1 | Pending |
+| DEV-AUTH-01 | Phase 1 | Pending |
+| DEV-AUTH-02 | Phase 1 | Pending |
+| DEV-AUTH-03 | Phase 1 | Pending |
+| DEV-AUTH-04 | Phase 1 | Pending |
+| DEV-AUTH-05 | Phase 1 | Pending |
 | CHAR-01 | Phase 2 | Pending |
 | CHAR-02 | Phase 2 | Pending |
 | CHAR-03 | Phase 2 | Pending |
@@ -335,15 +368,23 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | ADMIN-06 | Phase 10 | Pending |
 | ADMIN-07 | Phase 10 | Pending |
 | ADMIN-08 | Phase 10 | Pending |
-| HARDEN-01 | Phase 11 | Pending |
-| HARDEN-02 | Phase 11 | Pending |
-| HARDEN-03 | Phase 11 | Pending |
-| HARDEN-04 | Phase 11 | Pending |
-| HARDEN-05 | Phase 11 | Pending |
-| HARDEN-06 | Phase 11 | Pending |
+| AUTH-01 | Phase 11 | Pending |
+| AUTH-02 | Phase 11 | Pending |
+| AUTH-03 | Phase 11 | Pending |
+| AUTH-04 | Phase 11 | Pending |
+| AUTH-05 | Phase 11 | Pending |
+| AUTH-06 | Phase 11 | Pending |
+| AUTH-07 | Phase 11 | Pending |
+| HARDEN-01 | Phase 12 | Pending |
+| HARDEN-02 | Phase 12 | Pending |
+| HARDEN-03 | Phase 12 | Pending |
+| HARDEN-04 | Phase 12 | Pending |
+| HARDEN-05 | Phase 12 | Pending |
+| HARDEN-06 | Phase 12 | Pending |
 
-**Coverage:** 74 / 74 v1 requirements mapped. No orphans. No duplicates.
+**Coverage:** 79 / 79 v1 requirements mapped. No orphans. No duplicates.
 
 ---
 
 _Roadmap created: 2026-04-10_
+_Last restructured: 2026-04-14 — Auth split in Phase 1 (Dev Auth Stub) + Phase 11 (full OAuth); Hardening shifted to Phase 12_
