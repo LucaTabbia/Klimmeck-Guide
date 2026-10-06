@@ -22,6 +22,7 @@ class CharacterCubit extends Cubit<CharacterState>
     emit(CharacterLoading());
     try {
       final character = await api.getCharacter(id);
+      if (isClosed) return;
       emit(CharacterLoaded(character));
       subscribeToCharacter(id);
     } catch (e) {
