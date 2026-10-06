@@ -49,6 +49,7 @@ Refresh:
 - **Reattivo, retry una sola volta:** su `UNAUTHENTICATED` (GraphQL) o HTTP 401 (REST) dopo aver rifiutato il token inviato; su WS 4401/4403 (vedi §4).
 - **Terminale:** solo `SESSION_EXPIRED` e `SESSION_REVOKED` sul refresh -> storage svuotato, teardown dei client, sign-in con "La sessione e' scaduta, accedi di nuovo."
 - **Transitorio (mai wipe ne' logout):** `UNAUTHENTICATED`, `BAD_REQUEST`, HTTP 401, 5xx, rete, timeout, codici sconosciuti -> retry con backoff (cold start cap 30 s, proattivo cap 60 s). Al cold start l'utente vede "Accedi manualmente" dopo 10 s.
+- **Storage cifrato illeggibile al cold start** (es. iOS prima del primo sblocco, avvio in background): nessuna sessione per quell'avvio, sign-in, ma il refresh token NON viene cancellato; l'avvio successivo lo riprova. Il BE può quindi ricevere un `refreshSession` con un token rimasto inutilizzato a lungo (risposta attesa: sessione valida o `SESSION_EXPIRED`).
 
 ## 4. WebSocket
 

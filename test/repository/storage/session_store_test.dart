@@ -51,32 +51,29 @@ void main() {
       expect(await store.readRefreshToken(), isNull);
     });
 
-    test('a throwing read means no session and wipes the storage', () async {
+    test('a throwing read means no session now and wipes nothing', () async {
       givenPrefs({markerKey: true});
       final storage = MockFlutterSecureStorage();
       when(
         () => storage.read(key: any(named: 'key')),
-      ).thenThrow(PlatformException(code: 'keystore_lost'));
+      ).thenThrow(PlatformException(code: '-25308'));
       when(() => storage.deleteAll()).thenAnswer((_) async {});
+      when(
+        () => storage.delete(key: any(named: 'key')),
+      ).thenAnswer((_) async {});
 
       expect(
         await SecureSessionStore(storage: storage).readRefreshToken(),
         isNull,
       );
-      verify(() => storage.deleteAll()).called(1);
+      verifyNever(() => storage.deleteAll());
+      verifyNever(() => storage.delete(key: any(named: 'key')));
     });
 
-    test('a throwing read and a throwing wipe still yield null', () async {
-      givenPrefs({markerKey: true});
-      final storage = MockFlutterSecureStorage();
-      when(
-        () => storage.read(key: any(named: 'key')),
-      ).thenThrow(PlatformException(code: 'keystore_lost'));
-      when(() => storage.deleteAll()).thenThrow(PlatformException(code: 'x'));
-
+    test('android plugin resets only unrecoverable storage', () {
       expect(
-        await SecureSessionStore(storage: storage).readRefreshToken(),
-        isNull,
+        SecureSessionStore.defaultStorage.aOptions.toMap()['resetOnError'],
+        'true',
       );
     });
 

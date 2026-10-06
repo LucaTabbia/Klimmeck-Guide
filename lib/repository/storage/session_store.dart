@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,14 +23,22 @@ class SecureSessionStore implements SessionStore {
   SecureSessionStore({
     FlutterSecureStorage? storage,
     Future<SharedPreferences> Function()? preferences,
-  }) : _storage =
-           storage ??
-           const FlutterSecureStorage(
-             iOptions: IOSOptions(
-               accessibility: KeychainAccessibility.first_unlock_this_device,
-             ),
-           ),
+  }) : _storage = storage ?? defaultStorage,
        _preferences = preferences ?? SharedPreferences.getInstance;
+
+  /// `resetOnError` è esplicito: in `flutter_secure_storage` 10.3.4 il plugin
+  /// Android cancella i dati solo quando la chiave AES salvata non si può più
+  /// decifrare (chiave Keystore persa o invalidata, migrazione fallita) o
+  /// quando un valore già cifrato non si decifra più. Gli errori transitori
+  /// del Keystore all'inizializzazione arrivano come errore, senza wipe. Con
+  /// `false` una chiave persa renderebbe lo storage inutilizzabile per sempre,
+  /// anche in scrittura dopo un nuovo login.
+  static const FlutterSecureStorage defaultStorage = FlutterSecureStorage(
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+    aOptions: AndroidOptions(resetOnError: true),
+  );
 
   static const String refreshTokenKey = 'klimmeck.session.refresh_token';
   static const String firstLaunchDoneKey = 'klimmeck.session.first_launch_done';
@@ -38,13 +47,17 @@ class SecureSessionStore implements SessionStore {
   final Future<SharedPreferences> Function() _preferences;
   bool _firstLaunchChecked = false;
 
+  /// Una lettura fallita significa "nessuna sessione disponibile ora", mai
+  /// "sessione da cancellare" (D-09): può essere transitoria (iOS
+  /// `errSecInteractionNotAllowed` prima del primo sblocco). Il prossimo
+  /// login sovrascrive comunque la chiave.
   @override
   Future<String?> readRefreshToken() async {
     await _wipeIfFirstLaunch();
     try {
       return await _storage.read(key: refreshTokenKey);
-    } catch (_) {
-      await _clearQuietly();
+    } catch (error) {
+      debugPrint('[SessionStore] session read failed: ${error.runtimeType}');
       return null;
     }
   }
@@ -69,7 +82,7 @@ class SecureSessionStore implements SessionStore {
     try {
       await _storage.deleteAll();
     } catch (_) {
-      // Storage irrecuperabile: si prosegue comunque senza sessione.
+      // Wipe del primo avvio non riuscito: si prosegue comunque.
     }
   }
 }
