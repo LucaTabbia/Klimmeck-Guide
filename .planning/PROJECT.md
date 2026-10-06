@@ -42,12 +42,13 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ UI negozi (shop) per acquisto equipaggiamento, cibo, oggetti — existing
 - ✓ Sezione lore (library) senza link ipertestuali — existing
 - ✓ UI lista quest nel tab board — existing (quasi definitiva, solo layout info per tipo mancanti)
+- ✓ Contratto `AuthTokenService` + stub dev backed da `.env` (bypass dell'autenticazione per sviluppo e QA) — Validated in Phase 1: Dev Auth Stub
+- ✓ Sessione reale contro il backend: login Twitch via browser di sistema mediato dal BE (ticket monouso + challenge S256), refresh token in storage cifrato, refresh single-flight e proattivo, retry trasparente su HTTP/REST, ri-autenticazione WebSocket, logout atomico, `AuthGate` (Splash → SignIn → shell autenticata) — Validated in Phase 11: Auth & Session Bootstrap (login reale su device da verificare all'arrivo delle chiavi Twitch; lo stub dev resta selezionabile fino a Phase 12)
 
 ### Active
 
 **v1.0 Core Loop (in corso):**
 
-- [ ] Login OAuth Twitch con persistenza account ID + refresh token handling + logout/switch account
 - [ ] Sezione Impostazioni (nuova) — logout + setting notifiche
 - [ ] Sync utente via GraphQL subscription (punti canale, valuta, stato personaggio)
 - [ ] Gesture swipe-left "strappa foglio" per accettare quest nel tab board (tutti i tipi)
@@ -130,6 +131,8 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
 | Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | — Pending |
 | Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
+| Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme: l'app non può completare l'OAuth da sola. Il BE custodisce il secret ed emette access JWT + refresh token; l'app non vede mai un token Twitch | ✓ Good — Phase 11 (2026-10-06) |
+| Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |
 
 ## Evolution
 
@@ -152,4 +155,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-04-10 — milestone v1.0 Core Loop started_
+_Last updated: 2026-10-06 — after Phase 11 completion (auth & session bootstrap; dev bypass kept until the Twitch keys arrive)_
