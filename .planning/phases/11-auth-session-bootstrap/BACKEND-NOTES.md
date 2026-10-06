@@ -16,7 +16,7 @@ L'app è un client di sessione first-party. Non possiede alcuna chiave né token
 | `GET {BASE_URL}auth/twitch/start?challenge=<S256>` | browser di sistema (`flutter_web_auth_2`, callback scheme `klimmeck`) | nessuna | tap su "Login con Twitch" (nuova coppia verifier/challenge a ogni tentativo) | `error=access_denied` o chiusura del browser = silenzioso; `twitch_not_configured` = "Login con Twitch non ancora disponibile."; ogni altro `error` / callback malformato = errore generico, riprovare |
 | `ExchangeLoginTicket($ticket, $codeVerifier)` | GraphQL HTTP, client dedicato | nessun bearer | subito dopo il deep link `klimmeck://auth?ticket=` | `LOGIN_TICKET_INVALID` = errore generico in UI (si riparte con nuova coppia); rete/5xx = errore di connessione con retry manuale |
 | `RefreshSession($refreshToken)` | GraphQL HTTP, client dedicato | nessun bearer (il refresh token e' l'argomento) | cold start (a ogni avvio con sessione salvata), proattivo, reattivo (vedi §3) | solo `SESSION_EXPIRED` / `SESSION_REVOKED` terminali; tutto il resto transitorio |
-| `Logout` | GraphQL HTTP | bearer corrente (rinnovato prima via `getAccessToken()` se scaduto, D-36) | azione esplicita di logout (entry point UI: Phase 4, Settings) | timeout 4 s, best-effort: offline o in errore la sessione locale viene comunque chiusa e quella server muore per scadenza |
+| `Logout` | GraphQL HTTP | bearer della sessione che esce; se scaduto, prima un `refreshSession` col suo refresh token (D-36), fuori dal single-flight | azione esplicita di logout (entry point UI: Phase 4, Settings) | timeout 4 s, best-effort: offline o in errore la sessione locale viene comunque chiusa e quella server muore per scadenza. `SESSION_EXPIRED`/`SESSION_REVOKED` su quel refresh = chiamata saltata, esito locale sempre "uscito" (mai "sessione scaduta"). Se il refresh finisce dopo il timeout la chiamata `logout` viene saltata: l'app non invia mai il bearer di una sessione nata dopo |
 | `GetMe` | GraphQL HTTP | bearer | solo stub dev, per allineare l'utente dev | timeout 3 s, fallback ai valori `.env` |
 | REST Cloudinary (`/cloudinary/*`) | dio | bearer | come prima di Phase 11 | su HTTP 401 un solo refresh single-flight e un retry |
 
@@ -77,7 +77,7 @@ Comportamento: cold start autenticato; `logout` -> sign-in; "Login con Twitch" r
 
 Risposte dal BACKEND-NOTES BE Phase 2 (chiuse):
 - Refresh token malformato/sconosciuto -> `SESSION_EXPIRED` (non `BAD_REQUEST`/`UNAUTHENTICATED`): **confermato** (§2 BE). L'app e' allineata.
-- `logout` con solo refresh token: **non supportato**, serve access token valido (§2 BE). L'app rinnova prima via `getAccessToken()`.
+- `logout` con solo refresh token: **non supportato**, serve access token valido (§2 BE). L'app rinnova prima con un `refreshSession` dedicato al logout. Nota per la reuse detection: se in quel momento un refresh proattivo/reattivo è già in volo, il refresh del logout riusa lo stesso refresh token entro pochi secondi (dentro la finestra di grazia di 30 s); il token ruotato non viene persistito perché lo storage viene svuotato subito dopo.
 - Contratto `connection_init` / close code: **chiuso** (§4 BE).
 - Nomi e tipi delle operazioni, `preferEphemeral`, comportamento post-refresh: **chiusi** (§1, §2, §6 BE).
 

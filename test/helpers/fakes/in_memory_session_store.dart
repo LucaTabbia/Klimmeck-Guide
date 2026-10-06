@@ -5,6 +5,7 @@ class InMemorySessionStore implements SessionStore {
 
   String? _refreshToken;
   int writes = 0;
+  int clears = 0;
   bool failNextWrite = false;
 
   String? get refreshToken => _refreshToken;
@@ -23,5 +24,8 @@ class InMemorySessionStore implements SessionStore {
   }
 
   @override
-  Future<void> clear() async => _refreshToken = null;
+  Future<void> clear() async {
+    clears++;
+    _refreshToken = null;
+  }
 }

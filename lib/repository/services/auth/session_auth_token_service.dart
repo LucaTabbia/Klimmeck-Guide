@@ -143,10 +143,16 @@ class SessionAuthTokenService extends AuthTokenService
   /// backend, limitata da `logoutTimeout` (D-13: offline o backend lento non
   /// bloccano), (2–3) teardown iniettato (subscription e client GraphQL),
   /// (4) storage svuotato, (5) `AuthUnauthenticated(signedOut)`.
-  /// Non lancia mai.
+  ///
+  /// La sessione viene staccata dal servizio prima del passo (1): nessun
+  /// refresh in volo o successivo può chiuderla come `sessionExpired`, quindi
+  /// il logout emette un solo stato terminale ed esegue teardown e pulizia
+  /// dello storage una sola volta. L'access token resta leggibile fino al
+  /// teardown, senza più essere rinnovato. Non lancia mai.
   @override
   Future<void> logout() async {
-    final backendStep = _invalidateBackendSession();
+    final closing = _detachSession();
+    final backendStep = _invalidateBackendSession(closing);
     await backendStep.timeout(_logoutTimeout, onTimeout: _logLogoutTimeout);
     await _endSession(UnauthenticatedReason.signedOut);
   }
@@ -398,18 +404,52 @@ class SessionAuthTokenService extends AuthTokenService
     _refreshAt = null;
   }
 
-  /// D-36: passa da [getAccessToken], quindi un access scaduto viene prima
-  /// rinnovato; senza token valido la chiamata è saltata. Mai bloccante.
-  /// Se la sessione non è più quella corrente (timeout scaduto, nuovo login)
-  /// la chiamata è saltata: non revoca mai una sessione successiva.
-  Future<void> _invalidateBackendSession() async {
-    final epoch = _epoch;
+  /// Ferma timer e refresh in volo e rende la sessione non più rinnovabile;
+  /// ritorna le sue credenziali per la chiamata di logout al backend.
+  _ClosingSession _detachSession() {
+    final accessToken = _accessToken;
+    final hasFreshAccessToken = _hasFreshAccessToken;
+    final refreshToken = _refreshToken;
+    _supersedeSession();
+    _refreshToken = null;
+    return (
+      epoch: _epoch,
+      accessToken: accessToken,
+      hasFreshAccessToken: hasFreshAccessToken,
+      refreshToken: refreshToken,
+    );
+  }
+
+  /// Passo (1) del logout, mai bloccante. Saltato senza token valido, o se la
+  /// sessione che fa logout è già stata chiusa (timeout scaduto, nuovo
+  /// login): non revoca mai una sessione successiva.
+  Future<void> _invalidateBackendSession(_ClosingSession closing) async {
     try {
-      final accessToken = await getAccessToken();
-      if (accessToken == null || epoch != _epoch) return;
+      final accessToken = await _backendLogoutToken(closing);
+      if (accessToken == null || closing.epoch != _epoch) return;
       await _api.logout(accessToken);
     } catch (error) {
       debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
+    }
+  }
+
+  /// D-36: un access scaduto viene prima rinnovato col refresh token della
+  /// sessione che fa logout. Fuori dal single-flight: un rifiuto salta la
+  /// chiamata al backend invece di chiudere la sessione come `sessionExpired`;
+  /// un errore transitorio ripiega sull'access precedente. Il refresh token
+  /// ruotato non viene persistito: lo storage sta per essere svuotato.
+  Future<String?> _backendLogoutToken(_ClosingSession closing) async {
+    final refreshToken = closing.refreshToken;
+    if (closing.hasFreshAccessToken || refreshToken == null) {
+      return closing.accessToken;
+    }
+    try {
+      final session = await _api.refreshSession(refreshToken);
+      return session.accessToken;
+    } on SessionRejected {
+      return null;
+    } catch (_) {
+      return closing.accessToken;
     }
   }
 
@@ -446,6 +486,15 @@ class SessionAuthTokenService extends AuthTokenService
 }
 
 const String _networkFailureCode = 'network';
+
+/// Sessione staccata da `logout()`. `epoch` è quella in cui il logout è in
+/// corso, prima che `_endSession` la chiuda.
+typedef _ClosingSession = ({
+  int epoch,
+  String? accessToken,
+  bool hasFreshAccessToken,
+  String? refreshToken,
+});
 
 const _SessionSuperseded _superseded = _SessionSuperseded();
 

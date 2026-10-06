@@ -224,6 +224,52 @@ void main() {
       });
     });
 
+    test('a rejected refresh ends the session once, as signed out', () {
+      fakeAsync((async) {
+        var clock = testNow;
+        when(() => api.refreshSession('r1')).thenAnswer(
+          (_) async => throw const SessionRejected(sessionRevokedCode),
+        );
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+        final statesBefore = states.length;
+
+        logoutNow(service, async);
+
+        expect(states.sublist(statesBefore), [_signedOut]);
+        verify(() => teardown()).called(1);
+        expect(store.clears, 1);
+        verifyNever(() => api.logout(any()));
+        expect(tokenNow(service, async), isNull);
+        service.dispose();
+      });
+    });
+
+    test('a proactive refresh rejected during logout ends the session '
+        'once, as signed out', () {
+      fakeAsync((async) {
+        final pendingRefresh = Completer<AuthSession>();
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) => pendingRefresh.future);
+        final service = startService(async);
+        async.elapse(_proactiveDelay);
+        verify(() => api.refreshSession('r1')).called(1);
+        final statesBefore = states.length;
+
+        final isDone = startLogout(service);
+        async.flushMicrotasks();
+        pendingRefresh.completeError(const SessionRejected(sessionRevokedCode));
+        async.flushMicrotasks();
+
+        expect(isDone(), isTrue);
+        expect(states.sublist(statesBefore), [_signedOut]);
+        verify(() => teardown()).called(1);
+        expect(store.clears, 1);
+        service.dispose();
+      });
+    });
+
     test('a transient refresh failure still completes the teardown', () {
       fakeAsync((async) {
         var clock = testNow;
