@@ -259,12 +259,18 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Decisions to make during discuss step**:
   - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md) — già pre-deciso nei plan esistenti, da confermare.
   - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
-**Plans**: 5 plans (pre-esistenti, elaborati nella vecchia Phase 1 e migrati qui senza modifiche di contenuto)
-  - [ ] 11-01-PLAN.md — Wave 0: dependencies + platform manifests + TDD scaffolding
-  - [ ] 11-02-PLAN.md — AuthTokenService core (SecureStorage, PKCE, TwitchApi, refresh mutex, bootstrap/login/logout)
-  - [ ] 11-03-PLAN.md — GraphqlClientProvider auth-aware + AuthDioInterceptor (401 refresh retry, client recreate)
-  - [ ] 11-04-PLAN.md — AuthCubit + SignInCubit + LogoutConfirmationDialog
-  - [ ] 11-05-PLAN.md — main.dart restructure + SplashCubit gate + SignInScreen + AuthGate + BACKEND-NOTES + manual E2E checkpoint
+**Plans**: 11 plans (ripianificati il 2026-10-06 sul login mediato dal backend; esecuzione sequenziale, una wave per plan)
+  - [ ] 11-01-PLAN.md — Wave 0: dipendenze (flutter_web_auth_2, flutter_secure_storage 10, crypto, fake_async), AGP 8.9.1, manifest Android, .env.example, helper di test
+  - [ ] 11-02-PLAN.md — Primitive di dominio: AuthSession, LoginChallenge S256, durata JWT, parser callback, browser authenticator, AuthUnauthenticated.reason, UnauthorizedRecovery, AuthStateChannel
+  - [ ] 11-03-PLAN.md — SessionStore cifrato + documenti GraphQL auth + BackendAuthApi su client dedicato con mapping errori
+  - [ ] 11-04-PLAN.md — Dev stub: transizioni login/logout/revoca, DEV_AUTH_START_SIGNED_OUT, allineamento via `me`
+  - [ ] 11-05-PLAN.md — SessionAuthTokenService: bootstrap cold start, refresh single-flight + proattivo, revoca sul refresh, login via browser + ticket
+  - [ ] 11-06-PLAN.md — SessionAuthTokenService: recoverFromUnauthorized, handleRevocation, logout atomico best-effort
+  - [ ] 11-07-PLAN.md — AuthAuthLink e AuthInterceptor con retry-once dopo UNAUTHENTICATED/401
+  - [ ] 11-08-PLAN.md — WsReconnectPolicy (token corrente, 4401/4403) + GraphQLClientHolder + buildGraphQLConnection
+  - [ ] 11-09-PLAN.md — AuthCubit + SignInCubit/SignInScreen + LogoutConfirmationDialog
+  - [ ] 11-10-PLAN.md — Splash gate (hint 10 s) + AuthGate + AuthenticatedShell + composition root in main.dart
+  - [ ] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
 
 ### Phase 12: Hardening
 **Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
