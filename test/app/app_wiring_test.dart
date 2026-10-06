@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// RED — RepositoryProvider wiring (DEV-AUTH-05).
-/// Diventerà GREEN dopo Plan 03.
-class MockAuthTokenService extends Mock implements AuthTokenService {}
+import '../helpers/mocks.dart';
+import '../helpers/test_app.dart';
 
 void main() {
   group('App wiring — AuthTokenService RepositoryProvider', () {
@@ -34,5 +33,20 @@ void main() {
         expect(capturedService, same(mockService));
       },
     );
+  });
+
+  testWidgets('buildTestApp renderizza testo col tema senza scaricare font', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestApp(
+        home: Scaffold(
+          body: Text('ciao', style: KlimmeckGuideTheme.instance.titleMedium),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('ciao'), findsOneWidget);
   });
 }
