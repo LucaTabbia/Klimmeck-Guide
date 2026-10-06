@@ -161,3 +161,52 @@
 - Multi-device / multi-session policies (Phase 11).
 - Biometric gate.
 - Refresh-on-resume da AppLifecycleState.
+
+---
+
+# Amendment — 2026-10-06 (auto mode)
+
+> Sessione di aggiornamento del contesto, senza domande interattive. Unico input diretto dell'utente: la direttiva sul bypass riportata sotto.
+
+**Direttiva utente (testuale):** "Per quanto riguarda cosa come la login su Twitch (di cui non abbiamo ancora le chiavi) per adesso inizia l'implementazione, ma permetti di bypassare il tutto finché non si ha tutto il necessario."
+
+## Perché il contesto è cambiato
+
+| Fatto | Fonte | Effetto |
+|-------|-------|---------|
+| Twitch non supporta PKCE; l'authorization code grant richiede `client_secret` | `dev.twitch.tv/docs/authentication/getting-tokens-oauth/`, verificato 2026-10-06 | D-15 ("PKCE locked") non è realizzabile dall'app |
+| Il BE ha scelto un JWT di sessione proprio | `Klimmeck-Guide-BE/.planning/PROJECT.md` Key Decisions, BE Phase 2 CONTEXT | L'app non parla più con Twitch: refresh, validate e revoke passano dal BE |
+| Le chiavi Twitch non esistono ancora | Utente | Serve un bypass di prima classe |
+
+## Flusso di login
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Login mediato dal BE + ticket monouso legato a challenge S256 generato dall'app | Il BE custodisce il secret; l'app apre `{BASE_URL}auth/twitch/start` nel browser di sistema e riscatta il ticket. | ✓ |
+| Implicit grant dall'app + invio del token Twitch al BE | Nessun secret, ma dipende da un redirect custom-scheme che Twitch con ogni probabilità non accetta. | |
+| PKCE dall'app (plan di aprile) | Non praticabile. | |
+
+**User's choice:** [auto] Login mediato dal BE (recommended default, allineato a BE Phase 2 D-01..D-03).
+
+## Bypass dev
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Mantenere `DevAuthTokenService` selezionato da `DEV_AUTH_ENABLED=true`; lo stub simula login/logout | Cold start diretto nel main shell; dopo un logout il pulsante di login rientra con l'identità dev. La UI di auth resta testabile senza chiavi. | ✓ |
+| Pulsante "salta login" dedicato nella sign-in screen | Seconda via d'ingresso da mantenere e da rimuovere; lo stub esiste già. | |
+| Rimuovere lo stub come previsto ad aprile | L'app diventerebbe inutilizzabile finché non arrivano le chiavi. | |
+
+**User's choice:** [auto] Mantenere lo stub e fargli simulare le transizioni (recommended default).
+
+## Verifica end-to-end
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Test automatici con fake ora; login reale su device come UAT pendente | Non bloccare la fase su qualcosa di non verificabile senza chiavi. | ✓ |
+| Checkpoint umano bloccante (plan 05 di aprile) | La fase resterebbe aperta a tempo indeterminato. | |
+
+**User's choice:** [auto] UAT pendente (recommended default).
+
+## Decisioni emendate
+
+D-05, D-07, D-08, D-09, D-12, D-13, D-15, D-16, D-18 (solo wording), D-21. Nuove: D-23..D-28. Requisiti emendati in `REQUIREMENTS.md`: AUTH-01, AUTH-02, AUTH-04, AUTH-07, DEV-AUTH-04.

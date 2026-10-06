@@ -65,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
-- [ ] **Phase 11: Auth & Session Bootstrap** — Twitch OAuth identity, secure token storage, refresh/logout, `AuthTokenService` reale che sostituisce lo stub di Phase 1 senza cambiare il contratto. 5 plan già pronti.
+- [ ] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06.
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 ## Phase Details
@@ -244,17 +244,18 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **UI hint**: yes
 
 ### Phase 11: Auth & Session Bootstrap
-**Goal**: Sostituire il `DevAuthTokenService` di Phase 1 con un'implementazione reale OAuth PKCE: login Twitch via system browser, secure token storage, refresh mutex, logout atomico, detection della revoca esterna. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia.
+**Goal**: Affiancare al `DevAuthTokenService` di Phase 1 un'implementazione reale basata sulla sessione del backend: login Twitch via system browser mediato dal BE, secure token storage, refresh mutex, logout atomico, detection della revoca di sessione. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia. Lo stub resta selezionabile (`DEV_AUTH_ENABLED=true`) finché le chiavi Twitch non sono disponibili. _(Emendato 2026-10-06: Twitch non supporta PKCE; vedi 11-CONTEXT.md.)_
 **Depends on**: Phase 1 (fornisce il contratto che questa fase soddisfa con l'implementazione reale). Tutte le fasi 2–10 si devono essere integrate con `AuthTokenService` via lo stub, in modo che la sostituzione sia drop-in.
 **Scope**: M
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
 **Success Criteria** (what must be TRUE):
-  1. A new user can complete Twitch OAuth via the system browser (PKCE, no WebView) and land in the app authenticated.
+  1. A new user can complete the Twitch login via the system browser (backend-mediated, no WebView) and land in the app authenticated. _(Real-device verification pending until the Twitch keys exist; covered by automated tests with fakes meanwhile.)_
   2. After killing and relaunching the app, the previous session resumes without re-prompting for Twitch credentials.
   3. Logging out returns the user to sign-in, and no tokens, GraphQL cache entries, or subscriptions from the previous session survive.
   4. Logging in with a different Twitch account after logout cleanly swaps the identity with no bleed-through from the previous account.
-  5. If the user revokes the app externally on Twitch, the next authenticated request detects the invalidation and returns the user to sign-in with a clear message.
-  6. La sostituzione di `DevAuthTokenService` → `AuthTokenService` reale non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
+  5. When the backend rejects the session as revoked or expired, the app detects the invalidation and returns the user to sign-in with a clear message.
+  6. Passare da `DevAuthTokenService` all'`AuthTokenService` reale (flag `DEV_AUTH_ENABLED`) non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
+  7. Con `DEV_AUTH_ENABLED=true` l'app è interamente utilizzabile senza chiavi Twitch: cold start diretto nel main shell, e dopo un logout il pulsante di login rientra con l'identità dev.
 **Decisions to make during discuss step**:
   - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md) — già pre-deciso nei plan esistenti, da confermare.
   - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
