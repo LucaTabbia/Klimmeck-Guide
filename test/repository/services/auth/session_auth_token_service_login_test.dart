@@ -112,7 +112,7 @@ void main() {
   Object? runLogin(SessionAuthTokenService service, FakeAsync async) {
     Object? error;
     var settled = false;
-    service.login().then(
+    service.login().then<void>(
       (_) => settled = true,
       onError: (Object e) {
         error = e;

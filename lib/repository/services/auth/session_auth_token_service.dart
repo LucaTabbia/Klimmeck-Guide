@@ -13,6 +13,8 @@ import 'auth_state_channel.dart';
 import 'auth_token_service.dart';
 import 'backend_auth_api.dart';
 import 'browser_authenticator.dart';
+import 'login_callback.dart';
+import 'login_exception.dart';
 import 'unauthorized_recovery.dart';
 
 /// [AuthTokenService] reale: sessione first-party del backend.
@@ -62,13 +64,10 @@ class SessionAuthTokenService extends AuthTokenService
 
   final BackendAuthApi _api;
   final SessionStore _store;
-  // ignore: unused_field
   final BrowserAuthenticator _browser;
-  // ignore: unused_field
   final Uri _backendBaseUrl;
   final Future<void> Function() _onSessionTeardown;
   final DateTime Function() _now;
-  // ignore: unused_field
   final LoginChallenge Function() _createChallenge;
   // ignore: unused_field
   final Duration _logoutTimeout;
@@ -84,6 +83,7 @@ class SessionAuthTokenService extends AuthTokenService
   Timer? _bootstrapRetryTimer;
   int _bootstrapAttempt = 0;
   int _proactiveRetryAttempt = 0;
+  bool _isDisposed = false;
 
   @override
   Stream<AuthState> get authStateStream => _channel.stream;
@@ -118,8 +118,20 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
+  /// Login Twitch mediato dal backend nel browser di sistema (D-15).
+  ///
+  /// La sessione precedente (anche una ancora in retry al cold start) viene
+  /// sostituita solo dopo un riscatto del ticket riuscito: un login annullato
+  /// o fallito non interrompe la sua ripresa in background.
+  /// Lancia [LoginException].
   @override
-  Future<void> login() => throw UnimplementedError('11-05 Task 2');
+  Future<void> login() async {
+    final challenge = _createChallenge();
+    final callbackUrl = await _openLoginPage(challenge);
+    final session = await _redeemTicket(_ticketFrom(callbackUrl), challenge);
+    if (_isDisposed) return;
+    await _startSession(session);
+  }
 
   @override
   Future<void> logout() => throw UnimplementedError('11-06');
@@ -133,8 +145,67 @@ class SessionAuthTokenService extends AuthTokenService
 
   @override
   void dispose() {
+    _isDisposed = true;
     _supersedeSession();
     _channel.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Login
+  // ---------------------------------------------------------------------------
+
+  Future<String> _openLoginPage(LoginChallenge challenge) async {
+    final startUrl = _backendBaseUrl
+        .resolve('auth/twitch/start')
+        .replace(queryParameters: {'challenge': challenge.codeChallenge});
+    try {
+      return await _browser.authenticate(
+        startUrl: startUrl,
+        callbackScheme: loginCallbackScheme,
+      );
+    } on BrowserAuthCancelled {
+      throw const LoginCancelledException();
+    } on BrowserAuthFailure catch (failure) {
+      throw LoginFailedException(failure.code);
+    }
+  }
+
+  String _ticketFrom(String callbackUrl) =>
+      switch (parseLoginCallback(callbackUrl)) {
+        LoginTicketReceived(:final ticket) => ticket,
+        LoginDeniedByUser() => throw const LoginCancelledException(),
+        LoginRejectedByBackend(code: twitchNotConfiguredError) =>
+          throw const LoginUnavailableException(),
+        LoginRejectedByBackend(:final code) => throw LoginFailedException(code),
+      };
+
+  Future<AuthSession> _redeemTicket(
+    String ticket,
+    LoginChallenge challenge,
+  ) async {
+    try {
+      return await _api.exchangeLoginTicket(
+        ticket: ticket,
+        codeVerifier: challenge.codeVerifier,
+      );
+    } on LoginTicketInvalid {
+      throw const LoginFailedException(loginTicketInvalidCode);
+    } on TransientAuthFailure {
+      throw const LoginFailedException(_networkFailureCode);
+    } on AuthApiException catch (error) {
+      throw LoginFailedException(error.runtimeType.toString());
+    }
+  }
+
+  /// Sostituisce qualunque sessione precedente (bootstrap o refresh in volo
+  /// compresi) con quella appena riscattata.
+  Future<void> _startSession(AuthSession session) async {
+    _supersedeSession();
+    final epoch = _epoch;
+    await _persistRefreshToken(session.refreshToken);
+    if (epoch != _epoch) return;
+    _applySession(session);
+    _emitAuthenticated();
   }
 
   // ---------------------------------------------------------------------------
@@ -313,6 +384,8 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 }
+
+const String _networkFailureCode = 'network';
 
 const _SessionSuperseded _superseded = _SessionSuperseded();
 
