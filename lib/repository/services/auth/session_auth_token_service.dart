@@ -92,11 +92,12 @@ class SessionAuthTokenService extends AuthTokenService
 
   /// Emette `AuthBootstrapping`, legge lo storage e avvia in background la
   /// verifica della sessione col backend: ritorna senza attendere la rete.
+  /// Non lancia mai: uno storage illeggibile porta al sign-in.
   @override
   Future<void> initialize() async {
     final epoch = _epoch;
     _channel.emit(const AuthBootstrapping());
-    final storedRefreshToken = await _store.readRefreshToken();
+    final storedRefreshToken = await _readStoredRefreshToken();
     if (epoch != _epoch) return;
     if (storedRefreshToken == null) {
       _channel.emit(const AuthUnauthenticated());
@@ -254,6 +255,15 @@ class SessionAuthTokenService extends AuthTokenService
   // ---------------------------------------------------------------------------
   // Cold start
   // ---------------------------------------------------------------------------
+
+  Future<String?> _readStoredRefreshToken() async {
+    try {
+      return await _store.readRefreshToken();
+    } catch (error) {
+      debugPrint('[SessionAuth] session read failed: ${error.runtimeType}');
+      return null;
+    }
+  }
 
   Future<void> _attemptBootstrap(int epoch) async {
     try {

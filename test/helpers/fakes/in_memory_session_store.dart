@@ -7,11 +7,16 @@ class InMemorySessionStore implements SessionStore {
   int writes = 0;
   int clears = 0;
   bool failNextWrite = false;
+  Object? readFailure;
 
   String? get refreshToken => _refreshToken;
 
   @override
-  Future<String?> readRefreshToken() async => _refreshToken;
+  Future<String?> readRefreshToken() async {
+    final failure = readFailure;
+    if (failure != null) throw failure;
+    return _refreshToken;
+  }
 
   @override
   Future<void> writeRefreshToken(String refreshToken) async {

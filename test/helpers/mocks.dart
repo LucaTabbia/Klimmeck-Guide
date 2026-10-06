@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.da
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Mock condivisi della suite. Ogni plan della Phase 11 aggiunge qui i propri mock:
 /// mai ridefinire un mock in un singolo file di test.
@@ -17,6 +18,8 @@ class MockUnauthorizedRecovery extends Mock implements UnauthorizedRecovery {}
 class MockBrowserAuthenticator extends Mock implements BrowserAuthenticator {}
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
+
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 class MockBackendAuthApi extends Mock implements BackendAuthApi {}
 

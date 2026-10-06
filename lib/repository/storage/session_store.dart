@@ -72,10 +72,23 @@ class SecureSessionStore implements SessionStore {
   Future<void> _wipeIfFirstLaunch() async {
     if (_firstLaunchChecked) return;
     _firstLaunchChecked = true;
-    final prefs = await _preferences();
-    if (prefs.getBool(firstLaunchDoneKey) ?? false) return;
-    await _clearQuietly();
-    await prefs.setBool(firstLaunchDoneKey, true);
+    if (await _markFirstLaunchDone()) await _clearQuietly();
+  }
+
+  /// `true` solo al primo avvio dopo l'installazione e a marker salvato: un
+  /// marker non salvabile ripeterebbe il wipe a ogni avvio. Nel dubbio
+  /// (preferenze illeggibili o non scrivibili) `false`: mai wipe.
+  Future<bool> _markFirstLaunchDone() async {
+    try {
+      final prefs = await _preferences();
+      if (prefs.getBool(firstLaunchDoneKey) ?? false) return false;
+      return await prefs.setBool(firstLaunchDoneKey, true);
+    } catch (error) {
+      debugPrint(
+        '[SessionStore] first launch check failed: ${error.runtimeType}',
+      );
+      return false;
+    }
   }
 
   Future<void> _clearQuietly() async {

@@ -46,6 +46,30 @@ void main() {
   });
 
   blocTest<AuthCubit, AuthState>(
+    'a failing initialize lands on sign-in instead of an unhandled error',
+    build: () => AuthCubit(service),
+    setUp: () => when(
+      () => service.initialize(),
+    ).thenAnswer((_) async => throw StateError('storage unavailable')),
+    act: (cubit) => cubit.start(),
+    expect: () => [const AuthUnauthenticated()],
+    errors: () => [isA<StateError>()],
+  );
+
+  blocTest<AuthCubit, AuthState>(
+    'a failing initialize keeps a state the service already resolved',
+    build: () => AuthCubit(service),
+    setUp: () => when(() => service.initialize()).thenAnswer((_) async {
+      controller.add(authenticated());
+      await Future<void>.delayed(Duration.zero);
+      throw StateError('late failure');
+    }),
+    act: (cubit) => cubit.start(),
+    expect: () => [authenticated()],
+    errors: () => [isA<StateError>()],
+  );
+
+  blocTest<AuthCubit, AuthState>(
     'mirrors authenticated state from the service stream',
     build: () => AuthCubit(service),
     act: (cubit) async {

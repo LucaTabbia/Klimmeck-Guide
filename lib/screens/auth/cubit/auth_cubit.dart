@@ -13,12 +13,20 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// Avvia il bootstrap (D-33): sottoscrive lo stream e poi chiama `initialize()`,
   /// che non blocca il primo frame (il retry di rete prosegue dentro il servizio).
+  /// Un `initialize()` fallito non lascia il cold start fermo sullo splash:
+  /// l'errore va al `BlocObserver` e, se ancora in bootstrap, si va al sign-in.
   Future<void> start() async {
     if (_subscription != null) return;
     _subscription = _authTokenService.authStateStream.listen((authState) {
       if (!isClosed) emit(authState);
     });
-    await _authTokenService.initialize();
+    try {
+      await _authTokenService.initialize();
+    } catch (error, stackTrace) {
+      if (isClosed) return;
+      addError(error, stackTrace);
+      showSignIn();
+    }
   }
 
   /// D-18: "Accedi manualmente" durante un cold start lento.

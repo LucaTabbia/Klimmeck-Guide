@@ -70,6 +70,46 @@ void main() {
       verifyNever(() => storage.delete(key: any(named: 'key')));
     });
 
+    test(
+      'unreadable preferences are not a first launch: nothing is wiped',
+      () async {
+        final storage = MockFlutterSecureStorage();
+        when(
+          () => storage.read(key: any(named: 'key')),
+        ).thenAnswer((_) async => 'r1');
+        when(() => storage.deleteAll()).thenAnswer((_) async {});
+
+        final store = SecureSessionStore(
+          storage: storage,
+          preferences: () async => throw PlatformException(code: 'io'),
+        );
+
+        expect(await store.readRefreshToken(), 'r1');
+        verifyNever(() => storage.deleteAll());
+      },
+    );
+
+    test('a marker that cannot be saved does not wipe the storage', () async {
+      final storage = MockFlutterSecureStorage();
+      final prefs = MockSharedPreferences();
+      when(
+        () => storage.read(key: any(named: 'key')),
+      ).thenAnswer((_) async => 'r1');
+      when(() => storage.deleteAll()).thenAnswer((_) async {});
+      when(() => prefs.getBool(markerKey)).thenReturn(null);
+      when(
+        () => prefs.setBool(markerKey, true),
+      ).thenAnswer((_) async => throw PlatformException(code: 'io'));
+
+      final store = SecureSessionStore(
+        storage: storage,
+        preferences: () async => prefs,
+      );
+
+      expect(await store.readRefreshToken(), 'r1');
+      verifyNever(() => storage.deleteAll());
+    });
+
     test('android plugin resets only unrecoverable storage', () {
       expect(
         SecureSessionStore.defaultStorage.aOptions.toMap()['resetOnError'],

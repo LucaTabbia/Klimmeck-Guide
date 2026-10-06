@@ -59,6 +59,27 @@ void main() {
     });
   });
 
+  test('a failing storage read resolves to signed out without throwing', () {
+    fakeAsync((async) {
+      store = InMemorySessionStore(refreshToken: 'r0')
+        ..readFailure = StateError('storage unavailable');
+      Object? initializeError;
+      var initialized = false;
+
+      buildService(async).initialize().then<void>(
+        (_) => initialized = true,
+        onError: (Object error) => initializeError = error,
+      );
+      async.flushMicrotasks();
+
+      expect(initializeError, isNull);
+      expect(initialized, isTrue);
+      expect(states, const [AuthBootstrapping(), AuthUnauthenticated()]);
+      verifyNever(() => api.refreshSession(any()));
+      expect(store.refreshToken, 'r0');
+    });
+  });
+
   test('stored session is refreshed and persisted before authenticating', () {
     fakeAsync((async) {
       store = InMemorySessionStore(refreshToken: 'r0');
