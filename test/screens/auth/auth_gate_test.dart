@@ -61,6 +61,7 @@ void main() {
 
   Widget authenticatedBuilder(BuildContext context, User user) {
     return BlocProvider(
+      lazy: false,
       create: (_) {
         final spy = _SessionSpyCubit(user.id);
         createdSpies.add(spy);

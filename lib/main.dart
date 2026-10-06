@@ -14,17 +14,11 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
-import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
+import 'package:klimmeck_guide/repository/storage/session_store.dart';
+import 'package:klimmeck_guide/screens/auth/auth_gate.dart';
+import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
-import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 Future<void> main() async {
@@ -32,13 +26,17 @@ Future<void> main() async {
 
   await dotenv.load(fileName: '.env');
 
-  final AuthTokenService authTokenService = _buildAuthTokenService();
-  await authTokenService
-      .initialize(); // polimorfico — NO type-check is DevAuthTokenService
-
-  final restClient = RestClient(authTokenService: authTokenService);
-  final graphQlHolder = GraphQLClientHolder(
-    connect: () => buildGraphQLConnection(authService: authTokenService),
+  late final GraphQLClientHolder graphQlHolder;
+  final auth = _buildAuth(onSessionTeardown: () => graphQlHolder.reset());
+  graphQlHolder = GraphQLClientHolder(
+    connect: () => buildGraphQLConnection(
+      authService: auth.service,
+      recovery: auth.recovery,
+    ),
+  );
+  final restClient = RestClient(
+    authTokenService: auth.service,
+    recovery: auth.recovery,
   );
 
   SystemChrome.setSystemUIOverlayStyle(
@@ -57,28 +55,42 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
+  // Il bootstrap della sessione parte da AuthCubit.start() dopo il primo
+  // frame (D-33): nessuna chiamata di rete blocca runApp.
   runApp(
     KlimmeckGuideApp(
-      authTokenService: authTokenService,
+      authTokenService: auth.service,
       restClient: restClient,
       graphQlClient: graphQlHolder.client,
     ),
   );
 }
 
-/// Factory che seleziona l'implementazione di `AuthTokenService` in base
-/// alla configurazione runtime.
-///
-/// Phase 1: `DevAuthTokenService` quando `EnvConfig.devAuthEnabled == true`.
-/// Phase 11: sostituirà il branch `else` con `OAuthTokenService` senza
-/// toccare `main()` né i consumer (D-02 CONTEXT.md drop-in replacement).
-AuthTokenService _buildAuthTokenService() {
-  if (EnvConfig.devAuthEnabled) {
-    return DevAuthTokenService();
-  }
-  throw UnimplementedError(
-    'RealAuthTokenService not yet implemented — see Phase 11 (Auth & Session Bootstrap)',
+/// Composition root dell'auth (D-23): l'unico punto che legge [EnvConfig] per
+/// scegliere l'implementazione. Il bypass dev non ha recovery (nessun refresh).
+({AuthTokenService service, UnauthorizedRecovery? recovery}) _buildAuth({
+  required Future<void> Function() onSessionTeardown,
+}) {
+  final backendAuthApi = GraphQlBackendAuthApi.forEndpoint(
+    EnvConfig.graphqlHttpUrl,
   );
+  if (EnvConfig.devAuthEnabled) {
+    return (
+      service: DevAuthTokenService(
+        meSource: backendAuthApi,
+        onSessionTeardown: onSessionTeardown,
+      ),
+      recovery: null,
+    );
+  }
+  final service = SessionAuthTokenService(
+    api: backendAuthApi,
+    store: SecureSessionStore(),
+    browser: const FlutterWebAuth2BrowserAuthenticator(),
+    backendBaseUrl: Uri.parse(EnvConfig.baseUrl),
+    onSessionTeardown: onSessionTeardown,
+  );
+  return (service: service, recovery: service);
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -166,53 +178,37 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
     return RepositoryProvider<AuthTokenService>(
       create: (_) => widget.authTokenService,
       dispose: (svc) => svc.dispose(),
-      child: GraphQLProvider(
-        client: widget.graphQlClient,
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<StorageCubit>(create: (context) => StorageCubit()),
-            BlocProvider<CharacterCubit>(
-              create: (context) => CharacterCubit(graphQl),
-            ),
-            BlocProvider<QuestCubit>(create: (context) => QuestCubit(graphQl)),
-            BlocProvider<TransactionCubit>(
-              create: (context) => TransactionCubit(graphQl),
-            ),
-            BlocProvider<MainScreenCubit>(
-              create: (context) => MainScreenCubit(graphQl),
-            ),
-            BlocProvider<WorldMapCubit>(
-              create: (context) => WorldMapCubit(graphQl),
-            ),
-            BlocProvider<ShopCubit>(create: (context) => ShopCubit(graphQl)),
-            BlocProvider<LibraryCubit>(
-              create: (context) => LibraryCubit(graphQl),
-            ),
-            BlocProvider<JournalCubit>(
-              create: (context) => JournalCubit(graphQl),
-            ),
-            BlocProvider<SplashCubit>(create: (context) => SplashCubit(rest)),
-          ],
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: Platform.isIOS
-                ? SystemUiOverlayStyle.light
-                : const SystemUiOverlayStyle(
-                    statusBarColor: Colors.transparent,
-                    statusBarIconBrightness: Brightness.light,
-                    systemNavigationBarIconBrightness: Brightness.dark,
-                    systemNavigationBarColor: Colors.transparent,
-                  ),
-            child: MaterialApp(
-              theme: KlimmeckGuideTheme.instance.materialTheme,
-              color: KlimmeckGuideTheme.deepNight,
-              debugShowCheckedModeBanner: false,
-              title: 'Guida di Klimmeck',
-              navigatorKey: navigatorKey,
-              home: Builder(
-                builder: (context) {
-                  preloadImages(context);
-                  return const SplashScreen();
-                },
+      child: BlocProvider<AuthCubit>(
+        lazy: false,
+        create: (_) => AuthCubit(widget.authTokenService)..start(),
+        child: BlocProvider<SplashCubit>(
+          create: (_) => SplashCubit(rest),
+          child: GraphQLProvider(
+            client: widget.graphQlClient,
+            child: AnnotatedRegion<SystemUiOverlayStyle>(
+              value: Platform.isIOS
+                  ? SystemUiOverlayStyle.light
+                  : const SystemUiOverlayStyle(
+                      statusBarColor: Colors.transparent,
+                      statusBarIconBrightness: Brightness.light,
+                      systemNavigationBarIconBrightness: Brightness.dark,
+                      systemNavigationBarColor: Colors.transparent,
+                    ),
+              child: MaterialApp(
+                theme: KlimmeckGuideTheme.instance.materialTheme,
+                color: KlimmeckGuideTheme.deepNight,
+                debugShowCheckedModeBanner: false,
+                title: 'Guida di Klimmeck',
+                navigatorKey: navigatorKey,
+                home: Builder(
+                  builder: (context) {
+                    preloadImages(context);
+                    return AuthGate(
+                      authenticatedBuilder: (context, user) =>
+                          AuthenticatedShell(graphQl: graphQl),
+                    );
+                  },
+                ),
               ),
             ),
           ),

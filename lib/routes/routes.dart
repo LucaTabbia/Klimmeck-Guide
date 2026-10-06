@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../screens/mainScreen/main_screen.dart';
-import '../screens/onBoarding/on_boarding_screen.dart';
-import '../screens/signIn/sign_in_screen.dart';
-
 const Duration _defaultTransitionDuration = Duration(milliseconds: 400);
 
 Route<T> createSlideRoute<T>({
@@ -45,10 +41,3 @@ Route<T> createFadeRoute<T>({
     },
   );
 }
-
-
-Route mainScreenRoute() => createSlideRoute(page: const MainScreen());
-
-Route onBoardingRoute() => createSlideRoute(page: const OnBoardingScreen());
-
-Route signInRoute() => createSlideRoute(page: const SignInScreen());
