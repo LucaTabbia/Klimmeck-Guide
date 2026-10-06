@@ -66,14 +66,40 @@ void main() {
     test('returns the current token without a refresh when it already '
         'rotated', () {
       fakeAsync((async) {
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) async => _rotatedSession);
         final service = startService(async);
-
-        final token = resolve(
-          service.recoverFromUnauthorized(rejectedToken: 'stale-access'),
+        resolve(
+          service.recoverFromUnauthorized(
+            rejectedToken: _firstSession.accessToken,
+          ),
           async,
         );
 
-        expect(token, _firstSession.accessToken);
+        final token = resolve(
+          service.recoverFromUnauthorized(
+            rejectedToken: _firstSession.accessToken,
+          ),
+          async,
+        );
+
+        expect(token, _rotatedSession.accessToken);
+        verify(() => api.refreshSession('r1')).called(1);
+        service.dispose();
+      });
+    });
+
+    test('returns null for a token never issued to this session', () {
+      fakeAsync((async) {
+        final service = startService(async);
+
+        final token = resolve(
+          service.recoverFromUnauthorized(rejectedToken: 'foreign-access'),
+          async,
+        );
+
+        expect(token, isNull);
         verify(() => api.refreshSession(any())).called(1);
         service.dispose();
       });

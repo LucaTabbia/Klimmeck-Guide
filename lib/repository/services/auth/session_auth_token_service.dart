@@ -73,6 +73,9 @@ class SessionAuthTokenService extends AuthTokenService
   final AuthStateChannel _channel = AuthStateChannel();
 
   String? _accessToken;
+
+  /// Access token emessi alla sessione corrente (rotazioni comprese).
+  final Set<String> _issuedAccessTokens = {};
   String? _refreshToken;
   User? _user;
   DateTime? _refreshAt;
@@ -105,15 +108,19 @@ class SessionAuthTokenService extends AuthTokenService
 
   /// Token in memoria finché è fresco; altrimenti refresh single-flight.
   /// Un errore transitorio ritorna il token precedente (mai logout).
+  /// Un chiamante la cui sessione è stata sostituita durante l'attesa riceve
+  /// `null`, mai il token della sessione successiva.
   @override
   Future<String?> getAccessToken() async {
     if (_hasFreshAccessToken || _refreshToken == null) return _accessToken;
+    final epoch = _epoch;
     try {
-      return await _refreshSingleFlight();
+      final token = await _refreshSingleFlight();
+      return _tokenFor(epoch, token);
     } on SessionRejected {
       return null;
     } catch (_) {
-      return _accessToken;
+      return _tokenFor(epoch, _accessToken);
     }
   }
 
@@ -154,15 +161,20 @@ class SessionAuthTokenService extends AuthTokenService
   ///
   /// Se il token rifiutato non è più quello corrente (già ruotato) ritorna il
   /// corrente senza refresh. `null` se la sessione non è recuperabile
-  /// ([SessionRejected]: teardown già eseguito) o se l'errore è transitorio
-  /// (mai logout, D-09).
+  /// ([SessionRejected]: teardown già eseguito), se l'errore è transitorio
+  /// (mai logout, D-09) o se il token rifiutato non appartiene alla sessione
+  /// corrente: una richiesta di una sessione precedente non viene mai
+  /// ritentata con l'identità di quella nuova.
   @override
   Future<String?> recoverFromUnauthorized({String? rejectedToken}) async {
+    if (!_issuedAccessTokens.contains(rejectedToken)) return null;
     final current = _accessToken;
-    if (current != null && current != rejectedToken) return current;
+    if (current != rejectedToken) return current;
     if (_refreshToken == null) return null;
+    final epoch = _epoch;
     try {
-      return await _refreshSingleFlight();
+      final token = await _refreshSingleFlight();
+      return _tokenFor(epoch, token);
     } catch (_) {
       return null;
     }
@@ -264,6 +276,8 @@ class SessionAuthTokenService extends AuthTokenService
   // Refresh
   // ---------------------------------------------------------------------------
 
+  String? _tokenFor(int epoch, String? token) => epoch == _epoch ? token : null;
+
   bool get _hasFreshAccessToken {
     final refreshAt = _refreshAt;
     return _accessToken != null &&
@@ -317,6 +331,7 @@ class SessionAuthTokenService extends AuthTokenService
 
   void _applySession(AuthSession session) {
     _accessToken = session.accessToken;
+    _issuedAccessTokens.add(session.accessToken);
     _refreshToken = session.refreshToken;
     _user = session.user;
     final delay = refreshDelayFor(
@@ -370,6 +385,7 @@ class SessionAuthTokenService extends AuthTokenService
   /// Invalida ogni lavoro in corso della sessione attuale (timer, refresh).
   void _supersedeSession() {
     _epoch++;
+    _issuedAccessTokens.clear();
     _bootstrapRetryTimer?.cancel();
     _proactiveRefreshTimer?.cancel();
     _refreshInFlight = null;
@@ -384,10 +400,13 @@ class SessionAuthTokenService extends AuthTokenService
 
   /// D-36: passa da [getAccessToken], quindi un access scaduto viene prima
   /// rinnovato; senza token valido la chiamata è saltata. Mai bloccante.
+  /// Se la sessione non è più quella corrente (timeout scaduto, nuovo login)
+  /// la chiamata è saltata: non revoca mai una sessione successiva.
   Future<void> _invalidateBackendSession() async {
+    final epoch = _epoch;
     try {
       final accessToken = await getAccessToken();
-      if (accessToken == null) return;
+      if (accessToken == null || epoch != _epoch) return;
       await _api.logout(accessToken);
     } catch (error) {
       debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');

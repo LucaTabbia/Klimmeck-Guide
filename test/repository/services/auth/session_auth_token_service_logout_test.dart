@@ -106,6 +106,21 @@ void main() {
     return token;
   }
 
+  void loginReturnsSessionB() {
+    when(
+      () => browser.authenticate(
+        startUrl: any(named: 'startUrl'),
+        callbackScheme: any(named: 'callbackScheme'),
+      ),
+    ).thenAnswer((_) async => 'klimmeck://auth?ticket=T');
+    when(
+      () => api.exchangeLoginTicket(
+        ticket: any(named: 'ticket'),
+        codeVerifier: any(named: 'codeVerifier'),
+      ),
+    ).thenAnswer((_) async => _sessionB);
+  }
+
   void expectSignedOut(SessionAuthTokenService service, FakeAsync async) {
     verify(() => teardown()).called(1);
     expect(store.refreshToken, isNull);
@@ -300,20 +315,105 @@ void main() {
     });
   });
 
+  group('callers bound to a superseded session', () {
+    void expectLateRefreshNeverReachesSessionB(
+      void Function(Completer<AuthSession> pendingRefresh) settleLate,
+    ) {
+      fakeAsync((async) {
+        var clock = testNow;
+        final pendingRefresh = Completer<AuthSession>();
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) => pendingRefresh.future);
+        loginReturnsSessionB();
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+
+        final isDone = startLogout(service);
+        async.elapse(_logoutTimeout);
+        expect(isDone(), isTrue);
+        service.login();
+        async.flushMicrotasks();
+
+        settleLate(pendingRefresh);
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 1));
+
+        verifyNever(() => api.logout(_sessionB.accessToken));
+        expect(
+          states.last,
+          AuthAuthenticated(user: _userB, accessToken: _sessionB.accessToken),
+        );
+        expect(store.refreshToken, 'login-refresh-b');
+        expect(tokenNow(service, async), _sessionB.accessToken);
+        service.dispose();
+      });
+    }
+
+    test('a hung logout refresh that succeeds after a new login never '
+        'revokes the new session', () {
+      expectLateRefreshNeverReachesSessionB(
+        (pendingRefresh) => pendingRefresh.complete(_rotatedSessionA),
+      );
+    });
+
+    test('a hung logout refresh that fails after a new login never '
+        'revokes the new session', () {
+      expectLateRefreshNeverReachesSessionB(
+        (pendingRefresh) =>
+            pendingRefresh.completeError(const TransientAuthFailure('network')),
+      );
+    });
+
+    test('a token read suspended across a new login yields null', () {
+      fakeAsync((async) {
+        var clock = testNow;
+        final pendingRefresh = Completer<AuthSession>();
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) => pendingRefresh.future);
+        loginReturnsSessionB();
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+        String? token = 'not-settled';
+        service.getAccessToken().then((value) => token = value);
+        async.flushMicrotasks();
+
+        service.login();
+        async.flushMicrotasks();
+        pendingRefresh.complete(_rotatedSessionA);
+        async.flushMicrotasks();
+
+        expect(token, isNull);
+        expect(tokenNow(service, async), _sessionB.accessToken);
+        service.dispose();
+      });
+    });
+
+    test('recovery for a token of a previous session yields null', () {
+      fakeAsync((async) {
+        loginReturnsSessionB();
+        final service = startService(async);
+        logoutNow(service, async);
+        service.login();
+        async.flushMicrotasks();
+
+        String? recovered = 'not-settled';
+        service
+            .recoverFromUnauthorized(rejectedToken: _sessionA.accessToken)
+            .then((token) => recovered = token);
+        async.flushMicrotasks();
+
+        expect(recovered, isNull);
+        verify(() => api.refreshSession(any())).called(1);
+        service.dispose();
+      });
+    });
+  });
+
   test('account switch: logout then login leaves only user B', () {
     fakeAsync((async) {
-      when(
-        () => browser.authenticate(
-          startUrl: any(named: 'startUrl'),
-          callbackScheme: any(named: 'callbackScheme'),
-        ),
-      ).thenAnswer((_) async => 'klimmeck://auth?ticket=T');
-      when(
-        () => api.exchangeLoginTicket(
-          ticket: any(named: 'ticket'),
-          codeVerifier: any(named: 'codeVerifier'),
-        ),
-      ).thenAnswer((_) async => _sessionB);
+      loginReturnsSessionB();
       final service = startService(async);
 
       logoutNow(service, async);
