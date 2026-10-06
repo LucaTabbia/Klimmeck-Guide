@@ -136,12 +136,29 @@ class SessionAuthTokenService extends AuthTokenService
   @override
   Future<void> logout() => throw UnimplementedError('11-06');
 
+  /// Revoca esplicita (AUTH-07): teardown locale senza chiamare il backend.
   @override
-  Future<void> handleRevocation() => throw UnimplementedError('11-06');
+  Future<void> handleRevocation() =>
+      _endSession(UnauthenticatedReason.sessionExpired);
 
+  /// Unico punto d'ingresso del retry reattivo per link GraphQL, interceptor
+  /// dio e WebSocket: passa sempre dal refresh single-flight.
+  ///
+  /// Se il token rifiutato non è più quello corrente (già ruotato) ritorna il
+  /// corrente senza refresh. `null` se la sessione non è recuperabile
+  /// ([SessionRejected]: teardown già eseguito) o se l'errore è transitorio
+  /// (mai logout, D-09).
   @override
-  Future<String?> recoverFromUnauthorized({String? rejectedToken}) =>
-      throw UnimplementedError('11-06');
+  Future<String?> recoverFromUnauthorized({String? rejectedToken}) async {
+    final current = _accessToken;
+    if (current != null && current != rejectedToken) return current;
+    if (_refreshToken == null) return null;
+    try {
+      return await _refreshSingleFlight();
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void dispose() {
