@@ -80,6 +80,7 @@ class SessionAuthTokenService extends AuthTokenService
   User? _user;
   DateTime? _refreshAt;
   Completer<String>? _refreshInFlight;
+  Future<void>? _logoutInFlight;
   int _epoch = 0;
   Timer? _proactiveRefreshTimer;
   Timer? _bootstrapRetryTimer;
@@ -129,13 +130,16 @@ class SessionAuthTokenService extends AuthTokenService
   ///
   /// La sessione precedente (anche una ancora in retry al cold start) viene
   /// sostituita solo dopo un riscatto del ticket riuscito: un login annullato
-  /// o fallito non interrompe la sua ripresa in background.
+  /// o fallito non interrompe la sua ripresa in background. Un login riscattato
+  /// mentre un logout è ancora in corso viene installato solo dopo la fine di
+  /// quel logout, che quindi non può mai chiudere la sessione nuova.
   /// Lancia [LoginException].
   @override
   Future<void> login() async {
     final challenge = _createChallenge();
     final callbackUrl = await _openLoginPage(challenge);
     final session = await _redeemTicket(_ticketFrom(callbackUrl), challenge);
+    await _logoutInFlight;
     if (_isDisposed) return;
     await _startSession(session);
   }
@@ -149,9 +153,14 @@ class SessionAuthTokenService extends AuthTokenService
   /// refresh in volo o successivo può chiuderla come `sessionExpired`, quindi
   /// il logout emette un solo stato terminale ed esegue teardown e pulizia
   /// dello storage una sola volta. L'access token resta leggibile fino al
-  /// teardown, senza più essere rinnovato. Non lancia mai.
+  /// teardown, senza più essere rinnovato. Chiamate sovrapposte (doppio tap)
+  /// condividono lo stesso logout. Non lancia mai.
   @override
-  Future<void> logout() async {
+  Future<void> logout() => _logoutInFlight ??= _performLogout().whenComplete(
+    () => _logoutInFlight = null,
+  );
+
+  Future<void> _performLogout() async {
     final closing = _detachSession();
     final backendStep = _invalidateBackendSession(closing);
     await backendStep.timeout(_logoutTimeout, onTimeout: _logLogoutTimeout);

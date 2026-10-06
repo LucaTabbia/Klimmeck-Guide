@@ -288,6 +288,77 @@ void main() {
     });
   });
 
+  group('overlapping logout', () {
+    test('a second logout shares the first: one backend call, one '
+        'teardown, one clear, one signedOut', () {
+      fakeAsync((async) {
+        var clock = testNow;
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) async => _rotatedSessionA);
+        when(
+          () => api.logout(any()),
+        ).thenAnswer((_) => Completer<void>().future);
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+        final statesBefore = states.length;
+
+        final isFirstDone = startLogout(service);
+        async.flushMicrotasks();
+        final isSecondDone = startLogout(service);
+        async.elapse(_logoutTimeout);
+
+        expect(isFirstDone(), isTrue);
+        expect(isSecondDone(), isTrue);
+        verify(() => api.refreshSession('r1')).called(1);
+        expect(verify(() => api.logout(captureAny())).captured, [
+          _rotatedSessionA.accessToken,
+        ]);
+        verify(() => teardown()).called(1);
+        expect(store.clears, 1);
+        expect(states.sublist(statesBefore), [_signedOut]);
+        service.dispose();
+      });
+    });
+
+    test('a login completed while a logout waits for the backend is never '
+        'ended by that logout', () {
+      fakeAsync((async) {
+        final events = <String>[];
+        when(
+          () => api.logout(any()),
+        ).thenAnswer((_) => Completer<void>().future);
+        when(() => teardown()).thenAnswer((_) async {
+          events.add('teardown');
+        });
+        loginReturnsSessionB();
+        final service = startService(async);
+        service.authStateStream.listen((state) {
+          if (state is AuthAuthenticated && state.user == _userB) {
+            events.add('session B');
+          }
+        });
+
+        final isLogoutDone = startLogout(service);
+        async.flushMicrotasks();
+        service.login();
+        async.flushMicrotasks();
+        async.elapse(_logoutTimeout);
+
+        expect(isLogoutDone(), isTrue);
+        expect(
+          states.last,
+          AuthAuthenticated(user: _userB, accessToken: _sessionB.accessToken),
+        );
+        expect(store.refreshToken, 'login-refresh-b');
+        expect(tokenNow(service, async), _sessionB.accessToken);
+        verify(() => teardown()).called(1);
+        expect(events, ['teardown', 'session B']);
+        service.dispose();
+      });
+    });
+  });
+
   test('without a session skips the backend and still signs out', () {
     fakeAsync((async) {
       store = InMemorySessionStore();
