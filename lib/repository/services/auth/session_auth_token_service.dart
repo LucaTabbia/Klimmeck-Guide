@@ -361,7 +361,10 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
+  /// Un cambio di utente rende irriconoscibili i token dell'utente precedente:
+  /// una sua richiesta non viene mai ritentata con la nuova identità.
   void _applySession(AuthSession session) {
+    if (_user?.id != session.user.id) _issuedAccessTokens.clear();
     _accessToken = session.accessToken;
     _rememberIssuedAccessToken(session.accessToken);
     _refreshToken = session.refreshToken;

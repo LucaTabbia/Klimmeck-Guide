@@ -353,4 +353,28 @@ void main() {
       service.dispose();
     });
   });
+
+  test('rotation that changes the user forgets the previous user tokens', () {
+    fakeAsync((async) {
+      final first = _sessionIssuedAt(Duration.zero, refreshToken: 'r1');
+      final otherUser = User(
+        id: 'other-user-id',
+        twitchId: 'other-twitch-id',
+        twitchPoints: 0,
+        currentCharacter: null,
+        role: RoleType.adventurer,
+      );
+      answerRefreshes(async, [
+        first,
+        _sessionIssuedAt(_proactiveDelay, refreshToken: 'r2', user: otherUser),
+      ]);
+      final service = startService(async);
+
+      async.elapse(_proactiveDelay);
+
+      expect(recover(service, async, first.accessToken), isNull);
+      expect(refreshTimes, hasLength(2));
+      service.dispose();
+    });
+  });
 }
