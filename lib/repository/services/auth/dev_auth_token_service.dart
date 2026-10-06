@@ -125,7 +125,21 @@ class DevAuthTokenService extends AuthTokenService {
     _channel.emit(AuthUnauthenticated(reason: reason));
   }
 
-  Future<User> _resolveUser() async => _userFromEnv();
+  Future<User> _resolveUser() async {
+    final envUser = _userFromEnv();
+    final meSource = _meSource;
+    final token = _envAccessToken;
+    if (meSource == null || token.isEmpty) return envUser;
+    try {
+      return await meSource.fetchMe(token).timeout(_meTimeout);
+    } catch (error) {
+      debugPrint(
+        '[DevAuth] me alignment failed (${error.runtimeType}), '
+        'using .env identity',
+      );
+      return envUser;
+    }
+  }
 
   User _userFromEnv() {
     return User(
