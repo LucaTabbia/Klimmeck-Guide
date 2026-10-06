@@ -23,7 +23,6 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
-import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -193,9 +192,6 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
               create: (context) => JournalCubit(graphQl),
             ),
             BlocProvider<SplashCubit>(create: (context) => SplashCubit(rest)),
-            BlocProvider<SignInCubit>(
-              create: (context) => SignInCubit(graphQl),
-            ),
           ],
           child: AnnotatedRegion<SystemUiOverlayStyle>(
             value: Platform.isIOS
