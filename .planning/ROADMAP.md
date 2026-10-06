@@ -65,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
-- [ ] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06.
+- [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 ## Phase Details
@@ -270,7 +270,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - [x] 11-08-PLAN.md — WsReconnectPolicy (token corrente, 4401/4403) + GraphQLClientHolder + buildGraphQLConnection
   - [x] 11-09-PLAN.md — AuthCubit + SignInCubit/SignInScreen + LogoutConfirmationDialog
   - [x] 11-10-PLAN.md — Splash gate (hint 10 s) + AuthGate + AuthenticatedShell + composition root in main.dart
-  - [ ] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
+  - [x] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
 
 ### Phase 12: Hardening
 **Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
@@ -302,7 +302,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Auth & Session Bootstrap | 10/11 | In Progress|  |
+| 11. Auth & Session Bootstrap | 11/11 | Complete   | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability
