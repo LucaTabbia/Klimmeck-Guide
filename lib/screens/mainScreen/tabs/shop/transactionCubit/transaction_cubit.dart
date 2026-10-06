@@ -1,12 +1,14 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 import '../../../../../models/request/transaction_request.dart';
 import '../../../../../repository/services/graphql/graphql.dart';
 
 part 'transaction_state.dart';
 
-class TransactionCubit extends Cubit<TransactionState> {
+class TransactionCubit extends Cubit<TransactionState>
+    with SafeEmit<TransactionState> {
   TransactionCubit(this.graphQl) : super(TransactionInitial());
   final KlimmeckGraphQl graphQl;
 

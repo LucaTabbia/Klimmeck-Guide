@@ -4,13 +4,15 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../models/character/character.dart';
 
 part 'character_state.dart';
 
-class CharacterCubit extends Cubit<CharacterState> {
+class CharacterCubit extends Cubit<CharacterState>
+    with SafeEmit<CharacterState> {
   final KlimmeckGraphQl api;
   StreamSubscription<Character>? _sub;
 

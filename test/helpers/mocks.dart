@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -33,5 +34,7 @@ abstract interface class SessionTeardownHook {
 class MockSessionTeardownHook extends Mock implements SessionTeardownHook {}
 
 class MockKlimmeckRest extends Mock implements KlimmeckRest {}
+
+class MockKlimmeckGraphQl extends Mock implements KlimmeckGraphQl {}
 
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}

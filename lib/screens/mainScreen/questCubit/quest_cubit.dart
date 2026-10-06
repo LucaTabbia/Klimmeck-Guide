@@ -4,12 +4,13 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 import '../../../models/quest/quest.dart';
 
 part 'quest_state.dart';
 
-class QuestCubit extends Cubit<QuestState> {
+class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
   final KlimmeckGraphQl api;
   StreamSubscription<Quest>? _sub;
 

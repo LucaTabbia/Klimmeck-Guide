@@ -18,10 +18,12 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// Cloudinary (REST autenticata, quindi solo ora) ed entra nel MainScreen.
 ///
 /// I Cubit gameplay vivono qui e si chiudono quando `AuthGate` rimuove la
-/// shell (logout/cambio account). `showDialog`/`showModalBottomSheet`/
-/// `Navigator.push` montano route sul Navigator radice, FUORI da questi
-/// provider: passare i Cubit con `BlocProvider.value` o leggerli prima di
-/// aprire la route.
+/// shell (logout/cambio account); usano `SafeEmit`, quindi una risposta
+/// ancora in volo alla chiusura viene ignorata.
+///
+/// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
+/// Navigator radice, FUORI da questi provider: passare i Cubit con
+/// `BlocProvider.value` o leggerli prima di aprire la route.
 class AuthenticatedShell extends StatelessWidget {
   const AuthenticatedShell({
     super.key,
