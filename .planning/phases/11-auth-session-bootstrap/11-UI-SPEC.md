@@ -132,8 +132,8 @@ Destructive (`bloodRed`) reserved for:
 | State | Visual | Duration |
 |-------|--------|----------|
 | `SplashBootstrapping` | Full-screen `splash.png` + animated `"Caricamento..."` text cycling 1–3 dots at 500ms intervals (existing `_AnimatedLoadingText`) | Until auth resolves |
-| `SplashNetworkDelayed` (after 10s) | Same background + replace loading text with: `"Connessione a Twitch instabile, attendere o accedere manualmente"` + `TextButton` "Accedi manualmente" routing to SignInScreen | Persists until auth resolves or user taps |
-| `SplashSessionExpired` | Same background + brief `"La sessione è scaduta, accedi di nuovo."` message shown as `specialText` in `parchment`, then auto-navigate to SignInScreen after 1.5s | Ephemeral, then route |
+| `SplashNetworkDelayed` (after 10s) | Same background + replace loading text with: `"Connessione instabile, attendere o accedere manualmente"` + `TextButton` "Accedi manualmente" routing to SignInScreen | Persists until auth resolves or user taps |
+| ~~`SplashSessionExpired`~~ | **Removed (amended 2026-10-06, 11-CONTEXT.md D-31):** the splash no longer shows the session-expired message; it routes straight to SignInScreen, which shows the notice inline. | — |
 | `SplashAuthenticated` | No visible change — navigate directly to main shell | Instant |
 | `SplashUnauthenticated` (no token) | No animation — navigate immediately to SignInScreen | Instant (D-19) |
 
@@ -233,9 +233,10 @@ Destructive (`bloodRed`) reserved for:
 |---------|------|--------|
 | Primary CTA | `"Login con Twitch"` | D-20, CONTEXT.md `<specifics>` |
 | Splash loading text | `"Caricamento"` + animated dots | existing `SplashScreen` |
-| Splash network delay message | `"Connessione a Twitch instabile, attendere o accedere manualmente"` | D-18, CONTEXT.md `<specifics>` |
+| Splash network delay message | `"Connessione instabile, attendere o accedere manualmente"` | D-18, CONTEXT.md `<specifics>` |
 | Splash network delay button | `"Accedi manualmente"` | D-18 (inferred from "button that routes to sign-in") |
-| Session expired message (splash) | `"La sessione è scaduta, accedi di nuovo."` | D-10, CONTEXT.md `<specifics>` |
+| Session expired notice (SignInScreen, inline above the CTA) | `"La sessione è scaduta, accedi di nuovo."` | D-10, D-31 |
+| Twitch login not available yet (SignInScreen, inline error) | `"Login con Twitch non ancora disponibile."` | D-27 |
 | OAuth error inline | `"Errore di connessione, riprova"` | D-22, CONTEXT.md `<specifics>` |
 | Logout dialog title | `"Sei sicuro di voler uscire?"` | D-11, CONTEXT.md `<specifics>` |
 | Logout dialog body | `"La tua sessione verrà terminata."` | default — not specified upstream |
@@ -254,7 +255,7 @@ Empty states: Not applicable to this phase (no data lists).
 |-------------|----------|--------|
 | Splash → auth resolved (success) | Navigate directly to main shell. No animation required. | D-17 |
 | Splash → no token | Navigate immediately to SignInScreen. No delay, no animation. | D-19 |
-| Splash → session expired | Show `"La sessione è scaduta, accedi di nuovo."` for 1.5s then navigate to SignInScreen. | D-10 |
+| Splash → session expired | Navigate immediately to SignInScreen, which shows the inline notice `"La sessione è scaduta, accedi di nuovo."` (same style as the inline error, neutral `parchment` tone). | D-10, D-31 |
 | Splash → network delay after 10s | Show inline message + "Accedi manualmente" button. Retry continues in background. | D-18 |
 | "Login con Twitch" tap | Launch `flutter_web_auth_2` system browser. Button enters loading state. | D-15, D-20 |
 | OAuth cancel | `PlatformException(CANCELED)` caught silently. SignInScreen restored, no snackbar. | D-21 |
@@ -262,7 +263,8 @@ Empty states: Not applicable to this phase (no data lists).
 | Token refresh (in-session) | Fully invisible. No spinner, no overlay, no banner. | D-04, REQUIREMENTS SYNC-03 |
 | Logout dialog dismiss via "Annulla" | Dialog closes. App state unchanged. | D-11 |
 | Logout dialog confirm via "Esci" | Teardown sequence executes (D-12). Navigate to SignInScreen on completion. | D-12 |
-| Session revoked in-session | `"La sessione è scaduta, accedi di nuovo."` shown as dialog or snackbar on SignInScreen on arrival. | D-09, D-10 |
+| Session revoked in-session | SignInScreen shows the same inline notice `"La sessione è scaduta, accedi di nuovo."` on arrival (no dialog, no snackbar). | D-09, D-10, D-31 |
+| Login attempt while the backend has no Twitch keys | Inline error `"Login con Twitch non ancora disponibile."` below the CTA. Button re-enabled immediately. | D-27 |
 
 ---
 

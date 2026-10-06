@@ -1,769 +1,683 @@
-# Phase 11: Auth & Session Bootstrap — Research
+# Phase 11: Auth & Session Bootstrap — Research (rev. 2, 2026-10-06)
 
-**Researched:** 2026-04-13
-**Domain:** Twitch OAuth PKCE, secure token storage, AuthTokenService, Cubit/BLoC auth state, GraphQL + WebSocket auth injection, logout teardown
-**Confidence:** HIGH (codebase letto direttamente + STACK/ARCHITECTURE/PITFALLS già prodotte per v1.0)
+**Researched:** 2026-10-06
+**Domain:** Flutter — sessione first-party mediata dal backend (system browser login + ticket exchange, secure storage, refresh single-flight, WS re-auth, logout atomico, dev bypass)
+**Confidence:** HIGH sullo stack/versioni/setup nativo (verificati su sorgenti dei package e con una build Android reale in una copia scratch), MEDIUM sul contratto BE (BACKEND-NOTES.md non esiste ancora: si pianifica contro 02-CONTEXT/02-RESEARCH del BE)
 
----
+> **Questo file SOSTITUISCE la research di aprile 2026** (PKCE/Twitch diretto, Twitch token, `/oauth2/validate`, `TWITCH_CLIENT_ID`): tutto quel materiale è obsoleto e non va riusato. Dell'aprile restano valide (e sono state **ri-verificate**) solo le note su `flutter_web_auth_2` / `flutter_secure_storage` — con **correzioni importanti** (versioni, AGP, opzioni Android) elencate sotto.
 
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
 
-**D-01** — `AuthTokenService` è un singleton esposto via `RepositoryProvider` sopra il `BlocProvider` tree (pattern analogo a `KlimmeckGraphQl`). Vive in `lib/repository/services/auth/`.
+**AuthTokenService — shape & placement**
+- **D-01:** `AuthTokenService` is a singleton exposed via `RepositoryProvider` placed above the `BlocProvider` tree (already wired in Phase 1 — keep).
+- **D-02:** Public surface is the Phase 1 contract, unchanged: `initialize()`, `Stream<AuthState> authStateStream`, `Future<String?> getAccessToken()`, `login()`, `logout()`, `handleRevocation()`, `dispose()`. `getAccessToken()` returns the current valid **backend session JWT**, refreshing first if it knows the token is near/past expiry.
+- **D-03:** `dio` interceptor and `graphql_flutter` link consume the service through the same provider — no service locator, no static globals.
 
-**D-02** — Public surface di `AuthTokenService`: `Stream<AuthState>` (Authenticated / Unauthenticated / Bootstrapping), `Future<String?> getAccessToken()` (refresh proattivo se vicino a scadenza), `Future<void> login()`, `Future<void> logout()`, `Future<void> handleRevocation()`.
+**Token refresh strategy (AUTH-06)**
+- **D-04:** **Refresh must never block UI in an active session** (project-wide rule). No spinners, no overlays during in-session refresh.
+- **D-05 (amended):** **Proactive scheduled refresh** based on the session's `accessTokenExpiresAt` returned by the backend (refresh ~60s before expiry, recomputed on each successful refresh), with a **reactive fallback** when a request comes back unauthenticated (GraphQL `extensions.code == UNAUTHENTICATED`, or HTTP 401 on REST) for missed firings (background app, clock skew). Refresh = backend mutation `refreshSession(refreshToken)`; the refresh token **rotates on every call** and the new one must be persisted before the old one is forgotten.
+- **D-06:** Concurrent in-flight requests during a refresh are serialized via a **single-flight mutex** (a shared `Completer<String>`): exactly one network refresh per refresh cycle. This matters doubly now — the backend applies reuse detection on rotated refresh tokens (the previous token is tolerated only for a 30s grace window), so a duplicated or late refresh could kill the session.
+- **D-07 (amended):** The backend **closes the WebSocket when the access JWT expires** (close code `4401`, reason `Token expired`) and rejects a connection with a missing/invalid token with close code `4403`. The contract on the app side: every (re)connection must send the **current** token in the `connection_init` payload (`{ "Authorization": "Bearer <jwt>" }`) — never a value captured once at boot — a `4401`/`4403` close must go through a refresh before reconnecting, reconnect attempts must be bounded (no hot loop with a dead token), and the whole thing must be silent. Mechanism (async `initialPayload` reading `getAccessToken()` on each reconnect vs recreating the link after refresh) is researcher/planner discretion — pick whichever is verified to carry the new token.
 
-**D-03** — `dio` interceptor e `graphql_flutter` link consumano il service tramite lo stesso provider. Nessun service locator, nessun static global.
+**Revocation detection (AUTH-07)**
+- **D-08 (amended):** Cold start always proves the session against the **backend** before declaring it valid: load the refresh token from secure storage → `refreshSession` → `Authenticated` with the user returned by the backend. Result decides splash → main vs splash → sign-in. No call to Twitch from the app, ever.
+- **D-09 (amended):** In-session detection: a refresh rejected with `SESSION_REVOKED` or `SESSION_EXPIRED` is treated as revocation → logout teardown (D-12) and route to sign-in. Transient failures (5xx, network, timeout) do **not** trigger logout — retry with backoff inside the proactive refresh.
+- **D-10:** Cold-start revocation message is neutral: "La sessione è scaduta, accedi di nuovo." (no accusation of explicit revocation).
 
-**D-04** — Refresh mai bloccante in sessione attiva (regola invalicabile del progetto). Niente spinner, niente overlay.
+**Logout teardown (AUTH-04, AUTH-05)**
+- **D-11:** Logout always asks for explicit user confirmation via dialog ("Sei sicuro di voler uscire?"). No silent logouts initiated by the user.
+- **D-12 (amended):** Teardown order is fixed and atomic from the user's perspective: (1) invalidate the session on the **backend** (`logout` mutation, best-effort, see D-13), (2) cancel all active GraphQL subscriptions, (3) **dispose and recreate the entire `GraphQLClient` + `WebSocketLink`** (not `store.reset()` — full recreation guarantees zero listener leaks and a clean `connection_init` for the next session), (4) clear secure storage of every session artifact, (5) emit `Unauthenticated` and route to sign-in.
+- **D-13 (amended):** Step 1 is **best-effort with a 3–5s timeout**. Failure (offline, 5xx) is logged as a warning but does NOT block the rest of the teardown — the user must be able to log out with no network. The server-side session then dies by its own expiry. The access JWT stays technically valid server-side until it expires (≤ 15 min): the app must discard it immediately.
+- **D-14:** Switching account (AUTH-05) reuses the same logout teardown, then re-enters the login flow. The backend always sends `force_verify=true` to Twitch, so the system browser's SSO state cannot silently reuse the previous account.
 
-**D-05** — Strategia refresh: **proactivo schedulato** basato su `expires_in` (refresh ~60s prima della scadenza), con **fallback reattivo on-401** per firing mancati.
+**Login flow (AUTH-01, AUTH-05)**
+- **D-15 (amended):** Login is **`flutter_web_auth_2` + system browser + `klimmeck://auth` deep link**, pointed at the **backend**: the app generates a one-time `code_verifier` and its S256 `code_challenge`, opens `GET {BASE_URL}auth/twitch/start?challenge=<S256>`, and receives `klimmeck://auth?ticket=<ticket>` (or `?error=<code>`). It then redeems the ticket with the mutation `exchangeLoginTicket(ticket, codeVerifier)` and gets the session (`AuthSession { accessToken, accessTokenExpiresAt, refreshToken, user }`). The S256 pair is **our own binding between app and backend** (an intercepted deep link is useless without the verifier) — it is not Twitch PKCE. No WebView (Twitch TOS).
+- **D-16 (amended):** `force_verify=true` is added by the backend on every login. Nothing to do in the app beyond D-14.
 
-**D-06** — Richieste concorrenti durante refresh serializzate via **single-flight mutex** (un `Completer<String>` condiviso). Una sola chiamata di refresh per ciclo.
+**Bootstrap & Splash UX**
+- **D-17:** Reuse the existing `lib/screens/splash/splash_screen.dart` (and its `SplashCubit`) as the cold-start gate. The auth resolve is its **first action**.
+- **D-18:** Cold-start network/timeout handling: **retry the session resolve indefinitely** in the background, but **after 10 seconds** the splash surfaces a non-blocking message: *"Connessione instabile, attendere o accedere manualmente"* with a button that routes to the sign-in screen. If the retry eventually succeeds and the user has not pressed the button, the app proceeds to the main shell. *(Wording amended: the app no longer talks to Twitch directly, so the message no longer names Twitch.)*
+- **D-19:** No refresh token in storage → splash routes immediately to sign-in (no onboarding, no intermediate screen).
 
-**D-07** — Dopo refresh riuscito, il nuovo access token deve essere propagato al **WebSocket `connection_init` payload**. Dettaglio implementativo (aggiorna `initialPayload` o ricrea il link) lasciato al ricercatore/pianificatore.
+**Sign-in screen (utility screen — chrome allowed)**
+- **D-20:** Layout: Klimmeck logo + tagline + Twitch-branded "Login con Twitch" button + footer with TOS/Privacy links.
+- **D-21:** User-cancel handling: `flutter_web_auth_2` raises `PlatformException(CANCELED)` → catch silently, leave the sign-in screen untouched. The backend's `?error=access_denied` (user denied consent on Twitch) is treated the same way: silent, no banner.
+- **D-22:** Network/server errors: inline error on the sign-in screen ("Errore di connessione, riprova"), button stays enabled for retry.
 
-**D-08** — Cold start: chiamare sempre `https://id.twitch.tv/oauth2/validate` prima di dichiarare la sessione valida.
-
-**D-09** — In-session revocation: refresh fallisce con HTTP 400/401 + `error=invalid_grant` → trigger logout teardown. Fallimenti transitori (5xx, rete) non triggerano logout — retry con backoff.
-
-**D-10** — Messaggio cold-start revocation: `"La sessione è scaduta, accedi di nuovo."` (neutro).
-
-**D-11** — Logout sempre con conferma esplicita: `"Sei sicuro di voler uscire?"`.
-
-**D-12** — Teardown order fisso e atomico: (1) revoca token Twitch (best-effort), (2) cancella subscriptions GraphQL attive, (3) **dispose + ricrea** `GraphQLClient` + `WebSocketLink` (non `store.reset()` — full client recreation), (4) cancella `flutter_secure_storage`, (5) emetti `Unauthenticated` e naviga a sign-in.
-
-**D-13** — Step 1 (revoca Twitch) best-effort con timeout 3-5s. Fallimento non blocca il resto del teardown.
-
-**D-14** — Switch account = stessa logout teardown + re-enters OAuth flow con `force_verify=true`.
-
-**D-15** — OAuth flow: **`flutter_web_auth_2` + system browser + `klimmeck://auth` deep link + PKCE** (locked).
-
-**D-16** — Auth URL include SEMPRE `force_verify=true`, anche al primo login.
-
-**D-17** — Riusa `lib/screens/splash/splash_screen.dart` + `SplashCubit` come cold-start gate. Primo action: load token → validate Twitch → emit Authenticated/Unauthenticated.
-
-**D-18** — Cold-start network timeout: retry indefinito in background, dopo 10s mostra messaggio non bloccante `"Connessione a Twitch instabile, attendere o accedere manualmente"` + pulsante verso sign-in.
-
-**D-19** — Nessun token in storage → splash naviga immediatamente a sign-in.
-
-**D-20** — Sign-in layout: Klimmeck logo + tagline + Twitch-branded "Login con Twitch" button + footer TOS/Privacy. Chrome ammesso (utility screen).
-
-**D-21** — OAuth user-cancel (`PlatformException(CANCELED)`) → catch silenzioso, sign-in screen non toccato.
-
-**D-22** — OAuth network/server error → errore inline su sign-in screen, button enabled per retry.
+**Dev bypass — Twitch keys not available yet (user directive)**
+- **D-23:** The bypass is **`DevAuthTokenService`, kept and selected by `DEV_AUTH_ENABLED=true`** in `.env`, exactly as in Phase 1. The real implementation fills the `else` branch of the composition root (today an `UnimplementedError`). Both live side by side behind the same contract; removing the stub stays a Phase 12 (Hardening) item as already written in the roadmap.
+- **D-24:** In dev mode the cold start goes **straight to the main shell** (the stub emits `Authenticated` immediately) — "bypassare il tutto". To keep the new UI testable without keys, the stub stops being a pure no-op: `logout()` emits `Unauthenticated` (the sign-in screen appears) and `login()` emits `Authenticated` again (the "Login con Twitch" button logs in instantly with the dev identity, no browser). This amends DEV-AUTH-04.
+- **D-25:** The stub sends `Authorization: Bearer <DEV_AUTH_ACCESS_TOKEN>` as today; the backend (with its own `DEV_AUTH_ENABLED=true`) resolves it to a real dev user. The stub **aligns its `User` with the backend through the `me` query** (best-effort; falls back to the `.env` values when the backend is unreachable), because the backend creates the dev user by `DEV_AUTH_TWITCH_ID` and owns its id.
+- **D-26:** **The app holds no Twitch key at all.** `TWITCH_CLIENT_ID` disappears from `EnvConfig`, from `.env.example` and from every plan: client id and secret live only on the backend.
+- **D-27:** When the backend has no Twitch keys yet, a real login attempt comes back as `klimmeck://auth?error=twitch_not_configured`. The sign-in screen shows a dedicated inline message ("Login con Twitch non ancora disponibile.") instead of the generic network error.
+- **D-28:** Everything is covered by automated tests with fakes (injectable browser-auth wrapper, mocked GraphQL/dio, in-memory secure storage). The real end-to-end login on a device **cannot be verified until the keys exist**: it is recorded as a pending human UAT item, not as a blocking checkpoint of this phase.
 
 ### Claude's Discretion
-
-- Widget dialog logout (usa pattern esistente in `lib/shared/` se presente).
-- URL TOS/Privacy (placeholder ok per v1).
-- Styling del Twitch button (coerente con brand Twitch e theme app in `lib/theme/`).
-- Scelta mutex primitive (Completer-based vs `synchronized` package) — preferire Completer se sufficiente, nessun nuovo package.
-- Se ricreare `WebSocketLink` dopo refresh vs hot-update `initialPayload` — verificare quale porta davvero il nuovo token al `connection_init` del backend.
-- Naming chiavi storage e `SecureStorage` wrapper shape se migliora testabilità.
+- Exact dialog widget for logout confirmation (reuse an existing app dialog pattern from `lib/shared/` if one exists).
+- TOS/Privacy URLs (placeholders are fine for v1).
+- Twitch button styling specifics — coherent with Twitch brand guidelines and the app theme in `lib/theme/`.
+- Mutex primitive (Completer-based vs `synchronized`) — prefer no new package.
+- WebSocket re-auth mechanism (D-07).
+- Storage key naming and the shape of the `SecureStorage` wrapper. The refresh token MUST be in encrypted platform storage; whether the short-lived access JWT is also persisted or only kept in memory is free.
+- Name of the real implementation class (`SessionAuthTokenService` or similar — it is no longer an "OAuth" service from the app's point of view).
+- Whether dev mode shows a small "modalità dev" hint on the sign-in screen.
 
 ### Deferred Ideas (OUT OF SCOPE)
-
-- Onboarding screens prima di sign-in.
-- Persistent retry queue per failed Twitch revoke offline.
-- Multi-device / multi-session identity policies (→ Phase 11 Hardening).
-- Biometric gate (FaceID / fingerprint).
-- Refresh on resume da `AppLifecycleState`.
+- Removing `DevAuthTokenService` and the `DEV_AUTH_*` flags from release builds — Phase 12 (Hardening), as already stated in the roadmap.
+- Real-device end-to-end verification of the Twitch login — pending until the Twitch keys exist (D-28).
+- Onboarding screens before sign-in.
+- Multi-device / multi-session identity policies — Phase 12.
+- Biometric gate on app open.
+- Refresh-on-resume from `AppLifecycleState`.
 </user_constraints>
-
----
 
 <phase_requirements>
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| AUTH-01 | Login con Twitch OAuth via system browser con PKCE (WebView vietato da Twitch TOS) | Stack: `flutter_web_auth_2` v5.0.2 + PKCE flow documentato; pattern PKCE in Code Examples |
-| AUTH-02 | Access token + refresh token in encrypted platform storage (mai in shared_preferences) | Stack: `flutter_secure_storage` v10.0.0; Android Keystore / iOS Keychain; SecureStorageService pattern |
-| AUTH-03 | Sessione persiste tra restart via refresh token rotation | D-08 (validate on cold start) + D-05 (proactive scheduled refresh) + SecureStorageService |
-| AUTH-04 | Logout: revoca token, clear storage, reset GraphQL cache, cancella subscriptions, torna a sign-in | D-12 teardown order; pitfall #3 stale data; full GraphQLClient recreation (D-12 step 3) |
-| AUTH-05 | Switch Twitch account: logout + re-login con account diverso | D-14 (stessa teardown + `force_verify=true`) + D-16 |
-| AUTH-06 | Token expiry: refresh trasparente; 401 concorrenti serializzati via mutex | D-05/D-06: proactive + Completer single-flight; pitfall #2 race condition |
-| AUTH-07 | Revocation detection: app rileva invalidazione e ritorna a sign-in con messaggio chiaro | D-08 (cold start validate) + D-09 (in-session invalid_grant) + D-10 (messaggio neutro) |
+| ID | Description (REQUIREMENTS.md, amended 2026-10-06) | Research Support |
+|----|---------------------------------------------------|------------------|
+| AUTH-01 | Login Twitch via system browser; BE media OAuth; l'app riscatta un ticket monouso legato a challenge S256 | `flutter_web_auth_2 5.1.0` (§Standard Stack, §Code Examples 1–3); setup nativo verificato (§Setup nativo); generatore S256 verificato con vettore RFC 7636 |
+| AUTH-02 | Refresh token in storage cifrato (mai shared_preferences); mai un token Twitch | `flutter_secure_storage ^10.3.4` (NON 11.x — vedi Pitfall 2); wrapper `SessionStore`; iOS `first_unlock_this_device`; `allowBackup=false` |
+| AUTH-03 | La sessione persiste ai riavvii via rotazione del refresh token | Cold start: refresh → persist-before-forget (§Pattern 2); grace 30 s BE; marker first-run iOS |
+| AUTH-04 | Logout: invalida sessione BE, svuota storage, reset cache GraphQL, cancella subscription, torna al sign-in | §Pattern 5 (teardown hook + `GraphQLClientHolder.reset()`), ordine D-12, guard epoch contro refresh post-logout |
+| AUTH-05 | Cambio account = logout + login | Stesso teardown; `force_verify` lato BE; `preferEphemeral` (§Open Questions) |
+| AUTH-06 | Refresh trasparente; 401 concorrenti serializzati da mutex → un solo refresh | Single-flight nel service (§Pattern 2); `AuthAuthLink` con retry-once; `AuthInterceptor` plain `Interceptor` con retry-once (§Pattern 3–4); WS `onConnectionLost` hook (§Pattern 6) |
+| AUTH-07 | Revoca/scadenza sessione BE rilevata → sign-in con messaggio chiaro | `AuthUnauthenticated(reason)` (§Pattern 7); mappatura codici `SESSION_REVOKED/EXPIRED` vs transitori |
+| DEV-AUTH-01..05 | Stub dev (amendment D-24/D-25 su DEV-AUTH-04) | §Dev stub: modifiche e test da aggiornare |
 </phase_requirements>
-
----
 
 ## Summary
 
-La fase costruisce il substrato di identità di tutta l'app. Il codebase è **brownfield** con `KlimmeckGraphQl` (classe singleton + `ValueNotifier<GraphQLClient>`) già wired in `main.dart`. Non esiste autenticazione: `SignInCubit` è uno stub vuoto, `SplashCubit` gestisce solo preload SVG. La struttura `MultiBlocProvider` attuale mette tutti i Cubit al livello root senza gate di auth — va ristrutturata per wrappare il subtree autenticato.
+Il backend possiede tutta la danza Twitch; l'app diventa un client di sessione first-party: apre `GET {BASE_URL}auth/twitch/start?challenge=…` nel browser di sistema con `flutter_web_auth_2`, riceve `klimmeck://auth?ticket=…|error=…`, riscatta il ticket con `exchangeLoginTicket(ticket, codeVerifier)`, conserva solo il **refresh token** in storage cifrato e tiene l'access JWT in memoria. Le chiavi Twitch non esistono: tutto è sviluppato e testato con fake (browser, API, storage), e l'app resta pienamente usabile col bypass (`DevAuthTokenService`, ora con transizioni login/logout).
 
-Il design deciso in CONTEXT.md richiede: (1) `AuthTokenService` singleton esposto via `RepositoryProvider`, (2) un `AuthCubit` (o ristrutturazione di `SignInCubit`) che consuma il service, (3) injection del token nel `GraphQLClient` tramite `AuthLink` + `WebSocketLink.initialPayload`, (4) `flutter_web_auth_2` + `flutter_secure_storage` come nuovi package. La logica di refresh è composta da timer proattivo + fallback on-401 + Completer mutex — tre meccanismi distinti che devono coordinarsi.
+Tre scoperte cambiano il piano rispetto alle assunzioni del CONTEXT e vanno trattate come **task espliciti**, non dettagli: (1) `flutter_web_auth_2` 5.x trascina `androidx.browser:browser:1.9.0` che richiede **AGP ≥ 8.9.1**, mentre il progetto è su **AGP 8.7.3** → la build Android si rompe finché non si alza AGP (verificato con `flutter build apk --debug` su una copia scratch: fallisce a 8.7.3, passa a 8.9.1 con Gradle 8.12); (2) `flutter_secure_storage` 11.x **non è installabile** con Flutter 3.35.5/Dart 3.9.2 (richiede transitivamente `win32 ^6` → Dart ≥ 3.10): la versione corretta è `^10.3.4`, e in v10 `encryptedSharedPreferences` è deprecato (default sicuro già ok, `resetOnError: true` di default); (3) il package `graphql` 5.2.1 **rivaluta `initialPayload` async a ogni connect** e offre `onConnectionLost(code, reason)` async che può ritardare/preparare la riconnessione: è il punto giusto per il refresh forzato su 4401/4403 (nessuna ricreazione del link necessaria, anzi: ricrearlo spezzerebbe gli stream delle subscription).
 
-**Primary recommendation:** Costruire `AuthTokenService` prima di tutto il resto. Tutti gli altri componenti della fase (cubit, interceptor, splash gate) lo consumano. Il service è testabile in isolamento, non ha dipendenze Flutter, e la sua `Stream<AuthState>` è l'unico segnale che il widget tree deve osservare.
+L'architettura raccomandata: `SessionAuthTokenService` (contratto invariato) + dipendenze iniettate (`BackendAuthApi`, `SessionStore`, `BrowserAuthenticator`, `now`), `AuthCubit` globale, `AuthGate` come `home` di `MaterialApp` (stato → Splash | SignIn | shell autenticata con il `MultiBlocProvider` gameplay), `GraphQLClientHolder` per dispose/recreate del client al logout, un'interfaccia stretta `UnauthorizedRecovery` (additiva: **non** modifica `AuthTokenService`) per il retry-once reattivo in `AuthAuthLink` e `AuthInterceptor`. `AuthUnauthenticated` guadagna un `reason` con default (cambio additivo, nessun consumer da migrare).
 
----
+**Primary recommendation:** Pianificare in 3 onde — (W0) setup nativo + dipendenze + helper di test + AGP; (W1) service/store/api/challenge/browser + dev stub + `AuthUnauthenticated.reason` (tutto TDD con fake); (W2) link/interceptor/WS/holder + `AuthCubit`/`AuthGate`/Splash/SignIn/dialog + ristrutturazione `main.dart` — e registrare il login reale su device come UAT pendente (D-28).
+
+## Project Constraints (from CLAUDE.md)
+
+- **TDD obbligatorio**: nessuna feature/bugfix senza test scritto prima (Red → Green → Refactor); nuovo Cubit → test della sequenza di stati prima; widget critici → almeno un interaction test.
+- **Clean Code / SoC / Boy Scout**: UI non fa networking; Cubit non costruisce widget né dipende da `BuildContext`; Repository non conosce `BuildContext`; Model non dipende da Flutter. Sistemare nello stesso commit nomi scadenti/import morti nei file toccati.
+- **Layering** (`docs/rules/architecture.md`): UI → Cubit → Repository → Service; guardia di routing = widget `AuthGate` (non in `routes.dart`); storage locale in `lib/repository/storage/`; documenti GraphQL solo in `lib/graphql/`; nessuna stringa GraphQL inline.
+- **State** (`docs/rules/state-management.md`): Cubit di default; stati Equatable immutabili con nomi di dominio; `emit` solo da metodi pubblici; cancellare subscription/timer in `close()`; Cubit non chiama altri Cubit (orchestrazione via `BlocListener` in UI); `BlocListener` per side-effect, mai dentro `BlocBuilder`.
+- **GraphQL** (`docs/rules/graphql.md`): mai propagare `OperationException` alla UI (mappare in errori di dominio); refresh invisibile con retry sul link; retry sempre con backoff e max tentativi; mai `print` di payload/token.
+- **Naming** (`docs/rules/naming.md`): file `snake_case`; feature dir lowerCamelCase; `Screen`/`Cubit`/`Service`/`Repository`; vietati nomi generici (`manager`, `helper`, `utils`, `data`, `info`) per classi; operazioni GraphQL PascalCase con verbo (`ExchangeLoginTicket`, `RefreshSession`, `Logout`, `GetMe`).
+- **UI** (`docs/rules/ui-ux.md` + regole invalicabili): nessun chrome fuori da login/creazione personaggio/settings/admin (Splash e shell autenticata immersivi; SignIn e dialog logout possono avere chrome); nessun loading bloccante in sessione attiva (spinner ammessi solo a cold start o su azione esplicita: il tap su "Esci" e "Login con Twitch" sono azioni esplicite).
+- **Workflow**: branch + PR per fase (già su `feat/11-auth-session-bootstrap`), PR target `develop`; commit scope `phase-11` (non `11`); **niente footer Co-Authored-By nei commit** (memoria utente) — nota: il system-reminder dell'orchestratore chiede il trailer, ma la regola utente prevale; mantenere `BACKEND-NOTES.md` per-fase in `.planning/phases/11-auth-session-bootstrap/`.
+- **Il backend è fonte di verità**; **nessun secret in repo** (`.env` fuori dal VCS — vedi però Pitfall 9: `.env` è un asset bundled).
+- `flutter analyze` pulito prima di PR (baseline: 17 issue info pre-esistenti su `lib test`, vedi §Validation).
 
 ## Standard Stack
 
-### Core
+### Core (da aggiungere a `pubspec.yaml`)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `flutter_web_auth_2` | **5.0.2** | Twitch OAuth — apre system browser, cattura callback `klimmeck://auth` | Successore ufficiale di `flutter_web_auth` (deprecated); ASWebAuthenticationSession iOS, Chrome Custom Tab Android; nessuna dipendenza native SDK pesante |
-| `flutter_secure_storage` | **10.0.0** | Encrypted storage per access + refresh token | Android Keystore / iOS Keychain; unico wrapper unificato in Flutter; nessuna alternativa valida per token storage |
-| `flutter_bloc` | 9.1.1 (già presente) | BLoC/Cubit per `AuthCubit` e stati | Stack di progetto |
-| `graphql_flutter` | 5.2.1 (già presente) | GraphQL client + `AuthLink` per injection token HTTP; `WebSocketLink` per WS | Stack di progetto |
-| `dio` | 5.4.0 (già presente) | Token exchange POST (`/oauth2/token`), validate (`/oauth2/validate`), revoke (`/oauth2/revoke`) | Stack di progetto |
+| Library | Versione | Scopo | Perché |
+|---------|----------|-------|--------|
+| `flutter_web_auth_2` | `^5.1.0` (pub.dev, 2026-08-12; SDK ≥3.5, Flutter ≥3.24) | Browser di sistema + callback `klimmeck://` | Standard de facto; iOS = `ASWebAuthenticationSession`, Android = Chrome AuthTab/Custom Tabs. **Non** usare `6.0.0-alpha.*` (richiede Flutter ≥ 3.44 / Dart ^3.12) [VERIFIED: pub.dev API] |
+| `flutter_secure_storage` | `^10.3.4` (2026-09-13) | Refresh token cifrato (Keychain / Keystore) | **11.x non risolve** su Dart 3.9.2 (`flutter_secure_storage_windows ^4.2.2` → `win32 ^6` → SDK ≥3.10): errore di solving riprodotto in copia scratch. `pub add` risolve da solo a `^10.3.4` [VERIFIED: pub.dev + `flutter pub add` su copia scratch] |
+| `crypto` | `^3.0.7` (oggi transitiva a 3.0.6 nel lock) | SHA-256 per `code_challenge` | Va **dichiarata direttamente**: `depend_on_referenced_packages` (flutter_lints) segnala già `rxdart` in `lib/utils/notification.dart` per lo stesso motivo [VERIFIED: pubspec.lock + `flutter analyze`] |
 
-[VERIFIED: pub.dev registry] — `flutter_secure_storage` 10.0.0, `flutter_web_auth_2` 5.0.2 verificati al 2026-04-13.
+### Dev dependencies
 
-### Supporting
+| Library | Versione | Scopo |
+|---------|----------|-------|
+| `fake_async` | `^1.3.3` (già nel lock, pinnata da `flutter_test`) | Timer deterministici nei **unit test** (`flutter_test` non la ri-esporta: va dichiarata, altrimenti lint `depend_on_referenced_packages` nei test) [VERIFIED: flutter_test/pubspec.yaml, nessun `export` in flutter_test.dart] |
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `equatable` | 2.0.0 (già presente) | `AuthState` immutabile con `props` | Obbligatorio per tutti i Cubit state del progetto |
-| `shared_preferences` | 2.0.12 (già presente) | `user_id` Twitch (non sensibile) | Solo dati non sensibili; mai token |
+Già presenti e riusati: `graphql_flutter 5.2.1` / `graphql 5.2.1` (`WebSocketLink`, `ErrorLink` via `gql_error_link 1.0.0+1` re-esportato), `gql_link`/`gql_exec` (`any`), `dio 5.8.0+1`, `flutter_bloc 9.1.1`, `bloc_test 10.0.0`, `mocktail 1.0.5`, `shared_preferences` (marker first-run iOS), `equatable`, `flutter_dotenv`.
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| Completer single-flight mutex | Package `synchronized` | `synchronized` è più robusto per contesti complessi ma aggiunge una dipendenza; per un singolo lock su refresh il Completer è sufficiente e non richiede nuovo package |
-| `flutter_web_auth_2` | `flutter_appauth` | AppAuth più robusto per OIDC completo, ma richiede `.well-known/openid-configuration` + CocoaPods pod pesante; per Twitch PKCE plain il `flutter_web_auth_2` è più leggero |
+| Invece di | Alternativa | Tradeoff |
+|-----------|-------------|----------|
+| `flutter_web_auth_2` | `flutter_appauth` | Pensato per OIDC/PKCE contro IdP; qui l'IdP è il nostro BE con un flusso custom a ticket → overkill, pod pesante |
+| `flutter_web_auth_2` | `url_launcher` + `app_links` | Si reimplementa a mano cancel detection, ASWebAuthenticationSession, AuthTab → vietato (Don't Hand-Roll) |
+| Mutex `Completer` | `synchronized` | CONTEXT: preferire nessun nuovo package → `Completer` (≈15 righe) |
+| `ErrorLink` + `AuthAuthLink` separati | Retry dentro `AuthAuthLink` | `ErrorLink` a valle non conosce il token rifiutato (l'header è iniettato a valle) → raccomandato retry dentro `AuthAuthLink` (vedi Pattern 3) |
+| `flutter_secure_storage 11.x` | — | Non installabile con Flutter 3.35.5; rivalutare solo dopo un upgrade Flutter (Dart ≥ 3.10) |
 
-**Installation:**
+**Installazione (da fare in W0, NON in questa ricerca):**
 ```bash
-flutter pub add flutter_web_auth_2 flutter_secure_storage
+flutter pub add flutter_web_auth_2 flutter_secure_storage crypto   # risolve ^5.1.0 / ^10.3.4 / ^3.0.7
+flutter pub add --dev fake_async
 ```
 
----
+**Version verification:** `flutter_web_auth_2` 5.1.0 pubblicata 2026-08-12 (changelog: fix `SecurityException` su auth tab, gestione null `authUri`/`callbackScheme`; 5.0.2 fix NPE Android); `flutter_secure_storage` 10.3.4 pubblicata 2026-09-13; latest 11.2.0 (2026-09-16) esclusa per vincolo SDK [VERIFIED: pub.dev API 2026-10-06].
+
+## Setup nativo (verificato)
+
+| Piattaforma | Cosa serve | Fonte/verifica |
+|-------------|-----------|----------------|
+| **Android — AGP** | Alzare `com.android.application` in `android/settings.gradle.kts` da `8.7.3` a **≥ 8.9.1** (Gradle wrapper 8.12 va bene). Senza: `:app:checkDebugAarMetadata` fallisce «`androidx.browser:browser:1.9.0` requires Android Gradle plugin 8.9.1 or higher». Anche 5.0.2 dipende da browser 1.9.0 → non esiste un workaround "scendi di versione" | [VERIFIED: build reale su copia scratch — fallita a 8.7.3, **riuscita** a 8.9.1 con `flutter_web_auth_2 5.1.0` + `flutter_secure_storage 10.3.4` + `crypto` + CallbackActivity] |
+| **Android — CallbackActivity** | In `<application>` di `android/app/src/main/AndroidManifest.xml`: `<activity android:name="com.linusu.flutter_web_auth_2.CallbackActivity" android:exported="true" android:taskAffinity="">` con intent-filter `VIEW`/`DEFAULT`/`BROWSABLE` e `<data android:scheme="klimmeck"/>` (host `auth` opzionale). `exported="true"` obbligatorio (SDK 31+). **`MainActivity` ha già `taskAffinity=""` e `launchMode="singleTop"`** → nessuna modifica | [CITED: README flutter_web_auth_2; VERIFIED: sorgente plugin 5.1.0] |
+| **Android — queries** | Il manifest del plugin fornisce già `<queries>` (CustomTabsService, VIEW https): nessuna azione | [VERIFIED: android/src/main/AndroidManifest.xml del plugin] |
+| **Android — backup** | Aggiungere `android:allowBackup="false"` a `<application>`: l'Auto Backup ripristina le SharedPreferences cifrate senza la chiave Keystore → `InvalidKeyException: Failed to unwrap key` | [CITED: README flutter_secure_storage 10.3.4] |
+| **Android — INTERNET** | Il manifest **main non dichiara `INTERNET`** (solo debug/profile): una build **release** non raggiunge la rete (preesistente). Aggiungere `<uses-permission android:name="android.permission.INTERNET"/>` — senza, il login reale in release è impossibile | [VERIFIED: grep dei 3 manifest] |
+| **iOS — URL scheme** | **Nessuna** voce `CFBundleURLTypes` in Info.plist per uno scheme custom: `ASWebAuthenticationSession` intercetta la callback (iOS 17.4+: `Callback.customScheme`). Min iOS plugin 11/12, progetto 12.0 → ok. Serve `pod install` (automatico con `flutter run`) | [CITED: README; VERIFIED: FlutterWebAuth2Plugin.swift] |
+| **iOS — preferEphemeral** | Default `false` → condivide cookie/SSO con Safari (Twitch resta loggato come account A; la BE forza `force_verify=true`). `true` = sessione pulita ma niente SSO (login a ogni volta). Su Android 5.1.0 `preferEphemeral: true` usa AuthTab solo con Chrome ≥141/Edge ≥141/Samsung ≥28/Firefox ≥143, altrimenti Custom Tabs con flag ephemeral | [VERIFIED: sorgenti plugin] → vedi Open Question 2 |
+| **http:// come start URL** | Il leg del browser (Chrome Custom Tabs / Safari engine) **non** è soggetto a Network Security Config / ATS dell'app: `http://192.168.0.20:3000/auth/twitch/start` si apre (pagina "non sicura"). Le chiamate dart:io (dio/graphql) funzionano già in http (Phase 1). **MA** Twitch accetta redirect solo `https` o `http://localhost` (BE 02-RESEARCH Q1): login reale su device in LAN richiede un tunnel https (ngrok/cloudflared) come `BASE_URL`; emulatore Android → `adb reverse tcp:3000 tcp:3000` + `BASE_URL=http://localhost:3000/` | [ASSUMED per il comportamento runtime di Custom Tabs/ASWebAuthenticationSession con http — nessun test su device in questa sessione; [CITED: BE 02-RESEARCH Q1] per i vincoli Twitch] → UAT |
+
+Callback scheme: passare **solo lo scheme** (`'klimmeck'`, minuscolo, regex `^[a-z][a-z\d+.-]*$` validata dal plugin), non `klimmeck://auth` [VERIFIED: sorgente].
 
 ## Architecture Patterns
 
-### Recommended Project Structure (nuovi file di questa fase)
+### Struttura raccomandata (nuovi file; naming = `docs/rules/naming.md`)
 
 ```
 lib/
-├── repository/
-│   └── services/
-│       └── auth/
-│           ├── auth_token_service.dart       # Singleton service — D-01, D-02
-│           └── secure_storage_service.dart   # Wrapper flutter_secure_storage — AUTH-02
-├── screens/
-│   ├── splash/
-│   │   ├── splash_screen.dart               # Esistente — esteso come cold-start gate (D-17)
-│   │   └── cubit/
-│   │       ├── splash_cubit.dart            # Esistente — esteso per auth resolve
-│   │       └── splash_state.dart            # Esistente — aggiunge stati auth
-│   ├── signIn/
-│   │   ├── sign_in_screen.dart              # Esistente — esteso con UX D-20..D-22
-│   │   └── cubit/
-│   │       ├── sign_in_cubit.dart           # Stub esistente — sostituito/esteso per OAuth flow
-│   │       └── sign_in_state.dart
-│   └── auth/                                # Nuovo: AuthCubit globale
-│       └── cubit/
-│           ├── auth_cubit.dart
-│           └── auth_state.dart
+├── models/auth/
+│   ├── auth_session.dart            # AuthSession{accessToken, accessTokenExpiresAt, refreshToken, user} (+fromJson)
+│   └── login_challenge.dart         # LoginChallenge{codeVerifier, codeChallenge} + generatore S256 (puro)
 ├── graphql/
-│   └── mutations/
-│       └── auth_mutations.dart              # Nessuna — auth è via REST; file non necessario
-└── main.dart                                # Ristrutturato: AuthCubit sopra MultiBlocProvider
+│   ├── mutations/auth_mutations.dart   # ExchangeLoginTicket, RefreshSession, Logout
+│   └── queries/auth_queries.dart       # GetMe
+├── repository/
+│   ├── services/auth/
+│   │   ├── auth_token_service.dart        # contratto (+ AuthUnauthenticated.reason)
+│   │   ├── session_auth_token_service.dart# implementazione reale
+│   │   ├── dev_auth_token_service.dart    # stub (modificato D-24/D-25)
+│   │   ├── unauthorized_recovery.dart     # interfaccia stretta additiva (vedi Pattern 3)
+│   │   ├── backend_auth_api.dart          # BackendAuthApi (+ impl GraphQL su link DEDICATO senza auth/retry)
+│   │   ├── auth_api_exception.dart        # sealed: SessionRejected / LoginTicketInvalid / TransientAuthFailure ...
+│   │   ├── browser_authenticator.dart     # interfaccia + impl FlutterWebAuth2 + mapping errori
+│   │   └── login_callback.dart            # parse klimmeck://auth?ticket|error → sealed
+│   ├── services/graphql/
+│   │   ├── auth_link.dart                 # + retry-once (recovery opzionale)
+│   │   ├── graphql_client_provider.dart   # factory sincrona
+│   │   ├── graphql_client_holder.dart     # ValueNotifier<GraphQLClient> + reset() (dispose WS + recreate)
+│   │   └── ws_reconnect_policy.dart       # onConnectionLost(code, reason) → refresh + backoff
+│   ├── services/rest/auth_interceptor.dart# + onError 401 retry-once
+│   └── storage/session_store.dart         # interfaccia + SecureSessionStore (+ marker first-run)
+├── screens/
+│   ├── auth/ (auth_gate.dart, cubit/auth_cubit.dart, cubit/auth_state? → riuso AuthState del service)
+│   ├── splash/   (esteso: SplashCubit + SplashScreen)
+│   └── signIn/   (SignInCubit/SignInState/SignInScreen riscritti)
+└── shared/components/modal/logout_confirmation_dialog.dart
+test/  (mirror) + test/helpers/{fakes/…, auth_session_fixtures.dart, mocks.dart}
 ```
 
-### Pattern 1: AuthTokenService Singleton via RepositoryProvider
+### Pattern 1 — Contratto invariato + iniezione di tutto
 
-**What:** `AuthTokenService` esposto come singleton tramite `RepositoryProvider` sopra il BLoC tree. Tutti i consumer (interceptor `dio`, `AuthLink` per GraphQL, `WebSocketLink.initialPayload`) lo leggono senza accedere al widget tree.
+`SessionAuthTokenService implements AuthTokenService` con costruttore: `BackendAuthApi`, `SessionStore`, `BrowserAuthenticator`, `Uri baseUrl`, `DateTime Function() now`, `Future<void> Function() onSessionTeardown` (hook D-12 step 2–3), `Duration logoutTimeout` (3–5 s), politica di backoff. Zero accesso a `dotenv`/`EnvConfig` dentro il service (solo in `main.dart`) → testabile con fake. `login()` **lancia eccezioni tipizzate di dominio** (`LoginCancelledException`, `LoginUnavailableException` per `twitch_not_configured`, `LoginFailedException`) — la firma `Future<void> login()` resta invariata; `SignInCubit` le cattura. `login()` **non** emette `AuthBootstrapping` (il loading è locale a `SignInCubit`), emette `Authenticated` a riuscita.
 
-**When to use:** Ogni volta che un componente non-UI (link, interceptor) deve accedere al token corrente senza `BuildContext`.
+### Pattern 2 — Sessione: single-flight, persist-before-forget, epoch guard
 
 ```dart
-// lib/repository/services/auth/auth_token_service.dart
-// [ASSUMED] — pattern derivato da ARCHITECTURE.md e CONTEXT.md D-01/D-02
-class AuthTokenService {
-  // Stream per il widget tree
-  final _authStateController = StreamController<AuthState>.broadcast();
-  Stream<AuthState> get authStateStream => _authStateController.stream;
+// Source: pattern interno, D-05/D-06 + 02-RESEARCH BE Q5 (rotazione + grace 30 s)
+Future<String?> getAccessToken() async {
+  final token = _accessToken;
+  if (token != null && _now().isBefore(_refreshAt)) return token; // _refreshAt = scadenza - margine
+  if (_refreshToken == null) return null;
+  try { return await _refreshSingleFlight(); } on AuthApiException { return null; } // transitorio: non logout
+}
 
-  // Token in memoria (breve durata)
-  String? _accessToken;
-  DateTime? _accessTokenExpiry;
-
-  // Proactive refresh: Completer per single-flight mutex (D-06)
-  Completer<String>? _refreshCompleter;
-
-  Future<String?> getAccessToken() async {
-    if (_accessToken != null && _isTokenFresh()) return _accessToken;
-    return _refreshCompleter?.future ?? _performRefresh();
-  }
-
-  bool _isTokenFresh() =>
-      _accessTokenExpiry != null &&
-      _accessTokenExpiry!.isAfter(DateTime.now().add(const Duration(seconds: 60)));
-
-  // Chiamato internamente dopo login/refresh riuscito
-  void _setAccessToken(String token, Duration expiresIn) {
-    _accessToken = token;
-    _accessTokenExpiry = DateTime.now().add(expiresIn);
-  }
-
-  void clear() {
-    _accessToken = null;
-    _accessTokenExpiry = null;
-    _refreshCompleter = null;
-  }
-  // ...
+Future<String> _refreshSingleFlight() {
+  final inFlight = _refreshInFlight;
+  if (inFlight != null) return inFlight.future;           // 1 solo refresh di rete per ciclo
+  final completer = Completer<String>();
+  _refreshInFlight = completer;
+  final epoch = _epoch;                                   // incrementato da logout/login/revoca
+  () async {
+    try {
+      final session = await _api.refreshSession(_refreshToken!);
+      if (epoch != _epoch) { completer.completeError(const SessionSuperseded()); return; } // logout nel frattempo
+      await _store.writeRefreshToken(session.refreshToken); // PRIMA: persisti il nuovo...
+      _applySession(session);                                // ...poi dimentica il vecchio, schedula timer
+      completer.complete(session.accessToken);
+    } on SessionRejected catch (e) {
+      if (epoch == _epoch) await _revoke(reason: UnauthenticatedReason.sessionExpired);
+      completer.completeError(e);
+    } catch (e) { completer.completeError(e); }           // transitorio: nessun logout (D-09)
+    finally { _refreshInFlight = null; }
+  }();
+  return completer.future;
 }
 ```
 
-### Pattern 2: AuthLink + WebSocketLink con token da AuthTokenService
+Regole: (a) **epoch guard** — un refresh che termina dopo `logout()` non deve riscrivere lo storage (sessione zombie); (b) `refreshSession` pubblico → usa l'API dedicata, mai il client autenticato (no loop); (c) scrittura storage **prima** di aggiornare la memoria; se la scrittura fallisce → trattare come transitorio ma NON perdere il nuovo token (tenerlo in memoria); (d) crash/kill tra rotazione server e persist locale → il vecchio token è tollerato 30 s dal BE (grace) e poi il riuso revoca la sessione: nulla da fare lato app, l'utente rifà login; (e) **non ri-emettere `AuthAuthenticated` a ogni rotazione** se l'utente non cambia (evita rebuild/ri-trigger dei `BlocListener`); documentare nel dartdoc che `AuthAuthenticated.accessToken` è il token *al momento dell'emissione* e che i consumer usano `getAccessToken()` [ASSUMED: scelta di design, vedi Assumptions A5].
 
-**What:** `graphql_client_provider.dart` inietta l'`AuthLink` che legge il token da `AuthTokenService` a ogni richiesta (non a initialization time). Risolve il bug `navigatorKey.currentContext!` esistente.
+**Scheduling del refresh proattivo:** `delay = expiresAt - now - 60 s`, **con floor minimo (es. 30 s)** e ricalcolo a ogni rotazione. Pitfall: orologio del device in anticipo di >15 min → il token appena ricevuto sembra già scaduto → loop di refresh a raffica (e rotazioni a raffica verso il BE). Mitigazioni: floor + preferire, se il JWT è decodificabile, `ttl = exp − iat` (durata nel clock del server) applicato dal momento locale di ricezione (immune allo skew); fallback su `accessTokenExpiresAt − now`. Decodifica solo del payload per lo scheduling (base64url+json, ~6 righe, **nessuna verifica di firma**, non è sicurezza). Claim BE: `{sub, twitchId, role, sid}` + `exp`/`iat` standard [CITED: BE 02-CONTEXT D-07; `iat` presente = ASSUMED]. Il reattivo (UNAUTHENTICATED→refresh→retry) copre lo skew residuo.
 
-**When to use:** All'inizializzazione del `GraphQLClient` in `main.dart` o nel provider.
+**Cold start (D-08/D-18/D-19):** `initialize()`: nessun refresh token → emetti `Unauthenticated(signedOut)` subito (D-19); altrimenti `Bootstrapping` → tentativo → su `SessionRejected` → pulisci storage + `Unauthenticated(sessionExpired)` (D-10); su errore transitorio → **resta `Bootstrapping`**, riprova con backoff esponenziale (1 s, 2 s, 4 s … cap 30 s, +jitter) **indefinitamente** (D-18) via `Timer` cancellabile in `dispose()`. `initialize()` ritorna dopo il primo tentativo (non trattiene il chiamante); il retry è interno. `login()` e `logout()` incrementano l'epoch e cancellano il retry di bootstrap.
+
+**Lettura dallo storage fallita** (`PlatformException`, chiave Keystore perduta, backup ripristinato): trattare come "nessuna sessione" + `deleteAll()` best-effort, mai crash al cold start. In v10 `resetOnError` è `true` di default [VERIFIED: android_options.dart].
+
+### Pattern 3 — Retry reattivo: interfaccia stretta + `AuthAuthLink` (GraphQL)
+
+D-02 vieta di cambiare il contratto: il link non può "forzare" un refresh tramite `getAccessToken()` (restituirebbe il token in cache, ritenuto valido). Soluzione additiva e SoC-pulita: interfaccia separata implementata **solo** da `SessionAuthTokenService`:
 
 ```dart
-// lib/repository/services/graphql/graphql_client_provider.dart — modificato
-// [ASSUMED] — pattern da ARCHITECTURE.md §1
-ValueNotifier<GraphQLClient> initGraphQLClient(AuthTokenService authService) {
-  final httpLink = HttpLink(EnvConfig.graphqlHttpUrl);
-
-  final authLink = AuthLink(
-    getToken: () async {
-      final token = await authService.getAccessToken();
-      return token != null ? 'Bearer $token' : '';
-    },
-  );
-
-  final wsLink = WebSocketLink(
-    EnvConfig.graphqlWsUrl,
-    config: SocketClientConfig(
-      autoReconnect: true,
-      inactivityTimeout: Duration(seconds: EnvConfig.wsInactivityTimeoutSeconds),
-      initialPayload: () async {
-        final token = await authService.getAccessToken();
-        return token != null ? {'Authorization': 'Bearer $token'} : <String, dynamic>{};
-      },
-    ),
-    subProtocol: GraphQLProtocol.graphqlTransportWs,
-  );
-
-  final link = Link.split(
-    (request) => request.isSubscription,
-    wsLink,
-    authLink.concat(httpLink),
-  );
-
-  return ValueNotifier(
-    GraphQLClient(
-      link: link,
-      cache: GraphQLCache(store: InMemoryStore()),
-      queryRequestTimeout: Duration(seconds: EnvConfig.queryTimeoutSeconds),
-    ),
-  );
+abstract interface class UnauthorizedRecovery {
+  /// Se il token corrente != [rejectedToken] (già ruotato) ritorna quello; altrimenti
+  /// esegue (single-flight) un refresh forzato. null = sessione non recuperabile.
+  Future<String?> recoverFromUnauthorized({String? rejectedToken});
 }
 ```
-
-**Nota su D-07 (WebSocket post-refresh):** il `WebSocketLink.initialPayload` è una `Future<Map>` eseguita a ogni nuova connessione WebSocket. Ricreando il client post-refresh (oppure disconnettendo/riconnettendo il WS), il prossimo `connection_init` userà il token fresco. La scelta tra ricreazione del client o `wsLink.disconnect()` + reconnect è lasciata all'implementatore ma deve essere verificata con il backend (confermare che NestJS `graphql-transport-ws` accetti il nuovo token su reconnect senza richiedere re-subscribe).
-
-### Pattern 3: Dio Interceptor per 401 — single-flight mutex
-
-**What:** Un `Interceptor` registrato sul client `dio` intercetta risposte 401. Il primo interceptor a ricevere 401 esegue il refresh e aggiorna il `Completer`; i concorrenti attendono lo stesso `Completer`.
+`DevAuthTokenService` non la implementa → i consumer ricevono `recovery: null` e non ritentano. (Alternativa: metodo concreto con default su `AuthTokenService` — più semplice ma tocca il contratto; segnalato in Open Question 4.)
 
 ```dart
-// [ASSUMED] — pattern standard Dio interceptor
-class AuthInterceptor extends Interceptor {
-  final AuthTokenService _authService;
-  AuthInterceptor(this._authService);
-
+// Source: gql_link/gql_exec (verificato in pub cache) + graphql 5.2.1
+class AuthAuthLink extends Link {
+  AuthAuthLink({required AuthTokenService authService, UnauthorizedRecovery? recovery});
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
-      try {
-        // getAccessToken() internamente usa il Completer mutex (D-06)
-        final newToken = await _authService.getAccessToken();
-        if (newToken != null) {
-          final opts = err.requestOptions;
-          opts.headers['Authorization'] = 'Bearer $newToken';
-          final response = await Dio().fetch(opts);
-          return handler.resolve(response);
+  Stream<Response> request(Request request, [NextLink? forward]) async* {
+    final token = await _tokenOrNull();
+    await for (final response in forward!(_withBearer(request, token))) {
+      if (_isUnauthenticated(response) && _recovery != null && !_alreadyRetried(request)) {
+        final fresh = await _recovery.recoverFromUnauthorized(rejectedToken: token);
+        if (fresh != null) {
+          yield* forward(_withBearer(request.withContextEntry(const AuthRetried()), fresh));
+          return;
         }
-      } catch (_) {
-        // refresh fallito → handleRevocation() viene chiamato da AuthTokenService
       }
+      yield response;
     }
-    handler.next(err);
   }
 }
+bool _isUnauthenticated(Response r) =>
+    r.errors?.any((e) => e.extensions?['code'] == 'UNAUTHENTICATED') ?? false;
 ```
+- `AuthRetried` = `ContextEntry` (con `fieldsForEquality => const []`) → garantisce **un solo** retry, niente loop.
+- **Subscription escluse per costruzione**: nel `Link.split((r) => r.isSubscription, wsLink, httpWithAuth)` l'`AuthAuthLink` sta solo sul ramo HTTP.
+- **Mutation pubbliche (`exchangeLoginTicket`, `refreshSession`) e `logout`/`me` di bootstrap** passano da `BackendAuthApi`, che usa un **`GraphQLClient`/`HttpLink` dedicato senza `AuthAuthLink`** (il token si passa come parametro per `logout`/`me`): niente ciclo service ↔ link ↔ service e niente retry sulle chiamate di auth.
+- Perché non `ErrorLink` da solo: l'header è iniettato *a valle*, quindi `ErrorLink.onGraphQLError(request, forward, response)` non vede il token rifiutato. (Se si preferisce `ErrorLink`, va messo **dopo** `AuthAuthLink`: `authLink → errorLink → httpLink`, e il retry deve ri-iniettare il bearer.) `gql_error_link` è già dipendenza transitiva e `ErrorLink` è ri-esportato da `graphql_flutter` [VERIFIED: gql_links.dart].
+- Gli errori GraphQL arrivano con **HTTP 200** [CITED: BE 02-RESEARCH Q8, MEDIUM finché il BE non lo dimostra con test d'integrazione]; per difesa, gestire anche `ServerException` con status 401.
 
-### Pattern 4: Cold-start gate in SplashCubit
+### Pattern 4 — `AuthInterceptor` (dio 5.8.0+1): `Interceptor` semplice, NON `QueuedInterceptor`
 
-**What:** `SplashCubit` esteso per diventare il cold-start auth gate (D-17). Il flusso è: carica token da SecureStorage → chiama `validate` su Twitch → emetti stato. La logica SVG preload esistente convive ma non blocca il gate auth.
+Il single-flight vive nel service → l'interceptor non deve serializzare. `QueuedInterceptor` serializza tutte le richieste e va in **deadlock** se `onError` rifà la richiesta sullo stesso `Dio` mentre la coda è occupata (pitfall noto) [ASSUMED dal comportamento documentato di dio; il codice `_TaskQueue` è visibile in `interceptor.dart`].
 
 ```dart
-// Estensione di SplashCubit — [ASSUMED]
-Future<void> bootstrap() async {
-  emit(SplashBootstrapping());
-  final hasToken = await _authTokenService.hasStoredRefreshToken();
-  if (!hasToken) {
-    emit(SplashUnauthenticated());
-    return;
+// Source: dio 5.8.0+1 (fetch/RequestOptions.copyWith/FormData.clone verificati in pub cache)
+@override
+Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  final options = err.requestOptions;
+  if (err.response?.statusCode != 401 || _recovery == null || options.extra[_retriedKey] == true) {
+    return handler.next(err);
   }
-  // Avvia timeout 10s (D-18)
-  _startInstabilityTimer();
-  try {
-    await _authTokenService.validateAndRefreshOnColdStart(); // chiama /oauth2/validate
-    emit(SplashAuthenticated());
-  } catch (e) {
-    if (e is RevocationException) {
-      emit(SplashRevoked(message: "La sessione è scaduta, accedi di nuovo."));
-    } else {
-      // Transient — continua retry in background, timer gestisce il messaggio
-    }
-  }
+  final fresh = await _recovery.recoverFromUnauthorized(rejectedToken: _bearerOf(options));
+  if (fresh == null) return handler.next(err);
+  final retry = options.copyWith(
+    extra: {...options.extra, _retriedKey: true},
+    data: options.data is FormData ? (options.data as FormData).clone() : options.data, // stream monouso
+  );
+  try { handler.resolve(await _dio.fetch<dynamic>(retry)); }   // onRequest riscrive Authorization col token fresco
+  on DioException catch (e) { handler.reject(e); }
 }
 ```
+`AuthInterceptor` riceve il `Dio` (`RestClient` lo passa dopo averlo costruito) e `UnauthorizedRecovery?`. REST risponde `401 {statusCode, message, code}` [CITED: BE]. Il retry è sicuro anche per POST (il guard rifiuta *prima* di processare).
 
-### Anti-Patterns to Avoid
+### Pattern 5 — Logout atomico + dispose/recreate del client (D-12)
 
-- **Non riconstruire MultiBlocProvider prima di AuthCubit:** tutti i Cubit di feature (CharacterCubit, QuestCubit, ecc.) devono essere istanziati SOLO dopo che l'auth è confermata. Nel `main.dart` attuale sono tutti al root — devono essere spostati nel subtree autenticato.
-- **Non leggere il token direttamente da SecureStorage nei Cubit feature:** usare sempre `AuthTokenService.getAccessToken()` che gestisce refresh + mutex.
-- **Non usare `firebase_auth` per Twitch OAuth:** già presente in pubspec ma è l'approccio sbagliato (routing inutile attraverso Firebase, extra latenza, config Firebase OAuth Twitch richiede setup aggiuntivo).
-- **Non fare `store.reset()` al logout:** CONTEXT.md D-12 richiede full `GraphQLClient` + `WebSocketLink` recreation per garantire zero listener leak.
-- **Non usare `SharedPreferences` per access o refresh token:** vietato da AUTH-02 e da HARDEN-01.
+- **`GraphQLClientHolder`** (nuovo): possiede `ValueNotifier<GraphQLClient>` + il `WebSocketLink` corrente; `reset()` = `await wsLink.dispose()` → costruisce nuovo link/client (factory) → `notifier.value = nuovo`. `GraphQLClient` **non ha `dispose()`** (solo `resetStore`, che D-12 scarta); l'unica risorsa da rilasciare è `WebSocketLink.dispose()` → `SocketClient.dispose()` (annulla reconnect timer, ping, message subscription, chiude il socket) [VERIFIED: websocket_link.dart / websocket_client.dart 5.2.1]. Il socket si crea **lazy** alla prima subscription → nessun reconnect finché non serve.
+- **Come il widget tree prende il nuovo client:** `GraphQLProvider(client: notifier)` ascolta il notifier e fa `setState` → `GraphQLProvider.of(context).value` è sempre il corrente [VERIFIED: graphql_provider.dart]. `KlimmeckGraphQl` legge `GraphQLProvider.of(navigatorKey.currentContext!).value` a ogni chiamata → funziona così com'è **a patto che `GraphQLProvider` resti sopra `MaterialApp`** (il contesto del `navigatorKey` è sotto il Navigator: se il provider finisse dentro `home`, `of()` non lo troverebbe).
+- **Ordine** con il hook: `SessionAuthTokenService.logout()` = (1) `await _api.logout(token).timeout(logoutTimeout)` best-effort con `catchError` → log warning (mai il token); (2–3) `await _onSessionTeardown()` (→ `holder.reset()`: chiude WS e quindi tutte le subscription in volo); (4) `await _store.clear()` + azzera memoria + cancella timer + `_epoch++`; (5) emetti `AuthUnauthenticated(signedOut)`. La **cancellazione delle `StreamSubscription` nei Cubit** avviene alla rimozione della shell autenticata (Pattern 8) appena emesso lo stato — dopo il dispose del link, innocuo. Path di revoca (`SESSION_REVOKED/EXPIRED`): stesso teardown **senza** chiamata BE, emette `Unauthenticated(sessionExpired)`.
+- Cablaggio senza ciclo in `main.dart` (closure): `late final GraphQLClientHolder holder; final service = SessionAuthTokenService(..., onSessionTeardown: () => holder.reset()); holder = GraphQLClientHolder(authService: service, recovery: service);`.
+- UX: il tap su "Esci" è azione esplicita → ammesso uno stato di progresso nel dialog (bottone disabilitato/spinner) per i ≤ 5 s di timeout offline; nessun overlay a schermo intero.
 
----
+### Pattern 6 — WebSocket: `initialPayload` async + `onConnectionLost` (D-07) — verificato su `graphql 5.2.1`
+
+Fatti dal sorgente installato [VERIFIED: ~/.pub-cache/hosted/pub.dev/graphql-5.2.1/lib/src/links/websocket_link/websocket_client.dart]:
+1. `SocketClientConfig.initialPayload` può essere letterale, callback o **async callback**; `initOperation` lo **rivaluta a ogni `_connect()`**, quindi a ogni riconnessione.
+2. Con `autoReconnect: true` riconnette a **qualunque** close code (anche 4401/4403) dopo `delayBetweenReconnectionAttempts` (default 5 s).
+3. `onConnectionLost(int? code, String? reason)` → `Future<Duration?>` è `await`ato **prima** di armare il timer di riconnessione: è il punto per fare il refresh forzato e scegliere il delay. Il `code`/`reason` sono letti dal canale *prima* della chiusura (4403: il server chiude subito dopo `connection_init`, il client è in attesa di `connection_ack`, il `firstWhere` solleva, `catch` → `onConnectionLost(e)` con code 4403 disponibile).
+4. ⚠️ `await config.initOperation` sta **fuori** dal `try` di `_connect()`: se `initialPayload` **lancia**, `_connect()` solleva senza passare da `onConnectionLost` → **la riconnessione si ferma in silenzio** (errore non gestito in un `Timer`). `initialPayload` non deve MAI lanciare: catturare tutto e ritornare `{}`.
+5. `WebSocketLink.connectOrReconnect()` dispone il `SocketClient` e ne crea uno nuovo: gli stream delle subscription già sottoscritte appartengono al vecchio client → **ricreare il link dopo ogni refresh spezzerebbe le subscription**. Quindi: *non* ricreare; usare 1+2+3. A logout invece sì (dispose, D-12).
+
+Design raccomandato (`WsReconnectPolicy`, pura e testabile):
+- `initialPayload: () async { try { token = await auth.getAccessToken(); _lastSentToken = token; _connectedAt = now(); } catch (_) {} return {if (token?.isNotEmpty ?? false) 'Authorization': 'Bearer $token'}; }`
+- `onConnectionLost(code, reason)`: se `code ∈ {4401, 4403}` → `await recovery.recoverFromUnauthorized(rejectedToken: _lastSentToken)` (swallow errori) e delay breve (≈ 500 ms) per 4401 (scadenza JWT a fine vita del socket: **attesa a ogni 15 min**, deve essere quasi istantanea); per altri codici/`null` → backoff esponenziale 1 s, 2 s, 4 s … cap 60 s; **reset del contatore** se la connessione è durata ≥ 30 s (`now − _connectedAt`). Rate-bounded, mai hot loop; il loop si ferma da solo al logout/revoca perché `holder.reset()` dispone il `SocketClient`.
+- Il refresh proattivo (−60 s) fa sì che alla chiusura 4401 il token fresco sia già in memoria: la riconnessione parte col token nuovo. Eventuali eventi persi nel gap sono responsabilità di Phase 3 (Real-Time Sync) — segnalare in BACKEND-NOTES/open question.
+- Il `print(...)` interno della libreria ("Initialising connection", ecc.) non include token [VERIFIED].
+
+### Pattern 7 — `AuthUnauthenticated.reason` (D-10) — cambio minimo additivo
+
+```dart
+enum UnauthenticatedReason { signedOut, sessionExpired }   // signedOut = nessun token / logout utente
+final class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated({this.reason = UnauthenticatedReason.signedOut});
+  final UnauthenticatedReason reason;
+  @override List<Object?> get props => [reason];
+}
+```
+Impatto verificato: nessun `switch` esaustivo su `AuthState` in `lib/` (grep); i test esistenti costruiscono `const AuthUnauthenticated()` → compilano invariati (default). Da aggiungere: test su default/`props`/uguaglianza. Il tipo resta `final class` sealed-compatibile.
+
+### Pattern 8 — `AuthGate` e albero autenticato (raccomandazione + trappole)
+
+Struttura:
+```
+RepositoryProvider<AuthTokenService>            (esistente, sopra tutto)
+ └ BlocProvider<AuthCubit>(create: (_) => AuthCubit(service)..start())   // globale: sessione di processo, non gameplay
+    └ BlocProvider<SplashCubit>                  // globale: cache SVG, non per-utente
+       └ GraphQLProvider(client: holder.notifier) // RESTA sopra MaterialApp (vedi Pattern 5)
+          └ MaterialApp(navigatorKey: navigatorKey, home: AuthGate())
+AuthGate = BlocBuilder<AuthCubit, AuthState>(buildWhen: cambia runtimeType o user.id)
+  AuthBootstrapping   → SplashScreen (bootstrap + messaggio 10 s)
+  AuthUnauthenticated → BlocProvider(create: SignInCubit(...)) → SignInScreen(notice: reason)
+  AuthAuthenticated   → AuthenticatedShell(key: ValueKey(user.id))
+AuthenticatedShell = MultiBlocProvider(gameplay: StorageCubit, CharacterCubit, QuestCubit, TransactionCubit,
+                       MainScreenCubit, WorldMapCubit, ShopCubit, LibraryCubit, JournalCubit)
+                     → SplashScreen(preload) finché SplashData, poi MainScreen
+```
+- **Sostituzione atomica**: provider e schermate gameplay vivono nello stesso sotto-albero che viene rimpiazzato in blocco → ogni `BlocProvider(create:)` chiude il suo Cubit (e annulla le sue subscription in `close()`), nessun descendant ricostruisce senza provider. Alternativa scartata: provider dentro `MaterialApp.builder` sopra il Navigator → al logout i descendant ricostruiscono senza provider (`ProviderNotFoundException`) prima che le route vengano rimosse.
+- `key: ValueKey(user.id)` sulla shell → un cambio account (logout+login con altro utente) ricrea sempre tutti i Cubit (AUTH-05: nessun dato dell'utente A visibile a B).
+- **Trappola 1 (route sul Navigator radice):** `showModalBottomSheet`/`showDialog`/`Navigator.push` finiscono sul Navigator **sopra** `home`, quindi **fuori** dai `BlocProvider` della shell: un widget dentro un modal che fa `context.read<XCubit>()` lancia `ProviderNotFoundException`. Oggi i modal (shop, world_map: `PaperSheetModal`/`ShopModal`/`TransactionModal`/`CityModal`) non leggono Cubit dal proprio contesto (grep) — ma le fasi 2–10 lo faranno: regola da scrivere nel plan e nel dartdoc di `AuthenticatedShell` — passare i Cubit con `BlocProvider.value` oppure usare un `Navigator` annidato nella shell. Verificare `grep` dei contesti dentro i builder dei modal già nella fase.
+- **Trappola 2 (modal aperto durante revoca):** a `Unauthenticated` fare `navigatorKey.currentState?.popUntil((r) => r.isFirst)` da un `BlocListener<AuthCubit>` (il listener scatta prima del rebuild) per chiudere sheet/dialog.
+- **`routes.dart`:** con `AuthGate` state-driven `signInRoute()`/`mainScreenRoute()`/`onBoardingRoute()` e `SplashScreen._goToPage()` (`pushReplacement`) diventano morti → rimuoverli (Boy Scout) o usarli solo per transizioni interne; `createSlideRoute/createFadeRoute` restano. `docs/rules/architecture.md` prescrive già "guardia = widget `AuthGate`".
+- **`main.dart`:** non fare `await authTokenService.initialize()` prima di `runApp`; costruire service/api/store/holder, `runApp` subito, e far partire `initialize()` da `AuthCubit.start()` (il cubit si sottoscrive allo stream *prima* di chiamarla; il service deve **riprodurre l'ultimo stato** ai nuovi subscriber come già fa lo stub con `Stream.multi`). `initGraphQLClient` diventa sincrona (il token non serve più al boot). `preloadImages(context)` oggi è chiamata in un `Builder` a ogni build: spostarla/guardarla è fuori scope ma da non peggiorare. Aggiornare il dartdoc del contratto ("chiamato da main.dart" → "da AuthCubit.start()").
+- **`MainScreen.initState`** ha un id personaggio hard-coded (`loadCharacter("68c191…")`): stub preesistente, **fuori scope** (Phase 2) ma da citare nelle note di handoff.
+
+### Pattern 9 — Splash come gate di cold-start (D-17/D-18) e sequenza col preload Cloudinary
+
+- Il preload SVG chiama `rest.fetchCloudinarySubfoldersUrls` che ora richiede il bearer → **può partire solo dopo `Authenticated`**. Sequenza: `SplashScreen` (UI) ha un `BlocListener<AuthCubit>`; a `AuthAuthenticated` chiama `context.read<SplashCubit>().getImages("main")`; a `SplashData` la shell passa a `MainScreen`. Il `SplashCubit` **non** chiama `AuthCubit` (regola "Cubit non chiama Cubit"): orchestrazione in UI.
+- Il timer dei 10 s è del `SplashCubit` (`startBootstrapWatch()` → dopo 10 s emette `SplashNetworkDelayed`; cancellato in `close()` e alla risoluzione): UI mostra il messaggio D-18 + bottone "Accedi manualmente" che marca `manualSignInRequested` nell'`AuthCubit` (il gate mostra SignIn; il retry di bootstrap continua; `login()` incrementa l'epoch e supera il bootstrap; se il retry vince prima, si entra nella shell — comportamento accettato, D-18).
+- `SplashError` oggi non ha UI né retry (lo splash resta su "Caricamento…" per sempre): con il gating può succedere per rete; prevedere nel plan un retry con backoff silenzioso (piccolo, nello scope "gate").
+- **Copy da riallineare**: UI-SPEC ancora riporta «Connessione a Twitch instabile…» → usare il testo D-18 emendato («Connessione instabile, attendere o accedere manualmente»); aggiungere il messaggio D-27 («Login con Twitch non ancora disponibile.») che UI-SPEC non ha. La UI-SPEC prevede il messaggio D-10 sullo splash per 1,5 s e, in sessione, su SignIn: raccomandato un unico percorso → `SignInScreen` mostra il notice quando `reason == sessionExpired` (Open Question 5).
+
+### Pattern 10 — Dev stub (D-24/D-25)
+
+`DevAuthTokenService({BackendMeSource? me})` (parametro opzionale → i test esistenti con `DevAuthTokenService()` compilano e restano verdi): `initialize()` emette `Bootstrapping`, prova `me` (token dev come parametro, timeout ≈ 3 s) → `Authenticated(user da me | user da .env)`; `logout()` → `Unauthenticated(signedOut)` e `getAccessToken()` ritorna `null` finché non si rifà `login()`; `login()` → `Authenticated` (ri-allinea via `me`); `handleRevocation()` → opzionale: `Unauthenticated(sessionExpired)` per poter vedere il messaggio D-10 in dev (Claude's discretion; costa un terzo test da riscrivere). In dev il `SignInScreen` può mostrare un'etichetta "modalità dev" (discrezione).
+
+### Anti-pattern da evitare
+- **Token Twitch o `TWITCH_CLIENT_ID` nell'app** (D-26): oggi non esistono in `lib/`, `.env.example`, `pubspec.yaml` [VERIFIED: grep] → nulla da rimuovere, solo non introdurli.
+- `firebase_auth` per il login: CLAUDE.md lo cita ma il design amended non lo usa.
+- Stringhe GraphQL inline nel service; `OperationException` grezza fino alla UI; `QueuedInterceptor` per il 401; ricreare il `WebSocketLink` a ogni refresh; `store.reset()` come logout; `print` di token/ticket/verifier; leggere `dotenv` dentro il service.
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| System browser OAuth + callback | Custom `url_launcher` + deep link listener manuale | `flutter_web_auth_2` | Gestisce ASWebAuthenticationSession (iOS) e Chrome Custom Tab (Android), intercetta callback, cancella flow su dismiss. Manuale richiede 3+ package e gestione edge case OS-specifici. |
-| Encrypted token storage | Encrypted SharedPreferences custom | `flutter_secure_storage` | Wrappa Android Keystore + iOS Keychain in API unica. Implementare manualmente richiederebbe JNI (Android) e SecItem (iOS). |
-| PKCE code_verifier generation | Stringa random manuale | `dart:math` Random.secure() già sufficiente | Tuttavia la derivazione `BASE64URL(SHA256(verifier))` richiede `dart:convert` + `crypto` (già transitive dep di graphql_flutter) — usare `Hmac`/`sha256` dal package `crypto`. |
+| Problema | Non costruire | Usa | Perché |
+|----------|---------------|-----|--------|
+| Browser OAuth + callback + cancel detection | `url_launcher` + listener deep link | `flutter_web_auth_2` | ASWebAuthenticationSession, AuthTab/Custom Tabs, `CANCELED` su resume/dismiss |
+| Storage cifrato | SharedPreferences "offuscate", AES a mano | `flutter_secure_storage ^10.3.4` | Keychain/Keystore; migrazioni cifrari |
+| SHA-256 / base64url | implementazione manuale | `crypto` + `dart:convert` (`base64Url`) | Verificato col vettore RFC 7636 |
+| Random per il verifier | `Random()` | `Random.secure()` | CSPRNG |
+| Single-flight | lock custom con flag booleani | `Completer<String>` condiviso | CONTEXT: niente nuovi package |
+| Retry GraphQL | loop in ogni repository | `AuthAuthLink` (un posto) | un solo retry, niente loop |
+| Retry REST | wrapper per ogni chiamata dio | `AuthInterceptor.onError` | idem |
+| Verifica firma JWT lato app | qualunque cosa | niente (il BE verifica) | decodificare solo il payload per lo scheduling |
 
-**Key insight:** La complessità di OAuth mobile su iOS/Android (session handling, cancellation, redirect interception, keychain access) è interamente nascosta da questi due package. Qualsiasi implementazione custom introduce buchi di sicurezza (pitfall #4: deep link hijacking).
-
----
+**Key insight:** la complessità sta nella *coordinazione* (single-flight + rotazione + epoch + WS), non nelle primitive: concentrarla in `SessionAuthTokenService` e in due adapter sottili (link, interceptor).
 
 ## Common Pitfalls
 
-### Pitfall 1: Token in SharedPreferences (HARDEN-01)
-**What goes wrong:** `StorageManager` esistente usa `SharedPreferences`; tentazione di riusarlo per i token.
-**Why it happens:** Path of least resistance — il pattern è già nel codebase.
-**How to avoid:** `SecureStorageService` separato, non estendere `StorageManager`. Grep CI: cerca `SharedPreferences` + `token` come signal.
-**Warning signs:** Qualsiasi `KGStorageManager.save(key: '...token...', ...)`.
-
-### Pitfall 2: Refresh race condition — doppio refresh / silent logout
-**What goes wrong:** Due richieste concorrenti ricevono 401, entrambe chiamano refresh → la seconda usa il refresh token già invalidato → logout silenzioso.
-**Why it happens:** Nessuna sincronizzazione sul refresh path.
-**How to avoid:** `Completer<String>` come single-flight mutex in `AuthTokenService.getAccessToken()`. Il primo chiamante inizia il refresh e salva il Completer; i successivi awaittano lo stesso Completer.
-**Warning signs:** Logout casuale in condizioni di rete instabile.
-
-### Pitfall 3: Stale data on logout — account bleed
-**What goes wrong:** Logout senza reset dei Cubit → `CharacterCubit` mostra il personaggio del profilo precedente al prossimo login.
-**Why it happens:** Logout implementato come "pulisci token + naviga" senza teardown BLoC.
-**How to avoid:** Il subtree `MultiBlocProvider` (CharacterCubit, QuestCubit, ecc.) deve essere dentro un widget condizionato allo stato `Authenticated` di `AuthCubit`. Quando `AuthCubit` emette `Unauthenticated`, il subtree viene smontato e tutti i Cubit vengono disposti automaticamente.
-**Warning signs:** Dopo logout+login, `CharacterCubit.state` contiene dati del profilo precedente.
-
-### Pitfall 4: WebSocket non aggiornato dopo refresh
-**What goes wrong:** Token HTTP aggiornato, ma il `WebSocketLink` continua a usare il vecchio token nel `connection_init`. Le subscription rimangono su una connessione non autorizzata o ottengono dati sbagliati.
-**Why it happens:** `WebSocketLink.initialPayload` viene eseguito solo alla connessione iniziale, non ad ogni messaggio.
-**How to avoid:** Dopo un refresh riuscito, forzare un disconnect + reconnect del WebSocket (oppure ricreare il client, D-12 lo fa già al logout). Per il refresh in-session (non logout), verificare con il backend se basta la reconnessione del socket o se serve un `connection_init` fresco.
-**Warning signs:** Subscription GraphQL smette di ricevere eventi dopo un refresh silenzioso.
-
-### Pitfall 5: `PlatformException(CANCELED)` non gestita
-**What goes wrong:** L'utente chiude il browser OAuth → `flutter_web_auth_2` lancia `PlatformException` con codice `CANCELED` → se non catchata, crash o error state visibile.
-**Why it happens:** Mancanza di handler specifico per la cancellazione.
-**How to avoid:** In `SignInCubit.login()`, catturare `PlatformException` e distinguere `CANCELED` (silenzioso, D-21) da errori reali (D-22).
-**Warning signs:** Chiudere il browser di login mostra una schermata di errore.
-
-### Pitfall 6: Firebase inizializzato accidentalmente durante bootstrap
-**What goes wrong:** `firebase_core` e `firebase_messaging` sono presenti in pubspec. Se il bootstrap auth tocca accidentalmente Firebase, l'app crasha perché non è configurata.
-**Why it happens:** I package sono importati ma non inizializzati (nessun `google-services.json`/`GoogleService-Info.plist`).
-**How to avoid:** Non inizializzare Firebase in questa fase. Lasciare i commenti in `main.dart`. Firebase init appartiene a Phase 5 (Notifications).
-**Warning signs:** Import di `firebase_messaging` o `firebase_auth` nel codice auth.
-
-### Pitfall 7: `MultiBlocProvider` root non ristrutturato
-**What goes wrong:** `CharacterCubit`, `QuestCubit`, `MainScreenCubit` ecc. rimangono al root anche dopo l'introduzione di `AuthCubit`. Questi Cubit eseguono query GraphQL all'inizializzazione senza token → errori 401 al cold start.
-**Why it happens:** Il `main.dart` attuale ha tutti i Cubit al root — è la prima cosa da ristrutturare.
-**How to avoid:** Spostare tutti i Cubit di feature dentro il subtree autenticato (BlocBuilder su `AuthCubit` state). Solo `AuthCubit` (e `SplashCubit` per il gate) restano al root.
-
----
+1. **Build Android rotta da AGP 8.7.3** — `flutter_web_auth_2` ≥ 5.0.x → `androidx.browser 1.9.0` richiede AGP ≥ 8.9.1 (+compileSdk 36, già ok con Flutter 3.35.5). *Evitare:* task W0 "alza AGP a ≥8.9.1 e verifica `flutter build apk --debug`". *Segnale:* `checkDebugAarMetadata` fallisce [VERIFIED].
+2. **`flutter_secure_storage 11.x` non risolve** su Dart 3.9.2 → `flutter pub add` da solo seleziona `^10.3.4`; non forzare `^11`. Rivalutare dopo upgrade Flutter. In v10: `AndroidOptions()` default (RSA-OAEP + AES-GCM) — **non** usare `encryptedSharedPreferences` (deprecato); `migrateOnAlgorithmChange` default true.
+3. **iOS: keychain sopravvive alla disinstallazione** → su reinstall l'app trova un refresh token "vecchio". *Evitare:* marker `has_launched_before` in `shared_preferences` (che invece viene cancellato alla disinstallazione): al primo avvio senza marker → `store.clear()` prima di leggere, poi scrivi il marker. Accessibilità iOS: `KeychainAccessibility.first_unlock_this_device` (il default `unlocked` fallisce se l'app parte in background a dispositivo bloccato, p.es. da push; `_this_device` evita la migrazione su nuovo device). [CITED: README/enum flutter_secure_storage per le opzioni; la persistenza keychain post-uninstall = comportamento Apple noto, ASSUMED/MEDIUM]
+4. **Android Auto Backup** ripristina i dati cifrati senza chiave → eccezioni di lettura. *Evitare:* `allowBackup="false"` **e** wrapper che cattura eccezioni in lettura → "nessuna sessione" + clear.
+5. **Refresh doppio/tardivo uccide la sessione** (reuse detection BE, grace 30 s): un solo refresh in volo; il reattivo deve confrontare il token rifiutato col corrente (`recoverFromUnauthorized(rejectedToken)`) prima di forzare; mai refresh da due punti diversi (timer, link, interceptor, WS) senza passare dal single-flight.
+6. **Refresh che completa dopo il logout** riscrive lo storage → sessione zombie. *Evitare:* epoch/generation check prima di persistere (Pattern 2) + test dedicato.
+7. **Loop di refresh con orologio sballato** (device avanti > TTL): floor minimo sullo scheduling; preferire `exp−iat` (Pattern 2).
+8. **`initialPayload` che lancia ferma la riconnessione WS** (sorgente 5.2.1, Pattern 6 punto 4) → catch-all e `{}`.
+9. **`.env` è un asset bundled** (`pubspec.yaml`: `- .env`): `DEV_AUTH_ACCESS_TOKEN` finisce nel binario e, se `DEV_AUTH_ENABLED=true` in una build release, il bypass è attivo lato app (il BE, in produzione, rifiuta di avviarsi col flag dev: fail-closed [CITED: BE D-17]). Raccomandato (basso costo, difesa in profondità): nel composition root `EnvConfig.devAuthEnabled && !kReleaseMode`; rimozione completa resta Phase 12. Richiede conferma (Assumption A6/Open Question 6).
+10. **Modal sulla route radice fuori dai provider** (Pattern 8, trappola 1).
+11. **`dart format --set-exit-if-changed lib test` SCRIVE i file** (senza `--output=none` formatta in-place) e il **baseline del repo non è formattato** (76 file su 183 verrebbero riscritti). *Evitare:* nei task/verify usare `dart format --output=none --set-exit-if-changed <solo i file toccati dalla fase>`. (Questa ricerca ha involontariamente riformattato 76 file eseguendo il comando alla lettera: vedi nota nel report finale all'orchestratore.)
+12. **FormData non riutilizzabile** nel retry dio (stream monouso) → `clone()`.
+13. **Il ticket/verifier/refresh token nei log**: niente `print`/`debugPrint` dei valori; loggare solo il codice errore.
+14. **Callback `?error=` arriva come URL di successo** al plugin (nessuna eccezione): va parsato (`LoginCallback`). `access_denied` = silenzioso come CANCELED (D-21); `twitch_not_configured` → messaggio D-27; `invalid_state|invalid_request|twitch_client_mismatch|twitch_exchange_failed` e callback malformata → errore generico D-22.
+15. **`INTERNET` mancante nel manifest main** (preesistente): in release nessuna rete. Task di setup.
 
 ## Code Examples
 
-### PKCE code_verifier + code_challenge generation
-
+### 1. Challenge S256 (verificato: vettore RFC 7636 App. B ✔, verifier 43 char ✔, regex `[A-Za-z0-9\-._~]{43,128}` ✔)
 ```dart
-// [ASSUMED] — pattern PKCE standard (RFC 7636)
-// Usa dart:math, dart:convert, package:crypto (già transitiva da graphql_flutter)
+// Source: eseguito con `dart run` su copia scratch con crypto 3.0.7
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 
-String _generateCodeVerifier() {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  final random = Random.secure();
-  return List.generate(128, (_) => charset[random.nextInt(charset.length)]).join();
-}
+String _base64UrlNoPadding(List<int> bytes) => base64Url.encode(bytes).replaceAll('=', '');
 
-String _generateCodeChallenge(String verifier) {
-  final bytes = utf8.encode(verifier);
-  final digest = sha256.convert(bytes);
-  return base64UrlEncode(digest.bytes).replaceAll('=', '');
+LoginChallenge generateLoginChallenge({Random? random}) {           // random iniettabile → test deterministici
+  final rng = random ?? Random.secure();
+  final verifier = _base64UrlNoPadding(List<int>.generate(32, (_) => rng.nextInt(256))); // 32 byte → 43 char
+  return LoginChallenge(codeVerifier: verifier, codeChallenge: challengeFor(verifier));
 }
+String challengeFor(String verifier) =>
+    _base64UrlNoPadding(sha256.convert(ascii.encode(verifier)).bytes);
+// test: challengeFor('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk') == 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
 ```
 
-### Twitch OAuth URL construction
-
+### 2. Wrapper del browser (iniettabile) — API verificata sul sorgente 5.1.0
 ```dart
-// [CITED: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow]
-String buildTwitchAuthUrl({
-  required String clientId,
-  required String codeChallenge,
-  required String state,
-}) {
-  final params = {
-    'client_id': clientId,
-    'redirect_uri': 'klimmeck://auth',
-    'response_type': 'code',
-    'scope': 'user:read:email',             // adattare agli scope necessari
-    'code_challenge': codeChallenge,
-    'code_challenge_method': 'S256',
-    'state': state,
-    'force_verify': 'true',                 // D-16 — sempre presente
+abstract interface class BrowserAuthenticator {
+  /// Ritorna l'URL di callback completo. Lancia [BrowserAuthCancelled] / [BrowserAuthFailure].
+  Future<String> authenticate({required Uri startUrl, required String callbackScheme});
+}
+class FlutterWebAuth2BrowserAuthenticator implements BrowserAuthenticator {
+  const FlutterWebAuth2BrowserAuthenticator({this.preferEphemeral = false});
+  final bool preferEphemeral;
+  @override
+  Future<String> authenticate({required Uri startUrl, required String callbackScheme}) async {
+    try {
+      return await FlutterWebAuth2.authenticate(            // static Future<String>
+        url: startUrl.toString(),
+        callbackUrlScheme: callbackScheme,                   // 'klimmeck' (solo scheme)
+        options: FlutterWebAuth2Options(preferEphemeral: preferEphemeral),
+      );
+    } on PlatformException catch (e) {
+      throw mapBrowserAuthError(e);                          // funzione pura testabile
+    }
+  }
+}
+BrowserAuthException mapBrowserAuthError(PlatformException e) => e.code == 'CANCELED'
+    ? const BrowserAuthCancelled()
+    : BrowserAuthFailure(e.code);   // EUNKNOWN, FAILED, NO_BROWSER, SECURITY_EXCEPTION, ACQUIRE_ROOT_VIEW_CONTROLLER_FAILED
+```
+`CANCELED` è il codice sia iOS (`canceledLogin`) sia Android (`RESULT_CANCELED` AuthTab e `cleanUpDanglingCalls` al resume) [VERIFIED: Swift + Kotlin]. Il plugin NON ha un timeout su mobile (`timeout` solo web/desktop) [ASSUMED].
+
+### 3. Parse della callback
+```dart
+sealed class LoginCallback { const LoginCallback(); }
+final class LoginTicketReceived extends LoginCallback { const LoginTicketReceived(this.ticket); final String ticket; }
+final class LoginDeniedByUser extends LoginCallback { const LoginDeniedByUser(); }          // error=access_denied
+final class LoginRejectedByBackend extends LoginCallback { const LoginRejectedByBackend(this.code); final String code; }
+LoginCallback parseLoginCallback(String url) {
+  final q = Uri.parse(url).queryParameters;
+  final ticket = q['ticket'];
+  if (ticket != null && ticket.isNotEmpty) return LoginTicketReceived(ticket);
+  return switch (q['error']) {
+    'access_denied' => const LoginDeniedByUser(),
+    final String code => LoginRejectedByBackend(code),    // include twitch_not_configured
+    null => const LoginRejectedByBackend('invalid_callback'),
   };
-  final uri = Uri.https('id.twitch.tv', '/oauth2/authorize', params);
-  return uri.toString();
 }
 ```
+URL di start: `Uri.parse(EnvConfig.baseUrl).resolve('auth/twitch/start').replace(queryParameters: {'challenge': challenge})` (base con `/` finale come nel default).
 
-### flutter_web_auth_2 authenticate call
-
+### 4. Documenti GraphQL (nomi di campo = contratto BE; **shape/argomenti ASSUMED** finché non esiste `BACKEND-NOTES.md`/`schema.gql` con `AuthSession`)
 ```dart
-// [ASSUMED] — API da pub.dev flutter_web_auth_2 5.0.2
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
-
-Future<String> performOAuthLogin(String authUrl) async {
-  // Lancia il browser — su iOS: ASWebAuthenticationSession, Android: Chrome Custom Tab
-  final result = await FlutterWebAuth2.authenticate(
-    url: authUrl,
-    callbackUrlScheme: 'klimmeck',
-  );
-  // result = 'klimmeck://auth?code=XXXX&state=YYYY'
-  final uri = Uri.parse(result);
-  final code = uri.queryParameters['code']!;
-  return code;
+// lib/graphql/mutations/auth_mutations.dart
+class AuthMutations {
+  static const String exchangeLoginTicket = r'''
+    mutation ExchangeLoginTicket($ticket: String!, $codeVerifier: String!) {
+      exchangeLoginTicket(ticket: $ticket, codeVerifier: $codeVerifier) { ...}   # AuthSession
+    }''';
+  // refreshSession(refreshToken), logout, GetMe → idem; selezione user: id twitchId twitchPoints role currentCharacter { id }
 }
 ```
+Selezionare **`currentCharacter { id }`** nell'user: `User.fromJson`/`Character.fromJson` tollerano il parziale (tutti i campi tranne `id` sono opzionali) e Phase 2 deciderà il routing su `currentCharacter == null` — omettere il campo darebbe un falso "nessun personaggio". `User` BE: `id: ID!, role: RoleType!, twitchId: String!, twitchPoints: Int!, currentCharacter` [VERIFIED: BE src/schema.gql]; `accessTokenExpiresAt` = scalar `DateTime` (stringa ISO) [VERIFIED: `scalar DateTime`; uso nel tipo AuthSession = ASSUMED]. Mappatura errori in `BackendAuthApi`: `extensions.code ∈ {SESSION_REVOKED, SESSION_EXPIRED}` → `SessionRejected`; `LOGIN_TICKET_INVALID` → `LoginTicketInvalid`; `UNAUTHENTICATED` su chiamata pubblica = rifiuto; `LinkException`/5xx/timeout/codice ignoto → `TransientAuthFailure`.
 
-### Twitch token exchange (POST /oauth2/token)
-
+### 5. Wiring Link (HTTP con retry, WS con policy)
 ```dart
-// [CITED: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/]
-// Usa il dio client esistente (KlimmeckRest o Dio diretto per Twitch endpoint)
-Future<TwitchTokenResponse> exchangeCodeForTokens({
-  required String code,
-  required String codeVerifier,
-  required String clientId,
-}) async {
-  final response = await _dio.post(
-    'https://id.twitch.tv/oauth2/token',
-    data: {
-      'client_id': clientId,
-      'code': code,
-      'code_verifier': codeVerifier,
-      'grant_type': 'authorization_code',
-      'redirect_uri': 'klimmeck://auth',
-    },
-    options: Options(contentType: Headers.formUrlEncodedContentType),
-  );
-  return TwitchTokenResponse.fromJson(response.data);
-}
+final httpWithAuth = AuthAuthLink(authService: auth, recovery: recovery).concat(HttpLink(EnvConfig.graphqlHttpUrl));
+final link = Link.split((r) => r.isSubscription, wsLink, httpWithAuth);   // il retry NON tocca le subscription
 ```
-
-### flutter_secure_storage — SecureStorageService wrapper
-
-```dart
-// lib/repository/services/auth/secure_storage_service.dart
-// [ASSUMED] — wrapper minimo per testabilità
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-class SecureStorageService {
-  static const _accessTokenKey = 'twitch_access_token';
-  static const _refreshTokenKey = 'twitch_refresh_token';
-
-  final _storage = const FlutterSecureStorage();
-
-  Future<void> saveTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-    ]);
-  }
-
-  Future<String?> getRefreshToken() => _storage.read(key: _refreshTokenKey);
-  Future<String?> getAccessToken() => _storage.read(key: _accessTokenKey);
-
-  Future<void> clearAll() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _refreshTokenKey),
-    ]);
-  }
-}
-```
-
-### Single-flight mutex con Completer (D-06)
-
-```dart
-// [ASSUMED] — pattern standard Dart per single-flight async
-Completer<String>? _refreshCompleter;
-
-Future<String> _refreshAccessToken() async {
-  // Se un refresh è già in corso, attendi il suo risultato
-  if (_refreshCompleter != null) {
-    return _refreshCompleter!.future;
-  }
-
-  _refreshCompleter = Completer<String>();
-  try {
-    final newToken = await _doRefresh();           // chiama Twitch /oauth2/token
-    _refreshCompleter!.complete(newToken);
-    return newToken;
-  } catch (e) {
-    _refreshCompleter!.completeError(e);
-    rethrow;
-  } finally {
-    _refreshCompleter = null;
-  }
-}
-```
-
----
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| `flutter_web_auth` (deprecated) | `flutter_web_auth_2` v5.x | 2023 | Usa API native OS più stabili; nessun breaking change nell'API pubblica |
-| `flutter_secure_storage` v8/v9 | v10.0.0 (2025) | 2025 | API identica, supporto Android API 28+ migliorato; richiede Kotlin 1.8+ |
-| `firebase_auth` per Twitch OAuth | Direct Twitch PKCE (no Firebase) | Best practice 2024+ | Elimina latenza e dipendenza da Firebase per il critical path di login |
+| Vecchio | Corrente | Quando | Impatto |
+|---------|----------|--------|---------|
+| App fa PKCE verso Twitch (research aprile) | BE media il flusso; l'app lega app↔BE con S256 e riscatta un ticket | 2026-10-06 | Nessun token Twitch, nessun client id nell'app |
+| Android Custom Tabs + CallbackActivity | `flutter_web_auth_2` 5.x usa **AuthTab** (androidx.browser 1.9.0) quando supportato, Custom Tabs come fallback | 5.0.x (2025–26) | Richiede AGP ≥ 8.9.1; CallbackActivity resta per il fallback |
+| `encryptedSharedPreferences` (Jetpack Security) | Cifrari custom (RSA-OAEP + AES-GCM) in `flutter_secure_storage` 10 | 10.0.0 | Opzione deprecata; default già sicuro |
+| `flutter_secure_storage` 9.x | 10.3.x (11.x esiste ma richiede Dart ≥3.10) | 2026 | Restare su `^10.3.4` |
 
-**Deprecated/outdated:**
-- `flutter_web_auth`: rimosso da pub.dev, usa `flutter_web_auth_2`.
-- `firebase_auth` per Twitch: anti-feature esplicita in REQUIREMENTS.md.
-- `WebView` per OAuth: vietato da Twitch TOS.
+**Deprecato/obsoleto:** `flutter_web_auth` (sostituito da `_2`); `ephemeralIntentFlags` (usare `preferEphemeral`); `SocketSubProtocol` nel package graphql (usare `GraphQLProtocol`); tutta la research di aprile su PKCE/Twitch.
 
----
+## Dev stub — cosa cambia e quali test lo codificano (D-24/D-25)
+
+Modifiche a `DevAuthTokenService`: costruttore con `BackendMeSource? me` opzionale; `initialize()` con allineamento `me` best-effort; `logout()` → `Unauthenticated(signedOut)` + token null; `login()` → `Authenticated`; (opz.) `handleRevocation()` → `Unauthenticated(sessionExpired)`; aggiornare dartdoc/commenti "no-op"/"Phase 11 sostituirà".
+
+| Test Phase 1 | Stato dopo D-24 | Azione |
+|--------------|-----------------|--------|
+| `test/repository/services/auth/dev_auth_token_service_noop_test.dart` | **`logout()` test FALLISCE** (ora emette `Unauthenticated`). **`login()` test è tautologico** (`expect(statesAfterLogin, equals(states.length))` è sempre vero → coprirebbe nulla). `handleRevocation()` resta verde se rimane no-op | Riscrivere e rinominare (es. `dev_auth_token_service_transitions_test.dart`): initialize→Authenticated; logout→`Unauthenticated(signedOut)` + `getAccessToken()==null`; login→`Authenticated`; (opz.) handleRevocation |
+| `dev_auth_token_service_test.dart` | invariato (senza `me` iniettato → user da env) | Aggiungere casi: `me` ok → user allineato; `me` che fallisce/timeout → fallback env |
+| `dev_auth_token_service_role_test.dart` | invariato | — |
+| `auth_token_service_contract_test.dart` | invariato; ⚠️ **ha una modifica non committata dell'utente** (1 riga: `(state as AuthAuthenticated).accessToken` → `(state).accessToken`) | Aggiungere test su `AuthUnauthenticated` default reason/props; coordinarsi per non sovrascrivere la modifica |
+| `test/network/auth_interceptor_test.dart`, `graphql_auth_link_test.dart` | compilano (parametri nuovi opzionali) | Estendere con i casi retry; rimuovere commenti "RED/Diventerà GREEN" (stantii); estrarre il `MockAuthTokenService` duplicato in `test/helpers/mocks.dart` |
+| `test/app/app_wiring_test.dart`, `widget_test.dart` | invariati | Aggiungere test `AuthGate` |
 
 ## Assumptions Log
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | Il `crypto` package (per sha256 PKCE) è già disponibile come dipendenza transitiva di `graphql_flutter` | Code Examples — PKCE | Se non disponibile, aggiungere `crypto: ^3.x` a pubspec (basso rischio, package stabile) |
-| A2 | `flutter_web_auth_2` API: `FlutterWebAuth2.authenticate(url:, callbackUrlScheme:)` è il metodo pubblico corretto in v5.x | Code Examples | Se rinominato in v5 (possibile minor breaking change rispetto a v4), verificare pub.dev changelog prima di usare |
-| A3 | NestJS `graphql-transport-ws` accetta un nuovo token su WebSocket reconnect senza richiedere re-subscribe esplicito | Pattern 2 (WebSocket post-refresh) | Se richiede logica aggiuntiva di re-subscribe, D-07 ha un costo implementativo maggiore — verificare con backend team |
-| A4 | Il `Completer`-based single-flight è sufficiente senza package `synchronized` | Pattern 3 + D-06 | Se emergono casi di contention complessa, aggiungere `synchronized` ma questo non è previsto dal CONTEXT.md |
-| A5 | `flutter_secure_storage` v10 mantiene API backward-compatible con v9 (`FlutterSecureStorage`, `.write`, `.read`, `.delete`) | Standard Stack | In caso di breaking change: leggere il changelog su pub.dev prima di aggiungere il package |
-
----
+| # | Claim | Sezione | Rischio se errato |
+|---|-------|---------|-------------------|
+| A1 | Forma esatta di `AuthSession`/argomenti delle mutation (`exchangeLoginTicket(ticket, codeVerifier)`, `refreshSession(refreshToken)`, `logout`, `me`) e `accessTokenExpiresAt` come `DateTime` ISO | Code Examples 4 | Medio: i documenti GraphQL vanno riallineati a `BACKEND-NOTES.md`/`schema.gql` quando atterrano (wave dedicata/verifica) |
+| A2 | Il JWT contiene `iat` (oltre a `exp`) | Pattern 2 | Basso: fallback su `accessTokenExpiresAt − now` + floor |
+| A3 | Custom Tabs/ASWebAuthenticationSession aprono start URL `http://` senza ATS/NSC dell'app; dart:io non soggetto a cleartext policy | Setup nativo | Basso/dev-only: serve tunnel https comunque per Twitch; verificare in UAT |
+| A4 | Il keychain iOS sopravvive alla disinstallazione (marker first-run necessario) | Pitfall 3 | Basso: il marker è innocuo anche se non servisse |
+| A5 | Non ri-emettere `AuthAuthenticated` a ogni rotazione se l'utente non cambia | Pattern 2 | Basso: se si preferisce ri-emettere, filtrare con `buildWhen`/`listenWhen` su `user.id` |
+| A6 | Ignorare `DEV_AUTH_ENABLED` quando `kReleaseMode` (difesa in profondità) è gradito | Pitfall 9 | Basso: leggermente oltre D-23 — **confermare con l'utente** |
+| A7 | `QueuedInterceptor` + `dio.fetch` nello stesso `Dio` può andare in deadlock | Pattern 4 | Basso: la scelta `Interceptor` semplice è comunque corretta |
+| A8 | Errori GraphQL di auth arrivano con HTTP 200 e `extensions.code` stabile su HTTP (BE MEDIUM finché non provato dall'integration test) | Pattern 3 | Medio: gestire anche `ServerException` 401 |
+| A9 | `preferEphemeral=false` + `force_verify=true` BE basta per l'account switch su Twitch | Setup nativo | Medio: se la pagina Twitch non permette di cambiare account, passare a `true` |
+| A10 | Il plugin non applica timeout su mobile | Code Examples 2 | Basso |
 
 ## Open Questions
 
-1. **Backend `connection_init` auth contract (D-07)**
-   - What we know: NestJS usa `graphql-transport-ws`; `initialPayload` invia il token al connect.
-   - What's unclear: Il backend si aspetta `{'Authorization': 'Bearer <token>'}` o `{'token': '<token>'}` nel `connection_init`? Dopo un token refresh, il backend chiede un nuovo `connection_init` o accetta il token aggiornato solo sulla prossima connessione?
-   - Recommendation: Verificare con il backend team prima di implementare D-07. Se serve reconnect esplicito post-refresh, questo è un task separato nel piano.
-
-2. **Scope OAuth Twitch necessari**
-   - What we know: Phase 11 richiede solo identità (login). Phase 3 (sync) potrebbe richiedere scope aggiuntivi.
-   - What's unclear: Quali scope Twitch sono necessari per il game backend? `user:read:email`? Scope canale?
-   - Recommendation: Definire gli scope nella `EnvConfig` come costante, non hardcoded nell'URL. Chiedere al backend team quali scope sono richiesti per il server a convalidare l'identità del viewer.
-
-3. **`EnvConfig` — Twitch Client ID**
-   - What we know: `EnvConfig` usa `dart-define` per URL backend.
-   - What's unclear: Come viene passato il `TWITCH_CLIENT_ID` al build? Già gestito fuori VCS?
-   - Recommendation: Aggiungere `TWITCH_CLIENT_ID` alle variabili `dart-define` in `EnvConfig`, documentare il valore in `.env.example` (non in repo).
-
----
+1. **`BACKEND-NOTES.md` BE non esiste ancora** — *Noto:* contratto riassunto in 02-CONTEXT/02-RESEARCH (D-01..D-34, §Q1 Q2 Q8, "Contenuto minimo"). *Incerto:* nomi/tipi esatti dei campi, codice per refresh token malformato, se `logout` accetta anche solo il refresh token (utile quando l'access è scaduto). *Raccomandazione:* pianificare contro il riassunto; includere nel plan una task di riallineamento ai documenti GraphQL quando il file/`schema.gql` atterra (**se esiste, vince**, come da CONTEXT); loggare le richieste al BE in `.planning/phases/11-auth-session-bootstrap/BACKEND-NOTES.md` (memoria utente): eventi WS persi nel gap 4401, `logout` con access scaduto, codice per refresh malformato.
+2. **`preferEphemeral` (D-14/AUTH-05)** — default `false` (SSO, meno attrito) vs `true` (account switch garantito, login a ogni volta). *Raccomandazione:* parametro del wrapper, default `false`; item UAT "cambio account su device"; fallback `true` se necessario.
+3. **Chi chiama `initialize()`** — oggi il dartdoc dice `main.dart`. *Raccomandazione:* `AuthCubit.start()` dopo `runApp` (primo frame immediato, cubit testabile); aggiornare il dartdoc. D-02 invariata (firma identica).
+4. **`UnauthorizedRecovery` separata vs metodo concreto sul contratto** — interpretazione di D-02 "invariato". *Raccomandazione:* interfaccia separata (nessuna modifica a `AuthTokenService` oltre a `AuthUnauthenticated.reason`); confermare.
+5. **Messaggio D-10 sulla UI** — UI-SPEC: splash 1,5 s (cold start) e dialog/snackbar su SignIn (in sessione). *Raccomandazione:* un solo percorso: notice inline in `SignInScreen` quando `reason == sessionExpired` (meno stati nello splash); aggiornare UI-SPEC se accettato.
+6. **Guardia `kReleaseMode` sul bypass dev** (Pitfall 9, A6) — confermare.
+7. **Entry point del logout fino a Phase 4** — *Raccomandazione:* nessuna UI di produzione; esercitare `AuthCubit.logout()` + `LogoutConfirmationDialog` via test (bloc_test + widget test con un host minimale) e, per QA manuale, un trigger **solo `kDebugMode`** opzionale e non committato (decidere nel plan; non aggiungere chrome nel gameplay). Il dialog espone `Future<bool> showLogoutConfirmationDialog(BuildContext)`.
+8. **Eventi persi durante il gap di riconnessione WS** (4401 ogni 15 min) — responsabilità Phase 3; segnalarlo al BE/Phase 3 come refetch-on-reconnect.
 
 ## Environment Availability
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| `flutter_web_auth_2` | AUTH-01 OAuth flow | ✗ (da aggiungere) | 5.0.2 su pub.dev | — (bloccante) |
-| `flutter_secure_storage` | AUTH-02 encrypted storage | ✗ (da aggiungere) | 10.0.0 su pub.dev | — (bloccante) |
-| `dio` | Token exchange REST calls | ✓ | 5.4.0 in pubspec | — |
-| `graphql_flutter` | AuthLink, WebSocketLink | ✓ | 5.2.1 in pubspec | — |
-| `flutter_bloc` + `equatable` | AuthCubit | ✓ | 9.1.1 / 2.0.0 in pubspec | — |
-| Android minSdkVersion 21+ | flutter_secure_storage | ✓ | Già configurato | — |
-| iOS Keychain | flutter_secure_storage | ✓ | Disponibile iOS 12+ | — |
-| Twitch OAuth endpoint | AUTH-01..07 | ✓ (live) | API v2 stabile | — |
+| Dipendenza | Richiesta da | Disponibile | Versione | Fallback |
+|------------|--------------|-------------|----------|----------|
+| Flutter / Dart | tutto | ✓ | 3.35.5 / 3.9.2 (`flutter doctor` OK) | — |
+| Android SDK / JDK | build Android, verifica AGP | ✓ | SDK 36.1.0, JDK 21 (Android Studio) | — |
+| Gradle wrapper | build Android | ✓ | 8.12 (basta per AGP 8.9.1; verificato) | — |
+| AGP | `flutter_web_auth_2` | ✗ (8.7.3) | richiesto ≥ 8.9.1 | **nessun fallback**: task W0 obbligatorio |
+| Xcode / CocoaPods | build iOS | ✓ | Xcode 26.3 / Pods 1.16.2 | — |
+| `pub.dev` | dipendenze | ✓ | — | — |
+| Backend locale con Twitch keys | login reale end-to-end | ✗ | — | UAT pendente (D-28); bypass dev + fake nei test |
+| Backend locale (dev bypass) | `me` dev, GraphQL reale | non verificato | — | stub usa fallback `.env` |
 
-**Missing dependencies with no fallback:**
-- `flutter_web_auth_2`: necessario per AUTH-01, nessuna alternativa accettabile senza WebView.
-- `flutter_secure_storage`: necessario per AUTH-02 (HARDEN-01), SharedPreferences non è alternativa valida.
-
-**Platform setup richiesta (Wave 0 o Task 1):**
-
-Android — `android/app/src/main/AndroidManifest.xml`:
-```xml
-<activity
-  android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
-  android:exported="true">
-  <intent-filter android:label="flutter_web_auth_2">
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="klimmeck" android:host="auth" />
-  </intent-filter>
-</activity>
-```
-
-iOS — `ios/Runner/Info.plist`:
-```xml
-<key>CFBundleURLTypes</key>
-<array>
-  <dict>
-    <key>CFBundleTypeRole</key><string>Editor</string>
-    <key>CFBundleURLSchemes</key>
-    <array><string>klimmeck</string></array>
-  </dict>
-</array>
-```
-
-[VERIFIED: STACK.md §1 + §2] — setup confermato dalla ricerca stack già prodotta.
-
----
+**Bloccante senza fallback:** AGP ≥ 8.9.1. **Con fallback:** chiavi Twitch (UAT pendente).
 
 ## Validation Architecture
 
+> `.planning/config.json` non disattiva `nyquist_validation` → sezione attiva.
+
 ### Test Framework
-
-| Property | Value |
-|----------|-------|
-| Framework | `flutter_test` + `bloc_test` (da aggiungere a dev_dependencies) + `mocktail` (da aggiungere) |
-| Config file | `analysis_options.yaml` (esiste) — abilitare `avoid_print: true` in questa fase |
-| Quick run command | `flutter test test/repository/services/auth/ test/screens/auth/` |
-| Full suite command | `flutter test` |
-
-**Nota:** `bloc_test` e `mocktail` non sono in `pubspec.yaml`. Sono obbligatori per TDD (docs/rules/testing.md). Aggiungere a `dev_dependencies`:
-```yaml
-dev_dependencies:
-  bloc_test: ^9.1.7
-  mocktail: ^1.0.4
-```
-[ASSUMED] — versioni da verificare su pub.dev prima di aggiungere.
+| Proprietà | Valore |
+|-----------|--------|
+| Framework | `flutter_test` + `bloc_test 10.0.0` + `mocktail 1.0.5` + `fake_async 1.3.3` (da dichiarare dev) |
+| Config | nessuna (`analysis_options.yaml` = `flutter_lints`) |
+| Quick run | `flutter test test/repository/services/auth test/network test/screens` (< 30 s) |
+| Full suite | `flutter test` (baseline: 20 test verdi) |
+| Lint | `flutter analyze lib test` (baseline: **17 issue info preesistenti**; gate = nessuna issue *nuova*; `flutter analyze` senza path include `tools/` con 40+ `avoid_print` irrilevanti) |
+| Format | `dart format --output=none --set-exit-if-changed <file toccati>` — **mai** `dart format --set-exit-if-changed lib test` (scrive in-place; baseline non formattato, Pitfall 11) |
 
 ### Phase Requirements → Test Map
+| Req | Comportamento | Tipo | Comando | File |
+|-----|---------------|------|---------|------|
+| AUTH-01 | S256: vettore RFC, 43 char, charset, unicità | unit | `flutter test test/models/auth/login_challenge_test.dart` | ❌ W0 |
+| AUTH-01 | parse callback (`ticket`, `access_denied`, `twitch_not_configured`, malformata) | unit | `.../login_callback_test.dart` | ❌ W0 |
+| AUTH-01 | `mapBrowserAuthError` (`CANCELED` → cancelled) | unit | `.../browser_authenticator_test.dart` | ❌ W0 |
+| AUTH-01 | `login()`: start URL col challenge, exchange col verifier, persist refresh, `Authenticated`; cancel/denied silenziosi; `twitch_not_configured`; errori rete | unit (fake browser/api/store) | `.../session_auth_token_service_login_test.dart` | ❌ W0 |
+| AUTH-01/D-21/22/27 | `SignInCubit` sequenze di stati | bloc_test | `test/screens/signIn/cubit/sign_in_cubit_test.dart` | ❌ W0 |
+| AUTH-01 | `SignInScreen`: bottone, errore inline, messaggio D-27, notice sessione scaduta, hint dev | widget | `test/screens/signIn/sign_in_screen_test.dart` | ❌ W0 |
+| AUTH-02 | refresh token solo in `SessionStore`; lettura che lancia → "nessuna sessione" + clear; marker first-run | unit (in-memory fake + wrapper con storage fittizio) | `test/repository/storage/session_store_test.dart` | ❌ W0 |
+| AUTH-03 | cold start: token → refresh → persist-before-forget (`verifyInOrder`) → `Authenticated`; senza token → `Unauthenticated(signedOut)` | unit | `.../session_auth_token_service_bootstrap_test.dart` | ❌ W0 |
+| AUTH-03/D-18 | errore transitorio → resta `Bootstrapping`, backoff 1/2/4… cap 30 s, indefinito (`fakeAsync`) | unit | idem | ❌ W0 |
+| AUTH-04 | ordine teardown (`verifyInOrder`: api.logout → onTeardown → store.clear → emit), timeout BE non blocca, offline ok, `getAccessToken()==null`, refresh post-logout non riscrive lo storage (epoch) | unit | `.../session_auth_token_service_logout_test.dart` | ❌ W0 |
+| AUTH-04 | `GraphQLClientHolder.reset()`: dispone WS, nuovo client, notifier aggiornato | unit | `test/repository/services/graphql/graphql_client_holder_test.dart` | ❌ W0 |
+| AUTH-04/D-11 | `LogoutConfirmationDialog` (annulla/conferma, non dismissibile) + `AuthCubit.logout()` | widget + bloc_test | `test/shared/components/modal/logout_confirmation_dialog_test.dart`, `test/screens/auth/cubit/auth_cubit_test.dart` | ❌ W0 |
+| AUTH-05 | logout poi login altro utente → stati `Unauthenticated`→`Authenticated(B)`; la shell è ricreata (Cubit nuovi, vecchi chiusi) | unit + widget (`AuthGate`) | `test/screens/auth/auth_gate_test.dart` | ❌ W0 |
+| AUTH-06 | N `getAccessToken()` concorrenti vicino a scadenza → 1 sola `refreshSession`; timer proattivo a `exp−60 s` (`fakeAsync`); floor anti-loop; rotazione persistita | unit | `.../session_auth_token_service_refresh_test.dart` | ❌ W0 |
+| AUTH-06 | `AuthAuthLink`: UNAUTHENTICATED → recovery → retry **una** volta col token nuovo; secondo UNAUTHENTICATED non ritenta; senza recovery non ritenta; subscription non toccate | unit | estendere `test/network/graphql_auth_link_test.dart` | ✅ esteso |
+| AUTH-06 | `AuthInterceptor`: 401 → recovery → `fetch` una volta (adapter fake), `FormData.clone`, no loop | unit | estendere `test/network/auth_interceptor_test.dart` | ✅ esteso |
+| AUTH-06/D-07 | `WsReconnectPolicy`: `initialPayload` legge token corrente e non lancia; 4401/4403 → recovery con token rifiutato; backoff capped; reset dopo connessione lunga | unit (`fakeAsync`) | `test/repository/services/graphql/ws_reconnect_policy_test.dart` | ❌ W0 |
+| AUTH-07 | refresh `SESSION_REVOKED`/`SESSION_EXPIRED` → teardown + `Unauthenticated(sessionExpired)`; 5xx/rete NON fanno logout | unit | `.../session_auth_token_service_revocation_test.dart` | ❌ W0 |
+| AUTH-07/D-10/D-18 | Splash: messaggio dopo 10 s, bottone → sign-in, preload SVG **dopo** `Authenticated` | bloc_test + widget (`pump`) | `test/screens/splash/…` | ❌ W0 |
+| AUTH-07 | `AuthUnauthenticated.reason` default/props | unit | estendere `auth_token_service_contract_test.dart` | ✅ esteso |
+| DEV-AUTH-04 (amend.) | stub: logout/login/`me` allineato/fallback | unit | `.../dev_auth_token_service_transitions_test.dart` | riscrivere noop test |
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| AUTH-01 | OAuth flow: URL corretto con PKCE + `force_verify=true`; cancellazione silente | unit (AuthTokenService) | `flutter test test/repository/services/auth/auth_token_service_test.dart` | ❌ Wave 0 |
-| AUTH-01 | `SignInCubit` emette stati corretti su login success/cancel/error | bloc_test | `flutter test test/screens/signIn/cubit/sign_in_cubit_test.dart` | ❌ Wave 0 |
-| AUTH-02 | Token salvati in SecureStorage, mai in SharedPreferences | unit (SecureStorageService) | `flutter test test/repository/services/auth/secure_storage_service_test.dart` | ❌ Wave 0 |
-| AUTH-03 | Cold start con refresh token valido → sessione ripristinata senza re-prompt | bloc_test (SplashCubit) | `flutter test test/screens/splash/cubit/splash_cubit_test.dart` | ❌ Wave 0 |
-| AUTH-04 | Logout: teardown order completo (D-12), storage cleared | unit (AuthTokenService.logout) | incluso in `auth_token_service_test.dart` | ❌ Wave 0 |
-| AUTH-05 | Switch account: logout + re-login con `force_verify=true` | bloc_test (AuthCubit) | `flutter test test/screens/auth/cubit/auth_cubit_test.dart` | ❌ Wave 0 |
-| AUTH-06 | Refresh mutex: due 401 concorrenti → una sola chiamata refresh | unit concurrency test | incluso in `auth_token_service_test.dart` | ❌ Wave 0 |
-| AUTH-07 | Revocation detection: `invalid_grant` → logout teardown + messaggio corretto | unit (AuthTokenService) | incluso in `auth_token_service_test.dart` | ❌ Wave 0 |
+**Solo manuale (UAT pendente, D-28):** login reale col browser su iOS e Android (intent `klimmeck://`, AuthTab/Custom Tabs, cancel con back/chiusura), `twitch_not_configured` reale dal BE, account switch con SSO Twitch, rotazione refresh e chiusura WS 4401 contro un BE reale, keychain dopo reinstall iOS, restore backup Android, start URL `http://`/tunnel https su device.
 
 ### Sampling Rate
-
-- **Per task commit:** `flutter test test/repository/services/auth/ test/screens/auth/ test/screens/signIn/ test/screens/splash/`
-- **Per wave merge:** `flutter test`
-- **Phase gate:** Full suite green + `flutter analyze` pulito prima di `/gsd-verify-work`
+- **Per commit task:** `flutter test <file/dir del task>` + `flutter analyze <file toccati>`
+- **Per onda:** `flutter test` completo
+- **Gate di fase:** `flutter test` verde + `flutter analyze lib test` senza nuove issue + `flutter build apk --debug` OK (AGP) prima di `/gsd-verify-work`
 
 ### Wave 0 Gaps
-
-- [ ] `test/repository/services/auth/auth_token_service_test.dart` — copre AUTH-01, AUTH-04, AUTH-06, AUTH-07
-- [ ] `test/repository/services/auth/secure_storage_service_test.dart` — copre AUTH-02
-- [ ] `test/screens/splash/cubit/splash_cubit_test.dart` — copre AUTH-03 (esteso)
-- [ ] `test/screens/signIn/cubit/sign_in_cubit_test.dart` — copre AUTH-01 (UX flow)
-- [ ] `test/screens/auth/cubit/auth_cubit_test.dart` — copre AUTH-05
-- [ ] `test/helpers/` — mock fixtures (mock `SecureStorageService`, `Dio`, `FlutterWebAuth2`)
-- [ ] `flutter pub add --dev bloc_test mocktail` — se non già in pubspec
-
----
+- [ ] `pubspec.yaml`: `flutter_web_auth_2 ^5.1.0`, `flutter_secure_storage ^10.3.4`, `crypto`, dev `fake_async`
+- [ ] AGP ≥ 8.9.1 (`android/settings.gradle.kts`) + manifest (CallbackActivity, `allowBackup=false`, `INTERNET`) → verificare `flutter build apk --debug`
+- [ ] `test/helpers/`: `mocks.dart` (MockAuthTokenService unico, MockBackendAuthApi, MockBrowserAuthenticator), `fakes/in_memory_session_store.dart`, `auth_session_fixtures.dart` (`buildAuthSession`, JWT fittizi con `exp/iat`), fake `HttpClientAdapter` per dio, `registerFallbackValue` dove serve
+- [ ] File di test elencati sopra (❌ W0)
+- [ ] Riscrittura `dev_auth_token_service_noop_test.dart`
 
 ## Security Domain
 
+> `security_enforcement` non disabilitato → incluso.
+
 ### Applicable ASVS Categories
+| ASVS | Si applica | Controllo standard |
+|------|-----------|--------------------|
+| V2 Authentication | sì | Login mediato dal BE, ticket monouso legato a S256, nessun credential nell'app |
+| V3 Session Management | sì | Access JWT 15 min in memoria; refresh token rotante in storage cifrato; single-flight; revoca rilevata; logout che invalida sul BE |
+| V4 Access Control | no (server-side) | il BE è fonte di verità; `role` nel JWT è snapshot |
+| V5 Input Validation | sì | parse rigoroso di `klimmeck://auth?…`; ticket mai loggato; codici errore whitelisted |
+| V6 Cryptography | sì | `crypto` SHA-256 + `Random.secure()`; niente crypto a mano; storage via Keychain/Keystore |
+| V8 Data Protection | sì | token solo in `flutter_secure_storage`/memoria; mai in `shared_preferences`, log, stato Cubit in chiaro |
+| V9 Communications | parziale | prod: solo https/wss; dev: http su LAN (Phase 12 per l'hardening) |
 
-| ASVS Category | Applies | Standard Control |
-|---------------|---------|-----------------|
-| V2 Authentication | yes | PKCE + system browser (no WebView); `force_verify=true`; `state` parameter validation |
-| V3 Session Management | yes | Refresh token rotation; proactive expiry; full teardown on logout |
-| V4 Access Control | no | Phase 11 scope solo auth; gating BLoC tree è conseguenza, non enforcement ASVS |
-| V5 Input Validation | yes | Validare `state` parameter nel callback OAuth; non fidarsi del `code` senza verifica `code_verifier` |
-| V6 Cryptography | yes | `Random.secure()` per `code_verifier`; SHA-256 per `code_challenge`; mai `plain` method |
-| V8 Data Protection | yes | Token solo in `flutter_secure_storage`; access token solo in memoria; mai in log |
-
-### Known Threat Patterns for Twitch OAuth PKCE Mobile
-
-| Pattern | STRIDE | Standard Mitigation |
-|---------|--------|---------------------|
-| Deep link hijacking (intercetta callback `klimmeck://auth`) | Spoofing | PKCE S256 elimina l'utilità del codice rubato (code_verifier non è nel redirect) |
-| `state` parameter forgery | Tampering | Generare `state` casuale per ogni login; validare nella risposta callback |
-| Token in logs / crash reports | Information Disclosure | Mai loggare token; non passare token come argomento di route/navigazione |
-| Refresh token esfiltrazione | Information Disclosure | `flutter_secure_storage` Keychain/Keystore; mai `SharedPreferences` |
-| Double refresh (401 race) | Denial of Service | Completer single-flight mutex (D-06) |
-| Logout incompleto (stale subscription) | Information Disclosure | Full `GraphQLClient` recreation (D-12 step 3) + subtree BLoC disposal |
-
----
-
-## Project Constraints (from CLAUDE.md)
-
-| Constraint | Impact su questa fase |
-|------------|----------------------|
-| **No UI chrome fuori utility screens** | Sign-in è utility screen → AppBar ammessa. SplashScreen è già immersiva — il messaggio di instabilità (D-18) deve essere overlay non-intrusivo, non AppBar. |
-| **No loading bloccanti in sessione** | Refresh silenzioso obbligatorio (D-04). Spinner ammesso SOLO al cold start (SplashScreen). |
-| **Branch + PR per ogni fase GSD** | Creare `feat/auth-session-bootstrap` da `develop` prima di qualsiasi commit di codice. |
-| **Backend è fonte di verità** | `AuthTokenService` riceve `expires_in` dal backend Twitch, non calcola scadenze autonomamente. |
-| **Nessun secret in repo** | `TWITCH_CLIENT_ID` via `dart-define`; nessun `.env` committato. |
-| **TDD obbligatorio** | Test scritti PRIMA dell'implementazione. Wave 0 crea tutti i file test vuoti con i test case fallenti. |
-| **BLoC/Cubit senza dipendenze Flutter** | `AuthTokenService` e `AuthCubit` non dipendono da `BuildContext`. |
-| **No service locator / GetIt** | `AuthTokenService` esposto via `RepositoryProvider`, non come singleton statico. |
-| **`flutter analyze` pulito a ogni commit** | Abilitare `avoid_print: true` in `analysis_options.yaml` in questa fase (fix del lint debt esistente). |
-
----
+### Known Threat Patterns
+| Pattern | STRIDE | Mitigazione |
+|---------|--------|-------------|
+| Hijack dello scheme custom `klimmeck://` (app ostile) | Spoofing / Info Disclosure | ticket inutilizzabile senza `code_verifier` (S256, verifier solo in memoria dell'app); ticket monouso ≤ 60 s [CITED: BE D-02/D-03] |
+| Furto del refresh token da backup/storage | Info Disclosure | Keychain `first_unlock_this_device`, Keystore cifrari v10, `allowBackup=false`, mai nei log |
+| Riuso del refresh token (race/doppio refresh) | Tampering / DoS (sessione revocata) | single-flight + epoch + persist-before-forget; il BE rileva il riuso |
+| Sessione zombie dopo logout | Elevation of Privilege | epoch guard, `store.clear()`, `holder.reset()`, scarto immediato dell'access JWT |
+| Sessione stale dopo reinstall iOS | Spoofing | marker first-run in `shared_preferences` |
+| Token/ticket nei log o nei crash report | Info Disclosure | nessun `print`; log solo di codici |
+| Bypass dev nel binario release | Elevation of Privilege | BE fail-closed in prod; (raccomandato) guardia `kReleaseMode`; `.env` asset va ripulito dai `DEV_AUTH_*` in CI; rimozione in Phase 12 |
+| Account bleed tra utenti | Info Disclosure | shell keyed su `user.id`, client GraphQL ricreato, cubit chiusi al logout |
+| Loop di riconnessione con token morto | DoS | backoff capped, refresh forzato su 4401/4403, dispose al logout |
 
 ## Sources
 
-### Primary (HIGH confidence)
+### Primary (HIGH)
+- Sorgenti installati/scaricati e letti: `graphql-5.2.1` (`websocket_client.dart`, `websocket_link.dart`, `graphql_client.dart`, `query_manager.dart`), `graphql_flutter-5.2.1` (`graphql_provider.dart`), `gql_error_link-1.0.0+1`, `gql_link`/`gql_exec` (ContextEntry, `Link.split`), `dio-5.8.0+1` (`interceptor.dart`, `form_data.dart`, `dio_mixin.dart`), `flutter_web_auth_2-5.1.0` (Dart, Swift, Kotlin, manifest, build.gradle), `flutter_web_auth_2_platform_interface-5.0.0`, `flutter_secure_storage-10.3.4` e `-11.2.0` (README, CHANGELOG, `lib/options/*`), `flutter_test` pubspec
+- pub.dev API (`/api/packages/<pkg>`) 2026-10-06: versioni, date, vincoli SDK
+- **Build reale** in copia scratch del progetto: `flutter pub add flutter_web_auth_2 flutter_secure_storage crypto` → risoluzione `^5.1.0/^10.3.4/^3.0.7`; `flutter pub add flutter_secure_storage:^11.2.0` → fallita (win32 ^6/Dart ≥3.10); `flutter build apk --debug` → fallita con AGP 8.7.3 («browser:1.9.0 requires AGP 8.9.1»), riuscita con 8.9.1 + CallbackActivity
+- `dart run` (scratch) del generatore S256: vettore RFC 7636 App. B ✔
+- BE (read-only): `02-CONTEXT.md` (D-01..D-34), `02-RESEARCH.md` (§Q1, §Q2, §Q8, "Contenuto minimo BACKEND-NOTES.md"), `src/schema.gql` (`User`, `DateTime`)
+- Codice e doc di progetto: `lib/**`, `test/**`, `CLAUDE.md`, `docs/rules/*`, `.planning/**`
 
-- `.planning/codebase/STRUCTURE.md`, `INTEGRATIONS.md`, `CONCERNS.md` — codebase audit diretto
-- `.planning/research/STACK.md` §1 (flutter_web_auth_2), §2 (flutter_secure_storage) — ricerca stack v1.0
-- `.planning/research/ARCHITECTURE.md` §1 (Auth), §10 (existing components) — pattern architetturali verificati sul codebase
-- `lib/main.dart`, `lib/repository/services/graphql/graphql_client_provider.dart`, `lib/screens/signIn/cubit/sign_in_cubit.dart`, `lib/screens/splash/cubit/splash_cubit.dart` — lettura diretta file esistenti
-- `pubspec.yaml` — versioni package effettive
-- pub.dev registry — `flutter_secure_storage` 10.0.0, `flutter_web_auth_2` 5.0.2 verificati al 2026-04-13
+### Secondary (MEDIUM)
+- WebFetch README/CHANGELOG flutter_web_auth_2 (pub.dev, GitHub raw) — coerenti con i sorgenti
+- Ricerca web: AuthTab/androidx.browser 1.9.0 richiede compileSdk 36 e AGP 8.9.1 (conferma indipendente della build)
 
-### Secondary (MEDIUM confidence)
-
-- [CITED: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/] — Authorization Code Flow + PKCE
-- [CITED: https://dev.twitch.tv/docs/authentication/validate-tokens/] — validate endpoint cold start (D-08)
-- [CITED: https://dev.twitch.tv/docs/authentication/revoke-tokens/] — revoke endpoint (D-13)
-- `.planning/research/PITFALLS.md` #1..#4 (token storage, race condition, stale data, deep link hijacking)
-- `docs/rules/architecture.md`, `state-management.md`, `testing.md`, `naming.md`, `graphql.md`, `workflow.md` — regole di progetto lette direttamente
-
-### Tertiary (LOW confidence)
-
-- Versioni `bloc_test` e `mocktail` per `dev_dependencies` — da verificare su pub.dev prima di aggiungere.
-- Scope OAuth Twitch esatti richiesti dal backend — non verificabile in questa fase; richiedono conferma con il backend team (Open Question #2).
-
----
+### Tertiary (LOW)
+- Comportamento runtime di http:// negli start URL, persistenza keychain post-uninstall, nessun timeout del plugin su mobile (A3, A4, A10) — non verificati su device in questa sessione
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — package verificati su pub.dev + conferma codebase audit
-- Architecture patterns: HIGH — derivati direttamente da CONTEXT.md (decisions bloccate) + ARCHITECTURE.md sul codebase reale
-- Pitfalls: HIGH — basati su PITFALLS.md (ricerca esistente) + analisi diretta del codice (main.dart, graphql_client_provider.dart, sign_in_cubit.dart)
-- Test map: MEDIUM — blocchi test identificati dai requisiti, ma comandi esatti dipendono dalla struttura directory finale
+- Standard stack: HIGH — versioni da pub.dev + risoluzione e build reali
+- Setup nativo: HIGH (AGP/manifest verificati con build), MEDIUM (runtime su device non provato)
+- Architettura/pattern WS-link-dio: HIGH sul comportamento delle librerie (sorgenti letti), MEDIUM sul design complessivo (non ancora implementato)
+- Contratto BE: MEDIUM — riassunto, `BACKEND-NOTES.md` assente
+- Pitfall: HIGH (la maggior parte derivata da sorgente/build)
 
-**Research date:** 2026-04-13
-**Valid until:** 2026-05-13 (30 giorni — stack stabile; Twitch OAuth API non ha breaking change frequenti)
+**Research date:** 2026-10-06
+**Valid until:** ~30 giorni (stack stabile); rivalutare subito se atterra `BACKEND-NOTES.md` o se si aggiorna Flutter (sblocca `flutter_secure_storage 11.x`)
