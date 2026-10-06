@@ -54,7 +54,7 @@ class DevAuthTokenService extends AuthTokenService {
 
   /// Bootstrap hook: emette `AuthBootstrapping` poi lo stato iniziale.
   ///
-  /// Da chiamare esattamente una volta da `main.dart` prima di `runApp`.
+  /// Da chiamare esattamente una volta da `AuthCubit.start()` (cold start).
   @override
   Future<void> initialize() async {
     debugPrint(

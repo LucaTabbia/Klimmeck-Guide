@@ -95,7 +95,7 @@ abstract class AuthTokenService {
 
   /// Stream broadcast dello stato di autenticazione.
   ///
-  /// Supporta listener multipli (SplashCubit, GraphQL auth link, dio
+  /// Supporta listener multipli (AuthCubit, GraphQL auth link, dio
   /// interceptor). Non chiude automaticamente; usare `dispose()` per
   /// rilasciare le risorse quando il servizio non è più necessario.
   Stream<AuthState> get authStateStream;
