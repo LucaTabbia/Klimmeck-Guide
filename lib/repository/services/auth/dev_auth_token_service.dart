@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
 
+import 'auth_state_channel.dart';
 import 'auth_token_service.dart';
 
 /// Implementazione stub di [AuthTokenService] per lo sviluppo locale.
@@ -12,7 +13,7 @@ import 'auth_token_service.dart';
 /// Legge l'identità e il token di accesso dal file `.env` tramite
 /// `flutter_dotenv`. Non usa secure storage (D-04 di 01-CONTEXT.md).
 ///
-/// Questa classe viene sostituita da `OAuthTokenService` in Phase 11
+/// Questa classe viene sostituita da `SessionAuthTokenService` in Phase 11
 /// senza toccare i consumer (GraphQL auth link, dio interceptor, Cubit).
 ///
 /// Variabili `.env` richieste:
@@ -21,29 +22,10 @@ import 'auth_token_service.dart';
 /// - `DEV_AUTH_TWITCH_ID` — id canale Twitch
 /// - `DEV_AUTH_ROLE` — uno tra `guard`, `adventurer`, `innkeeper`
 class DevAuthTokenService extends AuthTokenService {
-  DevAuthTokenService() : _controller = StreamController<AuthState>.broadcast();
-
-  final StreamController<AuthState> _controller;
-  AuthState? _lastState;
+  final AuthStateChannel _channel = AuthStateChannel();
 
   @override
-  Stream<AuthState> get authStateStream => Stream<AuthState>.multi((listener) {
-        final cached = _lastState;
-        if (cached != null) {
-          listener.add(cached);
-        }
-        final subscription = _controller.stream.listen(
-          listener.add,
-          onError: listener.addError,
-          onDone: listener.close,
-        );
-        listener.onCancel = subscription.cancel;
-      });
-
-  void _emit(AuthState state) {
-    _lastState = state;
-    _controller.add(state);
-  }
+  Stream<AuthState> get authStateStream => _channel.stream;
 
   /// Bootstrap hook: emette `AuthBootstrapping` → `AuthAuthenticated` con
   /// il test user costruito dai valori `.env`.
@@ -51,7 +33,7 @@ class DevAuthTokenService extends AuthTokenService {
   /// Da chiamare esattamente una volta da `main.dart` prima di `runApp`.
   @override
   Future<void> initialize() async {
-    _emit(const AuthBootstrapping());
+    _channel.emit(const AuthBootstrapping());
 
     final accessToken = dotenv.env['DEV_AUTH_ACCESS_TOKEN'] ?? '';
     final userId = dotenv.env['DEV_AUTH_USER_ID'] ?? '';
@@ -66,7 +48,7 @@ class DevAuthTokenService extends AuthTokenService {
       role: role,
     );
 
-    _emit(AuthAuthenticated(user: user, accessToken: accessToken));
+    _channel.emit(AuthAuthenticated(user: user, accessToken: accessToken));
   }
 
   /// Ritorna il token di accesso corrente letto da dotenv.
@@ -75,7 +57,7 @@ class DevAuthTokenService extends AuthTokenService {
   @override
   Future<String?> getAccessToken() async => dotenv.env['DEV_AUTH_ACCESS_TOKEN'];
 
-  /// No-op in Phase 1. Phase 11 aprirà il browser OAuth PKCE Twitch.
+  /// No-op in Phase 1. Phase 11 aprirà il login Twitch nel browser di sistema.
   @override
   Future<void> login() async {
     if (kDebugMode) {
@@ -83,7 +65,7 @@ class DevAuthTokenService extends AuthTokenService {
     }
   }
 
-  /// No-op in Phase 1. Phase 11 revocherà il token su Twitch.
+  /// No-op in Phase 1. Phase 11 farà il teardown della sessione.
   @override
   Future<void> logout() async {
     if (kDebugMode) {
@@ -99,12 +81,12 @@ class DevAuthTokenService extends AuthTokenService {
     }
   }
 
-  /// Chiude lo [StreamController] e libera le risorse.
+  /// Chiude il canale di stato e libera le risorse.
   ///
   /// Dopo `dispose()` lo stream non emette ulteriori eventi.
   @override
   void dispose() {
-    _controller.close();
+    _channel.close();
   }
 
   // ---------------------------------------------------------------------------
