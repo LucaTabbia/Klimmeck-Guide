@@ -391,7 +391,9 @@ void main() {
         async.flushMicrotasks();
         async.elapse(const Duration(hours: 1));
 
-        verifyNever(() => api.logout(any()));
+        expect(verify(() => api.logout(captureAny())).captured, [
+          _sessionA.accessToken,
+        ]);
         expect(store.refreshToken, isNull);
         expect(store.writes, writesAtLogout);
         expect(states.whereType<AuthAuthenticated>(), isEmpty);
@@ -480,6 +482,41 @@ void main() {
         (pendingRefresh) =>
             pendingRefresh.completeError(const TransientAuthFailure('network')),
       );
+    });
+
+    test('a logout refresh slower than the timeout still revokes the '
+        'closed session, with its own token only', () {
+      fakeAsync((async) {
+        var clock = testNow;
+        final pendingRefresh = Completer<AuthSession>();
+        when(
+          () => api.refreshSession('r1'),
+        ).thenAnswer((_) => pendingRefresh.future);
+        loginReturnsSessionB();
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+
+        final isDone = startLogout(service);
+        async.elapse(_logoutTimeout);
+        expect(isDone(), isTrue);
+        expect(states.last, _signedOut);
+        service.login();
+        async.flushMicrotasks();
+
+        pendingRefresh.complete(_rotatedSessionA);
+        async.flushMicrotasks();
+
+        expect(verify(() => api.logout(captureAny())).captured, [
+          _rotatedSessionA.accessToken,
+        ]);
+        expect(
+          states.last,
+          AuthAuthenticated(user: _userB, accessToken: _sessionB.accessToken),
+        );
+        expect(store.refreshToken, 'login-refresh-b');
+        expect(tokenNow(service, async), _sessionB.accessToken);
+        service.dispose();
+      });
     });
 
     test('a token read suspended across a new login yields null', () {

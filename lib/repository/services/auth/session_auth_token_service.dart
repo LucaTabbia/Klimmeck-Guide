@@ -432,20 +432,20 @@ class SessionAuthTokenService extends AuthTokenService
     _supersedeSession();
     _refreshToken = null;
     return (
-      epoch: _epoch,
       accessToken: accessToken,
       hasFreshAccessToken: hasFreshAccessToken,
       refreshToken: refreshToken,
     );
   }
 
-  /// Passo (1) del logout, mai bloccante. Saltato senza token valido, o se la
-  /// sessione che fa logout è già stata chiusa (timeout scaduto, nuovo
-  /// login): non revoca mai una sessione successiva.
+  /// Passo (1) del logout, mai bloccante. Saltato solo senza token valido. Il
+  /// bearer deriva soltanto dalle credenziali di `closing`, quindi una chiamata
+  /// che parte dopo il timeout (rete lenta, nuovo login) revoca comunque la
+  /// sessione chiusa e mai una sessione successiva.
   Future<void> _invalidateBackendSession(_ClosingSession closing) async {
     try {
       final accessToken = await _backendLogoutToken(closing);
-      if (accessToken == null || closing.epoch != _epoch) return;
+      if (accessToken == null) return;
       await _api.logout(accessToken);
     } catch (error) {
       debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
@@ -506,10 +506,8 @@ class SessionAuthTokenService extends AuthTokenService
 
 const String _networkFailureCode = 'network';
 
-/// Sessione staccata da `logout()`. `epoch` è quella in cui il logout è in
-/// corso, prima che `_endSession` la chiuda.
+/// Credenziali della sessione staccata da `logout()`.
 typedef _ClosingSession = ({
-  int epoch,
   String? accessToken,
   bool hasFreshAccessToken,
   String? refreshToken,
