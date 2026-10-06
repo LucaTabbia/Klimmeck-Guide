@@ -81,6 +81,49 @@ void main() {
     return token;
   }
 
+  String? recover(
+    SessionAuthTokenService service,
+    FakeAsync async,
+    String rejectedToken,
+  ) {
+    String? token = 'not-settled';
+    service
+        .recoverFromUnauthorized(rejectedToken: rejectedToken)
+        .then((value) => token = value);
+    async.flushMicrotasks();
+    return token;
+  }
+
+  test('recovery recognises only the most recent tokens across many '
+      'rotations', () {
+    fakeAsync((async) {
+      const rotations = 10;
+      const limit = SessionAuthTokenService.recognisedAccessTokenLimit;
+      final tokens = [
+        for (var i = 0; i <= rotations; i++)
+          _sessionIssuedAt(_proactiveDelay * i, refreshToken: 'r${i + 1}'),
+      ];
+      answerRefreshes(async, tokens);
+      final service = startService(async);
+
+      for (var rotation = 1; rotation <= rotations; rotation++) {
+        async.elapse(_proactiveDelay);
+        final current = tokens[rotation].accessToken;
+        final oldestRecognised = rotation + 1 - limit;
+        for (var i = 0; i < rotation; i++) {
+          expect(
+            recover(service, async, tokens[i].accessToken),
+            i >= oldestRecognised ? current : isNull,
+            reason: 'token $i after rotation $rotation',
+          );
+        }
+      }
+
+      expect(refreshTimes, hasLength(rotations + 1));
+      service.dispose();
+    });
+  });
+
   test('a valid token is served from memory without a network call', () {
     fakeAsync((async) {
       final session = _sessionIssuedAt(Duration.zero, refreshToken: 'r1');

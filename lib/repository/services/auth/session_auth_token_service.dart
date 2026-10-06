@@ -62,6 +62,12 @@ class SessionAuthTokenService extends AuthTokenService
   static const Duration _bootstrapRetryCap = Duration(seconds: 30);
   static const Duration _proactiveRetryCap = Duration(seconds: 60);
 
+  /// Access token della sessione riconosciuti dalla recovery: il corrente e
+  /// i precedenti più recenti, abbastanza per una richiesta (o un socket)
+  /// partita poco prima di una o due rotazioni.
+  @visibleForTesting
+  static const int recognisedAccessTokenLimit = 4;
+
   final BackendAuthApi _api;
   final SessionStore _store;
   final BrowserAuthenticator _browser;
@@ -74,8 +80,9 @@ class SessionAuthTokenService extends AuthTokenService
 
   String? _accessToken;
 
-  /// Access token emessi alla sessione corrente (rotazioni comprese).
-  final Set<String> _issuedAccessTokens = {};
+  /// Ultimi access token emessi alla sessione corrente (rotazioni comprese),
+  /// dal più vecchio al corrente; al massimo [recognisedAccessTokenLimit].
+  final List<String> _issuedAccessTokens = [];
   String? _refreshToken;
   User? _user;
   DateTime? _refreshAt;
@@ -356,7 +363,7 @@ class SessionAuthTokenService extends AuthTokenService
 
   void _applySession(AuthSession session) {
     _accessToken = session.accessToken;
-    _issuedAccessTokens.add(session.accessToken);
+    _rememberIssuedAccessToken(session.accessToken);
     _refreshToken = session.refreshToken;
     _user = session.user;
     final delay = refreshDelayFor(
@@ -368,6 +375,15 @@ class SessionAuthTokenService extends AuthTokenService
     _bootstrapAttempt = 0;
     _proactiveRetryAttempt = 0;
     _scheduleProactiveRefresh(delay);
+  }
+
+  void _rememberIssuedAccessToken(String accessToken) {
+    _issuedAccessTokens
+      ..remove(accessToken)
+      ..add(accessToken);
+    if (_issuedAccessTokens.length > recognisedAccessTokenLimit) {
+      _issuedAccessTokens.removeAt(0);
+    }
   }
 
   /// Le rotazioni non ri-emettono lo stato, salvo cambio di identità.
