@@ -8,4 +8,5 @@ export 'dev_auth_token_service.dart';
 export 'graphql_backend_auth_api.dart';
 export 'login_callback.dart';
 export 'login_exception.dart';
+export 'session_auth_token_service.dart';
 export 'unauthorized_recovery.dart';

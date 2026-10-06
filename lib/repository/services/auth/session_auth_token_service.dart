@@ -1,0 +1,322 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:klimmeck_guide/models/auth/auth_session.dart';
+import 'package:klimmeck_guide/models/auth/login_challenge.dart';
+import 'package:klimmeck_guide/models/user.dart';
+import 'package:klimmeck_guide/repository/storage/session_store.dart';
+import 'package:klimmeck_guide/utils/backoff.dart';
+
+import 'access_token_lifetime.dart';
+import 'auth_api_exception.dart';
+import 'auth_state_channel.dart';
+import 'auth_token_service.dart';
+import 'backend_auth_api.dart';
+import 'browser_authenticator.dart';
+import 'unauthorized_recovery.dart';
+
+/// [AuthTokenService] reale: sessione first-party del backend.
+///
+/// L'app non vede mai token Twitch (D-26): conserva solo il refresh token del
+/// backend in [SessionStore] e tiene l'access JWT in memoria.
+///
+/// - Cold start (D-08, D-18, D-19): senza refresh token → `signedOut` subito;
+///   altrimenti `refreshSession` col backend, ritentato con backoff (cap 30 s)
+///   finché il backend non risponde. `initialize()` non attende la rete.
+/// - Refresh single-flight (D-06): chiamanti concorrenti condividono un solo
+///   `Completer<String>`, quindi un solo round-trip per ciclo.
+/// - Persist-before-forget (D-05): il refresh token ruotato è scritto nello
+///   storage prima di sostituire quello in memoria; se la scrittura fallisce
+///   la sessione resta valida in memoria.
+/// - Refresh proattivo (D-05): `durata JWT − 60 s` con floor 30 s, robusto
+///   allo skew dell'orologio; un errore transitorio ritenta con backoff
+///   (cap 60 s) e non fa mai logout (D-09).
+/// - Solo [SessionRejected] chiude la sessione (AUTH-07).
+/// - Epoch guard: logout, revoca, login e `dispose()` incrementano `_epoch`;
+///   un refresh di una sessione superata non tocca né storage né memoria.
+///
+/// Tutte le dipendenze sono iniettate dal composition root: il servizio non
+/// legge la configurazione d'ambiente e non logga mai token.
+class SessionAuthTokenService extends AuthTokenService
+    implements UnauthorizedRecovery {
+  SessionAuthTokenService({
+    required BackendAuthApi api,
+    required SessionStore store,
+    required BrowserAuthenticator browser,
+    required Uri backendBaseUrl,
+    required Future<void> Function() onSessionTeardown,
+    DateTime Function() now = DateTime.now,
+    LoginChallenge Function() createChallenge = LoginChallenge.generate,
+    Duration logoutTimeout = const Duration(seconds: 4),
+  }) : _api = api,
+       _store = store,
+       _browser = browser,
+       _backendBaseUrl = backendBaseUrl,
+       _onSessionTeardown = onSessionTeardown,
+       _now = now,
+       _createChallenge = createChallenge,
+       _logoutTimeout = logoutTimeout;
+
+  static const Duration _bootstrapRetryCap = Duration(seconds: 30);
+  static const Duration _proactiveRetryCap = Duration(seconds: 60);
+
+  final BackendAuthApi _api;
+  final SessionStore _store;
+  // ignore: unused_field
+  final BrowserAuthenticator _browser;
+  // ignore: unused_field
+  final Uri _backendBaseUrl;
+  final Future<void> Function() _onSessionTeardown;
+  final DateTime Function() _now;
+  // ignore: unused_field
+  final LoginChallenge Function() _createChallenge;
+  // ignore: unused_field
+  final Duration _logoutTimeout;
+  final AuthStateChannel _channel = AuthStateChannel();
+
+  String? _accessToken;
+  String? _refreshToken;
+  User? _user;
+  DateTime? _refreshAt;
+  Completer<String>? _refreshInFlight;
+  int _epoch = 0;
+  Timer? _proactiveRefreshTimer;
+  Timer? _bootstrapRetryTimer;
+  int _bootstrapAttempt = 0;
+  int _proactiveRetryAttempt = 0;
+
+  @override
+  Stream<AuthState> get authStateStream => _channel.stream;
+
+  /// Emette `AuthBootstrapping`, legge lo storage e avvia in background la
+  /// verifica della sessione col backend: ritorna senza attendere la rete.
+  @override
+  Future<void> initialize() async {
+    final epoch = _epoch;
+    _channel.emit(const AuthBootstrapping());
+    final storedRefreshToken = await _store.readRefreshToken();
+    if (epoch != _epoch) return;
+    if (storedRefreshToken == null) {
+      _channel.emit(const AuthUnauthenticated());
+      return;
+    }
+    _refreshToken = storedRefreshToken;
+    unawaited(_attemptBootstrap(epoch));
+  }
+
+  /// Token in memoria finché è fresco; altrimenti refresh single-flight.
+  /// Un errore transitorio ritorna il token precedente (mai logout).
+  @override
+  Future<String?> getAccessToken() async {
+    if (_hasFreshAccessToken || _refreshToken == null) return _accessToken;
+    try {
+      return await _refreshSingleFlight();
+    } on SessionRejected {
+      return null;
+    } catch (_) {
+      return _accessToken;
+    }
+  }
+
+  @override
+  Future<void> login() => throw UnimplementedError('11-05 Task 2');
+
+  @override
+  Future<void> logout() => throw UnimplementedError('11-06');
+
+  @override
+  Future<void> handleRevocation() => throw UnimplementedError('11-06');
+
+  @override
+  Future<String?> recoverFromUnauthorized({String? rejectedToken}) =>
+      throw UnimplementedError('11-06');
+
+  @override
+  void dispose() {
+    _supersedeSession();
+    _channel.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cold start
+  // ---------------------------------------------------------------------------
+
+  Future<void> _attemptBootstrap(int epoch) async {
+    try {
+      await _refreshSingleFlight();
+    } on SessionRejected {
+      return;
+    } catch (error) {
+      if (epoch != _epoch) return;
+      debugPrint('[SessionAuth] session resolve failed: ${error.runtimeType}');
+      _scheduleBootstrapRetry(epoch);
+      return;
+    }
+    if (epoch != _epoch) return;
+    _emitAuthenticated();
+  }
+
+  void _scheduleBootstrapRetry(int epoch) {
+    final delay = exponentialBackoff(
+      _bootstrapAttempt++,
+      max: _bootstrapRetryCap,
+    );
+    _bootstrapRetryTimer = Timer(delay, () => _attemptBootstrap(epoch));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Refresh
+  // ---------------------------------------------------------------------------
+
+  bool get _hasFreshAccessToken {
+    final refreshAt = _refreshAt;
+    return _accessToken != null &&
+        refreshAt != null &&
+        _now().isBefore(refreshAt);
+  }
+
+  Future<String> _refreshSingleFlight() {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) return inFlight.future;
+    final completer = Completer<String>();
+    _refreshInFlight = completer;
+    unawaited(_rotateSession(completer, _epoch, _refreshToken!));
+    return completer.future;
+  }
+
+  Future<void> _rotateSession(
+    Completer<String> completer,
+    int epoch,
+    String refreshToken,
+  ) async {
+    try {
+      final session = await _api.refreshSession(refreshToken);
+      if (epoch != _epoch) return completer.completeError(_superseded);
+      await _persistRefreshToken(session.refreshToken);
+      if (epoch != _epoch) return completer.completeError(_superseded);
+      final previousUserId = _user?.id;
+      _applySession(session);
+      _announceIdentityChange(previousUserId);
+      completer.complete(session.accessToken);
+    } on SessionRejected catch (error) {
+      if (epoch != _epoch) return completer.completeError(_superseded);
+      await _endSession(UnauthenticatedReason.sessionExpired);
+      completer.completeError(error);
+    } catch (error) {
+      completer.completeError(error);
+    } finally {
+      if (identical(_refreshInFlight, completer)) _refreshInFlight = null;
+    }
+  }
+
+  Future<void> _persistRefreshToken(String refreshToken) async {
+    try {
+      await _store.writeRefreshToken(refreshToken);
+    } catch (error) {
+      debugPrint(
+        '[SessionAuth] refresh token persist failed: ${error.runtimeType}',
+      );
+    }
+  }
+
+  void _applySession(AuthSession session) {
+    _accessToken = session.accessToken;
+    _refreshToken = session.refreshToken;
+    _user = session.user;
+    final delay = refreshDelayFor(
+      accessToken: session.accessToken,
+      expiresAt: session.accessTokenExpiresAt,
+      now: _now(),
+    );
+    _refreshAt = _now().add(delay);
+    _bootstrapAttempt = 0;
+    _proactiveRetryAttempt = 0;
+    _scheduleProactiveRefresh(delay);
+  }
+
+  /// Le rotazioni non ri-emettono lo stato, salvo cambio di identità.
+  void _announceIdentityChange(String? previousUserId) {
+    if (_channel.current is! AuthAuthenticated) return;
+    if (previousUserId == _user?.id) return;
+    _emitAuthenticated();
+  }
+
+  void _scheduleProactiveRefresh(Duration delay) {
+    _proactiveRefreshTimer?.cancel();
+    _proactiveRefreshTimer = Timer(delay, _runProactiveRefresh);
+  }
+
+  Future<void> _runProactiveRefresh() async {
+    final epoch = _epoch;
+    try {
+      await _refreshSingleFlight();
+    } on SessionRejected {
+      return;
+    } catch (error) {
+      if (epoch != _epoch || _refreshToken == null) return;
+      debugPrint(
+        '[SessionAuth] proactive refresh failed: ${error.runtimeType}',
+      );
+      _scheduleProactiveRefresh(
+        exponentialBackoff(_proactiveRetryAttempt++, max: _proactiveRetryCap),
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Session lifecycle
+  // ---------------------------------------------------------------------------
+
+  void _emitAuthenticated() {
+    _channel.emit(AuthAuthenticated(user: _user!, accessToken: _accessToken!));
+  }
+
+  /// Invalida ogni lavoro in corso della sessione attuale (timer, refresh).
+  void _supersedeSession() {
+    _epoch++;
+    _bootstrapRetryTimer?.cancel();
+    _proactiveRefreshTimer?.cancel();
+    _refreshInFlight = null;
+  }
+
+  void _forgetSession() {
+    _accessToken = null;
+    _refreshToken = null;
+    _user = null;
+    _refreshAt = null;
+  }
+
+  /// Teardown D-12 senza chiamata al backend: l'access JWT è scartato subito.
+  Future<void> _endSession(UnauthenticatedReason reason) async {
+    _supersedeSession();
+    _forgetSession();
+    await _runTeardown();
+    await _clearStore();
+    _channel.emit(AuthUnauthenticated(reason: reason));
+  }
+
+  Future<void> _runTeardown() async {
+    try {
+      await _onSessionTeardown();
+    } catch (error) {
+      debugPrint('[SessionAuth] session teardown failed: ${error.runtimeType}');
+    }
+  }
+
+  Future<void> _clearStore() async {
+    try {
+      await _store.clear();
+    } catch (error) {
+      debugPrint(
+        '[SessionAuth] session store clear failed: ${error.runtimeType}',
+      );
+    }
+  }
+}
+
+const _SessionSuperseded _superseded = _SessionSuperseded();
+
+/// Esito di un refresh appartenente a una sessione già sostituita o chiusa.
+class _SessionSuperseded implements Exception {
+  const _SessionSuperseded();
+}
