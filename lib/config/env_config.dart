@@ -57,15 +57,16 @@ class EnvConfig {
 
   /// Runtime flag letto da `.env` tramite flutter_dotenv.
   ///
-  /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive) nel
-  /// file `.env`. In release build senza `.env` negli assets, ritorna `false`
+  /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive, spazi
+  /// attorno ignorati come per `DEV_AUTH_START_SIGNED_OUT`) nel file `.env`.
+  /// In release build senza `.env` negli assets, ritorna `false`
   /// in modo sicuro (fail-safe su dotenv non inizializzato).
   ///
   /// Usato da `main.dart` per scegliere tra `DevAuthTokenService`
   /// e `SessionAuthTokenService` tramite factory senza type-check.
   static bool get devAuthEnabled {
     try {
-      return dotenv.env['DEV_AUTH_ENABLED']?.toLowerCase() == 'true';
+      return dotenv.env['DEV_AUTH_ENABLED']?.trim().toLowerCase() == 'true';
     } catch (_) {
       // dotenv non ancora inizializzato (es. test che non chiama loadTestEnv):
       // fail safe — nessun crash, nessuna auth stub attiva per default.
