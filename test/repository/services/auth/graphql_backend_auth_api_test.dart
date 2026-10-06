@@ -1,12 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gql_exec/gql_exec.dart';
-import 'package:gql_link/gql_link.dart';
+import 'package:gql/ast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart';
 import 'package:klimmeck_guide/repository/services/auth/graphql_backend_auth_api.dart';
 
 import '../../../helpers/auth_fixtures.dart';
 import '../../../helpers/auth_session_fixtures.dart';
+
+String? operationNameOf(Request request) => request
+    .operation
+    .document
+    .definitions
+    .whereType<OperationDefinitionNode>()
+    .first
+    .name
+    ?.value;
 
 typedef _Handler = Stream<Response> Function(Request request);
 
@@ -56,7 +64,7 @@ void main() {
         );
 
         final request = requests.single;
-        expect(request.operation.operationName, 'ExchangeLoginTicket');
+        expect(operationNameOf(request), 'ExchangeLoginTicket');
         expect(request.variables, {'ticket': 't', 'codeVerifier': 'v'});
         expect(request.context.entry<HttpLinkHeaders>(), isNull);
         expect(session.accessToken, 'a');
@@ -70,7 +78,7 @@ void main() {
       final session = await buildApi().refreshSession('r');
 
       final request = requests.single;
-      expect(request.operation.operationName, 'RefreshSession');
+      expect(operationNameOf(request), 'RefreshSession');
       expect(request.variables, {'refreshToken': 'r'});
       expect(request.context.entry<HttpLinkHeaders>(), isNull);
       expect(session.refreshToken, 'r');
@@ -82,7 +90,7 @@ void main() {
       await buildApi().logout('acc');
 
       final request = requests.single;
-      expect(request.operation.operationName, 'Logout');
+      expect(operationNameOf(request), 'Logout');
       expect(request.context.entry<HttpLinkHeaders>()?.headers, {
         'Authorization': 'Bearer acc',
       });
@@ -94,7 +102,7 @@ void main() {
       final user = await buildApi().fetchMe('acc');
 
       final request = requests.single;
-      expect(request.operation.operationName, 'GetMe');
+      expect(operationNameOf(request), 'GetMe');
       expect(request.context.entry<HttpLinkHeaders>()?.headers, {
         'Authorization': 'Bearer acc',
       });
@@ -158,7 +166,11 @@ void main() {
 
     test('network failure and HTTP 500 are transient', () async {
       handler = (_) => Stream.error(
-        NetworkException(uri: Uri(), originalException: null, message: 'down'),
+        NetworkException(
+          uri: Uri(),
+          originalException: Exception('down'),
+          message: 'down',
+        ),
       );
       await expectLater(
         buildApi().refreshSession('r'),

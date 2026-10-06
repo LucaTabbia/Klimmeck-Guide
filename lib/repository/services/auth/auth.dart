@@ -1,8 +1,11 @@
 export 'access_token_lifetime.dart';
+export 'auth_api_exception.dart';
 export 'auth_state_channel.dart';
 export 'auth_token_service.dart';
+export 'backend_auth_api.dart';
 export 'browser_authenticator.dart';
 export 'dev_auth_token_service.dart';
+export 'graphql_backend_auth_api.dart';
 export 'login_callback.dart';
 export 'login_exception.dart';
 export 'unauthorized_recovery.dart';
