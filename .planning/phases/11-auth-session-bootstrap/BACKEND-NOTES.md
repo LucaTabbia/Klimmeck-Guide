@@ -13,7 +13,7 @@ L'app è un client di sessione first-party. Non possiede alcuna chiave né token
 
 | Operazione | Trasporto | Auth | Quando la chiama l'app | Gestione errori |
 |---|---|---|---|---|
-| `GET {BASE_URL}auth/twitch/start?challenge=<S256>` | browser di sistema (`flutter_web_auth_2`, callback scheme `klimmeck`) | nessuna | tap su "Login con Twitch" (nuova coppia verifier/challenge a ogni tentativo) | `error=access_denied` o chiusura del browser = silenzioso; `twitch_not_configured` = "Login con Twitch non ancora disponibile."; ogni altro `error` / callback malformato = errore generico, riprovare |
+| `GET {BASE_URL}auth/twitch/start?challenge=<S256>` | browser di sistema (`flutter_web_auth_2`, callback scheme `klimmeck`) | nessuna | tap su "Login con Twitch" (nuova coppia verifier/challenge a ogni tentativo) | `error=access_denied` o chiusura del browser = silenzioso; `twitch_not_configured` = "Login con Twitch non ancora disponibile."; ogni altro `error` / callback malformato = errore generico, riprovare. Il redirect del BE deve usare esattamente `klimmeck://auth?…`: l'app scarta ogni altro host (`klimmeck://altro?…` = errore generico) e su Android la `CallbackActivity` accetta solo scheme `klimmeck` + host `auth` |
 | `ExchangeLoginTicket($ticket, $codeVerifier)` | GraphQL HTTP, client dedicato | nessun bearer | subito dopo il deep link `klimmeck://auth?ticket=` | `LOGIN_TICKET_INVALID` = errore generico in UI (si riparte con nuova coppia); rete/5xx = errore di connessione con retry manuale |
 | `RefreshSession($refreshToken)` | GraphQL HTTP, client dedicato | nessun bearer (il refresh token e' l'argomento) | cold start (a ogni avvio con sessione salvata), proattivo, reattivo (vedi §3) | solo `SESSION_EXPIRED` / `SESSION_REVOKED` terminali; tutto il resto transitorio |
 | `Logout` | GraphQL HTTP | bearer della sessione che esce; se scaduto, prima un `refreshSession` col suo refresh token (D-36), fuori dal single-flight | azione esplicita di logout (entry point UI: Phase 4, Settings) | timeout 4 s, best-effort: offline o in errore la sessione locale viene comunque chiusa e quella server muore per scadenza. `SESSION_EXPIRED`/`SESSION_REVOKED` su quel refresh = chiamata saltata, esito locale sempre "uscito" (mai "sessione scaduta"). Se il refresh finisce dopo il timeout la chiamata `logout` viene saltata: l'app non invia mai il bearer di una sessione nata dopo |
@@ -93,7 +93,7 @@ Ancora aperte / richieste:
 
 - [ ] Console Twitch: registrati gli OAuth Redirect URL del BE (staging https e `http://localhost:3000/auth/twitch/callback`). Device in LAN: tunnel https come `BASE_URL`. Emulatore Android: `adb reverse tcp:3000 tcp:3000` e `BASE_URL=http://localhost:3000/`.
 - [ ] `DEV_AUTH_ENABLED=false` su BE e app; riavvio BE senza i warning `DEV AUTH BYPASS` e `Twitch OAuth not configured`.
-- [ ] Login reale iOS (ASWebAuthenticationSession) e Android (Custom Tabs / AuthTab, intent `klimmeck://`) -> shell autenticata, utente reale da `me`.
+- [ ] Login reale iOS (ASWebAuthenticationSession) e Android (Custom Tabs / AuthTab, intent `klimmeck://auth`) -> shell autenticata, utente reale da `me`.
 - [ ] Annullamento (back / chiusura del browser) -> sign-in invariato, nessun messaggio.
 - [ ] Consenso negato su Twitch (`error=access_denied`) -> silenzioso.
 - [ ] BE senza chiavi -> "Login con Twitch non ancora disponibile."

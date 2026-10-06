@@ -51,6 +51,17 @@ void main() {
       );
     });
 
+    test('rejects a klimmeck link with a host other than auth', () {
+      const invalid = LoginRejectedByBackend('invalid_callback');
+
+      expect(parseLoginCallback('klimmeck://other?ticket=abc'), invalid);
+      expect(
+        parseLoginCallback('klimmeck://evil?error=twitch_not_configured'),
+        invalid,
+      );
+      expect(parseLoginCallback('klimmeck:?ticket=abc'), invalid);
+    });
+
     test('ticket toString does not leak the ticket', () {
       expect(
         const LoginTicketReceived('secret-ticket').toString(),

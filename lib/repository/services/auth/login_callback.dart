@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 const String loginCallbackScheme = 'klimmeck';
 const String twitchNotConfiguredError = 'twitch_not_configured';
 
+const String _loginCallbackHost = 'auth';
 const String _accessDeniedError = 'access_denied';
 const String _invalidCallbackError = 'invalid_callback';
 
@@ -43,10 +44,13 @@ final class LoginRejectedByBackend extends LoginCallback {
 
 /// Parsa il deep link `klimmeck://auth?ticket=…|error=…` (input non fidato).
 ///
-/// Totale: non lancia mai, ogni input anomalo diventa `invalid_callback`.
+/// Totale: non lancia mai, ogni input anomalo diventa `invalid_callback`,
+/// compreso un link `klimmeck://` con host diverso da `auth`.
 LoginCallback parseLoginCallback(String url) {
   final uri = Uri.tryParse(url);
-  if (uri == null || uri.scheme != loginCallbackScheme) {
+  if (uri == null ||
+      uri.scheme != loginCallbackScheme ||
+      uri.host != _loginCallbackHost) {
     return const LoginRejectedByBackend(_invalidCallbackError);
   }
   final ticket = uri.queryParameters['ticket'];
