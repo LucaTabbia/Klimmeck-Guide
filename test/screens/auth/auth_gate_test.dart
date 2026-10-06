@@ -202,6 +202,44 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
   });
 
+  Future<void> openSessionDialog(WidgetTester tester, String userId) async {
+    unawaited(
+      showDialog<void>(
+        context: tester.element(find.text('home $userId')),
+        builder: (_) => const AlertDialog(content: Text('session dialog')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('session dialog'), findsOneWidget);
+  }
+
+  testWidgets('a change of user closes the previous user dialogs', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(tester, _authenticated('A'));
+    await openSessionDialog(tester, 'A');
+
+    await emitAuth(tester, _authenticated('B'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('session dialog'), findsNothing);
+    expect(find.text('home B'), findsOneWidget);
+  });
+
+  testWidgets('a token rotation for the same user keeps dialogs open', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(tester, _authenticated('A'));
+    await openSessionDialog(tester, 'A');
+
+    await emitAuth(tester, _authenticated('A', token: 'rotated'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('session dialog'), findsOneWidget);
+  });
+
   testWidgets('manual sign-in after the connection hint opens the sign-in', (
     tester,
   ) async {
