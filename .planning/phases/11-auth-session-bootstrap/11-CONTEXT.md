@@ -41,7 +41,7 @@ Out of scope for this phase: character creation flow, settings screen, notificat
 
 ### Revocation detection (AUTH-07)
 - **D-08 (amended):** Cold start always proves the session against the **backend** before declaring it valid: load the refresh token from secure storage → `refreshSession` → `Authenticated` with the user returned by the backend. Result decides splash → main vs splash → sign-in. No call to Twitch from the app, ever.
-- **D-09 (amended):** In-session detection: a refresh rejected with `SESSION_REVOKED` or `SESSION_EXPIRED` is treated as revocation → logout teardown (D-12) and route to sign-in. Transient failures (5xx, network, timeout) do **not** trigger logout — retry with backoff inside the proactive refresh.
+- **D-09 (amended):** In-session detection: a refresh rejected with `SESSION_REVOKED` or `SESSION_EXPIRED` is treated as revocation → logout teardown (D-12) and route to sign-in. Transient failures (5xx, network, timeout) do **not** trigger logout — retry with backoff inside the proactive refresh. _(Note added 2026-10-06 after code review: this holds when the backend did not process the failed request, and for short outages. If the backend DID rotate the token but the response was lost, and the retry reaches it more than 30s later, the backend answers `SESSION_REVOKED` and the user must log in again — a consequence of the backend's grace-window decision D-26, which is awaiting the user's confirmation. See `BACKEND-NOTES.md` §3.)_
 - **D-10:** Cold-start revocation message is neutral: "La sessione è scaduta, accedi di nuovo." (no accusation of explicit revocation).
 
 ### Logout teardown (AUTH-04, AUTH-05)
