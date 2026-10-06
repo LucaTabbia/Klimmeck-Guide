@@ -139,12 +139,8 @@ class SessionAuthTokenService extends AuthTokenService
   /// Non lancia mai.
   @override
   Future<void> logout() async {
-    await _invalidateBackendSession().timeout(
-      _logoutTimeout,
-      onTimeout: () => debugPrint(
-        '[SessionAuth] backend logout timed out, continuing local teardown',
-      ),
-    );
+    final backendStep = _invalidateBackendSession();
+    await backendStep.timeout(_logoutTimeout, onTimeout: _logLogoutTimeout);
     await _endSession(UnauthenticatedReason.signedOut);
   }
 
@@ -397,6 +393,10 @@ class SessionAuthTokenService extends AuthTokenService
       debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
     }
   }
+
+  void _logLogoutTimeout() => debugPrint(
+    '[SessionAuth] backend logout timed out, continuing local teardown',
+  );
 
   /// Teardown D-12 senza chiamata al backend: l'access JWT è scartato subito.
   Future<void> _endSession(UnauthenticatedReason reason) async {
