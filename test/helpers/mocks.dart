@@ -15,3 +15,10 @@ class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 class MockBackendAuthApi extends Mock implements BackendAuthApi {}
 
 class MockBackendMeSource extends Mock implements BackendMeSource {}
+
+/// Forma dell'hook `onSessionTeardown`, per verificarne l'ordine con `verifyInOrder`.
+abstract interface class SessionTeardownHook {
+  Future<void> call();
+}
+
+class MockSessionTeardownHook extends Mock implements SessionTeardownHook {}
