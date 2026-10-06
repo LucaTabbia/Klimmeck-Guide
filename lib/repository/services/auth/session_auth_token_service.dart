@@ -69,7 +69,6 @@ class SessionAuthTokenService extends AuthTokenService
   final Future<void> Function() _onSessionTeardown;
   final DateTime Function() _now;
   final LoginChallenge Function() _createChallenge;
-  // ignore: unused_field
   final Duration _logoutTimeout;
   final AuthStateChannel _channel = AuthStateChannel();
 
@@ -133,8 +132,21 @@ class SessionAuthTokenService extends AuthTokenService
     await _startSession(session);
   }
 
+  /// Logout atomico (D-12): (1) invalidazione best-effort della sessione sul
+  /// backend, limitata da `logoutTimeout` (D-13: offline o backend lento non
+  /// bloccano), (2–3) teardown iniettato (subscription e client GraphQL),
+  /// (4) storage svuotato, (5) `AuthUnauthenticated(signedOut)`.
+  /// Non lancia mai.
   @override
-  Future<void> logout() => throw UnimplementedError('11-06');
+  Future<void> logout() async {
+    await _invalidateBackendSession().timeout(
+      _logoutTimeout,
+      onTimeout: () => debugPrint(
+        '[SessionAuth] backend logout timed out, continuing local teardown',
+      ),
+    );
+    await _endSession(UnauthenticatedReason.signedOut);
+  }
 
   /// Revoca esplicita (AUTH-07): teardown locale senza chiamare il backend.
   @override
@@ -372,6 +384,18 @@ class SessionAuthTokenService extends AuthTokenService
     _refreshToken = null;
     _user = null;
     _refreshAt = null;
+  }
+
+  /// D-36: passa da [getAccessToken], quindi un access scaduto viene prima
+  /// rinnovato; senza token valido la chiamata è saltata. Mai bloccante.
+  Future<void> _invalidateBackendSession() async {
+    try {
+      final accessToken = await getAccessToken();
+      if (accessToken == null) return;
+      await _api.logout(accessToken);
+    } catch (error) {
+      debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
+    }
   }
 
   /// Teardown D-12 senza chiamata al backend: l'access JWT è scartato subito.
