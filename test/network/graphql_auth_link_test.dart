@@ -164,13 +164,11 @@ void main() {
                 .entry<HttpLinkHeaders>()
                 ?.headers['Authorization'];
             sentAuthorizations.add(authorization);
-            if (authorization == 'Bearer A2')
+            if (authorization == 'Bearer A2') {
               yield _ok;
-            else
-              throw const ServerException(
-                statusCode: 401,
-                parsedResponse: null,
-              );
+              return;
+            }
+            throw const ServerException(statusCode: 401, parsedResponse: null);
           }),
         );
 
