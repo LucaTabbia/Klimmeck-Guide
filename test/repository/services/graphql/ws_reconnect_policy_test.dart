@@ -197,7 +197,7 @@ void main() {
 
       expect(delays, _expectedBackoffSequence);
       expect(
-        delays.every((d) => d <= WsReconnectPolicy.maxReconnectDelay),
+        delays.every((d) => d! <= WsReconnectPolicy.maxReconnectDelay),
         isTrue,
       );
     });
