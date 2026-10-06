@@ -265,7 +265,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - [x] 11-03-PLAN.md — SessionStore cifrato + documenti GraphQL auth + BackendAuthApi su client dedicato con mapping errori
   - [x] 11-04-PLAN.md — Dev stub: transizioni login/logout/revoca, DEV_AUTH_START_SIGNED_OUT, allineamento via `me`
   - [x] 11-05-PLAN.md — SessionAuthTokenService: bootstrap cold start, refresh single-flight + proattivo, revoca sul refresh, login via browser + ticket
-  - [ ] 11-06-PLAN.md — SessionAuthTokenService: recoverFromUnauthorized, handleRevocation, logout atomico best-effort
+  - [x] 11-06-PLAN.md — SessionAuthTokenService: recoverFromUnauthorized, handleRevocation, logout atomico best-effort
   - [ ] 11-07-PLAN.md — AuthAuthLink e AuthInterceptor con retry-once dopo UNAUTHENTICATED/401
   - [ ] 11-08-PLAN.md — WsReconnectPolicy (token corrente, 4401/4403) + GraphQLClientHolder + buildGraphQLConnection
   - [ ] 11-09-PLAN.md — AuthCubit + SignInCubit/SignInScreen + LogoutConfirmationDialog
@@ -302,7 +302,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Auth & Session Bootstrap | 5/11 | In Progress|  |
+| 11. Auth & Session Bootstrap | 6/11 | In Progress|  |
 | 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability
