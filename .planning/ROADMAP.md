@@ -55,7 +55,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ## Phases
 
-- [ ] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
+- [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [ ] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell.
 - [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
@@ -292,7 +292,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dev Auth Stub | 0/3 | Planned | - |
+| 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
 | 2. Character Creation | 0/0 | Not started | - |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
@@ -302,7 +302,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Auth & Session Bootstrap | 11/11 | Complete   | 2026-10-06 |
+| 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability

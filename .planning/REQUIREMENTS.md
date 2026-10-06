@@ -29,21 +29,21 @@ Questi requirements si riferiscono ai modelli esistenti in `lib/models/`:
 
 Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Phase 11 sostituisce l'implementazione concreta mantenendo invariato il contratto.
 
-- [ ] **DEV-AUTH-01**: `AuthTokenService` stub espone la stessa public surface del servizio finale — `Stream<AuthState>`, `Future<String?> getAccessToken()`, `Future<void> login()`, `Future<void> logout()`, `Future<void> handleRevocation()`
-- [ ] **DEV-AUTH-02**: Lo stub legge identità e token da `.env` (`DEV_AUTH_ACCESS_TOKEN`, `DEV_AUTH_USER_ID`, `DEV_AUTH_TWITCH_ID`, `DEV_AUTH_ROLE`); niente secure storage, niente OAuth
-- [ ] **DEV-AUTH-03**: Lo stub supporta role switching via `DEV_AUTH_ROLE` (`guard | adventurer | innkeeper`) per abilitare test di fasi role-gated (Admin Panel)
-- [ ] **DEV-AUTH-04**: `login()` e `logout()` sono no-op (warning log in debug builds only); nessun sign-in screen viene costruito in questa fase _(da Phase 11 lo stub simula le transizioni login/logout per rendere testabile la UI di auth senza chiavi Twitch — vedi 11-CONTEXT.md D-24)_
-- [ ] **DEV-AUTH-05**: `AuthTokenService` è esposto via `RepositoryProvider` sopra il `BlocProvider` tree, stesso wiring previsto per l'implementazione finale di Phase 11 (nessun consumer downstream cambia quando Phase 11 atterra)
+- [x] **DEV-AUTH-01**: `AuthTokenService` stub espone la stessa public surface del servizio finale — `Stream<AuthState>`, `Future<String?> getAccessToken()`, `Future<void> login()`, `Future<void> logout()`, `Future<void> handleRevocation()`
+- [x] **DEV-AUTH-02**: Lo stub legge identità e token da `.env` (`DEV_AUTH_ACCESS_TOKEN`, `DEV_AUTH_USER_ID`, `DEV_AUTH_TWITCH_ID`, `DEV_AUTH_ROLE`); niente secure storage, niente OAuth
+- [x] **DEV-AUTH-03**: Lo stub supporta role switching via `DEV_AUTH_ROLE` (`guard | adventurer | innkeeper`) per abilitare test di fasi role-gated (Admin Panel)
+- [x] **DEV-AUTH-04**: `login()` e `logout()` sono no-op (warning log in debug builds only); nessun sign-in screen viene costruito in questa fase _(da Phase 11 lo stub simula le transizioni login/logout per rendere testabile la UI di auth senza chiavi Twitch — vedi 11-CONTEXT.md D-24)_
+- [x] **DEV-AUTH-05**: `AuthTokenService` è esposto via `RepositoryProvider` sopra il `BlocProvider` tree, stesso wiring previsto per l'implementazione finale di Phase 11 (nessun consumer downstream cambia quando Phase 11 atterra)
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can log in with Twitch via the system browser (WebView is prohibited by Twitch TOS); the backend mediates the Twitch OAuth exchange and the app redeems a one-time login ticket bound to an app-generated S256 challenge _(amended 2026-10-06: Twitch has no PKCE and requires a client secret — see 11-CONTEXT.md)_
-- [ ] **AUTH-02**: The app stores the session refresh token in encrypted platform storage (never in shared_preferences); it never holds a Twitch token _(amended 2026-10-06)_
-- [ ] **AUTH-03**: User session persists across app restarts via refresh token rotation
-- [ ] **AUTH-04**: User can log out, which invalidates the session on the backend, clears secure storage, resets the GraphQL cache, cancels all subscriptions, and returns to sign-in _(amended 2026-10-06)_
-- [ ] **AUTH-05**: User can switch Twitch account by logging out and logging back in with a different account
-- [ ] **AUTH-06**: On token expiry, the access token is refreshed transparently; concurrent 401 responses are serialized via mutex so a single refresh is issued
-- [ ] **AUTH-07**: When the backend revokes or expires the session (including after an external revocation on Twitch, once the backend detects it), the app detects the invalidation and returns the user to sign-in with a clear message _(amended 2026-10-06)_
+- [x] **AUTH-01**: User can log in with Twitch via the system browser (WebView is prohibited by Twitch TOS); the backend mediates the Twitch OAuth exchange and the app redeems a one-time login ticket bound to an app-generated S256 challenge _(amended 2026-10-06: Twitch has no PKCE and requires a client secret — see 11-CONTEXT.md)_
+- [x] **AUTH-02**: The app stores the session refresh token in encrypted platform storage (never in shared_preferences); it never holds a Twitch token _(amended 2026-10-06)_
+- [x] **AUTH-03**: User session persists across app restarts via refresh token rotation
+- [x] **AUTH-04**: User can log out, which invalidates the session on the backend, clears secure storage, resets the GraphQL cache, cancels all subscriptions, and returns to sign-in _(amended 2026-10-06)_
+- [x] **AUTH-05**: User can switch Twitch account by logging out and logging back in with a different account
+- [x] **AUTH-06**: On token expiry, the access token is refreshed transparently; concurrent 401 responses are serialized via mutex so a single refresh is issued
+- [x] **AUTH-07**: When the backend revokes or expires the session (including after an external revocation on Twitch, once the backend detects it), the app detects the invalidation and returns the user to sign-in with a clear message _(amended 2026-10-06)_
 
 ### Character Creation
 
@@ -198,8 +198,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement                 | Phase | Status  |
 | --------------------------- | ----- | ------- |
-| DEV-AUTH-01 through DEV-AUTH-05 | Phase 1 | Pending |
-| AUTH-01 through AUTH-07     | Phase 11 | Pending |
+| DEV-AUTH-01 through DEV-AUTH-05 | Phase 1 | Complete |
+| AUTH-01 through AUTH-07     | Phase 11 | Complete (real-device Twitch login pending UAT) |
 | CHAR-01 through CHAR-09     | TBD   | Pending |
 | SET-01 through SET-04       | TBD   | Pending |
 | SYNC-01 through SYNC-07     | TBD   | Pending |

@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-10-06T18:43:48.047Z"
-last_activity: 2026-10-06
+status: phase-complete
+last_updated: "2026-10-06T20:33:36.693Z"
+last_activity: 2026-10-06 -- Phase 11 (auth-session-bootstrap) complete — verifier 7/7, 278 tests GREEN, human UAT pending
 progress:
   total_phases: 12
   completed_phases: 2
@@ -17,11 +17,11 @@ progress:
 
 ## Current Position
 
-Phase: 11 (auth-session-bootstrap) — EXECUTING
-Plan: 11 of 11
-Next Phase: 02
-Status: Phase complete — ready for verification
-Last activity: 2026-10-06
+Phase: 11 (auth-session-bootstrap) — COMPLETE (ready for PR; human UAT pending in 11-HUMAN-UAT.md)
+Completed phases: 01 (dev-auth-stub), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
+Next Phase: 02 (Character Creation)
+Status: Phase 11 verified — 7/7 success criteria, 278/278 tests GREEN, analyzer at 11 pre-existing issues
+Last activity: 2026-10-06 -- Phase 11 execution, review (2 passes) and verification complete
 
 ## Current Milestone
 
@@ -41,6 +41,11 @@ Last activity: 2026-10-06
 
 - Scelta libreria push notification Flutter (firebase_messaging è standard)
 - Scelta client GraphQL subscription (ferry / graphql_flutter già in uso?)
-- Flusso OAuth Twitch: webview in-app vs deep link / universal link
+- ~~Flusso OAuth Twitch: webview in-app vs deep link / universal link~~ — **risolto in Phase 11:** login mediato dal backend via browser di sistema + deep link `klimmeck://auth` (Twitch non supporta PKCE né redirect con custom scheme; l'app non possiede chiavi Twitch).
+- **Chiavi Twitch non ancora disponibili:** il login reale su device non è mai stato esercitato (UAT pendenti in `phases/11-auth-session-bootstrap/11-HUMAN-UAT.md`). Fino ad allora si lavora con il dev bypass (`DEV_AUTH_ENABLED=true`; `DEV_AUTH_START_SIGNED_OUT=true` per vedere il sign-in).
+- **Backend:** dalla sua Phase 2 richiede un'identità su ogni chiamata; `DEV_AUTH_ACCESS_TOKEN` deve coincidere con quello del BE (≥ 16 caratteri). Contratto in `Klimmeck-Guide-BE/.planning/phases/02-auth-identity-foundation/BACKEND-NOTES.md`. Decisione BE D-26 (finestra di grazia del refresh) in attesa dell'utente.
+- **Entry point del logout:** arriva con Settings (Phase 4); `AuthCubit.logout()` e `LogoutConfirmationDialog` esistono e sono testati ma non sono raggiungibili dal gioco.
+- **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
+- **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - **QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.
 - **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
