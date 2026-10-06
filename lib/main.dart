@@ -10,6 +10,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
@@ -37,7 +38,9 @@ Future<void> main() async {
       .initialize(); // polimorfico — NO type-check is DevAuthTokenService
 
   final restClient = RestClient(authTokenService: authTokenService);
-  final graphQlClient = await initGraphQLClient(authTokenService);
+  final graphQlHolder = GraphQLClientHolder(
+    connect: () => buildGraphQLConnection(authService: authTokenService),
+  );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -59,7 +62,7 @@ Future<void> main() async {
     KlimmeckGuideApp(
       authTokenService: authTokenService,
       restClient: restClient,
-      graphQlClient: graphQlClient,
+      graphQlClient: graphQlHolder.client,
     ),
   );
 }
