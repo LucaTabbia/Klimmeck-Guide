@@ -261,7 +261,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
 **Plans**: 11 plans (ripianificati il 2026-10-06 sul login mediato dal backend; esecuzione sequenziale, una wave per plan)
   - [x] 11-01-PLAN.md — Wave 0: dipendenze (flutter_web_auth_2, flutter_secure_storage 10, crypto, fake_async), AGP 8.9.1, manifest Android, .env.example, helper di test
-  - [ ] 11-02-PLAN.md — Primitive di dominio: AuthSession, LoginChallenge S256, durata JWT, parser callback, browser authenticator, AuthUnauthenticated.reason, UnauthorizedRecovery, AuthStateChannel
+  - [x] 11-02-PLAN.md — Primitive di dominio: AuthSession, LoginChallenge S256, durata JWT, parser callback, browser authenticator, AuthUnauthenticated.reason, UnauthorizedRecovery, AuthStateChannel
   - [ ] 11-03-PLAN.md — SessionStore cifrato + documenti GraphQL auth + BackendAuthApi su client dedicato con mapping errori
   - [ ] 11-04-PLAN.md — Dev stub: transizioni login/logout/revoca, DEV_AUTH_START_SIGNED_OUT, allineamento via `me`
   - [ ] 11-05-PLAN.md — SessionAuthTokenService: bootstrap cold start, refresh single-flight + proattivo, revoca sul refresh, login via browser + ticket
@@ -302,7 +302,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Auth & Session Bootstrap | 1/11 | In Progress|  |
+| 11. Auth & Session Bootstrap | 2/11 | In Progress|  |
 | 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability
