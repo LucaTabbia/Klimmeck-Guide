@@ -5,29 +5,56 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// This class centralizes all environment-specific values like API URLs,
 /// keys, and other configuration that may change between environments.
 ///
-/// To override at build time, use:
+/// Backend URLs are resolved at runtime with this priority:
+/// 1. the `.env` file loaded by flutter_dotenv (`BASE_URL`, `GRAPHQL_HTTP_URL`,
+///    `GRAPHQL_WS_URL`) — the convenient way during development;
+/// 2. a `--dart-define` of the same name at build time;
+/// 3. the built-in default.
+///
 /// ```bash
 /// flutter run --dart-define=GRAPHQL_HTTP_URL=https://your-server.com/api/graphql
 /// ```
 class EnvConfig {
   EnvConfig._();
 
-  // ============== GraphQL Configuration ==============
+  // ============== Backend URLs ==============
+  //
+  // Il `.env` è un asset incluso nella build: questi valori non sono segreti.
 
-  static const String baseUrl = String.fromEnvironment(
+  static const String _baseUrlDefine = String.fromEnvironment(
     'BASE_URL',
     defaultValue: 'http://192.168.0.20:3000/',
   );
 
-  static const String graphqlHttpUrl = String.fromEnvironment(
+  static const String _graphqlHttpUrlDefine = String.fromEnvironment(
     'GRAPHQL_HTTP_URL',
     defaultValue: 'http://192.168.0.20:3000/api/graphql',
   );
 
-  static const String graphqlWsUrl = String.fromEnvironment(
+  static const String _graphqlWsUrlDefine = String.fromEnvironment(
     'GRAPHQL_WS_URL',
     defaultValue: 'ws://192.168.0.20:3000/api/graphql',
   );
+
+  static String get baseUrl => _runtimeValue('BASE_URL') ?? _baseUrlDefine;
+
+  static String get graphqlHttpUrl =>
+      _runtimeValue('GRAPHQL_HTTP_URL') ?? _graphqlHttpUrlDefine;
+
+  static String get graphqlWsUrl =>
+      _runtimeValue('GRAPHQL_WS_URL') ?? _graphqlWsUrlDefine;
+
+  /// Valore della chiave nel `.env` a runtime, oppure `null` se la chiave è
+  /// assente o vuota, o se dotenv non è stato inizializzato (release build
+  /// senza `.env`, test che non lo caricano): mai un crash, solo il fallback.
+  static String? _runtimeValue(String key) {
+    try {
+      final value = dotenv.env[key]?.trim();
+      return (value == null || value.isEmpty) ? null : value;
+    } catch (_) {
+      return null;
+    }
+  }
 
   // ============== Timeouts ==============
 
@@ -64,15 +91,8 @@ class EnvConfig {
   ///
   /// Usato da `main.dart` per scegliere tra `DevAuthTokenService`
   /// e `SessionAuthTokenService` tramite factory senza type-check.
-  static bool get devAuthEnabled {
-    try {
-      return dotenv.env['DEV_AUTH_ENABLED']?.trim().toLowerCase() == 'true';
-    } catch (_) {
-      // dotenv non ancora inizializzato (es. test che non chiama loadTestEnv):
-      // fail safe — nessun crash, nessuna auth stub attiva per default.
-      return false;
-    }
-  }
+  static bool get devAuthEnabled =>
+      _runtimeValue('DEV_AUTH_ENABLED')?.toLowerCase() == 'true';
 
   static const bool enableLogging = bool.fromEnvironment(
     'ENABLE_LOGGING',
