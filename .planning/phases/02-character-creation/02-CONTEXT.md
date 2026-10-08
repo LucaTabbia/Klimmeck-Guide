@@ -31,19 +31,19 @@ Out of scope for this phase (explicitly deferred by the user, see `<deferred>`):
 ### Fields & validation (CHAR-02, CHAR-03, CHAR-04)
 - **D-08:** Fields, in this order of the user's request: **sex** (`SexType` male/female), **portrait** (optional, D-14), **name**, **pronoun** (`PronounType` he/she/them — independent from sex), **race** (`RaceType`, included per CHAR-03 even though the user's list omitted it — confirmed), **class** (`ClassType`), **age**, **background**. Enum labels: reuse the existing Italian `label` extensions (`RaceType`, `ClassType`, `PronounType`); `SexType` has none yet → add one.
 - **D-09:** **Name:** required; 2–20 characters after trim; letters (Unicode letters incl. accented), spaces, apostrophes and hyphens only; **unique server-side** (case-insensitive) with a dedicated error ("Nome già in uso"). Client validates length/charset live; uniqueness is only the backend's verdict.
-- **D-10:** **Age:** integer whose allowed range **depends on the chosen race**; the age field is **disabled until a race is selected** and re-validated when the race changes (out-of-range after a race change → show the validation error, never silently clamp). Race table (D&D-5e-inspired, min = coming of age, max = lifespan), accepted by the user:
+- **D-10:** **Age:** integer whose allowed range **depends on the chosen race**; the age field is **disabled until a race is selected** and re-validated when the race changes (out-of-range after a race change → show the validation error, never silently clamp). Race table **aligned to the game lore** (amended 2026-10-09 in the BE 2.1 discuss — it supersedes the D&D-inspired table first accepted on 2026-10-08; the backend is the source of truth, see D-11):
 
-  | Race | min | max |
-  |---|---|---|
-  | human (Umano) | 16 | 100 |
-  | elf (Elfo) | 100 | 750 |
-  | halfelf (Mezzelfo) | 20 | 180 |
-  | dwarf (Nano) | 50 | 350 |
-  | halfling | 20 | 150 |
-  | gnome (Gnomo) | 40 | 500 |
-  | dragonborn (Draconide) | 15 | 80 |
-  | tiefling | 18 | 100 |
-  | aarakocra | 3 | 30 |
+  | Race | min | max | lore |
+  |---|---|---|---|
+  | human (Umano) | 16 | 200 | 60–70 normally, mages beyond 200 |
+  | elf (Elfo) | 100 | 9999 | infinite life |
+  | halfelf (Mezzelfo) | 16 | 130 | 120–130 |
+  | dwarf (Nano) | 40 | 140 | 130–140 |
+  | gnome (Gnomo) | 16 | 60 | ~60 |
+  | halfling | 16 | 70 | ~70 |
+  | dragonborn (Draconide) | 16 | 180 | 150–180 |
+  | tiefling | 16 | 120 | 100–120 |
+  | aarakocra | 3 | 40 | 30–40 |
 
 - **D-11:** The race/age table **lives in the backend as the single source of truth** and is **exposed to the app via a query** (e.g. `raceTraits { race minAge maxAge }`). The backend validates `createCharacter` against it; the app reads it to enable and bound the age field. No hardcoded copy in `lib/` (test fixtures may mirror it).
 - **D-12:** **Background:** optional, max 500 characters, multiline with a live counter. Empty background → the backend stores an empty string (today `background: String!`) or makes the field nullable — backend's call (D-23).
@@ -60,9 +60,9 @@ Out of scope for this phase (explicitly deferred by the user, see `<deferred>`):
 - **D-19:** Backend errors are mapped by **stable `extensions.code`** values (D-22), never by message text.
 
 ### Backend work (user directive — built in this effort)
-- **D-20:** The backend part is delivered in the backend repo (`/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE`) **through its own GSD workflow**: insert a decimal phase **2.1 "Character Creation Contract"** between BE Phase 2 (complete) and BE Phase 3 (not started), branch `feat/02.1-character-creation` per the BE template `feat/{phase}-{slug}`, discuss → plan → execute → PR to `develop`. The answers captured here are carried into the BE 2.1 context so the user is not asked twice. The FE plans that touch the network depend on that contract (locally runnable BE is enough; staging is not required for this phase).
-- **D-21:** Proposed contract (fixed in the BE 2.1 context; `src/schema.gql` wins once generated): mutation **`createCharacter(input: CreateCharacterInput!): User!`** acting on the **authenticated identity** (no `userId` argument; one character per user — a second call while `currentCharacter` is set fails). Input: `name`, `sex`, `pronoun`, `race`, `classType`, `age`, `background` (optional), `imagePath` (optional URL). Returns the updated `User` with `currentCharacter { id … }`. Query **`raceTraits`** (D-11). Initial character state (starting location, level/title, coins, HP, empty assets) is **backend business** and reuses existing defaults/fixtures — decided in the BE 2.1 discuss, not here.
-- **D-22:** Stable error codes in `errors[0].extensions.code`, mirrored by the app: `CHARACTER_NAME_INVALID`, `CHARACTER_NAME_TAKEN`, `CHARACTER_AGE_OUT_OF_RANGE`, `CHARACTER_ALREADY_EXISTS`, plus the generic validation failure. Names are a proposal until the BE context fixes them.
+- **D-20:** The backend part is delivered in the backend repo (`/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE`) **through its own GSD workflow**: insert a decimal phase **02.1 "Character Creation Contract"** between BE Phase 2 (complete) and BE Phase 3 (not started) — done 2026-10-09, branch `feat/02.1-character-creation-contract` per the BE template `feat/{phase}-{slug}`, discuss → plan → execute → PR to `develop`. The answers captured here are carried into the BE 2.1 context so the user is not asked twice. The FE plans that touch the network depend on that contract (locally runnable BE is enough; staging is not required for this phase).
+- **D-21:** Proposed contract (fixed in the BE 2.1 context; `src/schema.gql` wins once generated): mutation **`createCharacter(input: CreateCharacterInput!): User!`** acting on the **authenticated identity** (no `userId` argument; one character per user — a second call while `currentCharacter` is set fails). Input: `name`, `sex`, `pronoun`, `race`, `classType`, `age`, `background` (optional), `imagePath` (optional URL). Returns the updated `User` with `currentCharacter { id … }`. Query **`raceTraits`** (D-11). Initial character state is **backend business**, decided in the BE 2.1 discuss (2026-10-09): level 1, title `rookie`, 0 XP, 100/100 HP, 5 silver, no equipment/items/spells; starting location = the `markerLocation` of the race's home city (elf → `elfCapital`; gnome/dwarf/tiefling → `motherCapital`; halfling → `liberiaCapital`; aarakocra → `aarakocraVillage`; dragonborn → `mountainVillage`; human/halfelf → random among `drusteaCapital`, `valanCapital`, `mirwaCapital`, `liberiaCapital`). The app never computes any of this.
+- **D-22:** Stable error codes in `errors[0].extensions.code`, mirrored by the app: `CHARACTER_NAME_INVALID`, `CHARACTER_NAME_TAKEN`, `CHARACTER_AGE_OUT_OF_RANGE`, `CHARACTER_ALREADY_EXISTS`, `STARTING_LOCATION_UNAVAILABLE` (no home city seeded for the race), plus the generic validation failure. Fixed in the BE 2.1 context (`Klimmeck-Guide-BE/.planning/phases/02.1-character-creation-contract/02.1-CONTEXT.md` D-04); `src/schema.gql` wins once generated.
 - **D-23:** Server-side validation duplicates nothing the client "owns": the backend is authoritative for every rule (name charset/length/uniqueness, age-by-race, background length, enum membership). The client's live validation is UX only.
 - **D-24:** The existing REST upload (`POST /cloudinary/uploadImage`, bearer required since BE Phase 2) is reused as-is; an upload size limit / client-side downscale is Claude's discretion.
 
@@ -86,7 +86,7 @@ Out of scope for this phase (explicitly deferred by the user, see `<deferred>`):
 
 ### Backend contract (source of truth once it exists)
 - `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/schema.gql` — generated GraphQL schema. Today it has **no** `createCharacter`; `CharacterInfos` is `{ age: Int!, background: String!, classType: String!, imagePath: String, name: String!, pronoun: String!, race: String!, sex: String! }`. **Wins over anything written here once BE 2.1 lands.**
-- `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/.planning/phases/02.1-character-creation/` — the BE phase this context asks for (CONTEXT, plans, and its `BACKEND-NOTES.md`). Created by D-20.
+- `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/.planning/phases/02.1-character-creation-contract/02.1-CONTEXT.md` — the BE phase this context asks for (inserted 2026-10-09; decisions D-01..D-15: contract, validation, lore-aligned age table, starting state). Its plans and `BACKEND-NOTES.md` land in the same directory.
 - `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/.planning/phases/02-auth-identity-foundation/BACKEND-NOTES.md` — bearer on GraphQL HTTP, REST (Cloudinary included) and WS; dev bypass; error-code conventions.
 - `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/rest/cloudinary/cloudinary.controller.ts` and `cloudinary.service.ts` — `POST /cloudinary/uploadImage` (multipart field `file`, folder `characters_profile`, returns `{ url }`).
 - `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/models/character/character-infos.model.ts`, `character.model.ts`, `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/users/users.service.ts` — current shapes and the user upsert (`currentCharacter: null` at birth).

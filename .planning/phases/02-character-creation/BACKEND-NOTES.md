@@ -2,7 +2,7 @@
 
 - **Fase FE:** 02-character-creation (requisiti CHAR-01..09; CHAR-06 rinviato; decisioni D-01..D-25 in `02-CONTEXT.md`)
 - **Data:** 2026-10-08
-- **Stato:** **proposta di contratto.** Il BE oggi non ha né una mutation di creazione personaggio né la tabella età/razza. Per direttiva dell'utente il lato BE viene costruito in questa stessa fase, nel repo BE, come fase GSD decimale **2.1 "Character Creation Contract"** (branch `feat/02.1-character-creation`, PR verso `develop`). Quando il BE 2.1 genera `src/schema.gql`, **vince lo schema** su tutto ciò che è scritto qui; il suo `BACKEND-NOTES.md` diventa la fonte per il FE.
+- **Stato:** **proposta di contratto.** Il BE oggi non ha né una mutation di creazione personaggio né la tabella età/razza. Per direttiva dell'utente il lato BE viene costruito in questa stessa fase, nel repo BE, come fase GSD decimale **02.1 "Character Creation Contract"** (inserita il 2026-10-09, branch `feat/02.1-character-creation-contract`, PR verso `develop`; decisioni in `Klimmeck-Guide-BE/.planning/phases/02.1-character-creation-contract/02.1-CONTEXT.md`). Quando il BE 2.1 genera `src/schema.gql`, **vince lo schema** su tutto ciò che è scritto qui; il suo `BACKEND-NOTES.md` diventa la fonte per il FE.
 - **Consumatori:** FE Phase 2 (pagina di creazione), indirettamente FE Phase 3 (il nuovo character entra nella subscription `characterUpdated`).
 
 ---
@@ -12,7 +12,7 @@
 1. **Mutation `createCharacter(input: CreateCharacterInput!): User!`** sull'identità autenticata (niente `userId` in input). Crea il `Character`, imposta `User.currentCharacter`, restituisce lo `User` aggiornato (con `currentCharacter { id … }`). Un utente che ha già `currentCharacter` riceve `CHARACTER_ALREADY_EXISTS`.
 2. **Query `raceTraits`** (nome indicativo): per ogni `RaceType` restituisce `minAge` e `maxAge`. Il FE la legge per abilitare e limitare il campo età; il BE la usa per validare. **Nessuna copia della tabella nel FE.**
 3. **Validazione autoritativa lato BE** (il client la replica solo come UX): nome 2–20 caratteri dopo trim, solo lettere Unicode/spazi/apostrofi/trattini, **unico case-insensitive**; età intera nel range della razza; background facoltativo ≤ 500 caratteri; enum validi.
-4. **Codici d'errore stabili** in `errors[0].extensions.code` (proposta): `CHARACTER_NAME_INVALID`, `CHARACTER_NAME_TAKEN`, `CHARACTER_AGE_OUT_OF_RANGE`, `CHARACTER_ALREADY_EXISTS`, più il generico di validazione. Il FE mappa i codici, mai i messaggi.
+4. **Codici d'errore stabili** in `errors[0].extensions.code` (proposta): `CHARACTER_NAME_INVALID`, `CHARACTER_NAME_TAKEN`, `CHARACTER_AGE_OUT_OF_RANGE`, `CHARACTER_ALREADY_EXISTS`, `STARTING_LOCATION_UNAVAILABLE`, più il generico di validazione. Il FE mappa i codici, mai i messaggi. Fissati nel CONTEXT BE 2.1 (D-04).
 5. **Upload immagine:** si riusa il REST esistente `POST /cloudinary/uploadImage` (bearer, campo multipart `file`, cartella `characters_profile`, risposta `{ url }`). L'upload avviene **al submit**, prima della mutation; `imagePath` nell'input è l'URL restituito oppure assente.
 6. **Nessun controllo NSFW** in questa fase, né on-device né server (decisione utente 2026-10-08). Debito tracciato per l'hardening BE (Phase 10): candidata la moderazione AI di Cloudinary.
 
@@ -63,19 +63,24 @@ Note:
 - I campi `sex`, `pronoun`, `race` oggi sono `String!` su `CharacterInfos`: il BE decide se introdurre enum GraphQL (il FE già usa `values.byName`, quindi entrambe le forme sono compatibili purché i nomi coincidano con gli enum Dart).
 - Lo stato iniziale del personaggio (location di partenza, livello/titolo `rookie`, coins, HP, assets vuoti, `quests` vuote) è **responsabilità del BE** e si decide nel discuss della fase 2.1 riusando default e fixture esistenti.
 
-### Tabella età per razza (accettata dall'utente, ispirata a D&D 5e)
+### Tabella età per razza (allineata al lore, accettata dall'utente il 2026-10-09 — sostituisce la tabella D&D)
 
-| race | minAge | maxAge |
-|---|---|---|
-| human | 16 | 100 |
-| elf | 100 | 750 |
-| halfelf | 20 | 180 |
-| dwarf | 50 | 350 |
-| halfling | 20 | 150 |
-| gnome | 40 | 500 |
-| dragonborn | 15 | 80 |
-| tiefling | 18 | 100 |
-| aarakocra | 3 | 30 |
+| race | minAge | maxAge | lore |
+|---|---|---|---|
+| human | 16 | 200 | 60–70 normali, maghi oltre 200 |
+| elf | 100 | 9999 | vita infinita |
+| halfelf | 16 | 130 | 120–130 |
+| dwarf | 40 | 140 | 130–140 |
+| gnome | 16 | 60 | ~60 |
+| halfling | 16 | 70 | ~70 |
+| dragonborn | 16 | 180 | 150–180 |
+| tiefling | 16 | 120 | 100–120 |
+| aarakocra | 3 | 40 | 30–40 |
+
+### Stato iniziale del personaggio (deciso nel discuss BE 2.1, 2026-10-09)
+
+- `status`: `level 1`, `title rookie`, `xp 0`, `currentLifePoints 100`, `maxLifePoints 100`, `coins { gold 0, silver 5, copper 0 }`, `injuries []`, `spells []`; `quests` vuote; `assets` vuoti (nessun equipaggiamento iniziale).
+- `status.location` = `markerLocation` della City "patria" della razza: elf → `elfCapital`; gnome, dwarf, tiefling → `motherCapital`; halfling → `liberiaCapital`; aarakocra → `aarakocraVillage`; dragonborn → `mountainVillage`; human e halfelf → a caso tra `drusteaCapital`, `valanCapital`, `mirwaCapital`, `liberiaCapital`. Nessuna City per quel tipo → `STARTING_LOCATION_UNAVAILABLE`, niente creato.
 
 ---
 
@@ -88,10 +93,10 @@ Note:
 
 ---
 
-## 4. Domande aperte per il BE 2.1
+## 4. Domande aperte — risolte nel discuss BE 2.1 (2026-10-09)
 
-1. `background` vuoto: stringa vuota (schema invariato) o campo nullable?
-2. Enum GraphQL per `sex`/`pronoun`/`race` oppure restano `String` validati a mano?
-3. Nome esatto della query (`raceTraits` vs metadata sull'enum) e se includere altri tratti futuri.
-4. Default iniziali del personaggio (POI di partenza, coins, HP, `maxActiveSpells`).
-5. Limite dimensione file sull'upload (oggi nessuno esplicito): proposta ≤ 5 MB con downscale client-side.
+1. `background` vuoto → **stringa vuota**, schema invariato (BE D-07).
+2. `sex`/`pronoun`/`race`/`classType` → **enum GraphQL registrati** nell'input (BE D-02); i nomi coincidono con gli enum Dart.
+3. Query **`raceTraits { race minAge maxAge }`** (BE D-11); le patrie non sono esposte.
+4. Default iniziali: vedi §2 "Stato iniziale" (BE D-09/D-10).
+5. Limite dimensione upload: nessuna modifica all'endpoint in questa fase (BE D-08); downscale client-side a discrezione del FE.
