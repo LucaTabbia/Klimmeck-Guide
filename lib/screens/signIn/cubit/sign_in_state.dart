@@ -1,20 +1,27 @@
 part of 'sign_in_cubit.dart';
 
-@immutable
-abstract class SignInState {}
+enum SignInFailure { connection, twitchNotConfigured }
 
-class SignInInitial extends SignInState {}
-class SignInLoading extends SignInState {}
-class SignInError extends SignInState {
-  final String error;
+sealed class SignInState extends Equatable {
+  const SignInState();
 
-  SignInError(this.error);
+  @override
+  List<Object?> get props => [];
 }
-class SignInResetError extends SignInState {
-  final String error;
 
-  SignInResetError(this.error);
+final class SignInIdle extends SignInState {
+  const SignInIdle();
 }
-class SignInData extends SignInState {}
-class SignInForm extends SignInState {}
-class SignInReset extends SignInState {}
+
+final class SignInInProgress extends SignInState {
+  const SignInInProgress();
+}
+
+final class SignInFailed extends SignInState {
+  const SignInFailed(this.failure);
+
+  final SignInFailure failure;
+
+  @override
+  List<Object?> get props => [failure];
+}

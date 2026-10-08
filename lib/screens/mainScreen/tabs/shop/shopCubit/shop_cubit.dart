@@ -2,12 +2,13 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 import '../../../../../repository/services/graphql/graphql.dart';
 
 part 'shop_state.dart';
 
-class ShopCubit extends Cubit<ShopState> {
+class ShopCubit extends Cubit<ShopState> with SafeEmit<ShopState> {
   ShopCubit(this.graphQl) : super(ShopInitial());
 
   final KlimmeckGraphQl graphQl;

@@ -1,50 +1,57 @@
-import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/repository/services/graphql/auth_link.dart';
+import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
 
-/// Costruisce e restituisce il `GraphQLClient` auth-aware.
-///
-/// La signature è `Future<ValueNotifier<GraphQLClient>>` perché il
-/// `bootstrapToken` per il `WebSocketLink.initialPayload` deve essere
-/// recuperato in modo asincrono prima di creare il link.
-///
-/// Limitazione Phase 1 (D-07 auth-session-bootstrap/11-CONTEXT.md):
-/// `initialPayload` legge il token una volta al setup. Phase 11 ricrea
-/// il `WebSocketLink` on-demand dopo ogni token refresh.
-Future<ValueNotifier<GraphQLClient>> initGraphQLClient(
-  AuthTokenService authTokenService,
-) async {
-  final httpLink = HttpLink(EnvConfig.graphqlHttpUrl);
-  final authLink = AuthAuthLink(authService: authTokenService);
+/// Client GraphQL e il suo `WebSocketLink`, che va disposto al logout.
+typedef GraphQLConnection = ({
+  GraphQLClient client,
+  WebSocketLink webSocketLink,
+});
 
-  // Phase 1: token letto una volta al boot per il payload WS iniziale.
-  // Phase 11: ricreare il link su refresh (punto di estensione D-07).
-  final bootstrapToken = await authTokenService.getAccessToken();
-  final wsLink = WebSocketLink(
+/// Unico punto di creazione del client GraphQL autenticato
+/// (docs/rules/graphql.md).
+///
+/// Sincrona: nessun token viene letto al boot; il socket nasce alla prima
+/// subscription e a ogni (ri)connessione invia il token corrente tramite
+/// [WsReconnectPolicy] (D-07). Il link non viene ricreato dopo un refresh
+/// (D-37), solo al logout da `GraphQLClientHolder.reset()` (D-12).
+///
+/// [recovery] è `null` con lo stub dev: nessun retry, nessun refresh.
+GraphQLConnection buildGraphQLConnection({
+  required AuthTokenService authService,
+  UnauthorizedRecovery? recovery,
+}) {
+  final policy = WsReconnectPolicy(
+    authService: authService,
+    recovery: recovery,
+  );
+  final webSocketLink = WebSocketLink(
     EnvConfig.graphqlWsUrl,
     config: SocketClientConfig(
       autoReconnect: true,
-      inactivityTimeout: Duration(
+      inactivityTimeout: const Duration(
         seconds: EnvConfig.wsInactivityTimeoutSeconds,
       ),
-      initialPayload: () => <String, dynamic>{
-        if (bootstrapToken != null && bootstrapToken.isNotEmpty)
-          'Authorization': 'Bearer $bootstrapToken',
-      },
+      initialPayload: policy.buildInitialPayload,
+      onConnectionLost: policy.onConnectionLost,
     ),
     subProtocol: GraphQLProtocol.graphqlTransportWs,
   );
-
-  final httpWithAuth = authLink.concat(httpLink);
-  final link = Link.split((r) => r.isSubscription, wsLink, httpWithAuth);
-
-  return ValueNotifier(
-    GraphQLClient(
-      link: link,
-      cache: GraphQLCache(store: InMemoryStore()),
-      queryRequestTimeout: Duration(seconds: EnvConfig.queryTimeoutSeconds),
+  final httpWithAuth = AuthAuthLink(
+    authService: authService,
+    recovery: recovery,
+  ).concat(HttpLink(EnvConfig.graphqlHttpUrl));
+  final client = GraphQLClient(
+    link: Link.split(
+      (request) => request.isSubscription,
+      webSocketLink,
+      httpWithAuth,
     ),
+    cache: GraphQLCache(store: InMemoryStore()),
+    queryRequestTimeout: const Duration(seconds: EnvConfig.queryTimeoutSeconds),
   );
+  return (client: client, webSocketLink: webSocketLink);
 }

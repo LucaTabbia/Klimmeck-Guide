@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 part 'main_screen_state.dart';
 
-class MainScreenCubit extends Cubit<MainScreenState> {
+class MainScreenCubit extends Cubit<MainScreenState>
+    with SafeEmit<MainScreenState> {
   MainScreenCubit(this.graphQl) : super(MainScreenInitial());
 
   final KlimmeckGraphQl graphQl;

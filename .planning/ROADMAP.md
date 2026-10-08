@@ -55,7 +55,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 ## Phases
 
-- [ ] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
+- [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [ ] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell.
 - [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
@@ -65,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
-- [ ] **Phase 11: Auth & Session Bootstrap** — Twitch OAuth identity, secure token storage, refresh/logout, `AuthTokenService` reale che sostituisce lo stub di Phase 1 senza cambiare il contratto. 5 plan già pronti.
+- [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 ## Phase Details
@@ -244,26 +244,33 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **UI hint**: yes
 
 ### Phase 11: Auth & Session Bootstrap
-**Goal**: Sostituire il `DevAuthTokenService` di Phase 1 con un'implementazione reale OAuth PKCE: login Twitch via system browser, secure token storage, refresh mutex, logout atomico, detection della revoca esterna. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia.
+**Goal**: Affiancare al `DevAuthTokenService` di Phase 1 un'implementazione reale basata sulla sessione del backend: login Twitch via system browser mediato dal BE, secure token storage, refresh mutex, logout atomico, detection della revoca di sessione. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia. Lo stub resta selezionabile (`DEV_AUTH_ENABLED=true`) finché le chiavi Twitch non sono disponibili. _(Emendato 2026-10-06: Twitch non supporta PKCE; vedi 11-CONTEXT.md.)_
 **Depends on**: Phase 1 (fornisce il contratto che questa fase soddisfa con l'implementazione reale). Tutte le fasi 2–10 si devono essere integrate con `AuthTokenService` via lo stub, in modo che la sostituzione sia drop-in.
 **Scope**: M
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
 **Success Criteria** (what must be TRUE):
-  1. A new user can complete Twitch OAuth via the system browser (PKCE, no WebView) and land in the app authenticated.
+  1. A new user can complete the Twitch login via the system browser (backend-mediated, no WebView) and land in the app authenticated. _(Real-device verification pending until the Twitch keys exist; covered by automated tests with fakes meanwhile.)_
   2. After killing and relaunching the app, the previous session resumes without re-prompting for Twitch credentials.
   3. Logging out returns the user to sign-in, and no tokens, GraphQL cache entries, or subscriptions from the previous session survive.
   4. Logging in with a different Twitch account after logout cleanly swaps the identity with no bleed-through from the previous account.
-  5. If the user revokes the app externally on Twitch, the next authenticated request detects the invalidation and returns the user to sign-in with a clear message.
-  6. La sostituzione di `DevAuthTokenService` → `AuthTokenService` reale non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
+  5. When the backend rejects the session as revoked or expired, the app detects the invalidation and returns the user to sign-in with a clear message.
+  6. Passare da `DevAuthTokenService` all'`AuthTokenService` reale (flag `DEV_AUTH_ENABLED`) non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
+  7. Con `DEV_AUTH_ENABLED=true` l'app è interamente utilizzabile senza chiavi Twitch: cold start diretto nel main shell, e dopo un logout il pulsante di login rientra con l'identità dev.
 **Decisions to make during discuss step**:
   - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md) — già pre-deciso nei plan esistenti, da confermare.
   - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
-**Plans**: 5 plans (pre-esistenti, elaborati nella vecchia Phase 1 e migrati qui senza modifiche di contenuto)
-  - [ ] 11-01-PLAN.md — Wave 0: dependencies + platform manifests + TDD scaffolding
-  - [ ] 11-02-PLAN.md — AuthTokenService core (SecureStorage, PKCE, TwitchApi, refresh mutex, bootstrap/login/logout)
-  - [ ] 11-03-PLAN.md — GraphqlClientProvider auth-aware + AuthDioInterceptor (401 refresh retry, client recreate)
-  - [ ] 11-04-PLAN.md — AuthCubit + SignInCubit + LogoutConfirmationDialog
-  - [ ] 11-05-PLAN.md — main.dart restructure + SplashCubit gate + SignInScreen + AuthGate + BACKEND-NOTES + manual E2E checkpoint
+**Plans**: 11 plans (ripianificati il 2026-10-06 sul login mediato dal backend; esecuzione sequenziale, una wave per plan)
+  - [x] 11-01-PLAN.md — Wave 0: dipendenze (flutter_web_auth_2, flutter_secure_storage 10, crypto, fake_async), AGP 8.9.1, manifest Android, .env.example, helper di test
+  - [x] 11-02-PLAN.md — Primitive di dominio: AuthSession, LoginChallenge S256, durata JWT, parser callback, browser authenticator, AuthUnauthenticated.reason, UnauthorizedRecovery, AuthStateChannel
+  - [x] 11-03-PLAN.md — SessionStore cifrato + documenti GraphQL auth + BackendAuthApi su client dedicato con mapping errori
+  - [x] 11-04-PLAN.md — Dev stub: transizioni login/logout/revoca, DEV_AUTH_START_SIGNED_OUT, allineamento via `me`
+  - [x] 11-05-PLAN.md — SessionAuthTokenService: bootstrap cold start, refresh single-flight + proattivo, revoca sul refresh, login via browser + ticket
+  - [x] 11-06-PLAN.md — SessionAuthTokenService: recoverFromUnauthorized, handleRevocation, logout atomico best-effort
+  - [x] 11-07-PLAN.md — AuthAuthLink e AuthInterceptor con retry-once dopo UNAUTHENTICATED/401
+  - [x] 11-08-PLAN.md — WsReconnectPolicy (token corrente, 4401/4403) + GraphQLClientHolder + buildGraphQLConnection
+  - [x] 11-09-PLAN.md — AuthCubit + SignInCubit/SignInScreen + LogoutConfirmationDialog
+  - [x] 11-10-PLAN.md — Splash gate (hint 10 s) + AuthGate + AuthenticatedShell + composition root in main.dart
+  - [x] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
 
 ### Phase 12: Hardening
 **Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
@@ -285,7 +292,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dev Auth Stub | 0/3 | Planned | - |
+| 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
 | 2. Character Creation | 0/0 | Not started | - |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
@@ -295,7 +302,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
-| 11. Auth & Session Bootstrap | 0/5 | Planned | - |
+| 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
 ## Traceability

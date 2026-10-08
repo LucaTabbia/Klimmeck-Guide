@@ -3,12 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 import '../../../../../repository/services/graphql/graphql.dart';
 
 part 'journal_state.dart';
 
-class JournalCubit extends Cubit<JournalState> {
+class JournalCubit extends Cubit<JournalState> with SafeEmit<JournalState> {
   JournalCubit(this.graphQl) : super(JournalInitial());
 
   final KlimmeckGraphQl graphQl;

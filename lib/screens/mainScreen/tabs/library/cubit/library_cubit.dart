@@ -1,13 +1,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
 import '../../../../../models/lore.dart';
 import '../../../../../repository/services/graphql/graphql.dart';
 
 part 'library_state.dart';
 
-class LibraryCubit extends Cubit<LibraryState> {
+class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
   LibraryCubit(this.graphQl) : super(const LibraryInitial());
 
   final KlimmeckGraphQl graphQl;

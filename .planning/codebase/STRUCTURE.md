@@ -9,17 +9,17 @@ lib/
 ├── models/                      # Equatable domain entities (Character, Equipment, Quest, etc.)
 ├── graphql/                     # Query/mutation/subscription string definitions
 ├── repository/                  # Services (KlimmeckGraphQl, KlimmeckRest), caching, storage
-├── screens/                     # Features: splash, signIn, onBoarding, mainScreen (with tabs)
+├── screens/                     # Features: auth (AuthGate, AuthenticatedShell, AuthCubit), splash, signIn, onBoarding, mainScreen (with tabs)
 │   └── mainScreen/tabs/         # Board, Journal, Library, Map, Shop, Profile
 ├── shared/components/           # Reusable widgets (CachedSvg, cards, modals, loaders)
-├── routes/                      # Navigation transitions (createSlideRoute, createFadeRoute)
+├── shared/bloc/                 # Cubit helpers (SafeEmit mixin)
 ├── theme/                       # Design tokens (KlimmeckGuideTheme)
 └── utils/                       # Helpers (notification, utilities)
 ```
 
 ## Key Locations
 
-- **Entry:** `lib/main.dart` -> `lib/screens/splash/splash_screen.dart` -> `lib/screens/mainScreen/main_screen.dart`
+- **Entry:** `lib/main.dart` -> `lib/screens/auth/auth_gate.dart` -> (`splash_screen.dart` | `signIn/sign_in_screen.dart` | `auth/authenticated_shell.dart` -> `lib/screens/mainScreen/main_screen.dart`)
 - **API wrapper:** `lib/repository/services/graphql/graphql.dart`
 - **State management:** `lib/screens/*/cubit/*.dart` (CharacterCubit at `lib/screens/mainScreen/characterCubit/character_cubit.dart`)
 - **Shared components:** `lib/shared/components/cached_svg.dart`, `kg_loader.dart`, `kg_error.dart`

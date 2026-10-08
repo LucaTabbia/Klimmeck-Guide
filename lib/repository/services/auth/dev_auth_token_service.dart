@@ -5,111 +5,151 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
 
+import 'auth_state_channel.dart';
+import 'backend_auth_api.dart';
 import 'auth_token_service.dart';
 
-/// Implementazione stub di [AuthTokenService] per lo sviluppo locale.
+/// Implementazione di [AuthTokenService] per il bypass di sviluppo
+/// (`DEV_AUTH_ENABLED=true`), attivo finché non esistono le chiavi Twitch.
 ///
-/// Legge l'identità e il token di accesso dal file `.env` tramite
-/// `flutter_dotenv`. Non usa secure storage (D-04 di 01-CONTEXT.md).
+/// Legge identità e token dal file `.env` tramite `flutter_dotenv` e simula
+/// le transizioni di sessione senza browser né secure storage:
+/// - cold start: `AuthAuthenticated` direttamente (D-24), oppure
+///   `AuthUnauthenticated` con `DEV_AUTH_START_SIGNED_OUT=true` (D-29);
+/// - `logout()` / `handleRevocation()`: teardown iniettato, poi
+///   `AuthUnauthenticated` (`signedOut` / `sessionExpired`);
+/// - `login()`: torna `AuthAuthenticated` con l'identità dev.
 ///
-/// Questa classe viene sostituita da `OAuthTokenService` in Phase 11
-/// senza toccare i consumer (GraphQL auth link, dio interceptor, Cubit).
+/// L'utente è allineato al backend via `me` (best-effort, con timeout) e
+/// ricade sui valori `.env` se il backend non risponde (D-25): il backend
+/// crea l'utente dev da `DEV_AUTH_TWITCH_ID` e ne possiede l'id, quindi
+/// `DEV_AUTH_USER_ID` resta solo fallback offline.
 ///
-/// Variabili `.env` richieste:
-/// - `DEV_AUTH_ACCESS_TOKEN` — token di accesso stub
-/// - `DEV_AUTH_USER_ID` — id utente backend
+/// Nessuna guardia `kReleaseMode` (D-30): il backend è il confine di
+/// sicurezza. Lo stub viene rimosso in Phase 12.
+///
+/// Variabili `.env`:
+/// - `DEV_AUTH_ACCESS_TOKEN` — token di accesso dev
+/// - `DEV_AUTH_USER_ID` — id utente (fallback offline)
 /// - `DEV_AUTH_TWITCH_ID` — id canale Twitch
 /// - `DEV_AUTH_ROLE` — uno tra `guard`, `adventurer`, `innkeeper`
+/// - `DEV_AUTH_START_SIGNED_OUT` — `true` per partire disconnessi
 class DevAuthTokenService extends AuthTokenService {
-  DevAuthTokenService() : _controller = StreamController<AuthState>.broadcast();
+  DevAuthTokenService({
+    BackendMeSource? meSource,
+    Future<void> Function()? onSessionTeardown,
+    Duration meTimeout = const Duration(seconds: 3),
+  }) : _meSource = meSource,
+       _onSessionTeardown = onSessionTeardown,
+       _meTimeout = meTimeout;
 
-  final StreamController<AuthState> _controller;
-  AuthState? _lastState;
+  final BackendMeSource? _meSource;
+  final Future<void> Function()? _onSessionTeardown;
+  final Duration _meTimeout;
+  final AuthStateChannel _channel = AuthStateChannel();
+  bool _isSignedIn = false;
 
   @override
-  Stream<AuthState> get authStateStream => Stream<AuthState>.multi((listener) {
-        final cached = _lastState;
-        if (cached != null) {
-          listener.add(cached);
-        }
-        final subscription = _controller.stream.listen(
-          listener.add,
-          onError: listener.addError,
-          onDone: listener.close,
-        );
-        listener.onCancel = subscription.cancel;
-      });
+  Stream<AuthState> get authStateStream => _channel.stream;
 
-  void _emit(AuthState state) {
-    _lastState = state;
-    _controller.add(state);
-  }
-
-  /// Bootstrap hook: emette `AuthBootstrapping` → `AuthAuthenticated` con
-  /// il test user costruito dai valori `.env`.
+  /// Bootstrap hook: emette `AuthBootstrapping` poi lo stato iniziale.
   ///
-  /// Da chiamare esattamente una volta da `main.dart` prima di `runApp`.
+  /// Da chiamare esattamente una volta da `AuthCubit.start()` (cold start).
   @override
   Future<void> initialize() async {
-    _emit(const AuthBootstrapping());
-
-    final accessToken = dotenv.env['DEV_AUTH_ACCESS_TOKEN'] ?? '';
-    final userId = dotenv.env['DEV_AUTH_USER_ID'] ?? '';
-    final twitchId = dotenv.env['DEV_AUTH_TWITCH_ID'] ?? '';
-    final role = _parseRole(dotenv.env['DEV_AUTH_ROLE']);
-
-    final user = User(
-      id: userId,
-      twitchId: twitchId,
-      twitchPoints: 0,
-      currentCharacter: null,
-      role: role,
+    debugPrint(
+      '[DevAuth] WARNING: dev auth bypass is ACTIVE (DEV_AUTH_ENABLED=true). '
+      'Never ship this configuration.',
     );
+    _channel.emit(const AuthBootstrapping());
 
-    _emit(AuthAuthenticated(user: user, accessToken: accessToken));
-  }
-
-  /// Ritorna il token di accesso corrente letto da dotenv.
-  ///
-  /// Può ritornare `null` se `DEV_AUTH_ACCESS_TOKEN` non è presente nel `.env`.
-  @override
-  Future<String?> getAccessToken() async => dotenv.env['DEV_AUTH_ACCESS_TOKEN'];
-
-  /// No-op in Phase 1. Phase 11 aprirà il browser OAuth PKCE Twitch.
-  @override
-  Future<void> login() async {
-    if (kDebugMode) {
-      debugPrint('[DevAuth] login() — no-op in dev stub');
+    if (_startSignedOut) {
+      _channel.emit(const AuthUnauthenticated());
+      return;
     }
+    await _signIn();
   }
 
-  /// No-op in Phase 1. Phase 11 revocherà il token su Twitch.
+  /// Ritorna il token dev, o `null` se la sessione simulata è chiusa.
   @override
-  Future<void> logout() async {
-    if (kDebugMode) {
-      debugPrint('[DevAuth] logout() — no-op in dev stub');
-    }
-  }
+  Future<String?> getAccessToken() async =>
+      _isSignedIn ? dotenv.env['DEV_AUTH_ACCESS_TOKEN'] : null;
 
-  /// No-op in Phase 1. Phase 11 invaliderà la sessione locale.
+  /// Riapre la sessione simulata, senza browser (D-24).
   @override
-  Future<void> handleRevocation() async {
-    if (kDebugMode) {
-      debugPrint('[DevAuth] handleRevocation() — no-op in dev stub');
-    }
-  }
+  Future<void> login() => _signIn();
 
-  /// Chiude lo [StreamController] e libera le risorse.
+  /// Esegue il teardown e chiude la sessione simulata.
+  @override
+  Future<void> logout() => _endSession(UnauthenticatedReason.signedOut);
+
+  /// Simula la revoca della sessione (mostra il notice D-10 in dev).
+  @override
+  Future<void> handleRevocation() =>
+      _endSession(UnauthenticatedReason.sessionExpired);
+
+  /// Chiude il canale di stato e libera le risorse.
   ///
   /// Dopo `dispose()` lo stream non emette ulteriori eventi.
   @override
   void dispose() {
-    _controller.close();
+    _channel.close();
   }
 
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  String get _envAccessToken => dotenv.env['DEV_AUTH_ACCESS_TOKEN'] ?? '';
+
+  bool get _startSignedOut =>
+      dotenv.env['DEV_AUTH_START_SIGNED_OUT']?.trim().toLowerCase() == 'true';
+
+  Future<void> _signIn() async {
+    _isSignedIn = true;
+    _channel.emit(
+      AuthAuthenticated(
+        user: await _resolveUser(),
+        accessToken: _envAccessToken,
+      ),
+    );
+  }
+
+  Future<void> _endSession(UnauthenticatedReason reason) async {
+    try {
+      await _onSessionTeardown?.call();
+    } catch (error) {
+      debugPrint('[DevAuth] session teardown failed: ${error.runtimeType}');
+    }
+    _isSignedIn = false;
+    _channel.emit(AuthUnauthenticated(reason: reason));
+  }
+
+  Future<User> _resolveUser() async {
+    final envUser = _userFromEnv();
+    final meSource = _meSource;
+    final token = _envAccessToken;
+    if (meSource == null || token.isEmpty) return envUser;
+    try {
+      return await meSource.fetchMe(token).timeout(_meTimeout);
+    } catch (error) {
+      debugPrint(
+        '[DevAuth] me alignment failed (${error.runtimeType}), '
+        'using .env identity',
+      );
+      return envUser;
+    }
+  }
+
+  User _userFromEnv() {
+    return User(
+      id: dotenv.env['DEV_AUTH_USER_ID'] ?? '',
+      twitchId: dotenv.env['DEV_AUTH_TWITCH_ID'] ?? '',
+      twitchPoints: 0,
+      currentCharacter: null,
+      role: _parseRole(dotenv.env['DEV_AUTH_ROLE']),
+    );
+  }
 
   /// Converte la stringa `DEV_AUTH_ROLE` in [RoleType].
   ///

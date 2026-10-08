@@ -10,12 +10,17 @@ Future<void> loadTestEnv({
   String userId = 'user-test-id',
   String twitchId = 'twitch-test-id',
   String role = 'adventurer',
+  String startSignedOut = 'false',
 }) async {
-  dotenv.loadFromString(envString: '''
+  dotenv.loadFromString(
+    envString:
+        '''
 DEV_AUTH_ENABLED=$devAuthEnabled
 DEV_AUTH_ACCESS_TOKEN=$accessToken
 DEV_AUTH_USER_ID=$userId
 DEV_AUTH_TWITCH_ID=$twitchId
 DEV_AUTH_ROLE=$role
-''');
+DEV_AUTH_START_SIGNED_OUT=$startSignedOut
+''',
+  );
 }

@@ -45,7 +45,7 @@ class EnvConfig {
 
   static const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: true);
 
-  // ============== Dev Auth (Phase 1 only) ==============
+  // ============== Dev Auth (bypass finché non esistono le chiavi Twitch, D-23) ==============
   //
   // Questi valori sono letti a runtime da flutter_dotenv, NON con
   // `String.fromEnvironment` (compile-time). Motivo: flutter_dotenv carica
@@ -53,19 +53,20 @@ class EnvConfig {
   // momento della compilazione, quindi `fromEnvironment` ritornerebbe sempre
   // il defaultValue (pitfall 1 di 01-RESEARCH.md).
   //
-  // Phase 11 rimuoverà questo flag insieme a DevAuthTokenService.
+  // La rimozione del flag e dello stub è in Phase 12 (Hardening).
 
   /// Runtime flag letto da `.env` tramite flutter_dotenv.
   ///
-  /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive) nel
-  /// file `.env`. In release build senza `.env` negli assets, ritorna `false`
+  /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive, spazi
+  /// attorno ignorati come per `DEV_AUTH_START_SIGNED_OUT`) nel file `.env`.
+  /// In release build senza `.env` negli assets, ritorna `false`
   /// in modo sicuro (fail-safe su dotenv non inizializzato).
   ///
-  /// Usato da `main.dart` per scegliere tra `DevAuthTokenService` (Phase 1)
-  /// e `OAuthTokenService` (Phase 11) tramite factory senza type-check.
+  /// Usato da `main.dart` per scegliere tra `DevAuthTokenService`
+  /// e `SessionAuthTokenService` tramite factory senza type-check.
   static bool get devAuthEnabled {
     try {
-      return dotenv.env['DEV_AUTH_ENABLED']?.toLowerCase() == 'true';
+      return dotenv.env['DEV_AUTH_ENABLED']?.trim().toLowerCase() == 'true';
     } catch (_) {
       // dotenv non ancora inizializzato (es. test che non chiama loadTestEnv):
       // fail safe — nessun crash, nessuna auth stub attiva per default.
