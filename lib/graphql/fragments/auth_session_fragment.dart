@@ -11,6 +11,6 @@ class AuthSessionFragment {
       refreshToken
       user { ...${UserFragment.name} }
     }
-  ''' +
-      UserFragment.definition;
+    ${UserFragment.definition}
+  ''';
 }
