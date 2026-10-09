@@ -2,7 +2,7 @@
 
 - **Fase FE:** 02-character-creation (requisiti CHAR-01..09; CHAR-06 rinviato; decisioni D-01..D-25 in `02-CONTEXT.md`)
 - **Data:** 2026-10-08
-- **Stato:** **proposta di contratto.** Il BE oggi non ha né una mutation di creazione personaggio né la tabella età/razza. Per direttiva dell'utente il lato BE viene costruito in questa stessa fase, nel repo BE, come fase GSD decimale **02.1 "Character Creation Contract"** (inserita il 2026-10-09, branch `feat/02.1-character-creation-contract`, PR verso `develop`; decisioni in `Klimmeck-Guide-BE/.planning/phases/02.1-character-creation-contract/02.1-CONTEXT.md`). Quando il BE 2.1 genera `src/schema.gql`, **vince lo schema** su tutto ciò che è scritto qui; il suo `BACKEND-NOTES.md` diventa la fonte per il FE.
+- **Stato:** contratto implementato da BE 02.1 — vedi `Klimmeck-Guide-BE/.planning/phases/02.1-character-creation-contract/BACKEND-NOTES.md` (fonte per il FE). Lo schema `src/schema.gql` vince su questo documento; nessun nome diverge (vedi §5).
 - **Consumatori:** FE Phase 2 (pagina di creazione), indirettamente FE Phase 3 (il nuovo character entra nella subscription `characterUpdated`).
 
 ---
@@ -100,3 +100,15 @@ Note:
 3. Query **`raceTraits { race minAge maxAge }`** (BE D-11); le patrie non sono esposte.
 4. Default iniziali: vedi §2 "Stato iniziale" (BE D-09/D-10).
 5. Limite dimensione upload: nessuna modifica all'endpoint in questa fase (BE D-08); downscale client-side a discrezione del FE.
+
+---
+
+## 5. Verifica schema (2026-10-09)
+
+Confronto nome per nome tra i documenti GraphQL dell'app e `Klimmeck-Guide-BE/src/schema.gql` rigenerato dal BE 02.1 (D-33). Esito: **nessuna divergenza, nessuna modifica al contratto del §2.**
+
+- `createCharacter(input: CreateCharacterInput!): User!` e `raceTraits: [RaceTraits!]!` presenti e identici.
+- `CreateCharacterInput`: `name`, `sex`, `pronoun`, `race`, `classType`, `age`, `background?`, `imagePath?` uguali alle chiavi di `CreateCharacterRequest.toJson`.
+- `RaceTraits { race minAge maxAge }` identico; enum `SexType`, `PronounType`, `RaceType`, `ClassType` con gli stessi valori degli enum Dart.
+- Codici d'errore del BE (`character-creation-error-code.enum.ts`) uguali alle costanti di `character_creation_failure.dart`.
+- Precisazioni del BE gia recepite dal FE: upload riuscito solo se il body contiene `url`; selezione sullo `User` limitata a `currentCharacter { id }`; `BAD_USER_INPUT` mai mostrato.
