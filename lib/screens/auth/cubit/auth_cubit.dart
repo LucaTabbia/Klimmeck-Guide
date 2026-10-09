@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 
 /// Stato di sessione di processo (globale, sopra MaterialApp). Unico consumer di
@@ -33,6 +34,9 @@ class AuthCubit extends Cubit<AuthState> {
   void showSignIn() {
     if (state is AuthBootstrapping) emit(const AuthUnauthenticated());
   }
+
+  /// D-02: la sessione adotta lo User restituito da createCharacter.
+  void adoptUser(User user) => _authTokenService.adoptUser(user);
 
   Future<void> logout() => _authTokenService.logout();
 

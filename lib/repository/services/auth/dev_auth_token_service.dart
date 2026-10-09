@@ -88,6 +88,15 @@ class DevAuthTokenService extends AuthTokenService {
   Future<void> handleRevocation() =>
       _endSession(UnauthenticatedReason.sessionExpired);
 
+  @override
+  void adoptUser(User user) {
+    final current = _channel.current;
+    if (current is! AuthAuthenticated || current.user.id != user.id) return;
+    _channel.emit(
+      AuthAuthenticated(user: user, accessToken: current.accessToken),
+    );
+  }
+
   /// Chiude il canale di stato e libera le risorse.
   ///
   /// Dopo `dispose()` lo stream non emette ulteriori eventi.

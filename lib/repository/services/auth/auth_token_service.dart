@@ -125,6 +125,14 @@ abstract class AuthTokenService {
   /// `AuthUnauthenticated(reason: sessionExpired)`.
   Future<void> handleRevocation();
 
+  /// Sostituisce l'utente della sessione autenticata corrente (es. dopo
+  /// `createCharacter`, che restituisce lo `User` aggiornato) e ri-emette
+  /// `AuthAuthenticated` con lo stesso token.
+  ///
+  /// Ignorato se la sessione non è autenticata o se `user.id` non coincide
+  /// con l'utente corrente: una risposta tardiva non entra in un'altra sessione.
+  void adoptUser(User user);
+
   /// Chiude lo `StreamController` interno e libera le risorse.
   ///
   /// Da chiamare nel `dispose()` del widget root o del service locator.
