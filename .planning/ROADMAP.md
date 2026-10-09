@@ -114,7 +114,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - [x] 02-07-PLAN.md — CharacterCreationRepository + cubit editing (traits, fields, portrait)
   - [x] 02-08-PLAN.md — Cubit submit: upload-then-mutation, URL reuse, CHARACTER_ALREADY_EXISTS recovery
   - [x] 02-09-PLAN.md — CharacterCreationScreen: parchment sheet, inline errors, Crea progress, Esci
-  - [ ] 02-10-PLAN.md — SessionHome branch, real character id into shell/MainScreen (D-27), main.dart wiring
+  - [x] 02-10-PLAN.md — SessionHome branch, real character id into shell/MainScreen (D-27), main.dart wiring
   - [ ] 02-11-PLAN.md — Schema check vs BE 02.1 (D-33), validation sign-off, manual E2E checkpoint
 **UI hint**: yes
 
@@ -304,7 +304,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
-| 2. Character Creation | 9/11 | In Progress|  |
+| 2. Character Creation | 10/11 | In Progress|  |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
