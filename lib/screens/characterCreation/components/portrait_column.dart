@@ -96,6 +96,9 @@ class PortraitColumn extends StatelessWidget {
     );
   }
 
+  /// Niente `VisualDensity.compact`: toglierebbe 8 px al minimo e porterebbe
+  /// il bottone sotto i 44 px (ui-ux.md). `padded` tiene l'area di tocco a
+  /// 48 px anche quando l'aspetto resta compatto.
   Widget _action(IconData icon, String label, VoidCallback onPressed) =>
       TextButton.icon(
         onPressed: enabled ? onPressed : null,
@@ -103,8 +106,7 @@ class PortraitColumn extends StatelessWidget {
         label: Text(label),
         style: TextButton.styleFrom(
           minimumSize: const Size(_minTapTarget, _minTapTarget),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.padded,
           foregroundColor: KlimmeckGuideTheme.deepNight,
         ),
       );

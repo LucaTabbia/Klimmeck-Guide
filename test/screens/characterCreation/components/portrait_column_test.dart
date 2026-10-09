@@ -14,10 +14,11 @@ void main() {
     bool enabled = true,
     ValueChanged<PortraitSource>? onPick,
     VoidCallback? onRemove,
+    double width = 220,
   }) => buildTestApp(
     home: Scaffold(
       body: SizedBox(
-        width: 220,
+        width: width,
         child: PortraitColumn(
           portraitPath: portraitPath,
           pickFailure: pickFailure,
@@ -87,6 +88,23 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('every action button meets the 44x44 tap target', (tester) async {
+    useLandscapePhone(tester);
+    // Wide enough for one-line labels with the wide test font: the height
+    // then measures the hit area, not a wrapped label.
+    await tester.pumpWidget(build(portraitPath: '/tmp/p.jpg', width: 700));
+
+    for (final label in ['Galleria', 'Fotocamera', 'Rimuovi']) {
+      final button = find.ancestor(
+        of: find.text(label),
+        matching: find.byWidgetPredicate((widget) => widget is TextButton),
+      );
+      final size = tester.getSize(button);
+      expect(size.height, greaterThanOrEqualTo(44), reason: '$label height');
+      expect(size.width, greaterThanOrEqualTo(44), reason: '$label width');
+    }
   });
 
   testWidgets('disables every button when not enabled', (tester) async {
