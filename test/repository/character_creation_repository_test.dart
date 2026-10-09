@@ -118,8 +118,10 @@ void main() {
     });
 
     test('lets PortraitPickException propagate unchanged', () {
-      when(() => picker.pick(any())).thenThrow(
-        const PortraitPickException(PortraitPickFailure.permissionDenied),
+      when(() => picker.pick(any())).thenAnswer(
+        (_) async => throw const PortraitPickException(
+          PortraitPickFailure.permissionDenied,
+        ),
       );
 
       expect(
