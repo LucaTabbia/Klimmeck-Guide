@@ -559,5 +559,102 @@ void main() {
         expect(cubit.state.canSubmit, isFalse);
       },
     );
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'alreadyExists adopts the character re-read from me',
+      build: () {
+        stubCreateFailure(CharacterCreationFailure.alreadyExists);
+        when(
+          () => repository.fetchCurrentUser(),
+        ).thenAnswer((_) async => createdUser);
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.createdUser?.currentCharacter?.id, testCharacterId);
+        expect(cubit.state.isSubmitting, isTrue);
+        expect(cubit.state.submitFailure, isNull);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'alreadyExists without a character on me shows the notice',
+      build: () {
+        stubCreateFailure(CharacterCreationFailure.alreadyExists);
+        when(
+          () => repository.fetchCurrentUser(),
+        ).thenAnswer((_) async => buildTestUser());
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(
+          cubit.state.submitFailure,
+          CharacterCreationFailure.alreadyExists,
+        );
+        expect(cubit.state.createdUser, isNull);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'alreadyExists with a failing re-read shows the notice',
+      build: () {
+        stubCreateFailure(CharacterCreationFailure.alreadyExists);
+        when(
+          () => repository.fetchCurrentUser(),
+        ).thenAnswer((_) async => throw _connectionError);
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(
+          cubit.state.submitFailure,
+          CharacterCreationFailure.alreadyExists,
+        );
+      },
+    );
+
+    for (final failure in [
+      CharacterCreationFailure.nameTaken,
+      CharacterCreationFailure.connection,
+      CharacterCreationFailure.startingLocationUnavailable,
+    ]) {
+      blocTest<CharacterCreationCubit, CharacterCreationState>(
+        '$failure does not re-read me',
+        build: () {
+          stubCreateFailure(failure);
+          return build();
+        },
+        seed: _submittable,
+        act: (cubit) => cubit.submit(),
+        verify: (cubit) {
+          verifyNever(() => repository.fetchCurrentUser());
+          expect(cubit.state.submitFailure, failure);
+          expect(cubit.state.isSubmitting, isFalse);
+        },
+      );
+    }
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'a response arriving after close is harmless',
+      build: build,
+      seed: _submittable,
+      act: (cubit) async {
+        final completer = Completer<User>();
+        when(
+          () => repository.createCharacter(any()),
+        ).thenAnswer((_) => completer.future);
+        final future = cubit.submit();
+        await cubit.close();
+        completer.complete(createdUser);
+        await future;
+      },
+      expect: () => [_submittable().copyWith(isSubmitting: true)],
+      errors: () => isEmpty,
+    );
   });
 }
