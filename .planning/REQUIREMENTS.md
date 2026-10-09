@@ -200,7 +200,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | --------------------------- | ----- | ------- |
 | DEV-AUTH-01 through DEV-AUTH-05 | Phase 1 | Complete |
 | AUTH-01 through AUTH-07     | Phase 11 | Complete (real-device Twitch login pending UAT) |
-| CHAR-01 through CHAR-05, CHAR-07 through CHAR-09 | Phase 2 | Pending |
+| CHAR-01 through CHAR-05, CHAR-07 through CHAR-09 | Phase 2 | Complete (CHAR-05: upload only, curated set deferred) |
 | CHAR-06                     | Deferred (Phase 2 D-17 → Phase 12 / BE hardening) | Deferred |
 | SET-01 through SET-04       | TBD   | Pending |
 | SYNC-01 through SYNC-07     | TBD   | Pending |
