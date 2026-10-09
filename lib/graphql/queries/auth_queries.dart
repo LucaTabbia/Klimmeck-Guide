@@ -1,7 +1,11 @@
+import '../fragments/user_fragment.dart';
+
 class AuthQueries {
-  static const String getMe = r'''
+  static const String getMe =
+      r'''
     query GetMe {
-      me { id twitchId twitchPoints role currentCharacter { id } }
+      me { ...UserFields }
     }
-  ''';
+  ''' +
+      UserFragment.definition;
 }

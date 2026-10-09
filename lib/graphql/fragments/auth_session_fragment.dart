@@ -1,3 +1,5 @@
+import 'user_fragment.dart';
+
 class AuthSessionFragment {
   static const String name = 'AuthSessionFields';
 
@@ -7,7 +9,8 @@ class AuthSessionFragment {
       accessToken
       accessTokenExpiresAt
       refreshToken
-      user { id twitchId twitchPoints role currentCharacter { id } }
+      user { ...${UserFragment.name} }
     }
-  ''';
+  ''' +
+      UserFragment.definition;
 }
