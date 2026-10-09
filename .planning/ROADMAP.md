@@ -105,7 +105,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - Choice of on-device NSFW classifier (Google ML Kit Image Labeling vs TensorFlow Lite NSFW model) and its integration footprint.
   - Onboarding layout is a utility surface (UI chrome allowed).
 **Plans**: 11 plans
-  - [ ] 02-01-PLAN.md — Wave 0: CHAR-06 deferral in docs, image_picker 1.2.2 + native targets (D-31), shared test helpers
+  - [x] 02-01-PLAN.md — Wave 0: CHAR-06 deferral in docs, image_picker 1.2.2 + native targets (D-31), shared test helpers
   - [ ] 02-02-PLAN.md — Session handover: AuthTokenService/AuthCubit.adoptUser + AuthGate rebuild on character gain (D-26)
   - [ ] 02-03-PLAN.md — Models (RaceTraits, CreateCharacterRequest, SexType.label) + pure CharacterDraft validation
   - [ ] 02-04-PLAN.md — Theme tokens for fields/chips/spacing + CharacterPortrait silhouette resolver (D-14)
