@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/class_type.dart';
 import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/request/create_character_request.dart';
+import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/character_creation_failure.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_draft.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/auth_fixtures.dart';
 import '../../../helpers/fixtures/race_traits_fixture.dart';
 import '../../../helpers/mocks.dart';
 
@@ -24,10 +29,40 @@ CharacterCreationState _loadedState({CharacterDraft? draft}) =>
       raceTraitsStatus: RaceTraitsStatus.loaded,
     );
 
+const _validDraft = CharacterDraft(
+  sex: SexType.female,
+  name: 'Elara',
+  pronoun: PronounType.she,
+  race: RaceType.elf,
+  classType: ClassType.wizard,
+  ageText: '120',
+);
+
+const _uploadedA = UploadedPortrait(
+  localPath: '/tmp/a.jpg',
+  url: 'https://cdn/a.jpg',
+);
+
+CharacterCreationState _submittable({
+  String? portraitPath,
+  UploadedPortrait? uploadedPortrait,
+  CharacterCreationFailure? submitFailure,
+}) => CharacterCreationState(
+  draft: _validDraft,
+  raceTraits: testRaceTraits,
+  raceTraitsStatus: RaceTraitsStatus.loaded,
+  portraitPath: portraitPath,
+  uploadedPortrait: uploadedPortrait,
+  submitFailure: submitFailure,
+);
+
 void main() {
   late MockCharacterCreationRepository repository;
 
-  setUpAll(() => registerFallbackValue(PortraitSource.gallery));
+  setUpAll(() {
+    registerFallbackValue(PortraitSource.gallery);
+    registerFallbackValue(_validDraft.toRequest());
+  });
 
   setUp(() => repository = MockCharacterCreationRepository());
 
@@ -313,5 +348,216 @@ void main() {
         expect: () => [const CharacterCreationState()],
       );
     });
+  });
+  group('submit', () {
+    final createdUser = buildTestUserWithCharacter();
+
+    void stubCreate() => when(
+      () => repository.createCharacter(any()),
+    ).thenAnswer((_) async => createdUser);
+
+    void stubCreateFailure(CharacterCreationFailure failure) => when(
+      () => repository.createCharacter(any()),
+    ).thenAnswer((_) async => throw CharacterCreationException(failure));
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'does nothing when the form is not submittable',
+      build: build,
+      seed: () => const CharacterCreationState(),
+      act: (cubit) => cubit.submit(),
+      expect: () => <CharacterCreationState>[],
+      verify: (_) {
+        verifyNever(() => repository.uploadPortrait(any()));
+        verifyNever(() => repository.createCharacter(any()));
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'without a portrait sends the mutation without imagePath',
+      build: () {
+        stubCreate();
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      expect: () => [
+        _submittable().copyWith(isSubmitting: true),
+        _submittable().copyWith(isSubmitting: true, createdUser: createdUser),
+      ],
+      verify: (_) {
+        verifyNever(() => repository.uploadPortrait(any()));
+        verify(
+          () => repository.createCharacter(_validDraft.toRequest()),
+        ).called(1);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'uploads the portrait first and sends the returned url',
+      build: () {
+        when(
+          () => repository.uploadPortrait('/tmp/a.jpg'),
+        ).thenAnswer((_) async => 'https://cdn/a.jpg');
+        stubCreate();
+        return build();
+      },
+      seed: () => _submittable(portraitPath: '/tmp/a.jpg'),
+      act: (cubit) => cubit.submit(),
+      expect: () {
+        final submitting = _submittable(
+          portraitPath: '/tmp/a.jpg',
+        ).copyWith(isSubmitting: true);
+        final uploaded = submitting.copyWith(uploadedPortrait: _uploadedA);
+        return [
+          submitting,
+          uploaded,
+          uploaded.copyWith(createdUser: createdUser),
+        ];
+      },
+      verify: (_) {
+        verifyInOrder([
+          () => repository.uploadPortrait('/tmp/a.jpg'),
+          () => repository.createCharacter(
+            _validDraft.toRequest(imagePath: 'https://cdn/a.jpg'),
+          ),
+        ]);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'upload failure stops the flow and preserves the data',
+      build: () {
+        when(() => repository.uploadPortrait(any())).thenAnswer(
+          (_) async => throw const CharacterCreationException(
+            CharacterCreationFailure.uploadFailed,
+          ),
+        );
+        return build();
+      },
+      seed: () => _submittable(portraitPath: '/tmp/a.jpg'),
+      act: (cubit) => cubit.submit(),
+      expect: () => [
+        _submittable(portraitPath: '/tmp/a.jpg').copyWith(isSubmitting: true),
+        _submittable(
+          portraitPath: '/tmp/a.jpg',
+          submitFailure: CharacterCreationFailure.uploadFailed,
+        ),
+      ],
+      verify: (cubit) {
+        verifyNever(() => repository.createCharacter(any()));
+        expect(cubit.state.draft, _validDraft);
+        expect(cubit.state.portraitPath, '/tmp/a.jpg');
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'mutation failure after the upload keeps the uploaded url',
+      build: () {
+        when(
+          () => repository.uploadPortrait(any()),
+        ).thenAnswer((_) async => 'https://cdn/a.jpg');
+        stubCreateFailure(CharacterCreationFailure.nameTaken);
+        return build();
+      },
+      seed: () => _submittable(portraitPath: '/tmp/a.jpg'),
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(cubit.state.submitFailure, CharacterCreationFailure.nameTaken);
+        expect(cubit.state.uploadedPortrait, _uploadedA);
+        expect(cubit.state.createdUser, isNull);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'retry with the same photo skips the upload',
+      build: () {
+        stubCreate();
+        return build();
+      },
+      seed: () => _submittable(
+        portraitPath: '/tmp/a.jpg',
+        uploadedPortrait: _uploadedA,
+        submitFailure: CharacterCreationFailure.nameTaken,
+      ),
+      act: (cubit) => cubit.submit(),
+      verify: (_) {
+        verifyNever(() => repository.uploadPortrait(any()));
+        verify(
+          () => repository.createCharacter(
+            _validDraft.toRequest(imagePath: 'https://cdn/a.jpg'),
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'a different photo forces a new upload',
+      build: () {
+        when(
+          () => repository.uploadPortrait('/tmp/b.jpg'),
+        ).thenAnswer((_) async => 'https://cdn/b.jpg');
+        stubCreate();
+        return build();
+      },
+      seed: () => _submittable(
+        portraitPath: '/tmp/b.jpg',
+        uploadedPortrait: _uploadedA,
+      ),
+      act: (cubit) => cubit.submit(),
+      verify: (_) {
+        verify(() => repository.uploadPortrait('/tmp/b.jpg')).called(1);
+        verify(
+          () => repository.createCharacter(
+            _validDraft.toRequest(imagePath: 'https://cdn/b.jpg'),
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'starting a submit clears the previous failure',
+      build: () {
+        stubCreate();
+        return build();
+      },
+      seed: () =>
+          _submittable(submitFailure: CharacterCreationFailure.connection),
+      act: (cubit) => cubit.submit(),
+      expect: () => [
+        _submittable().copyWith(isSubmitting: true),
+        _submittable().copyWith(isSubmitting: true, createdUser: createdUser),
+      ],
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'an unexpected error ends in unknown without a stuck spinner',
+      build: () {
+        when(
+          () => repository.createCharacter(any()),
+        ).thenAnswer((_) async => throw StateError('boom'));
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(cubit.state.submitFailure, CharacterCreationFailure.unknown);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'on success the form stays locked and cannot be submitted again',
+      build: () {
+        stubCreate();
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isTrue);
+        expect(cubit.state.canSubmit, isFalse);
+      },
+    );
   });
 }
