@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:klimmeck_guide/models/enums/class_type.dart';
 import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
-import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/character_creation_failure.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/character_creation_screen.dart';
