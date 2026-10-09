@@ -130,6 +130,36 @@ void main() {
     expect(find.text('Scegli prima la razza'), findsOneWidget);
   });
 
+  testWidgets('a chosen race still being loaded says so', (tester) async {
+    await pumpScreen(
+      tester,
+      const CharacterCreationState(
+        draft: CharacterDraft(race: RaceType.aarakocra),
+      ),
+    );
+
+    expect(find.text('Consulto le cronache delle razze…'), findsOneWidget);
+  });
+
+  testWidgets('a chosen race missing from the loaded table asks for another', (
+    tester,
+  ) async {
+    final withoutAarakocra = Map.of(testRaceTraits)..remove(RaceType.aarakocra);
+    await pumpScreen(
+      tester,
+      loadedState.copyWith(
+        draft: const CharacterDraft(race: RaceType.aarakocra),
+        raceTraits: withoutAarakocra,
+      ),
+    );
+
+    expect(
+      find.text("Le cronache non conoscono questa razza: scegline un'altra"),
+      findsOneWidget,
+    );
+    expect(find.text('Consulto le cronache delle razze…'), findsNothing);
+  });
+
   testWidgets('failed race traits offer a retry', (tester) async {
     await pumpScreen(
       tester,

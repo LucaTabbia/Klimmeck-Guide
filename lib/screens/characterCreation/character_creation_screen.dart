@@ -232,11 +232,16 @@ class _AgeField extends StatelessWidget {
     );
   }
 
+  /// D-11: il backend può non conoscere una razza dell'app; a tabella caricata
+  /// lo si dice, invece di promettere un caricamento che non finirà mai.
   String? _helperText(RaceTraits? traits) {
     if (traits != null) return 'Tra ${traits.minAge} e ${traits.maxAge} anni';
     if (state.raceTraitsStatus == RaceTraitsStatus.failed) return null;
     if (state.draft.race == null) return 'Scegli prima la razza';
-    return 'Consulto le cronache delle razze…';
+    if (state.raceTraitsStatus == RaceTraitsStatus.loading) {
+      return 'Consulto le cronache delle razze…';
+    }
+    return "Le cronache non conoscono questa razza: scegline un'altra";
   }
 
   String? _errorText(RaceTraits? traits) {
