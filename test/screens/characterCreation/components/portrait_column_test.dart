@@ -68,6 +68,7 @@ void main() {
 
     await tester.tap(find.text('Galleria'));
     await tester.tap(find.text('Fotocamera'));
+    await tester.ensureVisible(find.text('Rimuovi'));
     await tester.tap(find.text('Rimuovi'));
 
     expect(picked, [PortraitSource.gallery, PortraitSource.camera]);

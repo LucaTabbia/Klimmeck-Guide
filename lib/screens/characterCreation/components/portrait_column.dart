@@ -17,6 +17,9 @@ class PortraitColumn extends StatelessWidget {
 
   static const double _portraitAspectRatio = 3 / 4;
   static const double _minTapTarget = 44;
+  static const double _reservedHeight = 250;
+  static const double _minPortraitHeight = 80;
+  static const double _maxPortraitHeight = 240;
 
   final String? portraitPath;
   final PortraitPickFailure? pickFailure;
@@ -25,17 +28,32 @@ class PortraitColumn extends StatelessWidget {
   final VoidCallback onRemove;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => SingleChildScrollView(
+      padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingMd),
+      child: _content(_portraitHeightFor(constraints.maxHeight)),
+    ),
+  );
+
+  /// L'anteprima prende lo spazio che resta; con la tastiera aperta la colonna
+  /// scorre invece di andare in overflow.
+  double _portraitHeightFor(double availableHeight) =>
+      (availableHeight - _reservedHeight).clamp(
+        _minPortraitHeight,
+        _maxPortraitHeight,
+      );
+
+  Widget _content(double portraitHeight) {
     final theme = KlimmeckGuideTheme.instance;
     final failure = pickFailure;
-    return Padding(
-      padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Ritratto', style: theme.titleMedium),
-          const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-          Flexible(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Ritratto', style: theme.titleMedium),
+        const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+        SizedBox(
+          height: portraitHeight,
+          child: Center(
             child: AspectRatio(
               aspectRatio: _portraitAspectRatio,
               child: DecoratedBox(
@@ -54,32 +72,27 @@ class PortraitColumn extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-          Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              _action(
-                Icons.photo_library_outlined,
-                'Galleria',
-                () => onPick(PortraitSource.gallery),
-              ),
-              _action(
-                Icons.photo_camera_outlined,
-                'Fotocamera',
-                () => onPick(PortraitSource.camera),
-              ),
-              if (portraitPath != null)
-                _action(Icons.delete_outline, 'Rimuovi', onRemove),
-            ],
-          ),
-          if (failure != null)
-            Flexible(
-              child: SingleChildScrollView(
-                child: Text(failure.message, style: theme.errorText),
-              ),
+        ),
+        const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+        Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            _action(
+              Icons.photo_library_outlined,
+              'Galleria',
+              () => onPick(PortraitSource.gallery),
             ),
-        ],
-      ),
+            _action(
+              Icons.photo_camera_outlined,
+              'Fotocamera',
+              () => onPick(PortraitSource.camera),
+            ),
+            if (portraitPath != null)
+              _action(Icons.delete_outline, 'Rimuovi', onRemove),
+          ],
+        ),
+        if (failure != null) Text(failure.message, style: theme.errorText),
+      ],
     );
   }
 
