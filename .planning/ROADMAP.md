@@ -56,7 +56,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 ## Phases
 
 - [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
-- [ ] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell.
+- [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
 - [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
 - [ ] **Phase 5: Notifications Infrastructure** — FCM registration, permission gated at first travel confirm, three-state push handling, in-app banner dedup, uniform tap routing to Map.
@@ -115,7 +115,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - [x] 02-08-PLAN.md — Cubit submit: upload-then-mutation, URL reuse, CHARACTER_ALREADY_EXISTS recovery
   - [x] 02-09-PLAN.md — CharacterCreationScreen: parchment sheet, inline errors, Crea progress, Esci
   - [x] 02-10-PLAN.md — SessionHome branch, real character id into shell/MainScreen (D-27), main.dart wiring
-  - [ ] 02-11-PLAN.md — Schema check vs BE 02.1 (D-33), validation sign-off, manual E2E checkpoint
+  - [x] 02-11-PLAN.md — Schema check vs BE 02.1 (D-33), validation sign-off, manual E2E checkpoint
 **UI hint**: yes
 
 ### Phase 3: Real-Time Sync Foundation
@@ -304,7 +304,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
-| 2. Character Creation | 10/11 | In Progress|  |
+| 2. Character Creation | 11/11 | Complete   | 2026-10-09 |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
