@@ -1,4 +1,16 @@
+import '../fragments/user_fragment.dart';
+
 class CharacterMutations {
+  static const String createCharacter =
+      r'''
+    mutation CreateCharacter($input: CreateCharacterInput!) {
+      createCharacter(input: $input) {
+        ...UserFields
+      }
+    }
+  ''' +
+      UserFragment.definition;
+
   static const String doTransaction = r'''
     mutation doTransaction($request: TransactionRequest!) {
       doTransaction(request: $request) {
