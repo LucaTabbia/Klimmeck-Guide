@@ -1,5 +1,4 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -22,17 +21,17 @@ void main() {
     mainScreenCubit = MockMainScreenCubit();
     whenListen(
       characterCubit,
-      const Stream<CharacterState>.empty(),
-      initialState: const CharacterInitial(),
+      Stream<CharacterState>.empty(),
+      initialState: CharacterInitial(),
     );
     whenListen(
       questCubit,
-      const Stream<QuestState>.empty(),
-      initialState: const QuestInitial(),
+      Stream<QuestState>.empty(),
+      initialState: QuestInitial(),
     );
     whenListen(
       mainScreenCubit,
-      const Stream<MainScreenState>.empty(),
+      Stream<MainScreenState>.empty(),
       initialState: MainScreenInitial(),
     );
     when(() => characterCubit.loadCharacter(any())).thenAnswer((_) async {});

@@ -15,7 +15,8 @@ import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 
 /// Sessione autenticata: monta i Cubit gameplay, avvia il preload SVG
-/// Cloudinary (REST autenticata, quindi solo ora) ed entra nel MainScreen.
+/// Cloudinary (REST autenticata, quindi solo ora) ed entra nel MainScreen del
+/// personaggio della sessione (D-27).
 ///
 /// I Cubit gameplay vivono qui e si chiudono quando `AuthGate` rimuove la
 /// shell (logout/cambio account); usano `SafeEmit`, quindi una risposta
@@ -28,15 +29,19 @@ class AuthenticatedShell extends StatelessWidget {
   const AuthenticatedShell({
     super.key,
     required this.graphQl,
+    required this.characterId,
     this.mainScreenBuilder = _buildMainScreen,
   });
 
   final KlimmeckGraphQl graphQl;
+  final String characterId;
 
   /// Sostituibile solo nei test, per non montare il MainScreen che fa rete.
-  final WidgetBuilder mainScreenBuilder;
+  final Widget Function(BuildContext context, String characterId)
+  mainScreenBuilder;
 
-  static Widget _buildMainScreen(BuildContext context) => const MainScreen();
+  static Widget _buildMainScreen(BuildContext context, String characterId) =>
+      MainScreen(characterId: characterId);
 
   @override
   Widget build(BuildContext context) {
@@ -54,15 +59,23 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<LibraryCubit>(create: (_) => LibraryCubit(graphQl)),
         BlocProvider<JournalCubit>(create: (_) => JournalCubit(graphQl)),
       ],
-      child: _ShellBody(mainScreenBuilder: mainScreenBuilder),
+      child: _ShellBody(
+        characterId: characterId,
+        mainScreenBuilder: mainScreenBuilder,
+      ),
     );
   }
 }
 
 class _ShellBody extends StatefulWidget {
-  const _ShellBody({required this.mainScreenBuilder});
+  const _ShellBody({
+    required this.characterId,
+    required this.mainScreenBuilder,
+  });
 
-  final WidgetBuilder mainScreenBuilder;
+  final String characterId;
+  final Widget Function(BuildContext context, String characterId)
+  mainScreenBuilder;
 
   @override
   State<_ShellBody> createState() => _ShellBodyState();
@@ -79,7 +92,7 @@ class _ShellBodyState extends State<_ShellBody> {
   Widget build(BuildContext context) {
     return BlocBuilder<SplashCubit, SplashState>(
       builder: (context, state) => _isPreloadSettled(state)
-          ? widget.mainScreenBuilder(context)
+          ? widget.mainScreenBuilder(context, widget.characterId)
           : const SplashScreen(),
     );
   }

@@ -8,16 +8,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
+import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
+import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
 import 'package:klimmeck_guide/screens/auth/auth_gate.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/auth/session_home.dart';
+import 'package:klimmeck_guide/screens/characterCreation/character_creation_screen.dart';
+import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -204,8 +209,25 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                   builder: (context) {
                     preloadImages(context);
                     return AuthGate(
-                      authenticatedBuilder: (context, user) =>
-                          AuthenticatedShell(graphQl: graphQl),
+                      authenticatedBuilder: (context, user) => SessionHome(
+                        user: user,
+                        creationBuilder: (context) =>
+                            BlocProvider<CharacterCreationCubit>(
+                              create: (_) => CharacterCreationCubit(
+                                CharacterCreationRepository(
+                                  graphQl: graphQl,
+                                  rest: rest,
+                                  picker: ImagePickerPortraitPicker(),
+                                ),
+                              )..loadRaceTraits(),
+                              child: const CharacterCreationScreen(),
+                            ),
+                        shellBuilder: (context, characterId) =>
+                            AuthenticatedShell(
+                              graphQl: graphQl,
+                              characterId: characterId,
+                            ),
+                      ),
                     );
                   },
                 ),
