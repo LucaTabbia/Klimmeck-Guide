@@ -65,7 +65,7 @@ created: 2026-10-09
 | 2-10-02 | 10 | 6 | CHAR-01, CHAR-07 | T-02-10-01 | No hardcoded character id | widget | `flutter test test/screens/auth test/screens/mainScreen && ! grep -rn "68c191de541d89c481b8322b" lib` | ✅ extend + ❌ new | ✅ green |
 | 2-10-03 | 10 | 6 | CHAR-05, CHAR-07 | T-02-10-05 | Profile portrait only via CharacterPortrait; silhouette when imagePath is null | widget | `flutter test test/screens/mainScreen/tabs/profile/components/profile_image_test.dart && ! grep -rn "silhouette.jpeg" lib/screens/mainScreen/tabs/profile` | ❌ new | ✅ green |
 | 2-11-01 | 11 | 7 | CHAR-03, CHAR-07, CHAR-09 | T-02-11-01/02 | Contract names equal to the BE schema | schema check | `grep -q "createCharacter(input: CreateCharacterInput!): User!" ../../Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/schema.gql && flutter test` | ✅ | ✅ green |
-| 2-11-02 | 11 | 7 | CHAR-01, CHAR-05, CHAR-07 | T-02-11-03/04 | Manual E2E against BE 02.1 | manual | see Manual-Only below | n/a | ⬜ pending (02-HUMAN-UAT.md) |
+| 2-11-02 | 11 | 7 | CHAR-01, CHAR-05, CHAR-07 | T-02-11-03/04 | Manual E2E against BE 02.1 | manual | see Manual-Only below | n/a | ✅ green (02-HUMAN-UAT.md, 8/8 pass, step 9 skipped) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -104,4 +104,4 @@ created: 2026-10-09
 - [x] Feedback latency < 20s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-10-09 (automated gates; manual UAT 2-11-02 tracked in 02-HUMAN-UAT.md)
+**Approval:** approved 2026-10-09 (automated gates; manual UAT 2-11-02 passed, see 02-HUMAN-UAT.md)
