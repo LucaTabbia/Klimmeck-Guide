@@ -44,9 +44,10 @@ void main() {
     cubit = MockCharacterCreationCubit();
     authCubit = MockAuthCubit();
     when(() => authCubit.logout()).thenAnswer((_) async {});
-    when(() => authCubit.adoptUser(any())).thenReturn(null);
+    when(() => authCubit.adoptUser(any())).thenReturn(true);
     when(() => cubit.loadRaceTraits()).thenAnswer((_) async {});
     when(() => cubit.submit()).thenAnswer((_) async {});
+    when(() => cubit.handoverRejected()).thenReturn(null);
   });
 
   Future<void> pumpScreen(
@@ -225,6 +226,39 @@ void main() {
     await tester.pump();
 
     verify(() => authCubit.adoptUser(user)).called(1);
+    verifyNever(() => cubit.handoverRejected());
+  });
+
+  testWidgets('a handover refused by the session is reported to the cubit', (
+    tester,
+  ) async {
+    when(() => authCubit.adoptUser(any())).thenReturn(false);
+    final user = buildTestUserWithCharacter();
+    await pumpScreen(
+      tester,
+      loadedState,
+      updates: Stream.value(loadedState.copyWith(createdUser: user)),
+    );
+    await tester.pump();
+
+    verify(() => cubit.handoverRejected()).called(1);
+  });
+
+  testWidgets('Esci stays reachable once the user has been created', (
+    tester,
+  ) async {
+    await pumpScreen(
+      tester,
+      loadedState.copyWith(
+        draft: validDraft,
+        isSubmitting: true,
+        createdUser: buildTestUserWithCharacter(),
+      ),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    final esci = find.widgetWithText(TextButton, 'Esci');
+    expect(tester.widget<TextButton>(esci).onPressed, isNotNull);
   });
 
   testWidgets('Esci asks for confirmation and then logs out', (tester) async {

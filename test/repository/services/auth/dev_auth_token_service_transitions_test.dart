@@ -157,35 +157,43 @@ void main() {
       final adopted = buildTestUserWithCharacter().copyWith(
         id: (await service.authStateStream.first as AuthAuthenticated).user.id,
       );
+      late bool accepted;
 
-      final states = await collect(() async => service.adoptUser(adopted));
+      final states = await collect(
+        () async => accepted = service.adoptUser(adopted),
+      );
 
+      expect(accepted, isTrue);
       expect(
         states.last,
         AuthAuthenticated(user: adopted, accessToken: testAccessToken),
       );
     });
 
-    test('emits nothing while signed out', () async {
+    test('refuses and emits nothing while signed out', () async {
       await loadTestEnv(startSignedOut: 'true');
       await service.initialize();
+      late bool accepted;
 
       final states = await collect(
-        () async => service.adoptUser(buildTestUserWithCharacter()),
+        () async => accepted = service.adoptUser(buildTestUserWithCharacter()),
       );
 
+      expect(accepted, isFalse);
       expect(states.whereType<AuthAuthenticated>(), isEmpty);
     });
 
-    test('emits nothing for a different user id', () async {
+    test('refuses and emits nothing for a different user id', () async {
       await service.initialize();
+      late bool accepted;
 
       final states = await collect(
-        () async => service.adoptUser(
+        () async => accepted = service.adoptUser(
           buildTestUserWithCharacter().copyWith(id: 'someone-else'),
         ),
       );
 
+      expect(accepted, isFalse);
       expect(
         states.whereType<AuthAuthenticated>().where(
           (s) => s.user.currentCharacter != null,

@@ -77,9 +77,10 @@ void main() {
       login(service, async);
       final adopted = buildTestUserWithCharacter();
 
-      service.adoptUser(adopted);
+      final accepted = service.adoptUser(adopted);
       async.flushMicrotasks();
 
+      expect(accepted, isTrue);
       expect(
         states.last,
         AuthAuthenticated(user: adopted, accessToken: _session.accessToken),
@@ -108,27 +109,31 @@ void main() {
     });
   });
 
-  test('ignores a user adopted before authentication', () {
+  test('refuses a user adopted before authentication', () {
     fakeAsync((async) {
       final service = buildService(async);
 
-      service.adoptUser(buildTestUserWithCharacter());
+      final accepted = service.adoptUser(buildTestUserWithCharacter());
       async.flushMicrotasks();
 
+      expect(accepted, isFalse);
       expect(states, isEmpty);
       service.dispose();
     });
   });
 
-  test('ignores a user with a different id', () {
+  test('refuses a user with a different id', () {
     fakeAsync((async) {
       final service = buildService(async);
       login(service, async);
       final emitted = states.length;
 
-      service.adoptUser(buildTestUserWithCharacter().copyWith(id: 'other'));
+      final accepted = service.adoptUser(
+        buildTestUserWithCharacter().copyWith(id: 'other'),
+      );
       async.flushMicrotasks();
 
+      expect(accepted, isFalse);
       expect(states, hasLength(emitted));
       expect((states.last as AuthAuthenticated).user.currentCharacter, isNull);
       service.dispose();

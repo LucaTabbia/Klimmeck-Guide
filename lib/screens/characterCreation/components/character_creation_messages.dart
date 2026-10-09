@@ -36,6 +36,8 @@ extension CharacterCreationFailureMessage on CharacterCreationFailure {
     CharacterCreationFailure.startingLocationUnavailable =>
       'Il mondo non è ancora pronto ad accoglierti, riprova più tardi',
     CharacterCreationFailure.connection => 'Errore di connessione, riprova',
+    CharacterCreationFailure.handoverRejected =>
+      'Personaggio creato, ma la sessione non lo riconosce: esci e rientra',
     CharacterCreationFailure.unknown => 'Qualcosa è andato storto, riprova',
   };
 }

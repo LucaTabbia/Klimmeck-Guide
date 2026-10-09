@@ -129,9 +129,10 @@ abstract class AuthTokenService {
   /// `createCharacter`, che restituisce lo `User` aggiornato) e ri-emette
   /// `AuthAuthenticated` con lo stesso token.
   ///
-  /// Ignorato se la sessione non è autenticata o se `user.id` non coincide
-  /// con l'utente corrente: una risposta tardiva non entra in un'altra sessione.
-  void adoptUser(User user);
+  /// Ritorna `false`, senza emettere nulla, se la sessione non è autenticata o
+  /// se `user.id` non coincide con l'utente corrente: una risposta tardiva non
+  /// entra in un'altra sessione e il chiamante sa che l'handover è rifiutato.
+  bool adoptUser(User user);
 
   /// Chiude lo `StreamController` interno e libera le risorse.
   ///

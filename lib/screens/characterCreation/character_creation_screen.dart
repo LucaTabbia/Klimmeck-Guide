@@ -28,22 +28,32 @@ class CharacterCreationScreen extends StatelessWidget {
   static const int _sheetFlex = 5;
 
   @override
-  Widget build(BuildContext context) =>
-      BlocListener<CharacterCreationCubit, CharacterCreationState>(
-        listenWhen: (previous, current) =>
-            previous.createdUser == null && current.createdUser != null,
-        listener: (context, state) =>
-            context.read<AuthCubit>().adoptUser(state.createdUser!),
-        child: BlocBuilder<CharacterCreationCubit, CharacterCreationState>(
-          builder: (context, state) => Scaffold(
-            appBar: _buildAppBar(context, state),
-            body: DecoratedBox(
-              decoration: KlimmeckGuideTheme.getParchmentBackground(),
-              child: SafeArea(child: _buildSheet(context, state)),
-            ),
+  Widget build(BuildContext context) {
+    return BlocListener<CharacterCreationCubit, CharacterCreationState>(
+      listenWhen: (previous, current) =>
+          previous.createdUser == null && current.createdUser != null,
+      listener: _handOverCreatedUser,
+      child: BlocBuilder<CharacterCreationCubit, CharacterCreationState>(
+        builder: (context, state) => Scaffold(
+          appBar: _buildAppBar(context, state),
+          body: DecoratedBox(
+            decoration: KlimmeckGuideTheme.getParchmentBackground(),
+            child: SafeArea(child: _buildSheet(context, state)),
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  /// D-02/D-26: la sessione adotta lo user creato; se lo rifiuta la scheda
+  /// deve saperlo, altrimenti resterebbe bloccata senza uscita (D-29).
+  void _handOverCreatedUser(
+    BuildContext context,
+    CharacterCreationState state,
+  ) {
+    final adopted = context.read<AuthCubit>().adoptUser(state.createdUser!);
+    if (!adopted) context.read<CharacterCreationCubit>().handoverRejected();
+  }
 
   AppBar _buildAppBar(BuildContext context, CharacterCreationState state) {
     final theme = KlimmeckGuideTheme.instance;
@@ -57,7 +67,7 @@ class CharacterCreationScreen extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: state.isSubmitting ? null : () => confirmLogout(context),
+          onPressed: state.canExit ? () => confirmLogout(context) : null,
           child: Text(
             'Esci',
             style: theme.bodyMedium.copyWith(

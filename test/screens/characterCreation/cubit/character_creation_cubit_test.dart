@@ -558,6 +558,32 @@ void main() {
         expect(cubit.state.canSubmit, isFalse);
       },
     );
+
+    test(
+      'canExit is false only while a submit is in flight without a user',
+      () {
+        expect(_submittable().canExit, isTrue);
+        expect(_submittable().copyWith(isSubmitting: true).canExit, isFalse);
+        expect(
+          _submittable()
+              .copyWith(isSubmitting: true, createdUser: createdUser)
+              .canExit,
+          isTrue,
+        );
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'a refused handover unlocks the sheet and names the cause (D-29)',
+      build: build,
+      seed: () =>
+          _submittable().copyWith(isSubmitting: true, createdUser: createdUser),
+      act: (cubit) => cubit.handoverRejected(),
+      expect: () => [
+        _submittable(submitFailure: CharacterCreationFailure.handoverRejected),
+      ],
+      verify: (cubit) => expect(cubit.state.canExit, isTrue),
+    );
     blocTest<CharacterCreationCubit, CharacterCreationState>(
       'alreadyExists adopts the character re-read from me',
       build: () {

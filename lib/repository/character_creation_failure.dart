@@ -15,6 +15,9 @@ enum CharacterCreationFailure {
   alreadyExists,
   startingLocationUnavailable,
   connection,
+
+  /// Personaggio creato ma `adoptUser` rifiutato dalla sessione (D-26).
+  handoverRejected,
   unknown,
 }
 

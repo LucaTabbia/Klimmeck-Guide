@@ -93,6 +93,16 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
     }
   }
 
+  /// La sessione non ha adottato lo user creato (D-26): la scheda si sblocca e
+  /// lo dice, così il giocatore può uscire e rientrare invece di restare appeso.
+  void handoverRejected() => emit(
+    state.copyWith(
+      isSubmitting: false,
+      createdUser: null,
+      submitFailure: CharacterCreationFailure.handoverRejected,
+    ),
+  );
+
   Future<String?> _uploadedPortraitUrl() async {
     final localPath = state.portraitPath;
     if (localPath == null) return null;

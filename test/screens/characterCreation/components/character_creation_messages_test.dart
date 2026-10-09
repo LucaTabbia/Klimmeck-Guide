@@ -71,6 +71,10 @@ void main() {
       'Errore di connessione, riprova',
     );
     expect(
+      CharacterCreationFailure.handoverRejected.message,
+      'Personaggio creato, ma la sessione non lo riconosce: esci e rientra',
+    );
+    expect(
       CharacterCreationFailure.unknown.message,
       'Qualcosa è andato storto, riprova',
     );

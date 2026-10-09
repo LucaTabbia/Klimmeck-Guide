@@ -89,12 +89,15 @@ class DevAuthTokenService extends AuthTokenService {
       _endSession(UnauthenticatedReason.sessionExpired);
 
   @override
-  void adoptUser(User user) {
+  bool adoptUser(User user) {
     final current = _channel.current;
-    if (current is! AuthAuthenticated || current.user.id != user.id) return;
+    if (current is! AuthAuthenticated || current.user.id != user.id) {
+      return false;
+    }
     _channel.emit(
       AuthAuthenticated(user: user, accessToken: current.accessToken),
     );
+    return true;
   }
 
   /// Chiude il canale di stato e libera le risorse.

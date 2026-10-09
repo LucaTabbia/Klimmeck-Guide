@@ -35,8 +35,9 @@ class AuthCubit extends Cubit<AuthState> {
     if (state is AuthBootstrapping) emit(const AuthUnauthenticated());
   }
 
-  /// D-02: la sessione adotta lo User restituito da createCharacter.
-  void adoptUser(User user) => _authTokenService.adoptUser(user);
+  /// D-02: la sessione adotta lo User restituito da createCharacter. `false`
+  /// se la sessione lo rifiuta (D-26): chi chiama deve sbloccare la scheda.
+  bool adoptUser(User user) => _authTokenService.adoptUser(user);
 
   Future<void> logout() => _authTokenService.logout();
 

@@ -22,7 +22,7 @@ void main() {
     when(() => service.authStateStream).thenAnswer((_) => controller.stream);
     when(() => service.initialize()).thenAnswer((_) async {});
     when(() => service.logout()).thenAnswer((_) async {});
-    when(() => service.adoptUser(any())).thenReturn(null);
+    when(() => service.adoptUser(any())).thenReturn(true);
   });
 
   setUpAll(() => registerFallbackValue(buildTestUser()));
@@ -40,10 +40,15 @@ void main() {
     await cubit.close();
   });
 
-  test('adoptUser delegates to the service', () {
+  test('adoptUser delegates to the service and reports its verdict', () {
     final user = buildTestUserWithCharacter();
-    AuthCubit(service).adoptUser(user);
+    expect(AuthCubit(service).adoptUser(user), isTrue);
     verify(() => service.adoptUser(user)).called(1);
+  });
+
+  test('adoptUser reports a handover refused by the service', () {
+    when(() => service.adoptUser(any())).thenReturn(false);
+    expect(AuthCubit(service).adoptUser(buildTestUserWithCharacter()), isFalse);
   });
 
   test('start twice calls initialize once', () async {

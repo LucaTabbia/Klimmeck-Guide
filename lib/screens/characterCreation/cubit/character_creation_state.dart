@@ -49,6 +49,10 @@ final class CharacterCreationState extends Equatable {
   bool get canSubmit =>
       !isSubmitting && createdUser == null && draft.isCompleteFor(raceTraits);
 
+  /// "Esci" resta raggiungibile appena esiste uno user creato: la scheda è
+  /// bloccata in attesa dell'handover, ma il giocatore non resta mai senza uscita.
+  bool get canExit => !isSubmitting || createdUser != null;
+
   CharacterCreationState copyWith({
     CharacterDraft? draft,
     Map<RaceType, RaceTraits>? raceTraits,

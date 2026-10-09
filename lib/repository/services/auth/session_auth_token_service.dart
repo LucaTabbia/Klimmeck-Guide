@@ -180,10 +180,13 @@ class SessionAuthTokenService extends AuthTokenService
       _endSession(UnauthenticatedReason.sessionExpired);
 
   @override
-  void adoptUser(User user) {
-    if (_channel.current is! AuthAuthenticated || user.id != _user?.id) return;
+  bool adoptUser(User user) {
+    if (_channel.current is! AuthAuthenticated || user.id != _user?.id) {
+      return false;
+    }
     _user = user;
     _emitAuthenticated();
+    return true;
   }
 
   /// Unico punto d'ingresso del retry reattivo per link GraphQL, interceptor
