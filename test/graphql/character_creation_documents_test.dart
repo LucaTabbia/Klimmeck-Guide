@@ -27,11 +27,9 @@ void main() {
       expect(operation.variableDefinitions, hasLength(1));
       final variable = operation.variableDefinitions.single;
       expect(variable.variable.name.value, 'input');
-      expect(variable.type.toString(), contains('CreateCharacterInput'));
-      expect(
-        variable.type,
-        isA<NamedTypeNode>().having((t) => t.isNonNull, 'isNonNull', true),
-      );
+      final type = variable.type as NamedTypeNode;
+      expect(type.name.value, 'CreateCharacterInput');
+      expect(type.isNonNull, isTrue);
     });
 
     test('selects the shared UserFields fragment defined exactly once', () {
