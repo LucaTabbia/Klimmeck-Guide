@@ -51,10 +51,10 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 - [ ] **CHAR-02**: User can pick a name for the character (required, validated client + server)
 - [ ] **CHAR-03**: User can pick `sex`, `pronoun`, `race` (RaceType), `classType` (ClassType), `age` from the corresponding enums
 - [ ] **CHAR-04**: User can enter a free-text `background` (narrative bio, bounded length)
-- [ ] **CHAR-05**: User can set a character portrait (`imagePath`) either by picking from a curated set or by uploading a photo from the device gallery/camera
-- [ ] **CHAR-06**: Before upload, the app runs a client-side NSFW/explicit-content pre-screen on the selected image (on-device ML model such as Google ML Kit Image Labeling or TensorFlow Lite NSFW classifier). Images flagged as explicit are rejected client-side with a clear message; the backend performs the authoritative check and may still reject what the client allowed.
+- [ ] **CHAR-05**: User can set a character portrait (`imagePath`) either by picking from a curated set or by uploading a photo from the device gallery/camera — Phase 2 ships the gallery/camera upload only; the curated-set half is deferred (D-15).
+- [ ] **CHAR-06**: Before upload, the app runs a client-side NSFW/explicit-content pre-screen on the selected image (on-device ML model such as Google ML Kit Image Labeling or TensorFlow Lite NSFW classifier). Images flagged as explicit are rejected client-side with a clear message; the backend performs the authoritative check and may still reject what the client allowed. — **DEFERRED** (Phase 2 CONTEXT D-17, user decision 2026-10-08: "Nessun filtro per ora"; candidates: BE Phase 10 hardening with Cloudinary AI moderation, FE Phase 12 Hardening). Not counted against Phase 2.
 - [ ] **CHAR-07**: On submission, the mutation creates the character server-side and updates `User.currentCharacter`; the app transitions to the main tab shell
-- [ ] **CHAR-08**: The creation flow supports back navigation between steps without losing data
+- [ ] **CHAR-08**: The creation flow supports back navigation between steps without losing data — Phase 2 uses a single page (D-04): there are no steps, and entered data is never discarded, which satisfies this requirement.
 - [ ] **CHAR-09**: If character creation fails (server error, validation, backend NSFW rejection), the UI shows the error using the project's existing error-display pattern (see shop flow) and preserves entered data
 
 ### Settings
@@ -200,7 +200,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | --------------------------- | ----- | ------- |
 | DEV-AUTH-01 through DEV-AUTH-05 | Phase 1 | Complete |
 | AUTH-01 through AUTH-07     | Phase 11 | Complete (real-device Twitch login pending UAT) |
-| CHAR-01 through CHAR-09     | TBD   | Pending |
+| CHAR-01 through CHAR-05, CHAR-07 through CHAR-09 | Phase 2 | Pending |
+| CHAR-06                     | Deferred (Phase 2 D-17 → Phase 12 / BE hardening) | Deferred |
 | SET-01 through SET-04       | TBD   | Pending |
 | SYNC-01 through SYNC-07     | TBD   | Pending |
 | NOTIF-01 through NOTIF-08   | TBD   | Pending |
@@ -220,4 +221,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_
+_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_

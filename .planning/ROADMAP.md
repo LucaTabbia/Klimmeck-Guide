@@ -91,16 +91,16 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
 
 ### Phase 2: Character Creation
-**Goal**: A logged-in user with no character is routed into a multi-step creation flow and exits into the main tab shell with a valid `currentCharacter`.
+**Goal**: A logged-in user with no character is routed to a single-page character sheet and exits into the main tab shell with a valid `currentCharacter`.
 **Depends on**: Phase 1 (requires an authenticated User, stub or real)
 **Scope**: M
-**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06, CHAR-07, CHAR-08, CHAR-09
+**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06 (DEFERRED — D-17), CHAR-07, CHAR-08, CHAR-09
 **Success Criteria** (what must be TRUE):
   1. When a logged-in user has `currentCharacter == null`, the app routes to the creation flow instead of the main shell.
-  2. The user can enter name/sex/pronoun/race/class/age/background and either pick a curated portrait or upload one from gallery/camera.
-  3. Uploaded images are pre-screened on-device for explicit content and rejected client-side when flagged, with a clear message.
+  2. The user can enter name/sex/pronoun/race/class/age/background and either pick a curated portrait or upload one from gallery/camera. (curated portrait set deferred — D-15; gallery/camera upload ships).
+  3. ~~Uploaded images are pre-screened on-device for explicit content and rejected client-side when flagged, with a clear message.~~ **DEFERRED (D-17)** — no NSFW pre-screen in this phase.
   4. On successful submission, `User.currentCharacter` is populated via mutation and the app transitions into the main tab shell.
-  5. Server/validation/NSFW rejection errors surface using the existing error-display pattern (shop flow) without losing entered data; back navigation between steps preserves data.
+  5. Server/validation/NSFW rejection errors surface using the existing error-display pattern (shop flow) without losing entered data; back navigation between steps preserves data. (NSFW rejection deferred with CHAR-06; "back navigation" is satisfied by the single page, D-04).
 **Decisions to make during discuss step**:
   - Choice of on-device NSFW classifier (Google ML Kit Image Labeling vs TensorFlow Lite NSFW model) and its integration footprint.
   - Onboarding layout is a utility surface (UI chrome allowed).
@@ -330,7 +330,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | CHAR-03 | Phase 2 | Pending |
 | CHAR-04 | Phase 2 | Pending |
 | CHAR-05 | Phase 2 | Pending |
-| CHAR-06 | Phase 2 | Pending |
+| CHAR-06 | Phase 2 | Deferred (D-17) |
 | CHAR-07 | Phase 2 | Pending |
 | CHAR-08 | Phase 2 | Pending |
 | CHAR-09 | Phase 2 | Pending |
