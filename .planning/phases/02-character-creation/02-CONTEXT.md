@@ -1,7 +1,7 @@
 # Phase 2: Character Creation - Context
 
 **Gathered:** 2026-10-08
-**Status:** Ready for planning
+**Status:** Ready for planning (post-research refinements D-26..D-34 added 2026-10-09)
 
 <domain>
 ## Phase Boundary
@@ -69,9 +69,19 @@ Out of scope for this phase (explicitly deferred by the user, see `<deferred>`):
 ### Formatting discipline (carried from Phase 11 D-38)
 - **D-25:** Never run `dart format` on directories; format only files a task creates or modifies and verify with `dart format --output=none --set-exit-if-changed <files>`. Same caution in the BE: `npx prettier --write <file>` + `npx eslint <file>` on touched files only (never `npm run lint`).
 
+### Post-research refinements (2026-10-09 — see `02-RESEARCH.md`; they bind the planner)
+- **D-26 (fixes D-02):** `AuthGate._shouldRebuild` reacts only to a state-type change, a `user.id` change or an unauthenticated-reason change: a user who keeps the same id and only gains `currentCharacter` would stay stuck on the creation page. Add a `_changesCharacter` check (red test in `auth_gate_test.dart` first). The handover is **`AuthTokenService.adoptUser(User)`** (additive, implemented by both `DevAuthTokenService` and `SessionAuthTokenService`) with `AuthCubit.adoptUser` delegating to it, so the service stays the single source of truth; the screen's `BlocListener` calls it on success.
+- **D-27 (in scope — required by CHAR-07):** `MainScreen.initState` hardcodes `loadCharacter("68c191de541d89c481b8322b")`: after "Crea" the shell would show someone else's character. Pass `user.currentCharacter!.id` through `AuthenticatedShell` into `MainScreen` (no hardcoded ids remain in `lib/`).
+- **D-28 (fixes D-16/D-24):** `KlimmeckRest.uploadImage` cannot work today: it posts to `'uploadImage'` (→ `/uploadImage`, 404; the route is `/cloudinary/uploadImage`, no global prefix), accepts only HTTP 200 (Nest `@Post` answers 201), and a Cloudinary failure still answers 2xx with `{ message, error }` and no `url`. Fix: correct path, accept any 2xx, require a non-empty `url`, throw a typed exception, dedicated 30 s send/receive timeouts for the upload call. Nothing else calls it.
+- **D-29 (error codes):** `KlimmeckGraphQl` turns every GraphQL error into a plain text exception and resolves its client through the global `navigatorKey`. Add a mapper `OperationException → CharacterCreationFailure` modelled on `mapAuthOperationException`, reading codes from both `graphqlErrors` and `ServerException.parsedResponse.errors` (HTTP 400 path); give `KlimmeckGraphQl` an optional injectable client resolver so the new methods are unit-testable. On `CHARACTER_ALREADY_EXISTS`, re-fetch the user (`me`) and, if it has a character, adopt it and enter the shell (never leave the user stuck).
+- **D-30 (picker):** `image_picker` **1.2.2** (newest installable on Flutter 3.35.5 / Dart 3.9.2), behind a `PortraitPicker` interface in `lib/repository/services/image/` so tests fake it; `requestFullMetadata: false`, max 1024 px, quality 85. Keep the uploaded URL together with the local file path and reuse it on retry only if the user has not picked a different photo (refines D-16).
+- **D-31 (native prerequisites, Wave 0 — user decisions 2026-10-09):** bump `.fvmrc` to **3.35.5** (the version actually in use); **commit the pending `android/app/build.gradle.kts` change** (`minSdk = flutter.minSdkVersion`, i.e. 24, required by the picker) as part of this phase; raise the iOS deployment target to **13.0** (`image_picker_ios` and the existing `firebase_core` need it); add `NSPhotoLibraryUsageDescription` and `NSCameraUsageDescription` to `ios/Runner/Info.plist`. Android needs no manifest change (system Photo Picker on 13+).
+- **D-32 (form widgets):** `lib/shared/components/dropdown.dart` is a collapsible section, not a value picker: use **choice chips** for the enums; add an `inputDecorationTheme` to `kg_theme.dart` (the app has no text field yet). Length rule for the "Crea" enablement and the background counter uses `trim().length` (UTF-16 units, same as the backend).
+- **D-33 (schema check):** BE Phase 02.1 is being built in parallel; the plan task that writes the GraphQL documents must verify names against the regenerated `Klimmeck-Guide-BE/src/schema.gql` before the PR is opened, and the phase PR waits for the BE PR.
+- **D-34 (baselines):** 283 tests green; `flutter analyze lib test` shows 12 pre-existing issues — no new issues allowed.
+
 ### Claude's Discretion
-- Exact `AuthCubit` mechanism to adopt the post-creation `User` (D-02).
-- Picker package, image downscale/compression and max upload size (D-15, D-24); whether to show a simple square-cropped preview (`BoxFit.cover`) — no crop tool required.
+- Image downscale beyond D-30 and a simple square-cropped preview (`BoxFit.cover`) — no crop tool required.
 - Backend: `background` nullable vs empty string; initial character defaults; whether `raceTraits` is a plain query or enum metadata.
 - Behaviour details when the race changes after an age was typed (D-10 fixes "show error, don't clamp").
 - Feature folder/class names per `docs/rules/naming.md` (e.g. `lib/screens/characterCreation/` + `CharacterCreationScreen` + `CharacterCreationCubit`); the unused `lib/screens/onBoarding/` placeholder is left alone (onboarding is a deferred Phase 11 idea).
