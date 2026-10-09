@@ -9,6 +9,8 @@ import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.da
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,3 +50,8 @@ class MockCharacterCreationRepository extends Mock
     implements CharacterCreationRepository {}
 
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
+
+class MockCharacterCreationCubit extends MockCubit<CharacterCreationState>
+    implements CharacterCreationCubit {}
+
+class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
