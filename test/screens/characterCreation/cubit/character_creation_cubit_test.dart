@@ -56,6 +56,7 @@ void main() {
           ).thenAnswer((_) async => testRaceTraits);
           return build();
         },
+        seed: () => const CharacterCreationState(),
         act: (cubit) => cubit.loadRaceTraits(),
         expect: () => [_loadedState()],
         verify: (cubit) => expect(cubit.state.raceTraits, testRaceTraits),
@@ -71,6 +72,7 @@ void main() {
           });
           return build();
         },
+        seed: () => const CharacterCreationState(),
         act: (cubit) async {
           await cubit.loadRaceTraits();
           await cubit.loadRaceTraits();
@@ -94,6 +96,7 @@ void main() {
           ).thenAnswer((_) async => throw StateError('boom'));
           return build();
         },
+        seed: () => const CharacterCreationState(),
         act: (cubit) => cubit.loadRaceTraits(),
         expect: () => [
           const CharacterCreationState(
@@ -247,6 +250,7 @@ void main() {
           ).thenAnswer((_) async => '/tmp/p.jpg');
           return build();
         },
+        seed: () => const CharacterCreationState(),
         act: (cubit) => cubit.pickPortrait(PortraitSource.gallery),
         expect: () => [
           const CharacterCreationState(portraitPath: '/tmp/p.jpg'),
