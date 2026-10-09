@@ -92,7 +92,9 @@ void main() {
     useLandscapePhone(tester);
     await tester.pumpWidget(build(portraitPath: '/tmp/p.jpg', enabled: false));
 
-    final buttons = tester.widgetList<TextButton>(find.byType(TextButton));
+    final buttons = tester.widgetList<TextButton>(
+      find.byWidgetPredicate((widget) => widget is TextButton),
+    );
     expect(buttons, hasLength(3));
     expect(buttons.every((button) => button.onPressed == null), isTrue);
   });
