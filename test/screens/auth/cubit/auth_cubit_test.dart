@@ -22,7 +22,10 @@ void main() {
     when(() => service.authStateStream).thenAnswer((_) => controller.stream);
     when(() => service.initialize()).thenAnswer((_) async {});
     when(() => service.logout()).thenAnswer((_) async {});
+    when(() => service.adoptUser(any())).thenReturn(null);
   });
+
+  setUpAll(() => registerFallbackValue(buildTestUser()));
 
   tearDown(() => controller.close());
 
@@ -35,6 +38,12 @@ void main() {
     await cubit.start();
     verifyInOrder([() => service.authStateStream, () => service.initialize()]);
     await cubit.close();
+  });
+
+  test('adoptUser delegates to the service', () {
+    final user = buildTestUserWithCharacter();
+    AuthCubit(service).adoptUser(user);
+    verify(() => service.adoptUser(user)).called(1);
   });
 
   test('start twice calls initialize once', () async {
