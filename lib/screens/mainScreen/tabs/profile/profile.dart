@@ -49,7 +49,7 @@ class _ProfileState extends State<Profile> {
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            ProfileImage(),
+                            ProfileImage(imagePath: infos.imagePath),
                             SizedBox(
                               width: MediaQuery.of(context).size.width - 340,
                               child: Padding(
