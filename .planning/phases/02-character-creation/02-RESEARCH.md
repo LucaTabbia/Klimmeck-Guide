@@ -531,21 +531,21 @@ A `RenderFlex overflowed` error fails the test automatically, so a "renders with
 | A5 | Downscale 1024×1024 at quality 85 is enough for a portrait (expected ~150–400 KB JPEG) | Pattern 6 | Low — tune constants |
 | A6 | Selection set `currentCharacter { id }` in the `createCharacter` response is enough for the shell (it loads the full character by id) | Code Examples | Low — matches `GetMe` today |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`.fvmrc` pins Flutter 3.32.6 while the toolchain in use is 3.35.5.**
+1. **`.fvmrc` pins Flutter 3.32.6 while the toolchain in use is 3.35.5.** — RESOLVED: D-31 (user, 2026-10-09): bump `.fvmrc` to 3.35.5; `image_picker` 1.2.2.
    - What we know: `which flutter` → FVM default 3.35.5; Phase 11 research verified on 3.35.5; image_picker 1.2.2 requires Flutter ≥ 3.35.0.
    - Unclear: whether anything (CI, another machine) uses `.fvmrc`.
    - Recommendation: bump `.fvmrc` to `3.35.5` in the Wave 0 dependency commit; if the user wants 3.32 compatibility, pin `image_picker: 1.2.1` instead.
-2. **Is fixing the hardcoded `MainScreen` character id in scope?**
+2. **Is fixing the hardcoded `MainScreen` character id in scope?** — RESOLVED: D-27: in scope (required by CHAR-07), plan 02-10.
    - What we know: without it, criterion 4 ("enters the main shell with a valid `currentCharacter`") is technically met but the shell shows the wrong character.
    - Recommendation: in scope as a minimal constructor-parameter change (no subscription rework); confirm with the user during plan review.
-3. **Uncommitted change in `android/app/build.gradle.kts` (`minSdk = 23` → `flutter.minSdkVersion`).**
+3. **Uncommitted change in `android/app/build.gradle.kts` (`minSdk = 23` → `flutter.minSdkVersion`).** — RESOLVED: D-31 (user, 2026-10-09): committed deliberately in the Wave 0 native task (plan 02-01).
    - What we know: it is in the working tree (not mine); `flutter.minSdkVersion` is 24 in Flutter 3.35.5, which image_picker_android 0.8.13+17 requires (minSdk 24). [VERIFIED: FlutterExtension.kt, plugin build.gradle]
    - Recommendation: the Wave 0 native task should commit it deliberately (or explicitly set `minSdk = 24`) — ask the user whether the change is theirs to keep.
-4. **iOS deployment target is 12.0 in `project.pbxproj` / `AppFrameworkInfo.plist`, while image_picker_ios (and the existing firebase_core 3.15) require 13.0.**
+4. **iOS deployment target is 12.0 in `project.pbxproj` / `AppFrameworkInfo.plist`, while image_picker_ios (and the existing firebase_core 3.15) require 13.0.** — RESOLVED: D-31: Wave 0 raises the target to 13.0 (pbxproj, AppFrameworkInfo, Podfile), plan 02-01.
    - Pre-existing mismatch (no `Podfile.lock`, so iOS has probably not been built recently). Recommendation: Wave 0 raises the target to 13.0 and adds `platform :ios, '13.0'` in the Podfile, verified with `flutter build ios --no-codesign --debug` if the user wants the iOS path exercised; otherwise flag it as a known gap.
-5. **BE 2.1 delivery timing.** Plans touching `CreateCharacter`/`GetRaceTraits` documents need the regenerated schema; the rest can proceed in parallel (Pitfall 12).
+5. **BE 2.1 delivery timing.** — RESOLVED: D-33: plan 02-11 gates on the regenerated BE `src/schema.gql` (BLOCKED path explicit); BE 02.1 is executing in parallel. Plans touching `CreateCharacter`/`GetRaceTraits` documents need the regenerated schema; the rest can proceed in parallel (Pitfall 12).
 
 ## Environment Availability
 
