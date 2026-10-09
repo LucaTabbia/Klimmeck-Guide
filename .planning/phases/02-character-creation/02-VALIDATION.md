@@ -63,6 +63,7 @@ created: 2026-10-09
 | 2-09-03 | 09 | 5 | CHAR-02..05, CHAR-07..09 | T-02-09-02/04 | adoptUser once; Esci needs confirmation; no overflow in landscape | widget | `flutter test test/screens/characterCreation/` | ❌ new | ⬜ pending |
 | 2-10-01 | 10 | 6 | CHAR-01 | T-02-10-03 | Branch re-evaluated on every gate rebuild | widget | `flutter test test/screens/auth/session_home_test.dart` | ❌ new | ⬜ pending |
 | 2-10-02 | 10 | 6 | CHAR-01, CHAR-07 | T-02-10-01 | No hardcoded character id | widget | `flutter test test/screens/auth test/screens/mainScreen && ! grep -rn "68c191de541d89c481b8322b" lib` | ✅ extend + ❌ new | ⬜ pending |
+| 2-10-03 | 10 | 6 | CHAR-05, CHAR-07 | T-02-10-05 | Profile portrait only via CharacterPortrait; silhouette when imagePath is null | widget | `flutter test test/screens/mainScreen/tabs/profile/components/profile_image_test.dart && ! grep -rn "silhouette.jpeg" lib/screens/mainScreen/tabs/profile` | ❌ new | ⬜ pending |
 | 2-11-01 | 11 | 7 | CHAR-03, CHAR-07, CHAR-09 | T-02-11-01/02 | Contract names equal to the BE schema | schema check | `grep -q "createCharacter(input: CreateCharacterInput!): User!" ../../Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/schema.gql && flutter test` | ✅ | ⬜ pending |
 | 2-11-02 | 11 | 7 | CHAR-01, CHAR-05, CHAR-07 | T-02-11-03/04 | Manual E2E against BE 02.1 | manual | see Manual-Only below | n/a | ⬜ pending |
 
