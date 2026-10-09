@@ -110,7 +110,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
   - [x] 02-03-PLAN.md — Models (RaceTraits, CreateCharacterRequest, SexType.label) + pure CharacterDraft validation
   - [x] 02-04-PLAN.md — Theme tokens for fields/chips/spacing + CharacterPortrait silhouette resolver (D-14)
   - [x] 02-05-PLAN.md — Fixed Cloudinary upload (D-28) + injectable PortraitPicker (D-30)
-  - [ ] 02-06-PLAN.md — CreateCharacter/GetRaceTraits documents, error-code mapper, KlimmeckGraphQl methods (D-29)
+  - [x] 02-06-PLAN.md — CreateCharacter/GetRaceTraits documents, error-code mapper, KlimmeckGraphQl methods (D-29)
   - [ ] 02-07-PLAN.md — CharacterCreationRepository + cubit editing (traits, fields, portrait)
   - [ ] 02-08-PLAN.md — Cubit submit: upload-then-mutation, URL reuse, CHARACTER_ALREADY_EXISTS recovery
   - [ ] 02-09-PLAN.md — CharacterCreationScreen: parchment sheet, inline errors, Crea progress, Esci
@@ -304,7 +304,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
-| 2. Character Creation | 5/11 | In Progress|  |
+| 2. Character Creation | 6/11 | In Progress|  |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
