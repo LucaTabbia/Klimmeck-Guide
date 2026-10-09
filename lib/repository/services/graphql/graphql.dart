@@ -402,10 +402,17 @@ class KlimmeckGraphQl {
     return result.data ?? const {};
   }
 
+  /// Confine di parsing: un payload malformato fa lanciare a `User.fromJson`
+  /// TypeError/ArgumentError, che qui diventano la [FormatException] attesa dal
+  /// repository (stesso pattern di `RaceTraits.tryFromJson`).
   User _userFrom(Object? json) {
     if (json is! Map<String, dynamic>) {
       throw const FormatException('user missing');
     }
-    return User.fromJson(json);
+    try {
+      return User.fromJson(json);
+    } on Object catch (error) {
+      throw FormatException('user malformed: ${error.runtimeType}');
+    }
   }
 }

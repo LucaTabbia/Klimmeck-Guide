@@ -643,6 +643,27 @@ void main() {
       },
     );
 
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'alreadyExists with an unexpected re-read error never leaves the spinner',
+      build: () {
+        stubCreateFailure(CharacterCreationFailure.alreadyExists);
+        when(
+          () => repository.fetchCurrentUser(),
+        ).thenAnswer((_) async => throw StateError('boom'));
+        return build();
+      },
+      seed: _submittable,
+      act: (cubit) => cubit.submit(),
+      errors: () => isEmpty,
+      verify: (cubit) {
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(
+          cubit.state.submitFailure,
+          CharacterCreationFailure.alreadyExists,
+        );
+      },
+    );
+
     for (final failure in [
       CharacterCreationFailure.nameTaken,
       CharacterCreationFailure.connection,

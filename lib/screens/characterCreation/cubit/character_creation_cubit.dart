@@ -79,17 +79,25 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
   Future<void> submit() async {
     if (!state.canSubmit) return;
     emit(state.copyWith(isSubmitting: true, submitFailure: null));
+    final failure = await _createCharacter();
+    if (failure != null) await _handleSubmitFailure(failure);
+  }
+
+  /// Ritorna il fallimento invece di gestirlo nel `catch`: il recovery gira
+  /// fuori dal `try`, così un suo errore non può sfuggire alle clausole gemelle.
+  Future<CharacterCreationFailure?> _createCharacter() async {
     try {
       final imagePath = await _uploadedPortraitUrl();
       final user = await _repository.createCharacter(
         state.draft.toRequest(imagePath: imagePath),
       );
       emit(state.copyWith(createdUser: user));
+      return null;
     } on CharacterCreationException catch (error) {
-      await _handleSubmitFailure(error.failure);
+      return error.failure;
     } catch (_) {
       // Garanzia anti-spinner infinito: ogni errore imprevisto sblocca il form.
-      _failSubmit(CharacterCreationFailure.unknown);
+      return CharacterCreationFailure.unknown;
     }
   }
 
@@ -129,11 +137,12 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
   }
 
   /// D-29: il personaggio esiste già (submit doppio / risposta persa): si rilegge `me`.
+  /// Qualunque fallimento della rilettura vale "nessun owner": notice, mai spinner.
   Future<User?> _existingCharacterOwner() async {
     try {
       final user = await _repository.fetchCurrentUser();
       return user.currentCharacter == null ? null : user;
-    } on CharacterCreationException {
+    } catch (_) {
       return null;
     }
   }

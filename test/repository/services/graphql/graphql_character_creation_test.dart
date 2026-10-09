@@ -106,6 +106,15 @@ void main() {
         throwsFormatException,
       );
     });
+
+    test('throws FormatException when the user is malformed', () async {
+      handler = (_) => data({'createCharacter': userJson()..['id'] = null});
+
+      await expectLater(
+        buildGraphQl().createCharacter(_request),
+        throwsFormatException,
+      );
+    });
   });
 
   group('getRaceTraits', () {
@@ -136,6 +145,12 @@ void main() {
 
       expect(operationNameOf(requests.single), 'GetMe');
       expect(user.id, testUserId);
+    });
+
+    test('throws FormatException on an unknown role', () async {
+      handler = (_) => data({'me': userJson()..['role'] = 'overlord'});
+
+      await expectLater(buildGraphQl().getMe(), throwsFormatException);
     });
   });
 }
