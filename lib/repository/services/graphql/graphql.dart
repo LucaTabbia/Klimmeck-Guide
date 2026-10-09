@@ -2,39 +2,34 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/race_traits.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/lore.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
+import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/user.dart';
-
-import '../../../graphql/queries/city_queries.dart';
-import '../../../main.dart';
-import '../../../models/asset_quantity.dart';
-import '../../../models/lore.dart';
-import '../../../models/quest/quest.dart';
-import '../../../models/request/equip_item_request.dart';
-import '../../storage/storage_manager.dart';
+import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
 
 class KlimmeckGraphQl {
-  /// `resolveClient` sostituibile nei test; di default il client del
-  /// `GraphQLProvider` sotto `navigatorKey`.
-  KlimmeckGraphQl({GraphQLClient Function()? resolveClient})
-    : _resolveClient = resolveClient ?? _clientFromNavigator;
+  /// Il client arriva dal composition root (`main.dart`) o dal test: il
+  /// service non conosce l'albero dei widget né il `navigatorKey`.
+  KlimmeckGraphQl({required GraphQLClient Function() resolveClient})
+    : _resolveClient = resolveClient;
 
   final GraphQLClient Function() _resolveClient;
-
-  static GraphQLClient _clientFromNavigator() =>
-      GraphQLProvider.of(navigatorKey.currentContext!).value;
 
   final KGStorageManager localStorage = KGStorageManager();
 

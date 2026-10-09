@@ -118,7 +118,9 @@ class KlimmeckGuideApp extends StatefulWidget {
 
 class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   late final KlimmeckRest rest;
-  final KlimmeckGraphQl graphQl = KlimmeckGraphQl();
+  late final KlimmeckGraphQl graphQl = KlimmeckGraphQl(
+    resolveClient: () => widget.graphQlClient.value,
+  );
 
   @override
   void initState() {

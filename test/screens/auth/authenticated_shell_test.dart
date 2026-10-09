@@ -2,7 +2,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -39,7 +38,7 @@ void main() {
         home: BlocProvider<SplashCubit>.value(
           value: splashCubit,
           child: AuthenticatedShell(
-            graphQl: KlimmeckGraphQl(),
+            graphQl: MockKlimmeckGraphQl(),
             characterId: testCharacterId,
             mainScreenBuilder: mainScreenBuilder ?? (_, id) => Text('main $id'),
           ),
