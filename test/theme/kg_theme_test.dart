@@ -4,23 +4,34 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 void main() {
+  late KlimmeckGuideTheme theme;
+  late InputDecorationThemeData input;
+  late ChipThemeData chip;
+
+  void init() {
+    theme = KlimmeckGuideTheme.instance;
+    input = theme.materialTheme.inputDecorationTheme;
+    chip = theme.materialTheme.chipTheme;
+  }
+
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-  final theme = KlimmeckGuideTheme.instance;
-
   group('inputDecorationTheme', () {
-    final input = theme.materialTheme.inputDecorationTheme;
-
-    test('is a filled parchment sheet', () {
+    testWidgets('is a filled parchment sheet', (tester) async {
+      init();
       expect(input.filled, isTrue);
       expect(input.fillColor, KlimmeckGuideTheme.parchment);
     });
 
-    test('renders errors with the project errorText style', () {
+    testWidgets('renders errors with the project errorText style', (
+      tester,
+    ) async {
+      init();
       expect(input.errorStyle, theme.errorText);
     });
 
-    test('colors the borders by state', () {
+    testWidgets('colors the borders by state', (tester) async {
+      init();
       expect(
         (input.enabledBorder! as OutlineInputBorder).borderSide.color,
         KlimmeckGuideTheme.darkBronze,
@@ -40,21 +51,24 @@ void main() {
   });
 
   group('chipTheme', () {
-    final chip = theme.materialTheme.chipTheme;
-
-    test('uses gold when selected and parchment otherwise', () {
+    testWidgets('uses gold when selected and parchment otherwise', (
+      tester,
+    ) async {
+      init();
       expect(chip.selectedColor, KlimmeckGuideTheme.primaryGold);
       expect(chip.backgroundColor, KlimmeckGuideTheme.parchment);
       expect(chip.checkmarkColor, KlimmeckGuideTheme.deepNight);
     });
 
-    test('has a bronze border and the body label style', () {
+    testWidgets('has a bronze border and the body label style', (tester) async {
+      init();
       expect(chip.side?.color, KlimmeckGuideTheme.darkBronze);
       expect(chip.labelStyle, theme.bodyMedium);
     });
   });
 
-  test('exposes the spacing scale', () {
+  testWidgets('exposes the spacing scale', (tester) async {
+    init();
     expect(KlimmeckGuideTheme.spacingXs, 4);
     expect(KlimmeckGuideTheme.spacingSm, 8);
     expect(KlimmeckGuideTheme.spacingMd, 16);
@@ -62,7 +76,8 @@ void main() {
     expect(KlimmeckGuideTheme.spacingXl, 32);
   });
 
-  test('keeps the app bar unchanged', () {
+  testWidgets('keeps the app bar unchanged', (tester) async {
+    init();
     final appBar = theme.materialTheme.appBarTheme;
     expect(appBar.backgroundColor, KlimmeckGuideTheme.darkBronze);
     expect(appBar.foregroundColor, KlimmeckGuideTheme.primaryGold);
