@@ -6,7 +6,6 @@ import 'package:klimmeck_guide/models/enums/class_type.dart';
 import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
-import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/character_creation_failure.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';

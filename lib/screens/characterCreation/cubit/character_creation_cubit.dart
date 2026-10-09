@@ -109,8 +109,24 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
     return url;
   }
 
-  Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async =>
-      _failSubmit(failure);
+  Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async {
+    if (failure != CharacterCreationFailure.alreadyExists) {
+      return _failSubmit(failure);
+    }
+    final existing = await _existingCharacterOwner();
+    if (existing == null) return _failSubmit(failure);
+    emit(state.copyWith(createdUser: existing));
+  }
+
+  /// D-29: il personaggio esiste già (submit doppio / risposta persa): si rilegge `me`.
+  Future<User?> _existingCharacterOwner() async {
+    try {
+      final user = await _repository.fetchCurrentUser();
+      return user.currentCharacter == null ? null : user;
+    } on CharacterCreationException {
+      return null;
+    }
+  }
 
   void _failSubmit(CharacterCreationFailure failure) =>
       emit(state.copyWith(isSubmitting: false, submitFailure: failure));
