@@ -9,8 +9,7 @@ Dio _dioWith(ScriptedHttpClientAdapter adapter) =>
       ..httpClientAdapter = adapter;
 
 void main() {
-  test('answers the scripted statuses in order and records requests',
-      () async {
+  test('answers the scripted statuses in order and records requests', () async {
     final adapter = ScriptedHttpClientAdapter([
       const ScriptedResponse.json(200),
       const ScriptedResponse.json(204),
@@ -43,8 +42,11 @@ void main() {
     expect(
       _dioWith(adapter).post<Object?>('up'),
       throwsA(
-        isA<DioException>()
-            .having((e) => e.type, 'type', DioExceptionType.receiveTimeout),
+        isA<DioException>().having(
+          (e) => e.type,
+          'type',
+          DioExceptionType.receiveTimeout,
+        ),
       ),
     );
   });
