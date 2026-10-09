@@ -14,6 +14,8 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta;
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
+///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
+///   (creazione → shell, D-26), senza chiudere la sessione.
 ///
 /// Quando la sessione finisce (`AuthUnauthenticated`) o cambia utente chiude
 /// dialog e sheet aperti sul Navigator radice, che vivono fuori dal
@@ -61,9 +63,15 @@ class AuthGate extends StatelessWidget {
       current is AuthAuthenticated &&
       previous.user.id != current.user.id;
 
+  static bool _changesCharacter(AuthState previous, AuthState current) =>
+      previous is AuthAuthenticated &&
+      current is AuthAuthenticated &&
+      previous.user.currentCharacter?.id != current.user.currentCharacter?.id;
+
   static bool _shouldRebuild(AuthState previous, AuthState current) =>
       previous.runtimeType != current.runtimeType ||
       _changesUser(previous, current) ||
+      _changesCharacter(previous, current) ||
       (previous is AuthUnauthenticated &&
           current is AuthUnauthenticated &&
           previous.reason != current.reason);
