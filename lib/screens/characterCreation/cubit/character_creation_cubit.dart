@@ -74,6 +74,47 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
     emit(state.copyWith(portraitPath: null, uploadedPortrait: null));
   }
 
+  /// D-16: upload del ritratto (se scelto) e poi mutation. I dati non vengono
+  /// mai azzerati; l'URL caricato si riusa al retry solo per lo stesso file.
+  Future<void> submit() async {
+    if (!state.canSubmit) return;
+    emit(state.copyWith(isSubmitting: true, submitFailure: null));
+    try {
+      final imagePath = await _uploadedPortraitUrl();
+      final user = await _repository.createCharacter(
+        state.draft.toRequest(imagePath: imagePath),
+      );
+      emit(state.copyWith(createdUser: user));
+    } on CharacterCreationException catch (error) {
+      await _handleSubmitFailure(error.failure);
+    } catch (_) {
+      // Garanzia anti-spinner infinito: ogni errore imprevisto sblocca il form.
+      _failSubmit(CharacterCreationFailure.unknown);
+    }
+  }
+
+  Future<String?> _uploadedPortraitUrl() async {
+    final localPath = state.portraitPath;
+    if (localPath == null) return null;
+    final uploaded = state.uploadedPortrait;
+    if (uploaded != null && uploaded.localPath == localPath) {
+      return uploaded.url;
+    }
+    final url = await _repository.uploadPortrait(localPath);
+    emit(
+      state.copyWith(
+        uploadedPortrait: UploadedPortrait(localPath: localPath, url: url),
+      ),
+    );
+    return url;
+  }
+
+  Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async =>
+      _failSubmit(failure);
+
+  void _failSubmit(CharacterCreationFailure failure) =>
+      emit(state.copyWith(isSubmitting: false, submitFailure: failure));
+
   void _editDraft(CharacterDraft draft) {
     if (state.isSubmitting) return;
     emit(state.copyWith(draft: draft, submitFailure: null));
