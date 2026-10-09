@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
@@ -7,11 +8,14 @@ import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/character/race_traits.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
+import 'package:klimmeck_guide/models/user.dart';
 
 import '../../../graphql/queries/city_queries.dart';
 import '../../../main.dart';
@@ -22,7 +26,15 @@ import '../../../models/request/equip_item_request.dart';
 import '../../storage/storage_manager.dart';
 
 class KlimmeckGraphQl {
-  KlimmeckGraphQl();
+  /// `resolveClient` sostituibile nei test; di default il client del
+  /// `GraphQLProvider` sotto `navigatorKey`.
+  KlimmeckGraphQl({GraphQLClient Function()? resolveClient})
+    : _resolveClient = resolveClient ?? _clientFromNavigator;
+
+  final GraphQLClient Function() _resolveClient;
+
+  static GraphQLClient _clientFromNavigator() =>
+      GraphQLProvider.of(navigatorKey.currentContext!).value;
 
   final KGStorageManager localStorage = KGStorageManager();
 
@@ -50,7 +62,7 @@ class KlimmeckGraphQl {
       variables: variables ?? {},
       fetchPolicy: FetchPolicy.noCache,
     );
-    final client = GraphQLProvider.of(navigatorKey.currentContext!).value;
+    final client = _resolveClient();
     final result = await client.query(options);
     return result;
   }
@@ -64,7 +76,7 @@ class KlimmeckGraphQl {
       variables: variables,
       fetchPolicy: FetchPolicy.noCache,
     );
-    final client = GraphQLProvider.of(navigatorKey.currentContext!).value;
+    final client = _resolveClient();
     final result = await client.mutate(options);
     return result;
   }
@@ -78,7 +90,7 @@ class KlimmeckGraphQl {
       variables: variables ?? {},
       fetchPolicy: FetchPolicy.noCache,
     );
-    final client = GraphQLProvider.of(navigatorKey.currentContext!).value;
+    final client = _resolveClient();
     return client.subscribe(options);
   }
 
@@ -352,5 +364,48 @@ class KlimmeckGraphQl {
     }
 
     return transactionResult["response"];
+  }
+
+  /// Tabella età/razza dal backend. Lancia [OperationException] o [FormatException].
+  Future<List<RaceTraits>> getRaceTraits() async {
+    final data = _dataOrThrow(
+      await performQuery(CharacterQueries.getRaceTraits),
+    );
+    final list = data['raceTraits'];
+    if (list is! List) throw const FormatException('raceTraits missing');
+    return List<RaceTraits>.unmodifiable(
+      list
+          .whereType<Map<String, dynamic>>()
+          .map(RaceTraits.tryFromJson)
+          .whereType<RaceTraits>(),
+    );
+  }
+
+  /// Crea il personaggio dell'utente autenticato e restituisce lo User aggiornato.
+  Future<User> createCharacter(CreateCharacterRequest request) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: CharacterMutations.createCharacter,
+        variables: {'input': request.toJson()},
+      ),
+    );
+    return _userFrom(data['createCharacter']);
+  }
+
+  /// Utente corrente via il client autenticato (recovery di CHARACTER_ALREADY_EXISTS).
+  Future<User> getMe() async =>
+      _userFrom(_dataOrThrow(await performQuery(AuthQueries.getMe))['me']);
+
+  Map<String, dynamic> _dataOrThrow(QueryResult result) {
+    final exception = result.exception;
+    if (exception != null) throw exception;
+    return result.data ?? const {};
+  }
+
+  User _userFrom(Object? json) {
+    if (json is! Map<String, dynamic>) {
+      throw const FormatException('user missing');
+    }
+    return User.fromJson(json);
   }
 }
