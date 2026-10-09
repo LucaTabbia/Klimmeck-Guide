@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -266,5 +267,82 @@ void main() {
     await emitAuth(tester, _authenticated('A'));
 
     expect(find.text('home A'), findsOneWidget);
+  });
+
+  group('character gained', () {
+    var builds = 0;
+
+    Future<void> pumpCountingGate(WidgetTester tester) async {
+      builds = 0;
+      await tester.pumpWidget(
+        RepositoryProvider<AuthTokenService>.value(
+          value: service,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthCubit>.value(value: authCubit),
+              BlocProvider<SplashCubit>.value(value: splashCubit),
+            ],
+            child: buildTestApp(
+              home: AuthGate(
+                authenticatedBuilder: (context, user) {
+                  builds++;
+                  return Text(
+                    'home ${user.id} ${user.currentCharacter?.id ?? 'none'}',
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await authCubit.start();
+      await tester.pump();
+    }
+
+    AuthAuthenticated withCharacter({int twitchPoints = 0}) =>
+        AuthAuthenticated(
+          user: _user('u1').copyWith(
+            twitchPoints: twitchPoints,
+            currentCharacter: Character.fromJson({'id': 'c1'}),
+          ),
+          accessToken: 'token',
+        );
+
+    testWidgets('the same user gaining a character rebuilds the subtree', (
+      tester,
+    ) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, _authenticated('u1'));
+      expect(find.text('home u1 none'), findsOneWidget);
+
+      await emitAuth(tester, withCharacter());
+
+      expect(find.text('home u1 c1'), findsOneWidget);
+    });
+
+    testWidgets('a points-only change does not rebuild the subtree', (
+      tester,
+    ) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, _authenticated('u1'));
+      await emitAuth(tester, withCharacter());
+      final buildsBefore = builds;
+
+      await emitAuth(tester, withCharacter(twitchPoints: 50));
+
+      expect(builds, buildsBefore);
+    });
+
+    testWidgets('gaining a character keeps root dialogs open', (tester) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, _authenticated('u1'));
+      await openSessionDialog(tester, 'u1 none');
+
+      await emitAuth(tester, withCharacter());
+      await tester.pumpAndSettle();
+
+      expect(find.text('session dialog'), findsOneWidget);
+      expect(find.text('home u1 c1'), findsOneWidget);
+    });
   });
 }
