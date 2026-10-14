@@ -10,6 +10,11 @@ class KlimmeckGuideTheme {
   }
 
   static const double radius = 15.0;
+  static const double spacingXs = 4;
+  static const double spacingSm = 8;
+  static const double spacingMd = 16;
+  static const double spacingLg = 24;
+  static const double spacingXl = 32;
   static const double inputTextHeight = 42;
   static const double inputTextWidth = 250;
   static const List<Shadow> bordersForText = [
@@ -136,7 +141,44 @@ class KlimmeckGuideTheme {
       backgroundColor: darkBronze,
       foregroundColor: primaryGold,
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: parchment,
+      labelStyle: bodyMedium,
+      hintStyle: bodyMedium.copyWith(color: darkWood),
+      helperStyle: bodyMedium.copyWith(color: darkWood),
+      counterStyle: bodyMedium.copyWith(color: darkWood),
+      errorStyle: errorText,
+      errorMaxLines: 2,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: spacingMd,
+        vertical: spacingSm,
+      ),
+      enabledBorder: _sheetBorder(darkBronze),
+      focusedBorder: _sheetBorder(darkWood, width: 2),
+      errorBorder: _sheetBorder(bloodRed),
+      focusedErrorBorder: _sheetBorder(bloodRed, width: 2),
+      disabledBorder: _sheetBorder(paleSilver),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: parchment,
+      selectedColor: primaryGold,
+      disabledColor: paleSilver,
+      side: const BorderSide(color: darkBronze),
+      labelStyle: bodyMedium,
+      checkmarkColor: deepNight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: spacingSm,
+        vertical: spacingXs,
+      ),
+    ),
   );
+
+  static OutlineInputBorder _sheetBorder(Color color, {double width = 1}) =>
+      OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(spacingSm)),
+        borderSide: BorderSide(color: color, width: width),
+      );
 
   static BoxDecoration getBackgroundDecoration() => const BoxDecoration(
     gradient: LinearGradient(

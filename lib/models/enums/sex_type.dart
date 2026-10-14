@@ -2,7 +2,12 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 
 enum SexType { male, female }
 
-extension SextTypeExtension on SexType {
+extension SexTypeExtension on SexType {
+  String get label => switch (this) {
+    SexType.male => 'Maschio',
+    SexType.female => 'Femmina',
+  };
+
   String get pawnPath {
     switch (this) {
       case SexType.female:

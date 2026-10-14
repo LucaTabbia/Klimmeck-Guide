@@ -179,6 +179,16 @@ class SessionAuthTokenService extends AuthTokenService
   Future<void> handleRevocation() =>
       _endSession(UnauthenticatedReason.sessionExpired);
 
+  @override
+  bool adoptUser(User user) {
+    if (_channel.current is! AuthAuthenticated || user.id != _user?.id) {
+      return false;
+    }
+    _user = user;
+    _emitAuthenticated();
+    return true;
+  }
+
   /// Unico punto d'ingresso del retry reattivo per link GraphQL, interceptor
   /// dio e WebSocket: passa sempre dal refresh single-flight.
   ///

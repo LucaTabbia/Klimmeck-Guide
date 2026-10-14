@@ -1,0 +1,157 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/character/race_traits.dart';
+import 'package:klimmeck_guide/models/enums/class_type.dart';
+import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
+import 'package:klimmeck_guide/models/enums/race_type.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/user.dart';
+import 'package:klimmeck_guide/repository/character_creation_failure.dart';
+import 'package:klimmeck_guide/repository/character_creation_repository.dart';
+import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+
+import 'character_draft.dart';
+
+part 'character_creation_state.dart';
+
+/// Scheda di creazione (pagina unica, D-04): un solo stato, mai azzerato dagli errori.
+class CharacterCreationCubit extends Cubit<CharacterCreationState>
+    with SafeEmit<CharacterCreationState> {
+  CharacterCreationCubit(this._repository)
+    : super(const CharacterCreationState());
+
+  final CharacterCreationRepository _repository;
+
+  Future<void> loadRaceTraits() async {
+    emit(state.copyWith(raceTraitsStatus: RaceTraitsStatus.loading));
+    try {
+      final traits = await _repository.loadRaceTraits();
+      emit(
+        state.copyWith(
+          raceTraits: traits,
+          raceTraitsStatus: RaceTraitsStatus.loaded,
+        ),
+      );
+    } catch (_) {
+      emit(state.copyWith(raceTraitsStatus: RaceTraitsStatus.failed));
+    }
+  }
+
+  void selectSex(SexType sex) => _editDraft(state.draft.copyWith(sex: sex));
+
+  void updateName(String name) => _editDraft(state.draft.copyWith(name: name));
+
+  void selectPronoun(PronounType pronoun) =>
+      _editDraft(state.draft.copyWith(pronoun: pronoun));
+
+  void selectRace(RaceType race) =>
+      _editDraft(state.draft.copyWith(race: race));
+
+  void selectClass(ClassType classType) =>
+      _editDraft(state.draft.copyWith(classType: classType));
+
+  void updateAge(String ageText) =>
+      _editDraft(state.draft.copyWith(ageText: ageText));
+
+  void updateBackground(String background) =>
+      _editDraft(state.draft.copyWith(background: background));
+
+  Future<void> pickPortrait(PortraitSource source) async {
+    if (state.isSubmitting) return;
+    emit(state.copyWith(pickFailure: null));
+    try {
+      final path = await _repository.pickPortrait(source);
+      if (path == null) return;
+      emit(state.copyWith(portraitPath: path));
+    } on PortraitPickException catch (error) {
+      emit(state.copyWith(pickFailure: error.failure));
+    }
+  }
+
+  void removePortrait() {
+    if (state.isSubmitting) return;
+    emit(state.copyWith(portraitPath: null, uploadedPortrait: null));
+  }
+
+  /// D-16: upload del ritratto (se scelto) e poi mutation. I dati non vengono
+  /// mai azzerati; l'URL caricato si riusa al retry solo per lo stesso file.
+  Future<void> submit() async {
+    if (!state.canSubmit) return;
+    emit(state.copyWith(isSubmitting: true, submitFailure: null));
+    final failure = await _createCharacter();
+    if (failure != null) await _handleSubmitFailure(failure);
+  }
+
+  /// Ritorna il fallimento invece di gestirlo nel `catch`: il recovery gira
+  /// fuori dal `try`, così un suo errore non può sfuggire alle clausole gemelle.
+  Future<CharacterCreationFailure?> _createCharacter() async {
+    try {
+      final imagePath = await _uploadedPortraitUrl();
+      final user = await _repository.createCharacter(
+        state.draft.toRequest(imagePath: imagePath),
+      );
+      emit(state.copyWith(createdUser: user));
+      return null;
+    } on CharacterCreationException catch (error) {
+      return error.failure;
+    } catch (_) {
+      // Garanzia anti-spinner infinito: ogni errore imprevisto sblocca il form.
+      return CharacterCreationFailure.unknown;
+    }
+  }
+
+  /// La sessione non ha adottato lo user creato (D-26): la scheda si sblocca e
+  /// lo dice, così il giocatore può uscire e rientrare invece di restare appeso.
+  void handoverRejected() => emit(
+    state.copyWith(
+      isSubmitting: false,
+      createdUser: null,
+      submitFailure: CharacterCreationFailure.handoverRejected,
+    ),
+  );
+
+  Future<String?> _uploadedPortraitUrl() async {
+    final localPath = state.portraitPath;
+    if (localPath == null) return null;
+    final uploaded = state.uploadedPortrait;
+    if (uploaded != null && uploaded.localPath == localPath) {
+      return uploaded.url;
+    }
+    final url = await _repository.uploadPortrait(localPath);
+    emit(
+      state.copyWith(
+        uploadedPortrait: UploadedPortrait(localPath: localPath, url: url),
+      ),
+    );
+    return url;
+  }
+
+  Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async {
+    if (failure != CharacterCreationFailure.alreadyExists) {
+      return _failSubmit(failure);
+    }
+    final existing = await _existingCharacterOwner();
+    if (existing == null) return _failSubmit(failure);
+    emit(state.copyWith(createdUser: existing));
+  }
+
+  /// D-29: il personaggio esiste già (submit doppio / risposta persa): si rilegge `me`.
+  /// Qualunque fallimento della rilettura vale "nessun owner": notice, mai spinner.
+  Future<User?> _existingCharacterOwner() async {
+    try {
+      final user = await _repository.fetchCurrentUser();
+      return user.currentCharacter == null ? null : user;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _failSubmit(CharacterCreationFailure failure) =>
+      emit(state.copyWith(isSubmitting: false, submitFailure: failure));
+
+  void _editDraft(CharacterDraft draft) {
+    if (state.isSubmitting) return;
+    emit(state.copyWith(draft: draft, submitFailure: null));
+  }
+}

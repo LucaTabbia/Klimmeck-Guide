@@ -11,8 +11,9 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provid
 /// chiamate sovrapposte condividono la stessa ricreazione, così nessun link
 /// sostituito resta senza `dispose`.
 ///
-/// `GraphQLProvider(client: holder.client)` DEVE restare sopra `MaterialApp`:
-/// `KlimmeckGraphQl` risolve il client dal contesto del `navigatorKey`.
+/// `GraphQLProvider(client: holder.client)` resta sopra `MaterialApp` per i
+/// widget di `graphql_flutter`; `KlimmeckGraphQl` riceve da `main.dart` un
+/// resolver `() => holder.client.value`, così legge sempre il client corrente.
 class GraphQLClientHolder {
   GraphQLClientHolder({required GraphQLConnection Function() connect})
     : _connect = connect {

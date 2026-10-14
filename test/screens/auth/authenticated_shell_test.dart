@@ -2,7 +2,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -10,6 +9,7 @@ import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/auth_fixtures.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
@@ -26,7 +26,7 @@ void main() {
   Future<void> pumpShell(
     WidgetTester tester, {
     required SplashState state,
-    WidgetBuilder? mainScreenBuilder,
+    Widget Function(BuildContext, String)? mainScreenBuilder,
   }) async {
     whenListen(
       splashCubit,
@@ -38,8 +38,9 @@ void main() {
         home: BlocProvider<SplashCubit>.value(
           value: splashCubit,
           child: AuthenticatedShell(
-            graphQl: KlimmeckGraphQl(),
-            mainScreenBuilder: mainScreenBuilder ?? (_) => const Text('main'),
+            graphQl: MockKlimmeckGraphQl(),
+            characterId: testCharacterId,
+            mainScreenBuilder: mainScreenBuilder ?? (_, id) => Text('main $id'),
           ),
         ),
       ),
@@ -55,14 +56,14 @@ void main() {
     verify(() => splashCubit.getImages('main')).called(1);
     final splash = tester.widget<SplashScreen>(find.byType(SplashScreen));
     expect(splash.watchConnection, isFalse);
-    expect(find.text('main'), findsNothing);
+    expect(find.text('main $testCharacterId'), findsNothing);
     verifyNever(() => splashCubit.startBootstrapWatch());
   });
 
   testWidgets('enters the main screen once images are ready', (tester) async {
     await pumpShell(tester, state: const SplashData());
 
-    expect(find.text('main'), findsOneWidget);
+    expect(find.text('main $testCharacterId'), findsOneWidget);
     expect(find.byType(SplashScreen), findsNothing);
   });
 
@@ -71,7 +72,7 @@ void main() {
   ) async {
     await pumpShell(tester, state: const SplashError('offline'));
 
-    expect(find.text('main'), findsOneWidget);
+    expect(find.text('main $testCharacterId'), findsOneWidget);
     expect(find.byType(SplashScreen), findsNothing);
   });
 
@@ -83,7 +84,7 @@ void main() {
     await pumpShell(
       tester,
       state: const SplashData(),
-      mainScreenBuilder: (context) {
+      mainScreenBuilder: (context, _) {
         characterCubit = context.read<CharacterCubit>();
         questCubit = context.read<QuestCubit>();
         return const Text('main');

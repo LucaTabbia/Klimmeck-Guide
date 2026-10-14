@@ -141,4 +141,65 @@ void main() {
       expect(await service.getAccessToken(), isNull);
     });
   });
+
+  group('DevAuthTokenService adoptUser', () {
+    Future<List<AuthState>> collect(Future<void> Function() act) async {
+      final states = <AuthState>[];
+      final subscription = service.authStateStream.listen(states.add);
+      await act();
+      await Future<void>.delayed(Duration.zero);
+      await subscription.cancel();
+      return states;
+    }
+
+    test('emits the adopted user with the unchanged token', () async {
+      await service.initialize();
+      final adopted = buildTestUserWithCharacter().copyWith(
+        id: (await service.authStateStream.first as AuthAuthenticated).user.id,
+      );
+      late bool accepted;
+
+      final states = await collect(
+        () async => accepted = service.adoptUser(adopted),
+      );
+
+      expect(accepted, isTrue);
+      expect(
+        states.last,
+        AuthAuthenticated(user: adopted, accessToken: testAccessToken),
+      );
+    });
+
+    test('refuses and emits nothing while signed out', () async {
+      await loadTestEnv(startSignedOut: 'true');
+      await service.initialize();
+      late bool accepted;
+
+      final states = await collect(
+        () async => accepted = service.adoptUser(buildTestUserWithCharacter()),
+      );
+
+      expect(accepted, isFalse);
+      expect(states.whereType<AuthAuthenticated>(), isEmpty);
+    });
+
+    test('refuses and emits nothing for a different user id', () async {
+      await service.initialize();
+      late bool accepted;
+
+      final states = await collect(
+        () async => accepted = service.adoptUser(
+          buildTestUserWithCharacter().copyWith(id: 'someone-else'),
+        ),
+      );
+
+      expect(accepted, isFalse);
+      expect(
+        states.whereType<AuthAuthenticated>().where(
+          (s) => s.user.currentCharacter != null,
+        ),
+        isEmpty,
+      );
+    });
+  });
 }

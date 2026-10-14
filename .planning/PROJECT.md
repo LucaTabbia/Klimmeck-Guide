@@ -45,6 +45,8 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Contratto `AuthTokenService` + stub dev backed da `.env` (bypass dell'autenticazione per sviluppo e QA) — Validated in Phase 1: Dev Auth Stub
 - ✓ Sessione reale contro il backend: login Twitch via browser di sistema mediato dal BE (ticket monouso + challenge S256), refresh token in storage cifrato, refresh single-flight e proattivo, retry trasparente su HTTP/REST, ri-autenticazione WebSocket, logout atomico, `AuthGate` (Splash → SignIn → shell autenticata) — Validated in Phase 11: Auth & Session Bootstrap (login reale su device da verificare all'arrivo delle chiavi Twitch; lo stub dev resta selezionabile fino a Phase 12)
 
+- ✓ Creazione personaggio: pagina post-login (utility screen, scheda-pergamena in landscape) con sesso, ritratto facoltativo da galleria/camera caricato su Cloudinary al submit (default `silhouette.jpeg`), nome, pronome, razza, classe, età limitata per razza dalla query `raceTraits`, background ≤ 500; mutation `createCharacter` e passaggio alla shell con il personaggio reale (id cablato rimosso); `AuthGate` si ricostruisce al cambio di `currentCharacter`; errori inline in italiano; ritratto nel Profilo tramite `CharacterPortrait` — Validated in Phase 2: Character Creation (CHAR-06 pre-screen NSFW rinviato dall'utente; set curato di ritratti rinviato)
+
 ### Active
 
 **v1.0 Core Loop (in corso):**
@@ -133,6 +135,8 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
 | Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme: l'app non può completare l'OAuth da sola. Il BE custodisce il secret ed emette access JWT + refresh token; l'app non vede mai un token Twitch | ✓ Good — Phase 11 (2026-10-06) |
 | Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |
+| Creazione personaggio: pagina unica provvisoria, BE fonte di verità per età/razza e stato iniziale | L'utente ha chiesto un layout provvisorio subito dopo la login; la tabella età per razza (dal lore) e le patrie vivono nel BE ed arrivano via `raceTraits`, il FE non duplica regole | ✓ Good — Phase 2 + BE Phase 02.1 (2026-10-09) |
+| Niente filtro NSFW e niente set curato di ritratti in v1 Phase 2 | Scelta esplicita dell'utente (2026-10-08): velocità del layout provvisorio; CHAR-06 rinviato all'hardening (Cloudinary AI moderation lato BE) | — Pending (debito tracciato in REQUIREMENTS e BE-HARD) |
 
 ## Evolution
 
@@ -155,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-10-06 — after Phase 11 completion (auth & session bootstrap; dev bypass kept until the Twitch keys arrive)_
+_Last updated: 2026-10-09 — after Phase 2 completion (character creation page wired to the BE 02.1 contract; CHAR-06 deferred)_

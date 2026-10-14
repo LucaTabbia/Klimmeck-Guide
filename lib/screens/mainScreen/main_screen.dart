@@ -18,7 +18,9 @@ import '../../theme/kg_theme.dart';
 import 'cubit/main_screen_cubit.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({super.key, required this.characterId});
+
+  final String characterId;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -34,8 +36,9 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void initState() {
+    super.initState();
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1).animate(
@@ -48,9 +51,8 @@ class _MainScreenState extends State<MainScreen>
         currentPage = pageController.page!.toInt();
       });
     });
-    context.read<CharacterCubit>().loadCharacter("68c191de541d89c481b8322b");
+    context.read<CharacterCubit>().loadCharacter(widget.characterId);
     context.read<QuestCubit>().loadQuest();
-    super.initState();
   }
 
   @override

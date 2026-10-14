@@ -56,7 +56,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 ## Phases
 
 - [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
-- [ ] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell.
+- [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
 - [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
 - [ ] **Phase 5: Notifications Infrastructure** — FCM registration, permission gated at first travel confirm, three-state push handling, in-app banner dedup, uniform tap routing to Map.
@@ -91,20 +91,31 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
 
 ### Phase 2: Character Creation
-**Goal**: A logged-in user with no character is routed into a multi-step creation flow and exits into the main tab shell with a valid `currentCharacter`.
+**Goal**: A logged-in user with no character is routed to a single-page character sheet and exits into the main tab shell with a valid `currentCharacter`.
 **Depends on**: Phase 1 (requires an authenticated User, stub or real)
 **Scope**: M
-**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06, CHAR-07, CHAR-08, CHAR-09
+**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06 (DEFERRED — D-17), CHAR-07, CHAR-08, CHAR-09
 **Success Criteria** (what must be TRUE):
   1. When a logged-in user has `currentCharacter == null`, the app routes to the creation flow instead of the main shell.
-  2. The user can enter name/sex/pronoun/race/class/age/background and either pick a curated portrait or upload one from gallery/camera.
-  3. Uploaded images are pre-screened on-device for explicit content and rejected client-side when flagged, with a clear message.
+  2. The user can enter name/sex/pronoun/race/class/age/background and either pick a curated portrait or upload one from gallery/camera. (curated portrait set deferred — D-15; gallery/camera upload ships).
+  3. ~~Uploaded images are pre-screened on-device for explicit content and rejected client-side when flagged, with a clear message.~~ **DEFERRED (D-17)** — no NSFW pre-screen in this phase.
   4. On successful submission, `User.currentCharacter` is populated via mutation and the app transitions into the main tab shell.
-  5. Server/validation/NSFW rejection errors surface using the existing error-display pattern (shop flow) without losing entered data; back navigation between steps preserves data.
+  5. Server/validation/NSFW rejection errors surface using the existing error-display pattern (shop flow) without losing entered data; back navigation between steps preserves data. (NSFW rejection deferred with CHAR-06; "back navigation" is satisfied by the single page, D-04).
 **Decisions to make during discuss step**:
   - Choice of on-device NSFW classifier (Google ML Kit Image Labeling vs TensorFlow Lite NSFW model) and its integration footprint.
   - Onboarding layout is a utility surface (UI chrome allowed).
-**Plans**: TBD
+**Plans**: 11 plans
+  - [x] 02-01-PLAN.md — Wave 0: CHAR-06 deferral in docs, image_picker 1.2.2 + native targets (D-31), shared test helpers
+  - [x] 02-02-PLAN.md — Session handover: AuthTokenService/AuthCubit.adoptUser + AuthGate rebuild on character gain (D-26)
+  - [x] 02-03-PLAN.md — Models (RaceTraits, CreateCharacterRequest, SexType.label) + pure CharacterDraft validation
+  - [x] 02-04-PLAN.md — Theme tokens for fields/chips/spacing + CharacterPortrait silhouette resolver (D-14)
+  - [x] 02-05-PLAN.md — Fixed Cloudinary upload (D-28) + injectable PortraitPicker (D-30)
+  - [x] 02-06-PLAN.md — CreateCharacter/GetRaceTraits documents, error-code mapper, KlimmeckGraphQl methods (D-29)
+  - [x] 02-07-PLAN.md — CharacterCreationRepository + cubit editing (traits, fields, portrait)
+  - [x] 02-08-PLAN.md — Cubit submit: upload-then-mutation, URL reuse, CHARACTER_ALREADY_EXISTS recovery
+  - [x] 02-09-PLAN.md — CharacterCreationScreen: parchment sheet, inline errors, Crea progress, Esci
+  - [x] 02-10-PLAN.md — SessionHome branch, real character id into shell/MainScreen (D-27), main.dart wiring
+  - [x] 02-11-PLAN.md — Schema check vs BE 02.1 (D-33), validation sign-off, manual E2E checkpoint
 **UI hint**: yes
 
 ### Phase 3: Real-Time Sync Foundation
@@ -293,7 +304,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
-| 2. Character Creation | 0/0 | Not started | - |
+| 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
 | 3. Real-Time Sync Foundation | 0/0 | Not started | - |
 | 4. Settings Screen | 0/0 | Not started | - |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
@@ -319,7 +330,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 | CHAR-03 | Phase 2 | Pending |
 | CHAR-04 | Phase 2 | Pending |
 | CHAR-05 | Phase 2 | Pending |
-| CHAR-06 | Phase 2 | Pending |
+| CHAR-06 | Phase 2 | Deferred (D-17) |
 | CHAR-07 | Phase 2 | Pending |
 | CHAR-08 | Phase 2 | Pending |
 | CHAR-09 | Phase 2 | Pending |

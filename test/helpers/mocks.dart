@@ -1,11 +1,19 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +43,26 @@ class MockSessionTeardownHook extends Mock implements SessionTeardownHook {}
 
 class MockKlimmeckRest extends Mock implements KlimmeckRest {}
 
+class MockImagePicker extends Mock implements ImagePicker {}
+
+class MockPortraitPicker extends Mock implements PortraitPicker {}
+
 class MockKlimmeckGraphQl extends Mock implements KlimmeckGraphQl {}
 
+class MockCharacterCreationRepository extends Mock
+    implements CharacterCreationRepository {}
+
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
+
+class MockCharacterCreationCubit extends MockCubit<CharacterCreationState>
+    implements CharacterCreationCubit {}
+
+class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
+
+class MockCharacterCubit extends MockCubit<CharacterState>
+    implements CharacterCubit {}
+
+class MockQuestCubit extends MockCubit<QuestState> implements QuestCubit {}
+
+class MockMainScreenCubit extends MockCubit<MainScreenState>
+    implements MainScreenCubit {}
