@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
-import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -36,8 +35,8 @@ void main() {
     terminator = MockSessionTerminator();
     lifecycle = AppLifecycleEventBus();
     opens = 0;
-    userStream = StreamController<User>();
-    connection = StreamController<bool>();
+    userStream = StreamController<User>.broadcast();
+    connection = StreamController<bool>.broadcast();
     when(() => api.subscribeToUser()).thenAnswer((_) => userStream.stream);
     when(() => api.getMe()).thenAnswer((_) async => buildTestUser());
     when(() => auth.adoptUser(any())).thenReturn(true);
