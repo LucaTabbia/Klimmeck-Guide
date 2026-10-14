@@ -270,12 +270,14 @@ void main() {
   });
 
   blocTest<SessionSyncCubit, SessionSyncState>(
-    'emits live once for a burst of equal events',
+    'emits live after the first adopted event',
     build: () {
       final api = MockKlimmeckGraphQl();
       final auth = MockAuthTokenService();
       final user = buildTestUserWithCharacter();
-      when(() => api.subscribeToUser()).thenAnswer((_) => Stream.value(user));
+      when(
+        () => api.subscribeToUser(),
+      ).thenAnswer((_) => Stream.multi((c) => c.add(user)));
       when(() => auth.adoptUser(any())).thenReturn(true);
       return SessionSyncCubit(
         api: api,
