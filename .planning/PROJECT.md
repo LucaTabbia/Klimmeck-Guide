@@ -46,13 +46,13 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Sessione reale contro il backend: login Twitch via browser di sistema mediato dal BE (ticket monouso + challenge S256), refresh token in storage cifrato, refresh single-flight e proattivo, retry trasparente su HTTP/REST, ri-autenticazione WebSocket, logout atomico, `AuthGate` (Splash → SignIn → shell autenticata) — Validated in Phase 11: Auth & Session Bootstrap (login reale su device da verificare all'arrivo delle chiavi Twitch; lo stub dev resta selezionabile fino a Phase 12)
 
 - ✓ Creazione personaggio: pagina post-login (utility screen, scheda-pergamena in landscape) con sesso, ritratto facoltativo da galleria/camera caricato su Cloudinary al submit (default `silhouette.jpeg`), nome, pronome, razza, classe, età limitata per razza dalla query `raceTraits`, background ≤ 500; mutation `createCharacter` e passaggio alla shell con il personaggio reale (id cablato rimosso); `AuthGate` si ricostruisce al cambio di `currentCharacter`; errori inline in italiano; ritratto nel Profilo tramite `CharacterPortrait` — Validated in Phase 2: Character Creation (CHAR-06 pre-screen NSFW rinviato dall'utente; set curato di ritratti rinviato)
+- ✓ Sync utente e personaggio in tempo reale: subscription GraphQL `userUpdated` (consumatore unico che alimenta la sessione) e `characterUpdated` (hardening), socket keep-alive con token corrente a ogni `connection_init`, riconnessione silenziosa con backoff e snapshot, refetch su resume, watchdog del tempo degradato che chiude la sessione dopo ~3 min con "Connessione persa, accedi di nuovo.", FORBIDDEN/NOT_FOUND terminali, shell ricreata al cambio personaggio, teardown pulito — Validated in Phase 3: Real-Time Sync Foundation (E2E approvato su Android il 2026-10-14; `activeTravel`/`activeStoryQuest`/`activeWorldMissionQuest` rinviati alle Phase 6/7 per D-05; PR FE verso develop solo dopo la merge della PR BE Phase 3, D-04)
 
 ### Active
 
 **v1.0 Core Loop (in corso):**
 
 - [ ] Sezione Impostazioni (nuova) — logout + setting notifiche
-- [ ] Sync utente via GraphQL subscription (punti canale, valuta, stato personaggio)
 - [ ] Gesture swipe-left "strappa foglio" per accettare quest nel tab board (tutti i tipi)
 - [ ] Layout quest info sheets distinti per tipo (hunt, enemy, boss, dungeon, heal, aid, job, study, story, worldMission)
 - [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
@@ -129,7 +129,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo                      | — Pending |
 | Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale                             | — Pending |
 | Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                                           | — Pending |
-| Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | — Pending |
+| Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | ✓ Good — Phase 3 (2026-10-14) |
 | Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
 | Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | — Pending |
 | Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
@@ -159,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-10-09 — after Phase 2 completion (character creation page wired to the BE 02.1 contract; CHAR-06 deferred)_
+_Last updated: 2026-10-14 — after Phase 3 completion (session-wide real-time sync: userUpdated/characterUpdated subscriptions, silent reconnect, degraded-time watchdog; FE PR waits for the BE Phase 3 PR merge)_
