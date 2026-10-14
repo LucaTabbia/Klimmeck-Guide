@@ -18,6 +18,7 @@ import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
 const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
+const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _manualSignIn = 'Accedi manualmente';
 
 User _user(String id) => User(
@@ -128,6 +129,36 @@ void main() {
 
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text(_expiredNotice), findsOneWidget);
+  });
+
+  testWidgets('sync lost shows the sign-in screen with the connection notice', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost),
+    );
+
+    expect(find.byType(SignInScreen), findsOneWidget);
+    expect(find.text(_connectionLostNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('sync lost then session expired re-renders the notice', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    authStates
+      ..add(const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost))
+      ..add(
+        const AuthUnauthenticated(reason: UnauthenticatedReason.sessionExpired),
+      );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(_expiredNotice), findsOneWidget);
+    expect(find.text(_connectionLostNotice), findsNothing);
   });
 
   testWidgets('session expired then signed out ends on the final state', (
