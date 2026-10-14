@@ -37,8 +37,8 @@ SubscriptionStreamException _streamError(String code) =>
 GraphQlAccessDeniedException _accessDenied(String code) =>
     GraphQlAccessDeniedException(operation: 'character', code: code);
 
-class _Harness {
-  _Harness() {
+class CharacterHarness {
+  CharacterHarness() {
     when(() => api.getCharacter('c1')).thenAnswer((_) async => _initial);
     when(() => api.subscribeToCharacter('c1')).thenAnswer((_) {
       final controller = StreamController<Character>();
@@ -77,11 +77,11 @@ class _Harness {
 
 void withHarness(
   String description,
-  void Function(_Harness h, FakeAsync async) body,
+  void Function(CharacterHarness h, FakeAsync async) body,
 ) {
   test(description, () {
     fakeAsync((async) {
-      final harness = _Harness();
+      final harness = CharacterHarness();
       body(harness, async);
       harness.dispose();
       async.flushMicrotasks();
@@ -89,7 +89,7 @@ void withHarness(
   });
 }
 
-void _loadAndSettle(_Harness h, FakeAsync async) {
+void _loadAndSettle(CharacterHarness h, FakeAsync async) {
   h.cubit.loadCharacter('c1');
   async.flushMicrotasks();
 }
