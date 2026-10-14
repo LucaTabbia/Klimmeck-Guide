@@ -140,7 +140,7 @@ Plans:
 - [x] 03-02-PLAN.md — Flutter-free sync primitives: SyncHealth/SyncWatchdog (degraded-time clock), lifecycle + user-refresh buses, silentRetry
 - [x] 03-03-PLAN.md — GraphQL boundary: OnUserChanged, FORBIDDEN/NOT_FOUND codes, subscribeToUser, typed stream failures
 - [x] 03-04-PLAN.md — Session end: UnauthenticatedReason.syncLost, SessionTerminator, "Connessione persa" notice, AuthGate pop on character change (D-10)
-- [ ] 03-05-PLAN.md — Transport: keep-alive connect, socket monitor, real-socket tests for resubscribe/token rotation/reset
+- [x] 03-05-PLAN.md — Transport: keep-alive connect, socket monitor, real-socket tests for resubscribe/token rotation/reset
 - [ ] 03-06-PLAN.md — SessionSyncCubit: single userUpdated consumer, resume/request me refetch, watchdog feeding
 - [ ] 03-07-PLAN.md — CharacterCubit hardening (silent resubscribe, terminal FORBIDDEN, resume refetch) + shell wiring
 - [ ] 03-08-PLAN.md — Wiring: SessionSyncScope, shell keyed by character id, AppLifecycleBridge, main.dart
