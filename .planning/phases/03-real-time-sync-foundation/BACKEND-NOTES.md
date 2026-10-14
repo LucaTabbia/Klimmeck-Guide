@@ -11,7 +11,7 @@
 ## 0. TL;DR per il BE
 
 1. **Nuova subscription `userUpdated: User!` senza argomenti.** Identità dal bearer del `connection_init`; emette lo `User` completo (`id twitchId twitchPoints role currentCharacter { id }`) a ogni modifica del documento dell'utente autenticato (oggi: `twitchPoints`, `role`, `currentCharacter`). Un client non può ascoltare un altro utente.
-2. **`characterUpdated(id: String!)` resta identica nel contratto**, ma emette solo se il bearer è il proprietario del character (o innkeeper) — BE-AUTHZ-03. Un id altrui non riceve nulla (nessun errore necessario).
+2. **`characterUpdated(id: String!)` resta identica nel contratto**, ma emette solo se il bearer è il proprietario del character (o innkeeper) — BE-AUTHZ-03. **Allineamento 2026-10-14 (BE Phase 3 D-04):** un id altrui viene **rifiutato alla sottoscrizione** con `extensions.code = FORBIDDEN` (messaggio graphql-ws `next` con `errors`, poi `complete`); il FE non ritenta e fa un solo refetch di `me`.
 3. **Snapshot su subscribe:** a ogni (ri)sottoscrizione il BE emette **subito** il documento corrente, poi i cambiamenti. Vale per entrambe le subscription. È il meccanismo con cui il FE recupera gli eventi persi durante le riconnessioni WS (4401 ogni ~15 min, cadute di rete): il client Dart ri-invia le operazioni al reconnect e lo snapshot chiude il gap. **Nessun replay/cursore richiesto.**
 4. **Cancellazione del personaggio:** il FE la apprende da `userUpdated` con `currentCharacter: null`. Il change stream attuale su `characters` filtra solo `update`/`replace`, quindi un documento cancellato non emette `characterUpdated`: va bene così, purché il documento `users` venga aggiornato (e quindi emesso) alla cancellazione.
 5. **Nessun admin-swap:** l'admin non riassegna personaggi (chiarimento utente 2026-10-14); `currentCharacter` cambia solo per creazione (`null → id`) e cancellazione (`id → null`, da Impostazioni FE Phase 4 o per morte in combattimento, BE Phase 9).
@@ -55,7 +55,7 @@ subscription OnUserChanged {
 | `createCharacter` | emette con `currentCharacter { id }` | il FE apre poi la subscription sul nuovo id |
 | Cancellazione / morte | emette con `currentCharacter: null` | nessuna emissione (delete non è nel change stream): accettato |
 | Qualsiasi update del character (equip, quest, HP, location…) | — | emette il documento completo |
-| Subscriber con id altrui | — | nessuna emissione |
+| Subscriber con id altrui (non innkeeper) | — | rifiuto `FORBIDDEN` alla subscribe (`next` con errors + `complete`), nessun evento |
 
 ### Autenticazione WS (già in essere, BE Phase 2)
 
