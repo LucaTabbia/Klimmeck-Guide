@@ -113,7 +113,7 @@ void _characterKeyTests() {
     await tester.pumpWidget(home('c1'));
     await tester.pumpWidget(home('c2'));
 
-    expect(log, ['init c1', 'dispose c1', 'init c2']);
+    expect(log, ['init c1', 'init c2', 'dispose c1']);
   });
 
   testWidgets('keeps the shell state when the same character is re-emitted', (
@@ -168,6 +168,7 @@ void _characterKeyTests() {
         user: user,
         creationBuilder: (_) => const Text('creation'),
         shellBuilder: (_, characterId) => BlocProvider<CharacterCubit>(
+          lazy: false,
           create: (_) => CharacterCubit(
             api,
             health: RecordingSyncHealth(),
