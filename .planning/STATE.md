@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-14T13:15:16.079Z"
-last_activity: 2026-10-14 -- Phase 3 plan 03-06 complete (SessionSyncCubit owns userUpdated, resume refetch, watchdog wiring)
+last_updated: "2026-10-14T13:21:26.960Z"
+last_activity: 2026-10-14 -- Phase 3 plan 03-07 complete (hardened CharacterCubit with silent resubscribe, terminal FORBIDDEN and resume refetch)
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 34
-  completed_plans: 31
-  percent: 91
+  completed_plans: 32
+  percent: 94
 ---
 
 # Project State
@@ -22,7 +22,7 @@ Plan: 1 of 9
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 03 (Real-Time Sync Foundation) — /gsd-execute-phase 3 (sequential executors, no worktrees; plan 03-09 waits for the BE Phase 3 schema)
 Status: Executing Phase 03
-Last activity: 2026-10-14 -- Phase 3 plan 03-06 complete (SessionSyncCubit owns userUpdated, resume refetch, watchdog wiring)
+Last activity: 2026-10-14 -- Phase 3 plan 03-07 complete (hardened CharacterCubit with silent resubscribe, terminal FORBIDDEN and resume refetch)
 
 ## Current Milestone
 
