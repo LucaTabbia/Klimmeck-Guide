@@ -144,7 +144,7 @@ Plans:
 - [x] 03-06-PLAN.md — SessionSyncCubit: single userUpdated consumer, resume/request me refetch, watchdog feeding
 - [x] 03-07-PLAN.md — CharacterCubit hardening (silent resubscribe, terminal FORBIDDEN, resume refetch) + shell wiring
 - [x] 03-08-PLAN.md — Wiring: SessionSyncScope, shell keyed by character id, AppLifecycleBridge, main.dart
-- [ ] 03-09-PLAN.md — Cross-repo gate: schema check vs BE schema, validation sign-off, manual E2E, BACKEND-NOTES (checkpoint)
+- [x] 03-09-PLAN.md — Cross-repo gate: schema check vs BE schema, validation sign-off, manual E2E, BACKEND-NOTES (checkpoint)
 
 ### Phase 4: Settings Screen
 **Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
