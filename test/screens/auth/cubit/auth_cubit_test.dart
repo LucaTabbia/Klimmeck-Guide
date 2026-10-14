@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -91,6 +92,37 @@ void main() {
       controller.add(authenticated());
     },
     expect: () => [authenticated()],
+  );
+
+  blocTest<AuthCubit, AuthState>(
+    'mirrors live twitchPoints and role changes in order',
+    build: () => AuthCubit(service),
+    act: (cubit) async {
+      await cubit.start();
+      controller.add(
+        AuthAuthenticated(
+          user: buildTestUser().copyWith(twitchPoints: 5),
+          accessToken: 'token',
+        ),
+      );
+      controller.add(
+        AuthAuthenticated(
+          user: buildTestUser().copyWith(
+            twitchPoints: 50,
+            role: RoleType.innkeeper,
+          ),
+          accessToken: 'token',
+        ),
+      );
+    },
+    expect: () => [
+      isA<AuthAuthenticated>()
+          .having((s) => s.user.twitchPoints, 'twitchPoints', 5)
+          .having((s) => s.user.role, 'role', RoleType.adventurer),
+      isA<AuthAuthenticated>()
+          .having((s) => s.user.twitchPoints, 'twitchPoints', 50)
+          .having((s) => s.user.role, 'role', RoleType.innkeeper),
+    ],
   );
 
   blocTest<AuthCubit, AuthState>(
