@@ -223,5 +223,41 @@ void main() {
         expect(async.pendingTimers, isEmpty);
       });
     });
+
+    test('a failing expiry callback surfaces no unhandled error', () {
+      fakeAsync((async) {
+        var calls = 0;
+        final dog = SyncWatchdog(
+          onExpired: () async {
+            calls++;
+            throw StateError('teardown failed');
+          },
+          window: _window,
+        );
+        dog.markDegraded(SyncSource.socket);
+
+        async.elapse(_window);
+        async.flushMicrotasks();
+        async.elapse(_tenMinutes);
+
+        expect(calls, 1);
+        expect(dog.isLatched, isTrue);
+      });
+    });
+
+    test('a synchronously throwing expiry callback is contained too', () {
+      fakeAsync((async) {
+        final dog = SyncWatchdog(
+          onExpired: () => throw StateError('teardown failed'),
+          window: _window,
+        );
+        dog.markDegraded(SyncSource.socket);
+
+        async.elapse(_window);
+        async.flushMicrotasks();
+
+        expect(dog.isLatched, isTrue);
+      });
+    });
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'sync_health.dart';
 
@@ -26,6 +27,9 @@ class SyncWatchdog implements SyncHealth {
   Timer? _timer;
   bool _isSuspended = false;
   bool _isLatched = false;
+
+  /// True dopo la scadenza o il dispose: la sessione sta finendo.
+  bool get isLatched => _isLatched;
 
   bool get isDegraded =>
       _conditions.containsValue(_Condition.degraded) ||
@@ -100,6 +104,10 @@ class SyncWatchdog implements SyncHealth {
   void _expire() {
     _timer = null;
     _isLatched = true;
-    unawaited(_onExpired());
+    unawaited(
+      Future<void>.sync(_onExpired).catchError((Object error) {
+        developer.log('watchdog teardown failed: ${error.runtimeType}');
+      }),
+    );
   }
 }
