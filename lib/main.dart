@@ -16,11 +16,14 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provid
 import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
+import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
+import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
 import 'package:klimmeck_guide/screens/auth/auth_gate.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/session_home.dart';
+import 'package:klimmeck_guide/screens/auth/session_sync_scope.dart';
 import 'package:klimmeck_guide/screens/characterCreation/character_creation_screen.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
@@ -65,6 +68,8 @@ Future<void> main() async {
   runApp(
     KlimmeckGuideApp(
       authTokenService: auth.service,
+      sessionTerminator: auth.terminator,
+      openConnectionStream: graphQlHolder.watchConnection,
       restClient: restClient,
       graphQlClient: graphQlHolder.client,
     ),
@@ -73,20 +78,21 @@ Future<void> main() async {
 
 /// Composition root dell'auth (D-23): l'unico punto che legge [EnvConfig] per
 /// scegliere l'implementazione. Il bypass dev non ha recovery (nessun refresh).
-({AuthTokenService service, UnauthorizedRecovery? recovery}) _buildAuth({
-  required Future<void> Function() onSessionTeardown,
-}) {
+({
+  AuthTokenService service,
+  UnauthorizedRecovery? recovery,
+  SessionTerminator terminator,
+})
+_buildAuth({required Future<void> Function() onSessionTeardown}) {
   final backendAuthApi = GraphQlBackendAuthApi.forEndpoint(
     EnvConfig.graphqlHttpUrl,
   );
   if (EnvConfig.devAuthEnabled) {
-    return (
-      service: DevAuthTokenService(
-        meSource: backendAuthApi,
-        onSessionTeardown: onSessionTeardown,
-      ),
-      recovery: null,
+    final devService = DevAuthTokenService(
+      meSource: backendAuthApi,
+      onSessionTeardown: onSessionTeardown,
     );
+    return (service: devService, recovery: null, terminator: devService);
   }
   final service = SessionAuthTokenService(
     api: backendAuthApi,
@@ -95,7 +101,7 @@ Future<void> main() async {
     backendBaseUrl: Uri.parse(EnvConfig.baseUrl),
     onSessionTeardown: onSessionTeardown,
   );
-  return (service: service, recovery: service);
+  return (service: service, recovery: service, terminator: service);
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -104,11 +110,15 @@ class KlimmeckGuideApp extends StatefulWidget {
   const KlimmeckGuideApp({
     super.key,
     required this.authTokenService,
+    required this.sessionTerminator,
+    required this.openConnectionStream,
     required this.restClient,
     required this.graphQlClient,
   });
 
   final AuthTokenService authTokenService;
+  final SessionTerminator sessionTerminator;
+  final Stream<bool> Function() openConnectionStream;
   final RestClient restClient;
   final ValueNotifier<GraphQLClient> graphQlClient;
 
@@ -117,6 +127,7 @@ class KlimmeckGuideApp extends StatefulWidget {
 }
 
 class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
+  final AppLifecycleEventBus _lifecycleBus = AppLifecycleEventBus();
   late final KlimmeckRest rest;
   late final KlimmeckGraphQl graphQl = KlimmeckGraphQl(
     resolveClient: () => widget.graphQlClient.value,
@@ -127,6 +138,12 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
     super.initState();
     rest = KlimmeckRest(widget.restClient);
     loadSvg();
+  }
+
+  @override
+  void dispose() {
+    _lifecycleBus.close();
+    super.dispose();
   }
 
   Future<void> loadSvg() async {
@@ -182,56 +199,71 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<AuthTokenService>(
-      create: (_) => widget.authTokenService,
-      dispose: (svc) => svc.dispose(),
-      child: BlocProvider<AuthCubit>(
-        lazy: false,
-        create: (_) => AuthCubit(widget.authTokenService)..start(),
-        child: BlocProvider<SplashCubit>(
-          create: (_) => SplashCubit(rest),
-          child: GraphQLProvider(
-            client: widget.graphQlClient,
-            child: AnnotatedRegion<SystemUiOverlayStyle>(
-              value: Platform.isIOS
-                  ? SystemUiOverlayStyle.light
-                  : const SystemUiOverlayStyle(
-                      statusBarColor: Colors.transparent,
-                      statusBarIconBrightness: Brightness.light,
-                      systemNavigationBarIconBrightness: Brightness.dark,
-                      systemNavigationBarColor: Colors.transparent,
-                    ),
-              child: MaterialApp(
-                theme: KlimmeckGuideTheme.instance.materialTheme,
-                color: KlimmeckGuideTheme.deepNight,
-                debugShowCheckedModeBanner: false,
-                title: 'Guida di Klimmeck',
-                navigatorKey: navigatorKey,
-                home: Builder(
-                  builder: (context) {
-                    preloadImages(context);
-                    return AuthGate(
-                      authenticatedBuilder: (context, user) => SessionHome(
-                        user: user,
-                        creationBuilder: (context) =>
-                            BlocProvider<CharacterCreationCubit>(
-                              create: (_) => CharacterCreationCubit(
-                                CharacterCreationRepository(
-                                  graphQl: graphQl,
-                                  rest: rest,
-                                  picker: ImagePickerPortraitPicker(),
+    return AppLifecycleBridge(
+      bus: _lifecycleBus,
+      child: RepositoryProvider<AppLifecycleEvents>.value(
+        value: _lifecycleBus,
+        child: RepositoryProvider<AuthTokenService>(
+          create: (_) => widget.authTokenService,
+          dispose: (svc) => svc.dispose(),
+          child: BlocProvider<AuthCubit>(
+            lazy: false,
+            create: (_) => AuthCubit(widget.authTokenService)..start(),
+            child: BlocProvider<SplashCubit>(
+              create: (_) => SplashCubit(rest),
+              child: GraphQLProvider(
+                client: widget.graphQlClient,
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: Platform.isIOS
+                      ? SystemUiOverlayStyle.light
+                      : const SystemUiOverlayStyle(
+                          statusBarColor: Colors.transparent,
+                          statusBarIconBrightness: Brightness.light,
+                          systemNavigationBarIconBrightness: Brightness.dark,
+                          systemNavigationBarColor: Colors.transparent,
+                        ),
+                  child: MaterialApp(
+                    theme: KlimmeckGuideTheme.instance.materialTheme,
+                    color: KlimmeckGuideTheme.deepNight,
+                    debugShowCheckedModeBanner: false,
+                    title: 'Guida di Klimmeck',
+                    navigatorKey: navigatorKey,
+                    home: Builder(
+                      builder: (context) {
+                        preloadImages(context);
+                        return AuthGate(
+                          // Lo scope copre anche la creazione personaggio: il watchdog
+                          // e' di sessione (research Open Question 3, accettato).
+                          authenticatedBuilder: (context, user) =>
+                              SessionSyncScope(
+                                graphQl: graphQl,
+                                terminator: widget.sessionTerminator,
+                                openConnectionStream:
+                                    widget.openConnectionStream,
+                                child: SessionHome(
+                                  user: user,
+                                  creationBuilder: (context) =>
+                                      BlocProvider<CharacterCreationCubit>(
+                                        create: (_) => CharacterCreationCubit(
+                                          CharacterCreationRepository(
+                                            graphQl: graphQl,
+                                            rest: rest,
+                                            picker: ImagePickerPortraitPicker(),
+                                          ),
+                                        )..loadRaceTraits(),
+                                        child: const CharacterCreationScreen(),
+                                      ),
+                                  shellBuilder: (context, characterId) =>
+                                      AuthenticatedShell(
+                                        graphQl: graphQl,
+                                        characterId: characterId,
+                                      ),
                                 ),
-                              )..loadRaceTraits(),
-                              child: const CharacterCreationScreen(),
-                            ),
-                        shellBuilder: (context, characterId) =>
-                            AuthenticatedShell(
-                              graphQl: graphQl,
-                              characterId: characterId,
-                            ),
-                      ),
-                    );
-                  },
+                              ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
