@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
 import 'package:mocktail/mocktail.dart';
@@ -125,6 +126,87 @@ void main() {
         await _untilFrames(server, 'connection_init', 2);
 
         expect(server.framesOf('subscribe'), hasLength(1));
+      },
+      timeout: const Timeout(Duration(seconds: 15)),
+    );
+  });
+
+  group('GraphQLClientHolder.reset (SYNC-04)', () {
+    late GraphQLClientHolder holder;
+
+    setUp(() {
+      holder = GraphQLClientHolder(
+        connect: () {
+          final sessionLink = buildWebSocketLink(
+            url: server.url,
+            policy: WsReconnectPolicy(authService: tokenService),
+          );
+          return (
+            client: GraphQLClient(
+              link: sessionLink,
+              cache: GraphQLCache(store: InMemoryStore()),
+            ),
+            webSocketLink: sessionLink,
+          );
+        },
+      );
+    });
+
+    tearDown(() async => holder.reset());
+
+    Stream<QueryResult> subscribeVia(GraphQLClient sessionClient) =>
+        sessionClient.subscribe(
+          SubscriptionOptions(document: _userSubscription),
+        );
+
+    test(
+      'closes the old socket, silences old listeners and opens a fresh session',
+      () async {
+        server.onSubscribe = (ws, subscribe) =>
+            server.emit(ws, subscribe['id'] as String, {
+              'userUpdated': {'id': 'u1'},
+            });
+        final oldEvents = StreamIterator<QueryResult>(
+          subscribeVia(holder.client.value),
+        );
+        await _next(oldEvents);
+        final oldSocket = server.sockets.first;
+        final oldSocketClosed = Completer<void>();
+        oldSocket.done.then((_) => oldSocketClosed.complete());
+
+        await holder.reset();
+
+        await oldSocketClosed.future.timeout(_wait);
+        expect(oldSocket.closeCode, isNotNull);
+
+        final newEvents = StreamIterator<QueryResult>(
+          subscribeVia(holder.client.value),
+        );
+        await _next(newEvents);
+
+        expect(server.framesOf('connection_init'), hasLength(2));
+        expect(server.framesOf('subscribe'), hasLength(2));
+        expect(server.sockets, hasLength(2));
+        final newSubscribe = server.framesOf('subscribe').last;
+        server.emit(server.sockets.last, newSubscribe['id'] as String, {
+          'userUpdated': {'id': 'u2'},
+        });
+        expect(await _next(newEvents), isA<QueryResult>());
+        expect(await oldEvents.moveNext().timeout(_wait), isFalse);
+        await newEvents.cancel();
+      },
+      timeout: const Timeout(Duration(seconds: 15)),
+    );
+
+    test(
+      'watchConnection observes the link created by reset',
+      () async {
+        await holder.watchConnection().firstWhere((c) => c).timeout(_wait);
+
+        await holder.reset();
+
+        await holder.watchConnection().firstWhere((c) => c).timeout(_wait);
+        expect(server.framesOf('connection_init'), hasLength(2));
       },
       timeout: const Timeout(Duration(seconds: 15)),
     );
