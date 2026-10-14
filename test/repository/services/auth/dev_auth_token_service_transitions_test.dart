@@ -153,6 +153,7 @@ void main() {
       final expectation = expectLater(
         service.authStateStream,
         emitsInOrder([
+          isA<AuthAuthenticated>(),
           const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost),
           isA<AuthAuthenticated>(),
         ]),
@@ -165,7 +166,7 @@ void main() {
       expect(teardownCalls, equals(1));
     });
 
-    test('signed out: no teardown and no emission', () async {
+    test('signed out: no teardown and no new state', () async {
       await loadTestEnv(startSignedOut: 'true');
       await service.initialize();
       final states = <AuthState>[];
@@ -176,7 +177,9 @@ void main() {
       await subscription.cancel();
 
       expect(teardownCalls, equals(0));
-      expect(states, isEmpty);
+      expect(states, [
+        const AuthUnauthenticated(reason: UnauthenticatedReason.signedOut),
+      ]);
     });
   });
 

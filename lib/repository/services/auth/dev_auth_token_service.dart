@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/models/user.dart';
 import 'auth_state_channel.dart';
 import 'backend_auth_api.dart';
 import 'auth_token_service.dart';
+import 'session_terminator.dart';
 
 /// Implementazione di [AuthTokenService] per il bypass di sviluppo
 /// (`DEV_AUTH_ENABLED=true`), attivo finché non esistono le chiavi Twitch.
@@ -34,7 +35,8 @@ import 'auth_token_service.dart';
 /// - `DEV_AUTH_TWITCH_ID` — id canale Twitch
 /// - `DEV_AUTH_ROLE` — uno tra `guard`, `adventurer`, `innkeeper`
 /// - `DEV_AUTH_START_SIGNED_OUT` — `true` per partire disconnessi
-class DevAuthTokenService extends AuthTokenService {
+class DevAuthTokenService extends AuthTokenService
+    implements SessionTerminator {
   DevAuthTokenService({
     BackendMeSource? meSource,
     Future<void> Function()? onSessionTeardown,
@@ -48,6 +50,7 @@ class DevAuthTokenService extends AuthTokenService {
   final Duration _meTimeout;
   final AuthStateChannel _channel = AuthStateChannel();
   bool _isSignedIn = false;
+  Future<void>? _terminationInFlight;
 
   @override
   Stream<AuthState> get authStateStream => _channel.stream;
@@ -87,6 +90,15 @@ class DevAuthTokenService extends AuthTokenService {
   @override
   Future<void> handleRevocation() =>
       _endSession(UnauthenticatedReason.sessionExpired);
+
+  /// Come la revoca, con il motivo dato; no-op se la sessione è chiusa.
+  @override
+  Future<void> terminateSession(UnauthenticatedReason reason) {
+    if (_channel.current is! AuthAuthenticated) return Future<void>.value();
+    return _terminationInFlight ??= _endSession(
+      reason,
+    ).whenComplete(() => _terminationInFlight = null);
+  }
 
   @override
   bool adoptUser(User user) {

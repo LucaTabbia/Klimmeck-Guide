@@ -15,6 +15,7 @@ import 'backend_auth_api.dart';
 import 'browser_authenticator.dart';
 import 'login_callback.dart';
 import 'login_exception.dart';
+import 'session_terminator.dart';
 import 'unauthorized_recovery.dart';
 
 /// [AuthTokenService] reale: sessione first-party del backend.
@@ -40,7 +41,7 @@ import 'unauthorized_recovery.dart';
 /// Tutte le dipendenze sono iniettate dal composition root: il servizio non
 /// legge la configurazione d'ambiente e non logga mai token.
 class SessionAuthTokenService extends AuthTokenService
-    implements UnauthorizedRecovery {
+    implements UnauthorizedRecovery, SessionTerminator {
   SessionAuthTokenService({
     required BackendAuthApi api,
     required SessionStore store,
@@ -88,6 +89,7 @@ class SessionAuthTokenService extends AuthTokenService
   DateTime? _refreshAt;
   Completer<String>? _refreshInFlight;
   Future<void>? _logoutInFlight;
+  Future<void>? _terminationInFlight;
   int _epoch = 0;
   Timer? _proactiveRefreshTimer;
   Timer? _bootstrapRetryTimer;
@@ -178,6 +180,19 @@ class SessionAuthTokenService extends AuthTokenService
   @override
   Future<void> handleRevocation() =>
       _endSession(UnauthenticatedReason.sessionExpired);
+
+  /// Teardown locale come una revoca, con il motivo dato (Phase 3 D-15).
+  /// No-op fuori da una sessione autenticata o durante un logout: emette un
+  /// solo stato terminale.
+  @override
+  Future<void> terminateSession(UnauthenticatedReason reason) {
+    if (_logoutInFlight != null || _channel.current is! AuthAuthenticated) {
+      return Future<void>.value();
+    }
+    return _terminationInFlight ??= _endSession(
+      reason,
+    ).whenComplete(() => _terminationInFlight = null);
+  }
 
   @override
   bool adoptUser(User user) {
