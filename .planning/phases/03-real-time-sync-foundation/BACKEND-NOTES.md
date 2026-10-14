@@ -130,4 +130,6 @@ Invariata: `connection_init` con `{ "Authorization": "Bearer <jwt>" }` letto a o
 
 Documenti Phase 3 (`OnUserChanged`, `characterUpdated`, `character`, `GetMe`): tutti OK.
 
-**E2E:** vedi 03-HUMAN-UAT.md (in corso)
+**E2E (2026-10-14):** approvato dall'utente su device fisico Android (Samsung SM S938B, Android 16) con login Twitch reale contro il BE `feat/03-autorizzazione-ownership-ruoli-audit` a `62890b6`. Passi 1-11 pass, passo 12 (iOS fisico, opzionale) skipped. Dettaglio in 03-HUMAN-UAT.md.
+
+**Forma FORBIDDEN osservata (passo 9):** il BE risponde alla subscription `characterUpdated` su un character altrui con un messaggio `next` che porta `errors[0].extensions.code = "FORBIDDEN"` e nessun `data`, seguito da `complete`. Il FE lo tratta come terminale: un solo log `[Sync] characterUpdated rejected: FORBIDDEN`, nessun loop di ri-sottoscrizione, un solo refetch `GetMe`.

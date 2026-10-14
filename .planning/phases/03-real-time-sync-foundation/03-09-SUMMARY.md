@@ -1,7 +1,7 @@
 ---
 phase: 03-real-time-sync-foundation
 plan: 09
-status: checkpoint
+status: complete
 subsystem: cross-repo-verification
 tags: [schema-check, validation, uat, checkpoint]
 requires: [03-01, 03-02, 03-03, 03-04, 03-05, 03-06, 03-07, 03-08]
@@ -11,12 +11,12 @@ key-files:
     - .planning/phases/03-real-time-sync-foundation/03-VALIDATION.md
   created:
     - .planning/phases/03-real-time-sync-foundation/03-HUMAN-UAT.md
-completed: pending (Task 2 human E2E)
+completed: 2026-10-14
 ---
 
-# Phase 3 Plan 09: Cross-repo gate and E2E Summary (DRAFT, checkpoint)
+# Phase 3 Plan 09: Cross-repo gate and E2E Summary
 
-Task 1 done: all 24 app GraphQL documents validate against the regenerated BE schema, phase gates green, validation signed off, UAT checklist ready. Task 2 (human E2E) is pending; the continuation agent finishes this file.
+Task 1 done: all 24 app GraphQL documents validate against the regenerated BE schema, phase gates green, validation signed off, UAT checklist ready. Task 2 (human E2E) approved by the user on a physical Android device.
 
 ## Task 1: Schema check, gates, sign-off (done)
 
@@ -68,12 +68,32 @@ OK unequipSpell.graphql
 
 **Commit:** see git log (`docs(phase-3): verify the schema and sign off the validation`).
 
-## Task 2: Human E2E (pending)
+## Task 2: Manual E2E (done)
 
-_To be completed by the continuation agent after the user's resume signal._
+Resume signal (verbatim):
 
-## Notes for the FE PR description (do NOT open the PR here, D-04)
+```
+approved
+```
 
-- Open the FE PR to `develop` only after the BE PR has merged.
-- The session-wide watchdog also covers the creation page (accepted, D-15 Open Question 3).
-- FORBIDDEN is terminal (no resubscribe, a single `me` refetch).
+Steps 1-11 pass; step 12 (optional physical iOS) skipped, no iOS device reported. Full results in `03-HUMAN-UAT.md` (`status: complete`, 12 results recorded).
+
+**Session context:** Samsung SM S938B, Android 16 (API 36), physical, USB with `adb reverse tcp:3000 tcp:3000`; real Twitch login (`DEV_AUTH_ENABLED=false`); BE branch `feat/03-autorizzazione-ownership-ruoli-audit` at `62890b6`, local on :3000; date 2026-10-14. Orchestrator note (flutter logs, step 8): with the BE down the app logged `Disconnected from websocket` and retried with backoff 1, 2, 4, 8, 16, 32 then 60 s, no crash, no UI shown.
+
+**Tests after the E2E:** `flutter test` 639 passed, all green.
+
+**FORBIDDEN form (step 9)** recorded in `BACKEND-NOTES.md` section 5.
+
+## Gaps
+
+None, no `/gsd-plan-phase 3 --gaps` needed.
+
+## For the PR description
+
+- The session-wide watchdog also covers the character creation page (accepted, D-15 Open Question 3).
+- FORBIDDEN/NOT_FOUND on `characterUpdated` is terminal, with a single `me` refetch and no resubscribe.
+- The FE PR to `develop` must be opened only after the BE PR is merged (D-04), by the user.
+
+## Self-Check: PASSED
+
+Files: `03-HUMAN-UAT.md`, `03-VALIDATION.md`, `BACKEND-NOTES.md`, `03-09-SUMMARY.md` all present. Commits: `d237cf0` (Task 1); the E2E record commit follows this file.
