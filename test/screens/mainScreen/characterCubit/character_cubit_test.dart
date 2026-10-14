@@ -15,7 +15,7 @@ import '../../../helpers/mocks.dart';
 
 class _FakeCharacter extends Fake implements Character {}
 
-class _FakeLifecycle implements AppLifecycleEvents {
+class FakeLifecycle implements AppLifecycleEvents {
   final StreamController<void> background = StreamController<void>.broadcast();
   final StreamController<void> foreground = StreamController<void>.broadcast();
 
@@ -57,7 +57,7 @@ class CharacterHarness {
 
   final MockKlimmeckGraphQl api = MockKlimmeckGraphQl();
   final RecordingSyncHealth health = RecordingSyncHealth();
-  final _FakeLifecycle lifecycle = _FakeLifecycle();
+  final FakeLifecycle lifecycle = FakeLifecycle();
   final UserRefreshRequestBus refreshBus = UserRefreshRequestBus();
   final List<StreamController<Character>> streams = [];
   final List<CharacterState> states = [];
@@ -103,7 +103,7 @@ void main() {
     CharacterCubit buildCubit() => CharacterCubit(
       api,
       health: RecordingSyncHealth(),
-      lifecycle: _FakeLifecycle(),
+      lifecycle: FakeLifecycle(),
       userRefresh: UserRefreshRequestBus(),
     );
 
@@ -322,6 +322,127 @@ void main() {
       async.flushMicrotasks();
 
       expect(h.latestStream.hasListener, isFalse);
+    });
+  });
+
+  group('CharacterCubit resume refetch', () {
+    withHarness('refetches silently on foreground', (h, async) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      final refreshed = _characterWithHp(4);
+      when(() => h.api.getCharacter('c1')).thenAnswer((_) async => refreshed);
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+
+      verify(() => h.api.getCharacter('c1')).called(2);
+      expect(h.states, [CharacterLoaded(refreshed)]);
+      expect(h.states, isNot(contains(isA<CharacterLoading>())));
+      expect(h.health.calls, contains('touch'));
+    });
+
+    withHarness('discards a refetch overtaken by a live event', (h, async) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      final pending = Completer<Character>();
+      when(() => h.api.getCharacter('c1')).thenAnswer((_) => pending.future);
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      h.latestStream.add(_characterWithHp(2));
+      async.flushMicrotasks();
+      pending.complete(_characterWithHp(9));
+      async.flushMicrotasks();
+
+      expect(h.states, [CharacterLoaded(_characterWithHp(2))]);
+      expect(h.health.calls, contains('touch'));
+    });
+
+    withHarness('retries transient refetch failures with backoff', (h, async) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      final refreshed = _characterWithHp(6);
+      var attempts = 0;
+      when(() => h.api.getCharacter('c1')).thenAnswer((_) async {
+        if (++attempts <= 2) throw Exception('x');
+        return refreshed;
+      });
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      expect(h.states, isEmpty);
+      async.elapse(const Duration(seconds: 1));
+      expect(h.states, isEmpty);
+      async.elapse(const Duration(seconds: 2));
+
+      expect(h.states, [CharacterLoaded(refreshed)]);
+    });
+
+    withHarness('NOT_FOUND on the refetch raises one refresh, no retry', (
+      h,
+      async,
+    ) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      when(
+        () => h.api.getCharacter('c1'),
+      ).thenAnswer((_) async => throw _accessDenied('NOT_FOUND'));
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 10));
+
+      verify(() => h.api.getCharacter('c1')).called(2);
+      expect(h.refreshRequests, 1);
+      expect(h.states, isEmpty);
+    });
+
+    withHarness('ignores foreground before the first load completes', (
+      h,
+      async,
+    ) {
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+
+      verifyNever(() => h.api.getCharacter(any()));
+    });
+
+    withHarness('a newer foreground supersedes a retrying refetch', (h, async) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      final stale = _characterWithHp(1);
+      final fresh = _characterWithHp(8);
+      var calls = 0;
+      when(() => h.api.getCharacter('c1')).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) throw Exception('x');
+        if (calls == 2) return fresh;
+        return stale;
+      });
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 1));
+
+      expect(h.states, [CharacterLoaded(fresh)]);
+    });
+
+    withHarness('close while a refetch waits stops everything', (h, async) {
+      _loadAndSettle(h, async);
+      when(() => h.api.getCharacter('c1')).thenThrow(Exception('x'));
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      clearInteractions(h.api);
+
+      h.cubit.close();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 5));
+
+      verifyNever(() => h.api.getCharacter(any()));
+      expect(async.pendingTimers, isEmpty);
+      expect(h.lifecycle.foreground.hasListener, isFalse);
     });
   });
 }
