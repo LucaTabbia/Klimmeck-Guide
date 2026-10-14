@@ -4,6 +4,8 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/repository/services/graphql/auth_link.dart';
 import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Client GraphQL e il suo `WebSocketLink`, che va disposto al logout.
 typedef GraphQLConnection = ({
@@ -28,17 +30,9 @@ GraphQLConnection buildGraphQLConnection({
     authService: authService,
     recovery: recovery,
   );
-  final webSocketLink = WebSocketLink(
-    EnvConfig.graphqlWsUrl,
-    config: SocketClientConfig(
-      autoReconnect: true,
-      inactivityTimeout: const Duration(
-        seconds: EnvConfig.wsInactivityTimeoutSeconds,
-      ),
-      initialPayload: policy.buildInitialPayload,
-      onConnectionLost: policy.onConnectionLost,
-    ),
-    subProtocol: GraphQLProtocol.graphqlTransportWs,
+  final webSocketLink = buildWebSocketLink(
+    url: EnvConfig.graphqlWsUrl,
+    policy: policy,
   );
   final httpWithAuth = AuthAuthLink(
     authService: authService,
@@ -55,3 +49,53 @@ GraphQLConnection buildGraphQLConnection({
   );
   return (client: client, webSocketLink: webSocketLink);
 }
+
+/// Ping a livello WebSocket: un socket semiaperto (wifi→cellulare, tunnel)
+/// non risponde al pong e viene chiuso con `goingAway`, che passa dal normale
+/// `onConnectionLost` (Phase 3, Pitfall 2). Il timeout limita un connect in un
+/// buco nero. `SocketClient` avvolge da sé il canale con `forGraphQL()`.
+Future<WebSocketChannel> connectWithKeepAlive(
+  Uri uri,
+  Iterable<String>? protocols,
+) => openKeepAliveChannel(uri, protocols);
+
+/// Apre il canale con ping e timeout di connect. Gli intervalli sono
+/// parametrizzati solo perché i test possano usare valori brevi.
+Future<WebSocketChannel> openKeepAliveChannel(
+  Uri uri,
+  Iterable<String>? protocols, {
+  Duration pingInterval = const Duration(
+    seconds: EnvConfig.wsPingIntervalSeconds,
+  ),
+  Duration connectTimeout = const Duration(
+    seconds: EnvConfig.wsConnectTimeoutSeconds,
+  ),
+}) async {
+  final channel = IOWebSocketChannel.connect(
+    uri,
+    protocols: protocols,
+    pingInterval: pingInterval,
+    connectTimeout: connectTimeout,
+  );
+  await channel.ready;
+  return channel;
+}
+
+/// Link WebSocket con riconnessione, token per connect e keep-alive. Stessa
+/// factory per produzione e test di integrazione.
+WebSocketLink buildWebSocketLink({
+  required String url,
+  required WsReconnectPolicy policy,
+}) => WebSocketLink(
+  url,
+  config: SocketClientConfig(
+    autoReconnect: true,
+    inactivityTimeout: const Duration(
+      seconds: EnvConfig.wsInactivityTimeoutSeconds,
+    ),
+    initialPayload: policy.buildInitialPayload,
+    onConnectionLost: policy.onConnectionLost,
+    connectFn: connectWithKeepAlive,
+  ),
+  subProtocol: GraphQLProtocol.graphqlTransportWs,
+);

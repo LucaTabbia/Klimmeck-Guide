@@ -68,6 +68,16 @@ class EnvConfig {
     defaultValue: 30,
   );
 
+  static const int wsPingIntervalSeconds = int.fromEnvironment(
+    'WS_PING_INTERVAL_SECONDS',
+    defaultValue: 25,
+  );
+
+  static const int wsConnectTimeoutSeconds = int.fromEnvironment(
+    'WS_CONNECT_TIMEOUT_SECONDS',
+    defaultValue: 10,
+  );
+
   // ============== Environment Flags ==============
 
   static const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: true);
