@@ -14,7 +14,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/auth_fixtures.dart';
 import '../../../helpers/mocks.dart';
 
-class _FakeLifecycle implements AppLifecycleEvents {
+class FakeLifecycle implements AppLifecycleEvents {
   final StreamController<void> background = StreamController<void>.broadcast();
   final StreamController<void> foreground = StreamController<void>.broadcast();
 
@@ -60,7 +60,7 @@ class SyncHarness {
   final MockKlimmeckGraphQl api = MockKlimmeckGraphQl();
   final MockAuthTokenService auth = MockAuthTokenService();
   final StreamController<bool> connection = StreamController<bool>();
-  final _FakeLifecycle lifecycle = _FakeLifecycle();
+  final FakeLifecycle lifecycle = FakeLifecycle();
   final StreamController<void> refreshRequests =
       StreamController<void>.broadcast();
   final List<StreamController<User>> userStreams = [];
@@ -434,7 +434,7 @@ void main() {
         auth: auth,
         watchdog: SyncWatchdog(onExpired: () async {}),
         connection: const Stream<bool>.empty(),
-        lifecycle: _FakeLifecycle(),
+        lifecycle: FakeLifecycle(),
         userRefreshRequests: const Stream<void>.empty(),
       );
     },

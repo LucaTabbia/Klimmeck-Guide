@@ -69,6 +69,16 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
           ? _watchdog.markHealthy(SyncSource.socket)
           : _watchdog.markDegraded(SyncSource.socket),
     );
+    _backgroundSubscription = _lifecycle.backgrounded.listen(
+      (_) => _watchdog.suspend(),
+    );
+    _foregroundSubscription = _lifecycle.foregrounded.listen((_) {
+      _watchdog.resume();
+      unawaited(refreshUser());
+    });
+    _refreshRequestSubscription = _userRefreshRequests.listen(
+      (_) => unawaited(refreshUser()),
+    );
   }
 
   /// Rilegge `me` e lo applica alla sessione: un solo refetch alla volta,
@@ -93,8 +103,9 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
 
   bool _adopt(User user) {
     final isAdopted = _auth.adoptUser(user);
-    if (!isAdopted)
+    if (!isAdopted) {
       debugPrint('[Sync] dropped userUpdated of another identity');
+    }
     return isAdopted;
   }
 
@@ -150,17 +161,17 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   }
 
   @override
-  Future<void> close() async {
+  Future<void> close() {
     _resubscribeTimer?.cancel();
     _watchdog.release(SyncSource.userStream);
     _watchdog.release(SyncSource.socket);
-    await Future.wait([
+    return Future.wait([
       ?_userSubscription?.cancel(),
       ?_connectionSubscription?.cancel(),
       ?_backgroundSubscription?.cancel(),
       ?_foregroundSubscription?.cancel(),
       ?_refreshRequestSubscription?.cancel(),
+      super.close(),
     ]);
-    return super.close();
   }
 }
