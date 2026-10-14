@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-14T13:01:16.059Z"
-last_activity: 2026-10-14 -- Phase 3 plan 03-04 complete (guarded syncLost termination, connection-lost notice, root dialogs close on character change)
+last_updated: "2026-10-14T13:04:53.253Z"
+last_activity: 2026-10-14 -- Phase 3 plan 03-03 complete (OnUserChanged document, subscribeToUser and typed FORBIDDEN/NOT_FOUND sync errors)
 progress:
   total_phases: 12
   completed_phases: 3
   total_plans: 34
-  completed_plans: 28
-  percent: 82
+  completed_plans: 29
+  percent: 85
 ---
 
 # Project State
@@ -22,7 +22,7 @@ Plan: 1 of 9
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 03 (Real-Time Sync Foundation) — /gsd-execute-phase 3 (sequential executors, no worktrees; plan 03-09 waits for the BE Phase 3 schema)
 Status: Executing Phase 03
-Last activity: 2026-10-14 -- Phase 3 plan 03-04 complete (guarded syncLost termination, connection-lost notice, root dialogs close on character change)
+Last activity: 2026-10-14 -- Phase 3 plan 03-03 complete (OnUserChanged document, subscribeToUser and typed FORBIDDEN/NOT_FOUND sync errors)
 
 ## Current Milestone
 
