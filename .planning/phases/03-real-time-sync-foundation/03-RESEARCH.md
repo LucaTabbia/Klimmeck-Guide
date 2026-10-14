@@ -499,25 +499,30 @@ expect(userFieldsDefinitions(UserSubscriptions.userUpdated), 1);
 | A7 | `SocketClient.dispose()` on a dead network completes promptly (it awaits `sink.close`, which for dart:io can wait for the peer's close frame up to a library timeout), so `holder.reset()` inside a watchdog teardown may take a few seconds. | Pattern 6 | Low: teardown order awaits it before clearing storage/emitting; the user sees nothing meanwhile. If it ever hangs, bound it with a timeout inside `_recreate`. |
 | A8 | `userUpdated` payload `currentCharacter` is populated one level (`{ id … }`) as `me` does, so `UserFragment` (`currentCharacter { id }`) is sufficient. | Pattern 1 | Low: confirmed in BE CONTEXT D-01/BACKEND-NOTES; schema check verifies. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which frame carries the subscribe-time `FORBIDDEN` on the real backend?**
+   - RESOLVED (2026-10-14): the backend research verified Shape B on the wire — `next` with `errors[0].extensions.code = FORBIDDEN` followed by `complete`, never an `error` frame. Plans 03-03 and 03-05 handle both shapes and never re-subscribe after FORBIDDEN/NOT_FOUND (one `me` refetch); plan 03-09 step 9 records the observed shape during the E2E.
    - Known: the BE accepted "fails immediately with `extensions.code = FORBIDDEN`"; both shapes are handled and tested.
    - Unclear: shape A vs B.
    - Recommendation: record it in `BACKEND-NOTES.md` §5 during the E2E; no code change expected.
 
 2. **Is the idle-player reading of D-15 acceptable (A3)?**
+   - RESOLVED (2026-10-14): CONTEXT D-15 was clarified to a degraded-time clock (runs only while the socket is down or a stream is failing; reset by connect/event/snapshot/refetch; suspended in background). Encoded in plans 03-02, 03-06, 03-08 with the negative test "idle but connected for 10 minutes keeps the session".
    - Recommendation: confirm with the user (one sentence) at the start of execution; the plan encodes the degraded-state semantics and the negative test "idle but connected for 10 minutes keeps the session".
 
 3. **Watchdog while the creation form is on screen and the BE is down.**
+   - RESOLVED: accepted as a session-wide consequence of D-15 (plan 03-08, T-03-08-05); to be mentioned in the PR description.
    - Known: the User stream is session-wide, so a user typing for >3 minutes offline is ejected with the notice (and loses the draft).
    - Recommendation: accept per D-15 (the decision is session-wide); mention in the PR description.
 
 4. **Stale `character(id)` refetch after a server-side deletion/death while backgrounded.**
+   - RESOLVED: plan 03-07 Task 2 keeps the character retry silent and cancellable by `close()`; the close tests in plans 03-06/03-07 assert no timers survive when `me` flips `currentCharacter` to null.
    - Known: `character(id)` then answers `NOT_FOUND`/`FORBIDDEN`; the parallel `me` refetch returns `currentCharacter: null`, `adoptUser` flips to creation, the shell (and `CharacterCubit` with its retry loop) is closed.
    - Recommendation: keep the character retry silent and cancellable by `close()`; add a test "failing character refetch + `me` showing null ends with the cubit closed and no timers left".
 
-5. **Does `SignInScreen` test churn matter?** Replacing `showSessionExpiredNotice` (bool) by a `SignInNotice` enum touches `sign_in_screen_test.dart` and `auth_gate_test.dart`; if the planner prefers zero churn, add a second named parameter instead (less clean).
+5. **Does `SignInScreen` test churn matter?**
+   - RESOLVED: plan 03-04 adopts the `SignInNotice` enum and updates `sign_in_screen_test.dart` / `auth_gate_test.dart` accordingly (clean over zero-churn). Replacing `showSessionExpiredNotice` (bool) by a `SignInNotice` enum touches `sign_in_screen_test.dart` and `auth_gate_test.dart`; if the planner prefers zero churn, add a second named parameter instead (less clean).
 
 ## Environment Availability
 
