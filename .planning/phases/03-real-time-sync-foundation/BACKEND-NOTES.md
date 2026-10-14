@@ -1,5 +1,6 @@
 # BACKEND-NOTES — Phase 3 Real-Time Sync Foundation (handoff FE → BE)
 
+- **Stato:** contratto implementato da BE Phase 3 wave 1 — fonte per il FE: Klimmeck-Guide-BE/.planning/phases/03-autorizzazione-ownership-ruoli-audit/BACKEND-NOTES.md
 - **Fase FE:** 03-real-time-sync-foundation (requisiti SYNC-01..07; decisioni D-01..D-19 in `03-CONTEXT.md`)
 - **Data:** 2026-10-14 (contesto raccolto; aggiornare man mano durante la fase)
 - **Fase BE di destinazione:** **BE Phase 3 "Autorizzazione: Ownership, Ruoli, Audit"** (decisione utente 2026-10-14: nessuna fase companion decimale). La sua SC#3 già prevede "`characterUpdated` (e lo user stream) emette solo al proprietario/innkeeper".
@@ -69,7 +70,7 @@ Invariata: `connection_init` con `{ "Authorization": "Bearer <jwt>" }` letto a o
 2. Con `currentCharacter != null` → `character(id)` query + `characterUpdated(id)` come oggi (`CharacterCubit`), ricreati se l'id cambia.
 3. Ogni evento `userUpdated` passa da `adoptUser`: un evento con `id` diverso dall'utente di sessione viene scartato (difesa in profondità lato FE; il filtro autoritativo è il vostro).
 4. **Resume dell'app** (background → foreground): il FE ri-interroga sempre `me` e `character(id)` (il socket può essere vivo e non ri-sottoscrivere). Le due query restano quindi parte del contratto consumato.
-5. **Watchdog FE ≈ 3 minuti:** se per ~3 minuti nessuna subscription riceve dati/si riconnette e nessun refetch riesce, il FE chiude la sessione localmente (storage svuotato, sign-in con "Connessione persa, accedi di nuovo"). **Nessuna chiamata `logout` al BE in questo caso** (non c'è rete): la sessione server muore per scadenza come già previsto per il logout offline.
+5. **Watchdog FE ≈ 3 minuti:** il timer corre solo mentre la sync è degradata (socket giù o stream fallito in re-iscrizione), mai con un socket sano ma inattivo; uno stream rifiutato con FORBIDDEN/NOT_FOUND non viene ri-sottoscritto (un solo refetch di `me`) e conta come degradato solo se nessuno stream è sano. Allo scadere il FE chiude la sessione localmente (storage svuotato, sign-in con "Connessione persa, accedi di nuovo"). **Nessuna chiamata `logout` al BE in questo caso** (non c'è rete): la sessione server muore per scadenza come già previsto per il logout offline.
 
 ---
 
@@ -93,6 +94,40 @@ Invariata: `connection_init` con `{ "Authorization": "Bearer <jwt>" }` letto a o
 
 ---
 
-## 5. Verifica schema (da compilare a fine fase)
+## 5. Verifica schema
 
-_Da eseguire quando la BE Phase 3 è su `develop`: confronto tra `lib/graphql/subscriptions/*.dart`, `lib/graphql/fragments/user_fragment.dart` e `Klimmeck-Guide-BE/src/schema.gql` rigenerato; E2E manuale con BE reale (snapshot al connect, aggiornamento live di twitchPoints/role/status, reconnect dopo 4401, resume, teardown al logout)._
+- **Data:** 2026-10-14
+- **BE:** branch `feat/03-autorizzazione-ownership-ruoli-audit`, commit `62890b6` (schema committato con `userUpdated: User!` alla riga 491, commit schema 298ed4b)
+- **Comando:** `dump_documents.dart` (24 documenti) + `validate_documents.js` contro `src/schema.gql` (graphql-js validate)
+- **Esito:** 24/24 OK, nessuna deriva pre-esistente (baseline plan 03-01: 23/23 OK; aggiunto `OnUserChanged`). Nessun nome del §1 è divergente.
+
+| Documento | Esito |
+|---|---|
+| CreateCharacter.graphql | OK |
+| ExchangeLoginTicket.graphql | OK |
+| GetMe.graphql | OK |
+| GetRaceTraits.graphql | OK |
+| Logout.graphql | OK |
+| OnUserChanged.graphql | OK |
+| RefreshSession.graphql | OK |
+| character.graphql | OK |
+| characterUpdated.graphql | OK |
+| cities.graphql | OK |
+| doTransaction.graphql | OK |
+| equipItem.graphql | OK |
+| equipSpell.graphql | OK |
+| equipment.graphql | OK |
+| equipmentAssetsQuantity.graphql | OK |
+| equipmentItems.graphql | OK |
+| equipmentItemsByIds.graphql | OK |
+| lootAssetsQuantity.graphql | OK |
+| lootItems.graphql | OK |
+| lootItemsByIds.graphql | OK |
+| lore.graphql | OK |
+| lores.graphql | OK |
+| quests.graphql | OK |
+| unequipSpell.graphql | OK |
+
+Documenti Phase 3 (`OnUserChanged`, `characterUpdated`, `character`, `GetMe`): tutti OK.
+
+**E2E:** vedi 03-HUMAN-UAT.md (in corso)
