@@ -18,6 +18,7 @@ import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
 const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
+const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _manualSignIn = 'Accedi manualmente';
 
 User _user(String id) => User(
@@ -128,6 +129,36 @@ void main() {
 
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text(_expiredNotice), findsOneWidget);
+  });
+
+  testWidgets('sync lost shows the sign-in screen with the connection notice', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost),
+    );
+
+    expect(find.byType(SignInScreen), findsOneWidget);
+    expect(find.text(_connectionLostNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('sync lost then session expired re-renders the notice', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    authStates
+      ..add(const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost))
+      ..add(
+        const AuthUnauthenticated(reason: UnauthenticatedReason.sessionExpired),
+      );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(_expiredNotice), findsOneWidget);
+    expect(find.text(_connectionLostNotice), findsNothing);
   });
 
   testWidgets('session expired then signed out ends on the final state', (
@@ -269,7 +300,7 @@ void main() {
     expect(find.text('home A'), findsOneWidget);
   });
 
-  group('character gained', () {
+  group('character change', () {
     var builds = 0;
 
     Future<void> pumpCountingGate(WidgetTester tester) async {
@@ -299,14 +330,16 @@ void main() {
       await tester.pump();
     }
 
-    AuthAuthenticated withCharacter({int twitchPoints = 0}) =>
-        AuthAuthenticated(
-          user: _user('u1').copyWith(
-            twitchPoints: twitchPoints,
-            currentCharacter: Character.fromJson({'id': 'c1'}),
-          ),
-          accessToken: 'token',
-        );
+    AuthAuthenticated withCharacter({
+      String characterId = 'c1',
+      int twitchPoints = 0,
+    }) => AuthAuthenticated(
+      user: _user('u1').copyWith(
+        twitchPoints: twitchPoints,
+        currentCharacter: Character.fromJson({'id': characterId}),
+      ),
+      accessToken: 'token',
+    );
 
     testWidgets('the same user gaining a character rebuilds the subtree', (
       tester,
@@ -333,7 +366,7 @@ void main() {
       expect(builds, buildsBefore);
     });
 
-    testWidgets('gaining a character keeps root dialogs open', (tester) async {
+    testWidgets('gaining a character closes root dialogs', (tester) async {
       await pumpCountingGate(tester);
       await emitAuth(tester, _authenticated('u1'));
       await openSessionDialog(tester, 'u1 none');
@@ -341,8 +374,43 @@ void main() {
       await emitAuth(tester, withCharacter());
       await tester.pumpAndSettle();
 
-      expect(find.text('session dialog'), findsOneWidget);
+      expect(find.text('session dialog'), findsNothing);
       expect(find.text('home u1 c1'), findsOneWidget);
+    });
+
+    testWidgets('losing a character closes root dialogs', (tester) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, withCharacter());
+      await openSessionDialog(tester, 'u1 c1');
+
+      await emitAuth(tester, _authenticated('u1'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('session dialog'), findsNothing);
+      expect(find.text('home u1 none'), findsOneWidget);
+    });
+
+    testWidgets('a character swap closes root dialogs', (tester) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, withCharacter());
+      await openSessionDialog(tester, 'u1 c1');
+
+      await emitAuth(tester, withCharacter(characterId: 'c2'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('session dialog'), findsNothing);
+      expect(find.text('home u1 c2'), findsOneWidget);
+    });
+
+    testWidgets('a points-only change keeps root dialogs open', (tester) async {
+      await pumpCountingGate(tester);
+      await emitAuth(tester, withCharacter());
+      await openSessionDialog(tester, 'u1 c1');
+
+      await emitAuth(tester, withCharacter(twitchPoints: 50));
+      await tester.pumpAndSettle();
+
+      expect(find.text('session dialog'), findsOneWidget);
     });
   });
 }

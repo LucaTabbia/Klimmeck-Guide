@@ -1,33 +1,98 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
+import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
+import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/backoff.dart';
+import 'package:klimmeck_guide/utils/silent_retry.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../models/character/character.dart';
 
 part 'character_state.dart';
 
+/// Stato del personaggio della sessione. Al cold start `loadCharacter` emette
+/// Loading poi Loaded | Error (D-16: KGError e pull-to-refresh del MainScreen).
+/// In sessione, una volta caricato, esiste solo `CharacterLoaded` (CLAUDE.md
+/// regola 2): errori e chiusure dello stream ri-sottoscrivono in silenzio con
+/// backoff limitato (D-14) e ogni evento rimpiazza l'intero `Character` (D-19).
+///
+/// FORBIDDEN/NOT_FOUND sullo stream e' terminale (vincolo backend): ritentare
+/// martellerebbe il server. Il cubit tiene l'ultimo stato e chiede un solo
+/// refresh dell'utente via `UserRefreshRequests`; il recupero spetta al
+/// proprietario dello stream utente (la shell si ri-chiava al cambio di
+/// `currentCharacter`, plan 08).
 class CharacterCubit extends Cubit<CharacterState>
     with SafeEmit<CharacterState> {
-  final KlimmeckGraphQl api;
-  StreamSubscription<Character>? _sub;
+  CharacterCubit(
+    this.api, {
+    required SyncHealth health,
+    required AppLifecycleEvents lifecycle,
+    required UserRefreshRequests userRefresh,
+  }) : _health = health,
+       _lifecycle = lifecycle,
+       _userRefresh = userRefresh,
+       super(CharacterInitial());
 
-  CharacterCubit(this.api) : super(CharacterInitial());
+  final KlimmeckGraphQl api;
+  final SyncHealth _health;
+  final AppLifecycleEvents _lifecycle;
+  final UserRefreshRequests _userRefresh;
+
+  StreamSubscription<Character>? _sub;
+  StreamSubscription<void>? _foregroundSubscription;
+  String? _characterId;
+  Timer? _resubscribeTimer;
+  int _attempt = 0;
+  int _eventCount = 0;
+  bool _isStreamTerminated = false;
+  int _refreshGeneration = 0;
 
   Future<void> loadCharacter(String id) async {
+    _characterId = id;
     emit(CharacterLoading());
     try {
       final character = await api.getCharacter(id);
       if (isClosed) return;
       emit(CharacterLoaded(character));
+      _foregroundSubscription ??= _lifecycle.foregrounded.listen(
+        (_) => unawaited(refreshCharacter()),
+      );
       subscribeToCharacter(id);
-    } catch (e) {
-      emit(CharacterError(e.toString()));
+    } catch (error) {
+      if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
+      emit(CharacterError(error.toString()));
     }
+  }
+
+  /// Rilegge il personaggio in silenzio (mai Loading) e lo applica solo se
+  /// nessun evento live lo ha superato nel frattempo; l'ultima richiesta vince.
+  Future<void> refreshCharacter() async {
+    final id = _characterId;
+    if (id == null || state is! CharacterLoaded) return;
+    final generation = ++_refreshGeneration;
+    final eventsBefore = _eventCount;
+    final character = await silentRetry(
+      () => api.getCharacter(id),
+      isCancelled: () => isClosed || generation != _refreshGeneration,
+      shouldRetry: (error) => !isAccessDeniedError(error),
+      onGiveUp: (error) {
+        if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
+      },
+    );
+    if (character == null || isClosed || generation != _refreshGeneration) {
+      return;
+    }
+    _health.touch();
+    if (_eventCount == eventsBefore) emit(CharacterLoaded(character));
   }
 
   Future<void> changeCharacterLocation(
@@ -36,18 +101,71 @@ class CharacterCubit extends Cubit<CharacterState>
   ) async {}
 
   void subscribeToCharacter(String id) {
-    if (_sub != null) {
-      _sub!.cancel();
-    }
+    _sub?.cancel();
+    _sub = api
+        .subscribeToCharacter(id)
+        .listen(_onCharacter, onError: _onStreamError, onDone: _onStreamDone);
+  }
 
-    _sub = api.subscribeToCharacter(id).listen((character) {
-      emit(CharacterLoaded(character));
-    }, onError: (e) => emit(CharacterError(e.toString())));
+  void _onCharacter(Character character) {
+    _eventCount++;
+    _attempt = 0;
+    _health.markHealthy(SyncSource.characterStream);
+    emit(CharacterLoaded(character));
+  }
+
+  void _onStreamError(Object error) {
+    if (isAccessDeniedError(error)) {
+      _terminateStream(error);
+      return;
+    }
+    _scheduleResubscribe();
+  }
+
+  void _onStreamDone() {
+    if (isClosed || _isStreamTerminated) return;
+    _scheduleResubscribe();
+  }
+
+  void _terminateStream(Object error) {
+    if (_isStreamTerminated) return;
+    _isStreamTerminated = true;
+    _sub?.cancel();
+    _health.markTerminated(SyncSource.characterStream);
+    final code = error is SubscriptionStreamException
+        ? error.code
+        : error.runtimeType;
+    debugPrint('[Sync] characterUpdated rejected: $code');
+    _userRefresh.requestUserRefresh();
+  }
+
+  void _scheduleResubscribe() {
+    if (_resubscribeTimer != null ||
+        isClosed ||
+        _isStreamTerminated ||
+        _characterId == null) {
+      return;
+    }
+    _health.markDegraded(SyncSource.characterStream);
+    _sub?.cancel();
+    _resubscribeTimer = Timer(
+      exponentialBackoff(_attempt++, max: WsReconnectPolicy.maxReconnectDelay),
+      () {
+        _resubscribeTimer = null;
+        if (!isClosed) subscribeToCharacter(_characterId!);
+      },
+    );
   }
 
   @override
   Future<void> close() {
-    _sub?.cancel();
-    return super.close();
+    _resubscribeTimer?.cancel();
+    _refreshGeneration++;
+    _health.release(SyncSource.characterStream);
+    return Future.wait([
+      ?_sub?.cancel(),
+      ?_foregroundSubscription?.cancel(),
+      super.close(),
+    ]);
   }
 }

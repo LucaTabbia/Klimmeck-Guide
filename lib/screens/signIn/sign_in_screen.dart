@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 const String _loginLabel = 'Login con Twitch';
 const String _tagline = 'Accedi con Twitch per iniziare la tua avventura.';
 const String _sessionExpiredNotice = 'La sessione è scaduta, accedi di nuovo.';
+const String _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const String _connectionError = 'Errore di connessione, riprova';
 const String _twitchUnavailableError =
     'Login con Twitch non ancora disponibile.';
@@ -15,11 +16,20 @@ const String _privacyLabel = 'Privacy';
 const String _logoAsset = 'assets/icons/appIcon/appIcon.png';
 const String _twitchGlyphAsset = 'assets/icons/twitch_glitch.svg';
 
+/// Avviso inline sopra il pulsante di login (Phase 11 D-31, Phase 3 D-15).
+enum SignInNotice { none, sessionExpired, connectionLost }
+
 /// Utility screen (chrome ammesso): unico entry point del login.
 class SignInScreen extends StatelessWidget {
-  const SignInScreen({super.key, this.showSessionExpiredNotice = false});
+  const SignInScreen({super.key, this.notice = SignInNotice.none});
 
-  final bool showSessionExpiredNotice;
+  final SignInNotice notice;
+
+  String? get _noticeText => switch (notice) {
+    SignInNotice.none => null,
+    SignInNotice.sessionExpired => _sessionExpiredNotice,
+    SignInNotice.connectionLost => _connectionLostNotice,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +61,9 @@ class SignInScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    if (showSessionExpiredNotice) ...[
+                    if (_noticeText case final text?) ...[
                       Text(
-                        _sessionExpiredNotice,
+                        text,
                         textAlign: TextAlign.center,
                         style: theme.errorText.copyWith(
                           color: KlimmeckGuideTheme.parchment,

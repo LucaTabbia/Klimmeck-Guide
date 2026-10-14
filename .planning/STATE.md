@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-10-09T10:03:24.148Z"
-last_activity: 2026-10-09 -- Phase 2 (character-creation) complete with BE companion phase 02.1; both branches ready for PR to develop
+status: executing
+last_updated: "2026-10-14T18:11:14.175Z"
+last_activity: 2026-10-14 -- Phase 3 closed (verified, review fixed, security 46/46); FE PR waits for the BE Phase 3 PR merge (D-04)
 progress:
   total_phases: 12
-  completed_phases: 3
-  total_plans: 25
-  completed_plans: 25
+  completed_phases: 4
+  total_plans: 34
+  completed_plans: 34
   percent: 100
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 3 (real-time-sync-foundation) — NOT STARTED (Phase 2 character-creation complete 2026-10-09)
-Plan: Not started
-Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 03 (Real-Time Sync Foundation) — /gsd-discuss-phase 3
-Status: Phase 2 complete — 5/5 success criteria, review 4/4 warnings fixed, 481 tests GREEN; PRs to open (BE 02.1 first, then FE 2)
-Last activity: 2026-10-09 -- Phase 2 (character-creation) complete with BE companion phase 02.1; both branches ready for PR to develop
+Phase: 03 (real-time-sync-foundation) — COMPLETE (verified 2026-10-14, 5/5 success criteria)
+Plan: 9 of 9
+Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — branch feat/real-time-sync-foundation; FE PR to develop only after the BE Phase 3 PR merges, D-04), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
+Next Phase: 04 (Settings Screen) — /gsd-discuss-phase 4 then /gsd-plan-phase 4
+Status: Phase 03 complete — FE PR #27 open as DRAFT on LucaTabbia/Klimmeck-Guide (feat/real-time-sync-foundation → develop); mark ready and merge only after the BE Phase 3 PR merges (D-04)
+Last activity: 2026-10-14 -- Phase 3 closed: verification passed, 3 review warnings fixed in TDD, security audit 46/46 closed; next: BE PR merge then FE PR, then /gsd-discuss-phase 4
 
 ## Current Milestone
 
@@ -41,7 +41,7 @@ Last activity: 2026-10-09 -- Phase 2 (character-creation) complete with BE compa
 ## Open Questions / Blockers
 
 - Scelta libreria push notification Flutter (firebase_messaging è standard)
-- Scelta client GraphQL subscription (ferry / graphql_flutter già in uso?)
+- ~~Scelta client GraphQL subscription~~ — risolta in Phase 3 discuss (2026-10-14): resta `graphql_flutter` 5.2.1 (WebSocketLink + WsReconnectPolicy di Phase 11)
 - ~~Flusso OAuth Twitch: webview in-app vs deep link / universal link~~ — **risolto in Phase 11:** login mediato dal backend via browser di sistema + deep link `klimmeck://auth` (Twitch non supporta PKCE né redirect con custom scheme; l'app non possiede chiavi Twitch).
 - **Chiavi Twitch non ancora disponibili:** il login reale su device non è mai stato esercitato (UAT pendenti in `phases/11-auth-session-bootstrap/11-HUMAN-UAT.md`). Fino ad allora si lavora con il dev bypass (`DEV_AUTH_ENABLED=true`; `DEV_AUTH_START_SIGNED_OUT=true` per vedere il sign-in).
 - **Backend:** dalla sua Phase 2 richiede un'identità su ogni chiamata; `DEV_AUTH_ACCESS_TOKEN` deve coincidere con quello del BE (≥ 16 caratteri). Contratto in `Klimmeck-Guide-BE/.planning/phases/02-auth-identity-foundation/BACKEND-NOTES.md`. Decisione BE D-26 (finestra di grazia del refresh) in attesa dell'utente.

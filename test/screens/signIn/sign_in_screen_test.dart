@@ -16,6 +16,7 @@ const _loginLabel = 'Login con Twitch';
 const _connectionError = 'Errore di connessione, riprova';
 const _unavailableError = 'Login con Twitch non ancora disponibile.';
 const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
+const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 
 void main() {
   late MockAuthTokenService service;
@@ -26,15 +27,13 @@ void main() {
 
   Future<void> pumpScreen(
     WidgetTester tester, {
-    bool showSessionExpiredNotice = false,
+    SignInNotice notice = SignInNotice.none,
   }) async {
     await tester.pumpWidget(
       buildTestApp(
         home: BlocProvider(
           create: (_) => SignInCubit(service),
-          child: SignInScreen(
-            showSessionExpiredNotice: showSessionExpiredNotice,
-          ),
+          child: SignInScreen(notice: notice),
         ),
       ),
     );
@@ -138,11 +137,24 @@ void main() {
   testWidgets('shows the session expired notice only when requested', (
     tester,
   ) async {
-    await pumpScreen(tester, showSessionExpiredNotice: true);
+    await pumpScreen(tester, notice: SignInNotice.sessionExpired);
     expect(find.text(_expiredNotice), findsOneWidget);
+    expect(find.text(_connectionLostNotice), findsNothing);
 
     await pumpScreen(tester);
     await tester.pump();
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('shows the connection lost notice only when requested', (
+    tester,
+  ) async {
+    await pumpScreen(tester, notice: SignInNotice.connectionLost);
+    expect(find.text(_connectionLostNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+
+    await pumpScreen(tester);
+    await tester.pump();
+    expect(find.text(_connectionLostNotice), findsNothing);
   });
 }

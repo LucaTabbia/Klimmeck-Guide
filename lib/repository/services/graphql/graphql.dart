@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/race_traits.dart';
@@ -21,6 +22,8 @@ import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/user.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
 
 class KlimmeckGraphQl {
@@ -89,23 +92,38 @@ class KlimmeckGraphQl {
     return client.subscribe(options);
   }
 
-  Stream<Character> subscribeToCharacter(String id) {
-    return performSubscription(
-      CharacterSubscriptions.characterUpdated,
-      variables: {'id': id},
-    ).map((result) {
-      if (result.hasException) {
-        final errorMessage = getGenericErrorMessage(result.exception);
-        throw Exception(errorMessage);
-      }
+  Stream<User> subscribeToUser() =>
+      performSubscription(UserSubscriptions.userUpdated).map((result) {
+        _throwIfStreamFailed(result, operation: 'userUpdated');
+        return _userFrom(result.data?['userUpdated']);
+      });
 
-      final data = result.data?['characterUpdated'];
-      if (data == null) {
-        throw Exception('No character data in subscription event');
-      }
+  Stream<Character> subscribeToCharacter(String id) =>
+      performSubscription(
+        CharacterSubscriptions.characterUpdated,
+        variables: {'id': id},
+      ).map((result) {
+        _throwIfStreamFailed(result, operation: 'characterUpdated');
+        return _characterFrom(result.data?['characterUpdated']);
+      });
 
-      return Character.fromJson(data);
-    });
+  void _throwIfStreamFailed(QueryResult result, {required String operation}) {
+    if (!result.hasException) return;
+    throw SubscriptionStreamException(
+      operation: operation,
+      code: graphQlErrorCode(result.exception),
+    );
+  }
+
+  Character _characterFrom(Object? json) {
+    if (json is! Map<String, dynamic>) {
+      throw const FormatException('character missing');
+    }
+    try {
+      return Character.fromJson(json);
+    } on Object catch (error) {
+      throw FormatException('character malformed: ${error.runtimeType}');
+    }
   }
 
   Future<List<City>> getCities() async {
@@ -261,6 +279,10 @@ class KlimmeckGraphQl {
       CharacterQueries.getCharacter,
       variables: {"id": id},
     );
+    final code = graphQlErrorCode(result.exception);
+    if (accessDeniedCodes.contains(code)) {
+      throw GraphQlAccessDeniedException(operation: 'character', code: code!);
+    }
     if (result.hasException) {
       final errorMessage = getGenericErrorMessage(result.exception);
       throw Exception(errorMessage);

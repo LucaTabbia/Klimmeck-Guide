@@ -57,7 +57,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 - [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
-- [ ] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout.
+- [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
 - [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
 - [ ] **Phase 5: Notifications Infrastructure** — FCM registration, permission gated at first travel confirm, three-state push handling, in-app banner dedup, uniform tap routing to Map.
 - [ ] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes.
@@ -132,7 +132,19 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Decisions to make during discuss step**:
   - GraphQL subscription client choice (`graphql_flutter` already in use vs `ferry`) — open question from STATE.md.
   - Backend contract for `connection_init` auth header (confirm with BE before implementation).
-**Plans**: TBD
+**Notes (Phase 3 decisions)**: SC#2 fields `activeTravel` / `activeStoryQuest` / `activeWorldMissionQuest` are not in the backend schema yet — they join `CharacterFragment` in Phases 6/7 (D-05, fragment-only change). SC#4 "character swap": the admin never reassigns characters (D-08) — the shell is nevertheless keyed by character id. SC#3 re-query happens on resume; on reconnect the backend snapshot-on-subscribe recovers the payload (D-03/D-12). FE PR waits for the BE Phase 3 PR (D-04).
+**Plans**: 9 plans
+
+Plans:
+- [x] 03-01-PLAN.md — Wave 0: fake graphql-ws server, sync fixtures, schema-check tooling, SYNC-05 wording (D-08)
+- [x] 03-02-PLAN.md — Flutter-free sync primitives: SyncHealth/SyncWatchdog (degraded-time clock), lifecycle + user-refresh buses, silentRetry
+- [x] 03-03-PLAN.md — GraphQL boundary: OnUserChanged, FORBIDDEN/NOT_FOUND codes, subscribeToUser, typed stream failures
+- [x] 03-04-PLAN.md — Session end: UnauthenticatedReason.syncLost, SessionTerminator, "Connessione persa" notice, AuthGate pop on character change (D-10)
+- [x] 03-05-PLAN.md — Transport: keep-alive connect, socket monitor, real-socket tests for resubscribe/token rotation/reset
+- [x] 03-06-PLAN.md — SessionSyncCubit: single userUpdated consumer, resume/request me refetch, watchdog feeding
+- [x] 03-07-PLAN.md — CharacterCubit hardening (silent resubscribe, terminal FORBIDDEN, resume refetch) + shell wiring
+- [x] 03-08-PLAN.md — Wiring: SessionSyncScope, shell keyed by character id, AppLifecycleBridge, main.dart
+- [x] 03-09-PLAN.md — Cross-repo gate: schema check vs BE schema, validation sign-off, manual E2E, BACKEND-NOTES (checkpoint)
 
 ### Phase 4: Settings Screen
 **Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
@@ -305,7 +317,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 |-------|----------------|--------|-----------|
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
 | 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
-| 3. Real-Time Sync Foundation | 0/0 | Not started | - |
+| 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 0/0 | Not started | - |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
 | 6. Quest Accept & Info Sheets | 0/0 | Not started | - |

@@ -66,13 +66,13 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 ### Real-Time Sync (User + Character subscriptions)
 
-- [ ] **SYNC-01**: After login, the app opens a GraphQL subscription on the current `User` that delivers live updates to `twitchPoints`, `role`, and the `currentCharacter` reference
-- [ ] **SYNC-02**: After the current `Character` is known, the app opens a GraphQL subscription on that Character that delivers live updates to `infos`, `status` (location, coins, HP, XP, spells, injuries, `activeTravel`, …), `quests` (including `pendingQuest`, `activeStoryQuest`, `activeWorldMissionQuest`), and `assets` (including `activeSpells`, `wearedEquipment`)
-- [ ] **SYNC-03**: Both subscriptions auto-reconnect silently after network drop or app resume, and each re-queries its full payload to recover any missed events. No reconnection indicator is shown to the user — the experience stays immersive; transient staleness is resolved as soon as the subscription reopens.
-- [ ] **SYNC-04**: Both subscriptions are closed cleanly on logout; no user or character data leaks into a subsequent session
-- [ ] **SYNC-05**: When the current character changes (admin-swap, creation, or deletion), the Character subscription is rebuilt against the new `currentCharacter.id` without leaking the previous stream
-- [ ] **SYNC-06**: The WebSocket `connection_init` payload carries the current auth token and is updated after token refresh for both subscriptions
-- [ ] **SYNC-07**: `User.twitchPoints` and `Character.status` values displayed in the UI update live as the backend emits subscription events (no manual polling)
+- [x] **SYNC-01**: After login, the app opens a GraphQL subscription on the current `User` that delivers live updates to `twitchPoints`, `role`, and the `currentCharacter` reference
+- [x] **SYNC-02**: After the current `Character` is known, the app opens a GraphQL subscription on that Character that delivers live updates to `infos`, `status` (location, coins, HP, XP, spells, injuries, `activeTravel`, …), `quests` (including `pendingQuest`, `activeStoryQuest`, `activeWorldMissionQuest`), and `assets` (including `activeSpells`, `wearedEquipment`) — _Phase 3 note (D-05): `activeTravel`, `activeStoryQuest`, `activeWorldMissionQuest` are not in the backend schema yet; they join `CharacterFragment` in Phases 6/7 (fragment-only change on the plumbing built in Phase 3)._
+- [x] **SYNC-03**: Both subscriptions auto-reconnect silently after network drop or app resume, and each re-queries its full payload to recover any missed events. No reconnection indicator is shown to the user — the experience stays immersive; transient staleness is resolved as soon as the subscription reopens.
+- [x] **SYNC-04**: Both subscriptions are closed cleanly on logout; no user or character data leaks into a subsequent session
+- [x] **SYNC-05**: When the current character changes (creation or deletion — the admin never reassigns characters, Phase 3 D-08), the Character subscription is rebuilt against the new `currentCharacter.id` (or closed when it becomes `null`) without leaking the previous stream
+- [x] **SYNC-06**: The WebSocket `connection_init` payload carries the current auth token and is updated after token refresh for both subscriptions
+- [x] **SYNC-07**: `User.twitchPoints` and `Character.status` values displayed in the UI update live as the backend emits subscription events (no manual polling)
 
 ### Notifications
 
@@ -203,7 +203,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CHAR-01 through CHAR-05, CHAR-07 through CHAR-09 | Phase 2 | Complete (CHAR-05: upload only, curated set deferred) |
 | CHAR-06                     | Deferred (Phase 2 D-17 → Phase 12 / BE hardening) | Deferred |
 | SET-01 through SET-04       | TBD   | Pending |
-| SYNC-01 through SYNC-07     | TBD   | Pending |
+| SYNC-01 through SYNC-07     | Phase 3 | Complete (activeTravel/activeStoryQuest/activeWorldMissionQuest join the fragment in Phases 6/7, D-05; FE PR after the BE Phase 3 PR, D-04) |
 | NOTIF-01 through NOTIF-08   | TBD   | Pending |
 | QUEST-01 through QUEST-07   | TBD   | Pending |
 | TRAVEL-01 through TRAVEL-04 | TBD   | Pending |

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
@@ -21,6 +24,12 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// I Cubit gameplay vivono qui e si chiudono quando `AuthGate` rimuove la
 /// shell (logout/cambio account); usano `SafeEmit`, quindi una risposta
 /// ancora in volo alla chiusura viene ignorata.
+///
+/// `SyncHealth` e `UserRefreshRequests` arrivano dallo scope di sessione
+/// (`SessionSyncScope`), `AppLifecycleEvents` dalla radice dell'app, tutti
+/// montati sopra la shell. La shell e' chiavata per id personaggio in
+/// `SessionHome`: un nuovo id significa un nuovo cubit e mai due stream
+/// personaggio vivi insieme (D-08).
 ///
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
@@ -48,7 +57,14 @@ class AuthenticatedShell extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<StorageCubit>(create: (_) => StorageCubit()),
-        BlocProvider<CharacterCubit>(create: (_) => CharacterCubit(graphQl)),
+        BlocProvider<CharacterCubit>(
+          create: (context) => CharacterCubit(
+            graphQl,
+            health: context.read<SyncHealth>(),
+            lifecycle: context.read<AppLifecycleEvents>(),
+            userRefresh: context.read<UserRefreshRequests>(),
+          ),
+        ),
         BlocProvider<QuestCubit>(create: (_) => QuestCubit(graphQl)),
         BlocProvider<TransactionCubit>(
           create: (_) => TransactionCubit(graphQl),

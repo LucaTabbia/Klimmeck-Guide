@@ -39,7 +39,7 @@ created: 2026-10-13
 | T-02-01-04 | Repudiation | CHAR-06 deferred | accept | Accepted risk AR-01; REQUIREMENTS.md CHAR-06 marked DEFERRED (line 55, 204) | closed |
 | T-02-02-01 | Spoofing | `adoptUser` | mitigate | session_auth_token_service.dart:183-190 (authenticated AND `user.id == _user?.id`); dev_auth_token_service.dart:92-101; covered by test/screens/auth + test/repository suites (green) | closed |
 | T-02-02-02 | Tampering | token on re-emit | mitigate | `adoptUser(User)` takes no token; dev service re-emits `current.accessToken` (dev_auth_token_service.dart:98); session service `_emitAuthenticated()` reuses held token | closed |
-| T-02-02-03 | DoS (stuck UI) | `AuthGate._shouldRebuild` | mitigate | auth_gate.dart:66-76 `_changesCharacter` in rebuild rule; test auth_gate_test.dart "character gained gaining a character keeps root dialogs open" (green) | closed |
+| T-02-02-03 | DoS (stuck UI) | `AuthGate._shouldRebuild` | mitigate | auth_gate.dart:66-76 `_changesCharacter` in rebuild rule; test auth_gate_test.dart "character change the same user gaining a character rebuilds the subtree" (green); root-dialog behaviour on character change superseded by Phase 3 D-10 ("character change gaining a character closes root dialogs") | closed |
 | T-02-02-04 | Info disclosure | logging | mitigate | No new debugPrint in adoptUser/creation code; remaining debugPrint in auth services are pre-existing and log `runtimeType` only | closed |
 | T-02-03-01 | Tampering | `toJson` | mitigate | create_character_request.dart toJson returns variables map with enum `.name` and int age; no document interpolation | closed |
 | T-02-03-02 | Elev. of privilege | client validation | accept | Accepted risk AR-03 (UX only, BE authoritative D-23) | closed |

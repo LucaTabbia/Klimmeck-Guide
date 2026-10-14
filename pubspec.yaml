@@ -46,6 +46,7 @@ dependencies:
   flutter_svg: ^2.2.0
   google_fonts: ^6.2.1
   intl: ^0.20.2
+  web_socket_channel: ^3.0.3
 
   #Auth
   flutter_web_auth_2: ^5.1.0

@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -10,13 +16,23 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fakes/recording_sync_health.dart';
+import '../../helpers/fixtures/sync_event_fixtures.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
 void main() {
   late MockSplashCubit splashCubit;
+  late RecordingSyncHealth health;
+  late AppLifecycleEventBus lifecycle;
+  late UserRefreshRequestBus refreshBus;
+  late MockKlimmeckGraphQl graphQl;
 
   setUp(() {
+    health = RecordingSyncHealth();
+    lifecycle = AppLifecycleEventBus();
+    refreshBus = UserRefreshRequestBus();
+    graphQl = MockKlimmeckGraphQl();
     splashCubit = MockSplashCubit();
     when(() => splashCubit.getImages(any())).thenAnswer((_) async {});
     when(() => splashCubit.startBootstrapWatch()).thenReturn(null);
@@ -35,12 +51,20 @@ void main() {
     );
     await tester.pumpWidget(
       buildTestApp(
-        home: BlocProvider<SplashCubit>.value(
-          value: splashCubit,
-          child: AuthenticatedShell(
-            graphQl: MockKlimmeckGraphQl(),
-            characterId: testCharacterId,
-            mainScreenBuilder: mainScreenBuilder ?? (_, id) => Text('main $id'),
+        home: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<SyncHealth>.value(value: health),
+            RepositoryProvider<AppLifecycleEvents>.value(value: lifecycle),
+            RepositoryProvider<UserRefreshRequests>.value(value: refreshBus),
+          ],
+          child: BlocProvider<SplashCubit>.value(
+            value: splashCubit,
+            child: AuthenticatedShell(
+              graphQl: graphQl,
+              characterId: testCharacterId,
+              mainScreenBuilder:
+                  mainScreenBuilder ?? (_, id) => Text('main $id'),
+            ),
           ),
         ),
       ),
@@ -98,4 +122,91 @@ void main() {
     expect(characterCubit.isClosed, isTrue);
     expect(questCubit.isClosed, isTrue);
   });
+
+  group('character sync through the shell', () {
+    late StreamController<Character> updates;
+
+    setUp(() {
+      updates = StreamController<Character>(sync: true);
+      when(() => graphQl.getCharacter(testCharacterId)).thenAnswer(
+        (_) async => Character.fromJson(
+          characterJson(id: testCharacterId, currentLifePoints: 7),
+        ),
+      );
+      when(
+        () => graphQl.subscribeToCharacter(testCharacterId),
+      ).thenAnswer((_) => updates.stream);
+    });
+
+    tearDown(() => updates.close());
+
+    Widget hpBuilder(BuildContext context, String id) =>
+        _CharacterLoader(characterId: id);
+
+    testWidgets('a pushed event updates the status on screen (SYNC-07)', (
+      tester,
+    ) async {
+      await pumpShell(
+        tester,
+        state: const SplashData(),
+        mainScreenBuilder: hpBuilder,
+      );
+      await tester.pump();
+      expect(find.text('hp 7'), findsOneWidget);
+
+      updates.add(
+        Character.fromJson(
+          characterJson(id: testCharacterId, currentLifePoints: 3),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('hp 3'), findsOneWidget);
+    });
+
+    testWidgets('removing the shell releases the character stream', (
+      tester,
+    ) async {
+      await pumpShell(
+        tester,
+        state: const SplashData(),
+        mainScreenBuilder: hpBuilder,
+      );
+      await tester.pump();
+      expect(updates.hasListener, isTrue);
+
+      await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+      expect(updates.hasListener, isFalse);
+      expect(health.calls, contains('released:characterStream'));
+    });
+  });
+}
+
+class _CharacterLoader extends StatefulWidget {
+  const _CharacterLoader({required this.characterId});
+
+  final String characterId;
+
+  @override
+  State<_CharacterLoader> createState() => _CharacterLoaderState();
+}
+
+class _CharacterLoaderState extends State<_CharacterLoader> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<CharacterCubit>().loadCharacter(widget.characterId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<CharacterCubit, CharacterState, int?>(
+      selector: (state) => state is CharacterLoaded
+          ? state.character.status?.currentLifePoints
+          : null,
+      builder: (_, hp) => Text('hp $hp'),
+    );
+  }
 }

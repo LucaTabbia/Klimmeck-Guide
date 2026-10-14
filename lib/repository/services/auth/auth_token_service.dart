@@ -53,6 +53,10 @@ enum UnauthenticatedReason {
   /// Sessione rifiutata dal backend: SignIn mostra «La sessione è scaduta,
   /// accedi di nuovo.» (D-10/D-31).
   sessionExpired,
+
+  /// Sync in tempo reale persa per ~3 minuti di degrado continuo: SignIn mostra
+  /// «Connessione persa, accedi di nuovo.» (Phase 3 D-15).
+  syncLost,
 }
 
 /// Stato emesso quando l'utente non è autenticato (es. dopo logout

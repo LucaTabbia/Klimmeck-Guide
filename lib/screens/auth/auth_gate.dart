@@ -11,7 +11,8 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// dipende solo da [AuthCubit].
 ///
 /// - `AuthBootstrapping` → splash come gate del cold start (D-17/D-18);
-/// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta;
+/// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta o la
+///   connessione in tempo reale è andata persa (Phase 3 D-15);
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
 ///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
@@ -19,7 +20,9 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 ///
 /// Quando la sessione finisce (`AuthUnauthenticated`) o cambia utente chiude
 /// dialog e sheet aperti sul Navigator radice, che vivono fuori dal
-/// sotto-albero della sessione.
+/// sotto-albero della sessione. Li chiude anche quando cambia il personaggio
+/// dello stesso utente (Phase 3 D-10): uno sheet può riferirsi al personaggio
+/// precedente o a un Cubit chiuso.
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key, required this.authenticatedBuilder});
 
@@ -28,7 +31,9 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
-      listenWhen: _leavesSession,
+      listenWhen: (previous, current) =>
+          _leavesSession(previous, current) ||
+          _changesCharacter(previous, current),
       listener: (context, _) =>
           Navigator.of(context).popUntil((route) => route.isFirst),
       child: BlocBuilder<AuthCubit, AuthState>(
@@ -40,10 +45,7 @@ class AuthGate extends StatelessWidget {
           ),
           AuthUnauthenticated(:final reason) => BlocProvider(
             create: (context) => SignInCubit(context.read<AuthTokenService>()),
-            child: SignInScreen(
-              showSessionExpiredNotice:
-                  reason == UnauthenticatedReason.sessionExpired,
-            ),
+            child: SignInScreen(notice: _noticeFor(reason)),
           ),
           AuthAuthenticated(:final user) => KeyedSubtree(
             key: ValueKey<String>(user.id),
@@ -53,6 +55,13 @@ class AuthGate extends StatelessWidget {
       ),
     );
   }
+
+  static SignInNotice _noticeFor(UnauthenticatedReason reason) =>
+      switch (reason) {
+        UnauthenticatedReason.signedOut => SignInNotice.none,
+        UnauthenticatedReason.sessionExpired => SignInNotice.sessionExpired,
+        UnauthenticatedReason.syncLost => SignInNotice.connectionLost,
+      };
 
   static bool _leavesSession(AuthState previous, AuthState current) =>
       (current is AuthUnauthenticated && previous is! AuthUnauthenticated) ||
