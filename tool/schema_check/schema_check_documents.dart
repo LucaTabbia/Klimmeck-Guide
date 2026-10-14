@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 
 /// Ogni operazione GraphQL nominata dell'app, per nome operazione.
 ///
@@ -38,4 +39,5 @@ final Map<String, String> schemaCheckDocuments = {
   'RefreshSession': AuthMutations.refreshSession,
   'Logout': AuthMutations.logout,
   'characterUpdated': CharacterSubscriptions.characterUpdated,
+  'OnUserChanged': UserSubscriptions.userUpdated,
 };
