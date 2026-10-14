@@ -61,6 +61,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   int _eventCount = 0;
   bool _isUserStreamTerminated = false;
   Future<void>? _refreshInFlight;
+  Future<void>? _queuedRefresh;
 
   void start() {
     _subscribeToUser();
@@ -77,14 +78,32 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
       unawaited(refreshUser());
     });
     _refreshRequestSubscription = _userRefreshRequests.listen(
-      (_) => unawaited(refreshUser()),
+      (_) => unawaited(refreshUser(force: true)),
     );
   }
 
-  /// Rilegge `me` e lo applica alla sessione: un solo refetch alla volta,
-  /// silenzioso, scartato se un evento live lo ha superato.
-  Future<void> refreshUser() => _refreshInFlight ??= _performUserRefresh()
-      .whenComplete(() => _refreshInFlight = null);
+  /// Rilegge `me` e lo applica alla sessione, silenzioso e scartato se un
+  /// evento live lo ha superato. Di norma una richiesta durante un volo si
+  /// unisce a quello (foreground). Con [force] (recovery di uno stream
+  /// terminato) serve invece una lettura piu' recente del volo in corso:
+  /// le richieste forzate si fondono in un solo refetch accodato.
+  Future<void> refreshUser({bool force = false}) {
+    final inFlight = _refreshInFlight;
+    if (inFlight == null) return _startUserRefresh();
+    if (!force) return inFlight;
+    return _queuedRefresh ??= inFlight.catchError((_) {}).then((_) {
+      _queuedRefresh = null;
+      return _startUserRefresh();
+    });
+  }
+
+  Future<void> _startUserRefresh() {
+    late final Future<void> flight;
+    flight = _performUserRefresh().whenComplete(() {
+      if (identical(_refreshInFlight, flight)) _refreshInFlight = null;
+    });
+    return _refreshInFlight = flight;
+  }
 
   bool get _isSessionEnding => isClosed || _watchdog.isLatched;
 
@@ -133,7 +152,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
         ? error.code
         : error.runtimeType;
     debugPrint('[Sync] userUpdated rejected: $code');
-    unawaited(refreshUser());
+    unawaited(refreshUser(force: true));
   }
 
   void _scheduleResubscribe() {

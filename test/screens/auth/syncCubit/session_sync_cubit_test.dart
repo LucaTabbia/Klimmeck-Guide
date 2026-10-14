@@ -402,7 +402,28 @@ void main() {
       expect(h.expiries, 1);
     });
 
-    withHarness('three requests in flight produce one refetch', (h, async) {
+    withHarness('a foreground during a flight joins it without a new refetch', (
+      h,
+      async,
+    ) {
+      final pending = Completer<User>();
+      when(() => h.api.getMe()).thenAnswer((_) => pending.future);
+      h.cubit.start();
+
+      h.lifecycle.foreground
+        ..add(null)
+        ..add(null);
+      async.flushMicrotasks();
+      pending.complete(buildTestUserWithCharacter());
+      async.flushMicrotasks();
+
+      verify(() => h.api.getMe()).called(1);
+    });
+
+    withHarness('requests during a flight coalesce into one follow-up', (
+      h,
+      async,
+    ) {
       final pending = Completer<User>();
       when(() => h.api.getMe()).thenAnswer((_) => pending.future);
       h.cubit.start();
@@ -416,9 +437,36 @@ void main() {
 
       pending.complete(buildTestUserWithCharacter());
       async.flushMicrotasks();
+      verify(() => h.api.getMe()).called(1);
+
       h.refreshRequests.add(null);
       async.flushMicrotasks();
       verify(() => h.api.getMe()).called(1);
+    });
+
+    withHarness('a terminal recovery never adopts the older in-flight me', (
+      h,
+      async,
+    ) {
+      final older = buildTestUser();
+      final newer = buildTestUserWithCharacter();
+      final first = Completer<User>();
+      var calls = 0;
+      when(() => h.api.getMe()).thenAnswer((_) {
+        calls++;
+        return calls == 1 ? first.future : Future.value(newer);
+      });
+      h.cubit.start();
+      h.lifecycle.foreground.add(null);
+      async.flushMicrotasks();
+
+      h.refreshRequests.add(null);
+      async.flushMicrotasks();
+      first.complete(older);
+      async.flushMicrotasks();
+
+      verify(() => h.api.getMe()).called(2);
+      verify(() => h.auth.adoptUser(newer)).called(1);
     });
 
     withHarness('prolonged degradation expires exactly once', (h, async) {
