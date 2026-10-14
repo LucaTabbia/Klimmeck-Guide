@@ -127,7 +127,7 @@ void main() {
     late StreamController<Character> updates;
 
     setUp(() {
-      updates = StreamController<Character>();
+      updates = StreamController<Character>(sync: true);
       when(() => graphQl.getCharacter(testCharacterId)).thenAnswer(
         (_) async => Character.fromJson(
           characterJson(id: testCharacterId, currentLifePoints: 7),
@@ -159,6 +159,7 @@ void main() {
           characterJson(id: testCharacterId, currentLifePoints: 3),
         ),
       );
+      await tester.pump();
       await tester.pump();
 
       expect(find.text('hp 3'), findsOneWidget);
