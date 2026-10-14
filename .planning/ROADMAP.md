@@ -132,7 +132,19 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 **Decisions to make during discuss step**:
   - GraphQL subscription client choice (`graphql_flutter` already in use vs `ferry`) — open question from STATE.md.
   - Backend contract for `connection_init` auth header (confirm with BE before implementation).
-**Plans**: TBD
+**Notes (Phase 3 decisions)**: SC#2 fields `activeTravel` / `activeStoryQuest` / `activeWorldMissionQuest` are not in the backend schema yet — they join `CharacterFragment` in Phases 6/7 (D-05, fragment-only change). SC#4 "character swap": the admin never reassigns characters (D-08) — the shell is nevertheless keyed by character id. SC#3 re-query happens on resume; on reconnect the backend snapshot-on-subscribe recovers the payload (D-03/D-12). FE PR waits for the BE Phase 3 PR (D-04).
+**Plans**: 9 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0: fake graphql-ws server, sync fixtures, schema-check tooling, SYNC-05 wording (D-08)
+- [ ] 03-02-PLAN.md — Flutter-free sync primitives: SyncHealth/SyncWatchdog (degraded-time clock), lifecycle + user-refresh buses, silentRetry
+- [ ] 03-03-PLAN.md — GraphQL boundary: OnUserChanged, FORBIDDEN/NOT_FOUND codes, subscribeToUser, typed stream failures
+- [ ] 03-04-PLAN.md — Session end: UnauthenticatedReason.syncLost, SessionTerminator, "Connessione persa" notice, AuthGate pop on character change (D-10)
+- [ ] 03-05-PLAN.md — Transport: keep-alive connect, socket monitor, real-socket tests for resubscribe/token rotation/reset
+- [ ] 03-06-PLAN.md — SessionSyncCubit: single userUpdated consumer, resume/request me refetch, watchdog feeding
+- [ ] 03-07-PLAN.md — CharacterCubit hardening (silent resubscribe, terminal FORBIDDEN, resume refetch) + shell wiring
+- [ ] 03-08-PLAN.md — Wiring: SessionSyncScope, shell keyed by character id, AppLifecycleBridge, main.dart
+- [ ] 03-09-PLAN.md — Cross-repo gate: schema check vs BE schema, validation sign-off, manual E2E, BACKEND-NOTES (checkpoint)
 
 ### Phase 4: Settings Screen
 **Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
