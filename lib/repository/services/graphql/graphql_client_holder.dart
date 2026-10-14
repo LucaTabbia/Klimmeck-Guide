@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
+import 'package:klimmeck_guide/repository/services/graphql/socket_connection_monitor.dart';
 
 /// Possiede il client GraphQL corrente.
 ///
@@ -27,6 +28,12 @@ class GraphQLClientHolder {
 
   /// Client corrente, ascoltato da `GraphQLProvider`.
   late final ValueNotifier<GraphQLClient> client;
+
+  /// Stato del socket del link corrente. Una chiamata per sessione (lo scope
+  /// di sync la fa al mount): [reset] avviene solo a fine sessione, quindi
+  /// ogni sessione si lega al link vivo.
+  Stream<bool> watchConnection() =>
+      SocketConnectionMonitor(_webSocketLink).watch();
 
   Future<void>? _resetInFlight;
 

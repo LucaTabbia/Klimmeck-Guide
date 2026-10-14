@@ -166,10 +166,13 @@ void main() {
             server.emit(ws, subscribe['id'] as String, {
               'userUpdated': {'id': 'u1'},
             });
-        final oldEvents = StreamIterator<QueryResult>(
-          subscribeVia(holder.client.value),
-        );
-        await _next(oldEvents);
+        final oldEvents = <QueryResult>[];
+        final firstOldEvent = Completer<void>();
+        final oldListener = subscribeVia(holder.client.value).listen((event) {
+          oldEvents.add(event);
+          if (!firstOldEvent.isCompleted) firstOldEvent.complete();
+        });
+        await firstOldEvent.future.timeout(_wait);
         final oldSocket = server.sockets.first;
         final oldSocketClosed = Completer<void>();
         oldSocket.done.then((_) => oldSocketClosed.complete());
@@ -192,7 +195,8 @@ void main() {
           'userUpdated': {'id': 'u2'},
         });
         expect(await _next(newEvents), isA<QueryResult>());
-        expect(await oldEvents.moveNext().timeout(_wait), isFalse);
+        expect(oldEvents, hasLength(1));
+        await oldListener.cancel();
         await newEvents.cancel();
       },
       timeout: const Timeout(Duration(seconds: 15)),
