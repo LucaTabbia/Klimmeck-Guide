@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
+import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
@@ -23,6 +24,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MockAuthTokenService extends Mock implements AuthTokenService {}
 
 class MockUnauthorizedRecovery extends Mock implements UnauthorizedRecovery {}
+
+class MockSessionTerminator extends Mock implements SessionTerminator {}
 
 class MockBrowserAuthenticator extends Mock implements BrowserAuthenticator {}
 

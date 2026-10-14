@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/dev_auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 
 import '../../../helpers/auth_fixtures.dart';
 import '../../../helpers/fixtures/dev_auth_env.dart';
@@ -139,6 +140,43 @@ void main() {
         ),
       );
       expect(await service.getAccessToken(), isNull);
+    });
+  });
+
+  group('DevAuthTokenService terminateSession', () {
+    test('is a SessionTerminator', () {
+      expect(service, isA<SessionTerminator>());
+    });
+
+    test('signed in: tears down once, emits syncLost, login returns', () async {
+      await service.initialize();
+      final expectation = expectLater(
+        service.authStateStream,
+        emitsInOrder([
+          const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost),
+          isA<AuthAuthenticated>(),
+        ]),
+      );
+
+      await service.terminateSession(UnauthenticatedReason.syncLost);
+      await service.login();
+
+      await expectation;
+      expect(teardownCalls, equals(1));
+    });
+
+    test('signed out: no teardown and no emission', () async {
+      await loadTestEnv(startSignedOut: 'true');
+      await service.initialize();
+      final states = <AuthState>[];
+      final subscription = service.authStateStream.listen(states.add);
+
+      await service.terminateSession(UnauthenticatedReason.syncLost);
+      await Future<void>.delayed(Duration.zero);
+      await subscription.cancel();
+
+      expect(teardownCalls, equals(0));
+      expect(states, isEmpty);
     });
   });
 
