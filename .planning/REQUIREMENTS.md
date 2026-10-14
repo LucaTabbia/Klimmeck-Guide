@@ -63,6 +63,7 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 - [ ] **SET-02**: User can toggle individual notification categories (travel end, streamer live, quest end) in Settings
 - [ ] **SET-03**: User can trigger logout from Settings
 - [ ] **SET-04**: Notification preferences persist across app restarts
+- [ ] **SET-05**: User can delete the current character from Settings after an explicit confirmation; the app returns to character creation (added 2026-10-15 in the Phase 4 discuss — backend contract `deleteCharacter` in BE Phase 03.1)
 
 ### Real-Time Sync (User + Character subscriptions)
 
@@ -202,7 +203,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | AUTH-01 through AUTH-07     | Phase 11 | Complete (real-device Twitch login pending UAT) |
 | CHAR-01 through CHAR-05, CHAR-07 through CHAR-09 | Phase 2 | Complete (CHAR-05: upload only, curated set deferred) |
 | CHAR-06                     | Deferred (Phase 2 D-17 → Phase 12 / BE hardening) | Deferred |
-| SET-01 through SET-04       | TBD   | Pending |
+| SET-01 through SET-05       | Phase 4 | Pending |
 | SYNC-01 through SYNC-07     | Phase 3 | Complete (activeTravel/activeStoryQuest/activeWorldMissionQuest join the fragment in Phases 6/7, D-05; FE PR after the BE Phase 3 PR, D-04) |
 | NOTIF-01 through NOTIF-08   | TBD   | Pending |
 | QUEST-01 through QUEST-07   | TBD   | Pending |

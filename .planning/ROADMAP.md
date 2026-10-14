@@ -58,7 +58,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
 - [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
-- [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, and persistence.
+- [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1).
 - [ ] **Phase 5: Notifications Infrastructure** — FCM registration, permission gated at first travel confirm, three-state push handling, in-app banner dedup, uniform tap routing to Map.
 - [ ] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes.
 - [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
@@ -148,14 +148,15 @@ Plans:
 
 ### Phase 4: Settings Screen
 **Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
-**Depends on**: Phase 1 (logout wiring — in Phase 1 è no-op; Phase 11 sostituirà con logout reale), Phase 3 (not strictly required, but SET shares infra with NOTIF)
+**Depends on**: Phase 1 (logout wiring — in Phase 1 è no-op; Phase 11 sostituirà con logout reale), Phase 3 (not strictly required, but SET shares infra with NOTIF), **BE Phase 03.1 Character Deletion Contract** (`deleteCharacter`; BE PR merges before the FE PR — added 2026-10-15)
 **Scope**: S
-**Requirements**: SET-01, SET-02, SET-03, SET-04
+**Requirements**: SET-01, SET-02, SET-03, SET-04, SET-05
 **Success Criteria** (what must be TRUE):
   1. User can reach a Settings screen from the main menu.
   2. User can individually toggle travel-end, streamer-live, and quest-end notification categories.
   3. User can log out from Settings and is returned to sign-in (in Phase 1 stub: no-op + log; con Phase 11 atterrato: logout atomico reale).
   4. Notification preferences survive app kill/restart.
+  5. User can delete the current character from Settings after confirming; the app returns to character creation (backend `deleteCharacter`, soft delete, BE Phase 03.1). *(added 2026-10-15, SET-05)*
 **Decisions to make during discuss step**:
   - Storage backend for preferences (shared_preferences is acceptable here — these are non-sensitive).
   - Settings is a utility surface (UI chrome allowed).
@@ -357,6 +358,7 @@ Plans:
 | SET-02 | Phase 4 | Pending |
 | SET-03 | Phase 4 | Pending |
 | SET-04 | Phase 4 | Pending |
+| SET-05 | Phase 4 | Pending |
 | NOTIF-01 | Phase 5 | Pending |
 | NOTIF-02 | Phase 5 | Pending |
 | NOTIF-03 | Phase 5 | Pending |
