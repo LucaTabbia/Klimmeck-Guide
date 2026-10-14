@@ -20,7 +20,9 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 ///
 /// Quando la sessione finisce (`AuthUnauthenticated`) o cambia utente chiude
 /// dialog e sheet aperti sul Navigator radice, che vivono fuori dal
-/// sotto-albero della sessione.
+/// sotto-albero della sessione. Li chiude anche quando cambia il personaggio
+/// dello stesso utente (Phase 3 D-10): uno sheet può riferirsi al personaggio
+/// precedente o a un Cubit chiuso.
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key, required this.authenticatedBuilder});
 
@@ -29,7 +31,9 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
-      listenWhen: _leavesSession,
+      listenWhen: (previous, current) =>
+          _leavesSession(previous, current) ||
+          _changesCharacter(previous, current),
       listener: (context, _) =>
           Navigator.of(context).popUntil((route) => route.isFirst),
       child: BlocBuilder<AuthCubit, AuthState>(
