@@ -36,8 +36,8 @@ OperationException _operationError(String code) => OperationException(
   ],
 );
 
-class _Harness {
-  _Harness() {
+class SyncHarness {
+  SyncHarness() {
     when(() => api.subscribeToUser()).thenAnswer((_) {
       final controller = StreamController<User>();
       userStreams.add(controller);
@@ -79,11 +79,11 @@ class _Harness {
 
 void withHarness(
   String description,
-  void Function(_Harness h, FakeAsync async) body,
+  void Function(SyncHarness h, FakeAsync async) body,
 ) {
   test(description, () {
     fakeAsync((async) {
-      final harness = _Harness();
+      final harness = SyncHarness();
       body(harness, async);
       harness.dispose();
       async.flushMicrotasks();
@@ -266,6 +266,156 @@ void main() {
       async.flushMicrotasks();
 
       verifyNever(() => h.auth.adoptUser(any()));
+    });
+  });
+
+  group('resume and refresh requests', () {
+    withHarness('a foreground refetches me and adopts it', (h, async) {
+      final user = buildTestUserWithCharacter();
+      when(() => h.api.getMe()).thenAnswer((_) async => user);
+      h.cubit.start();
+
+      h.lifecycle.foreground.add(null);
+      async.flushMicrotasks();
+
+      verify(() => h.api.getMe()).called(1);
+      verify(() => h.auth.adoptUser(user)).called(1);
+    });
+
+    withHarness('a successful refetch restarts the degraded window', (
+      h,
+      async,
+    ) {
+      when(
+        () => h.api.getMe(),
+      ).thenAnswer((_) async => buildTestUserWithCharacter());
+      h.cubit.start();
+      h.connection.add(false);
+      async.elapse(const Duration(minutes: 2));
+
+      h.lifecycle.foreground.add(null);
+      async.elapse(const Duration(minutes: 2, seconds: 59));
+      expect(h.expiries, 0);
+
+      async.elapse(const Duration(seconds: 1));
+      expect(h.expiries, 1);
+    });
+
+    withHarness('a refetch overtaken by a live event is discarded', (h, async) {
+      final pending = Completer<User>();
+      when(() => h.api.getMe()).thenAnswer((_) => pending.future);
+      final live = buildTestUserWithCharacter();
+      h.cubit.start();
+      h.lifecycle.foreground.add(null);
+      async.flushMicrotasks();
+
+      h.latestStream.add(live);
+      async.flushMicrotasks();
+      pending.complete(buildTestUser());
+      async.flushMicrotasks();
+
+      verify(() => h.auth.adoptUser(any())).called(1);
+      verifyNever(() => h.auth.adoptUser(buildTestUser()));
+    });
+
+    withHarness('a failing refetch retries silently until it succeeds', (
+      h,
+      async,
+    ) {
+      var calls = 0;
+      when(() => h.api.getMe()).thenAnswer((_) async {
+        if (++calls <= 2) throw OperationException();
+        return buildTestUserWithCharacter();
+      });
+      h.cubit.start();
+
+      h.lifecycle.foreground.add(null);
+      async.elapse(const Duration(milliseconds: 2999));
+      verifyNever(() => h.auth.adoptUser(any()));
+      async.elapse(const Duration(milliseconds: 1));
+
+      verify(() => h.api.getMe()).called(3);
+      verify(() => h.auth.adoptUser(any())).called(1);
+      expect(h.states, isEmpty);
+    });
+
+    withHarness('a FORBIDDEN refetch is not retried', (h, async) {
+      when(() => h.api.getMe()).thenAnswer((_) async {
+        throw _operationError('FORBIDDEN');
+      });
+      h.cubit.start();
+
+      h.lifecycle.foreground.add(null);
+      async.elapse(const Duration(minutes: 5));
+
+      verify(() => h.api.getMe()).called(1);
+      verifyNever(() => h.auth.adoptUser(any()));
+    });
+
+    withHarness('the background suspends the watchdog until the foreground', (
+      h,
+      async,
+    ) {
+      h.cubit.start();
+      h.connection.add(false);
+      async.flushMicrotasks();
+
+      h.lifecycle.background.add(null);
+      async.elapse(const Duration(minutes: 10));
+      expect(h.expiries, 0);
+
+      h.lifecycle.foreground.add(null);
+      async.elapse(const Duration(minutes: 2, seconds: 59));
+      expect(h.expiries, 0);
+      async.elapse(const Duration(seconds: 1));
+      expect(h.expiries, 1);
+    });
+
+    withHarness('three requests in flight produce one refetch', (h, async) {
+      final pending = Completer<User>();
+      when(() => h.api.getMe()).thenAnswer((_) => pending.future);
+      h.cubit.start();
+
+      h.refreshRequests
+        ..add(null)
+        ..add(null)
+        ..add(null);
+      async.flushMicrotasks();
+      verify(() => h.api.getMe()).called(1);
+
+      pending.complete(buildTestUserWithCharacter());
+      async.flushMicrotasks();
+      h.refreshRequests.add(null);
+      async.flushMicrotasks();
+      verify(() => h.api.getMe()).called(1);
+    });
+
+    withHarness('prolonged degradation expires exactly once', (h, async) {
+      h.cubit.start();
+      h.connection.add(false);
+
+      async.elapse(const Duration(minutes: 3));
+      async.elapse(const Duration(minutes: 30));
+
+      expect(h.expiries, 1);
+    });
+
+    withHarness('close during a refetch drops its late result', (h, async) {
+      final pending = Completer<User>();
+      when(() => h.api.getMe()).thenAnswer((_) => pending.future);
+      h.cubit.start();
+      h.lifecycle.foreground.add(null);
+      async.flushMicrotasks();
+
+      h.cubit.close();
+      async.flushMicrotasks();
+      pending.complete(buildTestUserWithCharacter());
+      async.flushMicrotasks();
+
+      verifyNever(() => h.auth.adoptUser(any()));
+      expect(h.lifecycle.hasListeners, isFalse);
+      expect(h.refreshRequests.hasListener, isFalse);
+      expect(async.pendingTimers, isEmpty);
     });
   });
 
