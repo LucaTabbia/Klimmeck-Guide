@@ -11,7 +11,8 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// dipende solo da [AuthCubit].
 ///
 /// - `AuthBootstrapping` → splash come gate del cold start (D-17/D-18);
-/// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta;
+/// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta o la
+///   connessione in tempo reale è andata persa (Phase 3 D-15);
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
 ///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
@@ -40,10 +41,7 @@ class AuthGate extends StatelessWidget {
           ),
           AuthUnauthenticated(:final reason) => BlocProvider(
             create: (context) => SignInCubit(context.read<AuthTokenService>()),
-            child: SignInScreen(
-              showSessionExpiredNotice:
-                  reason == UnauthenticatedReason.sessionExpired,
-            ),
+            child: SignInScreen(notice: _noticeFor(reason)),
           ),
           AuthAuthenticated(:final user) => KeyedSubtree(
             key: ValueKey<String>(user.id),
@@ -53,6 +51,13 @@ class AuthGate extends StatelessWidget {
       ),
     );
   }
+
+  static SignInNotice _noticeFor(UnauthenticatedReason reason) =>
+      switch (reason) {
+        UnauthenticatedReason.signedOut => SignInNotice.none,
+        UnauthenticatedReason.sessionExpired => SignInNotice.sessionExpired,
+        UnauthenticatedReason.syncLost => SignInNotice.connectionLost,
+      };
 
   static bool _leavesSession(AuthState previous, AuthState current) =>
       (current is AuthUnauthenticated && previous is! AuthUnauthenticated) ||
