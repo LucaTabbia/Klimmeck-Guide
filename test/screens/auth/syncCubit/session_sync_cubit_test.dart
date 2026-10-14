@@ -183,6 +183,37 @@ void main() {
       expect(h.userStreams, hasLength(2));
     });
 
+    withHarness(
+      'a stream that completes after the session end is not reopened',
+      (h, async) {
+        h.cubit.start();
+        h.connection.add(false);
+        async.elapse(const Duration(minutes: 3));
+        expect(h.watchdog.isLatched, isTrue);
+
+        h.latestStream.close();
+        async.elapse(const Duration(minutes: 1));
+
+        expect(h.userStreams, hasLength(1));
+        expect(h.states, isNot(contains(const SessionSyncRecovering())));
+      },
+    );
+
+    withHarness('a pending resubscribe is dropped once the session ends', (
+      h,
+      async,
+    ) {
+      h.cubit.start();
+      h.latestStream.close();
+      async.flushMicrotasks();
+      expect(h.cubit.state, const SessionSyncRecovering());
+
+      h.watchdog.dispose();
+      async.elapse(const Duration(minutes: 1));
+
+      expect(h.userStreams, hasLength(1));
+    });
+
     withHarness('a malformed event follows the silent backoff path', (
       h,
       async,

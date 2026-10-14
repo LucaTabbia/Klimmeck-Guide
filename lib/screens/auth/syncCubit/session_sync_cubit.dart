@@ -86,6 +86,8 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   Future<void> refreshUser() => _refreshInFlight ??= _performUserRefresh()
       .whenComplete(() => _refreshInFlight = null);
 
+  bool get _isSessionEnding => isClosed || _watchdog.isLatched;
+
   void _subscribeToUser() {
     _userSubscription = _api.subscribeToUser().listen(
       _onUser,
@@ -118,7 +120,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   }
 
   void _onUserStreamDone() {
-    if (isClosed || _isUserStreamTerminated) return;
+    if (_isSessionEnding || _isUserStreamTerminated) return;
     _scheduleResubscribe();
   }
 
@@ -135,7 +137,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   }
 
   void _scheduleResubscribe() {
-    if (_resubscribeTimer != null || isClosed) return;
+    if (_resubscribeTimer != null || _isSessionEnding) return;
     _watchdog.markDegraded(SyncSource.userStream);
     emit(const SessionSyncRecovering());
     _userSubscription?.cancel();
@@ -143,7 +145,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
       exponentialBackoff(_attempt++, max: WsReconnectPolicy.maxReconnectDelay),
       () {
         _resubscribeTimer = null;
-        if (!isClosed) _subscribeToUser();
+        if (!_isSessionEnding) _subscribeToUser();
       },
     );
   }
