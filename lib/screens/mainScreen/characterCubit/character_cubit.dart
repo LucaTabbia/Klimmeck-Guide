@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
+import 'package:klimmeck_guide/utils/silent_retry.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../models/character/character.dart';
@@ -47,11 +48,13 @@ class CharacterCubit extends Cubit<CharacterState>
   final UserRefreshRequests _userRefresh;
 
   StreamSubscription<Character>? _sub;
+  StreamSubscription<void>? _foregroundSubscription;
   String? _characterId;
   Timer? _resubscribeTimer;
   int _attempt = 0;
   int _eventCount = 0;
   bool _isStreamTerminated = false;
+  int _refreshGeneration = 0;
 
   Future<void> loadCharacter(String id) async {
     _characterId = id;
@@ -60,11 +63,36 @@ class CharacterCubit extends Cubit<CharacterState>
       final character = await api.getCharacter(id);
       if (isClosed) return;
       emit(CharacterLoaded(character));
+      _foregroundSubscription ??= _lifecycle.foregrounded.listen(
+        (_) => unawaited(refreshCharacter()),
+      );
       subscribeToCharacter(id);
     } catch (error) {
       if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
       emit(CharacterError(error.toString()));
     }
+  }
+
+  /// Rilegge il personaggio in silenzio (mai Loading) e lo applica solo se
+  /// nessun evento live lo ha superato nel frattempo; l'ultima richiesta vince.
+  Future<void> refreshCharacter() async {
+    final id = _characterId;
+    if (id == null || state is! CharacterLoaded) return;
+    final generation = ++_refreshGeneration;
+    final eventsBefore = _eventCount;
+    final character = await silentRetry(
+      () => api.getCharacter(id),
+      isCancelled: () => isClosed || generation != _refreshGeneration,
+      shouldRetry: (error) => !isAccessDeniedError(error),
+      onGiveUp: (error) {
+        if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
+      },
+    );
+    if (character == null || isClosed || generation != _refreshGeneration) {
+      return;
+    }
+    _health.touch();
+    if (_eventCount == eventsBefore) emit(CharacterLoaded(character));
   }
 
   Future<void> changeCharacterLocation(
@@ -132,7 +160,12 @@ class CharacterCubit extends Cubit<CharacterState>
   @override
   Future<void> close() {
     _resubscribeTimer?.cancel();
+    _refreshGeneration++;
     _health.release(SyncSource.characterStream);
-    return Future.wait([?_sub?.cancel(), super.close()]);
+    return Future.wait([
+      ?_sub?.cancel(),
+      ?_foregroundSubscription?.cancel(),
+      super.close(),
+    ]);
   }
 }
