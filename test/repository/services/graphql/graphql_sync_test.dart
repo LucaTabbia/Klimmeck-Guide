@@ -24,6 +24,15 @@ Matcher _accessDenied(String code) => isA<GraphQlAccessDeniedException>()
     .having((e) => e.operation, 'operation', 'character')
     .having((e) => e.code, 'code', code);
 
+Future<Object?> _errorOf(Future<Object?> future) async {
+  try {
+    await future;
+    return null;
+  } on Object catch (error) {
+    return error;
+  }
+}
+
 void main() {
   late List<Request> requests;
   late Stream<Response> Function(Request request) handler;
@@ -60,7 +69,7 @@ void main() {
       expect(operationNameOf(requests.single), 'OnUserChanged');
       expect(requests.single.variables, isEmpty);
       expect(user.twitchPoints, 5);
-      expect(user.role.name, 'innkeeper');
+      expect(user.role?.name, 'innkeeper');
       expect(user.currentCharacter?.id, 'c1');
     });
 
@@ -186,14 +195,9 @@ void main() {
   group('failures never expose payloads', () {
     test('typed errors print only operation and code', () async {
       handler = (_) => Stream.value(malformedUserResponse());
-      final malformed = await buildGraphQl().subscribeToUser().first.then(
-        (_) => null,
-        onError: (Object error) => error,
-      );
+      final malformed = await _errorOf(buildGraphQl().subscribeToUser().first);
       handler = (_) => Stream.value(errorCodeResponse('FORBIDDEN'));
-      final denied = await buildGraphQl()
-          .getCharacter('c1')
-          .then((_) => null, onError: (Object error) => error);
+      final denied = await _errorOf(buildGraphQl().getCharacter('c1'));
 
       for (final error in [malformed, denied]) {
         expect(error, isNotNull);
