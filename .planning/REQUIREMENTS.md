@@ -59,7 +59,7 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 ### Settings
 
-- [x] **SET-01**: User can access a Settings screen from the main menu of the app
+- [ ] **SET-01**: User can access a Settings screen from the main menu of the app
 - [ ] **SET-02**: User can toggle individual notification categories (travel end, streamer live, quest end) in Settings
 - [ ] **SET-03**: User can trigger logout from Settings
 - [ ] **SET-04**: Notification preferences persist across app restarts
