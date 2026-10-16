@@ -409,6 +409,15 @@ class KlimmeckGraphQl {
     return _userFrom(data['createCharacter']);
   }
 
+  /// Elimina (archivia) il personaggio corrente e restituisce lo User aggiornato,
+  /// con `currentCharacter: null`. Lancia [OperationException] o [FormatException].
+  Future<User> deleteCharacter() async {
+    final data = _dataOrThrow(
+      await performMutation(query: CharacterMutations.deleteCharacter),
+    );
+    return _userFrom(data['deleteCharacter']);
+  }
+
   /// Utente corrente via il client autenticato (recovery di CHARACTER_ALREADY_EXISTS).
   Future<User> getMe() async =>
       _userFrom(_dataOrThrow(await performQuery(AuthQueries.getMe))['me']);

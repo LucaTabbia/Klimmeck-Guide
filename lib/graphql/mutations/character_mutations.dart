@@ -11,6 +11,17 @@ class CharacterMutations {
   ''' +
       UserFragment.definition;
 
+  /// Archivia il personaggio corrente del chiamante (identità dal bearer, BE 03.1).
+  static const String deleteCharacter =
+      r'''
+    mutation DeleteCharacter {
+      deleteCharacter {
+        ...UserFields
+      }
+    }
+  ''' +
+      UserFragment.definition;
+
   static const String doTransaction = r'''
     mutation doTransaction($request: TransactionRequest!) {
       doTransaction(request: $request) {
