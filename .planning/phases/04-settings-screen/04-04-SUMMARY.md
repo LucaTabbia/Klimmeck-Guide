@@ -65,3 +65,9 @@ None.
 
 ## Threat Flags
 None.
+
+## Self-Check: PASSED
+
+- Key files exist on disk: `lib/graphql/mutations/character_mutations.dart` (DeleteCharacter), `lib/repository/character_deletion_failure.dart`, `lib/repository/character_deletion_repository.dart`, `lib/screens/mainScreen/tabs/settings/deletionCubit/` — verified by the orchestrator 2026-10-16.
+- Commits 1315905, ff64544, 4880f43, 9ac4731, 7da25a4, 87066a1 present on `feat/04-settings-screen`; no `Co-Authored-By` trailer.
+- `flutter test` 732 green, `flutter analyze` 57 issues / 0 errors (executor report).
