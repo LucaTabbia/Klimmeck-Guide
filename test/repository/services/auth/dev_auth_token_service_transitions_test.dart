@@ -211,6 +211,23 @@ void main() {
       );
     });
 
+    test('adopts a user whose character was deleted', () async {
+      await service.initialize();
+      final id =
+          (await service.authStateStream.first as AuthAuthenticated).user.id;
+      service.adoptUser(buildTestUserWithCharacter().copyWith(id: id));
+      late bool accepted;
+
+      final states = await collect(
+        () async =>
+            accepted = service.adoptUser(buildTestUser().copyWith(id: id)),
+      );
+
+      expect(accepted, isTrue);
+      expect((states.last as AuthAuthenticated).user.currentCharacter, isNull);
+      expect((states.last as AuthAuthenticated).accessToken, testAccessToken);
+    });
+
     test('refuses and emits nothing while signed out', () async {
       await loadTestEnv(startSignedOut: 'true');
       await service.initialize();
