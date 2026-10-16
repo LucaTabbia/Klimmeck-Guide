@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -10,6 +11,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 
 import '../../shared/components/kg_error.dart';
@@ -130,14 +132,20 @@ class _MainScreenState extends State<MainScreen>
   }
 
   List<Widget> _buildPages(List<City> cities) {
-    return [
+    final pages = [
       WorldMap(cities: cities),
       Profile(),
       Journal(),
       Library(),
       Board(),
       Shop(),
+      const Settings(),
     ];
+    assert(
+      pages.length == SatchelLayout.entries.length,
+      'Una pagina per ogni voce della borsa',
+    );
+    return pages;
   }
 
   void onPageChanged(int page) {

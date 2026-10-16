@@ -2,7 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:klimmeck_guide/models/character.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
@@ -95,7 +95,7 @@ void main() {
       'Account',
       'Elimina personaggio',
       'Esci',
-    ].map(top).toList();
+    ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
     expect(ordered, [...ordered]..sort());
     expect(find.text('Streamer in live'), findsOneWidget);
     expect(find.text('Fine quest'), findsOneWidget);
