@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/repository/character_deletion_failure.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
