@@ -2,7 +2,7 @@
 
 - **Fase FE:** 04-settings-screen (requisiti SET-01..SET-05; decisioni D-01..D-21 in `04-CONTEXT.md`)
 - **Data:** 2026-10-15
-- **Stato:** contratto **proposto** dal FE e **fissato nello stesso discuss** nel CONTEXT della fase BE companion **03.1 Character Deletion Contract** (`Klimmeck-Guide-BE/.planning/phases/03.1-character-deletion-contract/03.1-CONTEXT.md`). Quando la fase BE chiude, la fonte per il FE diventa il suo `BACKEND-NOTES.md`; lo schema `src/schema.gql` vince su entrambi i documenti.
+- **Stato:** contratto implementato da BE Phase 03.1 (PR #6 su develop) — fonte per il FE: Klimmeck-Guide-BE/.planning/phases/03.1-character-deletion-contract/BACKEND-NOTES.md
 - **Consumatori:** FE Phase 4 (voce "Elimina personaggio" nel tab Impostazioni); indirettamente FE/BE Phase 9 (la morte in combattimento riusa lo stesso percorso di archivio, Phase 3 D-09); BE Phase 5 solo a titolo informativo (§4: le preferenze notifiche restano locali al device).
 
 ---
@@ -91,3 +91,44 @@ Domande aperte (risposta attesa nel `BACKEND-NOTES.md` BE 03.1):
 - Documenti GraphQL verificati con `tool/schema_check` contro `Klimmeck-Guide-BE/src/schema.gql` rigenerato dalla fase BE 03.1 (stessa disciplina di Phase 2 D-33 / Phase 3 D-04).
 - E2E manuale su device: elimina → pagina di creazione → nuovo personaggio con lo stesso nome → shell di gioco.
 - **PR BE 03.1 merge-ata prima della PR FE.**
+
+---
+
+## 6. Esito verifica (schema + E2E)
+
+- **Data:** 2026-10-16
+- **Schema:** `src/schema.gql` di BE `origin/develop` @ `d578ad2` (Merge pull request #6, feat/03.1-character-deletion-contract); riga 289 `deleteCharacter: User!`. PR BE 03.1 gia' su `develop`.
+- **Strumento:** `tool/schema_check` (`dump_documents.dart` + `validate_documents.js`), 25 documenti.
+
+| Documento | Esito |
+|---|---|
+| DeleteCharacter.graphql | OK |
+| CreateCharacter.graphql | OK |
+| ExchangeLoginTicket.graphql | OK |
+| GetMe.graphql | OK |
+| GetRaceTraits.graphql | OK |
+| Logout.graphql | OK |
+| OnUserChanged.graphql | OK |
+| RefreshSession.graphql | OK |
+| character.graphql | OK |
+| characterUpdated.graphql | OK |
+| cities.graphql | OK |
+| doTransaction.graphql | OK |
+| equipItem.graphql | OK |
+| equipSpell.graphql | OK |
+| equipment.graphql | OK |
+| equipmentAssetsQuantity.graphql | OK |
+| equipmentItems.graphql | OK |
+| equipmentItemsByIds.graphql | OK |
+| lootAssetsQuantity.graphql | OK |
+| lootItems.graphql | OK |
+| lootItemsByIds.graphql | OK |
+| lore.graphql | OK |
+| lores.graphql | OK |
+| quests.graphql | OK |
+| unequipSpell.graphql | OK |
+
+- **Drift pre-esistente:** nessuno (25/25 OK).
+- **Gate FE:** `flutter test` 759 verdi; `flutter analyze` 57 issue / 0 errori (nessuna nei file Phase 4); file Dart Phase 4 formatter-clean; 0 trailer Co-Authored-By.
+
+E2E: vedi 04-HUMAN-UAT.md (in corso)
