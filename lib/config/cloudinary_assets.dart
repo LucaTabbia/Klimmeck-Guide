@@ -46,6 +46,7 @@ class CloudinaryAssets {
   static const String board = 'v1757660697/board_vlwoja.svg';
   static const String shop = 'v1757660695/shop_xllxop.svg';
   static const String pouch = 'v1757660701/pouch_u5gqtk.svg';
+  static const String settings = 'v1792150334/settings_linee3.svg';
 
   // ============== Library ==============
   static const String bestiary = 'v1757660651/bestiary_w68j2y.svg';
