@@ -164,7 +164,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — Satchel menu rework: SatchelLayout table (Mappa 1x2, 2x3 grid, Impostazioni = page 6), MenuBackground/MenuItem/SatchelMenu driven by the table, CloudinaryAssets.settings (real asset)
-- [ ] 04-02-PLAN.md — Theme tokens (switchTheme, destructive button styles) + shared DestructiveConfirmationDialog extracted from the logout dialog
+- [x] 04-02-PLAN.md — Theme tokens (switchTheme, destructive button styles) + shared DestructiveConfirmationDialog extracted from the logout dialog
 - [ ] 04-03-PLAN.md — Notification preferences: NotificationCategory enum, Flutter-free store on SharedPreferencesAsync keyed per user, NotificationPreferencesCubit (optimistic toggle, revert on failed write)
 - [ ] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
 - [ ] 04-05-PLAN.md — Session wiring: adoptUser accepts currentCharacter null (both services), AuthenticatedShell provides both cubits + hand-over listener, main.dart composition root
@@ -328,7 +328,7 @@ Plans:
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
 | 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
-| 4. Settings Screen | 0/7 | Planned | - |
+| 4. Settings Screen | 2/7 | In Progress|  |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
 | 6. Quest Accept & Info Sheets | 0/0 | Not started | - |
 | 7. Travel | 0/0 | Not started | - |
