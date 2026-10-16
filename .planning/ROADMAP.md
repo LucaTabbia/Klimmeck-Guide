@@ -163,7 +163,7 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Satchel menu rework: SatchelLayout table (Mappa 1x2, 2x3 grid, Impostazioni = page 6), MenuBackground/MenuItem/SatchelMenu driven by the table, CloudinaryAssets.settings (real asset)
+- [x] 04-01-PLAN.md — Satchel menu rework: SatchelLayout table (Mappa 1x2, 2x3 grid, Impostazioni = page 6), MenuBackground/MenuItem/SatchelMenu driven by the table, CloudinaryAssets.settings (real asset)
 - [ ] 04-02-PLAN.md — Theme tokens (switchTheme, destructive button styles) + shared DestructiveConfirmationDialog extracted from the logout dialog
 - [ ] 04-03-PLAN.md — Notification preferences: NotificationCategory enum, Flutter-free store on SharedPreferencesAsync keyed per user, NotificationPreferencesCubit (optimistic toggle, revert on failed write)
 - [ ] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
