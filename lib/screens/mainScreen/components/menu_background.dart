@@ -1,9 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
-
-import '../../../theme/kg_theme.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class MenuBackground extends StatelessWidget {
   const MenuBackground({
@@ -14,7 +14,7 @@ class MenuBackground extends StatelessWidget {
   });
 
   final int selectedIndex;
-  final Function(int) onTap;
+  final ValueChanged<int> onTap;
   final Animation<double> opacityAnimation;
 
   @override
@@ -22,6 +22,9 @@ class MenuBackground extends StatelessWidget {
     return AnimatedBuilder(
       animation: opacityAnimation,
       builder: (context, child) {
+        final size = MediaQuery.sizeOf(context);
+        final cellWidth = SatchelLayout.cellWidth(size.width);
+        final rowHeight = size.height / SatchelLayout.rows;
         return Opacity(
           opacity: opacityAnimation.value,
           child: BackgroundImage(
@@ -32,12 +35,14 @@ class MenuBackground extends StatelessWidget {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 150,
-                    height: MediaQuery.of(context).size.height,
+                    width:
+                        SatchelLayout.closeColumnWidth -
+                        SatchelLayout.borderWidth,
+                    height: size.height,
                     child: Padding(
-                      padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 2 + 60),
+                      padding: EdgeInsets.only(top: size.height / 2 + 60),
                       child: AutoSizeText(
-                        "Chiudi il menù",
+                        'Chiudi il menù',
                         maxFontSize: 20,
                         minFontSize: 12,
                         style: KlimmeckGuideTheme.instance.titleMedium.copyWith(
@@ -49,39 +54,32 @@ class MenuBackground extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    height: MediaQuery.of(context).size.height,
-                    decoration: BoxDecoration(
+                    height: size.height,
+                    decoration: const BoxDecoration(
                       border: Border(
-                        right: BorderSide(color: KlimmeckGuideTheme.primaryGold, width: 2),
+                        right: BorderSide(
+                          color: KlimmeckGuideTheme.primaryGold,
+                          width: SatchelLayout.borderWidth,
+                        ),
                       ),
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          MenuSection("Mappa", onTap: onTap, index: 0),
-                          MenuSection("Profilo", onTap: onTap, index: 1),
-                          MenuSection("Diario", onTap: onTap, index: 2),
-                        ],
-                      ),
-                      Container(
-                        width: 456,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: KlimmeckGuideTheme.primaryGold, width: 2),
+                  SizedBox(
+                    width: cellWidth * SatchelLayout.columns,
+                    height: size.height,
+                    child: Stack(
+                      children: [
+                        for (final entry in SatchelLayout.entries)
+                          Positioned(
+                            key: ValueKey('satchel-cell-${entry.pageIndex}'),
+                            left: entry.column * cellWidth,
+                            top: entry.row * rowHeight,
+                            width: cellWidth,
+                            height: entry.rowSpan * rowHeight,
+                            child: MenuSection(entry: entry, onTap: onTap),
                           ),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          MenuSection("Libreria", onTap: onTap, index: 3),
-                          MenuSection("Bacheca", onTap: onTap, index: 4),
-                          MenuSection("Negozio", onTap: onTap, index: 5),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

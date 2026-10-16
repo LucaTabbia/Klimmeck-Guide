@@ -1,49 +1,49 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
-import '../../../theme/kg_theme.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class MenuSection extends StatelessWidget {
-  const MenuSection(this.title, {super.key, required this.onTap, required this.index});
+  const MenuSection({super.key, required this.entry, required this.onTap});
 
-  final String title;
-  final Function(int) onTap;
-  final int index;
+  final SatchelEntry entry;
+  final ValueChanged<int> onTap;
+
+  bool get _hasBottomBorder => entry.row + entry.rowSpan < SatchelLayout.rows;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: () => onTap(index),
-          child: SizedBox(
-            width: 150,
-            height: (MediaQuery.of(context).size.height / 2) - 1,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: 15.0),
-                child: AutoSizeText(
-                  title,
-                  maxFontSize: 20,
-                  minFontSize: 12,
-                  style: KlimmeckGuideTheme.instance.titleMedium.copyWith(
-                    color: KlimmeckGuideTheme.paleSilver,
-                    shadows: KlimmeckGuideTheme.bordersForText,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+    const gold = BorderSide(
+      color: KlimmeckGuideTheme.primaryGold,
+      width: SatchelLayout.borderWidth,
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onTap(entry.pageIndex),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            right: gold,
+            bottom: _hasBottomBorder ? gold : BorderSide.none,
+          ),
+        ),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 15),
+            child: AutoSizeText(
+              entry.label,
+              maxFontSize: 20,
+              minFontSize: 12,
+              style: KlimmeckGuideTheme.instance.titleMedium.copyWith(
+                color: KlimmeckGuideTheme.paleSilver,
+                shadows: KlimmeckGuideTheme.bordersForText,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
         ),
-        Container(
-          height: (MediaQuery.of(context).size.height / 2) - 1,
-          decoration: BoxDecoration(
-            border: Border(right: BorderSide(color: KlimmeckGuideTheme.primaryGold, width: 2)),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
