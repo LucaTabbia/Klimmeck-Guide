@@ -166,7 +166,7 @@ Plans:
 - [x] 04-01-PLAN.md — Satchel menu rework: SatchelLayout table (Mappa 1x2, 2x3 grid, Impostazioni = page 6), MenuBackground/MenuItem/SatchelMenu driven by the table, CloudinaryAssets.settings (real asset)
 - [x] 04-02-PLAN.md — Theme tokens (switchTheme, destructive button styles) + shared DestructiveConfirmationDialog extracted from the logout dialog
 - [x] 04-03-PLAN.md — Notification preferences: NotificationCategory enum, Flutter-free store on SharedPreferencesAsync keyed per user, NotificationPreferencesCubit (optimistic toggle, revert on failed write)
-- [ ] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
+- [x] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
 - [ ] 04-05-PLAN.md — Session wiring: adoptUser accepts currentCharacter null (both services), AuthenticatedShell provides both cubits + hand-over listener, main.dart composition root
 - [ ] 04-06-PLAN.md — Settings tab UI: Notifiche section (3 themed switches), Account section (Elimina personaggio + Esci via confirmLogout), parchment tab, MainScreen page 6
 - [ ] 04-07-PLAN.md — Cross-repo gate: schema check vs BE develop schema, phase gates, validation sign-off, manual E2E on device (checkpoint), BACKEND-NOTES, REQUIREMENTS traceability
