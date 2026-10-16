@@ -5,21 +5,29 @@ class MenuItem extends StatelessWidget {
   const MenuItem({
     super.key,
     required this.itemAnimationController,
-    required this.index,
+    required this.pageIndex,
     required this.itemSize,
     required this.showItems,
     required this.imagePath,
+    required this.end,
     required this.onTap,
   });
 
   final AnimationController itemAnimationController;
-  final int index;
+  final int pageIndex;
   final double itemSize;
   final bool showItems;
   final String imagePath;
-  final Function(int) onTap;
 
-  List<double> _parabolaCoefficients(Offset start, Offset end, double apexHeight) {
+  /// Centro della cella d'arrivo nel frame dello Stack (vedi SatchelLayout.flightEnd).
+  final Offset end;
+  final ValueChanged<int> onTap;
+
+  List<double> _parabolaCoefficients(
+    Offset start,
+    Offset end,
+    double apexHeight,
+  ) {
     double x0 = start.dx, y0 = start.dy;
     double x2 = end.dx, y2 = end.dy;
     double xm = (x0 + x2) / 2;
@@ -45,16 +53,10 @@ class MenuItem extends StatelessWidget {
     return AnimatedBuilder(
       animation: itemAnimationController,
       builder: (context, child) {
-        final start = Offset(25, -(MediaQuery.of(context).size.height / 2) + 50);
-        double distance;
-        Offset end;
-        if (index <= 2) {
-          distance = 150.0 + 25 + (50 * (index)) + (itemSize * (index));
-          end = Offset(distance, -((MediaQuery.of(context).size.height / 4 * 3)) + 50);
-        } else {
-          distance = 150.0 + 25 + (50 * (index - 3)) + (itemSize * (index - 3));
-          end = Offset(distance, -((MediaQuery.of(context).size.height / 4)) + 50);
-        }
+        final start = Offset(
+          25,
+          -(MediaQuery.of(context).size.height / 2) + 50,
+        );
 
         final coefficients = _parabolaCoefficients(
           start,
@@ -68,7 +70,7 @@ class MenuItem extends StatelessWidget {
         return Transform.translate(
           offset: pos,
           child: GestureDetector(
-            onTap: () => onTap(index),
+            onTap: () => onTap(pageIndex),
             child: AnimatedContainer(
               duration: Duration(milliseconds: 300),
               width: showItems ? itemSize : 0,
@@ -76,7 +78,13 @@ class MenuItem extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
 
-                boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 7, offset: Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 7,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: CachedSvg(url: imagePath),
             ),
