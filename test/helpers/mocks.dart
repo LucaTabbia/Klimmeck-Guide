@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
+import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -54,6 +55,9 @@ class MockKlimmeckGraphQl extends Mock implements KlimmeckGraphQl {}
 
 class MockCharacterCreationRepository extends Mock
     implements CharacterCreationRepository {}
+
+class MockCharacterDeletionRepository extends Mock
+    implements CharacterDeletionRepository {}
 
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
 
