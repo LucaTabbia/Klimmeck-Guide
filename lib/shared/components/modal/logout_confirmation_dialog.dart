@@ -7,18 +7,6 @@ const _logoutTitle = 'Sei sicuro di voler uscire?';
 const _logoutBody = 'La tua sessione verrà terminata.';
 const _logoutConfirmLabel = 'Esci';
 
-/// Dialog di sistema (utility surface, niente texture di gioco) per confermare il logout.
-class LogoutConfirmationDialog extends StatelessWidget {
-  const LogoutConfirmationDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) => const DestructiveConfirmationDialog(
-    title: _logoutTitle,
-    body: _logoutBody,
-    confirmLabel: _logoutConfirmLabel,
-  );
-}
-
 Future<bool> showLogoutConfirmationDialog(BuildContext context) =>
     showDestructiveConfirmation(
       context,
