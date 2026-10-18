@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: completed
 last_updated: "2026-10-18T14:00:00.000Z"
-last_activity: 2026-10-18 -- Phase 4 closed (verified 5/5, review fixed, E2E approved); security audit + PR to develop next
+last_activity: 2026-10-18 -- Phase 4 closed (verified 5/5, review fixed, security 29/29); FE PR #28 open to develop
 progress:
   total_phases: 12
   completed_phases: 5
@@ -21,8 +21,8 @@ Phase: 04 (settings-screen) — COMPLETE (verified 2026-10-18, 5/5 success crite
 Plan: 7 of 7
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — branch feat/04-settings-screen; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 05 (Notifications Infrastructure) — depends on BE Phase 5 (FCM) — /gsd-discuss-phase 5 then /gsd-plan-phase 5
-Status: Phase 04 complete — security audit and FE PR to develop in progress (feat/04-settings-screen → develop)
-Last activity: 2026-10-18 -- Phase 4 closed: E2E approved, verification 5/5, review WR-01/WR-02 fixed in TDD (762 tests), IN-01/IN-02 cleaned; next: security audit, PR to develop, then /gsd-discuss-phase 5
+Status: Phase 04 complete — security 29/29 closed; FE PR #28 open on LucaTabbia/Klimmeck-Guide (feat/04-settings-screen → develop), ready for review and merge (no BE dependency pending)
+Last activity: 2026-10-18 -- Phase 4 closed: E2E approved, verification 5/5, review WR-01/WR-02 fixed in TDD (762 tests), security 29/29, PR #28 opened to develop; next: merge PR #28, then /gsd-discuss-phase 5 (needs BE Phase 5 FCM)
 
 ## Current Milestone
 
