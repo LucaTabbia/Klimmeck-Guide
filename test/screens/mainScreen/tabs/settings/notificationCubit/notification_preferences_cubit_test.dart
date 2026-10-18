@@ -21,6 +21,15 @@ NotificationPreferencesState loaded({
   isLoaded: true,
 );
 
+class _AlwaysFailingWriteStore extends InMemoryNotificationPreferencesStore {
+  @override
+  Future<void> setEnabled(
+    String userId,
+    NotificationCategory category, {
+    required bool enabled,
+  }) async => throw StateError('write failed');
+}
+
 void main() {
   late InMemoryNotificationPreferencesStore store;
 
@@ -152,6 +161,22 @@ void main() {
 
     expect(cubit.state, loaded(questEnd: false));
   });
+
+  test(
+    'two quick taps that both fail leave the state equal to the stored value',
+    () async {
+      store = _AlwaysFailingWriteStore();
+      final cubit = await loadedCubit();
+
+      await Future.wait([
+        cubit.toggle(NotificationCategory.questEnd, enabled: false),
+        cubit.toggle(NotificationCategory.questEnd, enabled: true),
+      ]);
+
+      expect(cubit.state, loaded());
+      expect(store.valueOf(testUserId, NotificationCategory.questEnd), isNull);
+    },
+  );
 
   test(
     'a load completing after close emits nothing and throws nothing',
