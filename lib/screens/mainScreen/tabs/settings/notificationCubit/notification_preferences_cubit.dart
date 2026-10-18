@@ -16,27 +16,26 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
 
   final NotificationPreferencesStore _store;
   final String _userId;
+  Map<NotificationCategory, bool> _persisted =
+      NotificationPreferencesState.defaults;
 
   Future<void> load() async {
     if (state.isLoaded) return;
     try {
       final stored = await _store.readAll(_userId);
-      emit(
-        NotificationPreferencesState(
-          enabled: Map.unmodifiable({
-            ...NotificationPreferencesState.defaults,
-            ...stored,
-          }),
-          isLoaded: true,
-        ),
-      );
+      _persisted = Map.unmodifiable({
+        ...NotificationPreferencesState.defaults,
+        ...stored,
+      });
+      emit(NotificationPreferencesState(enabled: _persisted, isLoaded: true));
     } catch (error) {
       debugPrint('[NotificationPreferences] read failed: ${error.runtimeType}');
       emit(const NotificationPreferencesState(isLoaded: true));
     }
   }
 
-  /// Un fallimento di scrittura ripristina solo questa categoria: due toggle
+  /// Un fallimento di scrittura ripristina solo questa categoria, all'ultimo
+  /// valore salvato, e solo se lo stato è ancora quello ottimistico: due toggle
   /// ravvicinati non si sovrascrivono. Nessuna UI d'errore (D-12).
   Future<void> toggle(
     NotificationCategory category, {
@@ -46,11 +45,15 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
     emit(state.withCategory(category, enabled: enabled));
     try {
       await _store.setEnabled(_userId, category, enabled: enabled);
+      _persisted = {..._persisted, category: enabled};
     } catch (error) {
       debugPrint(
         '[NotificationPreferences] write failed: ${error.runtimeType}',
       );
-      emit(state.withCategory(category, enabled: !enabled));
+      if (state.isEnabled(category) != enabled) return;
+      emit(
+        state.withCategory(category, enabled: _persisted[category] ?? !enabled),
+      );
     }
   }
 }
