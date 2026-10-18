@@ -58,7 +58,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
 - [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
 - [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
-- [ ] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1).
+- [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
 - [ ] **Phase 5: Notifications Infrastructure** — FCM registration, permission gated at first travel confirm, three-state push handling, in-app banner dedup, uniform tap routing to Map.
 - [ ] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes.
 - [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
@@ -169,7 +169,7 @@ Plans:
 - [x] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
 - [x] 04-05-PLAN.md — Session wiring: adoptUser accepts currentCharacter null (both services), AuthenticatedShell provides both cubits + hand-over listener, main.dart composition root
 - [x] 04-06-PLAN.md — Settings tab UI: Notifiche section (3 themed switches), Account section (Elimina personaggio + Esci via confirmLogout), parchment tab, MainScreen page 6
-- [ ] 04-07-PLAN.md — Cross-repo gate: schema check vs BE develop schema, phase gates, validation sign-off, manual E2E on device (checkpoint), BACKEND-NOTES, REQUIREMENTS traceability
+- [x] 04-07-PLAN.md — Cross-repo gate: schema check vs BE develop schema, phase gates, validation sign-off, manual E2E on device (checkpoint), BACKEND-NOTES, REQUIREMENTS traceability
 **UI hint**: yes
 
 ### Phase 5: Notifications Infrastructure
@@ -328,7 +328,7 @@ Plans:
 | 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
 | 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
-| 4. Settings Screen | 5/7 | In Progress|  |
+| 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 0/0 | Not started | - |
 | 6. Quest Accept & Info Sheets | 0/0 | Not started | - |
 | 7. Travel | 0/0 | Not started | - |
@@ -363,11 +363,11 @@ Plans:
 | SYNC-05 | Phase 3 | Pending |
 | SYNC-06 | Phase 3 | Pending |
 | SYNC-07 | Phase 3 | Pending |
-| SET-01 | Phase 4 | Pending |
-| SET-02 | Phase 4 | Pending |
-| SET-03 | Phase 4 | Pending |
-| SET-04 | Phase 4 | Pending |
-| SET-05 | Phase 4 | Pending |
+| SET-01 | Phase 4 | Complete |
+| SET-02 | Phase 4 | Complete |
+| SET-03 | Phase 4 | Complete |
+| SET-04 | Phase 4 | Complete |
+| SET-05 | Phase 4 | Complete |
 | NOTIF-01 | Phase 5 | Pending |
 | NOTIF-02 | Phase 5 | Pending |
 | NOTIF-03 | Phase 5 | Pending |
