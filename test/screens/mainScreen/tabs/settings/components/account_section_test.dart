@@ -20,6 +20,7 @@ void main() {
   setUp(() {
     authCubit = MockAuthCubit();
     deletionCubit = MockCharacterDeletionCubit();
+    when(() => deletionCubit.isClosed).thenReturn(false);
     when(() => deletionCubit.deleteCharacter()).thenAnswer((_) async {});
     when(() => authCubit.logout()).thenAnswer((_) async {});
   });
@@ -105,6 +106,20 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => deletionCubit.deleteCharacter()).called(1);
+  });
+
+  testWidgets('confirming after the cubit was closed does not delete', (
+    tester,
+  ) async {
+    await pumpSection(tester);
+
+    await tester.tap(find.text(deleteLabel));
+    await tester.pumpAndSettle();
+    when(() => deletionCubit.isClosed).thenReturn(true);
+    await tester.tap(dialogConfirmDelete);
+    await tester.pumpAndSettle();
+
+    verifyNever(() => deletionCubit.deleteCharacter());
   });
 
   testWidgets('falls back to a generic name when the name is unknown', (

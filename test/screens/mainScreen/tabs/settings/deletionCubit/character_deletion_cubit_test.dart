@@ -165,6 +165,15 @@ void main() {
       },
     );
 
+    test('a closed cubit does not call the repository', () async {
+      final cubit = build();
+      await cubit.close();
+
+      await cubit.deleteCharacter();
+
+      verifyNever(() => repository.deleteCurrentCharacter());
+    });
+
     blocTest<CharacterDeletionCubit, CharacterDeletionState>(
       'a response arriving after close is harmless',
       build: build,
