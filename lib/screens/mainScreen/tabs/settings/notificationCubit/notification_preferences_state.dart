@@ -7,15 +7,16 @@ class NotificationPreferencesState extends Equatable {
   });
 
   static const Map<NotificationCategory, bool> defaults = {
-    NotificationCategory.travelEnd: true,
-    NotificationCategory.streamerLive: true,
-    NotificationCategory.questEnd: true,
+    NotificationCategory.travelEnd: NotificationCategory.defaultEnabled,
+    NotificationCategory.streamerLive: NotificationCategory.defaultEnabled,
+    NotificationCategory.questEnd: NotificationCategory.defaultEnabled,
   };
 
   final Map<NotificationCategory, bool> enabled;
   final bool isLoaded;
 
-  bool isEnabled(NotificationCategory category) => enabled[category] ?? true;
+  bool isEnabled(NotificationCategory category) =>
+      enabled[category] ?? NotificationCategory.defaultEnabled;
 
   NotificationPreferencesState withCategory(
     NotificationCategory category, {

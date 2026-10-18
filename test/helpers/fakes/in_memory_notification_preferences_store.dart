@@ -23,7 +23,8 @@ class InMemoryNotificationPreferencesStore
     reads++;
     final failure = readFailure;
     if (failure != null) throw failure;
-    return values[keyOf(userId, category)] ?? true;
+    return values[keyOf(userId, category)] ??
+        NotificationCategory.defaultEnabled;
   }
 
   @override
@@ -34,7 +35,9 @@ class InMemoryNotificationPreferencesStore
     if (failure != null) throw failure;
     return {
       for (final category in NotificationCategory.values)
-        category: values[keyOf(userId, category)] ?? true,
+        category:
+            values[keyOf(userId, category)] ??
+            NotificationCategory.defaultEnabled,
     };
   }
 

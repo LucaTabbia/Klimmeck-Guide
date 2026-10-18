@@ -26,7 +26,6 @@ class SharedPreferencesNotificationPreferencesStore
   }) : _createPreferences = preferences ?? (() => SharedPreferencesAsync());
 
   static const String keyPrefix = 'klimmeck.notifications';
-  static const bool defaultEnabled = true;
 
   static String keyFor(String userId, NotificationCategory category) =>
       '$keyPrefix.$userId.${category.storageKey}';
@@ -36,7 +35,8 @@ class SharedPreferencesNotificationPreferencesStore
 
   @override
   Future<bool> isEnabled(String userId, NotificationCategory category) async =>
-      await _preferences.getBool(keyFor(userId, category)) ?? defaultEnabled;
+      await _preferences.getBool(keyFor(userId, category)) ??
+      NotificationCategory.defaultEnabled;
 
   @override
   Future<Map<NotificationCategory, bool>> readAll(String userId) async => {

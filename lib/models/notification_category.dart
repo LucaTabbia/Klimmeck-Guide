@@ -7,5 +7,8 @@ enum NotificationCategory {
 
   const NotificationCategory(this.storageKey);
 
+  /// Valore di ogni categoria finché l'utente non la cambia.
+  static const bool defaultEnabled = true;
+
   final String storageKey;
 }
