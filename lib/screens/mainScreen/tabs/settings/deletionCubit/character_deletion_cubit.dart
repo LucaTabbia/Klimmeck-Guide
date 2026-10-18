@@ -17,7 +17,7 @@ class CharacterDeletionCubit extends Cubit<CharacterDeletionState>
   final CharacterDeletionRepository _repository;
 
   Future<void> deleteCharacter() async {
-    if (state.isDeleting) return;
+    if (isClosed || state.isDeleting) return;
     emit(const CharacterDeletionState(isDeleting: true));
     final failure = await _deleteCurrentCharacter();
     if (failure != null) await _handleFailure(failure);

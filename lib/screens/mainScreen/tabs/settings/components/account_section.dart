@@ -70,6 +70,6 @@ class AccountSection extends StatelessWidget {
       context,
       characterName: characterName,
     );
-    if (confirmed) await cubit.deleteCharacter();
+    if (confirmed && !cubit.isClosed) await cubit.deleteCharacter();
   }
 }
