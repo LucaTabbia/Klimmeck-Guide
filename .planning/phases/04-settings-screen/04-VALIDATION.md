@@ -54,7 +54,7 @@ created: 2026-10-16
 | 4-06-02 | 06 | 3 | SET-03, SET-05 | T-04-06-01, T-04-06-02, T-04-06-03 | confirm before delete; disabled in flight; domain copy by code; logout via confirmLogout | widget | `flutter test test/screens/mainScreen/tabs/settings/components/account_section_test.dart` | ✅ | ✅ green |
 | 4-06-03 | 06 | 3 | SET-01, SET-02, SET-03, SET-05 | — | no AppBar/Scaffold in the tab; page 6 wired with length assert | widget | `flutter test test/screens/mainScreen` | ✅ | ✅ green |
 | 4-07-01 | 07 | 4 | SET-01..SET-05 (D-20) | T-04-07-01, T-04-07-02 | every document validates against the BE schema; gates green | scripted gate | `flutter test` + `tool/schema_check` (dump + `validate_documents.js` against BE `origin/develop:src/schema.gql`) | ✅ tooling | ✅ green |
-| 4-07-02 | 07 | 4 | SET-01..SET-05 | T-04-07-03, T-04-07-04 | E2E on device; same-name recreate; notes without secrets | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/04-settings-screen/04-HUMAN-UAT.md` | ✅ | ⬜ pending |
+| 4-07-02 | 07 | 4 | SET-01..SET-05 | T-04-07-03, T-04-07-04 | E2E on device; same-name recreate; notes without secrets | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/04-settings-screen/04-HUMAN-UAT.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -96,4 +96,4 @@ Created inside the plan that first needs them (each as the RED step of its task)
 - [x] Feedback latency < 10s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-10-16 (row 4-07-02 stays pending until the manual E2E is recorded)
+**Approval:** approved 2026-10-16; manual E2E (row 4-07-02) recorded 2026-10-18

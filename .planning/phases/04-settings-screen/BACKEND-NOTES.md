@@ -131,4 +131,4 @@ Domande aperte (risposta attesa nel `BACKEND-NOTES.md` BE 03.1):
 - **Drift pre-esistente:** nessuno (25/25 OK).
 - **Gate FE:** `flutter test` 759 verdi; `flutter analyze` 57 issue / 0 errori (nessuna nei file Phase 4); file Dart Phase 4 formatter-clean; 0 trailer Co-Authored-By.
 
-E2E: vedi 04-HUMAN-UAT.md (in corso)
+E2E: approvato dall'utente il 2026-10-18 su device Android fisico contro BE develop @ d578ad2 (dettagli in 04-HUMAN-UAT.md); passi 1-10 pass, 11-12 non eseguiti/non riportati; campi di archivio e ricreazione con lo stesso nome coperti dai passi 8-9 come approvati.
