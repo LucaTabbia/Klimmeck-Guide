@@ -47,12 +47,12 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 
 - ✓ Creazione personaggio: pagina post-login (utility screen, scheda-pergamena in landscape) con sesso, ritratto facoltativo da galleria/camera caricato su Cloudinary al submit (default `silhouette.jpeg`), nome, pronome, razza, classe, età limitata per razza dalla query `raceTraits`, background ≤ 500; mutation `createCharacter` e passaggio alla shell con il personaggio reale (id cablato rimosso); `AuthGate` si ricostruisce al cambio di `currentCharacter`; errori inline in italiano; ritratto nel Profilo tramite `CharacterPortrait` — Validated in Phase 2: Character Creation (CHAR-06 pre-screen NSFW rinviato dall'utente; set curato di ritratti rinviato)
 - ✓ Sync utente e personaggio in tempo reale: subscription GraphQL `userUpdated` (consumatore unico che alimenta la sessione) e `characterUpdated` (hardening), socket keep-alive con token corrente a ogni `connection_init`, riconnessione silenziosa con backoff e snapshot, refetch su resume, watchdog del tempo degradato che chiude la sessione dopo ~3 min con "Connessione persa, accedi di nuovo.", FORBIDDEN/NOT_FOUND terminali, shell ricreata al cambio personaggio, teardown pulito — Validated in Phase 3: Real-Time Sync Foundation (E2E approvato su Android il 2026-10-14; `activeTravel`/`activeStoryQuest`/`activeWorldMissionQuest` rinviati alle Phase 6/7 per D-05; PR FE verso develop solo dopo la merge della PR BE Phase 3, D-04)
+- ✓ Sezione Impostazioni: settima voce della borsa (griglia Mappa 1x2 + 2x3, icona `settings_linee3.svg`), tab utility su pergamena con tre toggle notifiche (fine viaggio, streamer live, fine quest) persistiti per utente in `shared_preferences` con toggle ottimistico e rollback all'ultimo valore salvato, logout tramite il dialog di conferma condiviso, eliminazione del personaggio con conferma esplicita via `deleteCharacter` (soft delete lato BE), progress nel bottone, errori inline per codice e passaggio alla pagina di creazione (riuso dello stesso nome ammesso) — Validated in Phase 4: Settings Screen (E2E approvato su Android il 2026-10-18 contro BE develop con la Phase 03.1; i toggle vengono consumati dalla Phase 5)
 
 ### Active
 
 **v1.0 Core Loop (in corso):**
 
-- [ ] Sezione Impostazioni (nuova) — logout + setting notifiche
 - [ ] Gesture swipe-left "strappa foglio" per accettare quest nel tab board (tutti i tipi)
 - [ ] Layout quest info sheets distinti per tipo (hunt, enemy, boss, dungeon, heal, aid, job, study, story, worldMission)
 - [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
@@ -137,6 +137,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |
 | Creazione personaggio: pagina unica provvisoria, BE fonte di verità per età/razza e stato iniziale | L'utente ha chiesto un layout provvisorio subito dopo la login; la tabella età per razza (dal lore) e le patrie vivono nel BE ed arrivano via `raceTraits`, il FE non duplica regole | ✓ Good — Phase 2 + BE Phase 02.1 (2026-10-09) |
 | Niente filtro NSFW e niente set curato di ritratti in v1 Phase 2 | Scelta esplicita dell'utente (2026-10-08): velocità del layout provvisorio; CHAR-06 rinviato all'hardening (Cloudinary AI moderation lato BE) | — Pending (debito tracciato in REQUIREMENTS e BE-HARD) |
+| Impostazioni come utility screen: preferenze notifiche solo sul device, cancellazione personaggio come soft delete BE | I toggle sono non sensibili e per utente (`shared_preferences`, nessun contratto BE: la Phase 5 filtra lato client); l'eliminazione resta identity-bound e archiviata dal BE (Phase 03.1) così nome e storico restano consultabili e riutilizzabili | ✓ Good — Phase 4 + BE Phase 03.1 (2026-10-18) |
 
 ## Evolution
 
@@ -159,4 +160,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-10-14 — after Phase 3 completion (session-wide real-time sync: userUpdated/characterUpdated subscriptions, silent reconnect, degraded-time watchdog; FE PR waits for the BE Phase 3 PR merge)_
+_Last updated: 2026-10-18 — after Phase 4 completion (Settings tab: notification toggles persisted per user, logout, character deletion via BE `deleteCharacter`; FE PR to develop opened after the security audit)_
