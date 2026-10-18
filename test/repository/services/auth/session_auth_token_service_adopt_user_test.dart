@@ -89,6 +89,27 @@ void main() {
     });
   });
 
+  test('adopts a user whose character was deleted', () {
+    fakeAsync((async) {
+      final service = buildService(async);
+      login(service, async);
+      expect(service.adoptUser(buildTestUserWithCharacter()), isTrue);
+      async.flushMicrotasks();
+      final deleted = buildTestUser();
+
+      final accepted = service.adoptUser(deleted);
+      async.flushMicrotasks();
+
+      expect(accepted, isTrue);
+      expect(
+        states.last,
+        AuthAuthenticated(user: deleted, accessToken: _session.accessToken),
+      );
+      expect((states.last as AuthAuthenticated).user.currentCharacter, isNull);
+      service.dispose();
+    });
+  });
+
   test('keeps the adopted user for listeners attached afterwards', () {
     fakeAsync((async) {
       final service = buildService(async);

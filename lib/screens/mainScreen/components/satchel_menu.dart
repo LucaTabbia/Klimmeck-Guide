@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 class SatchelMenu extends StatefulWidget {
   final AnimationController parentAnimationController;
   final int currentPage;
-  final Function(int) onItemTap;
+  final ValueChanged<int> onItemTap;
 
   const SatchelMenu({
     super.key,
@@ -26,32 +27,6 @@ class _SatchelMenuState extends State<SatchelMenu>
   late Animation<double> _sizeAnimation;
 
   final double _itemSize = 100.0;
-  final List menuImages = [
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.map),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.map),
-    },
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.mirror),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.mirror),
-    },
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.journal),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.journal),
-    },
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.library),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.library),
-    },
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.board),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.board),
-    },
-    {
-      "selectedImagePath": CloudinaryAssets.url(CloudinaryAssets.shop),
-      "unselectedImagePath": CloudinaryAssets.url(CloudinaryAssets.shop),
-    },
-  ];
 
   bool _isOpen = false;
   bool _showItems = false;
@@ -174,25 +149,23 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   @override
   Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
       child: Stack(
         alignment: Alignment.bottomLeft,
         children: [
-          ...List.generate(menuImages.length, (index) {
-            final images = menuImages[index];
-            return MenuItem(
-              imagePath: index == widget.currentPage
-                  ? images["selectedImagePath"]
-                  : images["unselectedImagePath"],
-              index: index,
+          for (final entry in SatchelLayout.entries)
+            MenuItem(
+              imagePath: CloudinaryAssets.url(entry.assetPath),
+              pageIndex: entry.pageIndex,
+              end: SatchelLayout.flightEnd(entry, screen, _itemSize),
               onTap: _selectItem,
               itemAnimationController: _itemAnimationController,
               itemSize: _itemSize,
               showItems: _showItems,
-            );
-          }),
+            ),
           _buildPouchButton(),
         ],
       ),

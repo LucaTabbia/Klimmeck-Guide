@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
+import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -15,6 +16,8 @@ import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creatio
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,6 +58,9 @@ class MockKlimmeckGraphQl extends Mock implements KlimmeckGraphQl {}
 class MockCharacterCreationRepository extends Mock
     implements CharacterCreationRepository {}
 
+class MockCharacterDeletionRepository extends Mock
+    implements CharacterDeletionRepository {}
+
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
 
 class MockCharacterCreationCubit extends MockCubit<CharacterCreationState>
@@ -69,3 +75,10 @@ class MockQuestCubit extends MockCubit<QuestState> implements QuestCubit {}
 
 class MockMainScreenCubit extends MockCubit<MainScreenState>
     implements MainScreenCubit {}
+
+class MockNotificationPreferencesCubit
+    extends MockCubit<NotificationPreferencesState>
+    implements NotificationPreferencesCubit {}
+
+class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
+    implements CharacterDeletionCubit {}

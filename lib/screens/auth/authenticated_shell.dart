@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
+import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
@@ -12,6 +15,8 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
@@ -31,6 +36,9 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// `SessionHome`: un nuovo id significa un nuovo cubit e mai due stream
 /// personaggio vivi insieme (D-08).
 ///
+/// Impostazioni: preferenze notifiche dell'utente di sessione e eliminazione
+/// del personaggio (Phase 4), chiuse con la shell.
+///
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
@@ -39,11 +47,15 @@ class AuthenticatedShell extends StatelessWidget {
     super.key,
     required this.graphQl,
     required this.characterId,
+    required this.notificationPreferencesStore,
+    required this.userId,
     this.mainScreenBuilder = _buildMainScreen,
   });
 
   final KlimmeckGraphQl graphQl;
   final String characterId;
+  final NotificationPreferencesStore notificationPreferencesStore;
+  final String userId;
 
   /// Sostituibile solo nei test, per non montare il MainScreen che fa rete.
   final Widget Function(BuildContext context, String characterId)
@@ -74,12 +86,40 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<ShopCubit>(create: (_) => ShopCubit(graphQl)),
         BlocProvider<LibraryCubit>(create: (_) => LibraryCubit(graphQl)),
         BlocProvider<JournalCubit>(create: (_) => JournalCubit(graphQl)),
+        BlocProvider<NotificationPreferencesCubit>(
+          create: (_) => NotificationPreferencesCubit(
+            notificationPreferencesStore,
+            userId: userId,
+          )..load(),
+        ),
+        BlocProvider<CharacterDeletionCubit>(
+          create: (_) => CharacterDeletionCubit(
+            CharacterDeletionRepository(graphQl: graphQl),
+          ),
+        ),
       ],
-      child: _ShellBody(
-        characterId: characterId,
-        mainScreenBuilder: mainScreenBuilder,
+      child: BlocListener<CharacterDeletionCubit, CharacterDeletionState>(
+        listenWhen: (previous, current) =>
+            previous.deletedUser == null && current.deletedUser != null,
+        listener: _handOverDeletedUser,
+        child: _ShellBody(
+          characterId: characterId,
+          mainScreenBuilder: mainScreenBuilder,
+        ),
       ),
     );
+  }
+
+  /// D-17: la sessione adotta lo User senza personaggio e SessionHome porta
+  /// alla creazione; qui e non nel tab, così vale anche se il giocatore ha
+  /// lasciato Impostazioni con la mutation in volo. Se l'adozione è
+  /// rifiutata il tab lo dice (userUpdated resta il backup).
+  static void _handOverDeletedUser(
+    BuildContext context,
+    CharacterDeletionState state,
+  ) {
+    final adopted = context.read<AuthCubit>().adoptUser(state.deletedUser!);
+    if (!adopted) context.read<CharacterDeletionCubit>().handoverRejected();
   }
 }
 

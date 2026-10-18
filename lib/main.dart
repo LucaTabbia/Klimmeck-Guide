@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_p
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
 import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
 import 'package:klimmeck_guide/screens/auth/auth_gate.dart';
@@ -132,6 +133,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   late final KlimmeckGraphQl graphQl = KlimmeckGraphQl(
     resolveClient: () => widget.graphQlClient.value,
   );
+  final NotificationPreferencesStore notificationPreferencesStore =
+      SharedPreferencesNotificationPreferencesStore();
 
   @override
   void initState() {
@@ -257,6 +260,9 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                       AuthenticatedShell(
                                         graphQl: graphQl,
                                         characterId: characterId,
+                                        notificationPreferencesStore:
+                                            notificationPreferencesStore,
+                                        userId: user.id,
                                       ),
                                 ),
                               ),

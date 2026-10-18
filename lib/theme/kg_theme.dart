@@ -172,7 +172,52 @@ class KlimmeckGuideTheme {
         vertical: spacingXs,
       ),
     ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(_switchThumbColor),
+      trackColor: WidgetStateProperty.resolveWith(_switchTrackColor),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        _switchTrackOutlineColor,
+      ),
+    ),
   );
+
+  static Color _switchThumbColor(Set<WidgetState> states) {
+    if (states.contains(WidgetState.disabled)) return paleSilver;
+    if (states.contains(WidgetState.selected)) return primaryGold;
+    return darkWood;
+  }
+
+  static Color _switchTrackColor(Set<WidgetState> states) {
+    if (states.contains(WidgetState.disabled)) return parchment;
+    if (states.contains(WidgetState.selected)) return darkBronze;
+    return parchment;
+  }
+
+  static Color _switchTrackOutlineColor(Set<WidgetState> states) =>
+      states.contains(WidgetState.disabled) ? paleSilver : darkBronze;
+
+  /// Conferme distruttive e "Esci" (D-06): pieno, rosso sangue.
+  static final ButtonStyle destructiveButtonStyle = ElevatedButton.styleFrom(
+    backgroundColor: bloodRed,
+    foregroundColor: parchment,
+    disabledBackgroundColor: bloodRed.withValues(alpha: 0.5),
+    disabledForegroundColor: parchment,
+  );
+
+  /// "Elimina personaggio" (D-15): distruttivo ma distinto da "Esci".
+  static final ButtonStyle destructiveOutlinedButtonStyle =
+      OutlinedButton.styleFrom(
+        foregroundColor: bloodRed,
+        disabledForegroundColor: paleSilver,
+      ).copyWith(
+        side: WidgetStateProperty.resolveWith(
+          (states) => BorderSide(
+            color: states.contains(WidgetState.disabled)
+                ? paleSilver
+                : bloodRed,
+          ),
+        ),
+      );
 
   static OutlineInputBorder _sheetBorder(Color color, {double width = 1}) =>
       OutlineInputBorder(

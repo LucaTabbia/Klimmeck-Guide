@@ -31,6 +31,7 @@ final Map<String, String> schemaCheckDocuments = {
   'lores': LoreQueries.getAllLores,
   'lore': LoreQueries.getLoreById,
   'CreateCharacter': CharacterMutations.createCharacter,
+  'DeleteCharacter': CharacterMutations.deleteCharacter,
   'doTransaction': CharacterMutations.doTransaction,
   'equipItem': CharacterMutations.equipItem,
   'equipSpell': CharacterMutations.equipSpell,
