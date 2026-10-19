@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/notification_permission_hint.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/notification_preferences_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/mocks.dart';
@@ -12,6 +15,7 @@ import '../../../../../helpers/test_app.dart';
 
 void main() {
   late MockNotificationPreferencesCubit cubit;
+  late MockNotificationPermissionCubit permissionCubit;
 
   setUpAll(() => registerFallbackValue(NotificationCategory.travelEnd));
 
@@ -20,6 +24,15 @@ void main() {
     when(
       () => cubit.toggle(any(), enabled: any(named: 'enabled')),
     ).thenAnswer((_) async {});
+    permissionCubit = MockNotificationPermissionCubit();
+    whenListen(
+      permissionCubit,
+      const Stream<NotificationPermissionState>.empty(),
+      initialState: const NotificationPermissionState(
+        status: NotificationPermissionStatus.notDetermined,
+      ),
+    );
+    when(() => permissionCubit.openSettings()).thenAnswer((_) async {});
   });
 
   Future<void> pumpSection(
@@ -34,8 +47,13 @@ void main() {
     await tester.pumpWidget(
       buildTestApp(
         home: Material(
-          child: BlocProvider<NotificationPreferencesCubit>.value(
-            value: cubit,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<NotificationPreferencesCubit>.value(value: cubit),
+              BlocProvider<NotificationPermissionCubit>.value(
+                value: permissionCubit,
+              ),
+            ],
             child: const SingleChildScrollView(
               child: NotificationPreferencesSection(),
             ),
@@ -129,5 +147,28 @@ void main() {
     for (final key in ['travel_end', 'streamer_live', 'quest_end']) {
       expect(tester.getSize(tileOf(key)).height, greaterThanOrEqualTo(44));
     }
+  });
+
+  testWidgets('a denied permission shows the hint below the last switch', (
+    tester,
+  ) async {
+    whenListen(
+      permissionCubit,
+      const Stream<NotificationPermissionState>.empty(),
+      initialState: const NotificationPermissionState(
+        status: NotificationPermissionStatus.denied,
+      ),
+    );
+    await pumpSection(
+      tester,
+      const NotificationPreferencesState(isLoaded: true),
+    );
+
+    final hint = find.text(NotificationPermissionHint.message);
+    expect(hint, findsOneWidget);
+    expect(
+      tester.getTopLeft(hint).dy,
+      greaterThan(tester.getTopLeft(tileOf('quest_end')).dy),
+    );
   });
 }
