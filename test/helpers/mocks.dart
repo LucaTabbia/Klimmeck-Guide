@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart'
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
+import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
@@ -63,6 +64,8 @@ class MockCharacterDeletionRepository extends Mock
     implements CharacterDeletionRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
+
+class MockPushSessionCleanup extends Mock implements PushSessionCleanup {}
 
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
 

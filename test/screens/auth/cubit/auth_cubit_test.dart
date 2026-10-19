@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -172,6 +173,61 @@ void main() {
     expect: () => <AuthState>[],
     verify: (_) => verify(() => service.logout()).called(1),
   );
+
+  group('logout', () {
+    late MockPushSessionCleanup cleanup;
+
+    setUp(() {
+      cleanup = MockPushSessionCleanup();
+      when(() => cleanup.unregister()).thenAnswer((_) async {});
+    });
+
+    test('caps the push unregister wait at two seconds', () {
+      expect(AuthCubit.pushUnregisterTimeout, const Duration(seconds: 2));
+    });
+
+    test('unregisters the push device before the service logout', () async {
+      await AuthCubit(service, pushCleanup: cleanup).logout();
+      verifyInOrder([() => cleanup.unregister(), () => service.logout()]);
+    });
+
+    test('a hanging unregister delays the service logout by two seconds', () {
+      fakeAsync((async) {
+        when(
+          () => cleanup.unregister(),
+        ).thenAnswer((_) => Completer<void>().future);
+        var completed = false;
+        AuthCubit(
+          service,
+          pushCleanup: cleanup,
+        ).logout().then((_) => completed = true);
+
+        async.elapse(const Duration(milliseconds: 1999));
+        verifyNever(() => service.logout());
+
+        async.elapse(const Duration(milliseconds: 1));
+        verify(() => service.logout()).called(1);
+        async.flushMicrotasks();
+        expect(completed, isTrue);
+      });
+    });
+
+    test('a failing unregister never blocks the service logout', () async {
+      when(
+        () => cleanup.unregister(),
+      ).thenAnswer((_) async => throw StateError('offline'));
+      await expectLater(
+        AuthCubit(service, pushCleanup: cleanup).logout(),
+        completes,
+      );
+      verify(() => service.logout()).called(1);
+    });
+
+    test('without push cleanup logs out through the service only', () async {
+      await AuthCubit(service).logout();
+      verify(() => service.logout()).called(1);
+    });
+  });
 
   test('close cancels the subscription', () async {
     final cubit = AuthCubit(service);
