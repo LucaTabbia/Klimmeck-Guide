@@ -36,6 +36,21 @@ const List<String> _pluginBackedFiles = [
 const String _thisFile =
     'test/repository/services/push/push_boundaries_test.dart';
 
+const String _permissionGate = '$_pushDir/notification_permission_gate.dart';
+
+/// Superfici di Phase 5 che non devono mai mostrare il prompt notifiche (D-10, NOTIF-02).
+const List<String> _promptFreeFiles = [
+  'lib/main.dart',
+  'lib/screens/auth/auth_gate.dart',
+  'lib/screens/splash/splash_screen.dart',
+];
+const String _settingsDir = 'lib/screens/mainScreen/tabs/settings';
+const List<String> _promptCalls = [
+  'ensureRequested(',
+  'Permission.notification',
+  '.request()',
+];
+
 final RegExp _importDirective = RegExp(r'''^import\s+['"]([^'"]+)['"]''');
 
 Iterable<File> _dartFilesUnder(String root) => Directory(root)
@@ -81,5 +96,32 @@ void main() {
     final source = File(_backgroundHandler).readAsStringSync();
 
     expect(source, isNot(contains('initializeApp')));
+  });
+
+  group('permission prompt (NOTIF-02)', () {
+    test('only the gate defines ensureRequested', () {
+      final callers = <String>[
+        for (final file in _dartFilesUnder('lib'))
+          if (_normalised(file) != _permissionGate &&
+              file.readAsStringSync().contains('ensureRequested('))
+            _normalised(file),
+      ];
+
+      expect(callers, isEmpty);
+    });
+
+    test('Phase 5 surfaces never reach the prompt', () {
+      final surfaces = <String>[
+        ..._promptFreeFiles,
+        for (final file in _dartFilesUnder(_settingsDir)) _normalised(file),
+      ];
+      final violations = <String>[
+        for (final path in surfaces)
+          for (final call in _promptCalls)
+            if (File(path).readAsStringSync().contains(call)) '$path: $call',
+      ];
+
+      expect(violations, isEmpty);
+    });
   });
 }
