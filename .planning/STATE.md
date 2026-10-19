@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-19T22:10:00.000Z"
-last_activity: 2026-10-19 -- Completed 05-08
+last_updated: "2026-10-19T19:17:20Z"
+last_activity: 2026-10-19 -- 05-09 Task 1 done, device UAT checkpoint pending
 progress:
   total_phases: 12
   completed_phases: 5
@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 5 (notifications-infrastructure) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9 (05-09 at human-verify checkpoint)
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
 Status: Executing Phase 5
-Last activity: 2026-10-19 -- Completed 05-08 (ForegroundPushEvents: onMessage filtered by acceptPushEvent with the shell user toggles, never a system notification; InAppNotificationsCubit: single publish path, queue, 5 s auto-dismiss, dedup (type,id) 2 min and streamerLive minute 15 min, open() dismisses then routes via NotificationTapRouter; KgNotificationBanner parchment strip mounted in a Stack + top SafeArea inside AuthenticatedShell)
+Last activity: 2026-10-19 -- 05-09 Task 1 done (schema check 27 × OK against BE origin/develop 0828719; flutter test 986 green; analyzer 56 / 0 errors; Phase 5 files formatter-clean; 0 Co-Authored-By; builds A and C proved; 05-VALIDATION signed with wave_0_complete: true; BACKEND-NOTES.md and 05-HUMAN-UAT.md created) — waiting for the device UAT (Task 2, blocking human-verify)
 
 ## Current Milestone
 

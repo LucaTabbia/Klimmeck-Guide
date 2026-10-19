@@ -3,7 +3,7 @@ phase: 5
 slug: notifications-infrastructure
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-10-19
 ---
 
@@ -60,8 +60,8 @@ created: 2026-10-19
 | 5-08-01 | 08 | 7 | NOTIF-07, NOTIF-08, NOTIF-03..05 | T-05-08-01, T-05-08-02, T-05-08-03, T-05-08-04 | foreground never shows a system notification; dedup window; queue; 5 s; `open()` dismisses then routes via the router (Twitch constant / intent) | unit + cubit (fake_async) | `flutter test test/repository/services/push/foreground_push_events_test.dart test/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit_test.dart` | ✅ | ✅ green |
 | 5-08-02 | 08 | 7 | NOTIF-07 | T-05-08-05 | no SnackBar/MaterialBanner/Scaffold; ≥ 44 px; semantics | widget | `flutter test test/shared/components/kg_notification_banner_test.dart` | ✅ | ✅ green |
 | 5-08-03 | 08 | 7 | NOTIF-07, NOTIF-08 | T-05-08-03 | banner in shell only; widget tap only calls `InAppNotificationsCubit.open(event)` (UI → Cubit → Service) | widget | `flutter test test/screens/auth/authenticated_shell_test.dart` | ✅ (extended) | ✅ green |
-| 5-09-01 | 09 | 8 | NOTIF-01..08 (D-21) | T-05-09-01, T-05-09-02 | 27 documents validate against BE develop; gates green; builds with/without JSON | scripted gate | `flutter test` + `tool/schema_check` (dump + `validate_documents.js` against `origin/develop:src/schema.gql`) + scratch builds A/C | ✅ tooling | ⬜ |
-| 5-09-02 | 09 | 8 | NOTIF-01..08 | T-05-09-03, T-05-09-04, T-05-09-05 | device UAT 3 states × 3 types; unregister before logout; no cold-launch prompt | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/05-notifications-infrastructure/05-HUMAN-UAT.md` | ❌ (created by 5-09-01) | ⬜ |
+| 5-09-01 | 09 | 8 | NOTIF-01..08 (D-21) | T-05-09-01, T-05-09-02 | 27 documents validate against BE develop; gates green; builds with/without JSON | scripted gate | `flutter test` + `tool/schema_check` (dump + `validate_documents.js` against `origin/develop:src/schema.gql`) + scratch builds A/C | ✅ tooling | ✅ green |
+| 5-09-02 | 09 | 8 | NOTIF-01..08 | T-05-09-03, T-05-09-04, T-05-09-05 | device UAT 3 states × 3 types; unregister before logout; no cold-launch prompt | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/05-notifications-infrastructure/05-HUMAN-UAT.md` | ✅ (created by 5-09-01) | ⬜ |
 
 *Status legend: ⬜ = not run yet · ✅ green · ❌ red · ⚠️ flaky. Each row's Status cell becomes `✅ green` when its command passes (plan 09 Task 1 sets the automated rows; Task 2 sets 5-09-02).*
 
@@ -69,13 +69,13 @@ created: 2026-10-19
 
 ## Wave 0 Requirements
 
-- [ ] Native + dependency groundwork (plan 01): Google Services plugin 4.5.0 with `missingGoogleServicesStrategy = WARN`, `POST_NOTIFICATIONS`, `ic_stat_klimmeck` + `raw/keep.xml`, `-firebase_auth`, `+uuid ^4.5.1`, legacy util deleted (analyzer → 56), scratch builds A/C
-- [ ] `test/helpers/fakes/fake_shared_preferences_async.dart` gains `getString` / `setString` / `remove` (plan 03)
-- [ ] Push fakes under `test/helpers/fakes/` (plan 04 Task 1; `recording_notification_intent_sink.dart` in plan 07)
-- [ ] Mocks in `test/helpers/mocks.dart`: `MockPushDeviceRepository` (03), `MockPushSessionCleanup` (05), `MockNotificationPermissionCubit` (06), `MockInAppNotificationsCubit` only if needed (08)
-- [ ] `tool/schema_check/schema_check_documents.dart` updated in the same commit as `push_mutations.dart` (plan 03, RESEARCH Pitfall 16)
-- [ ] Failing-first tests for every ❌ W0 row above before its implementation (RED commit per task)
-- [ ] `push_boundaries_test.dart` guarding plugin imports (plan 04) and the "no `ensureRequested(` call site" rule (plan 06)
+- [x] Native + dependency groundwork (plan 01): Google Services plugin 4.5.0 with `missingGoogleServicesStrategy = WARN`, `POST_NOTIFICATIONS`, `ic_stat_klimmeck` + `raw/keep.xml`, `-firebase_auth`, `+uuid ^4.5.1`, legacy util deleted (analyzer → 56), scratch builds A/C
+- [x] `test/helpers/fakes/fake_shared_preferences_async.dart` gains `getString` / `setString` / `remove` (plan 03)
+- [x] Push fakes under `test/helpers/fakes/` (plan 04 Task 1; `recording_notification_intent_sink.dart` in plan 07)
+- [x] Mocks in `test/helpers/mocks.dart`: `MockPushDeviceRepository` (03), `MockPushSessionCleanup` (05), `MockNotificationPermissionCubit` (06), `MockInAppNotificationsCubit` only if needed (08)
+- [x] `tool/schema_check/schema_check_documents.dart` updated in the same commit as `push_mutations.dart` (plan 03, RESEARCH Pitfall 16)
+- [x] Failing-first tests for every ❌ W0 row above before its implementation (RED commit per task)
+- [x] `push_boundaries_test.dart` guarding plugin imports (plan 04) and the "no `ensureRequested(` call site" rule (plan 06)
 
 ---
 
@@ -102,4 +102,4 @@ created: 2026-10-19
 - [x] Feedback latency < 10s per task (builds excluded)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-10-19 (plan-time; execution sign-off and `wave_0_complete: true` in plan 05-09)
+**Approval:** approved 2026-10-19 (plan-time) — execution sign-off 2026-10-19 in plan 05-09 Task 1: schema check 27 × OK against BE `origin/develop` `0828719`, `flutter test` 986 passed, `flutter analyze` 56 issues / 0 errors (none in Phase 5 files), 86 Phase 5 Dart files formatter-clean, 0 `Co-Authored-By` trailers, builds A (`google_app_id` = 1) and C (exit 0, `google_app_id` = 0, WARN proved via `processDebugGoogleServices`) green. Row 5-09-02 is set by the device UAT (Task 2).
