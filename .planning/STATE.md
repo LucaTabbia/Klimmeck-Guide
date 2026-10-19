@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-10-19T18:06:35.182Z"
-last_activity: 2026-10-19 -- Phase 5 execution started
+last_activity: 2026-10-19 -- Completed 05-01
 progress:
   total_phases: 12
   completed_phases: 5
   total_plans: 50
-  completed_plans: 41
-  percent: 82
+  completed_plans: 42
+  percent: 84
 ---
 
 # Project State
@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 5 (notifications-infrastructure) — EXECUTING
-Plan: 0 of 9
+Plan: 1 of 9
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
 Status: Executing Phase 5
-Last activity: 2026-10-19 -- Phase 5 execution started
+Last activity: 2026-10-19 -- Completed 05-01 (google-services plugin with WARN, push icon, -firebase_auth +uuid, legacy NotificationsBloc removed)
 
 ## Current Milestone
 
