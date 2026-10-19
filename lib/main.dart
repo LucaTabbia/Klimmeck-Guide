@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,16 +10,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
+import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/push/push_bootstrap.dart';
+import 'package:klimmeck_guide/repository/services/push/push_registration_coordinator.dart';
 import 'package:klimmeck_guide/repository/services/push/push_services.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
+import 'package:klimmeck_guide/repository/storage/device_identity_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
 import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
@@ -145,15 +150,29 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   final NotificationPreferencesStore notificationPreferencesStore =
       SharedPreferencesNotificationPreferencesStore();
 
+  /// Registrazione push per tutta la vita del processo (D-07). Con il push disabilitato le
+  /// porte no-op non producono token: mantiene solo lo specchio dell'utente attivo.
+  late final PushRegistrationCoordinator _pushCoordinator =
+      PushRegistrationCoordinator(
+        authStates: widget.authTokenService.authStateStream,
+        messaging: widget.push.messaging,
+        repository: PushDeviceRepository(graphQl: graphQl),
+        deviceIdentity: SharedPreferencesDeviceIdentityStore(),
+        activeUser: SharedPreferencesActiveUserStore(),
+        localNotifications: widget.push.localNotifications,
+      );
+
   @override
   void initState() {
     super.initState();
     rest = KlimmeckRest(widget.restClient);
+    _pushCoordinator.start();
     loadSvg();
   }
 
   @override
   void dispose() {
+    unawaited(_pushCoordinator.dispose());
     _lifecycleBus.close();
     super.dispose();
   }
@@ -220,7 +239,10 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
           dispose: (svc) => svc.dispose(),
           child: BlocProvider<AuthCubit>(
             lazy: false,
-            create: (_) => AuthCubit(widget.authTokenService)..start(),
+            create: (_) => AuthCubit(
+              widget.authTokenService,
+              pushCleanup: _pushCoordinator,
+            )..start(),
             child: BlocProvider<SplashCubit>(
               create: (_) => SplashCubit(rest),
               child: GraphQLProvider(
