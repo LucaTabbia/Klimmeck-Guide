@@ -330,7 +330,7 @@ Plans:
 | 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
-| 5. Notifications Infrastructure | 6/9 | In Progress | - |
+| 5. Notifications Infrastructure | 7/9 | In Progress | - |
 | 6. Quest Accept & Info Sheets | 0/0 | Not started | - |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
