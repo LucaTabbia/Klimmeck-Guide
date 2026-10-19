@@ -77,10 +77,13 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
       ? streamerLiveDedupWindow
       : personalDedupWindow;
 
+  /// `isClosed` è vero appena la shell rilascia il cubit: la cancellazione
+  /// della subscription parte prima ma è attesa dopo `super.close()`.
   @override
   Future<void> close() async {
     _dismissTimer?.cancel();
-    await _subscription.cancel();
-    return super.close();
+    final cancelled = _subscription.cancel();
+    await super.close();
+    await cancelled;
   }
 }

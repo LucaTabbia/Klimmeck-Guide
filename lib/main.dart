@@ -338,6 +338,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                               userId: user.id,
                                               notificationPermission:
                                                   widget.push.permission,
+                                              pushMessaging:
+                                                  widget.push.messaging,
                                             ),
                                       ),
                                     ),

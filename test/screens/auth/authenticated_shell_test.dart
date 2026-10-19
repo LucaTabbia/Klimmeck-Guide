@@ -384,6 +384,7 @@ void main() {
       await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
       expect(cubit.isClosed, isTrue);
+      expect(messaging.foreground.hasListener, isFalse);
     });
   });
 

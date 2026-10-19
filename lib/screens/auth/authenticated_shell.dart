@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/push_event.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
+import 'package:klimmeck_guide/repository/services/push/push_messaging_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
@@ -23,6 +28,8 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
+import 'package:klimmeck_guide/shared/components/kg_notification_banner.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Sessione autenticata: monta i Cubit gameplay, avvia il preload SVG
 /// Cloudinary (REST autenticata, quindi solo ora) ed entra nel MainScreen del
@@ -42,6 +49,9 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// del personaggio (Phase 4), più lo stato del permesso notifiche di sistema
 /// per la riga "disattivate" (Phase 5 D-10), chiusi con la shell.
 ///
+/// Banner in-app per gli eventi push in foreground (Phase 5 D-13/D-17): solo
+/// qui, quindi solo con un personaggio; la pagina di creazione non ne mostra.
+///
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
@@ -53,6 +63,7 @@ class AuthenticatedShell extends StatelessWidget {
     required this.notificationPreferencesStore,
     required this.userId,
     required this.notificationPermission,
+    required this.pushMessaging,
     this.mainScreenBuilder = _buildMainScreen,
   });
 
@@ -63,6 +74,9 @@ class AuthenticatedShell extends StatelessWidget {
 
   /// Permesso notifiche di sistema per la riga di Impostazioni (D-10).
   final NotificationPermissionPort notificationPermission;
+
+  /// Messaggi push in foreground per i banner in-app (D-13/D-17).
+  final PushMessagingPort pushMessaging;
 
   /// Sostituibile solo nei test, per non montare il MainScreen che fa rete.
   final Widget Function(BuildContext context, String characterId)
@@ -105,20 +119,36 @@ class AuthenticatedShell extends StatelessWidget {
             lifecycle: context.read<AppLifecycleEvents>(),
           )..refresh(),
         ),
+        BlocProvider<InAppNotificationsCubit>(
+          create: (context) => InAppNotificationsCubit(
+            events: ForegroundPushEvents(
+              messages: pushMessaging.foregroundMessages,
+              preferences: notificationPreferencesStore,
+              userId: userId,
+            ).events,
+            router: context.read<NotificationTapRouter>(),
+          ),
+        ),
         BlocProvider<CharacterDeletionCubit>(
           create: (_) => CharacterDeletionCubit(
             CharacterDeletionRepository(graphQl: graphQl),
           ),
         ),
       ],
-      child: BlocListener<CharacterDeletionCubit, CharacterDeletionState>(
-        listenWhen: (previous, current) =>
-            previous.deletedUser == null && current.deletedUser != null,
-        listener: _handOverDeletedUser,
-        child: _ShellBody(
-          characterId: characterId,
-          mainScreenBuilder: mainScreenBuilder,
-        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          BlocListener<CharacterDeletionCubit, CharacterDeletionState>(
+            listenWhen: (previous, current) =>
+                previous.deletedUser == null && current.deletedUser != null,
+            listener: _handOverDeletedUser,
+            child: _ShellBody(
+              characterId: characterId,
+              mainScreenBuilder: mainScreenBuilder,
+            ),
+          ),
+          const _InAppNotificationOverlay(),
+        ],
       ),
     );
   }
@@ -169,4 +199,40 @@ class _ShellBodyState extends State<_ShellBody> {
   /// Un preload fallito non blocca: `CachedSvg` ricade sulla rete.
   static bool _isPreloadSettled(SplashState state) =>
       state is SplashData || state is SplashError;
+}
+
+/// Banner in alto sopra il gioco (D-17); i dialog sul Navigator radice restano
+/// sopra (accettato). Il tap passa solo dal cubit (UI → Cubit → Service, D-19).
+class _InAppNotificationOverlay extends StatelessWidget {
+  const _InAppNotificationOverlay();
+
+  static const Duration _transition = Duration(milliseconds: 250);
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingSm),
+          child: BlocBuilder<InAppNotificationsCubit, InAppNotificationsState>(
+            builder: (context, state) => AnimatedSwitcher(
+              duration: _transition,
+              child: _bannerFor(context, state.current),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _bannerFor(BuildContext context, PushEvent? event) {
+    if (event == null) return const SizedBox.shrink();
+    return KgNotificationBanner(
+      key: ValueKey(event.dedupKey),
+      notification: event.notification,
+      onTap: () => context.read<InAppNotificationsCubit>().open(event),
+    );
+  }
 }
