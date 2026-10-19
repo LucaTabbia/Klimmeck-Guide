@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-10-19T10:00:00.000Z"
-last_activity: 2026-10-19 -- Phase 5 context gathered (interactive discuss, 22 decisions); branch feat/05-notifications-infrastructure; next /gsd-plan-phase 5
+status: executing
+last_updated: "2026-10-19T18:06:35.182Z"
+last_activity: 2026-10-19 -- Phase 5 execution started
 progress:
   total_phases: 12
   completed_phases: 5
-  total_plans: 41
+  total_plans: 50
   completed_plans: 41
-  percent: 100
+  percent: 82
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 05 (notifications-infrastructure) — CONTEXT GATHERED 2026-10-19 (interactive discuss; branch feat/05-notifications-infrastructure off develop)
-Plan: 0 of TBD
+Phase: 5 (notifications-infrastructure) — EXECUTING
+Plan: 0 of 9
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 05 planning — /gsd-plan-phase 5 (BE Phase 5 FCM merged in BE PR #8 on 2026-10-18: contract in Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/BACKEND-NOTES.md)
-Status: Phase 05 context gathered — ready to plan (Android only; permission prompt wired by Phase 7; streamerLive tap opens Twitch; unregister in AuthCubit.logout(); Firebase files out of VCS)
-Last activity: 2026-10-19 -- Phase 5 discuss closed interactively: 05-CONTEXT.md (D-01..D-22) + 05-DISCUSSION-LOG.md; NOTIF-06 and ROADMAP SC 4 amended (streamerLive → Twitch), platform note Android-only
+Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
+Status: Executing Phase 5
+Last activity: 2026-10-19 -- Phase 5 execution started
 
 ## Current Milestone
 
