@@ -300,6 +300,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                           notificationPreferencesStore:
                                               notificationPreferencesStore,
                                           userId: user.id,
+                                          notificationPermission:
+                                              widget.push.permission,
                                         ),
                                   ),
                                 ),

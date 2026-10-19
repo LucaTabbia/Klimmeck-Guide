@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -17,6 +18,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
@@ -37,7 +39,8 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// personaggio vivi insieme (D-08).
 ///
 /// Impostazioni: preferenze notifiche dell'utente di sessione e eliminazione
-/// del personaggio (Phase 4), chiuse con la shell.
+/// del personaggio (Phase 4), più lo stato del permesso notifiche di sistema
+/// per la riga "disattivate" (Phase 5 D-10), chiusi con la shell.
 ///
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
@@ -49,6 +52,7 @@ class AuthenticatedShell extends StatelessWidget {
     required this.characterId,
     required this.notificationPreferencesStore,
     required this.userId,
+    required this.notificationPermission,
     this.mainScreenBuilder = _buildMainScreen,
   });
 
@@ -56,6 +60,9 @@ class AuthenticatedShell extends StatelessWidget {
   final String characterId;
   final NotificationPreferencesStore notificationPreferencesStore;
   final String userId;
+
+  /// Permesso notifiche di sistema per la riga di Impostazioni (D-10).
+  final NotificationPermissionPort notificationPermission;
 
   /// Sostituibile solo nei test, per non montare il MainScreen che fa rete.
   final Widget Function(BuildContext context, String characterId)
@@ -91,6 +98,12 @@ class AuthenticatedShell extends StatelessWidget {
             notificationPreferencesStore,
             userId: userId,
           )..load(),
+        ),
+        BlocProvider<NotificationPermissionCubit>(
+          create: (context) => NotificationPermissionCubit(
+            notificationPermission,
+            lifecycle: context.read<AppLifecycleEvents>(),
+          )..refresh(),
         ),
         BlocProvider<CharacterDeletionCubit>(
           create: (_) => CharacterDeletionCubit(
