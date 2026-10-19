@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_picker.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
 import 'package:klimmeck_guide/repository/services/push/push_bootstrap.dart';
 import 'package:klimmeck_guide/repository/services/push/push_registration_coordinator.dart';
 import 'package:klimmeck_guide/repository/services/push/push_services.dart';
@@ -237,68 +238,74 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
         child: RepositoryProvider<AuthTokenService>(
           create: (_) => widget.authTokenService,
           dispose: (svc) => svc.dispose(),
-          child: BlocProvider<AuthCubit>(
-            lazy: false,
-            create: (_) => AuthCubit(
-              widget.authTokenService,
-              pushCleanup: _pushCoordinator,
-            )..start(),
-            child: BlocProvider<SplashCubit>(
-              create: (_) => SplashCubit(rest),
-              child: GraphQLProvider(
-                client: widget.graphQlClient,
-                child: AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: Platform.isIOS
-                      ? SystemUiOverlayStyle.light
-                      : const SystemUiOverlayStyle(
-                          statusBarColor: Colors.transparent,
-                          statusBarIconBrightness: Brightness.light,
-                          systemNavigationBarIconBrightness: Brightness.dark,
-                          systemNavigationBarColor: Colors.transparent,
-                        ),
-                  child: MaterialApp(
-                    theme: KlimmeckGuideTheme.instance.materialTheme,
-                    color: KlimmeckGuideTheme.deepNight,
-                    debugShowCheckedModeBanner: false,
-                    title: 'Guida di Klimmeck',
-                    navigatorKey: navigatorKey,
-                    home: Builder(
-                      builder: (context) {
-                        preloadImages(context);
-                        return AuthGate(
-                          // Lo scope copre anche la creazione personaggio: il watchdog
-                          // e' di sessione (research Open Question 3, accettato).
-                          authenticatedBuilder: (context, user) =>
-                              SessionSyncScope(
-                                graphQl: graphQl,
-                                terminator: widget.sessionTerminator,
-                                openConnectionStream:
-                                    widget.openConnectionStream,
-                                child: SessionHome(
-                                  user: user,
-                                  creationBuilder: (context) =>
-                                      BlocProvider<CharacterCreationCubit>(
-                                        create: (_) => CharacterCreationCubit(
-                                          CharacterCreationRepository(
-                                            graphQl: graphQl,
-                                            rest: rest,
-                                            picker: ImagePickerPortraitPicker(),
-                                          ),
-                                        )..loadRaceTraits(),
-                                        child: const CharacterCreationScreen(),
-                                      ),
-                                  shellBuilder: (context, characterId) =>
-                                      AuthenticatedShell(
-                                        graphQl: graphQl,
-                                        characterId: characterId,
-                                        notificationPreferencesStore:
-                                            notificationPreferencesStore,
-                                        userId: user.id,
-                                      ),
+          // Phase 7 lo usa alla prima conferma di viaggio; Phase 5 non chiede mai il permesso (D-10).
+          child: RepositoryProvider<NotificationPermissionGate>(
+            create: (_) => NotificationPermissionGate(widget.push.permission),
+            child: BlocProvider<AuthCubit>(
+              lazy: false,
+              create: (_) => AuthCubit(
+                widget.authTokenService,
+                pushCleanup: _pushCoordinator,
+              )..start(),
+              child: BlocProvider<SplashCubit>(
+                create: (_) => SplashCubit(rest),
+                child: GraphQLProvider(
+                  client: widget.graphQlClient,
+                  child: AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: Platform.isIOS
+                        ? SystemUiOverlayStyle.light
+                        : const SystemUiOverlayStyle(
+                            statusBarColor: Colors.transparent,
+                            statusBarIconBrightness: Brightness.light,
+                            systemNavigationBarIconBrightness: Brightness.dark,
+                            systemNavigationBarColor: Colors.transparent,
+                          ),
+                    child: MaterialApp(
+                      theme: KlimmeckGuideTheme.instance.materialTheme,
+                      color: KlimmeckGuideTheme.deepNight,
+                      debugShowCheckedModeBanner: false,
+                      title: 'Guida di Klimmeck',
+                      navigatorKey: navigatorKey,
+                      home: Builder(
+                        builder: (context) {
+                          preloadImages(context);
+                          return AuthGate(
+                            // Lo scope copre anche la creazione personaggio: il watchdog
+                            // e' di sessione (research Open Question 3, accettato).
+                            authenticatedBuilder: (context, user) =>
+                                SessionSyncScope(
+                                  graphQl: graphQl,
+                                  terminator: widget.sessionTerminator,
+                                  openConnectionStream:
+                                      widget.openConnectionStream,
+                                  child: SessionHome(
+                                    user: user,
+                                    creationBuilder: (context) =>
+                                        BlocProvider<CharacterCreationCubit>(
+                                          create: (_) => CharacterCreationCubit(
+                                            CharacterCreationRepository(
+                                              graphQl: graphQl,
+                                              rest: rest,
+                                              picker:
+                                                  ImagePickerPortraitPicker(),
+                                            ),
+                                          )..loadRaceTraits(),
+                                          child:
+                                              const CharacterCreationScreen(),
+                                        ),
+                                    shellBuilder: (context, characterId) =>
+                                        AuthenticatedShell(
+                                          graphQl: graphQl,
+                                          characterId: characterId,
+                                          notificationPreferencesStore:
+                                              notificationPreferencesStore,
+                                          userId: user.id,
+                                        ),
+                                  ),
                                 ),
-                              ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
