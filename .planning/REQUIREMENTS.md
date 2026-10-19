@@ -83,6 +83,7 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 - [ ] **NOTIF-04**: User receives a push notification when the streamer goes live
 - [ ] **NOTIF-05**: User receives a push notification when a quest they have accepted resolves (success, failure, death)
 - [ ] **NOTIF-06**: Tapping a notification always routes the app to the Map tab (regardless of notification type) and then surfaces the correct context popup for that event (travel-end, streamer-live, quest-end, death). No type-specific tab routing. Behavior is uniform across all three app states (killed, background, foreground).
+  - _Emendato il 2026-10-19 (Phase 5 discuss, decisione utente): il tap su `streamerLive` apre direttamente il canale Twitch (`https://www.twitch.tv/lordreavor`), senza passare dalla mappa né da un popup; i tipi personali (`travelEnd`, `questEnd`) vanno sulla Map tab e i loro popup di contesto arrivano con le Phase 7/9. Il comportamento resta uniforme nei tre app state e identico tra notifica di sistema e banner in-app. Phase 5 è solo Android: iOS è rinviato a una fase successiva._
 - [ ] **NOTIF-07**: In-foreground notifications render as in-app banners using the existing `KGNotification` model (title + description) with tap-to-navigate
 - [ ] **NOTIF-08**: When a single event would generate both an FCM push and an in-app banner simultaneously, only one is shown to the user (foreground suppresses duplicate push)
 

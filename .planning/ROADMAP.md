@@ -181,13 +181,14 @@ Plans:
   1. After login, the FCM token is registered and synced to the backend per-device; token refresh is handled.
   2. Notification permission is requested in-context at the first travel confirmation, not at cold launch.
   3. Travel-end, streamer-live, and quest-end push notifications are delivered and handled in killed, background, and foreground app states.
-  4. Tapping any notification routes the app to the Map tab and surfaces the correct context popup (travel-end, streamer-live, quest-end, death), uniformly across the three app states.
+  4. Tapping any notification routes the app to the Map tab and surfaces the correct context popup (travel-end, streamer-live, quest-end, death), uniformly across the three app states. _(Amended 2026-10-19 in the Phase 5 discuss: a `streamerLive` tap opens the Twitch channel directly; personal types land on the Map tab and their context popups arrive with Phases 7/9.)_
   5. When an event would trigger both an FCM push and an in-app banner, only one is shown (foreground suppresses the duplicate push); foreground banners use the existing `KGNotification` model.
 **Decisions to make during discuss step**:
   - Push library confirmation (`firebase_messaging` + `flutter_local_notifications` — open question from STATE.md).
   - `NotificationRouter` / `NavigationService` GlobalKey pattern.
 **Backend/platform prerequisites**:
-  - Firebase project configured, `google-services.json` / `GoogleService-Info.plist` in place, APNs Auth Key uploaded.
+  - Firebase project configured, `google-services.json` in place locally (not committed). _(Platform note 2026-10-19, user decision: Phase 5 is **Android only**; `GoogleService-Info.plist`, APNs Auth Key and the iOS wiring are deferred to a later phase.)_
+  - BE Phase 5 (FCM) merged in BE PR #8 on 2026-10-18.
 **Plans**: TBD
 
 ### Phase 6: Quest Accept & Info Sheets
