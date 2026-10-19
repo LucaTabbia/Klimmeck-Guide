@@ -1,0 +1,86 @@
+import 'dart:async';
+import 'dart:collection';
+
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/notification_category.dart';
+import 'package:klimmeck_guide/models/push_event.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+
+part 'in_app_notifications_state.dart';
+
+/// Banner in-app della shell (D-17/D-18): unico percorso di pubblicazione per
+/// ogni produttore (FCM in foreground oggi, le subscription di Phase 7/9 domani).
+/// Uno alla volta, in coda, chiusura automatica; un evento già visto nella
+/// finestra di dedup non si ripete.
+class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
+    with SafeEmit<InAppNotificationsState> {
+  InAppNotificationsCubit({
+    required Stream<PushEvent> events,
+    required NotificationTapRouter router,
+    DateTime Function() now = DateTime.now,
+    Duration displayDuration = defaultDisplayDuration,
+  }) : _router = router,
+       _now = now,
+       _displayDuration = displayDuration,
+       super(const InAppNotificationsState()) {
+    _subscription = events.listen(publish);
+  }
+
+  static const Duration defaultDisplayDuration = Duration(seconds: 5);
+  static const Duration personalDedupWindow = Duration(minutes: 2);
+
+  /// Pari al TTL del broadcast `streamerLive` lato backend (15 min).
+  static const Duration streamerLiveDedupWindow = Duration(minutes: 15);
+
+  final NotificationTapRouter _router;
+  final DateTime Function() _now;
+  final Duration _displayDuration;
+  final Queue<PushEvent> _queue = Queue<PushEvent>();
+  final Map<String, DateTime> _expiresAt = {};
+  late final StreamSubscription<PushEvent> _subscription;
+  Timer? _dismissTimer;
+
+  void publish(PushEvent event) {
+    final now = _now();
+    _expiresAt.removeWhere((_, expiry) => !now.isBefore(expiry));
+    if (_expiresAt.containsKey(event.dedupKey)) return;
+    _expiresAt[event.dedupKey] = now.add(_dedupWindowOf(event));
+    _queue.add(event);
+    if (state.current == null) _showNext();
+  }
+
+  /// Tap o chiusura: passa al prossimo in coda.
+  void dismiss() => _showNext();
+
+  /// Tap sul banner (D-17): stessa azione della notifica di sistema. La UI
+  /// chiama solo questo metodo; il cubit chiude il banner e delega al router
+  /// (UI → Cubit → Service, D-19).
+  Future<void> open(PushEvent event) async {
+    dismiss();
+    await _router.handle(event.intent);
+  }
+
+  void _showNext() {
+    _dismissTimer?.cancel();
+    if (_queue.isEmpty) {
+      emit(const InAppNotificationsState());
+      return;
+    }
+    emit(InAppNotificationsState(current: _queue.removeFirst()));
+    _dismissTimer = Timer(_displayDuration, _showNext);
+  }
+
+  static Duration _dedupWindowOf(PushEvent event) =>
+      event.category == NotificationCategory.streamerLive
+      ? streamerLiveDedupWindow
+      : personalDedupWindow;
+
+  @override
+  Future<void> close() async {
+    _dismissTimer?.cancel();
+    await _subscription.cancel();
+    return super.close();
+  }
+}
