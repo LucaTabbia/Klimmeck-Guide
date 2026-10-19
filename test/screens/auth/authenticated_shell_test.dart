@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/repository/character_deletion_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -17,11 +18,13 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/in_memory_notification_preferences_store.dart';
 import '../../helpers/fakes/recording_sync_health.dart';
 import '../../helpers/fixtures/sync_event_fixtures.dart';
@@ -36,11 +39,15 @@ void main() {
   late MockKlimmeckGraphQl graphQl;
   late InMemoryNotificationPreferencesStore store;
   late MockAuthCubit authCubit;
+  late FakeNotificationPermissionPort permission;
 
   setUpAll(() => registerFallbackValue(buildTestUser()));
 
   setUp(() {
     store = InMemoryNotificationPreferencesStore();
+    permission = FakeNotificationPermissionPort(
+      current: NotificationPermissionStatus.denied,
+    );
     authCubit = MockAuthCubit();
     whenListen(
       authCubit,
@@ -87,6 +94,7 @@ void main() {
                 characterId: testCharacterId,
                 notificationPreferencesStore: store,
                 userId: testUserId,
+                notificationPermission: permission,
                 mainScreenBuilder:
                     mainScreenBuilder ?? (_, id) => Text('main $id'),
               ),
@@ -200,6 +208,29 @@ void main() {
     expect(preferences.isClosed, isTrue);
     expect(deletion.isClosed, isTrue);
     expect(store.values[key], isFalse);
+  });
+
+  testWidgets('provides the system permission status read once at mount', (
+    tester,
+  ) async {
+    late NotificationPermissionCubit cubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        cubit = context.read<NotificationPermissionCubit>();
+        return const Text('main');
+      },
+    );
+    await tester.pump();
+
+    expect(permission.statusCalls, 1);
+    expect(cubit.state.status, NotificationPermissionStatus.denied);
+    expect(permission.requestCalls, 0);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(cubit.isClosed, isTrue);
   });
 
   group('character deletion hand-over', () {

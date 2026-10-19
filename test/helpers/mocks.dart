@@ -20,6 +20,7 @@ import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -85,6 +86,10 @@ class MockMainScreenCubit extends MockCubit<MainScreenState>
 class MockNotificationPreferencesCubit
     extends MockCubit<NotificationPreferencesState>
     implements NotificationPreferencesCubit {}
+
+class MockNotificationPermissionCubit
+    extends MockCubit<NotificationPermissionState>
+    implements NotificationPermissionCubit {}
 
 class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
     implements CharacterDeletionCubit {}
