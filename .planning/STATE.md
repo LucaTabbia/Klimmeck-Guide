@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-10-18T14:00:00.000Z"
-last_activity: 2026-10-18 -- Phase 4 closed (verified 5/5, review fixed, security 29/29); FE PR #28 open to develop
+status: planning
+last_updated: "2026-10-19T10:00:00.000Z"
+last_activity: 2026-10-19 -- Phase 5 context gathered (interactive discuss, 22 decisions); branch feat/05-notifications-infrastructure; next /gsd-plan-phase 5
 progress:
   total_phases: 12
   completed_phases: 5
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 04 (settings-screen) — COMPLETE (verified 2026-10-18, 5/5 success criteria; review 2 warnings fixed in TDD; E2E approved on device 2026-10-18)
-Plan: 7 of 7
-Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — branch feat/04-settings-screen; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 05 (Notifications Infrastructure) — depends on BE Phase 5 (FCM) — /gsd-discuss-phase 5 then /gsd-plan-phase 5
-Status: Phase 04 complete — security 29/29 closed; FE PR #28 open on LucaTabbia/Klimmeck-Guide (feat/04-settings-screen → develop), ready for review and merge (no BE dependency pending)
-Last activity: 2026-10-18 -- Phase 4 closed: E2E approved, verification 5/5, review WR-01/WR-02 fixed in TDD (762 tests), security 29/29, PR #28 opened to develop; next: merge PR #28, then /gsd-discuss-phase 5 (needs BE Phase 5 FCM)
+Phase: 05 (notifications-infrastructure) — CONTEXT GATHERED 2026-10-19 (interactive discuss; branch feat/05-notifications-infrastructure off develop)
+Plan: 0 of TBD
+Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
+Next Phase: 05 planning — /gsd-plan-phase 5 (BE Phase 5 FCM merged in BE PR #8 on 2026-10-18: contract in Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/BACKEND-NOTES.md)
+Status: Phase 05 context gathered — ready to plan (Android only; permission prompt wired by Phase 7; streamerLive tap opens Twitch; unregister in AuthCubit.logout(); Firebase files out of VCS)
+Last activity: 2026-10-19 -- Phase 5 discuss closed interactively: 05-CONTEXT.md (D-01..D-22) + 05-DISCUSSION-LOG.md; NOTIF-06 and ROADMAP SC 4 amended (streamerLive → Twitch), platform note Android-only
 
 ## Current Milestone
 
@@ -40,7 +40,7 @@ Last activity: 2026-10-18 -- Phase 4 closed: E2E approved, verification 5/5, rev
 
 ## Open Questions / Blockers
 
-- Scelta libreria push notification Flutter (firebase_messaging è standard)
+- ~~Scelta libreria push notification Flutter (firebase_messaging è standard)~~ — risolta nel discuss di Phase 5 (2026-10-19): `firebase_core` + `firebase_messaging` + `flutter_local_notifications` già in pubspec; `firebase_auth` rimosso; iOS rinviato.
 - ~~Scelta client GraphQL subscription~~ — risolta in Phase 3 discuss (2026-10-14): resta `graphql_flutter` 5.2.1 (WebSocketLink + WsReconnectPolicy di Phase 11)
 - ~~Flusso OAuth Twitch: webview in-app vs deep link / universal link~~ — **risolto in Phase 11:** login mediato dal backend via browser di sistema + deep link `klimmeck://auth` (Twitch non supporta PKCE né redirect con custom scheme; l'app non possiede chiavi Twitch).
 - **Chiavi Twitch non ancora disponibili:** il login reale su device non è mai stato esercitato (UAT pendenti in `phases/11-auth-session-bootstrap/11-HUMAN-UAT.md`). Fino ad allora si lavora con il dev bypass (`DEV_AUTH_ENABLED=true`; `DEV_AUTH_START_SIGNED_OUT=true` per vedere il sign-in).
