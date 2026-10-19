@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-19T21:00:00.000Z"
-last_activity: 2026-10-19 -- Completed 05-05
+last_updated: "2026-10-19T22:00:00.000Z"
+last_activity: 2026-10-19 -- Completed 05-06
 progress:
   total_phases: 12
   completed_phases: 5
   total_plans: 50
-  completed_plans: 46
-  percent: 92
+  completed_plans: 47
+  percent: 94
 ---
 
 # Project State
@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 5 (notifications-infrastructure) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
 Status: Executing Phase 5
-Last activity: 2026-10-19 -- Completed 05-05 (PushSessionCleanup + AuthCubit.logout() unregister-first with 2 s cap, PushRegistrationCoordinator: one registration per user per process, refresh re-register, 5-attempt silent retry capped at 30 s, suspension during unregister, no network/wait when no token was ever seen, session end clears active user + tray; wired in main.dart)
+Last activity: 2026-10-19 -- Completed 05-06 (NotificationPermissionGate.ensureRequested() for Phase 7: prompts only on notDetermined, in-flight dedup, nothing persisted, provided above AuthGate and never called; static guard that main/AuthGate/Splash/Settings never reach the prompt; NotificationPermissionCubit re-reading the OS status at shell mount and on foreground; Settings hint "Le notifiche di sistema sono disattivate" + "Attiva" only when denied)
 
 ## Current Milestone
 
