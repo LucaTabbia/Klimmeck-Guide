@@ -14,6 +14,8 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_holder.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/image/image_picker_portrait_picker.dart';
+import 'package:klimmeck_guide/repository/services/push/push_bootstrap.dart';
+import 'package:klimmeck_guide/repository/services/push/push_services.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
@@ -34,6 +36,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
+  // Phase 5 D-02: senza google-services.json il push resta disabilitato, il gioco no.
+  final push = await bootstrapPush();
 
   late final GraphQLClientHolder graphQlHolder;
   final auth = _buildAuth(onSessionTeardown: () => graphQlHolder.reset());
@@ -73,6 +77,7 @@ Future<void> main() async {
       openConnectionStream: graphQlHolder.watchConnection,
       restClient: restClient,
       graphQlClient: graphQlHolder.client,
+      push: push,
     ),
   );
 }
@@ -115,6 +120,7 @@ class KlimmeckGuideApp extends StatefulWidget {
     required this.openConnectionStream,
     required this.restClient,
     required this.graphQlClient,
+    required this.push,
   });
 
   final AuthTokenService authTokenService;
@@ -122,6 +128,9 @@ class KlimmeckGuideApp extends StatefulWidget {
   final Stream<bool> Function() openConnectionStream;
   final RestClient restClient;
   final ValueNotifier<GraphQLClient> graphQlClient;
+
+  /// Porte push (abilitate o no-op) composte prima di runApp.
+  final PushServices push;
 
   @override
   State<KlimmeckGuideApp> createState() => _KlimmeckGuideAppState();
