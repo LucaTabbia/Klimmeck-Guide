@@ -56,9 +56,10 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
 
   /// Tap sul banner (D-17): stessa azione della notifica di sistema. La UI
   /// chiama solo questo metodo; il cubit chiude il banner e delega al router
-  /// (UI → Cubit → Service, D-19).
+  /// (UI → Cubit → Service, D-19). Un tap sul banner uscente durante la
+  /// dissolvenza instrada solo il suo evento e lascia visibile quello corrente.
   Future<void> open(PushEvent event) async {
-    dismiss();
+    if (state.current == event) dismiss();
     await _router.handle(event.intent);
   }
 

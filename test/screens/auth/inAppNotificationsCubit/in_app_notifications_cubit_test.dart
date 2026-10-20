@@ -238,6 +238,22 @@ void main() {
     });
   });
 
+  test('open on an outgoing banner routes it and keeps the current one', () {
+    withCubit((async, cubit, events) {
+      cubit
+        ..publish(travelA)
+        ..publish(questA)
+        ..dismiss();
+      expect(cubit.state.current, questA);
+
+      cubit.open(travelA);
+      async.flushMicrotasks();
+
+      expect(sink.offered.single, travelA.intent);
+      expect(cubit.state.current, questA);
+    });
+  });
+
   test('open dismisses the banner before routing', () {
     late InAppNotificationsCubit observed;
     final probe = _StateProbeSink(() => observed.state.current);
