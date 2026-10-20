@@ -13,7 +13,8 @@ import 'package:klimmeck_guide/utils/silent_retry.dart';
 
 /// Ciclo di vita della registrazione push (D-07/D-08/D-09), vivo per tutto il processo.
 /// Registra una volta per utente per processo e a ogni refresh del token; ritenta in
-/// silenzio i fallimenti transitori; a fine sessione cancella utente attivo e vassoio.
+/// silenzio i fallimenti transitori e, dopo una rinuncia, al ritorno in foreground; a fine
+/// sessione cancella utente attivo e vassoio.
 class PushRegistrationCoordinator implements PushSessionCleanup {
   PushRegistrationCoordinator({
     required Stream<AuthState> authStates,
@@ -22,7 +23,9 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     required DeviceIdentityStore deviceIdentity,
     required ActiveUserStore activeUser,
     required LocalNotificationsPort localNotifications,
+    Stream<void> foregrounds = const Stream<void>.empty(),
   }) : _authStates = authStates,
+       _foregrounds = foregrounds,
        _messaging = messaging,
        _repository = repository,
        _deviceIdentity = deviceIdentity,
@@ -42,6 +45,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
   final DeviceIdentityStore _deviceIdentity;
   final ActiveUserStore _activeUser;
   final LocalNotificationsPort _localNotifications;
+  final Stream<void> _foregrounds;
 
   String? _sessionUserId;
   bool _suspended = false;
@@ -54,16 +58,22 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
   /// Ogni nuova registrazione, sospensione o fine sessione invalida i retry precedenti.
   int _generation = 0;
 
+  /// Vero quando il retry ha rinunciato (WR-02): il prossimo ritorno in foreground
+  /// riprova in silenzio, così una rete instabile al login non lascia senza push.
+  bool _retryOnForeground = false;
+
   /// Tentativo di registrazione sul filo: la rimozione lo attende (WR-01), altrimenti
   /// una `register` lenta potrebbe ricreare la riga dopo l'`unregister`.
   Future<void>? _attemptInFlight;
   StreamSubscription<AuthState>? _authSubscription;
   StreamSubscription<String>? _tokenSubscription;
+  StreamSubscription<void>? _foregroundSubscription;
 
   void start() {
     if (_authSubscription != null) return;
     _authSubscription = _authStates.listen(_onAuthState);
     _tokenSubscription = _messaging.tokenRefreshes.listen(_onTokenRefresh);
+    _foregroundSubscription = _foregrounds.listen(_onForeground);
   }
 
   Future<void> _onAuthState(AuthState state) async {
@@ -86,19 +96,29 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     _register(token: token);
   }
 
+  void _onForeground(void _) {
+    if (!_retryOnForeground || _sessionUserId == null || _suspended) return;
+    _register();
+  }
+
   void _register({String? token}) {
     final generation = ++_generation;
+    _retryOnForeground = false;
     unawaited(
       silentRetry<void>(
         () => _trackAttempt(_registerOnce(token, generation)),
         isCancelled: () => _isCancelled(generation),
         shouldRetry: _isTransient,
-        onGiveUp: (error) =>
-            debugPrint('Push registration stopped (${_describe(error)})'),
+        onGiveUp: _onRegistrationGivenUp,
         maxAttempts: maxRegistrationAttempts,
         maxDelay: maxRetryDelay,
       ),
     );
+  }
+
+  void _onRegistrationGivenUp(Object error) {
+    _retryOnForeground = true;
+    debugPrint('Push registration stopped (${_describe(error)})');
   }
 
   bool _isCancelled(int generation) =>
@@ -151,6 +171,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     final hadSession = _sessionUserId != null;
     _sessionUserId = null;
     _suspended = false;
+    _retryOnForeground = false;
     _generation++;
     await _guarded('active user clear', _activeUser.clear);
     if (hadSession) await _guarded('tray clear', _localNotifications.cancelAll);
@@ -161,6 +182,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     _generation++;
     await _authSubscription?.cancel();
     await _tokenSubscription?.cancel();
+    await _foregroundSubscription?.cancel();
   }
 
   static bool _isTransient(Object error) =>

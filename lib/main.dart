@@ -165,6 +165,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
         deviceIdentity: SharedPreferencesDeviceIdentityStore(),
         activeUser: SharedPreferencesActiveUserStore(),
         localNotifications: widget.push.localNotifications,
+        foregrounds: _lifecycleBus.foregrounded,
       );
 
   /// Tap in attesa sopra AuthGate: sopravvive a splash e sign-in (D-15).

@@ -35,6 +35,7 @@ class _Harness {
 
   final StreamController<AuthState> authStates =
       StreamController<AuthState>.broadcast();
+  final StreamController<void> foregrounds = StreamController<void>.broadcast();
   final FakePushMessagingPort messaging = FakePushMessagingPort();
   final MockPushDeviceRepository repository = MockPushDeviceRepository();
   final InMemoryDeviceIdentityStore deviceIdentity =
@@ -51,6 +52,7 @@ class _Harness {
         deviceIdentity: deviceIdentity,
         activeUser: activeUser,
         localNotifications: localNotifications,
+        foregrounds: foregrounds.stream,
       );
 
   void failRegistration(PushDeviceFailure failure) {
@@ -73,6 +75,11 @@ class _Harness {
 
   void emit(FakeAsync async, AuthState state) {
     authStates.add(state);
+    async.flushMicrotasks();
+  }
+
+  void foreground(FakeAsync async) {
+    foregrounds.add(null);
     async.flushMicrotasks();
   }
 
@@ -241,6 +248,62 @@ void main() {
         });
       });
     }
+  });
+
+  group('foreground re-arm', () {
+    test('after the retries are exhausted a foreground registers again', () {
+      fakeAsync((async) {
+        final harness = _Harness()
+          ..failRegistration(PushDeviceFailure.connection);
+        harness.emit(async, _authenticated('u-1'));
+        async.elapse(const Duration(minutes: 2));
+        expect(harness.registrationCalls(), 5);
+
+        harness.foreground(async);
+
+        expect(harness.registrationCalls(), 1);
+      });
+    });
+
+    test('after a successful registration a foreground does nothing', () {
+      fakeAsync((async) {
+        final harness = _Harness();
+        harness.emit(async, _authenticated('u-1'));
+        harness.verifyRegistered('token-1');
+
+        harness.foreground(async);
+
+        harness.verifyNoRegistration();
+      });
+    });
+
+    test('a foreground while the retries are running does nothing', () {
+      fakeAsync((async) {
+        final harness = _Harness()
+          ..failRegistration(PushDeviceFailure.connection);
+        harness.emit(async, _authenticated('u-1'));
+        expect(harness.registrationCalls(), 1);
+
+        harness.foreground(async);
+
+        harness.verifyNoRegistration();
+      });
+    });
+
+    test('a foreground after the session ended does nothing', () {
+      fakeAsync((async) {
+        final harness = _Harness()
+          ..failRegistration(PushDeviceFailure.connection);
+        harness.emit(async, _authenticated('u-1'));
+        async.elapse(const Duration(minutes: 2));
+        expect(harness.registrationCalls(), 5);
+        harness.emit(async, const AuthUnauthenticated());
+
+        harness.foreground(async);
+
+        harness.verifyNoRegistration();
+      });
+    });
   });
 
   group('unregister', () {
