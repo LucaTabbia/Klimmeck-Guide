@@ -32,6 +32,10 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
   static const int maxRegistrationAttempts = 5;
   static const Duration maxRetryDelay = Duration(seconds: 30);
 
+  /// Attesa massima della registrazione in volo prima della rimozione: lascia alla
+  /// mutation di rimozione il resto del budget di logout di `AuthCubit` (2 s).
+  static const Duration registrationDrainTimeout = Duration(seconds: 1);
+
   final Stream<AuthState> _authStates;
   final PushMessagingPort _messaging;
   final PushDeviceRepository _repository;
@@ -49,6 +53,10 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
 
   /// Ogni nuova registrazione, sospensione o fine sessione invalida i retry precedenti.
   int _generation = 0;
+
+  /// Tentativo di registrazione sul filo: la rimozione lo attende (WR-01), altrimenti
+  /// una `register` lenta potrebbe ricreare la riga dopo l'`unregister`.
+  Future<void>? _attemptInFlight;
   StreamSubscription<AuthState>? _authSubscription;
   StreamSubscription<String>? _tokenSubscription;
 
@@ -82,9 +90,8 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     final generation = ++_generation;
     unawaited(
       silentRetry<void>(
-        () => _registerOnce(token),
-        isCancelled: () =>
-            generation != _generation || _suspended || _sessionUserId == null,
+        () => _trackAttempt(_registerOnce(token, generation)),
+        isCancelled: () => _isCancelled(generation),
         shouldRetry: _isTransient,
         onGiveUp: (error) =>
             debugPrint('Push registration stopped (${_describe(error)})'),
@@ -94,26 +101,50 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     );
   }
 
+  bool _isCancelled(int generation) =>
+      generation != _generation || _suspended || _sessionUserId == null;
+
+  Future<void> _trackAttempt(Future<void> attempt) {
+    _attemptInFlight = attempt;
+    return attempt.whenComplete(() {
+      if (identical(_attemptInFlight, attempt)) _attemptInFlight = null;
+    });
+  }
+
   /// Senza token (ancora) disponibile non si registra: arriverà con `tokenRefreshes`.
-  Future<void> _registerOnce(String? refreshedToken) async {
+  /// Un token arrivato dopo una sospensione non parte più verso il backend.
+  Future<void> _registerOnce(String? refreshedToken, int generation) async {
     final deviceId = await _deviceIdentity.readOrCreate();
     final token = refreshedToken ?? await _messaging.token();
     if (token == null) return;
     _hasSeenToken = true;
+    if (_isCancelled(generation)) return;
     await _repository.register(deviceId: deviceId, token: token);
   }
 
-  /// D-08: sospende la registrazione prima di rimuovere il device, così nessun refresh o
-  /// retry può ri-registrarlo tra questa chiamata e il logout del backend (Pitfall 5).
+  /// D-08: sospende la registrazione e attende quella in volo prima di rimuovere il
+  /// device, così nessun refresh, retry o richiesta lenta può ri-registrarlo tra questa
+  /// chiamata e il logout del backend (Pitfall 5).
   @override
   Future<void> unregister() async {
-    if (_sessionUserId == null || !_hasSeenToken) return;
+    if (_sessionUserId == null) return;
     _suspended = true;
     _generation++;
+    await _drainAttemptInFlight();
+    if (!_hasSeenToken) return;
     await _guarded('unregister', () async {
       final deviceId = await _deviceIdentity.readOrCreate();
       await _repository.unregister(deviceId);
     });
+  }
+
+  Future<void> _drainAttemptInFlight() async {
+    final attempt = _attemptInFlight;
+    if (attempt == null) return;
+    await _guarded(
+      'registration drain',
+      () => attempt.timeout(registrationDrainTimeout),
+    );
   }
 
   Future<void> _endSession() async {

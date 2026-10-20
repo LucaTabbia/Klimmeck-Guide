@@ -6,6 +6,9 @@ import 'package:klimmeck_guide/repository/services/push/push_messaging_port.dart
 class FakePushMessagingPort implements PushMessagingPort {
   String? currentToken = 'token-1';
   Object? tokenFailure;
+
+  /// Se impostato, `token()` resta in attesa finché il test non lo completa.
+  Completer<String?>? pendingToken;
   int tokenCalls = 0;
   final StreamController<String> refreshes =
       StreamController<String>.broadcast();
@@ -17,6 +20,8 @@ class FakePushMessagingPort implements PushMessagingPort {
     tokenCalls++;
     final failure = tokenFailure;
     if (failure != null) throw failure;
+    final pending = pendingToken;
+    if (pending != null) return pending.future;
     return currentToken;
   }
 

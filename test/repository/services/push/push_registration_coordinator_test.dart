@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/push_device_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/push/push_registration_coordinator.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/auth_fixtures.dart';
@@ -59,6 +60,15 @@ class _Harness {
         token: any(named: 'token'),
       ),
     ).thenAnswer((_) async => throw PushDeviceException(failure));
+  }
+
+  void holdRegistration(Completer<void> registration) {
+    when(
+      () => repository.register(
+        deviceId: any(named: 'deviceId'),
+        token: any(named: 'token'),
+      ),
+    ).thenAnswer((_) => registration.future);
   }
 
   void emit(FakeAsync async, AuthState state) {
@@ -265,6 +275,65 @@ void main() {
 
         harness.verifyNoRegistration();
         verify(() => harness.repository.unregister('device-1')).called(1);
+      });
+    });
+
+    test('waits for the registration in flight before removing', () {
+      fakeAsync((async) {
+        final harness = _Harness();
+        final registration = Completer<void>();
+        harness.holdRegistration(registration);
+        harness.emit(async, _authenticated('u-1'));
+        var completed = false;
+        harness.coordinator.unregister().then((_) => completed = true);
+        async.flushMicrotasks();
+
+        verifyNever(() => harness.repository.unregister(any()));
+
+        registration.complete();
+        async.flushMicrotasks();
+
+        verifyInOrder([
+          () => harness.repository.register(
+            deviceId: 'device-1',
+            token: 'token-1',
+          ),
+          () => harness.repository.unregister('device-1'),
+        ]);
+        expect(completed, isTrue);
+      });
+    });
+
+    test('a stuck registration delays the removal within the budget', () {
+      fakeAsync((async) {
+        final harness = _Harness()..holdRegistration(Completer<void>());
+        harness.emit(async, _authenticated('u-1'));
+        var completed = false;
+        harness.coordinator.unregister().then((_) => completed = true);
+        async.elapse(PushRegistrationCoordinator.registrationDrainTimeout);
+
+        verify(() => harness.repository.unregister('device-1')).called(1);
+        expect(completed, isTrue);
+        expect(
+          PushRegistrationCoordinator.registrationDrainTimeout,
+          lessThan(AuthCubit.pushUnregisterTimeout),
+        );
+      });
+    });
+
+    test('a token arriving after the suspension is not registered', () {
+      fakeAsync((async) {
+        final harness = _Harness();
+        final token = Completer<String?>();
+        harness.messaging.pendingToken = token;
+        harness.emit(async, _authenticated('u-1'));
+        harness.coordinator.unregister();
+        async.flushMicrotasks();
+
+        token.complete('token-1');
+        async.elapse(PushRegistrationCoordinator.registrationDrainTimeout);
+
+        harness.verifyNoRegistration();
       });
     });
 
