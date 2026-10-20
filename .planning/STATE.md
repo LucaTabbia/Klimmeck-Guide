@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 last_updated: "2026-10-20T20:30:00Z"
-last_activity: 2026-10-20 -- Phase 5 complete (UAT approved, review fixed, verification passed); FE PR to develop pending
+last_activity: 2026-10-20 -- Phase 5 complete; FE PR #29 opened to develop
 progress:
   total_phases: 12
   completed_phases: 6
@@ -19,9 +19,9 @@ progress:
 
 Phase: 5 (notifications-infrastructure) — COMPLETE 2026-10-20 (9/9 plans; device UAT approved; code review 0 critical / 3 warnings fixed; verification passed 5/5; security audit filed)
 Plan: 9 of 9
-Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR to develop pending; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
+Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR #29 to develop opened 2026-10-20; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 06 (quest-accept-info-sheets) — blocked by BE Phase 7 (QUEST-04: `activeStoryQuest`/`activeWorldMissionQuest` on schema + subscription); discuss can start meanwhile. BE Phase 6 (EventSub) is at its human-verify checkpoint (Twitch CLI UAT pending).
-Status: Phase 5 complete — PR to develop pending
+Status: Phase 5 complete — PR #29 open, awaiting review/merge
 Last activity: 2026-10-20 -- Phase 5 closed: ROADMAP/STATE/PROJECT updated; stale blockers (Twitch keys, logout entry point, character deletion) resolved; new BE/ops item: FCM topic subscription needs `roles/firebasecloudmessaging.admin` on the service account
 
 ## Current Milestone
