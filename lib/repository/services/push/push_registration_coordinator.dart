@@ -65,15 +65,23 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
   /// Tentativo di registrazione sul filo: la rimozione lo attende (WR-01), altrimenti
   /// una `register` lenta potrebbe ricreare la riga dopo l'`unregister`.
   Future<void>? _attemptInFlight;
+
+  /// Gli stati auth si gestiscono uno alla volta (WR-03): un `Unauthenticated` arrivato
+  /// durante la scrittura dell'utente attivo lo cancella sempre dopo di essa.
+  Future<void> _authQueue = Future<void>.value();
   StreamSubscription<AuthState>? _authSubscription;
   StreamSubscription<String>? _tokenSubscription;
   StreamSubscription<void>? _foregroundSubscription;
 
   void start() {
     if (_authSubscription != null) return;
-    _authSubscription = _authStates.listen(_onAuthState);
+    _authSubscription = _authStates.listen(_enqueueAuthState);
     _tokenSubscription = _messaging.tokenRefreshes.listen(_onTokenRefresh);
     _foregroundSubscription = _foregrounds.listen(_onForeground);
+  }
+
+  void _enqueueAuthState(AuthState state) {
+    _authQueue = _authQueue.then((_) => _onAuthState(state));
   }
 
   Future<void> _onAuthState(AuthState state) async {

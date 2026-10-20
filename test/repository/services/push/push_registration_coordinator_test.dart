@@ -483,6 +483,22 @@ void main() {
       });
     });
 
+    test('an end arriving during the active user write clears it', () {
+      fakeAsync((async) {
+        final harness = _Harness();
+        final write = Completer<void>();
+        harness.activeUser.pendingWrite = write;
+        harness.emit(async, _authenticated('u-1'));
+        harness.emit(async, const AuthUnauthenticated());
+
+        write.complete();
+        async.flushMicrotasks();
+
+        expect(harness.activeUser.userId, isNull);
+        expect(harness.activeUser.clears, 1);
+      });
+    });
+
     test('at cold start clears the mirror but leaves the tray alone', () {
       fakeAsync((async) {
         final harness = _Harness();
