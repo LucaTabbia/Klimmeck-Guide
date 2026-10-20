@@ -154,6 +154,26 @@ void main() {
     });
   });
 
+  test('drops any streamerLive within fifteen minutes of the shown one', () {
+    withCubit((async, cubit, events) {
+      final laterLive = PushEvent(
+        category: NotificationCategory.streamerLive,
+        title: 'Lo streamer è in live',
+        body: 'Unisciti alla diretta.',
+        sentAt: DateTime.utc(2026, 10, 18, 12, 7),
+      );
+      cubit.publish(streamerLive);
+      async.elapse(const Duration(minutes: 7));
+
+      cubit.publish(laterLive);
+      expect(cubit.state.current, isNull);
+
+      async.elapse(const Duration(minutes: 8));
+      cubit.publish(laterLive);
+      expect(cubit.state.current, laterLive);
+    });
+  });
+
   test('shows events of the same type with different ids', () {
     withCubit((async, cubit, events) {
       cubit

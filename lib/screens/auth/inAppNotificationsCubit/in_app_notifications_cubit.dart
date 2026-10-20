@@ -31,7 +31,9 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
   static const Duration defaultDisplayDuration = Duration(seconds: 5);
   static const Duration personalDedupWindow = Duration(minutes: 2);
 
-  /// Pari al TTL del broadcast `streamerLive` lato backend (15 min).
+  /// Pari al TTL del broadcast `streamerLive` lato backend (15 min). Vale per il
+  /// tipo, non per il minuto di `sentAt`: una go-live produce un solo banner anche
+  /// se push e subscription la consegnano con orari diversi.
   static const Duration streamerLiveDedupWindow = Duration(minutes: 15);
 
   final NotificationTapRouter _router;
@@ -48,8 +50,9 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
     if (isClosed) return;
     final now = _now();
     _expiresAt.removeWhere((_, expiry) => !now.isBefore(expiry));
-    if (_expiresAt.containsKey(event.dedupKey)) return;
-    _expiresAt[event.dedupKey] = now.add(_dedupWindowOf(event));
+    final key = _suppressionKeyOf(event);
+    if (_expiresAt.containsKey(key)) return;
+    _expiresAt[key] = now.add(_dedupWindowOf(event));
     _queue.add(event);
     if (state.current == null) _showNext();
   }
@@ -77,10 +80,14 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
     _dismissTimer = Timer(_displayDuration, _showNext);
   }
 
+  static bool _isStreamerLive(PushEvent event) =>
+      event.category == NotificationCategory.streamerLive;
+
+  static String _suppressionKeyOf(PushEvent event) =>
+      _isStreamerLive(event) ? event.category.wireType : event.dedupKey;
+
   static Duration _dedupWindowOf(PushEvent event) =>
-      event.category == NotificationCategory.streamerLive
-      ? streamerLiveDedupWindow
-      : personalDedupWindow;
+      _isStreamerLive(event) ? streamerLiveDedupWindow : personalDedupWindow;
 
   /// `isClosed` è vero appena la shell rilascia il cubit: la cancellazione
   /// della subscription parte prima ma è attesa dopo `super.close()`.
