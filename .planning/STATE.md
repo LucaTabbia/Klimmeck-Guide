@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-19T19:17:20Z"
-last_activity: 2026-10-19 -- 05-09 Task 1 done, device UAT checkpoint pending
+last_updated: "2026-10-20T17:30:00Z"
+last_activity: 2026-10-20 -- 05-09 complete, device UAT approved
 progress:
   total_phases: 12
   completed_phases: 5
   total_plans: 50
-  completed_plans: 49
-  percent: 98
+  completed_plans: 50
+  percent: 100
 ---
 
 # Project State
@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 5 (notifications-infrastructure) — EXECUTING
-Plan: 9 of 9 (05-09 at human-verify checkpoint)
+Plan: 9 of 9 (05-09 complete — UAT approved 2026-10-20)
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
 Status: Executing Phase 5
-Last activity: 2026-10-19 -- 05-09 Task 1 done (schema check 27 × OK against BE origin/develop 0828719; flutter test 986 green; analyzer 56 / 0 errors; Phase 5 files formatter-clean; 0 Co-Authored-By; builds A and C proved; 05-VALIDATION signed with wave_0_complete: true; BACKEND-NOTES.md and 05-HUMAN-UAT.md created) — waiting for the device UAT (Task 2, blocking human-verify)
+Last activity: 2026-10-20 -- 05-09 complete: device UAT approved (Samsung SM-S938B / Android 16, real Twitch login, BE `sendTestPush`): steps 1–10 pass (registration, no prompt, permission hint, foreground banner + dedup, background and killed tray, taps → Map tab / Twitch, toggles off → nothing, unregister before logout, no-JSON smoke, prune `pruned 1`); NOTIF-01..08 Complete; BE/ops finding recorded (service account lacks `cloudmessaging.topicSubscriptions.create` → `streamer-live` topic subscription fails; remedy `roles/firebasecloudmessaging.admin`) — next: phase close, `/gsd-verify-work 5`, FE PR to develop
 
 ## Current Milestone
 

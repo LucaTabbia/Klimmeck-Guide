@@ -77,15 +77,15 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 ### Notifications
 
-- [ ] **NOTIF-01**: The app registers with Firebase Cloud Messaging after login and syncs the FCM token to the backend (per-device)
-- [ ] **NOTIF-02**: The app requests notification permission in-context at the first travel confirmation (never at cold launch)
-- [ ] **NOTIF-03**: User receives a push notification when a travel completes (handled in all three app states: killed, background, foreground)
-- [ ] **NOTIF-04**: User receives a push notification when the streamer goes live
-- [ ] **NOTIF-05**: User receives a push notification when a quest they have accepted resolves (success, failure, death)
-- [ ] **NOTIF-06**: Tapping a notification always routes the app to the Map tab (regardless of notification type) and then surfaces the correct context popup for that event (travel-end, streamer-live, quest-end, death). No type-specific tab routing. Behavior is uniform across all three app states (killed, background, foreground).
+- [x] **NOTIF-01**: The app registers with Firebase Cloud Messaging after login and syncs the FCM token to the backend (per-device)
+- [x] **NOTIF-02**: The app requests notification permission in-context at the first travel confirmation (never at cold launch) _(Phase 5: gate + no cold-launch prompt; call site wired by Phase 7)_
+- [x] **NOTIF-03**: User receives a push notification when a travel completes (handled in all three app states: killed, background, foreground)
+- [x] **NOTIF-04**: User receives a push notification when the streamer goes live
+- [x] **NOTIF-05**: User receives a push notification when a quest they have accepted resolves (success, failure, death)
+- [x] **NOTIF-06**: Tapping a notification always routes the app to the Map tab (regardless of notification type) and then surfaces the correct context popup for that event (travel-end, streamer-live, quest-end, death). No type-specific tab routing. Behavior is uniform across all three app states (killed, background, foreground).
   - _Emendato il 2026-10-19 (Phase 5 discuss, decisione utente): il tap su `streamerLive` apre direttamente il canale Twitch (`https://www.twitch.tv/lordreavor`), senza passare dalla mappa né da un popup; i tipi personali (`travelEnd`, `questEnd`) vanno sulla Map tab e i loro popup di contesto arrivano con le Phase 7/9. Il comportamento resta uniforme nei tre app state e identico tra notifica di sistema e banner in-app. Phase 5 è solo Android: iOS è rinviato a una fase successiva._
-- [ ] **NOTIF-07**: In-foreground notifications render as in-app banners using the existing `KGNotification` model (title + description) with tap-to-navigate
-- [ ] **NOTIF-08**: When a single event would generate both an FCM push and an in-app banner simultaneously, only one is shown to the user (foreground suppresses duplicate push)
+- [x] **NOTIF-07**: In-foreground notifications render as in-app banners using the existing `KGNotification` model (title + description) with tap-to-navigate
+- [x] **NOTIF-08**: When a single event would generate both an FCM push and an in-app banner simultaneously, only one is shown to the user (foreground suppresses duplicate push)
 
 ### Quest Accept & Info
 
@@ -206,7 +206,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CHAR-06                     | Deferred (Phase 2 D-17 → Phase 12 / BE hardening) | Deferred |
 | SET-01 through SET-05       | Phase 4 | Complete |
 | SYNC-01 through SYNC-07     | Phase 3 | Complete (activeTravel/activeStoryQuest/activeWorldMissionQuest join the fragment in Phases 6/7, D-05; FE PR after the BE Phase 3 PR, D-04) |
-| NOTIF-01 through NOTIF-08   | TBD   | Pending |
+| NOTIF-01 through NOTIF-08   | Phase 5 | Complete (Android only; NOTIF-02 prompt call site in Phase 7; context popups in Phases 7/9) |
 | QUEST-01 through QUEST-07   | TBD   | Pending |
 | TRAVEL-01 through TRAVEL-04 | TBD   | Pending |
 | SPELL-01 through SPELL-07   | TBD   | Pending |

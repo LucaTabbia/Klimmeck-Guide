@@ -2,7 +2,7 @@
 
 - **Fase FE:** `05-notifications-infrastructure` (requisiti NOTIF-01..NOTIF-08; decisioni D-01..D-22 in `05-CONTEXT.md`, con D-01, D-10, D-12, D-15 riviste dopo `05-RESEARCH.md` §"Conflicts with CONTEXT")
 - **Data:** 2026-10-19
-- **Stato:** contratto BE Phase 5 (PR #8, `origin/develop` `0828719`) consumato dal FE; UAT Android: vedi §5
+- **Stato:** contratto BE Phase 5 (PR #8, `origin/develop` `0828719`) consumato dal FE; UAT Android: approvato il 2026-10-20, vedi §5
 - **Consumatori:** BE (chiusura del test Android di `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/05-HUMAN-UAT.md`), FE Phase 7 (prompt del permesso alla prima conferma di viaggio, popup `travelEnd`), FE Phase 9 (popup `questEnd`/morte, `combatResult`)
 - **Fonte BE:** `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/BACKEND-NOTES.md` (§1 contratto, §2 payload, §6 ricetta `sendTestPush`). **Lo schema vince su questo documento.**
 
@@ -86,4 +86,29 @@ Registrate in `05-CONTEXT.md` come revisioni di D-01, D-10, D-12, D-15. L'utente
 
 ## 5. Esito UAT Android
 
-UAT: vedi 05-HUMAN-UAT.md (in corso)
+UAT su device del 2026-10-20 (17:50–19:21): **approvato**, passi 1–10 pass (dettaglio in `05-HUMAN-UAT.md`). Device Samsung SM-S938B, Android 16 (API 36); BE locale su :3000 (branch `feat/06-eventsub-punti-canale-streamer-live`, con il codice push di Phase 5), progetto Firebase `klimmeck-guide-app`; login Twitch reale nell'app, `sendTestPush` chiamata tramite il dev bypass del BE con `targetUserId` dell'account reale (tipi personali) e senza target per `streamerLive` (topic).
+
+| Stato app | `travelEnd` | `questEnd` | `streamerLive` |
+|-----------|-------------|------------|----------------|
+| Foreground | banner pergamena, nessuna voce in tray; tap → Map tab | banner | banner; tap → Twitch `lordreavor` |
+| Background | notifica in tray (icona scudo, titolo/testo BE); tap → Map tab | notifica in tray; tap → Map tab | notifica in tray; tap → Twitch |
+| Killed (swipe da Recenti) | isolate in background avviato, notifica sul canale `klimmeck_events`; tap → cold start, sessione ripristinata, Map tab | notifica in tray; tap → Map tab | notifica in tray; tap → Twitch |
+
+- **Dedup foreground:** due `travelEnd` identici a 5 s di distanza → un solo banner.
+- **Toggle spenti (tutti e tre):** messaggi ricevuti dal device in foreground, background e killed, ma nulla mostrato (tray 0, nessun banner).
+- **Registrazione:** 1 riga in `push_devices` (`platform android`); dopo kill + rilancio stesso `deviceId`, `lastSeenAt` aggiornato.
+- **Logout:** dopo "Esci" righe `push_devices` 0, `sendTestPush` → `targeted 0`, nulla consegnato; dopo il nuovo login la riga torna con lo **stesso** `deviceId`.
+- **Prune:** app disinstallata → `sendTestPush` → `{ targeted 1, sent 0, pruned 1, failed 1 }`, righe `push_devices` 0.
+- **Permesso (C1):** la revoca dalle impostazioni di sistema è stata classificata `denied` e la riga di suggerimento è apparsa: il limite C1 **non** si è presentato su Samsung SM-S938B / Android 16. Resta il limite documentato in §2 per Android 7–12 e per altri OEM.
+- **Senza `google-services.json`:** l'app parte con `Push disabled: Firebase unavailable (PlatformException)`, gioco invariato.
+
+Chiude il test Android di `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/05-HUMAN-UAT.md` (passi 5–7 pass, più la voce di pruning Android).
+
+### 5.1 Action item per il BE / ops — iscrizione al topic negata dall'IAM
+
+Non è un difetto del FE di Phase 5. `firebase-admin` 14.5.0 implementa `subscribeToTopic` tramite l'endpoint FCM v1 `projects/*/registrations/*/topicSubscriptions`, che richiede il permesso IAM `cloudmessaging.topicSubscriptions.create`. Il service account `…@klimmeck-guide-app.iam.gserviceaccount.com` non lo ha: `registerPushDevice` logga `subscribeToTopic(streamer-live): 1 token failed (messaging/authentication-error)` (errore per token: `Permission 'cloudmessaging.topicSubscriptions.create' denied on resource '//googlecloudmessaging.googleapis.com/projects/klimmeck-guide-app/registrations/…'`) e i device non ricevono mai `streamerLive`. Nell'UAT i primi due invii `streamerLive` non sono arrivati per questo motivo; dopo l'iscrizione manuale del token con l'API legacy (`subscribeToTopicLegacy`, Instance ID API, disponibile fino al 2027-09-29) la consegna è riuscita in tutti gli stati.
+
+- **Rimedio (ops):** concedere al service account il ruolo **Firebase Cloud Messaging Admin** (`roles/firebasecloudmessaging.admin`) in Google Cloud IAM, poi ri-registrare i device (kill + rilancio dell'app).
+- **Hardening BE opzionale:** fallback alla chiamata legacy quando v1 risponde `authentication-error`.
+
+Osservazioni d'ambiente (non dell'app): un conflitto sulla porta 3000 con un dev server locale non correlato ha ritardato il primo login Twitch; riga di log preesistente `CachedSvg: failed to load Invalid argument(s): No host specified in URI` (URL di un asset senza host, fuori scope Phase 5).

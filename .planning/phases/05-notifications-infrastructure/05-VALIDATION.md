@@ -61,7 +61,7 @@ created: 2026-10-19
 | 5-08-02 | 08 | 7 | NOTIF-07 | T-05-08-05 | no SnackBar/MaterialBanner/Scaffold; ≥ 44 px; semantics | widget | `flutter test test/shared/components/kg_notification_banner_test.dart` | ✅ | ✅ green |
 | 5-08-03 | 08 | 7 | NOTIF-07, NOTIF-08 | T-05-08-03 | banner in shell only; widget tap only calls `InAppNotificationsCubit.open(event)` (UI → Cubit → Service) | widget | `flutter test test/screens/auth/authenticated_shell_test.dart` | ✅ (extended) | ✅ green |
 | 5-09-01 | 09 | 8 | NOTIF-01..08 (D-21) | T-05-09-01, T-05-09-02 | 27 documents validate against BE develop; gates green; builds with/without JSON | scripted gate | `flutter test` + `tool/schema_check` (dump + `validate_documents.js` against `origin/develop:src/schema.gql`) + scratch builds A/C | ✅ tooling | ✅ green |
-| 5-09-02 | 09 | 8 | NOTIF-01..08 | T-05-09-03, T-05-09-04, T-05-09-05 | device UAT 3 states × 3 types; unregister before logout; no cold-launch prompt | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/05-notifications-infrastructure/05-HUMAN-UAT.md` | ✅ (created by 5-09-01) | ⬜ |
+| 5-09-02 | 09 | 8 | NOTIF-01..08 | T-05-09-03, T-05-09-04, T-05-09-05 | device UAT 3 states × 3 types; unregister before logout; no cold-launch prompt | manual (checkpoint) | `grep -c "result: \(pass\|fail\|skipped\)" .planning/phases/05-notifications-infrastructure/05-HUMAN-UAT.md` | ✅ (created by 5-09-01) | ✅ green |
 
 *Status legend: ⬜ = not run yet · ✅ green · ❌ red · ⚠️ flaky. Each row's Status cell becomes `✅ green` when its command passes (plan 09 Task 1 sets the automated rows; Task 2 sets 5-09-02).*
 
@@ -102,4 +102,4 @@ created: 2026-10-19
 - [x] Feedback latency < 10s per task (builds excluded)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-10-19 (plan-time) — execution sign-off 2026-10-19 in plan 05-09 Task 1: schema check 27 × OK against BE `origin/develop` `0828719`, `flutter test` 986 passed, `flutter analyze` 56 issues / 0 errors (none in Phase 5 files), 86 Phase 5 Dart files formatter-clean, 0 `Co-Authored-By` trailers, builds A (`google_app_id` = 1) and C (exit 0, `google_app_id` = 0, WARN proved via `processDebugGoogleServices`) green. Row 5-09-02 is set by the device UAT (Task 2).
+**Approval:** approved 2026-10-19 (plan-time) — execution sign-off 2026-10-19 in plan 05-09 Task 1: schema check 27 × OK against BE `origin/develop` `0828719`, `flutter test` 986 passed, `flutter analyze` 56 issues / 0 errors (none in Phase 5 files), 86 Phase 5 Dart files formatter-clean, 0 `Co-Authored-By` trailers, builds A (`google_app_id` = 1) and C (exit 0, `google_app_id` = 0, WARN proved via `processDebugGoogleServices`) green. Row 5-09-02 green after the device UAT approved on 2026-10-20 (Task 2: steps 1–10 pass on Samsung SM-S938B / Android 16, see `05-HUMAN-UAT.md`).
