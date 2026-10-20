@@ -207,6 +207,39 @@ void main() {
     });
   });
 
+  test('publish after close starts no timer', () {
+    fakeAsync((async) {
+      final cubit = InAppNotificationsCubit(
+        events: const Stream<PushEvent>.empty(),
+        router: NotificationTapRouter(intents: sink, links: links),
+      );
+      cubit.close();
+      async.flushMicrotasks();
+
+      cubit.publish(travelA);
+
+      expect(async.pendingTimers, isEmpty);
+    });
+  });
+
+  test('dismiss after close starts no timer', () {
+    fakeAsync((async) {
+      final cubit = InAppNotificationsCubit(
+        events: const Stream<PushEvent>.empty(),
+        router: NotificationTapRouter(intents: sink, links: links),
+      );
+      cubit
+        ..publish(travelA)
+        ..publish(questA)
+        ..close();
+      async.flushMicrotasks();
+
+      cubit.dismiss();
+
+      expect(async.pendingTimers, isEmpty);
+    });
+  });
+
   test('open on a personal event lands on the map and shows the next', () {
     withCubit((async, cubit, events) {
       cubit

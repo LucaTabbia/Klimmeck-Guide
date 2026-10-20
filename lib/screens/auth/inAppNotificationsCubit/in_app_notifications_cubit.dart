@@ -42,7 +42,10 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
   late final StreamSubscription<PushEvent> _subscription;
   Timer? _dismissTimer;
 
+  /// Dopo `close()` non fa nulla: i produttori futuri (Phase 7/9) possono
+  /// ancora chiamarlo, ma senza far crescere la coda né armare timer.
   void publish(PushEvent event) {
+    if (isClosed) return;
     final now = _now();
     _expiresAt.removeWhere((_, expiry) => !now.isBefore(expiry));
     if (_expiresAt.containsKey(event.dedupKey)) return;
@@ -65,6 +68,7 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
 
   void _showNext() {
     _dismissTimer?.cancel();
+    if (isClosed) return;
     if (_queue.isEmpty) {
       emit(const InAppNotificationsState());
       return;
