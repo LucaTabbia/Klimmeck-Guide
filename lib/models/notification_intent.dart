@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
+import 'package:klimmeck_guide/utils/backend_identifier.dart';
 
 /// Tap su una notifica (sistema o banner), uniforme nei tre stati dell'app
 /// (D-15). Viaggia come payload JSON della notifica locale costruita dal FE.
@@ -37,7 +38,7 @@ class NotificationIntent extends Equatable {
     if (category == null || sentAt == null) return null;
     return NotificationIntent(
       category: category,
-      id: validEventId(decoded['id']),
+      id: validBackendIdentifier(decoded['id']),
       sentAt: sentAt,
     );
   }
@@ -45,13 +46,6 @@ class NotificationIntent extends Equatable {
   @override
   List<Object?> get props => [category, id, sentAt];
 }
-
-final RegExp _eventIdPattern = RegExp(r'^[A-Za-z0-9._-]{1,128}$');
-
-/// Id di evento ammesso (stesso alfabeto del deviceId del backend), altrimenti
-/// `null`.
-String? validEventId(Object? value) =>
-    value is String && _eventIdPattern.hasMatch(value) ? value : null;
 
 /// Istante ISO 8601 normalizzato in UTC, `null` se assente o illeggibile.
 DateTime? parseSentAt(Object? value) =>

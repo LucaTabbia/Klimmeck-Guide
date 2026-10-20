@@ -1,4 +1,4 @@
-import 'package:klimmeck_guide/models/notification_intent.dart';
+import 'package:klimmeck_guide/utils/backend_identifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,7 +38,7 @@ class SharedPreferencesDeviceIdentityStore implements DeviceIdentityStore {
   }
 
   Future<String> _readOrCreate() async {
-    final stored = validEventId(await _preferences.getString(key));
+    final stored = validBackendIdentifier(await _preferences.getString(key));
     if (stored != null) return stored;
     final created = _generateId();
     await _preferences.setString(key, created);

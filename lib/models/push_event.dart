@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
+import 'package:klimmeck_guide/utils/backend_identifier.dart';
 import 'package:klimmeck_guide/utils/stable_notification_id.dart';
 
 /// Messaggio data-only del backend già validato (BE Phase 5 §2). Il payload non
@@ -35,7 +36,7 @@ class PushEvent extends Equatable {
       title: title,
       body: body,
       sentAt: sentAt,
-      id: category.isPersonal ? validEventId(data['id']) : null,
+      id: category.isPersonal ? validBackendIdentifier(data['id']) : null,
     );
   }
 
