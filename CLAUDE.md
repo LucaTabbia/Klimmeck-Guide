@@ -8,7 +8,8 @@ App mobile **Flutter** che trasforma i punti canale Twitch in un RPG persistente
 
 - **Mobile:** Flutter (Dart), BLoC/Cubit (`flutter_bloc`), `equatable`
 - **Network:** `graphql_flutter` (query/mutation/subscription), `dio` (REST)
-- **Auth/Push:** Firebase Auth (OAuth Twitch), Firebase Messaging (FCM/APNs)
+- **Auth:** OAuth Twitch tramite il backend (browser + callback), token in `flutter_secure_storage`
+- **Push:** Firebase Core + Firebase Messaging (FCM, data-only), `flutter_local_notifications`, `permission_handler`, `url_launcher` (link Twitch dal tap)
 - **Mappa:** `flutter_map` + `latlong2`
 - **Storage:** `shared_preferences`, `flutter_cache_manager`
 - **Backend (non in questo repo):** NestJS + MongoDB
