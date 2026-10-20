@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-10-20T17:30:00Z"
-last_activity: 2026-10-20 -- 05-09 complete, device UAT approved
+status: completed
+last_updated: "2026-10-20T20:30:00Z"
+last_activity: 2026-10-20 -- Phase 5 complete (UAT approved, review fixed, verification passed); FE PR to develop pending
 progress:
   total_phases: 12
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 50
   completed_plans: 50
   percent: 100
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 5 (notifications-infrastructure) — EXECUTING
-Plan: 9 of 9 (05-09 complete — UAT approved 2026-10-20)
-Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 05 execution — plans 05-01..05-09 run one at a time; 05-09 ends with the device UAT checkpoint; then PR to develop (no BE lockstep: BE PR #8 already merged)
-Status: Executing Phase 5
-Last activity: 2026-10-20 -- 05-09 complete: device UAT approved (Samsung SM-S938B / Android 16, real Twitch login, BE `sendTestPush`): steps 1–10 pass (registration, no prompt, permission hint, foreground banner + dedup, background and killed tray, taps → Map tab / Twitch, toggles off → nothing, unregister before logout, no-JSON smoke, prune `pruned 1`); NOTIF-01..08 Complete; BE/ops finding recorded (service account lacks `cloudmessaging.topicSubscriptions.create` → `streamer-live` topic subscription fails; remedy `roles/firebasecloudmessaging.admin`) — next: phase close, `/gsd-verify-work 5`, FE PR to develop
+Phase: 5 (notifications-infrastructure) — COMPLETE 2026-10-20 (9/9 plans; device UAT approved; code review 0 critical / 3 warnings fixed; verification passed 5/5; security audit filed)
+Plan: 9 of 9
+Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR to develop pending; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
+Next Phase: 06 (quest-accept-info-sheets) — blocked by BE Phase 7 (QUEST-04: `activeStoryQuest`/`activeWorldMissionQuest` on schema + subscription); discuss can start meanwhile. BE Phase 6 (EventSub) is at its human-verify checkpoint (Twitch CLI UAT pending).
+Status: Phase 5 complete — PR to develop pending
+Last activity: 2026-10-20 -- Phase 5 closed: ROADMAP/STATE/PROJECT updated; stale blockers (Twitch keys, logout entry point, character deletion) resolved; new BE/ops item: FCM topic subscription needs `roles/firebasecloudmessaging.admin` on the service account
 
 ## Current Milestone
 
@@ -43,10 +43,11 @@ Last activity: 2026-10-20 -- 05-09 complete: device UAT approved (Samsung SM-S93
 - ~~Scelta libreria push notification Flutter (firebase_messaging è standard)~~ — risolta nel discuss di Phase 5 (2026-10-19): `firebase_core` + `firebase_messaging` + `flutter_local_notifications` già in pubspec; `firebase_auth` rimosso; iOS rinviato.
 - ~~Scelta client GraphQL subscription~~ — risolta in Phase 3 discuss (2026-10-14): resta `graphql_flutter` 5.2.1 (WebSocketLink + WsReconnectPolicy di Phase 11)
 - ~~Flusso OAuth Twitch: webview in-app vs deep link / universal link~~ — **risolto in Phase 11:** login mediato dal backend via browser di sistema + deep link `klimmeck://auth` (Twitch non supporta PKCE né redirect con custom scheme; l'app non possiede chiavi Twitch).
-- **Chiavi Twitch non ancora disponibili:** il login reale su device non è mai stato esercitato (UAT pendenti in `phases/11-auth-session-bootstrap/11-HUMAN-UAT.md`). Fino ad allora si lavora con il dev bypass (`DEV_AUTH_ENABLED=true`; `DEV_AUTH_START_SIGNED_OUT=true` per vedere il sign-in).
+- ~~Chiavi Twitch non ancora disponibili~~ — **risolto:** chiavi presenti nel `.env` del BE; il login Twitch reale su device (browser di sistema + deep link `klimmeck://auth`) è stato esercitato con successo il 2026-10-20 nella UAT di Phase 5. Il dev bypass resta disponibile per i test (`DEV_AUTH_ENABLED=true`).
 - **Backend:** dalla sua Phase 2 richiede un'identità su ogni chiamata; `DEV_AUTH_ACCESS_TOKEN` deve coincidere con quello del BE (≥ 16 caratteri). Contratto in `Klimmeck-Guide-BE/.planning/phases/02-auth-identity-foundation/BACKEND-NOTES.md`. Decisione BE D-26 (finestra di grazia del refresh) in attesa dell'utente.
-- **Entry point del logout:** arriva con Settings (Phase 4, in corso dal 2026-10-15); `confirmLogout` esiste ed è testato ma non è ancora raggiungibile dal gioco.
-- **Cancellazione personaggio (SET-05):** contratto `deleteCharacter: User!` proposto in `phases/04-settings-screen/BACKEND-NOTES.md` e fissato nel CONTEXT della fase BE 03.1; il FE sviluppa con fake finché la PR BE non è merge-ata.
+- ~~Entry point del logout~~ — **risolto in Phase 4** (Settings → Esci; PR #28). Dalla Phase 5 `AuthCubit.logout()` fa prima `unregisterPushDevice` (tetto 2 s) e poi il logout del servizio.
+- ~~Cancellazione personaggio (SET-05)~~ — **risolto:** `deleteCharacter` consegnato dal BE (Phase 03.1, BE PR #6) e consumato dalla Phase 4 FE (PR #28).
+- **BE/ops — topic FCM `streamer-live`:** `firebase-admin` 14.5 iscrive ai topic con l'API FCM v1, che richiede il permesso IAM `cloudmessaging.topicSubscriptions.create`; il service account del progetto non lo ha e `registerPushDevice` logga `subscribeToTopic(streamer-live) … messaging/authentication-error`. Rimedio: ruolo `roles/firebasecloudmessaging.admin` al service account (o fallback legacy nel BE). Dettagli in `phases/05-notifications-infrastructure/BACKEND-NOTES.md` §5.1.
 - **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - **QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.
