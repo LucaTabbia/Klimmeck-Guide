@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/repository/character_deletion_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
@@ -290,6 +291,63 @@ void main() {
       await outlastBanner(tester);
 
       expect(find.byType(KgNotificationBanner), findsNothing);
+    });
+
+    group('domain notices', () {
+      const notice = KGNotification(
+        title: 'Missione non accettata',
+        description: 'Non ci sono più posti per il tuo rango',
+      );
+
+      Future<InAppNotificationsCubit> pumpWithCubit(WidgetTester tester) async {
+        late InAppNotificationsCubit cubit;
+        await pumpShell(
+          tester,
+          state: const SplashData(),
+          mainScreenBuilder: (context, characterId) {
+            cubit = context.read<InAppNotificationsCubit>();
+            return Text('main $characterId');
+          },
+        );
+        await tester.pump();
+        return cubit;
+      }
+
+      testWidgets('shows a notice over the game', (tester) async {
+        final cubit = await pumpWithCubit(tester);
+
+        cubit.publishNotice(notice, dedupKey: 'k');
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text(notice.description), findsOneWidget);
+        expect(find.text('main $testCharacterId'), findsOneWidget);
+      });
+
+      testWidgets('tapping a notice only hides it', (tester) async {
+        final cubit = await pumpWithCubit(tester);
+        cubit.publishNotice(notice, dedupKey: 'k');
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(find.byType(KgNotificationBanner));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(KgNotificationBanner), findsNothing);
+        expect(sink.offered, isEmpty);
+        expect(links.opened, isEmpty);
+      });
+
+      testWidgets('hides a notice after the display duration', (tester) async {
+        final cubit = await pumpWithCubit(tester);
+        cubit.publishNotice(notice, dedupKey: 'k');
+        await tester.pump();
+
+        await outlastBanner(tester);
+
+        expect(find.byType(KgNotificationBanner), findsNothing);
+      });
     });
 
     testWidgets('shows nothing when the user disabled the category', (
