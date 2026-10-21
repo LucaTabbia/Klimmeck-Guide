@@ -13,10 +13,16 @@ class QuestInitial extends QuestState {
 class QuestLoaded extends QuestState {
   final List<Quest> quests;
 
-  const QuestLoaded(this.quests);
+  /// Città dei POI in [cityPointIds].
+  final String? cityId;
+
+  /// POI della città corrente (GetCity); null = non noti.
+  final Set<String>? cityPointIds;
+
+  const QuestLoaded(this.quests, {this.cityId, this.cityPointIds});
 
   @override
-  List<Object> get props => [quests];
+  List<Object?> get props => [quests, cityId, cityPointIds];
 }
 
 class QuestLoading extends QuestState {

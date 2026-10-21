@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
+import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
@@ -102,7 +103,9 @@ class AuthenticatedShell extends StatelessWidget {
             userRefresh: context.read<UserRefreshRequests>(),
           ),
         ),
-        BlocProvider<QuestCubit>(create: (_) => QuestCubit(graphQl)),
+        BlocProvider<QuestCubit>(
+          create: (_) => QuestCubit(QuestBoardRepository(graphQl: graphQl)),
+        ),
         BlocProvider<TransactionCubit>(
           create: (_) => TransactionCubit(graphQl),
         ),
