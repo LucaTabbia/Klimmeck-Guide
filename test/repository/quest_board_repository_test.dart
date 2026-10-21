@@ -23,7 +23,9 @@ void main() {
   });
 
   test('getQuests rethrows the service error', () async {
-    when(() => graphQl.getQuests()).thenThrow(Exception('boom'));
+    when(
+      () => graphQl.getQuests(),
+    ).thenAnswer((_) async => throw Exception('boom'));
 
     await expectLater(repository.getQuests(), throwsA(isA<Exception>()));
   });
