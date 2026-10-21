@@ -23,7 +23,11 @@ void main() {
     SvgCache().add(url, svg);
   });
 
-  Future<List<int>> pumpItem(WidgetTester tester, SatchelEntry entry) async {
+  Future<List<int>> pumpItem(
+    WidgetTester tester,
+    SatchelEntry entry, {
+    bool isEnabled = true,
+  }) async {
     useLandscapePhone(tester);
     final controller = AnimationController(vsync: const TestVSync())
       ..value = 1.0;
@@ -43,6 +47,7 @@ void main() {
                 imagePath: url,
                 end: SatchelLayout.flightEnd(entry, screen, itemSize),
                 onTap: taps.add,
+                isEnabled: isEnabled,
               ),
             ],
           ),
@@ -73,5 +78,34 @@ void main() {
 
     expect(taps, [0]);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a disabled item ignores taps and dims its icon', (tester) async {
+    final entry = SatchelLayout.entries[4];
+    final taps = await pumpItem(tester, entry, isEnabled: false);
+
+    await tester.tapAt(SatchelLayout.centerOf(entry, screen));
+
+    expect(taps, isEmpty);
+    final opacity = tester.widget<Opacity>(
+      find.descendant(
+        of: find.byType(MenuItem),
+        matching: find.byType(Opacity),
+      ),
+    );
+    expect(opacity.opacity, lessThan(1));
+  });
+
+  testWidgets('an enabled item keeps full opacity', (tester) async {
+    final entry = SatchelLayout.entries[4];
+    await pumpItem(tester, entry);
+
+    final opacity = tester.widget<Opacity>(
+      find.descendant(
+        of: find.byType(MenuItem),
+        matching: find.byType(Opacity),
+      ),
+    );
+    expect(opacity.opacity, 1);
   });
 }

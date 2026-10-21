@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../helpers/landscape.dart';
 import '../../../helpers/test_app.dart';
@@ -51,5 +52,42 @@ void main() {
       items[6].end,
       SatchelLayout.flightEnd(SatchelLayout.entries[6], screen, 100),
     );
+  });
+
+  testWidgets('a disabled item does not report taps, the others do', (
+    tester,
+  ) async {
+    useLandscapePhone(tester);
+    final parent = AnimationController(vsync: const TestVSync());
+    addTearDown(parent.dispose);
+    final taps = <int>[];
+
+    await tester.pumpWidget(
+      buildTestApp(
+        home: SatchelMenu(
+          currentPage: 0,
+          onItemTap: taps.add,
+          parentAnimationController: parent,
+          disabledPages: const {4},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byType(CachedSvg).last);
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tapAt(
+      SatchelLayout.centerOf(SatchelLayout.entries[4], screen),
+    );
+    await tester.pump();
+    expect(taps, isEmpty);
+
+    await tester.tapAt(
+      SatchelLayout.centerOf(SatchelLayout.entries[5], screen),
+    );
+    await tester.pump();
+    expect(taps, [5]);
   });
 }
