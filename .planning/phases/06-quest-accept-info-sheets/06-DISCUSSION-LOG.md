@@ -188,6 +188,10 @@
 | Strappate per me | QUEST-04 emendato: story/worldMission attive restano in lista strappate | ✓ |
 | Nascoste (QUEST-04 com'è) | | |
 
+## Nota finale dell'utente
+
+"Per quanto riguarda la fase ui di FE: non è necessaria. Ogni cosa sviluppata da te è provvisoria e verrà rivista da me." → nessun `/gsd-ui-phase 6`; dettagli visivi a discrezione, provvisori.
+
 ## Claude's Discretion
 
 Haptic pattern e geometria dello strappo; posizione del foglio strappato sulla Mappa e centratura; come lo sheet blocca lo swipe; forma di Repository/Cubit; fallback della regola "strappata per gli altri" prima della merge BE 8; copy del banner per codice.
