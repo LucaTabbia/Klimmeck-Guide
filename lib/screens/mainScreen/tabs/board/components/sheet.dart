@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_capacity.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../models/quest/quest.dart';
@@ -73,9 +74,10 @@ class _SheetState extends State<Sheet> {
   void initState() {
     super.initState();
 
-    final isFull =
-        widget.quest.registeredAdventurers?.length ==
-        widget.quest.requirements?.requiredAdventurers;
+    final isFull = isFullForEveryone(
+      widget.quest.requirements?.requiredAdventurers ?? const [],
+      widget.quest.registeredAdventurers,
+    );
 
     if (widget.quest.infos?.type != null) {
       switch (widget.quest.infos!.type!) {
