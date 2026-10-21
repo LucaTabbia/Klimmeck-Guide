@@ -160,7 +160,10 @@ void main() {
       ),
     );
 
-    await tester.drag(paper, const Offset(0, -300));
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -300),
+    );
     await tester.pumpAndSettle();
 
     expect(controller.offset, greaterThan(0));
