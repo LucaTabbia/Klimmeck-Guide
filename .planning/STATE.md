@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-10-20T20:30:00Z"
-last_activity: 2026-10-20 -- Phase 5 complete; FE PR #29 opened to develop
+last_updated: "2026-10-21T18:04:50.481Z"
+last_activity: "2026-10-21 -- Phase 6 discuss: 4 areas (confirmation/cost/rollback, tear gesture + Map, sheet families, board/lanes/state label); QUEST-03/05/07 amended in CONTEXT; BE amendments folded into BE Phase 8 CONTEXT (D-26..D-29)"
 progress:
   total_phases: 12
   completed_phases: 6
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 5 (notifications-infrastructure) — COMPLETE 2026-10-20 (9/9 plans; device UAT approved; code review 0 critical / 3 warnings fixed; verification passed 5/5; security audit filed)
-Plan: 9 of 9
+Phase: 6 (quest-accept-info-sheets) — context gathered 2026-10-21 (CONTEXT + DISCUSSION-LOG on `feat/06-quest-accept-info-sheets`); Phase 5 closed, PR #29 merged to develop
+Plan: 0 of 0 (not planned yet — run /gsd-ui-phase 6, then /gsd-plan-phase 6)
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR #29 to develop opened 2026-10-20; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 06 (quest-accept-info-sheets) — blocked by BE Phase 7 (QUEST-04: `activeStoryQuest`/`activeWorldMissionQuest` on schema + subscription); discuss can start meanwhile. BE Phase 6 (EventSub) is at its human-verify checkpoint (Twitch CLI UAT pending).
-Status: Phase 5 complete — PR #29 open, awaiting review/merge
-Last activity: 2026-10-20 -- Phase 5 closed: ROADMAP/STATE/PROJECT updated; stale blockers (Twitch keys, logout entry point, character deletion) resolved; new BE/ops item: FCM topic subscription needs `roles/firebasecloudmessaging.admin` on the service account
+Next Phase: 06 (quest-accept-info-sheets) — UNBLOCKED: BE Phase 7 (QUEST-04) merged on BE develop with PR #10 on 2026-10-21. Next: /gsd-ui-phase 6, then /gsd-plan-phase 6. BE Phase 8 (Travel, `feat/08-travel-lifecycle-travel-01`) context captured the same day with Phase 7 amendments (PendingQuest.startDate nullable, registeredAdventurers { character title }, enemy/aid registration, story/worldMission acceptable from any city) — see Phase 6 CONTEXT D-16 for the lockstep.
+Status: Phase 6 context gathered — ready for UI phase + planning (/gsd-ui-phase 6, then /gsd-plan-phase 6)
+Last activity: 2026-10-21 -- Phase 6 discuss: 4 areas (confirmation/cost/rollback, tear gesture + Map, sheet families, board/lanes/state label); QUEST-03/05/07 amended in CONTEXT; BE amendments folded into BE Phase 8 CONTEXT (D-26..D-29)
 
 ## Current Milestone
 
