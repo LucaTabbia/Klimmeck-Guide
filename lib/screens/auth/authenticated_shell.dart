@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/push_event.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
@@ -203,6 +202,7 @@ class _ShellBodyState extends State<_ShellBody> {
 
 /// Banner in alto sopra il gioco (D-17); i dialog sul Navigator radice restano
 /// sopra (accettato). Il tap passa solo dal cubit (UI → Cubit → Service, D-19).
+/// Gli avvisi locali (Phase 6) usano lo stesso banner; il tap li chiude soltanto.
 class _InAppNotificationOverlay extends StatelessWidget {
   const _InAppNotificationOverlay();
 
@@ -219,7 +219,7 @@ class _InAppNotificationOverlay extends StatelessWidget {
           child: BlocBuilder<InAppNotificationsCubit, InAppNotificationsState>(
             builder: (context, state) => AnimatedSwitcher(
               duration: _transition,
-              child: _bannerFor(context, state.current),
+              child: _bannerFor(context, state),
             ),
           ),
         ),
@@ -227,12 +227,26 @@ class _InAppNotificationOverlay extends StatelessWidget {
     );
   }
 
-  static Widget _bannerFor(BuildContext context, PushEvent? event) {
-    if (event == null) return const SizedBox.shrink();
-    return KgNotificationBanner(
-      key: ValueKey(event.dedupKey),
-      notification: event.notification,
-      onTap: () => context.read<InAppNotificationsCubit>().open(event),
-    );
+  static Widget _bannerFor(
+    BuildContext context,
+    InAppNotificationsState state,
+  ) {
+    final event = state.current;
+    if (event != null) {
+      return KgNotificationBanner(
+        key: ValueKey(event.dedupKey),
+        notification: event.notification,
+        onTap: () => context.read<InAppNotificationsCubit>().open(event),
+      );
+    }
+    final notice = state.notice;
+    if (notice != null) {
+      return KgNotificationBanner(
+        key: ValueKey('notice|${notice.dedupKey}'),
+        notification: notice.notification,
+        onTap: () => context.read<InAppNotificationsCubit>().dismiss(),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
