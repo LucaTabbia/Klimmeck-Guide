@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:mocktail/mocktail.dart';
@@ -21,12 +23,22 @@ void main() {
   late MockNotificationPreferencesCubit notificationCubit;
   late MockCharacterDeletionCubit deletionCubit;
   late MockAuthCubit authCubit;
+  late MockNotificationPermissionCubit permissionCubit;
+
+  void givenPermission(NotificationPermissionStatus status) => whenListen(
+    permissionCubit,
+    const Stream<NotificationPermissionState>.empty(),
+    initialState: NotificationPermissionState(status: status),
+  );
 
   setUp(() {
     characterCubit = MockCharacterCubit();
     notificationCubit = MockNotificationPreferencesCubit();
     deletionCubit = MockCharacterDeletionCubit();
     authCubit = MockAuthCubit();
+    permissionCubit = MockNotificationPermissionCubit();
+    givenPermission(NotificationPermissionStatus.notDetermined);
+    when(() => permissionCubit.openSettings()).thenAnswer((_) async {});
     whenListen(
       notificationCubit,
       const Stream<NotificationPreferencesState>.empty(),
@@ -55,6 +67,9 @@ void main() {
               BlocProvider<CharacterCubit>.value(value: characterCubit),
               BlocProvider<NotificationPreferencesCubit>.value(
                 value: notificationCubit,
+              ),
+              BlocProvider<NotificationPermissionCubit>.value(
+                value: permissionCubit,
               ),
               BlocProvider<CharacterDeletionCubit>.value(value: deletionCubit),
               BlocProvider<AuthCubit>.value(value: authCubit),
@@ -99,6 +114,20 @@ void main() {
     expect(ordered, [...ordered]..sort());
     expect(find.text('Streamer in live'), findsOneWidget);
     expect(find.text('Fine quest'), findsOneWidget);
+  });
+
+  testWidgets('a denied system permission shows the hint in the tab', (
+    tester,
+  ) async {
+    givenPermission(NotificationPermissionStatus.denied);
+
+    await pumpSettings(tester, loadedAldo());
+
+    expect(
+      find.text('Le notifiche di sistema sono disattivate'),
+      findsOneWidget,
+    );
+    expect(find.text('Attiva'), findsOneWidget);
   });
 
   testWidgets('has no AppBar nor Scaffold, uses background and scroll', (

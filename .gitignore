@@ -150,3 +150,7 @@ app.*.map.json
 .env
 .env.local
 !.env.example
+
+# Firebase config files: provided locally, never committed (Phase 5 D-02)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

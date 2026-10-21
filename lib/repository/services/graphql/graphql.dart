@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
@@ -416,6 +417,33 @@ class KlimmeckGraphQl {
       await performMutation(query: CharacterMutations.deleteCharacter),
     );
     return _userFrom(data['deleteCharacter']);
+  }
+
+  /// Registra il device per il push (D-07): `platform` è un valore di `PushPlatform`.
+  /// Lancia [OperationException]; il Boolean restituito è sempre `true`.
+  Future<void> registerPushDevice({
+    required String deviceId,
+    required String token,
+    required String platform,
+  }) async {
+    _dataOrThrow(
+      await performMutation(
+        query: PushMutations.registerPushDevice,
+        variables: {
+          'input': {'deviceId': deviceId, 'token': token, 'platform': platform},
+        },
+      ),
+    );
+  }
+
+  /// Rimuove il device del chiamante (D-08, prima del logout). Lancia [OperationException].
+  Future<void> unregisterPushDevice(String deviceId) async {
+    _dataOrThrow(
+      await performMutation(
+        query: PushMutations.unregisterPushDevice,
+        variables: {'deviceId': deviceId},
+      ),
+    );
   }
 
   /// Utente corrente via il client autenticato (recovery di CHARACTER_ALREADY_EXISTS).

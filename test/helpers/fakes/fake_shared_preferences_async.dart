@@ -23,4 +23,22 @@ class FakeSharedPreferencesAsync extends Fake
     if (writeFailures.isNotEmpty) throw writeFailures.removeAt(0);
     values[key] = value;
   }
+
+  @override
+  Future<String?> getString(String key) async {
+    if (readFailures.isNotEmpty) throw readFailures.removeAt(0);
+    return values[key] as String?;
+  }
+
+  @override
+  Future<void> setString(String key, String value) async {
+    if (writeFailures.isNotEmpty) throw writeFailures.removeAt(0);
+    values[key] = value;
+  }
+
+  @override
+  Future<void> remove(String key) async {
+    if (writeFailures.isNotEmpty) throw writeFailures.removeAt(0);
+    values.remove(key);
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -76,11 +77,14 @@ class _MainScreenState extends State<MainScreen>
               body: Stack(
                 alignment: Alignment.topLeft,
                 children: [
-                  PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: pageController,
-                    onPageChanged: onPageChanged,
-                    children: _buildPages(state.cities),
+                  NotificationIntentLanding(
+                    pageController: pageController,
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: pageController,
+                      onPageChanged: onPageChanged,
+                      children: _buildPages(state.cities),
+                    ),
                   ),
                   MenuBackground(
                     selectedIndex: currentPage,

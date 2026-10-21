@@ -1,15 +1,25 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 
 /// Stato di sessione di processo (globale, sopra MaterialApp). Unico consumer di
 /// `authStateStream` per la UI; `AuthGate` costruisce l'albero da questo stato.
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._authTokenService) : super(const AuthBootstrapping());
+  AuthCubit(
+    this._authTokenService, {
+    PushSessionCleanup pushCleanup = const NoPushSessionCleanup(),
+  }) : _pushCleanup = pushCleanup,
+       super(const AuthBootstrapping());
+
+  /// Tetto all'attesa della rimozione del device push: il logout non si blocca mai (D-08).
+  static const Duration pushUnregisterTimeout = Duration(seconds: 2);
 
   final AuthTokenService _authTokenService;
+  final PushSessionCleanup _pushCleanup;
   StreamSubscription<AuthState>? _subscription;
 
   /// Avvia il bootstrap (D-33): sottoscrive lo stream e poi chiama `initialize()`,
@@ -39,7 +49,21 @@ class AuthCubit extends Cubit<AuthState> {
   /// se la sessione lo rifiuta (D-26): chi chiama deve sbloccare la scheda.
   bool adoptUser(User user) => _authTokenService.adoptUser(user);
 
-  Future<void> logout() => _authTokenService.logout();
+  /// D-08: prima la rimozione del device push (best-effort, al massimo 2 s), poi il logout
+  /// del backend, che richiede ancora il bearer. `confirmLogout` e "Esci" della creazione
+  /// passano tutti di qui.
+  Future<void> logout() async {
+    await _unregisterPushDevice();
+    await _authTokenService.logout();
+  }
+
+  Future<void> _unregisterPushDevice() async {
+    try {
+      await _pushCleanup.unregister().timeout(pushUnregisterTimeout);
+    } on Object catch (error) {
+      debugPrint('Push unregister skipped (${error.runtimeType})');
+    }
+  }
 
   @override
   Future<void> close() async {

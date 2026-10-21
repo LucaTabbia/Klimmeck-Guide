@@ -32,6 +32,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ UI equipaggiamento con SVG caching (CachedSvg) — existing
 - ✓ Menu zaino (SatchelMenu) con animazioni — existing
 - ✓ Schermata info equipaggiamento (EquipmentInfoSheetDisplay) — existing
+- ✓ Notifiche push FCM + banner in-app per fine viaggio, streamer live, fine quest (Android; iOS rinviata; prompt del permesso cablato dalla Phase 7) — Phase 5 (2026-10-20)
 - ✓ Architettura BLoC/Cubit con layer repository — existing
 - ✓ Comunicazione GraphQL (query, mutation, subscription) + REST — existing
 - ✓ Mappa con flutter_map e coordinate LatLng — existing
@@ -57,7 +58,6 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - [ ] Layout quest info sheets distinti per tipo (hunt, enemy, boss, dungeon, heal, aid, job, study, story, worldMission)
 - [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
 - [ ] UI conferma viaggio con ETA + costo
-- [ ] Notifiche Firebase (FCM/APNs) + in-app: fine viaggio, streamer live, fine quest
 - [ ] Sezione Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
 - [ ] UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite subite, premi, XP
 - [ ] Admin panel: lista pendingRequest story/worldMission
@@ -131,7 +131,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                                           | — Pending |
 | Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | ✓ Good — Phase 3 (2026-10-14) |
 | Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
-| Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | — Pending |
+| Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | ✓ Validated on Android by Phase 5 (2026-10-20): data-only FCM + local notifications; iOS/APNs deferred |
 | Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
 | Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme: l'app non può completare l'OAuth da sola. Il BE custodisce il secret ed emette access JWT + refresh token; l'app non vede mai un token Twitch | ✓ Good — Phase 11 (2026-10-06) |
 | Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/notification_permission_hint.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/settings_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Tre switch per categoria di notifica, inerti finché le preferenze non sono caricate.
+/// Tre switch per categoria di notifica, inerti finché le preferenze non sono caricate,
+/// e sotto la riga del permesso di sistema negato (Phase 5 D-10).
 class NotificationPreferencesSection extends StatelessWidget {
   const NotificationPreferencesSection({super.key});
 
@@ -33,6 +35,7 @@ class NotificationPreferencesSection extends StatelessWidget {
                         .toggle(category, enabled: value)
                   : null,
             ),
+          const NotificationPermissionHint(),
         ],
       ),
     );
