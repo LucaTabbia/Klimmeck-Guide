@@ -13,6 +13,12 @@ class QuestQueries {
           title
           type
         }
+        registeredAdventurers
+        requirements {
+          minTitle
+          requiredPoints
+          requiredAdventurers
+        }
         prizes {
           prizeCoins {
             ${CoinsFragment.fields}

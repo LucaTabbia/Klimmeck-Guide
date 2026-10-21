@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
@@ -156,7 +157,34 @@ class KlimmeckGraphQl {
       throw Exception('No quest found');
     }
 
-    return questsData.map((json) => Quest.fromJson(json)).toList();
+    final quests = <Quest>[];
+    for (final json in questsData) {
+      final quest = Quest.tryFromJson(json);
+      if (quest == null) {
+        debugPrint('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
+        continue;
+      }
+      quests.add(quest);
+    }
+    return quests;
+  }
+
+  /// Id dei POI della città (marker incluso). Lancia [OperationException] o
+  /// [FormatException].
+  Future<Set<String>> getCityPointIds(String cityId) async {
+    final data = _dataOrThrow(
+      await performQuery(CityQueries.getCity, variables: {'id': cityId}),
+    );
+    final city = data['city'];
+    if (city is! Map<String, dynamic>) {
+      throw const FormatException('city missing');
+    }
+    return Set.unmodifiable({
+      if (city['markerLocation'] case {'id': final String markerId}) markerId,
+      for (final poi
+          in (city['pointsOfInterest'] as List<dynamic>? ?? const []))
+        if (poi case {'id': final String poiId}) poiId,
+    });
   }
 
   Future<List<EquipmentItem>> getEquipmentItems(List<String> ids) async {

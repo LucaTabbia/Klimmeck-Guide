@@ -20,6 +20,7 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
+  'GetCity': CityQueries.getCity,
   'lootItems': LootItemQueries.getAllLootItems,
   'lootAssetsQuantity': LootItemQueries.getAllLootAssetsQuantity,
   'lootItemsByIds': LootItemQueries.getLootItemsByIds,

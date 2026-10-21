@@ -17,4 +17,19 @@ class CityQueries {
       }
     }
   ''';
+
+  /// POI della città corrente per il filtro della board (D-20 G2).
+  static const String getCity = r'''
+    query GetCity($id: String!) {
+      city(id: $id) {
+        id
+        markerLocation {
+          id
+        }
+        pointsOfInterest {
+          id
+        }
+      }
+    }
+  ''';
 }
