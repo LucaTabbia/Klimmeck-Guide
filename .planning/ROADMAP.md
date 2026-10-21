@@ -213,7 +213,7 @@ Plans:
   - [x] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
   - [x] 06-04-PLAN.md — Wave 1: in-app banner publishNotice for local domain notices (D-20 C1)
   - [x] 06-05-PLAN.md — Wave 1: TearablePaper (pure gesture model, jagged clipper, haptics, spring back, recompose)
-  - [ ] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
+  - [x] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
   - [ ] 06-07-PLAN.md — Wave 3: board data (GetCity, interim quest requirements, tolerant getQuests, silent refreshQuests)
   - [ ] 06-08-PLAN.md — Wave 3: satchel Board entry disabled outside a city marker
   - [ ] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
@@ -344,7 +344,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 5/12 | In Progress | - |
+| 6. Quest Accept & Info Sheets | 6/12 | In Progress | - |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
