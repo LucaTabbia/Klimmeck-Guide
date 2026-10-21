@@ -210,7 +210,7 @@ Plans:
 **Plans**: 12 plans
   - [x] 06-01-PLAN.md — Wave 1: REQUIREMENTS/ROADMAP amendments; rank slots, registrations with rank, D-32 capacity, tolerant quest parsing; three lanes in models + fragment; fixtures
   - [x] 06-02-PLAN.md — Wave 2: pure availability layer (lanes, classifier in BE order, board policy, cost line, state label, blocked reasons, title labels)
-  - [ ] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
+  - [x] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
   - [x] 06-04-PLAN.md — Wave 1: in-app banner publishNotice for local domain notices (D-20 C1)
   - [x] 06-05-PLAN.md — Wave 1: TearablePaper (pure gesture model, jagged clipper, haptics, spring back, recompose)
   - [ ] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
@@ -344,7 +344,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 4/12 | In Progress | - |
+| 6. Quest Accept & Info Sheets | 5/12 | In Progress | - |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
