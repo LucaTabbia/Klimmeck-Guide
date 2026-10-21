@@ -1,0 +1,137 @@
+# Phase 6: Quest Accept & Info Sheets - Context
+
+**Gathered:** 2026-10-21
+**Status:** Ready for planning (run `/gsd-ui-phase 6` first — UI hint: yes)
+
+<domain>
+## Phase Boundary
+
+Users view per-type quest details in the `QuestInfoSheet` above the board and accept a quest with the swipe-left "tear paper" gesture (haptic feedback); on success the app moves to the Map tab where a torn paper for the standard lane stays visible while the quest is active; `story`/`worldMission` quests leave the board as soon as their lane is populated and run in parallel with the standard `pendingQuest`; boss/enemy/aid quests already full show as torn for everyone; acceptance failures roll the optimistic tear back and surface a domain error. The backend contract is BE Phase 7 (`acceptQuest`, lanes, `serverTime`, merged on BE `develop` with PR #10) plus the BE Phase 8 amendments discussed the same day (see D-16).
+
+Amended in this discuss (recorded in REQUIREMENTS.md by the first plan): **QUEST-05** — no quest costs coins, only `story`/`worldMission` cost `requiredPoints` channel points; **QUEST-07** — no live countdown is shown, the torn paper shows a server-driven state label instead; **QUEST-03** — the swipe is the confirmation (no dialog, no undo), the torn paper on the Map is persistent.
+
+Out of scope: travel rendering, the travel countdown and the `serverTime` offset (FE Phase 7), disabling the board during travel (FE Phase 7), quest outcomes (completed/failed, auto-generated `aid` quests, death — Phase 9), swipe-accept from the Map overlay, `crime`/`guard` layouts.
+
+</domain>
+
+<decisions>
+## Implementation Decisions
+
+### Acceptance flow, cost and errors (QUEST-02, QUEST-03, QUEST-05, QUEST-06)
+- **D-01:** **The swipe is the confirmation.** No confirmation dialog for any type and **no undo window** (the backend has no cancel for quests or travel). The gesture is a custom `GestureDetector` with a drag threshold (ROADMAP decision, **not** `Dismissible`), swipe-left on the `QuestInfoSheet` **above the board only** — not on the board list and not on the sheet shown inside the Map (`quest_info_overlay.dart` stays read-only).
+- **D-02:** **Cost line only for `story`/`worldMission`:** `Punti canale: {twitchPoints} / {requiredPoints}` replaces the hard-coded `3000` in `quest_info_sheet.dart`, highlighted (red/ink emphasis) when the balance is insufficient; `twitchPoints` is the live value from `AuthAuthenticated.user` (`userUpdated`, Phase 3 D-18). **No coins cost for any type** (BE handoff §7): `recommendedLoot` is a display-only hint (D-10). The first plan amends QUEST-05 in `REQUIREMENTS.md`.
+- **D-03:** **Optimistic tear, navigation on success:** the tear animation starts with the gesture and the `AcceptQuest` mutation fires when the threshold is crossed; the app switches to the Map tab **only when the backend answers `successful: true`**. On rejection the two halves recompose on the sheet (spring back) and the error surfaces (D-04). The populated lane and the new balance arrive through `characterUpdated`/`userUpdated` — the mutation's `CommonResponse` is never used to build state.
+- **D-04:** **Errors in the in-app banner of Phase 5** (`InAppNotificationsCubit.publish` → `KGNotification(title, description)`, parchment strip, auto-dismiss ≈ 5 s, Phase 5 D-17/D-18): Italian domain copy chosen by **`extensions.code`** (BE handoff §2 table: `QUEST_SLOT_BUSY`, `QUEST_FULL`, `QUEST_ALREADY_TAKEN`, `QUEST_TITLE_MISMATCH`, `QUEST_NOT_IN_CITY`, `QUEST_NOT_ACCEPTABLE`, `INSUFFICIENT_POINTS`, `NOT_FOUND`, `FORBIDDEN`; BE Phase 8 adds `TRAVEL_IN_PROGRESS`), never by message text; network/unknown → a generic domain line. The Repository maps `OperationException` into a domain error with the code (`docs/rules/graphql.md`); the UI never sees exceptions. QUEST-06 names the "shop-flow pattern": the researcher documents what the shop does today; the banner is the chosen surface for this phase.
+- **D-05:** Mutation document `AcceptQuest($request: AcceptQuestRequest!) { acceptQuest(request: $request) { response successful } }` (naming per `docs/rules/naming.md`) in `lib/graphql/mutations/` (file at planner's choice), Repository → Cubit path (`docs/rules/architecture.md`); `request.id` = `currentCharacter.id`, `questId` = the board quest id.
+
+### Tear gesture and the Map (QUEST-02, QUEST-03)
+- **D-06:** **Tear = two halves that separate:** the existing parchment SVG (`CloudinaryAssets.emptySheet`) is clipped in two along a jagged edge and the halves move apart/rotate following the finger; **no new asset**, all in Flutter. Haptic feedback via `HapticFeedback` (flutter/services): one at the threshold and one at the tear (exact pattern at Claude's discretion). Drag threshold and direction tuned in the UI phase.
+- **D-07:** **Persistent torn paper on the Map:** after success the app switches to the Map tab and a torn paper for the **standard lane** stays visible (badge/overlay placement at Claude's discretion, decided in the UI phase) for as long as the quest is active; **tapping it re-opens the `QuestInfoSheet` read-only**. Centering the map on the quest marker is Claude's discretion (the character will start travelling there automatically — BE Phase 8 D-02 — rendered by FE Phase 7).
+- **D-08:** **`story` and `worldMission` never show a torn paper on the Map** and have no other "waiting for the GM" indicator in this phase: after acceptance they simply disappear from the board (QUEST-04).
+
+### Info sheet layouts (QUEST-01)
+- **D-09:** **Three layout families**, variants only where the content differs: **combat** (`hunt`, `enemy`, `boss`, `dungeon`): enemy image + name (+ grade when the model has it), required time, party for `boss`; **narrative** (`story`, `worldMission`): the text of the linked lore (`infos.relatedLore`) **readable inside the sheet, scrollable**, before cost (D-02) and party (`worldMission`); **service** (`heal`, `aid`, `job`, `study`): required time, rewards, recommended loot. `crime`/`guard` out of scope. The rewards block stays as today.
+- **D-10:** **Eligibility/state indicators on the sheet** (all four): **required title** (`requirements.minTitle`, highlighted when the character is not eligible — exact title for `story`, minimum for the others, `TitleType` order rookie < adventurer < paladin < mage < hero < legend); **slots per rank** (`requirements.party` `{ title, count }` with the registered count per rank from `registeredAdventurers { character title }`, D-14) for `worldMission`/`boss`/`enemy`/`aid`; **already done** for non-repeatable types (`story`, `worldMission`, `enemy`, `boss`, `aid`) present in `completedQuests` or with the character already registered; **recommended loot** (`requirements.recommendedLoot`) where present.
+
+### Board, lanes and the torn state (QUEST-04)
+- **D-11:** **Board content:** all quests of the city the character is in (quest `infos.markerLocation` ∈ `pointsOfInterest` of the city whose marker/POIs contain `status.location`) **plus `story`/`worldMission` from every city** (BE Phase 8 amendment D-26 — until it ships the backend still answers `QUEST_NOT_IN_CITY`). A `story`/`worldMission` quest is **hidden as soon as its lane is populated** (QUEST-04); non-repeatable quests already in `completedQuests` are hidden. Everything else stays visible: when the client can tell the quest is not acceptable (title, lane busy, full for the rank, torn) the sheet shows why and the swipe is blocked (the paper resists and springs back); **the backend remains the judge** (banner on rejection).
+- **D-12:** **"Torn for everyone":** `boss`, `enemy`, `aid` (and `worldMission`) show the **torn asset on the board** when they are full: `registeredAdventurers.length >= requirements.requiredAdventurers`, or, when `party` is defined, when the slots of **the player's own rank** are exhausted (registered with that `title` ≥ `party.count` for that title). A torn quest cannot be swiped. `hunt`, `dungeon`, `job`, `heal`, `study` are never torn (repeatable, several adventurers at once). This needs BE Phase 8 (D-27/D-28: enemy/aid registration, `registeredAdventurers` with rank): see D-16 for the lockstep.
+- **D-13:** **Disabling the board during travel** (satchel item disabled, darker cell) is **deferred to FE Phase 7** (needs `activeTravel`).
+- **D-14:** **Fragment and documents:** `CharacterFragment.questsFields` gains `pendingQuest`, `activeStoryQuest`, `activeWorldMissionQuest` each selecting `{ id startDate waitingTime pointsSpent quest { id } }` (fragment-only change, Phase 3 D-05; `completedQuests { id }` unchanged; `startDate` is parsed nullable already and **is null while travelling**, BE Phase 8 D-15). The quests query adds what the sheet/board need: `requirements { minTitle requiredPoints requiredAdventurers party { title count } recommendedLoot { … } }`, `registeredAdventurers { character title }`, `infos { relatedLore { … } enemy { … } }`. `Quest.fromJson` is fixed for `registeredAdventurers` (today it parses a `List<Character>` that never matched the wire) and `QuestRequirements` gains `party`.
+
+### State label on the torn paper (QUEST-07 amended)
+- **D-15:** **No countdown is shown.** The torn paper of the standard lane shows a **server-driven state label**: `startDate == null` → **"In viaggio"** (the character is travelling to the marker, BE Phase 8 D-15; the travel countdown arrives with FE Phase 7); `startDate` set → a **per-type label** — `enemy`/`boss` "In combattimento…", `hunt` "Cacciando…", `dungeon` "Esplorando…", `job` "Lavorando…", `heal` "Guarendo…", `aid` "Aiutando…", `study` "Studiando…" (copy adjustable in the UI phase) — kept until the outcome (Phase 9) empties the lane. QUEST-07 is amended accordingly by the first plan; **no `serverTime` query and no clock offset in this phase** (FE Phase 7).
+
+### Contract, lockstep, tests, tooling, branch
+- **D-16:** **Two backend sources.** (a) BE Phase 7 is **merged** on BE `develop` (PR #10, 2026-10-21): `acceptQuest`, the three lanes with `quest { id }`, `pointsSpent`, `party`, `serverTime` — usable now. (b) BE Phase 8 (`feat/08-travel-lifecycle-travel-01`, context captured 2026-10-21) adds: `PendingQuest.startDate` nullable, `registeredAdventurers` as `{ character, title }` objects replacing the id list, registration of `enemy`/`aid` with capacity (`QUEST_FULL`), `story`/`worldMission` acceptable from any city, automatic travel to the marker on acceptance, `TRAVEL_IN_PROGRESS`. The FE develops against the proposed contract with fakes/recorded `QueryResult`s (pattern of Phases 3/4/5); the plan that selects `registeredAdventurers { character title }` runs **after** the BE Phase 8 PR is merged on `develop` (or is the last plan), and the final plan verifies every document with `tool/schema_check` against `Klimmeck-Guide-BE/src/schema.gql` at `origin/develop` and runs the manual E2E (board, families, tear, torn-for-others, lanes, errors) with the UAT data of the BE handoff §8.
+- **D-17:** **TDD red → green → refactor** (`docs/rules/testing.md`): unit tests, Flutter-free where possible, for the acceptability classifier (city, lane, title, repeatable, torn/full per rank), the state-label mapping, the cost line, the error-code → copy mapping and the gesture threshold logic; widget tests for the three families, the tear and the blocked swipe; the final manual E2E on device against BE `develop`.
+- **D-18:** Tooling discipline unchanged: never `dart format` on directories (Phase 2 D-25); architecture/state-management/GraphQL rules in `docs/rules/`. Branch **`feat/06-quest-accept-info-sheets`** from `develop`, PR to `develop`; no lockstep wait for BE Phase 7 (merged); the BE Phase 8-dependent selections follow D-16.
+- **D-19:** **`/gsd-ui-phase 6` before planning** (UI hint: yes): the UI-SPEC covers the three sheet families, the cost line, the tear geometry and haptics, the torn board asset, the torn paper on the Map with its labels, and the banner copy.
+
+### Claude's Discretion
+- Haptic pattern, exact tear geometry and thresholds, spring-back animation.
+- Placement and size of the persistent torn paper on the Map, whether the map centers on the quest marker, how the read-only sheet opens from it.
+- How the sheet blocks the swipe and phrases the reason when the client can tell.
+- Repository/Cubit shape for acceptance (e.g. a dedicated `QuestAcceptanceCubit` vs. extending `QuestCubit`), where the quest list is cached, file names for the mutation document.
+- Behaviour of the torn-for-others rule before BE Phase 8 is merged (ids-only `registeredAdventurers`): count-only fallback or hide the rank detail.
+- Banner copy per code (Italian, domain language), generic copy for network/unknown errors.
+
+</decisions>
+
+<specifics>
+## Specific Ideas
+
+- "Si mostrano tutte le quest accettabili nella città dove ci si trova. La board non è accessibile durante il viaggio (si disabilita il pulsante sul menù e si rende la casella più scura per segnalare che è disabilitata). Mostri quindi tutte le quest relative al posto (la categoria dei job possono essere ripetuti e presi da più persone in contemporanea, anche hunt e dungeon, anche se contengono un combattimento), mentre le missioni story e worldMission sono accettabili in tutte le città. Infine le missioni con una caccia (boss, enemy, aid) una volta accettate da qualcuno, sono visibili come strappate sulla board finché sono ancora pending. Se la quest viene completata con successo allora scompaiono dalla board, se invece falliscono possono essere riprese da qualcun altro (eccetto aid, che scompare) e si vede quindi di nuovo l'asset intero."
+- "Quando il numero di registeredAdventurers raggiunge lo stesso numero di requiredAdventurers allora la quest risulta strappata. Se la quest accetta più di un avventuriero, se il tuo rango è completo allora vedrai la scheda strappata, altrimenti intera."
+- "Quando si arriva a 0 di viaggio allora compare la dicitura (In combattimento… lavorando… guarendo… esplorando… cacciando…) più azzeccata per il tipo di quest. Il foglio di worldMission e di story non compare mai sulla mappa. La dicitura resta attiva finché non arriva il risultato del combattimento." / "Il countdown del waitingTime non si vede."
+- Swipe = confirmation; cost line "saldo / costo" highlighted; tear starts immediately, navigation on success; errors in the Phase 5 banner; two halves that separate; torn paper persistent on the Map, tappable; three layout families; lore inside the sheet.
+
+</specifics>
+
+<canonical_refs>
+## Canonical References
+
+**Downstream agents MUST read these before planning or implementing.**
+
+### Roadmap, requirements, rules
+- `.planning/ROADMAP.md` §"Phase 6: Quest Accept & Info Sheets" — goal, success criteria 1–5, "Decisions to make during discuss" (resolved here), UI hint; §"UX Principles" (no app chrome on gameplay screens); §"Backend Prerequisites".
+- `.planning/REQUIREMENTS.md` — QUEST-01..07 (QUEST-03/05/07 amended by this discuss, see `<domain>`).
+- `docs/rules/ui-ux.md` — Error state UI (mutation failed → domain message, never technical), shared components, gameplay gestures.
+- `docs/rules/graphql.md` — document organisation, operation naming (`AcceptQuest`), error mapping in the Repository.
+- `docs/rules/architecture.md`, `docs/rules/state-management.md`, `docs/rules/testing.md`, `docs/rules/naming.md`.
+
+### Backend contract
+- `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/.planning/phases/07-quest-lanes-quest-04/BACKEND-NOTES.md` — §0 TL;DR, §1 SDL (`acceptQuest`, lanes, `pointsSpent`, `party`, `serverTime`), §2 rejection codes and FE actions, §3 lanes/costs/times per type, §4 populate rule (`quest { id }` only, `registeredAdventurers` model mismatch), §6 board fields (hard-coded `3000`), §7 QUEST-05 amendment, §8 UAT data.
+- `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/.planning/phases/08-travel-lifecycle-travel-01/08-CONTEXT.md` — D-02 automatic travel on acceptance, D-15 `startDate` nullable, D-26..D-29 Phase 7 amendments (city exemption for story/worldMission, enemy/aid registration, `registeredAdventurers { character title }`, torn-for-everyone rule), D-19 `TRAVEL_IN_PROGRESS`.
+- `/Users/lucatabbia/Personale/Code/Klimmeck-Guide-BE/Klimmeck-Guide-BE/src/schema.gql` at `origin/develop` — the SDL the final plan verifies against.
+
+### Prior FE phases (binding decisions)
+- `.planning/phases/03-real-time-sync-foundation/03-CONTEXT.md` — D-05 (lanes are a fragment-only change), D-07 (`adoptUser`), D-10 (sheets popped on character change), D-14 (transient failures silent), D-18 (`twitchPoints` live in `AuthAuthenticated.user`), D-19 (whole `Character` re-emitted).
+- `.planning/phases/05-notifications-infrastructure/05-CONTEXT.md` — D-17 in-app banner (`KGNotification`, parchment strip, ≈ 5 s), D-18 `InAppNotificationsCubit.publish` as the single publication path.
+- `.planning/phases/02-character-creation/02-CONTEXT.md` — D-19 errors mapped by stable `extensions.code`, D-25 formatting discipline.
+- `.planning/phases/04-settings-screen/04-CONTEXT.md` — D-18 inline domain messages by code; D-01 satchel menu layout (for the Phase 7 board-disabled state).
+
+</canonical_refs>
+
+<code_context>
+## Existing Code Insights
+
+### Reusable Assets
+- `lib/shared/components/popup/quest_info_sheet.dart` — the parchment sheet (Cloudinary `emptySheet` SVG, `AutoSizeText`, title, enemy image/name, "Tempo richiesto", "Punti canale richiesti: 3000 / …" to replace, rewards with `CoinsDisplay`/`EquipmentItemCard`/`LootItemCard`): base of the three families.
+- `lib/screens/mainScreen/tabs/board/board.dart` + `components/sheet.dart` — quest list, `_selectedQuest`, animation controller, the sheet area where the gesture lives; `lib/screens/mainScreen/questCubit/quest_cubit.dart` — `loadQuest()` via `api.getQuests()` (`QuestLoaded`).
+- `lib/graphql/queries/quest_queries.dart` (`quests` document), `lib/graphql/fragments/character_fragment.dart` (`questsFields`), `lib/graphql/mutations/character_mutations.dart` (mutation document pattern with `CommonResponse`).
+- `lib/models/pending_quest.dart` (`startDate` nullable, `waitingTime` int ms), `lib/models/character/character_quests.dart` (`pendingQuest` only — lanes to add), `lib/models/quest/*.dart` (`registeredAdventurers` mismatch, `QuestRequirements` without `party`), `lib/models/enums/quest_type.dart`, `lib/models/enums/title_type.dart`.
+- Phase 5 banner: `InAppNotificationsCubit` (`lib/screens/auth/inAppNotificationsCubit/`), `KGNotification` (`lib/models/notification.dart`), `notification_popup_registry.dart`.
+- `lib/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart` — the same sheet inside the Map (stays read-only); `world_map.dart` — overlays/animations on the map for the persistent torn paper.
+- `lib/screens/mainScreen/tabs/shop/components/transaction_modal.dart` — `canAfford` gating pattern (model for "insufficient points" emphasis); `ShopCubit`/`ShopError` (shop error state, researcher documents its surface).
+- `lib/shared/components/kg_error.dart`, `lib/theme/kg_theme.dart` (all colours/typography), `lib/shared/bloc/safe_emit.dart`.
+
+### Established Patterns
+- BLoC/Cubit per screen; Repository → Cubit; no `OperationException` reaching the UI; domain errors by code; `SafeEmit`.
+- Real-time: `characterUpdated` re-emits the whole `Character` (`CharacterLoaded`); `userUpdated` feeds `AuthAuthenticated.user`; the session subtree is keyed by `characterId`; dialogs/sheets on the root navigator are popped on character change.
+- Videogame surfaces: no loaders/banners/status chrome; parchment/ink language from `kg_theme.dart`; Cloudinary SVG assets via `CachedSvg`.
+- Contract verification with `tool/schema_check` against the BE `src/schema.gql`; manual E2E on Android against BE `develop` before the PR.
+
+### Integration Points
+- `CharacterFragment.questsFields` + `CharacterQuests` model ← three lanes; `QuestQueries.getAllQuests` ← requirements/party/registeredAdventurers/lore/enemy fields; `Quest`/`QuestRequirements` models ← `party`, registration objects.
+- New mutation document + Repository method + acceptance Cubit ← `AcceptQuest`; `QuestInfoSheet` ← families, indicators, gesture; `Board` ← filtering (city, lanes, completed, torn) and the tear; `MainScreen` tab switch ← Map on success; `WorldMap` ← persistent torn paper + state label; `InAppNotificationsCubit` ← acceptance errors.
+
+</code_context>
+
+<deferred>
+## Deferred Ideas
+
+- **Board disabled during travel** (satchel item disabled, darker cell) and the **travel countdown / `serverTime` offset** — FE Phase 7.
+- **Quest outcomes (Phase 9, BE and FE):** a successfully completed `boss`/`enemy` quest disappears from the board for everyone; a failed `enemy`/`hunt`/`boss`/`dungeon` quest becomes available again (registration released, intact asset back) and an **`aid` quest is created automatically**; if the `aid` taker fails, the character who failed the first quest **dies** (archived) and the second failure triggers a new `aid` quest, and so on; `aid` never returns after a failure. The state label of D-15 ends with the outcome.
+- **"Waiting for the GM" indicator for `story`/`worldMission`** (journal or elsewhere): none in this phase.
+- **Swipe-accept from the Map overlay:** excluded (D-01).
+- **Undo after the swipe:** impossible by backend design (no cancel).
+- **`crime`/`guard` layouts:** out of v1.0.
+- **Quest countdown (`startDate + waitingTime`) on screen:** dropped (D-15); may return if Phase 9 needs it.
+
+</deferred>
+
+---
+
+*Phase: 06-quest-accept-info-sheets*
+*Context gathered: 2026-10-21*
