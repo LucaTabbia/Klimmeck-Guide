@@ -10,10 +10,7 @@ import '../../../../helpers/landscape.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 
-const _huntIntact = [
-  CloudinaryAssets.huntSheet1,
-  CloudinaryAssets.huntSheet2,
-];
+const _huntIntact = [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2];
 const _huntTorn = [
   CloudinaryAssets.huntTornSheet1,
   CloudinaryAssets.huntTornSheet2,

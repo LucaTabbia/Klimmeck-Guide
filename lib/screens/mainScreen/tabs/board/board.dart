@@ -108,6 +108,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                           return Transform.translate(
                             offset: _getQuestOffset(quest),
                             child: Sheet(
+                              isTorn: false,
                               onTap: _selectQuest,
                               quest: quest,
                               randomizer: _getQuestRandomizer(quest),
