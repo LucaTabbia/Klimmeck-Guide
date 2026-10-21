@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -8,6 +9,8 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
@@ -101,6 +104,12 @@ void main() {
       String locationId,
     ) async {
       useLandscapePhone(tester);
+      final authStates = StreamController<AuthState>.broadcast();
+      final intentCubit = NotificationIntentCubit(authStates.stream);
+      addTearDown(() async {
+        await intentCubit.close();
+        await authStates.close();
+      });
       whenListen(
         characterCubit,
         Stream<CharacterState>.empty(),
@@ -115,13 +124,21 @@ void main() {
               BlocProvider<CharacterCubit>.value(value: characterCubit),
               BlocProvider<QuestCubit>.value(value: questCubit),
               BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
+              BlocProvider<NotificationIntentCubit>.value(value: intentCubit),
             ],
-            child: const MainScreen(characterId: 'c-1'),
+            child: MainScreen(
+              characterId: 'c-1',
+              pagesBuilder: (_) => [
+                for (final e in SatchelLayout.entries)
+                  SizedBox.expand(key: ValueKey('page-${e.pageIndex}')),
+              ],
+            ),
           ),
         ),
       );
       await tester.pump();
       await tester.tap(find.byType(CachedSvg).last);
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));

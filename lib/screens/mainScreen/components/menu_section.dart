@@ -4,10 +4,16 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class MenuSection extends StatelessWidget {
-  const MenuSection({super.key, required this.entry, required this.onTap});
+  const MenuSection({
+    super.key,
+    required this.entry,
+    required this.onTap,
+    this.isEnabled = true,
+  });
 
   final SatchelEntry entry;
   final ValueChanged<int> onTap;
+  final bool isEnabled;
 
   bool get _hasBottomBorder => entry.row + entry.rowSpan < SatchelLayout.rows;
 
@@ -19,7 +25,7 @@ class MenuSection extends StatelessWidget {
     );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => onTap(entry.pageIndex),
+      onTap: isEnabled ? () => onTap(entry.pageIndex) : null,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
@@ -27,21 +33,30 @@ class MenuSection extends StatelessWidget {
             bottom: _hasBottomBorder ? gold : BorderSide.none,
           ),
         ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 15),
-            child: AutoSizeText(
-              entry.label,
-              maxFontSize: 20,
-              minFontSize: 12,
-              style: KlimmeckGuideTheme.instance.titleMedium.copyWith(
-                color: KlimmeckGuideTheme.paleSilver,
-                shadows: KlimmeckGuideTheme.bordersForText,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: AutoSizeText(
+                  entry.label,
+                  maxFontSize: 20,
+                  minFontSize: 12,
+                  style: KlimmeckGuideTheme.instance.titleMedium.copyWith(
+                    color: KlimmeckGuideTheme.paleSilver,
+                    shadows: KlimmeckGuideTheme.bordersForText,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
+            if (!isEnabled)
+              const IgnorePointer(
+                child: ColoredBox(color: KlimmeckGuideTheme.disabledScrim),
+              ),
+          ],
         ),
       ),
     );

@@ -8,12 +8,14 @@ class SatchelMenu extends StatefulWidget {
   final AnimationController parentAnimationController;
   final int currentPage;
   final ValueChanged<int> onItemTap;
+  final Set<int> disabledPages;
 
   const SatchelMenu({
     super.key,
     required this.currentPage,
     required this.onItemTap,
     required this.parentAnimationController,
+    this.disabledPages = const {},
   });
 
   @override
@@ -136,6 +138,7 @@ class _SatchelMenuState extends State<SatchelMenu>
 
   void _selectItem(int index) {
     if (_isAnimating || !_isOpen) return;
+    if (widget.disabledPages.contains(index)) return;
 
     widget.onItemTap(index);
 
@@ -165,6 +168,7 @@ class _SatchelMenuState extends State<SatchelMenu>
               itemAnimationController: _itemAnimationController,
               itemSize: _itemSize,
               showItems: _showItems,
+              isEnabled: !widget.disabledPages.contains(entry.pageIndex),
             ),
           _buildPouchButton(),
         ],

@@ -11,6 +11,7 @@ class MenuItem extends StatelessWidget {
     required this.imagePath,
     required this.end,
     required this.onTap,
+    this.isEnabled = true,
   });
 
   final AnimationController itemAnimationController;
@@ -22,6 +23,7 @@ class MenuItem extends StatelessWidget {
   /// Centro della cella d'arrivo nel frame dello Stack (vedi SatchelLayout.flightEnd).
   final Offset end;
   final ValueChanged<int> onTap;
+  final bool isEnabled;
 
   List<double> _parabolaCoefficients(
     Offset start,
@@ -70,23 +72,26 @@ class MenuItem extends StatelessWidget {
         return Transform.translate(
           offset: pos,
           child: GestureDetector(
-            onTap: () => onTap(pageIndex),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              width: showItems ? itemSize : 0,
-              height: showItems ? itemSize : 0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+            onTap: isEnabled ? () => onTap(pageIndex) : null,
+            child: Opacity(
+              opacity: isEnabled ? 1 : 0.4,
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                width: showItems ? itemSize : 0,
+                height: showItems ? itemSize : 0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
 
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black45,
-                    blurRadius: 7,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 7,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CachedSvg(url: imagePath),
               ),
-              child: CachedSvg(url: imagePath),
             ),
           ),
         );

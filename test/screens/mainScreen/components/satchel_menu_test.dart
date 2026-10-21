@@ -58,7 +58,10 @@ void main() {
     tester,
   ) async {
     useLandscapePhone(tester);
-    final parent = AnimationController(vsync: const TestVSync());
+    final parent = AnimationController(
+      vsync: const TestVSync(),
+      duration: const Duration(milliseconds: 500),
+    );
     addTearDown(parent.dispose);
     final taps = <int>[];
 
@@ -74,6 +77,7 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.byType(CachedSvg).last);
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(milliseconds: 400));

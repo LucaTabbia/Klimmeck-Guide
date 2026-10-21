@@ -11,11 +11,13 @@ class MenuBackground extends StatelessWidget {
     required this.selectedIndex,
     required this.onTap,
     required this.opacityAnimation,
+    this.disabledPages = const {},
   });
 
   final int selectedIndex;
   final ValueChanged<int> onTap;
   final Animation<double> opacityAnimation;
+  final Set<int> disabledPages;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +78,13 @@ class MenuBackground extends StatelessWidget {
                             top: entry.row * rowHeight,
                             width: cellWidth,
                             height: entry.rowSpan * rowHeight,
-                            child: MenuSection(entry: entry, onTap: onTap),
+                            child: MenuSection(
+                              entry: entry,
+                              onTap: onTap,
+                              isEnabled: !disabledPages.contains(
+                                entry.pageIndex,
+                              ),
+                            ),
                           ),
                       ],
                     ),
