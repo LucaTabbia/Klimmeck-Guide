@@ -17,7 +17,7 @@ void main() {
 
   QuestAcceptanceCubit build() => QuestAcceptanceCubit(repository);
 
-  void stubAccept() => when(
+  When<Future<void>> stubAccept() => when(
     () => repository.accept(
       characterId: any(named: 'characterId'),
       questId: any(named: 'questId'),
