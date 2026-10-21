@@ -166,7 +166,7 @@ class _MainScreenState extends State<MainScreen>
       Profile(),
       Journal(),
       Library(),
-      Board(),
+      Board(cities: cities),
       Shop(),
       const Settings(),
     ];

@@ -2,6 +2,13 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/quest/board_policy.dart';
+import 'package:klimmeck_guide/models/quest/quest_availability.dart';
+import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
@@ -9,14 +16,17 @@ import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import '../../../../models/quest/quest.dart';
 
 class Board extends StatefulWidget {
-  const Board({super.key});
+  const Board({super.key, required this.cities});
+
+  /// Città caricate dal MainScreen: dicono se il personaggio è su un marker (D-11).
+  final List<City> cities;
 
   @override
   State<Board> createState() => _BoardState();
 }
 
 class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
-  Quest? _selectedQuest;
+  String? _selectedQuestId;
 
   late AnimationController _animationController;
 
@@ -33,12 +43,18 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     );
 
     _animationController.addStatusListener(_onAnimationStatusChanged);
+
+    final character = context.read<CharacterCubit>().state;
+    final city = character is CharacterLoaded
+        ? currentCityOf(widget.cities, character.character.status?.location)
+        : null;
+    context.read<QuestCubit>().refreshQuests(cityId: city?.id);
   }
 
   void _onAnimationStatusChanged(AnimationStatus status) {
     if (status.isDismissed) {
       setState(() {
-        _selectedQuest = null;
+        _selectedQuestId = null;
       });
     }
   }
@@ -51,9 +67,8 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   }
 
   Offset _getQuestOffset(Quest quest) {
-    final key = quest.id ?? quest.hashCode.toString();
     return _questOffsets.putIfAbsent(
-      key,
+      quest.id,
       () => Offset(
         (_random.nextDouble() - 0.5) * 30,
         (_random.nextDouble() - 0.5) * 30,
@@ -62,9 +77,8 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   }
 
   double _getQuestRandomizer(Quest quest) {
-    final key = quest.id ?? quest.hashCode.toString();
     return _questRandomizers.putIfAbsent(
-      key,
+      quest.id,
       () => _random.nextDouble() * 20,
     );
   }
@@ -73,7 +87,60 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final twitchPoints = context.select<AuthCubit, int?>(
+      (cubit) => switch (cubit.state) {
+        AuthAuthenticated(:final user) => user.twitchPoints,
+        _ => null,
+      },
+    );
 
+    return BlocBuilder<CharacterCubit, CharacterState>(
+      builder: (context, characterState) => BlocBuilder<QuestCubit, QuestState>(
+        builder: (context, questState) {
+          final viewer = _viewerOf(characterState, questState, twitchPoints);
+          final listed = viewer == null || questState is! QuestLoaded
+              ? const <Quest>[]
+              : boardQuestsFor(questState.quests, viewer);
+          return _buildBoard(screenHeight, screenWidth, viewer, listed);
+        },
+      ),
+    );
+  }
+
+  /// Viewer live (personaggio + saldo + POI della città); null fuori da un marker (D-11).
+  QuestViewer? _viewerOf(
+    CharacterState characterState,
+    QuestState questState,
+    int? twitchPoints,
+  ) {
+    if (characterState is! CharacterLoaded || questState is! QuestLoaded) {
+      return null;
+    }
+    final character = characterState.character;
+    final city = currentCityOf(widget.cities, character.status?.location);
+    if (city == null) return null;
+    return QuestViewer.of(
+      character: character,
+      twitchPoints: twitchPoints,
+      cityPointIds: questState.cityId == city.id
+          ? questState.cityPointIds
+          : null,
+    );
+  }
+
+  Quest? _selectedAmong(List<Quest> listed) {
+    for (final quest in listed) {
+      if (quest.id == _selectedQuestId) return quest;
+    }
+    return null;
+  }
+
+  Widget _buildBoard(
+    double screenHeight,
+    double screenWidth,
+    QuestViewer? viewer,
+    List<Quest> listed,
+  ) {
     return Stack(
       children: [
         SingleChildScrollView(
@@ -81,7 +148,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
             children: [
               GestureDetector(
                 onTap: () {
-                  if (_selectedQuest != null) {
+                  if (_selectedQuestId != null) {
                     _animationController.reverse();
                   }
                 },
@@ -98,38 +165,41 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                   horizontal: screenWidth / 6.5,
                   vertical: screenHeight / 2.3,
                 ),
-                child: BlocBuilder<QuestCubit, QuestState>(
-                  builder: (context, state) {
-                    if (state is QuestLoaded) {
-                      return Wrap(
-                        spacing: 30,
-                        runSpacing: 20,
-                        children: state.quests.map((quest) {
-                          return Transform.translate(
-                            offset: _getQuestOffset(quest),
-                            child: Sheet(
-                              isTorn: false,
-                              onTap: _selectQuest,
-                              quest: quest,
-                              randomizer: _getQuestRandomizer(quest),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                child: _papers(viewer, listed),
               ),
             ],
           ),
         ),
-        _buildQuestInfoSheet(screenHeight),
+        _buildQuestInfoSheet(screenHeight, viewer, _selectedAmong(listed)),
       ],
     );
   }
 
-  Widget _buildQuestInfoSheet(double screenHeight) {
+  Widget _papers(QuestViewer? viewer, List<Quest> listed) {
+    if (viewer == null) return const SizedBox.shrink();
+    return Wrap(
+      spacing: 30,
+      runSpacing: 20,
+      children: listed.map((quest) {
+        return Transform.translate(
+          offset: _getQuestOffset(quest),
+          child: Sheet(
+            key: ValueKey(quest.id),
+            quest: quest,
+            isTorn: standingOf(quest, viewer).isTorn,
+            onTap: _selectQuest,
+            randomizer: _getQuestRandomizer(quest),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildQuestInfoSheet(
+    double screenHeight,
+    QuestViewer? viewer,
+    Quest? selected,
+  ) {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -148,9 +218,9 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
             child: SizedBox(
               height: screenHeight,
               width: screenHeight * 1.5 * (315 / 375),
-              child: _selectedQuest != null
+              child: selected != null
                   ? SingleChildScrollView(
-                      child: QuestInfoSheet(quest: _selectedQuest),
+                      child: QuestInfoSheet(quest: selected, viewer: viewer),
                     )
                   : null,
             ),
@@ -162,7 +232,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
 
   void _selectQuest(Quest quest) {
     setState(() {
-      _selectedQuest = quest;
+      _selectedQuestId = quest.id;
     });
     _animationController.forward();
   }
