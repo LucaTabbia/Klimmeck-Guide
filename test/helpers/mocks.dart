@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -64,6 +65,9 @@ class MockCharacterCreationRepository extends Mock
 
 class MockCharacterDeletionRepository extends Mock
     implements CharacterDeletionRepository {}
+
+class MockQuestAcceptanceRepository extends Mock
+    implements QuestAcceptanceRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
