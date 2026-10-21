@@ -18,6 +18,7 @@ import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
@@ -158,12 +159,14 @@ void main() {
   ) async {
     late CharacterCubit characterCubit;
     late QuestCubit questCubit;
+    late QuestAcceptanceCubit acceptanceCubit;
     await pumpShell(
       tester,
       state: const SplashData(),
       mainScreenBuilder: (context, _) {
         characterCubit = context.read<CharacterCubit>();
         questCubit = context.read<QuestCubit>();
+        acceptanceCubit = context.read<QuestAcceptanceCubit>();
         return const Text('main');
       },
     );
@@ -174,6 +177,7 @@ void main() {
 
     expect(characterCubit.isClosed, isTrue);
     expect(questCubit.isClosed, isTrue);
+    expect(acceptanceCubit.isClosed, isTrue);
   });
 
   testWidgets('provides the notification preferences loaded for the user', (
