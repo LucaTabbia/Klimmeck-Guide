@@ -1,3 +1,6 @@
+import 'package:klimmeck_guide/models/character/character_quests.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 
 /// Quest JSON nella forma proposta dal BE Phase 8 (D-28): slot per rango e
@@ -126,3 +129,31 @@ Quest buildQuest({
     recommendedLoot: recommendedLoot,
   ),
 );
+
+QuestViewer buildViewer({
+  String characterId = 'c-1',
+  TitleType? title = TitleType.rookie,
+  CharacterQuests? quests,
+  Set<String>? cityPointIds = const {'poi-1'},
+  int? twitchPoints = 5000,
+}) => QuestViewer(
+  characterId: characterId,
+  title: title,
+  quests: quests,
+  cityPointIds: cityPointIds,
+  twitchPoints: twitchPoints,
+);
+
+CharacterQuests buildLanes({
+  Map<String, dynamic>? pendingQuest,
+  Map<String, dynamic>? activeStoryQuest,
+  Map<String, dynamic>? activeWorldMissionQuest,
+  List<String> completedQuestIds = const [],
+}) => CharacterQuests.fromJson({
+  'completedQuests': [
+    for (final q in completedQuestIds) {'id': q},
+  ],
+  'pendingQuest': pendingQuest,
+  'activeStoryQuest': activeStoryQuest,
+  'activeWorldMissionQuest': activeWorldMissionQuest,
+});
