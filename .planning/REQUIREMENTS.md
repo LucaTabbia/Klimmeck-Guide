@@ -92,10 +92,15 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 - [ ] **QUEST-01**: The existing `QuestInfoSheet` above the board tab gets per-`QuestType` layout variants **only where the content differs** — e.g. combat types (`hunt`, `enemy`, `boss`, `dungeon`) surface enemy/grade info; `story` and `worldMission` surface narrative context; `heal`, `aid`, `job`, `study` surface their own relevant fields. `crime` and `guard` are out of scope for v1.0 layouts.
 - [ ] **QUEST-02**: User can accept a quest by swiping left on the `QuestInfoSheet` (the sheet presented above the board — **not** directly on the board list) with a "tear paper" animation and haptic feedback
 - [ ] **QUEST-03**: On successful swipe-accept, the app navigates to the Map tab and presents the torn quest paper image on top of the stack as a confirmation artifact. Further details of the confirmation flow (dialog? cost preview? undo window?) are deferred — see Open Questions in `STATE.md`.
+  - _Emendato il 2026-10-21 (Phase 6 discuss, D-01/D-03/D-07/D-08): lo swipe è la conferma — nessun dialog e nessuna undo window (il backend non ha cancel). Il foglio si strappa subito (ottimistico), la mutation parte alla soglia e l'app passa alla Map tab solo quando il backend risponde `successful: true`. Per la corsia standard il foglio intero della quest resta visibile sulla mappa finché la quest è attiva; il tap apre lo stesso QuestInfoSheet in sola lettura con lo stato (QUEST-07). Story e worldMission non mostrano mai un foglio sulla mappa._
 - [ ] **QUEST-04**: Backend prerequisite — Character carries independent fields for active `story` and `worldMission` quests (e.g. `activeStoryQuest: PendingQuest?`, `activeWorldMissionQuest: PendingQuest?`) so these run in parallel to the standard `pendingQuest`. The board hides a quest from the list as soon as the corresponding field is populated, without blocking acceptance of other quest types.
+  - _Emendato il 2026-10-21 (D-08/D-11/D-12): le tre corsie sono servite dal BE Phase 7 (merged). Una story/worldMission accettata resta sulla board **strappata per il proprietario** (non nascosta). La board è raggiungibile solo da un marker di città e mostra le quest della città, le worldMission di ogni città e la sola story del titolo del personaggio; le non ripetibili già completate sono nascoste; worldMission/boss/enemy/aid piene (totale o rango del giocatore, regola BE Phase 8 D-32) appaiono strappate per tutti._
 - [ ] **QUEST-05**: Quest cost model — `story` and `worldMission` quests spend `User.twitchPoints`. All other quest types spend `Character.coins` and/or display a list of **recommended** consumables/equipment (display-only hint, not enforced client-side — the backend is the source of truth for eligibility and debit).
+  - _Emendato il 2026-10-21 (D-02, handoff BE Phase 7 §7): nessuna quest costa monete. Solo story e worldMission costano `requirements.requiredPoints` punti canale (`User.twitchPoints`), mostrati come `Punti canale: saldo / costo` ed evidenziati se il saldo è insufficiente; `recommendedLoot` resta un suggerimento display. Il backend decide (`INSUFFICIENT_POINTS`)._
 - [ ] **QUEST-06**: If quest acceptance fails (insufficient balance, quest already taken, server error), the UI rolls back the optimistic state and surfaces the error using the project's existing error-display pattern (already implemented in the shop flow — reuse, do not reinvent)
+  - _Emendato il 2026-10-21 (D-04, D-20 C3): il rollback ricompone il foglio strappato e l'errore appare nel banner in-app di Phase 5 con copy di dominio scelta da `extensions.code`, mai dal testo del messaggio. La nuvoletta del negoziante dello shop è specifica dello shop e non viene riusata._
 - [ ] **QUEST-07**: While `Character.quests.pendingQuest` is populated, the UI shows a live countdown driven by `startDate + waitingTime`; the countdown is anchored to server timestamps, not device clock
+  - _Emendato il 2026-10-21 (D-15): nessun countdown a schermo. Il foglio della corsia standard mostra un'etichetta di stato guidata dal server: `startDate` nullo → «In viaggio», poi un'etichetta per tipo («In combattimento…», «Cacciando…», «Esplorando…», «Lavorando…», «Guarendo…», «Aiutando…», «Studiando…») finché l'esito (Phase 9) svuota la corsia. Niente `serverTime` né offset in questa fase (FE Phase 7)._
 
 ### Travel
 
@@ -207,7 +212,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SET-01 through SET-05       | Phase 4 | Complete |
 | SYNC-01 through SYNC-07     | Phase 3 | Complete (activeTravel/activeStoryQuest/activeWorldMissionQuest join the fragment in Phases 6/7, D-05; FE PR after the BE Phase 3 PR, D-04) |
 | NOTIF-01 through NOTIF-08   | Phase 5 | Complete (Android only; NOTIF-02 prompt call site in Phase 7; context popups in Phases 7/9) |
-| QUEST-01 through QUEST-07   | TBD   | Pending |
+| QUEST-01 through QUEST-07   | Phase 6 | In Progress (QUEST-03/04/05/06/07 amended 2026-10-21; BE Phase 7 merged, BE Phase 8 shapes in plan 06-12) |
 | TRAVEL-01 through TRAVEL-04 | TBD   | Pending |
 | SPELL-01 through SPELL-07   | TBD   | Pending |
 | COMBAT-01 through COMBAT-07 | TBD   | Pending |
@@ -223,4 +228,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_
+_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_
