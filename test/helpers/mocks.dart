@@ -14,6 +14,7 @@ import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
@@ -72,6 +73,9 @@ class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
 
 class MockCharacterCreationCubit extends MockCubit<CharacterCreationState>
     implements CharacterCreationCubit {}
+
+class MockInAppNotificationsCubit extends MockCubit<InAppNotificationsState>
+    implements InAppNotificationsCubit {}
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
