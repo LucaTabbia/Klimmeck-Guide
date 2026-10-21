@@ -18,10 +18,13 @@ import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 import '../../../../models/quest/quest.dart';
 
 class Board extends StatefulWidget {
-  const Board({super.key, required this.cities});
+  const Board({super.key, required this.cities, this.onQuestAccepted});
 
   /// Città caricate dal MainScreen: dicono se il personaggio è su un marker (D-11).
   final List<City> cities;
+
+  /// Chiamata solo su QuestAccepted (D-03): il MainScreen passa alla mappa.
+  final VoidCallback? onQuestAccepted;
 
   @override
   State<Board> createState() => _BoardState();
@@ -145,38 +148,53 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     QuestViewer? viewer,
     List<Quest> listed,
   ) {
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          child: Stack(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  if (_selectedQuestId != null) {
-                    _animationController.reverse();
-                  }
-                },
-                child: SizedBox(
-                  width: screenWidth,
-                  child: Image.asset(
-                    'assets/images/boardBackground.png',
-                    fit: BoxFit.cover,
+    return BlocListener<QuestAcceptanceCubit, QuestAcceptanceState>(
+      listenWhen: (previous, current) =>
+          current is QuestAccepted || current is QuestAcceptanceFailed,
+      listener: _onAcceptanceOutcome,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (_selectedQuestId != null) {
+                      _animationController.reverse();
+                    }
+                  },
+                  child: SizedBox(
+                    width: screenWidth,
+                    child: Image.asset(
+                      'assets/images/boardBackground.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth / 6.5,
-                  vertical: screenHeight / 2.3,
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth / 6.5,
+                    vertical: screenHeight / 2.3,
+                  ),
+                  child: _papers(viewer, listed),
                 ),
-                child: _papers(viewer, listed),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        _buildQuestInfoSheet(screenHeight, viewer, _selectedAmong(listed)),
-      ],
+          _buildQuestInfoSheet(screenHeight, viewer, _selectedAmong(listed)),
+        ],
+      ),
     );
+  }
+
+  /// Solo ciò che richiede la Board montata; banner, refresh e reset sono in
+  /// QuestAcceptanceOutcomeListener (MainScreen).
+  void _onAcceptanceOutcome(BuildContext context, QuestAcceptanceState state) {
+    if (state is QuestAccepted) {
+      widget.onQuestAccepted?.call();
+    } else if (state is QuestAcceptanceFailed) {
+      _tearKey.currentState?.recompose();
+    }
   }
 
   Widget _papers(QuestViewer? viewer, List<Quest> listed) {

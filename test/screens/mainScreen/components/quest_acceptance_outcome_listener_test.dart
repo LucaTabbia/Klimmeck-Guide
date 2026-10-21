@@ -36,6 +36,10 @@ void main() {
   late MockCharacterCubit characterCubit;
   late StreamController<QuestAcceptanceState> states;
 
+  setUpAll(() {
+    registerFallbackValue(const KGNotification(title: '', description: ''));
+  });
+
   setUp(() {
     acceptance = MockQuestAcceptanceCubit();
     notices = MockInAppNotificationsCubit();

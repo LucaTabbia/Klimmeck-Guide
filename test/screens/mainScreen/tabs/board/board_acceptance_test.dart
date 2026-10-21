@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -46,6 +47,10 @@ void main() {
   late MockInAppNotificationsCubit notices;
   late StreamController<QuestAcceptanceState> acceptanceStates;
   late int accepted;
+
+  setUpAll(() {
+    registerFallbackValue(const KGNotification(title: '', description: ''));
+  });
 
   setUp(() {
     seedSvgCache([
