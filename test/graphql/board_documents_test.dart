@@ -41,27 +41,37 @@ void main() {
   group('quests document', () {
     final document = _collapsed(QuestQueries.getAllQuests);
 
-    test('selects the interim registrations and requirements', () {
-      expect(document, contains('registeredAdventurers'));
-      expect(
-        document,
-        contains(
-          'requirements { minTitle requiredPoints requiredAdventurers }',
-        ),
-      );
+    test('selects the BE Phase 8 rank slots and registrations', () {
+      expect(document, contains('registeredAdventurers { character title }'));
+      expect(document, contains('requiredAdventurers { title count }'));
+      expect(document, contains('recommendedLoot { quantity item {'));
     });
 
-    test('leaves the Phase 8 shapes and unpopulated refs out', () {
+    test('selects the populated enemy and lore references', () {
+      expect(document, contains('enemy { id name imagePath }'));
+      expect(document, contains('relatedLore { id name description }'));
+    });
+
+    test('leaves the removed and unsafe fields out', () {
       for (final forbidden in [
-        'enemy',
-        'relatedLore',
-        'recommendedLoot',
         'party',
-        'character title',
-        'title count',
+        'locations',
+        'pointsOfInterest',
+        'relatedLore { id name description type',
       ]) {
         expect(document, isNot(contains(forbidden)), reason: forbidden);
       }
+      expect(
+        RegExp(r'registeredAdventurers(?! \{)').hasMatch(document),
+        isFalse,
+      );
+    });
+
+    test('parses to one operation named quests', () {
+      final operation = parseString(
+        QuestQueries.getAllQuests,
+      ).definitions.whereType<OperationDefinitionNode>().single;
+      expect(operation.name?.value, 'quests');
     });
   });
 }
