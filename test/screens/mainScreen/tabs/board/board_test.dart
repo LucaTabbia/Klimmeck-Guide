@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
@@ -53,6 +54,7 @@ void main() {
   late MockQuestCubit questCubit;
   late MockCharacterCubit characterCubit;
   late MockAuthCubit authCubit;
+  late MockQuestAcceptanceCubit acceptanceCubit;
   late StreamController<QuestState> questStates;
 
   setUp(() {
@@ -72,6 +74,12 @@ void main() {
     questCubit = MockQuestCubit();
     characterCubit = MockCharacterCubit();
     authCubit = MockAuthCubit();
+    acceptanceCubit = MockQuestAcceptanceCubit();
+    whenListen(
+      acceptanceCubit,
+      const Stream<QuestAcceptanceState>.empty(),
+      initialState: const QuestAcceptanceIdle(),
+    );
     questStates = StreamController<QuestState>.broadcast();
     addTearDown(questStates.close);
     when(
@@ -114,6 +122,7 @@ void main() {
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<AuthCubit>.value(value: authCubit),
+            BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
           ],
           child: Scaffold(body: Board(cities: _cities)),
         ),

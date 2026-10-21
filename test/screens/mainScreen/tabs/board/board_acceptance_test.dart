@@ -145,11 +145,16 @@ void main() {
     final paper = find.byKey(ValueKey(id));
     await tester.ensureVisible(paper);
     await tester.tap(paper);
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
   }
 
   Future<void> dragSheetLeft(WidgetTester tester) async {
-    await tester.drag(find.byType(TearablePaper), const Offset(-600, 0));
+    final visibleCenter = Offset(
+      tester.getCenter(find.byType(TearablePaper)).dx,
+      180,
+    );
+    await tester.dragFrom(visibleCenter, const Offset(-600, 0));
     await tester.pump(const Duration(seconds: 1));
   }
 

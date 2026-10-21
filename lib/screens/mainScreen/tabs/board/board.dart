@@ -9,9 +9,11 @@ import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 
 import '../../../../models/quest/quest.dart';
 
@@ -27,6 +29,8 @@ class Board extends StatefulWidget {
 
 class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   String? _selectedQuestId;
+
+  final GlobalKey<TearablePaperState> _tearKey = GlobalKey<TearablePaperState>();
 
   late AnimationController _animationController;
 
@@ -218,9 +222,30 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
             child: SizedBox(
               height: screenHeight,
               width: screenHeight * 1.5 * (315 / 375),
-              child: selected != null
+              child: selected != null && viewer != null
                   ? SingleChildScrollView(
-                      child: QuestInfoSheet(quest: selected, viewer: viewer),
+                      key: ValueKey('board-sheet-${selected.id}'),
+                      child:
+                          BlocSelector<
+                            QuestAcceptanceCubit,
+                            QuestAcceptanceState,
+                            bool
+                          >(
+                            selector: (state) => state is! QuestAccepting,
+                            builder: (context, isIdle) => TearablePaper(
+                              key: _tearKey,
+                              canTear: standingOf(selected, viewer).canAccept,
+                              isEnabled: isIdle,
+                              onTorn: () => _accept(viewer, selected),
+                              child: ColoredBox(
+                                color: Colors.transparent,
+                                child: QuestInfoSheet(
+                                  quest: selected,
+                                  viewer: viewer,
+                                ),
+                              ),
+                            ),
+                          ),
                     )
                   : null,
             ),
@@ -229,6 +254,12 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       },
     );
   }
+
+  void _accept(QuestViewer viewer, Quest quest) =>
+      context.read<QuestAcceptanceCubit>().accept(
+        characterId: viewer.characterId,
+        questId: quest.id,
+      );
 
   void _selectQuest(Quest quest) {
     setState(() {
