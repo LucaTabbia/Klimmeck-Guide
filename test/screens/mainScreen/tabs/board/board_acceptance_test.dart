@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -44,6 +45,7 @@ void main() {
   late MockQuestAcceptanceCubit acceptance;
   late MockInAppNotificationsCubit notices;
   late StreamController<QuestAcceptanceState> acceptanceStates;
+  late int accepted;
 
   setUp(() {
     seedSvgCache([
@@ -64,6 +66,7 @@ void main() {
     authCubit = MockAuthCubit();
     acceptance = MockQuestAcceptanceCubit();
     notices = MockInAppNotificationsCubit();
+    accepted = 0;
     acceptanceStates = StreamController<QuestAcceptanceState>.broadcast();
     addTearDown(acceptanceStates.close);
     when(
@@ -134,7 +137,9 @@ void main() {
             BlocProvider<QuestAcceptanceCubit>.value(value: acceptance),
             BlocProvider<InAppNotificationsCubit>.value(value: notices),
           ],
-          child: Scaffold(body: Board(cities: _cities)),
+          child: Scaffold(
+            body: Board(cities: _cities, onQuestAccepted: () => accepted++),
+          ),
         ),
       ),
     );
@@ -273,6 +278,52 @@ void main() {
       await openSheet(tester, 'h-1');
 
       expect(find.byType(TearablePaper), findsOneWidget);
+    });
+  });
+
+  group('acceptance outcomes', () {
+    testWidgets('only QuestAccepted goes to the map', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+
+      acceptanceStates.add(const QuestAccepting('h-1'));
+      await tester.pump();
+      expect(accepted, 0);
+
+      acceptanceStates.add(const QuestAccepted('h-1'));
+      await tester.pump();
+      expect(accepted, 1);
+    });
+
+    testWidgets('a rejection recomposes the paper and leaves the rest alone', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+      await openSheet(tester, 'h-1');
+      await dragSheetLeft(tester);
+      final paperState = tester.state<TearablePaperState>(
+        find.byType(TearablePaper),
+      );
+      expect(paperState.isTorn, isTrue);
+
+      acceptanceStates.add(
+        const QuestAcceptanceFailed('h-1', QuestAcceptanceFailure.full),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(accepted, 0);
+      expect(paperState.isTorn, isFalse);
+      verifyNever(
+        () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
+      );
+      verifyNever(() => acceptance.reset());
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
     });
   });
 }
