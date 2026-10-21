@@ -217,7 +217,7 @@ Plans:
   - [x] 06-07-PLAN.md — Wave 3: board data (GetCity, interim quest requirements, tolerant getQuests, silent refreshQuests)
   - [x] 06-08-PLAN.md — Wave 3: satchel Board entry disabled outside a city marker
   - [x] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
-  - [ ] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
+  - [x] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
   - [ ] 06-11-PLAN.md — Wave 5: Map quest paper with the state label, read-only overlay
   - [ ] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
 **UI hint**: no (CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
@@ -344,7 +344,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 9/12 | In Progress | - |
+| 6. Quest Accept & Info Sheets | 10/12 | In Progress | - |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
