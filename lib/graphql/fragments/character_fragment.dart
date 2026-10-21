@@ -78,6 +78,30 @@ class CharacterFragment {
       }
       pendingQuest {
         id
+        startDate
+        waitingTime
+        pointsSpent
+        quest {
+          id
+        }
+      }
+      activeStoryQuest {
+        id
+        startDate
+        waitingTime
+        pointsSpent
+        quest {
+          id
+        }
+      }
+      activeWorldMissionQuest {
+        id
+        startDate
+        waitingTime
+        pointsSpent
+        quest {
+          id
+        }
       }
     }
   ''';
