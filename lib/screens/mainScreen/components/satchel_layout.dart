@@ -34,6 +34,8 @@ class SatchelEntry extends Equatable {
 
 /// Unica tabella della borsa: etichette, icone, pagine e geometria (D-01).
 abstract final class SatchelLayout {
+  /// Pagina della Bacheca (disabilitata fuori da un marker di città, Phase 6 D-11).
+  static const int boardPageIndex = 4;
   static const int columns = 4;
   static const int rows = 2;
   static const double borderWidth = 2;
