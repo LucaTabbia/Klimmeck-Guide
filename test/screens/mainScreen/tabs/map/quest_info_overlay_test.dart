@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
-import 'package:klimmeck_guide/shared/components/tearable_paper.dart';
+import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 
 import '../../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../../helpers/landscape.dart';
