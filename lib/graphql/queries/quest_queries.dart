@@ -12,12 +12,39 @@ class QuestQueries {
           timeToComplete
           title
           type
+          enemy {
+            id
+            name
+            imagePath
+          }
+          relatedLore {
+            id
+            name
+            description
+          }
         }
-        registeredAdventurers
+        registeredAdventurers {
+          character
+          title
+        }
         requirements {
           minTitle
           requiredPoints
-          requiredAdventurers
+          requiredAdventurers {
+            title
+            count
+          }
+          recommendedLoot {
+            quantity
+            item {
+              ... on EquipmentItem {
+                ${EquipmentFragment.simpleFields}
+              }
+              ... on LootItem {
+                ${LootFragment.simpleFields}
+              }
+            }
+          }
         }
         prizes {
           prizeCoins {
