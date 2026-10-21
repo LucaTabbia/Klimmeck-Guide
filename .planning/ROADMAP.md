@@ -206,7 +206,19 @@ Plans:
 **Decisions to make during discuss step**:
   - **QUEST-03 confirmation flow** (open question from STATE.md): dialog with cost preview before swipe? undo window after swipe? cost surface location? Must be resolved during this phase's discuss step.
   - Gesture arena disambiguation (custom `GestureDetector` with drag threshold — NOT `Dismissible`).
-**Plans**: TBD
+**Plans**: 12 plans
+  - [ ] 06-01-PLAN.md — Wave 1: REQUIREMENTS/ROADMAP amendments; rank slots, registrations with rank, D-32 capacity, tolerant quest parsing; three lanes in models + fragment; fixtures
+  - [ ] 06-02-PLAN.md — Wave 2: pure availability layer (lanes, classifier in BE order, board policy, cost line, state label, blocked reasons, title labels)
+  - [ ] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
+  - [ ] 06-04-PLAN.md — Wave 1: in-app banner publishNotice for local domain notices (D-20 C1)
+  - [ ] 06-05-PLAN.md — Wave 1: TearablePaper (pure gesture model, jagged clipper, haptics, spring back, recompose)
+  - [ ] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
+  - [ ] 06-07-PLAN.md — Wave 3: board data (GetCity, interim quest requirements, tolerant getQuests, silent refreshQuests)
+  - [ ] 06-08-PLAN.md — Wave 3: satchel Board entry disabled outside a city marker
+  - [ ] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
+  - [ ] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
+  - [ ] 06-11-PLAN.md — Wave 5: Map quest paper with the state label, read-only overlay
+  - [ ] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
 **UI hint**: yes
 
 ### Phase 7: Travel
@@ -331,7 +343,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 0/0 | Not started | - |
+| 6. Quest Accept & Info Sheets | 0/12 | Planned | - |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |

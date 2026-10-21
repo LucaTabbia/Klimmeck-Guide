@@ -565,17 +565,23 @@ Use `tester.timedDrag` or `startGesture/moveBy/up` to control velocity for the f
 | A6 | Showing no banner for `UNAUTHENTICATED` is acceptable (the session flow acts) | Pattern 2 | user sees the paper spring back with no explanation for one frame before sign-in |
 | A7 | Provisional Italian copy (banner texts, state labels) | Pattern 2/6 | user rewrites it (D-19) |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **G1 - who populates `infos.enemy`, `infos.relatedLore`, `recommendedLoot.item`?**
    - Known: BE source populates only `markerLocation`; CONTEXT D-09/D-10/D-14 assume the data is there.
    - Unclear: whether the user/orchestrator adds it to BE Phase 8 or wants the FE families degraded.
    - Recommendation: add to BE Phase 8 scope (one `populate` list), keep the FE fields nullable, probe in Wave 0.
+   - RESOLVED: CONTEXT D-20 (G1) — BE Phase 8 D-31 adds the populate with the SDL unchanged; FE models nullable (06-01/06-02), the document selects the populated fields only in the BE-gated 06-12 after the probe.
 2. **G2 - `GetCity` per Board visit vs. BE populate in `cities`.** Recommendation: `GetCity` (no BE dependency).
+   - RESOLVED: CONTEXT D-20 (G2) — `GetCity($id)` document and `getCityPointIds` in 06-07, fetched when the Board opens.
 3. **C1 - banner extension style** (`notice` field vs `InAppBanner` type). Recommendation: `notice` field, minimal diff.
+   - RESOLVED: CONTEXT D-20 (C1) — `publishNotice(KGNotification, dedupKey)` + `notice` on the state (06-03), fired from a `BlocListener` on the acceptance failure (06-10).
 4. **`crime`/`guard` quests on the board:** out of scope for layouts but they exist in the enum, and `Sheet` maps `crime` to its own paper while `guard` falls to the job sheet. Recommendation: list them with the service family fallback (do not filter silently); the user's catalogue currently has none.
+   - RESOLVED: CONTEXT D-20 — listed with the service-family fallback layout (06-02 classifier lists them, 06-06 maps them to the service family, 06-09 to their papers).
 5. **`pointsSpent` in `PendingQuest`:** selected by D-14, unused by this phase. Recommendation: parse as `int?` and keep (Phase 9 needs it), no UI.
+   - RESOLVED: 06-01 Task 3 parses `pointsSpent` as `int?` and selects it in the lane fragment; no UI in this phase.
 6. **Board open while the location changes** (Pitfall 14). Recommendation: empty state, no navigation.
+   - RESOLVED: 06-09 — the Board shows no papers and does not crash when the character leaves the city marker (no navigation).
 
 ## Environment Availability
 
