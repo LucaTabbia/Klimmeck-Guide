@@ -150,6 +150,44 @@
 
 ---
 
+## Follow-up (stessa sessione): asset, Mappa, story, board
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Mantieni, estendi isFull al rango | Stessi asset per tipo, regola 'pieno' per somma dei count o rango esaurito | ✓ |
+| Cambia la mappatura | | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Asset strappato della board | Foglietto strappato del tipo | |
+| Sheet grande in due metà | | |
+| Decidi tu in UI phase | | |
+
+**User's choice (free text):** "Asset intero della board. Quando lo clicchi ha la stessa presentazione della missione nella board, ma si aggiunge anche lo stato."
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Solo la story del mio titolo | Una sola story visibile | ✓ |
+| Tutte e 5, una sola accettabile | | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Strappata per me | | |
+| Nascosta | | |
+| Intera, swipe bloccato | | |
+
+**User's choice (free text):** "Questa situazione è possibile solo con le missioni di tipo story e worldMission, perché negli altri casi saresti o in viaggio o in un altro POI dopo aver accettato la quest e potresti tornare in città solo a quest finita […]. Nel caso di worldMission e story le vedi strappate."
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Sì, solo in città | Board disabilitata fuori dal marker di una città | ✓ |
+| No, accessibile ovunque | | |
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Strappate per me | QUEST-04 emendato: story/worldMission attive restano in lista strappate | ✓ |
+| Nascoste (QUEST-04 com'è) | | |
+
 ## Claude's Discretion
 
 Haptic pattern e geometria dello strappo; posizione del foglio strappato sulla Mappa e centratura; come lo sheet blocca lo swipe; forma di Repository/Cubit; fallback della regola "strappata per gli altri" prima della merge BE 8; copy del banner per codice.
