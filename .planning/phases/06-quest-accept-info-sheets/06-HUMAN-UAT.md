@@ -10,7 +10,7 @@ backend_ref: origin/feat/08-travel-lifecycle-travel-01 (e9b0768)
 | Step | Expected | Result | Note |
 |------|----------|--------|------|
 | 1 | Off a city marker: Bacheca cell dimmed, tap does nothing; on a city marker: enabled | pending | |
-| 2 | Board in a city: that city's quests, every worldMission, only the story of your exact title; completed non-repeatable absent | pending | |
+| 2 | Board in a city: that city's quests, the city's worldMissions, only the story of your exact title (from any city); completed non-repeatable absent | pending | |
 | 3 | Sheets per family: enemy image + name + time; story lore scrolls + `Punti canale: saldo / costo` (red if short); job/heal time, rewards, "Consigliati"; title red if not eligible; rank slots for worldMission/boss/enemy/aid | pending | |
 | 4 | Swipe left on an available job/heal sheet: paper tears following the finger, tick at threshold, stronger buzz at tear; switches to Map tab | pending | |
 | 5 | Map: intact paper top-left "In viaggio", later per-type label; tap opens the read-only sheet with state line; swipe does nothing | pending | |
