@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
@@ -15,7 +15,6 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
 
   /// Attesa prima dell'unico nuovo tentativo quando GetCity non ha risposto.
   final Duration cityRetryDelay;
-  StreamSubscription<Quest>? _sub;
   Timer? _cityRetry;
   int _refreshGeneration = 0;
 
@@ -91,7 +90,6 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
   @override
   Future<void> close() {
     _cityRetry?.cancel();
-    _sub?.cancel();
     return super.close();
   }
 }
