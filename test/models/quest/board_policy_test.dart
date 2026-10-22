@@ -72,13 +72,35 @@ void main() {
       expect(boardQuestsFor(quests, buildViewer(cityPointIds: null)), isEmpty);
     });
 
-    test('worldMission from every city is listed', () {
-      final quest = buildQuest(
+    test('worldMission is listed only in its own city', () {
+      final own = buildQuest(
+        id: 'wm-own',
+        type: 'worldMission',
+        requiredPoints: 100,
+      );
+      final other = buildQuest(
+        id: 'wm-other',
         type: 'worldMission',
         requiredPoints: 100,
         markerId: 'poi-9',
       );
-      expect(boardQuestsFor([quest], buildViewer()), [quest]);
+      expect(ids(boardQuestsFor([own, other], buildViewer())), ['wm-own']);
+      expect(boardQuestsFor([own], buildViewer(cityPointIds: null)), isEmpty);
+      final owner = buildViewer(
+        quests: buildLanes(
+          activeWorldMissionQuest: laneJson(questId: 'wm-other'),
+        ),
+      );
+      expect(ids(boardQuestsFor([own, other], owner)), ['wm-own', 'wm-other']);
+    });
+
+    test('the story of the exact title is listed from any city', () {
+      final story = buildQuest(
+        type: 'story',
+        requiredPoints: 100,
+        markerId: 'poi-9',
+      );
+      expect(boardQuestsFor([story], buildViewer()), [story]);
     });
 
     test('only the story of the exact title is listed', () {

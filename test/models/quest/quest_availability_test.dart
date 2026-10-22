@@ -205,14 +205,44 @@ void main() {
       );
     });
 
-    test('worldMission ignores the city (D-26)', () {
-      final quest = buildQuest(
-        type: 'worldMission',
-        requiredPoints: 100,
-        markerId: 'poi-9',
-      );
-      expect(availabilityOf(quest, buildViewer()), QuestAvailability.available);
-    });
+    test(
+      'worldMission outside its city is notInCity; story ignores the city',
+      () {
+        QuestAvailability worldMissionAt(
+          String markerId, {
+          Set<String>? city,
+        }) => availabilityOf(
+          buildQuest(
+            type: 'worldMission',
+            requiredPoints: 100,
+            markerId: markerId,
+          ),
+          buildViewer(cityPointIds: city),
+        );
+        expect(
+          worldMissionAt('poi-9', city: {'poi-1'}),
+          QuestAvailability.notInCity,
+        );
+        expect(
+          worldMissionAt('poi-1', city: {'poi-1'}),
+          QuestAvailability.available,
+        );
+        expect(worldMissionAt('poi-1'), QuestAvailability.notInCity);
+        final story = buildQuest(
+          type: 'story',
+          requiredPoints: 100,
+          markerId: 'poi-9',
+        );
+        expect(
+          availabilityOf(story, buildViewer()),
+          QuestAvailability.available,
+        );
+        expect(
+          availabilityOf(story, buildViewer(cityPointIds: null)),
+          QuestAvailability.available,
+        );
+      },
+    );
 
     test('insufficient points only for story and worldMission', () {
       final quest = buildQuest(type: 'story', requiredPoints: 3000);
