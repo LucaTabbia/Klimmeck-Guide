@@ -35,7 +35,7 @@ class QuestAcceptanceRepository {
       throw QuestAcceptanceException(questAcceptanceFailureFrom(error));
     } on TimeoutException {
       throw const QuestAcceptanceException(QuestAcceptanceFailure.timedOut);
-    } on FormatException {
+    } on Object {
       throw const QuestAcceptanceException(QuestAcceptanceFailure.unknown);
     }
   }
