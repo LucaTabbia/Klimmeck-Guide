@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -195,6 +196,126 @@ void main() {
       pending.complete(fresh);
 
       await expectLater(refresh, completes);
+    });
+  });
+
+  group('city retry', () {
+    // WR-02: una GetCity fallita alla prima apertura lascerebbe la bacheca
+    // quasi vuota senza feedback; un solo nuovo tentativo silenzioso.
+    const delay = Duration(seconds: 2);
+    final fresh = [buildQuest(id: 'fresh')];
+
+    QuestCubit build() => QuestCubit(repository, cityRetryDelay: delay);
+
+    void cityFailsTimes(int failures) {
+      var calls = 0;
+      when(() => repository.getCityPointIds('city-1')).thenAnswer((_) {
+        if (++calls <= failures) throw Exception('GetCity down');
+        return Future.value({'p-1'});
+      });
+    }
+
+    test('the default delay is two seconds', () {
+      expect(QuestCubit.defaultCityRetryDelay, const Duration(seconds: 2));
+    });
+
+    test('retries the city once after the delay when GetCity failed', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenAnswer((_) async => fresh);
+        cityFailsTimes(1);
+        final cubit = build();
+
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        expect(cubit.state, QuestLoaded(fresh, cityId: 'city-1'));
+        verify(() => repository.getCityPointIds('city-1')).called(1);
+
+        async.elapse(delay);
+        expect(
+          cubit.state,
+          QuestLoaded(fresh, cityId: 'city-1', cityPointIds: const {'p-1'}),
+        );
+        verify(() => repository.getCityPointIds('city-1')).called(1);
+        cubit.close();
+      });
+    });
+
+    test('gives up after the single retry', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenAnswer((_) async => fresh);
+        cityFailsTimes(5);
+        final cubit = build();
+
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        async.elapse(delay * 3);
+
+        verify(() => repository.getCityPointIds('city-1')).called(2);
+        expect(cubit.state, QuestLoaded(fresh, cityId: 'city-1'));
+        cubit.close();
+      });
+    });
+
+    test('does not retry when the city POIs arrived', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenAnswer((_) async => fresh);
+        cityFailsTimes(0);
+        final cubit = build();
+
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        async.elapse(delay * 2);
+
+        verify(() => repository.getCityPointIds('city-1')).called(1);
+        cubit.close();
+      });
+    });
+
+    test('does not retry without a city', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenThrow(Exception('x'));
+        final cubit = build();
+
+        cubit.refreshQuests();
+        async.flushMicrotasks();
+        async.elapse(delay * 2);
+
+        verify(() => repository.getQuests()).called(1);
+        verifyNever(() => repository.getCityPointIds(any()));
+        cubit.close();
+      });
+    });
+
+    test('a newer refresh supersedes the scheduled retry', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenAnswer((_) async => fresh);
+        cityFailsTimes(1);
+        final cubit = build();
+
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        async.elapse(delay * 2);
+
+        verify(() => repository.getCityPointIds('city-1')).called(2);
+        cubit.close();
+      });
+    });
+
+    test('close cancels the scheduled retry', () {
+      fakeAsync((async) {
+        when(() => repository.getQuests()).thenAnswer((_) async => fresh);
+        cityFailsTimes(1);
+        final cubit = build();
+
+        cubit.refreshQuests(cityId: 'city-1');
+        async.flushMicrotasks();
+        cubit.close();
+        async.elapse(delay * 2);
+
+        verify(() => repository.getCityPointIds('city-1')).called(1);
+      });
     });
   });
 
