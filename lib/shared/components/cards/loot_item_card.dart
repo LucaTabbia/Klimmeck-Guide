@@ -52,8 +52,8 @@ class LootItemCard extends StatelessWidget {
                     color: lootItem.rarity?.color ?? KlimmeckGuideTheme.deepNight,
                   ),
                   Spacer(),
-                  if (lootItem.power != 0)
-                    _buildTextSection(text: lootItem.power.toString()),
+                  if (lootItem.power != null && lootItem.power != 0)
+                    _buildTextSection(text: '${lootItem.power}'),
                   Spacer(flex: 3),
                 ],
               ),
