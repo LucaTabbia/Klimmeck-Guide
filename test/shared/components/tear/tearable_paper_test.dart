@@ -1,5 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/shared/components/tear/tear_geometry.dart';
+import 'package:klimmeck_guide/shared/components/tear/tear_gesture.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 
 import '../../../helpers/haptic_recorder.dart';
@@ -186,6 +190,33 @@ void main() {
 
     expect(torn, 0);
     expect(haptics, [_light]);
+    expect(find.byType(ClipPath), findsNothing);
+  });
+
+  testWidgets('a hard fling on a blocked paper never overshoots the cap', (
+    tester,
+  ) async {
+    // D-11: il foglio resiste; la molla non deve portarlo oltre il cap.
+    recordHaptics(tester);
+    await tester.pumpWidget(_harness(onTorn: () {}, canTear: false));
+    final rest = tester.getRect(paper);
+    final capTravel =
+        const TearGesture().blockedCap * TearGeometry.dragShift * rest.width;
+
+    await tester.fling(paper, const Offset(-120, 0), 1500);
+    var leftmostCenter = rest.center.dx;
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      final body = find.byKey(TearablePaper.bodyKey);
+      if (body.evaluate().isEmpty) continue;
+      leftmostCenter = math.min(leftmostCenter, tester.getCenter(body).dx);
+    }
+    await tester.pumpAndSettle();
+
+    expect(
+      leftmostCenter,
+      greaterThanOrEqualTo(rest.center.dx - capTravel - 0.5),
+    );
     expect(find.byType(ClipPath), findsNothing);
   });
 
