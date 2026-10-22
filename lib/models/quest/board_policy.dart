@@ -18,8 +18,9 @@ City? currentCityOf(List<City> cities, PointOfInterest? location) {
 bool isOnCityMarker(List<City> cities, PointOfInterest? location) =>
     currentCityOf(cities, location) != null;
 
-/// Quest mostrate sulla board (D-11/D-12): quelle della città, ogni worldMission,
-/// la sola story del titolo esatto, la propria story/worldMission attiva (strappata).
+/// Quest mostrate sulla board (D-11/D-12): quelle della città, worldMission incluse,
+/// la sola story del titolo esatto da ogni città, la propria story/worldMission attiva
+/// (strappata).
 List<Quest> boardQuestsFor(List<Quest> quests, QuestViewer viewer) =>
     List.unmodifiable(quests.where((quest) => _isListed(quest, viewer)));
 
@@ -34,7 +35,6 @@ bool _isListed(Quest quest, QuestViewer viewer) {
   }
   return switch (type) {
     QuestType.story => quest.requirements?.minTitle == viewer.title,
-    QuestType.worldMission => true,
     _ =>
       viewer.cityPointIds?.contains(quest.infos?.markerLocation?.id) ?? false,
   };

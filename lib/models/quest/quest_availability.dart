@@ -83,7 +83,7 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
     return QuestAvailability.laneBusy;
   }
   if (_isFullForViewer(quest, viewer)) return QuestAvailability.full;
-  if (lane == QuestLane.standard &&
+  if (lane != QuestLane.story &&
       !(viewer.cityPointIds?.contains(quest.infos?.markerLocation?.id) ??
           false)) {
     return QuestAvailability.notInCity;
