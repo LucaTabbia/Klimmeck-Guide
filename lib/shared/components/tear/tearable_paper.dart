@@ -117,7 +117,9 @@ class TearablePaperState extends State<TearablePaper>
       return;
     }
     // Segno invertito: la velocità è negativa verso sinistra, il progresso cresce a sinistra.
-    _springBack(_width <= 0 ? 0 : -velocity / _width);
+    // Un foglio che resiste (D-11) riparte dal cap senza slancio: niente overshoot.
+    final keepsMomentum = widget.canTear && _width > 0;
+    _springBack(keepsMomentum ? -velocity / _width : 0);
   }
 
   Future<void> _commitTear() async {
