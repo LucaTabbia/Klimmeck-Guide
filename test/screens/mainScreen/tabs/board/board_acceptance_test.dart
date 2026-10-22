@@ -169,6 +169,39 @@ void main() {
   }
 
   group('swipe to accept', () {
+    testWidgets('the open sheet scroll view does not clip the torn piece', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+      await openSheet(tester, 'h-1');
+
+      final scroll = tester.widget<SingleChildScrollView>(
+        find.byKey(const ValueKey('board-sheet-h-1')),
+      );
+      expect(scroll.clipBehavior, Clip.none);
+    });
+
+    testWidgets('a completed tear slides the body off the screen', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+      await openSheet(tester, 'h-1');
+
+      await dragSheetLeft(tester);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        tester.getRect(find.byKey(TearablePaper.bodyKey)).right,
+        lessThan(0),
+      );
+    });
+
     testWidgets('tearing the open sheet accepts with the session character', (
       tester,
     ) async {

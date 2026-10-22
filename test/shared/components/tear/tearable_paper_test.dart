@@ -31,12 +31,65 @@ Widget _harness({
 void main() {
   final paper = find.byType(TearablePaper);
 
+  testWidgets('only the body moves while dragging', (tester) async {
+    recordHaptics(tester);
+    await tester.pumpWidget(_harness(onTorn: () {}));
+    final rest = tester.getRect(paper);
+
+    final gesture = await tester.startGesture(tester.getCenter(paper));
+    for (var i = 0; i < 3; i++) {
+      await gesture.moveBy(const Offset(-60, 0));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(tester.getRect(find.byKey(TearablePaper.stubKey)), rest);
+    expect(
+      tester.getTopLeft(find.byKey(TearablePaper.bodyKey)).dx,
+      lessThan(rest.left),
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a completed tear slides the body off-screen', (tester) async {
+    recordHaptics(tester);
+    await tester.pumpWidget(_harness(onTorn: () {}));
+    final rest = tester.getRect(paper);
+
+    await tester.drag(paper, const Offset(-300, 0));
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(find.byKey(TearablePaper.bodyKey)).right, lessThan(0));
+    expect(tester.getRect(find.byKey(TearablePaper.stubKey)), rest);
+
+    tester.state<TearablePaperState>(paper).recompose();
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipPath), findsNothing);
+  });
+
+  testWidgets('the pieces are not clipped by the paper bounds', (tester) async {
+    recordHaptics(tester);
+    await tester.pumpWidget(_harness(onTorn: () {}));
+
+    final gesture = await tester.startGesture(tester.getCenter(paper));
+    await gesture.moveBy(const Offset(-80, 0));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    final stack = tester.widget<Stack>(
+      find.descendant(of: paper, matching: find.byType(Stack)),
+    );
+    expect(stack.clipBehavior, Clip.none);
+    expect(find.byType(Dismissible), findsNothing);
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('renders the child once at rest', (tester) async {
     await tester.pumpWidget(_harness(onTorn: () {}));
     expect(find.byType(ClipPath), findsNothing);
   });
 
-  testWidgets('a full drag tears, haptics fire, halves stay apart', (
+  testWidgets('a full drag tears, haptics fire, the body leaves', (
     tester,
   ) async {
     var torn = 0;
