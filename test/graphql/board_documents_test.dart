@@ -50,6 +50,21 @@ void main() {
     test('selects the populated enemy and lore references', () {
       expect(document, contains('enemy { id name imagePath }'));
       expect(document, contains('relatedLore { id name description }'));
+      // il premio loot viene reso con LootItemCard: servono effect e power
+      expect(
+        RegExp(
+          r'prizeItem \{[\s\S]*?\.\.\. on LootItem \{[^}]*\beffect\b[^}]*\}',
+        ).hasMatch(document),
+        isTrue,
+        reason: 'prizeItem loot must select effect',
+      );
+      expect(
+        RegExp(
+          r'prizeItem \{[\s\S]*?\.\.\. on LootItem \{[^}]*\bpower\b[^}]*\}',
+        ).hasMatch(document),
+        isTrue,
+        reason: 'prizeItem loot must select power',
+      );
     });
 
     test('leaves the removed and unsafe fields out', () {
