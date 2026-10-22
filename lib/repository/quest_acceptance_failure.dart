@@ -28,6 +28,10 @@ enum QuestAcceptanceFailure {
   travelInProgress,
   unauthenticated,
   connection,
+
+  /// Nessuna risposta entro il timeout client: la richiesta non è annullata,
+  /// il BE può ancora accettare la quest e la corsia arriverà via subscription.
+  timedOut,
   unknown,
 }
 

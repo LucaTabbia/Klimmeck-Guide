@@ -14,8 +14,10 @@ class QuestAcceptanceRepository {
   }) : _graphQl = graphQl;
 
   /// Oltre questo tempo senza risposta l'accettazione fallisce come
-  /// `connection`: la UI ricompone il foglio invece di restare appesa
+  /// `timedOut`: la UI ricompone il foglio invece di restare appesa
   /// (UAT 2026-10-22: BE bloccato su Redis, risposta HTTP mai partita).
+  /// La richiesta non viene annullata: una risposta tardiva del BE accetta
+  /// comunque la quest, e la corsia arriva via `characterUpdated`.
   static const Duration defaultTimeout = Duration(seconds: 15);
 
   final KlimmeckGraphQl _graphQl;
@@ -32,7 +34,7 @@ class QuestAcceptanceRepository {
     } on OperationException catch (error) {
       throw QuestAcceptanceException(questAcceptanceFailureFrom(error));
     } on TimeoutException {
-      throw const QuestAcceptanceException(QuestAcceptanceFailure.connection);
+      throw const QuestAcceptanceException(QuestAcceptanceFailure.timedOut);
     } on FormatException {
       throw const QuestAcceptanceException(QuestAcceptanceFailure.unknown);
     }

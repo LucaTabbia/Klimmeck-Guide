@@ -22,10 +22,13 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
   final List<City> cities;
   final Widget child;
 
+  /// Dopo questi rifiuti la lista può essere cambiata sul server; `timedOut`
+  /// perché il BE può aver accettato la quest dopo la scadenza client.
   static const Set<QuestAcceptanceFailure> _staleListFailures = {
     QuestAcceptanceFailure.full,
     QuestAcceptanceFailure.alreadyTaken,
     QuestAcceptanceFailure.notFound,
+    QuestAcceptanceFailure.timedOut,
   };
 
   @override

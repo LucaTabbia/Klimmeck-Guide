@@ -32,6 +32,9 @@ KGNotification? questAcceptanceNoticeFor(
     QuestAcceptanceFailure.travelInProgress =>
       "Sei in viaggio: riprova all'arrivo",
     QuestAcceptanceFailure.connection => 'Connessione assente, riprova',
+    QuestAcceptanceFailure.timedOut =>
+      'Il server non ha risposto in tempo: '
+          'controlla la bacheca prima di riprovare',
     QuestAcceptanceFailure.unknown => 'Qualcosa è andato storto, riprova',
     QuestAcceptanceFailure.unauthenticated => null,
   };
