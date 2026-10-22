@@ -96,5 +96,16 @@ void main() {
         _failsWith(QuestAcceptanceFailure.unknown),
       );
     });
+
+    test('maps any other error to unknown', () async {
+      // graphql.md: il repository incapsula ogni errore, non solo i tre
+      // tipi previsti; il catch-all del Cubit resta una rete di sicurezza.
+      when(() => graphQl.acceptQuest(any())).thenThrow(StateError('bad'));
+
+      await expectLater(
+        repository.accept(characterId: 'c-1', questId: 'q-1'),
+        _failsWith(QuestAcceptanceFailure.unknown),
+      );
+    });
   });
 }
