@@ -17,7 +17,7 @@ progress:
 
 ## Current Position
 
-Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick tasks 261022-f0n worldMission city rule, 261022-qkx tear geometry; device E2E 12/12 passed against BE develop @ 2a3449a; code review 0 critical / 3 warning / 10 info, warnings + 3 info fixed in TDD; verification passed 7/7 requirements; security audit in 06-SECURITY.md)
+Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick tasks 261022-f0n worldMission city rule, 261022-qkx tear geometry; device E2E 12/12 passed against BE develop @ 2a3449a; code review 0 critical / 3 warning / 10 info, warnings + 3 info fixed in TDD; verification passed 7/7 requirements; security audit: 54 threats, 46 mitigated, 4 accepted, 4 transferred to the BE, 0 open)
 Plan: 12 of 12
 Completed phases: 2
 Next Phase: 07 (travel) after the Phase 6 FE PR; BE Phase 8 (Travel lifecycle) is merged on BE develop (PR #11), so the lockstep with the Phase 7 FE is unblocked.
