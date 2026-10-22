@@ -150,32 +150,35 @@ void main() {
     verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
   });
 
-  testWidgets('lists the city, world missions and the exact title story', (
-    tester,
-  ) async {
-    await pumpBoard(
-      tester,
-      quests: loaded([
-        _boardQuest('h-1', 'hunt'),
-        _boardQuest('h-2', 'hunt', markerId: 'poi-9'),
-        _boardQuest('wm-1', 'worldMission', markerId: 'poi-9'),
-        _boardQuest('s-paladin', 'story', minTitle: 'paladin'),
-        _boardQuest('s-mage', 'story', minTitle: 'mage'),
-        _boardQuest('e-done', 'enemy'),
-      ]),
-      character: characterWithLanesJson(
-        title: 'paladin',
-        completedQuestIds: ['e-done'],
-      ),
-    );
+  testWidgets(
+    'lists the city quests with its world missions and the exact title story',
+    (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([
+          _boardQuest('h-1', 'hunt'),
+          _boardQuest('h-2', 'hunt', markerId: 'poi-9'),
+          _boardQuest('wm-0', 'worldMission'),
+          _boardQuest('wm-1', 'worldMission', markerId: 'poi-9'),
+          _boardQuest('s-paladin', 'story', minTitle: 'paladin'),
+          _boardQuest('s-mage', 'story', minTitle: 'mage'),
+          _boardQuest('e-done', 'enemy'),
+        ]),
+        character: characterWithLanesJson(
+          title: 'paladin',
+          completedQuestIds: ['e-done'],
+        ),
+      );
 
-    expect(paper('h-1'), findsOneWidget);
-    expect(paper('wm-1'), findsOneWidget);
-    expect(paper('s-paladin'), findsOneWidget);
-    expect(paper('h-2'), findsNothing);
-    expect(paper('s-mage'), findsNothing);
-    expect(paper('e-done'), findsNothing);
-  });
+      expect(paper('h-1'), findsOneWidget);
+      expect(paper('wm-0'), findsOneWidget);
+      expect(paper('wm-1'), findsNothing);
+      expect(paper('s-paladin'), findsOneWidget);
+      expect(paper('h-2'), findsNothing);
+      expect(paper('s-mage'), findsNothing);
+      expect(paper('e-done'), findsNothing);
+    },
+  );
 
   testWidgets('tears the own active story and the full quests', (tester) async {
     await pumpBoard(
@@ -202,11 +205,13 @@ void main() {
       quests: loaded([
         _boardQuest('h-1', 'hunt'),
         _boardQuest('wm-1', 'worldMission', markerId: 'poi-9'),
+        _boardQuest('s-paladin', 'story', minTitle: 'paladin'),
       ], cityId: 'city-other'),
     );
 
     expect(paper('h-1'), findsNothing);
-    expect(paper('wm-1'), findsOneWidget);
+    expect(paper('wm-1'), findsNothing);
+    expect(paper('s-paladin'), findsOneWidget);
   });
 
   testWidgets('off a city marker the board shows no papers and survives', (
