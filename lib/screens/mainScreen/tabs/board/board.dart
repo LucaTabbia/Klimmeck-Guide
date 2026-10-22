@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/tear/tear_clipper.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 
 import '../../../../models/quest/quest.dart';
@@ -243,6 +244,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
               child: selected != null && viewer != null
                   ? SingleChildScrollView(
                       key: ValueKey('board-sheet-${selected.id}'),
+                      clipBehavior: Clip.none,
                       child:
                           BlocSelector<
                             QuestAcceptanceCubit,
@@ -252,6 +254,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                             selector: (state) => state is! QuestAccepting,
                             builder: (context, isIdle) => TearablePaper(
                               key: _tearKey,
+                              tearSeed: TearClipper.seedOf(selected.id),
                               canTear: standingOf(selected, viewer).canAccept,
                               isEnabled: isIdle,
                               onTorn: () => _accept(viewer, selected),

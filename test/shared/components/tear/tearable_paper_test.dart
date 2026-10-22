@@ -22,7 +22,10 @@ Widget _harness({
         onTorn: onTorn,
         canTear: canTear,
         isEnabled: isEnabled,
-        child: const ColoredBox(color: Color(0xFF000000)),
+        child: const ColoredBox(
+          color: Color(0xFF000000),
+          child: SizedBox.expand(),
+        ),
       ),
     ),
   ),
@@ -59,7 +62,10 @@ void main() {
     await tester.drag(paper, const Offset(-300, 0));
     await tester.pumpAndSettle();
 
-    expect(tester.getRect(find.byKey(TearablePaper.bodyKey)).right, lessThan(0));
+    expect(
+      tester.getRect(find.byKey(TearablePaper.bodyKey)).right,
+      lessThan(0),
+    );
     expect(tester.getRect(find.byKey(TearablePaper.stubKey)), rest);
 
     tester.state<TearablePaperState>(paper).recompose();
