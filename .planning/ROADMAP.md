@@ -60,7 +60,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
 - [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
-- [ ] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes.
+- [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes. (completed 2026-10-22)
 - [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
@@ -219,7 +219,7 @@ Plans:
   - [x] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
   - [x] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
   - [x] 06-11-PLAN.md — Wave 5: Map quest paper with the state label, read-only overlay
-  - [ ] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
+  - [x] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
 **UI hint**: no (CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 7: Travel
@@ -344,7 +344,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 11/12 | In Progress | - |
+| 6. Quest Accept & Info Sheets | 12/12 | Complete | 2026-10-22 |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |

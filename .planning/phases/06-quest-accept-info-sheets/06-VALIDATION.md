@@ -1,7 +1,7 @@
 ---
 phase: 6
 slug: quest-accept-info-sheets
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-10-21
@@ -64,8 +64,8 @@ created: 2026-10-21
 | 06-11-01 | 11 | 5 | QUEST-03, QUEST-07 | T-06-11-01/03 | no clock in the paper | widget | `flutter test test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart` | ❌ W0 | ✅ green |
 | 06-11-02 | 11 | 5 | QUEST-02, QUEST-03 | T-06-11-02 | no gesture on the Map overlay | widget | `flutter test test/screens/mainScreen/tabs/map/quest_info_overlay_test.dart` | ❌ W0 | ✅ green |
 | 06-12-01 | 12 | 6 | all | T-06-12-01/02/05 | documents valid vs BE Phase 8 schema | unit + scripted | `flutter test test/graphql/board_documents_test.dart test/tool` + schema check | ✅ | ✅ green |
-| 06-12-02 | 12 | 6 | all | T-06-12-03 | rejections surface as domain banners | manual | device E2E (06-HUMAN-UAT.md) | — | ⬜ pending (human E2E) |
-| 06-12-03 | 12 | 6 | all | T-06-12-04 | ticks only for passed steps | docs | `grep -c '^status: complete' .planning/phases/06-quest-accept-info-sheets/06-HUMAN-UAT.md` | — | ⬜ pending |
+| 06-12-02 | 12 | 6 | all | T-06-12-03 | rejections surface as domain banners | manual | device E2E (06-HUMAN-UAT.md) | — | ✅ green (12/12 steps passed 2026-10-22) |
+| 06-12-03 | 12 | 6 | all | T-06-12-04 | ticks only for passed steps | docs | `grep -c '^status: complete' .planning/phases/06-quest-accept-info-sheets/06-HUMAN-UAT.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -78,7 +78,7 @@ Wave 0 is folded into the RED step of each task (TDD): every `❌ W0` file above
 - [ ] `test/helpers/fixtures/quest_fixtures.dart` — Phase 8-shaped + legacy quest/lane/character JSON (06-01 Task 2; `buildViewer`/`buildLanes` in 06-02)
 - [ ] `test/helpers/mocks.dart` — `MockQuestAcceptanceRepository`, `MockQuestAcceptanceCubit` (06-03), `MockInAppNotificationsCubit` (06-04), `MockQuestBoardRepository` (06-07)
 - [ ] `test/helpers/haptic_recorder.dart` (06-05), `test/helpers/svg_cache_seed.dart` (06-06)
-- [ ] (deferred to E2E step 3) Probe of the final `quests` document against a running BE (06-12 Task 1 step 4; G1/G2)
+- [x] (done in the E2E, 13 quests with enemy/lore/items populated) Probe of the final `quests` document against a running BE (06-12 Task 1 step 4; G1/G2)
 
 ---
 
@@ -99,4 +99,4 @@ Wave 0 is folded into the RED step of each task (TDD): every `❌ W0` file above
 - [x] Feedback latency < 60s
 - [x] Nyquist compliance flag set in frontmatter (06-12 Task 1)
 
-**Approval:** pending
+**Approval:** approved 2026-10-22
