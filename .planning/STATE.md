@@ -21,8 +21,8 @@ Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick
 Plan: 12 of 12
 Completed phases: 2
 Next Phase: 07 (travel) after the Phase 6 FE PR; BE Phase 8 (Travel lifecycle) is merged on BE develop (PR #11), so the lockstep with the Phase 7 FE is unblocked.
-Status: Phase 6 complete — 12/12 plans, device E2E 12/12 passed against BE develop @ 2a3449a (Phase 8 merged, BE PR #11), schema_check 29/29 against origin/develop. Next: FE PR feat/06-quest-accept-info-sheets to develop, then Phase 7 (Travel). Open BE follow-up: bound TravelScheduler.schedule/cancel with a timeout (Redis down hangs the mutation).
-Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes landed (1350 tests green, analyze 54/0 errors), verification passed; FE PR to develop opened after the security audit; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 merged (BE PR #11), BE PR #12 (scheduler timeout) open
+Status: Phase 6 complete — FE PR #30 open (merge after BE PR #11, already merged; BE PR #12 scheduler timeout open), awaiting review; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 contract on develop
+Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes landed (1350 tests green, analyze 54/0 errors), verification passed; FE PR #30 to develop opened after the security audit; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 merged (BE PR #11), BE PR #12 (scheduler timeout) open
 
 ## Current Milestone
 
