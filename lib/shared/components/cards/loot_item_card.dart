@@ -38,15 +38,18 @@ class LootItemCard extends StatelessWidget {
               child: Column(
                 children: [
                   Spacer(flex: 3),
-                  CachedSvg(
-                    url: lootItem.effect!.imagePath,
-                    height: (size / 6) * 2.5,
-                    width: size,
-                  ),
+                  if (lootItem.effect != null)
+                    CachedSvg(
+                      url: lootItem.effect!.imagePath,
+                      height: (size / 6) * 2.5,
+                      width: size,
+                    )
+                  else
+                    SizedBox(height: (size / 6) * 2.5),
                   Spacer(),
                   _buildTextSection(
                     text: lootItem.name ?? "",
-                    color: lootItem.rarity!.color,
+                    color: lootItem.rarity?.color ?? KlimmeckGuideTheme.deepNight,
                   ),
                   Spacer(),
                   if (lootItem.power != 0)

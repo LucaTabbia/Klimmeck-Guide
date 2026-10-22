@@ -71,6 +71,8 @@ class QuestQueries {
               ... on LootItem {
                 ${LootFragment.simpleFields}
                 description
+                effect
+                power
               }
             }
           }
