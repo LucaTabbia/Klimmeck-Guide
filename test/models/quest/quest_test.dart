@@ -95,6 +95,55 @@ void main() {
     });
   });
 
+  group('Quest.fromJson with the catalog items on the wire', () {
+    Map<String, dynamic> lootOnWire({String? description}) => {
+      'id': 'l-1',
+      'name': 'Frecce da Caccia',
+      'itemType': 'LootItem',
+      'rarity': 'common',
+      if (description != null) 'description': description,
+    };
+
+    test('a loot item without description still parses (simpleFields)', () {
+      final quest = Quest.fromJson(
+        questJson(
+          type: 'hunt',
+          recommendedLoot: [
+            {'quantity': 10, 'item': lootOnWire()},
+          ],
+        ),
+      );
+      final loot = quest.requirements!.recommendedLoot!.single;
+      expect(loot.quantity, 10);
+      expect(loot.item!.name, 'Frecce da Caccia');
+      expect(loot.item!.description, '');
+    });
+
+    test('prizeItem arrives as an AssetQuantity { quantity item }', () {
+      final json = questJson(type: 'study');
+      json['prizes'] = {
+        'xpPrize': 10,
+        'prizeItem': {
+          'quantity': 1,
+          'item': lootOnWire(description: 'Una pergamena'),
+        },
+        'randomLoot': [
+          {'quantity': 2, 'item': lootOnWire()},
+        ],
+      };
+      final quest = Quest.fromJson(json);
+      expect(quest.prizes!.prizeItem!.name, 'Frecce da Caccia');
+      expect(quest.prizes!.prizeItem!.description, 'Una pergamena');
+      expect(quest.prizes!.randomLoot!.single.quantity, 2);
+    });
+
+    test('a bare prizeItem (legacy shape) still parses', () {
+      final json = questJson(type: 'study');
+      json['prizes'] = {'prizeItem': lootOnWire(description: 'x')};
+      expect(Quest.fromJson(json).prizes!.prizeItem!.name, 'Frecce da Caccia');
+    });
+  });
+
   group('Quest.tryFromJson', () {
     test('returns null for an unknown type', () {
       expect(Quest.tryFromJson(questJson(type: 'treasure')), isNull);
