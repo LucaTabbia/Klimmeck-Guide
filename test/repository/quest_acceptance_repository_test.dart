@@ -39,10 +39,12 @@ void main() {
     });
 
     test(
-      'a service call that never answers fails as connection after the timeout',
+      'a service call that never answers fails as timedOut after the timeout',
       () async {
         // UAT 2026-10-22: con Redis spento il BE non rispondeva e il client
-        // restava appeso ~100 s; il repository deve chiudere da solo.
+        // restava appeso ~100 s; il repository deve chiudere da solo. Non è
+        // `connection`: la richiesta non viene annullata e il BE può ancora
+        // accettare la quest dopo la scadenza (WR-01).
         final completer = Completer<void>();
         when(
           () => graphQl.acceptQuest(any()),
@@ -54,7 +56,7 @@ void main() {
 
         await expectLater(
           bounded.accept(characterId: 'c-1', questId: 'q-1'),
-          _failsWith(QuestAcceptanceFailure.connection),
+          _failsWith(QuestAcceptanceFailure.timedOut),
         );
       },
     );

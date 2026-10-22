@@ -144,6 +144,8 @@ void main() {
   for (final failure in [
     QuestAcceptanceFailure.alreadyTaken,
     QuestAcceptanceFailure.notFound,
+    // Il BE può aver accettato la quest dopo la scadenza client (WR-01).
+    QuestAcceptanceFailure.timedOut,
   ]) {
     testWidgets('${failure.name} refreshes the stale list', (tester) async {
       await pumpListener(tester);
