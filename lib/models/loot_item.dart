@@ -23,7 +23,8 @@ class LootItem extends AssetItem with EquatableMixin {
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
     id: json["id"],
     name: json["name"],
-    description: json['description'],
+    // il documento `quests` seleziona gli item con i soli simpleFields
+    description: json['description'] ?? '',
     sellPrice: json['sellPrice'] != null
         ? Coins.fromJson(json['sellPrice'])
         : null,

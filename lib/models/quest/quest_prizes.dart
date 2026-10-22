@@ -22,9 +22,7 @@ class QuestPrizes extends Equatable {
         ? Coins.fromJson(json["prizeCoins"])
         : null,
     xpPrize: (json["xpPrize"] as num?)?.toInt(),
-    prizeItem: json["prizeItem"] != null
-        ? AssetItem.fromJson(json['prizeItem'])
-        : null,
+    prizeItem: _prizeItemFrom(json['prizeItem']),
     randomLoot: json['randomLoot'] != null
         ? List<AssetQuantity>.from(
             json['randomLoot'].map((x) => AssetQuantity.fromJson(x)),
@@ -55,4 +53,13 @@ class QuestPrizes extends Equatable {
 
   @override
   List<Object?> get props => [randomLoot, prizeCoins, xpPrize, prizeItem];
+}
+
+/// Sul filo `prizeItem` è un `AssetQuantity { quantity item }` (SDL BE);
+/// la forma nuda dell'item resta accettata per compatibilità.
+AssetItem? _prizeItemFrom(Object? json) {
+  if (json is! Map<String, dynamic>) return null;
+  final item = json.containsKey('item') ? json['item'] : json;
+  if (item is! Map<String, dynamic>) return null;
+  return AssetItem.fromJson(item);
 }
