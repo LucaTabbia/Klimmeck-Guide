@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
@@ -35,6 +36,34 @@ void main() {
           const AcceptQuestRequest(id: 'c-1', questId: 'q-1'),
         ),
       ).called(1);
+    });
+
+    test(
+      'a service call that never answers fails as connection after the timeout',
+      () async {
+        // UAT 2026-10-22: con Redis spento il BE non rispondeva e il client
+        // restava appeso ~100 s; il repository deve chiudere da solo.
+        final completer = Completer<void>();
+        when(
+          () => graphQl.acceptQuest(any()),
+        ).thenAnswer((_) => completer.future);
+        final bounded = QuestAcceptanceRepository(
+          graphQl: graphQl,
+          timeout: const Duration(milliseconds: 20),
+        );
+
+        await expectLater(
+          bounded.accept(characterId: 'c-1', questId: 'q-1'),
+          _failsWith(QuestAcceptanceFailure.connection),
+        );
+      },
+    );
+
+    test('the default timeout is 15 seconds', () {
+      expect(
+        QuestAcceptanceRepository.defaultTimeout,
+        const Duration(seconds: 15),
+      );
     });
 
     test('maps an OperationException by its code', () async {
