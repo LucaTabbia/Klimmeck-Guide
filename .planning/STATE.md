@@ -22,7 +22,7 @@ Plan: 12 of 12 (06-12 at the human-verify checkpoint, Task 2)
 Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR #29 to develop opened 2026-10-20; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
 Next Phase: 06 (quest-accept-info-sheets) — UNBLOCKED: BE Phase 7 (QUEST-04) merged on BE develop with PR #10 on 2026-10-21. Next: /gsd-plan-phase 6 (no UI phase: visuals are provisional and reworked by the user; workflow.ui_phase=false). BE Phase 8 (Travel, `feat/08-travel-lifecycle-travel-01`) context captured the same day with Phase 7 amendments (PendingQuest.startDate nullable, registeredAdventurers { character title }, requiredAdventurers as rank slots without party, enemy/aid registration, story/worldMission acceptable from any city) — see Phase 6 CONTEXT D-16 for the lockstep.
 Status: Phase 6 executing — 11/12 plans complete + 06-12 Task 1 done (quests document on the BE Phase 8 shapes, schema_check 29/29 against origin/feat/08-travel-lifecycle-travel-01 @ e9b0768); CHECKPOINT human-verify open: device E2E (06-HUMAN-UAT.md, 12 steps) awaiting the user; then continuation of 06-12 (Tasks 2-3) and FE PR after BE PR #11 is merged
-Last activity: 2026-10-22 -- Phase 6 plans 06-01..06-11 executed sequentially (1319 tests green, analyze 54/0 errors); 06-12 Task 1 done with the BE branch fallback; waiting for the device E2E (BE data per BACKEND-NOTES §11 to prepare by hand)
+Last activity: 2026-10-22 -- Completed quick task 261022-f0n: worldMission listed and acceptable only in its own city (D-11/D-16 amended); Phase 6 still at the 06-12 device E2E checkpoint (1320 tests green)
 
 ## Current Milestone
 
@@ -52,3 +52,9 @@ Last activity: 2026-10-22 -- Phase 6 plans 06-01..06-11 executed sequentially (1
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
 - **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261022-f0n | worldMission listed and acceptable only in its own city (D-11/D-16 amended, user correction) | 2026-10-22 | 10d6298 | [261022-f0n-worldmission-listed-and-acceptable-only-](./quick/261022-f0n-worldmission-listed-and-acceptable-only-/) |
