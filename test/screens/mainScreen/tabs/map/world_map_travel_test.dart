@@ -9,10 +9,12 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
@@ -141,7 +143,37 @@ LatLng pawnAt(DateTime now) {
 List<Polyline> routePolylines(WidgetTester tester) =>
     tester.widget<PolylineLayer>(find.byType(PolylineLayer)).polylines;
 
+/// Il cubit mockato passa a `TravelPreviewing`: il foglio resta aperto (guardia 07-08).
+void previewKeepsTheSheetOpen() {
+  when(
+    () => travelCubit.preview(
+      characterId: any(named: 'characterId'),
+      destination: any(named: 'destination'),
+    ),
+  ).thenAnswer((invocation) async {
+    final destination = invocation.namedArguments[#destination] as City;
+    travelStates.add(TravelPreviewing(destination));
+  });
+}
+
+Future<void> dragPawnBy(WidgetTester tester, Offset offset) async {
+  await tester.drag(find.byType(Draggable), offset);
+  await tester.pumpAndSettle();
+}
+
+TravelConfirming confirmingAlong(List<List<double>> coordinates) =>
+    TravelConfirming(
+      destination: cityB,
+      preview: TravelPreview.fromJson(
+        travelPreviewJson(road: travelPathJson(coordinates: coordinates)),
+      ),
+      eta: travelEnd,
+      previewedAt: travelStart,
+    );
+
 void main() {
+  setUpAll(() => registerFallbackValue(cityA));
+
   setUp(() {
     characterCubit = MockCharacterCubit();
     questCubit = MockQuestCubit();
@@ -151,6 +183,13 @@ void main() {
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
     when(() => characterCubit.refreshCharacter()).thenAnswer((_) async {});
+    when(
+      () => travelCubit.preview(
+        characterId: any(named: 'characterId'),
+        destination: any(named: 'destination'),
+      ),
+    ).thenAnswer((_) async {});
+    when(() => travelCubit.cancel()).thenReturn(null);
     seedSvgCache([
       CloudinaryAssets.cliffbreak,
       CloudinaryAssets.adventurerMalePawn,
@@ -287,6 +326,99 @@ void main() {
       serverClock.advance(const Duration(minutes: 5));
       await tester.pump(const Duration(seconds: 2));
       verifyNever(() => characterCubit.refreshCharacter());
+    });
+  });
+
+  group('drag to travel (D-01..D-04)', () {
+    testWidgets('releasing on another city previews it and opens the sheet', (
+      tester,
+    ) async {
+      previewKeepsTheSheetOpen();
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      verify(
+        () => travelCubit.preview(characterId: 'c-1', destination: cityB),
+      ).called(1);
+      final sheet = tester.widget<TravelConfirmationSheet>(
+        find.byType(TravelConfirmationSheet),
+      );
+      expect(sheet.destination, cityB);
+      final route = ModalRoute.of(
+        tester.element(find.byType(TravelConfirmationSheet)),
+      )!;
+      expect(route.barrierColor, Colors.transparent);
+    });
+
+    testWidgets('releasing on the current city does nothing', (tester) async {
+      previewKeepsTheSheetOpen();
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      await dragPawnBy(tester, const Offset(40, 0));
+
+      verifyNever(
+        () => travelCubit.preview(
+          characterId: any(named: 'characterId'),
+          destination: any(named: 'destination'),
+        ),
+      );
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+    });
+
+    testWidgets('dismissing the sheet cancels the travel flow', (tester) async {
+      previewKeepsTheSheetOpen();
+      await pumpWorldMap(tester, character: characterLoaded());
+      await dragPawnBy(tester, const Offset(300, 0));
+      expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+
+      await tester.tapAt(const Offset(390, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+      verify(() => travelCubit.cancel()).called(1);
+    });
+
+    testWidgets('a preview rejected before the first frame leaves no sheet', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+      verify(() => travelCubit.cancel()).called(1);
+    });
+
+    testWidgets('fits the camera on the previewed route', (tester) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      travelStates.add(
+        confirmingAlong(const [
+          departureWire,
+          [10.0, 70.0],
+          [10.0, 120.0],
+        ]),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final bounds = mapCamera(tester).visibleBounds;
+      expect(bounds.contains(const LatLng(10, 20)), isTrue);
+      expect(bounds.contains(const LatLng(10, 120)), isTrue);
+    });
+
+    testWidgets('a route with fewer than two points leaves the camera', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      travelStates.add(confirmingAlong(const [departureWire]));
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expectCentreAt(tester, const LatLng(0, 0));
     });
   });
 }
