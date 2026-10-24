@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 7 (Travel) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
 Next Phase: 8 (Spells Section) once Phase 7 ships (PR to develop); BE Phase 9 (Combat Result & Admin Outcomes) planned in the same session and executing in parallel on the BE repo
 Status: Executing Phase 7 — 11 plans in 7 waves (07-CONTEXT amended after the research: D-03 C3, D-18 C1/C2; plan-checker passed after one revision), sequential executors on feat/07-travel
-Last activity: 2026-10-24 -- Phase 7 plan 07-01 completed (travel models, activeTravel on the character, no-cost amendment)
+Last activity: 2026-10-24 -- Phase 7 plan 07-02 completed (route geometry, server-time progress, Italian travel strings, drag destination rule)
 
 ## Current Milestone
 
