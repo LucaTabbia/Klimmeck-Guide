@@ -242,7 +242,7 @@ Plans:
   - [x] 07-02-PLAN.md — Wave 1: pure route geometry (cumulative length, interpolation, split), server-time progress, Italian duration/distance/ETA strings, drag destination rule (D-02)
   - [x] 07-03-PLAN.md — Wave 1: ServerClockService (serverTime offset, RTT, resync on resume) + fake; TravelFailure by `extensions.code` + banner catalogue (D-14)
   - [x] 07-04-PLAN.md — Wave 2: Board and Shop only on a city marker and never while travelling (D-12); MapFocusCubit + `travelEnd` popup entry (D-15)
-  - [ ] 07-05-PLAN.md — Wave 2: GetServerTime/GetTravelPreview/StartTravel documents + registry (29 → 32), cities lore image, KlimmeckGraphQl methods, TravelRepository with the permission gate after success (D-05)
+  - [x] 07-05-PLAN.md — Wave 2: GetServerTime/GetTravelPreview/StartTravel documents + registry (29 → 32), cities lore image, KlimmeckGraphQl methods, TravelRepository with the permission gate after success (D-05)
   - [ ] 07-06-PLAN.md — Wave 2: TravelProgressCubit (route memoised per startTime, 1 s tick on server time, arrival hold, silent refetch requests)
   - [ ] 07-07-PLAN.md — Wave 3: TravelCubit (preview → confirm → start), TravelOutcomeListener (banner, settle on activeTravel), shell providers
   - [ ] 07-08-PLAN.md — Wave 4: TravelRouteLayer (dashed preview, two-tone live route) + TravelConfirmationSheet (parchment, Parti/Resta) + map test harness
@@ -357,7 +357,7 @@ Plans:
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
-| 7. Travel | 4/11 | In Progress | - |
+| 7. Travel | 5/11 | In Progress | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |

@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 7 (Travel) — EXECUTING
-Plan: 5 of 11
+Plan: 6 of 11
 Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
 Next Phase: 8 (Spells Section) once Phase 7 ships (PR to develop); BE Phase 9 (Combat Result & Admin Outcomes) planned in the same session and executing in parallel on the BE repo
 Status: Executing Phase 7 — 11 plans in 7 waves (07-CONTEXT amended after the research: D-03 C3, D-18 C1/C2; plan-checker passed after one revision), sequential executors on feat/07-travel
-Last activity: 2026-10-24 -- Phase 7 plan 07-04 completed (Board and Shop only on a city marker and never while travelling, latched MapFocusCubit + travelEnd popup entry + shell provider)
+Last activity: 2026-10-24 -- Phase 7 plan 07-05 completed (GetServerTime/GetTravelPreview/StartTravel documents, registry 32 with early schema check 32 OK, cities lore image, KlimmeckGraphQl travel calls, TravelRepository with 15 s timeout and permission gate after a successful start)
 
 ## Current Milestone
 
