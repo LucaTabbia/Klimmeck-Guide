@@ -82,6 +82,17 @@ void main() {
       ).called(1),
     );
 
+    test('is previewing as soon as preview() returns (IN-06)', () async {
+      stubPreview().thenAnswer((_) async => preview);
+      final cubit = build();
+
+      final pending = previewValdoria(cubit);
+
+      expect(cubit.state, TravelPreviewing(valdoria));
+      await pending;
+      await cubit.close();
+    });
+
     blocTest<TravelCubit, TravelState>(
       'emits the preview failure carried by the exception',
       setUp: () =>

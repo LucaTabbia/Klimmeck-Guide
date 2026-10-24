@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
+import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
@@ -149,18 +150,27 @@ LatLng pawnAt(DateTime now) {
 List<Polyline> routePolylines(WidgetTester tester) =>
     tester.widget<PolylineLayer>(find.byType(PolylineLayer)).polylines;
 
-/// Il cubit mockato passa a `TravelPreviewing`: il foglio resta aperto (guardia 07-08).
-void previewKeepsTheSheetOpen() {
+/// Come il cubit reale, `preview()` passa a `TravelPreviewing` prima di
+/// restituire (IN-06), poi [after] arriva sullo stream.
+void previewTransitions({List<TravelState> after = const []}) {
   when(
     () => travelCubit.preview(
       characterId: any(named: 'characterId'),
       destination: any(named: 'destination'),
     ),
-  ).thenAnswer((invocation) async {
-    final destination = invocation.namedArguments[#destination] as City;
-    travelStates.add(TravelPreviewing(destination));
+  ).thenAnswer((invocation) {
+    final previewing = TravelPreviewing(
+      invocation.namedArguments[#destination] as City,
+    );
+    when(() => travelCubit.state).thenReturn(previewing);
+    travelStates.add(previewing);
+    after.forEach(travelStates.add);
+    return Future<void>.value();
   });
 }
+
+/// Il cubit mockato passa a `TravelPreviewing`: il foglio resta aperto (guardia 07-08).
+void previewKeepsTheSheetOpen() => previewTransitions();
 
 Future<void> dragPawnBy(WidgetTester tester, Offset offset) async {
   await tester.drag(find.byType(Draggable), offset);
@@ -504,12 +514,36 @@ void main() {
     testWidgets('a preview rejected before the first frame leaves no sheet', (
       tester,
     ) async {
+      previewTransitions(
+        after: [
+          TravelFailed(
+            destination: cityB,
+            failure: TravelFailure.noPath,
+            stage: TravelStage.preview,
+          ),
+          const TravelIdle(),
+        ],
+      );
       await pumpWorldMap(tester, character: characterLoaded());
 
       await dragPawnBy(tester, const Offset(300, 0));
 
       expect(find.byType(TravelConfirmationSheet), findsNothing);
       verify(() => travelCubit.cancel()).called(1);
+    });
+
+    testWidgets('a preview the cubit ignored opens no sheet (IN-06)', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      verify(
+        () => travelCubit.preview(characterId: 'c-1', destination: cityB),
+      ).called(1);
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+      verifyNever(() => travelCubit.cancel());
     });
 
     testWidgets('fits the camera on the previewed route', (tester) async {
