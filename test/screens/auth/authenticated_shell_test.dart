@@ -23,6 +23,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
@@ -200,18 +201,21 @@ void main() {
   ) async {
     late TravelCubit travelCubit;
     late ServerClockService clock;
+    late ArrivalRereadLedger arrivalRereads;
     await pumpShell(
       tester,
       state: const SplashData(),
       mainScreenBuilder: (context, _) {
         travelCubit = context.read<TravelCubit>();
         clock = context.read<ServerClockService>();
+        arrivalRereads = context.read<ArrivalRereadLedger>();
         return const Text('main');
       },
     );
 
     expect(travelCubit.state, const TravelIdle());
     expect(clock, isA<ServerClockService>());
+    expect(arrivalRereads, isA<ArrivalRereadLedger>());
     expect(travelCubit.isClosed, isFalse);
 
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));

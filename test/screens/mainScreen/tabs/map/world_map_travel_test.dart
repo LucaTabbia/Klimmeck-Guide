@@ -18,6 +18,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_con
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:latlong2/latlong.dart';
@@ -65,6 +66,7 @@ late MapFocusCubit mapFocusCubit;
 late StreamController<CharacterState> characterStates;
 late StreamController<TravelState> travelStates;
 late FakeServerClockService serverClock;
+late ArrivalRereadLedger arrivalRereads;
 
 CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
@@ -103,8 +105,11 @@ Future<void> pumpWorldMap(
   );
   await tester.pumpWidget(
     buildTestApp(
-      home: RepositoryProvider<ServerClockService>.value(
-        value: serverClock,
+      home: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<ServerClockService>.value(value: serverClock),
+          RepositoryProvider<ArrivalRereadLedger>.value(value: arrivalRereads),
+        ],
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
@@ -187,6 +192,7 @@ void main() {
     worldMapCubit = MockWorldMapCubit();
     travelCubit = MockTravelCubit();
     mapFocusCubit = MapFocusCubit();
+    arrivalRereads = ArrivalRereadLedger();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
     when(() => characterCubit.refreshCharacter()).thenAnswer((_) async {});
@@ -367,6 +373,46 @@ void main() {
 
       serverClock.advance(const Duration(minutes: 5));
       await tester.pump(const Duration(seconds: 2));
+      verifyNever(() => characterCubit.refreshCharacter());
+    });
+  });
+
+  group('reread cap across remounts (WR-02)', () {
+    testWidgets('returning to the map in the arriving window adds no reread', (
+      tester,
+    ) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        serverNow: travelEnd.add(const Duration(seconds: 6)),
+      );
+      verify(() => characterCubit.refreshCharacter()).called(1);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        serverNow: travelEnd.add(const Duration(seconds: 7)),
+      );
+
+      verifyNever(() => characterCubit.refreshCharacter());
+    });
+
+    testWidgets('a backward resync does not reread the same threshold', (
+      tester,
+    ) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        serverNow: travelEnd.add(const Duration(seconds: 6)),
+      );
+      verify(() => characterCubit.refreshCharacter()).called(1);
+
+      serverClock.resync(travelEnd.subtract(const Duration(seconds: 10)));
+      await tester.pump();
+      serverClock.advance(const Duration(seconds: 16));
+      await tester.pump(const Duration(seconds: 1));
+
       verifyNever(() => characterCubit.refreshCharacter());
     });
   });

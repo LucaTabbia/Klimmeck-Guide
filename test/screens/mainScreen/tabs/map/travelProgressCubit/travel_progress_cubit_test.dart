@@ -3,6 +3,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 
 import '../../../../../helpers/fakes/fake_server_clock_service.dart';
@@ -448,6 +449,103 @@ void main() {
 
         expect(cubit.state, last);
         expect(async.pendingTimers, isEmpty);
+      });
+    });
+  });
+
+  group('TravelProgressCubit.claimArrivalReread (WR-02)', () {
+    final afterFirst = endTime.add(const Duration(seconds: 6));
+
+    void tick(FakeAsync async, FakeServerClockService clock, Duration by) {
+      clock.advance(by);
+      async.elapse(const Duration(seconds: 1));
+    }
+
+    test('claims nothing while idle or before the first threshold', () {
+      fakeAsync((async) {
+        final cubit = TravelProgressCubit(
+          clock: FakeServerClockService(endTime),
+        );
+        expect(cubit.claimArrivalReread(), isFalse);
+
+        cubit.follow(travel());
+
+        expect(cubit.claimArrivalReread(), isFalse);
+        cubit.close();
+      });
+    });
+
+    test('claims one reread per threshold reached, two at most', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(afterFirst);
+        final cubit = TravelProgressCubit(clock: clock)..follow(travel());
+
+        expect(cubit.claimArrivalReread(), isTrue);
+        expect(cubit.claimArrivalReread(), isFalse);
+
+        tick(async, clock, const Duration(seconds: 60));
+        expect(cubit.claimArrivalReread(), isTrue);
+        expect(cubit.claimArrivalReread(), isFalse);
+
+        tick(async, clock, const Duration(minutes: 10));
+        expect(cubit.claimArrivalReread(), isFalse);
+        cubit.close();
+      });
+    });
+
+    test('a remounted map sharing the ledger rereads no more', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(afterFirst);
+        final ledger = ArrivalRereadLedger();
+        final first = TravelProgressCubit(clock: clock, rereads: ledger)
+          ..follow(travel());
+        expect(first.claimArrivalReread(), isTrue);
+        first.close();
+
+        final remounted = TravelProgressCubit(clock: clock, rereads: ledger)
+          ..follow(travel());
+
+        expect(remounted.claimArrivalReread(), isFalse);
+        remounted.close();
+      });
+    });
+
+    test('a backward resync does not re-arm a claimed reread', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(afterFirst);
+        final cubit = TravelProgressCubit(clock: clock)..follow(travel());
+        expect(cubit.claimArrivalReread(), isTrue);
+
+        clock.resync(endTime.subtract(const Duration(seconds: 10)));
+        async.flushMicrotasks();
+        expect(activeState(cubit).arrivalRefetchCount, 0);
+        tick(async, clock, const Duration(seconds: 16));
+
+        expect(activeState(cubit).arrivalRefetchCount, 1);
+        expect(cubit.claimArrivalReread(), isFalse);
+        cubit.close();
+      });
+    });
+
+    test('a different travel starts with a fresh budget', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(afterFirst);
+        final ledger = ArrivalRereadLedger();
+        final cubit = TravelProgressCubit(clock: clock, rereads: ledger)
+          ..follow(travel());
+        expect(cubit.claimArrivalReread(), isTrue);
+
+        cubit.follow(
+          travel(
+            startTime: '2026-10-24T10:01:00.000Z',
+            endTime: '2026-10-24T12:41:00.000Z',
+          ),
+        );
+        clock.advance(const Duration(minutes: 1));
+        async.elapse(const Duration(seconds: 1));
+
+        expect(cubit.claimArrivalReread(), isTrue);
+        cubit.close();
       });
     });
   });
