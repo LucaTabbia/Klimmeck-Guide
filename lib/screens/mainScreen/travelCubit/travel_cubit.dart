@@ -22,7 +22,9 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
     Duration startedHold = defaultStartedHold,
   }) : _clock = clock,
        _startedHold = startedHold,
-       super(const TravelIdle());
+       super(const TravelIdle()) {
+    _offsetSubscription = clock.offsetChanges.listen((_) => _fillPendingEta());
+  }
 
   /// Se `activeTravel` non arriva (WS giù), il flusso torna libero da sé.
   static const Duration defaultStartedHold = Duration(seconds: 30);
@@ -30,6 +32,7 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   final TravelRepository _repository;
   final ServerClockService _clock;
   final Duration _startedHold;
+  late final StreamSubscription<void> _offsetSubscription;
   String? _characterId;
   Timer? _holdTimer;
 
@@ -47,6 +50,7 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
     _characterId = characterId;
     final token = ++_previewToken;
     emit(TravelPreviewing(destination));
+    if (!_clock.isSynced) unawaited(_clock.sync());
     try {
       final result = await _repository.preview(
         characterId: characterId,
@@ -100,20 +104,53 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   @override
   Future<void> close() {
     _holdTimer?.cancel();
+    _offsetSubscription.cancel();
     return super.close();
   }
 
   bool _isStale(int token) =>
       token != _previewToken || state is! TravelPreviewing;
 
+  /// WR-03: nessun ETA da un orologio non sincronizzato; il foglio tiene il
+  /// segnaposto e [_fillPendingEta] lo completa al primo sync.
   TravelConfirming _confirmingFrom(City destination, TravelPreview result) {
-    final now = _clock.now();
+    final now = _syncedNow();
     return TravelConfirming(
       destination: destination,
       preview: result,
-      eta: now.add(Duration(milliseconds: result.duration.round())),
+      eta: _etaFrom(now, result),
       previewedAt: now,
     );
+  }
+
+  DateTime? _syncedNow() => _clock.isSynced ? _clock.now() : null;
+
+  static DateTime? _etaFrom(DateTime? now, TravelPreview preview) =>
+      now?.add(Duration(milliseconds: preview.duration.round()));
+
+  void _fillPendingEta() {
+    final now = _syncedNow();
+    if (now == null) return;
+    final current = state;
+    if (current is TravelConfirming && current.eta == null) {
+      emit(
+        TravelConfirming(
+          destination: current.destination,
+          preview: current.preview,
+          eta: _etaFrom(now, current.preview),
+          previewedAt: now,
+        ),
+      );
+    } else if (current is TravelStarting && current.eta == null) {
+      emit(
+        TravelStarting(
+          destination: current.destination,
+          preview: current.preview,
+          eta: _etaFrom(now, current.preview),
+          previewedAt: now,
+        ),
+      );
+    }
   }
 
   TravelStarting _startingFrom(TravelConfirming confirming) => TravelStarting(

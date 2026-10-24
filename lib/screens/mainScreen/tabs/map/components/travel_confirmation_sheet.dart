@@ -7,7 +7,7 @@ import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart'
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-typedef _TravelNumbers = ({String distance, String duration, String arrival});
+typedef _TravelNumbers = ({String distance, String duration, String? arrival});
 
 /// Conferma del viaggio su pergamena (07-CONTEXT D-03): meta subito, poi
 /// distanza, durata ed ETA del BE (ETA = ora server stimata + durata, C4).
@@ -104,10 +104,16 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
       duration: formatTravelDuration(
         Duration(milliseconds: preview.duration.round()),
       ),
-      arrival: formatArrival(eta, serverNow: previewedAt),
+      arrival: _arrivalOf(eta, previewedAt),
     ),
     _ => null,
   };
+
+  /// ETA nullo finché l'orologio non è sincronizzato: resta il segnaposto.
+  static String? _arrivalOf(DateTime? eta, DateTime? previewedAt) =>
+      eta == null || previewedAt == null
+      ? null
+      : formatArrival(eta, serverNow: previewedAt);
 
   Widget _numberRow(BuildContext context, String label, String? value) {
     final textTheme = Theme.of(context).textTheme;

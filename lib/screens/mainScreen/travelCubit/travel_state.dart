@@ -23,7 +23,8 @@ final class TravelPreviewing extends TravelState {
   List<Object?> get props => [destination];
 }
 
-/// Numeri del BE pronti: `eta` = ora server stimata + `preview.duration` (C4).
+/// Numeri del BE pronti: `eta` = ora server stimata + `preview.duration` (C4);
+/// `eta`/`previewedAt` nulli finché l'orologio non è sincronizzato (WR-03).
 final class TravelConfirming extends TravelState {
   const TravelConfirming({
     required this.destination,
@@ -34,10 +35,10 @@ final class TravelConfirming extends TravelState {
 
   final City destination;
   final TravelPreview preview;
-  final DateTime eta;
+  final DateTime? eta;
 
   /// Ora server stimata dell'anteprima: decide «oggi»/«domani» nell'ETA.
-  final DateTime previewedAt;
+  final DateTime? previewedAt;
 
   @override
   List<Object?> get props => [destination, preview, eta, previewedAt];
@@ -54,8 +55,8 @@ final class TravelStarting extends TravelState {
 
   final City destination;
   final TravelPreview preview;
-  final DateTime eta;
-  final DateTime previewedAt;
+  final DateTime? eta;
+  final DateTime? previewedAt;
 
   @override
   List<Object?> get props => [destination, preview, eta, previewedAt];

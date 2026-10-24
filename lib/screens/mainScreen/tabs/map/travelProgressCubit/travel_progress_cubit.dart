@@ -88,9 +88,9 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
     _timer ??= Timer.periodic(_tick, (_) => _refresh());
   }
 
-  /// Nulla cambia più fino all'evento del BE; mai su un orologio non sincronizzato.
+  /// Nulla cambia più fino all'evento del BE; mai su un orologio non
+  /// sincronizzato (lì `isArriving` resta falso).
   bool _isSettled(TravelProgressActive snapshot) =>
-      _clock.isSynced &&
       snapshot.isArriving &&
       snapshot.arrivalRefetchCount == arrivalRefetchDelays.length;
 
@@ -104,10 +104,14 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
       _travel?.startTime == travel.startTime &&
       _travel?.endTime == travel.endTime;
 
+  /// WR-03: su un orologio non sincronizzato (offset zero, ora del device) la
+  /// pedina avanza ma nessun arrivo e nessuna rilettura vengono decisi; il
+  /// primo sync (offsetChanges) ricalcola.
   TravelProgressActive _snapshot() {
     final travel = _travel!;
     final route = _route!;
     final serverNow = _clock.now();
+    final isSynced = _clock.isSynced;
     final progress = travelProgress(
       serverNow: serverNow,
       startTime: travel.startTime,
@@ -121,8 +125,8 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
       travelled: split.travelled,
       remaining: split.remaining,
       remainingTime: _remainingTimeAt(serverNow, travel),
-      isArriving: progress >= 1,
-      arrivalRefetchCount: _refetchCountAt(serverNow, travel),
+      isArriving: isSynced && progress >= 1,
+      arrivalRefetchCount: isSynced ? _refetchCountAt(serverNow, travel) : 0,
     );
   }
 
