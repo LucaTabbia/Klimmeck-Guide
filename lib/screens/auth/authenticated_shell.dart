@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
@@ -5,14 +7,17 @@ import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/push/push_messaging_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
+import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -29,6 +34,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubi
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:klimmeck_guide/shared/components/kg_notification_banner.dart';
@@ -46,6 +52,10 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// arrivata dopo un cambio tab non si perde.
 ///
 /// Fuoco della camera della mappa (Phase 7 D-15): latched qui perché il tap su una notifica arriva prima che la mappa sia montata.
+///
+/// Viaggio (Phase 7): ora del server stimata (sync alla creazione e al resume,
+/// D-07) e conferma del viaggio, qui perché una risposta tardiva sopravviva al
+/// cambio tab.
 ///
 /// `SyncHealth` e `UserRefreshRequests` arrivano dallo scope di sessione
 /// (`SessionSyncScope`), `AppLifecycleEvents` dalla radice dell'app, tutti
@@ -149,6 +159,27 @@ class AuthenticatedShell extends StatelessWidget {
               QuestAcceptanceCubit(QuestAcceptanceRepository(graphQl: graphQl)),
         ),
         BlocProvider<MapFocusCubit>(create: (_) => MapFocusCubit()),
+        RepositoryProvider<ServerClockService>(
+          lazy: false,
+          create: (context) {
+            final clock = ServerClockService(
+              fetchServerTime: graphQl.getServerTime,
+              foregrounded: context.read<AppLifecycleEvents>().foregrounded,
+            );
+            unawaited(clock.sync());
+            return clock;
+          },
+          dispose: (clock) => unawaited(clock.dispose()),
+        ),
+        BlocProvider<TravelCubit>(
+          create: (context) => TravelCubit(
+            TravelRepository(
+              graphQl: graphQl,
+              permissionGate: context.read<NotificationPermissionGate>(),
+            ),
+            clock: context.read<ServerClockService>(),
+          ),
+        ),
       ],
       child: Stack(
         fit: StackFit.expand,
