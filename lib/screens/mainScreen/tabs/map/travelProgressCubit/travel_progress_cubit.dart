@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
@@ -14,17 +16,31 @@ part 'travel_progress_state.dart';
 /// `WorldMap`: ticchetta solo con la mappa montata.
 class TravelProgressCubit extends Cubit<TravelProgressState>
     with SafeEmit<TravelProgressState> {
-  TravelProgressCubit({required ServerClockService clock})
-    : _clock = clock,
-      super(const TravelProgressIdle());
+  TravelProgressCubit({
+    required ServerClockService clock,
+    Duration tick = defaultTick,
+  }) : _clock = clock,
+       _tick = tick,
+       super(const TravelProgressIdle()) {
+    _offsetSubscription = clock.offsetChanges.listen((_) => _onOffsetChanged());
+  }
+
+  /// I viaggi durano da ~20 min a ~3,4 giorni (BE §8): un secondo basta.
+  static const Duration defaultTick = Duration(seconds: 1);
 
   /// Riletture silenziose dopo `endTime`: subito e oltre uno sweep del BE (60 s).
+  /// WorldMap rilegge il personaggio (in silenzio) a ogni incremento di
+  /// `arrivalRefetchCount`: non è logica di completamento, solo una rilettura
+  /// del BE (D-10).
   static const List<Duration> arrivalRefetchDelays = [
     Duration(seconds: 5),
     Duration(seconds: 65),
   ];
 
   final ServerClockService _clock;
+  final Duration _tick;
+  late final StreamSubscription<void> _offsetSubscription;
+  Timer? _timer;
   ActiveTravel? _travel;
   TravelRoute? _route;
 
@@ -33,14 +49,42 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
     if (_isSameTravel(travel)) return;
     _travel = travel;
     _route = TravelRoute.of(travel.road.points);
-    emit(_snapshot());
+    _refresh();
   }
 
   void _stopFollowing() {
     if (_travel == null) return;
+    _stopTimer();
     _travel = null;
     _route = null;
     emit(const TravelProgressIdle());
+  }
+
+  /// Un nuovo offset del server invalida l'ultimo snapshot (es. orologio del
+  /// device spostato o primo sync dopo il cold start): ricalcola e riparte.
+  void _onOffsetChanged() {
+    if (_travel == null) return;
+    _refresh();
+  }
+
+  /// Un tick, un nuovo viaggio o un nuovo offset: ricalcola e tiene vivo il
+  /// ticker finché qualcosa può ancora cambiare.
+  void _refresh() {
+    final snapshot = _snapshot();
+    emit(snapshot);
+    if (_isSettled(snapshot)) return _stopTimer();
+    _timer ??= Timer.periodic(_tick, (_) => _refresh());
+  }
+
+  /// Nulla cambia più fino all'evento del BE; mai su un orologio non sincronizzato.
+  bool _isSettled(TravelProgressActive snapshot) =>
+      _clock.isSynced &&
+      snapshot.isArriving &&
+      snapshot.arrivalRefetchCount == arrivalRefetchDelays.length;
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
   }
 
   /// D-06: la polilinea ripetuta a ogni `characterUpdated` non si rimisura.
@@ -79,4 +123,11 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
       arrivalRefetchDelays
           .where((delay) => !serverNow.isBefore(travel.endTime.add(delay)))
           .length;
+
+  @override
+  Future<void> close() {
+    _stopTimer();
+    _offsetSubscription.cancel();
+    return super.close();
+  }
 }
