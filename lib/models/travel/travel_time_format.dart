@@ -34,10 +34,14 @@ String formatTravelDistance(double km) {
 /// altrimenti «il dd/MM alle HH:mm» (BE §8: al massimo ~3,4 giorni).
 String formatArrival(DateTime eta, {required DateTime serverNow}) {
   final local = eta.toLocal();
-  final now = serverNow.toLocal();
+  final serverLocal = serverNow.toLocal();
   final arrivalDay = DateTime(local.year, local.month, local.day);
-  final today = DateTime(now.year, now.month, now.day);
-  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  final today = DateTime(serverLocal.year, serverLocal.month, serverLocal.day);
+  final tomorrow = DateTime(
+    serverLocal.year,
+    serverLocal.month,
+    serverLocal.day + 1,
+  );
   final time = DateFormat('HH:mm').format(local);
   if (arrivalDay == today) return 'oggi alle $time';
   if (arrivalDay == tomorrow) return 'domani alle $time';
