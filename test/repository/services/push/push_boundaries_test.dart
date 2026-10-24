@@ -38,6 +38,9 @@ const String _thisFile =
 
 const String _permissionGate = '$_pushDir/notification_permission_gate.dart';
 
+/// Unico chiamante del gate: la conferma di viaggio riuscita (Phase 7 D-05).
+const String _travelRepository = 'lib/repository/travel_repository.dart';
+
 /// Superfici di Phase 5 che non devono mai mostrare il prompt notifiche (D-10, NOTIF-02).
 const List<String> _promptFreeFiles = [
   'lib/main.dart',
@@ -99,7 +102,7 @@ void main() {
   });
 
   group('permission prompt (NOTIF-02)', () {
-    test('only the gate defines ensureRequested', () {
+    test('only the travel repository calls ensureRequested', () {
       final callers = <String>[
         for (final file in _dartFilesUnder('lib'))
           if (_normalised(file) != _permissionGate &&
@@ -107,7 +110,7 @@ void main() {
             _normalised(file),
       ];
 
-      expect(callers, isEmpty);
+      expect(callers, [_travelRepository]);
     });
 
     test('Phase 5 surfaces never reach the prompt', () {
