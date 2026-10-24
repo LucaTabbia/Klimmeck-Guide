@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-24T14:27:00.000Z"
-last_activity: 2026-10-24 -- Phase 7 plan 07-10 completed
+last_updated: "2026-10-24T18:00:00.000Z"
+last_activity: 2026-10-24 -- Phase 7 gate passed (07-11 Task 1), awaiting the device UAT
 progress:
   total_phases: 12
   completed_phases: 7
@@ -21,8 +21,8 @@ Phase: 7 (Travel) — EXECUTING
 Plan: 11 of 11
 Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
 Next Phase: 8 (Spells Section) once Phase 7 ships (PR to develop); BE Phase 9 (Combat Result & Admin Outcomes) planned in the same session and executing in parallel on the BE repo
-Status: Executing Phase 7 — 11 plans in 7 waves (07-CONTEXT amended after the research: D-03 C3, D-18 C1/C2; plan-checker passed after one revision), sequential executors on feat/07-travel
-Last activity: 2026-10-24 -- Phase 7 plan 07-10 completed (pawn modes derived from state: draggable only when free (no activeTravel, no pendingQuest, TravelIdle), held on the destination while the sheet is open and sprung home on idle without listener resets; travelling pawn on the interpolated point with a floating remaining-time / "In arrivo…" label, no drag and no tap; snap on activeTravel cleared; kill reconstruction proven on the real WorldMap)
+Status: Phase 7 gate passed — awaiting the device UAT (07-11 checkpoint); schema check 32/32 vs BE origin/develop 3df1b37, flutter test 1644 green, analyze 54 issues / 0 errors
+Last activity: 2026-10-24 -- Phase 7 plan 07-11 Task 1 gate passed (docs(phase-7) 4d7e57e); 07-HUMAN-UAT.md opened with 12 pending steps; awaiting the Android device E2E verdict
 
 ## Current Milestone
 
