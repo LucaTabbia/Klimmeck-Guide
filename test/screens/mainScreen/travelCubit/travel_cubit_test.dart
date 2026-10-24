@@ -138,6 +138,93 @@ void main() {
     );
   });
 
+  group('unsynced clock (WR-03)', () {
+    final syncedAt = DateTime.utc(2026, 10, 24, 10, 5);
+    final pendingEta = TravelConfirming(
+      destination: valdoria,
+      preview: preview,
+      eta: null,
+      previewedAt: null,
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'syncs the clock on preview and leaves the ETA pending',
+      setUp: () {
+        clock.isSynced = false;
+        stubPreview().thenAnswer((_) async => preview);
+      },
+      build: build,
+      act: previewValdoria,
+      expect: () => [TravelPreviewing(valdoria), pendingEta],
+      verify: (_) => expect(clock.syncCalls, 1),
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'does not sync again when the clock is already synced',
+      setUp: () => stubPreview().thenAnswer((_) async => preview),
+      build: build,
+      act: previewValdoria,
+      verify: (_) => expect(clock.syncCalls, 0),
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'fills the ETA when the clock syncs while confirming',
+      setUp: () => clock.isSynced = false,
+      build: build,
+      seed: () => pendingEta,
+      act: (_) => clock.resync(syncedAt),
+      expect: () => [
+        TravelConfirming(
+          destination: valdoria,
+          preview: preview,
+          eta: syncedAt.add(const Duration(hours: 2, minutes: 40)),
+          previewedAt: syncedAt,
+        ),
+      ],
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'fills the ETA when the clock syncs while starting',
+      setUp: () => clock.isSynced = false,
+      build: build,
+      seed: () => TravelStarting(
+        destination: valdoria,
+        preview: preview,
+        eta: null,
+        previewedAt: null,
+      ),
+      act: (_) => clock.resync(syncedAt),
+      expect: () => [
+        TravelStarting(
+          destination: valdoria,
+          preview: preview,
+          eta: syncedAt.add(const Duration(hours: 2, minutes: 40)),
+          previewedAt: syncedAt,
+        ),
+      ],
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'keeps an ETA already computed on a synced clock',
+      build: build,
+      seed: () => confirming,
+      act: (_) => clock.resync(syncedAt),
+      expect: () => const <TravelState>[],
+    );
+
+    test('close() stops listening to the clock', () async {
+      clock.isSynced = false;
+      final cubit = build();
+      cubit.emit(pendingEta);
+      await cubit.close();
+
+      clock.resync(syncedAt);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state, pendingEta);
+    });
+  });
+
   group('cancel', () {
     test('a late successful preview after cancel is ignored', () async {
       final completer = Completer<TravelPreview>();

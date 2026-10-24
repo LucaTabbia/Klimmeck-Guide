@@ -159,6 +159,25 @@ void main() {
     expect(find.text(TravelConfirmationSheet.pendingValue), findsNothing);
   });
 
+  testWidgets('keeps only the arrival pending on an unsynced clock', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      TravelConfirming(
+        destination: valdoria,
+        preview: preview,
+        eta: null,
+        previewedAt: null,
+      ),
+    );
+
+    expect(find.text('15,8 km'), findsOneWidget);
+    expect(find.text('2 h 40 min'), findsOneWidget);
+    expect(find.text(TravelConfirmationSheet.pendingValue), findsOneWidget);
+    expect(departButton(tester).onPressed, isNotNull);
+  });
+
   testWidgets('tapping Parti starts the travel exactly once', (tester) async {
     await pumpSheet(tester, confirming());
 

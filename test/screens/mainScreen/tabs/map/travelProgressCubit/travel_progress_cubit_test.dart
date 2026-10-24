@@ -379,8 +379,8 @@ void main() {
         );
         final followed = travel();
         final cubit = TravelProgressCubit(clock: clock)..follow(followed);
-        expect(activeState(cubit).isArriving, isTrue);
-        expect(activeState(cubit).arrivalRefetchCount, 2);
+        expect(activeState(cubit).isArriving, isFalse);
+        expect(activeState(cubit).arrivalRefetchCount, 0);
         expect(async.pendingTimers, isNotEmpty);
 
         clock.resync(halfway);
@@ -396,6 +396,32 @@ void main() {
         step(async, clock, second);
         expect(states, hasLength(1));
         subscription.cancel();
+        cubit.close();
+      });
+    });
+
+    test('an unsynced clock decides no arrival and no reread (WR-03)', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(
+          endTime.add(const Duration(minutes: 5)),
+          isSynced: false,
+        );
+        final cubit = TravelProgressCubit(clock: clock)..follow(travel());
+
+        expect(activeState(cubit).isArriving, isFalse);
+        expect(activeState(cubit).arrivalRefetchCount, 0);
+        expect(cubit.claimArrivalReread(), isFalse);
+
+        step(async, clock, second);
+        expect(activeState(cubit).arrivalRefetchCount, 0);
+        expect(async.pendingTimers, isNotEmpty);
+
+        clock.resync(endTime.add(const Duration(minutes: 5)));
+        async.flushMicrotasks();
+
+        expect(activeState(cubit).isArriving, isTrue);
+        expect(activeState(cubit).arrivalRefetchCount, 2);
+        expect(cubit.claimArrivalReread(), isTrue);
         cubit.close();
       });
     });
