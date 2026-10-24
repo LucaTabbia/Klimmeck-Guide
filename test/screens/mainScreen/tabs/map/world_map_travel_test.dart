@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -271,6 +272,41 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       expect(find.byType(FlutterMap), findsNothing);
+    });
+  });
+
+  group('reconstruction after a kill (TRAVEL-04)', () {
+    testWidgets('after a kill a fresh map resumes the pawn mid road', (
+      tester,
+    ) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        serverNow: midTravel,
+      );
+
+      final pawn = tester
+          .widget<MarkerLayer>(
+            find.ancestor(
+              of: find.byKey(CharacterMarkerLayer.pawnKey),
+              matching: find.byType(MarkerLayer),
+            ),
+          )
+          .markers
+          .first
+          .point;
+      final expected = TravelRoute.of(
+        ActiveTravel.fromJson(activeTravelJson()).road.points,
+      ).pointAt(0.5)!;
+      expect(pawn.latitude, closeTo(expected.latitude, 1e-6));
+      expect(pawn.longitude, closeTo(expected.longitude, 1e-6));
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.travelLabelKey),
+          matching: find.text('1 h 20 min'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 

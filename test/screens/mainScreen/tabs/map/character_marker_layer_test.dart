@@ -8,7 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
+import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
@@ -69,6 +71,23 @@ TravelConfirming confirming() => TravelConfirming(
   preview: preview,
   eta: eta,
   previewedAt: previewedAt,
+);
+
+const LatLng midRoad = LatLng(11, 21);
+
+TravelProgressActive travelling({
+  LatLng? position = midRoad,
+  Duration remainingTime = const Duration(hours: 1, minutes: 12),
+  bool isArriving = false,
+}) => TravelProgressActive(
+  travel: ActiveTravel.fromJson(activeTravelJson()),
+  route: TravelRoute.of(const [home, midRoad, LatLng(12, 23)]),
+  position: position,
+  travelled: const [home, midRoad],
+  remaining: const [midRoad, LatLng(12, 23)],
+  remainingTime: remainingTime,
+  isArriving: isArriving,
+  arrivalRefetchCount: 0,
 );
 
 void main() {
@@ -267,6 +286,106 @@ void main() {
 
       expect(dragEnds, [(destination, cityB)]);
       expect(pawnPoint(tester), home);
+    });
+  });
+
+  group('travelling pawn (D-08, D-10, D-13)', () {
+    Finder labelText(String text) => find.descendant(
+      of: find.byKey(CharacterMarkerLayer.travelLabelKey),
+      matching: find.text(text),
+    );
+
+    testWidgets('sits on the road with the remaining time and no gestures', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        progress: travelling(),
+      );
+
+      expect(pawnPoint(tester), midRoad);
+      expect(labelText('1 h 12 min'), findsOneWidget);
+      expect(find.byType(Draggable<Object>), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.pawnKey),
+          matching: find.byType(GestureDetector),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('reads arriving at the end of the road', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        progress: travelling(
+          position: const LatLng(12, 23),
+          remainingTime: Duration.zero,
+          isArriving: true,
+        ),
+      );
+
+      expect(pawnPoint(tester), const LatLng(12, 23));
+      expect(labelText('In arrivo…'), findsOneWidget);
+    });
+
+    testWidgets('an empty road keeps the pawn home with the label', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        progress: travelling(position: null),
+      );
+
+      expect(pawnPoint(tester), home);
+      expect(find.byKey(CharacterMarkerLayer.travelLabelKey), findsOneWidget);
+    });
+
+    testWidgets('an automatic quest travel looks like a free one', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          activeTravel: activeTravelJson(),
+          pendingQuest: laneJson(startDate: null),
+        ),
+        progress: travelling(),
+      );
+
+      expect(pawnPoint(tester), midRoad);
+      expect(labelText('1 h 12 min'), findsOneWidget);
+      expect(find.byType(Draggable<Object>), findsNothing);
+    });
+
+    testWidgets('snaps to the new location when the backend ends the travel', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        progress: travelling(isArriving: true),
+      );
+
+      characterStates.add(
+        CharacterLoaded(
+          Character.fromJson(
+            travellingCharacterJson(
+              locationId: 'city-marker-2',
+              location: const [10.0, 60.0],
+            ),
+          ),
+        ),
+      );
+      progressStates.add(const TravelProgressIdle());
+      await tester.pump();
+      await tester.pump();
+
+      expect(pawnPoint(tester), destination);
+      expect(find.byKey(CharacterMarkerLayer.travelLabelKey), findsNothing);
     });
   });
 }
