@@ -98,8 +98,7 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   }
 
   _TravelNumbers? _numbersOf(TravelState state) => switch (state) {
-    TravelConfirming(:final preview, :final eta, :final previewedAt) ||
-    TravelStarting(:final preview, :final eta, :final previewedAt) => (
+    TravelQuote(:final preview, :final eta, :final previewedAt) => (
       distance: formatTravelDistance(preview.distance),
       duration: formatTravelDuration(
         Duration(milliseconds: preview.duration.round()),

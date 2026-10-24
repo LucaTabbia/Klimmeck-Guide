@@ -68,7 +68,7 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   Future<void> start() async {
     final confirming = state;
     if (confirming is! TravelConfirming) return;
-    emit(_startingFrom(confirming));
+    emit(TravelStarting.from(confirming));
     final destination = confirming.destination;
     try {
       await _repository.start(
@@ -118,47 +118,22 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
     return TravelConfirming(
       destination: destination,
       preview: result,
-      eta: _etaFrom(now, result),
+      eta: now == null ? null : _etaAt(now, result),
       previewedAt: now,
     );
   }
 
   DateTime? _syncedNow() => _clock.isSynced ? _clock.now() : null;
 
-  static DateTime? _etaFrom(DateTime? now, TravelPreview preview) =>
-      now?.add(Duration(milliseconds: preview.duration.round()));
+  static DateTime _etaAt(DateTime now, TravelPreview preview) =>
+      now.add(Duration(milliseconds: preview.duration.round()));
 
   void _fillPendingEta() {
     final now = _syncedNow();
-    if (now == null) return;
-    final current = state;
-    if (current is TravelConfirming && current.eta == null) {
-      emit(
-        TravelConfirming(
-          destination: current.destination,
-          preview: current.preview,
-          eta: _etaFrom(now, current.preview),
-          previewedAt: now,
-        ),
-      );
-    } else if (current is TravelStarting && current.eta == null) {
-      emit(
-        TravelStarting(
-          destination: current.destination,
-          preview: current.preview,
-          eta: _etaFrom(now, current.preview),
-          previewedAt: now,
-        ),
-      );
-    }
+    final quote = state;
+    if (now == null || quote is! TravelQuote || quote.eta != null) return;
+    emit(quote.withEta(eta: _etaAt(now, quote.preview), previewedAt: now));
   }
-
-  TravelStarting _startingFrom(TravelConfirming confirming) => TravelStarting(
-    destination: confirming.destination,
-    preview: confirming.preview,
-    eta: confirming.eta,
-    previewedAt: confirming.previewedAt,
-  );
 
   void _holdStarted() {
     _holdTimer?.cancel();

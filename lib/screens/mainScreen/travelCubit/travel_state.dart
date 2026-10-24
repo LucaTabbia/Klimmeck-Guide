@@ -23,10 +23,11 @@ final class TravelPreviewing extends TravelState {
   List<Object?> get props => [destination];
 }
 
-/// Numeri del BE pronti: `eta` = ora server stimata + `preview.duration` (C4);
-/// `eta`/`previewedAt` nulli finché l'orologio non è sincronizzato (WR-03).
-final class TravelConfirming extends TravelState {
-  const TravelConfirming({
+/// Anteprima del BE pronta, condivisa da conferma e avvio (IN-05): `eta` = ora
+/// server stimata + `preview.duration` (C4); `eta`/`previewedAt` nulli finché
+/// l'orologio non è sincronizzato (WR-03).
+sealed class TravelQuote extends TravelState {
+  const TravelQuote({
     required this.destination,
     required this.preview,
     required this.eta,
@@ -40,26 +41,61 @@ final class TravelConfirming extends TravelState {
   /// Ora server stimata dell'anteprima: decide «oggi»/«domani» nell'ETA.
   final DateTime? previewedAt;
 
+  /// Stesso stato con l'ETA calcolato su un orologio sincronizzato.
+  TravelQuote withEta({required DateTime eta, required DateTime previewedAt});
+
   @override
   List<Object?> get props => [destination, preview, eta, previewedAt];
 }
 
-/// "Parti" premuto: azioni disabilitate finché il BE risponde.
-final class TravelStarting extends TravelState {
-  const TravelStarting({
-    required this.destination,
-    required this.preview,
-    required this.eta,
-    required this.previewedAt,
+/// Numeri pronti: "Parti" e "Resta" attivi.
+final class TravelConfirming extends TravelQuote {
+  const TravelConfirming({
+    required super.destination,
+    required super.preview,
+    required super.eta,
+    required super.previewedAt,
   });
 
-  final City destination;
-  final TravelPreview preview;
-  final DateTime? eta;
-  final DateTime? previewedAt;
+  @override
+  TravelConfirming withEta({
+    required DateTime eta,
+    required DateTime previewedAt,
+  }) => TravelConfirming(
+    destination: destination,
+    preview: preview,
+    eta: eta,
+    previewedAt: previewedAt,
+  );
+}
+
+/// "Parti" premuto: azioni disabilitate finché il BE risponde.
+final class TravelStarting extends TravelQuote {
+  const TravelStarting({
+    required super.destination,
+    required super.preview,
+    required super.eta,
+    required super.previewedAt,
+  });
+
+  TravelStarting.from(TravelConfirming confirming)
+    : this(
+        destination: confirming.destination,
+        preview: confirming.preview,
+        eta: confirming.eta,
+        previewedAt: confirming.previewedAt,
+      );
 
   @override
-  List<Object?> get props => [destination, preview, eta, previewedAt];
+  TravelStarting withEta({
+    required DateTime eta,
+    required DateTime previewedAt,
+  }) => TravelStarting(
+    destination: destination,
+    preview: preview,
+    eta: eta,
+    previewedAt: previewedAt,
+  );
 }
 
 /// `startTravel` riuscito: la rotta d'anteprima resta finché `activeTravel`
