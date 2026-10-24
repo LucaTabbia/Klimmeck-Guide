@@ -160,13 +160,23 @@ void main() {
         }),
       );
 
-      await expectLater(buildGraphQl().startTravel(request), completes);
+      expect(await buildGraphQl().startTravel(request), isTrue);
     });
 
-    test('throws FormatException when successful is false', () async {
+    test('returns false when the backend answers unsuccessful', () async {
       handler = (_) => Stream.value(
         dataResponse({
           'startTravel': {'response': 'x', 'successful': false},
+        }),
+      );
+
+      expect(await buildGraphQl().startTravel(request), isFalse);
+    });
+
+    test('throws FormatException when successful is missing', () async {
+      handler = (_) => Stream.value(
+        dataResponse({
+          'startTravel': {'response': 'x'},
         }),
       );
 

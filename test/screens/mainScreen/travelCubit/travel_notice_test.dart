@@ -19,6 +19,7 @@ void main() {
       TravelFailure.timedOut:
           'Il server non ha risposto in tempo: '
           'controlla la mappa prima di riprovare',
+      TravelFailure.declined: 'Il server ha rifiutato la partenza, riprova',
       TravelFailure.unknown: 'Qualcosa è andato storto, riprova',
     };
     descriptions.forEach((failure, description) {

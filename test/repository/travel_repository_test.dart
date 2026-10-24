@@ -160,7 +160,7 @@ void main() {
 
   group('start', () {
     test('sends the character and marker ids to the service', () async {
-      when(() => graphQl.startTravel(any())).thenAnswer((_) async {});
+      when(() => graphQl.startTravel(any())).thenAnswer((_) async => true);
 
       await repository.start(characterId: 'c-1', poiId: 'city-marker-2');
 
@@ -170,7 +170,7 @@ void main() {
     test(
       'asks the permission once, only after the mutation completed',
       () async {
-        final mutation = Completer<void>();
+        final mutation = Completer<bool>();
         when(
           () => graphQl.startTravel(any()),
         ).thenAnswer((_) => mutation.future);
@@ -182,7 +182,7 @@ void main() {
         await pumpEventQueue();
         expect(port.statusCalls, 0);
 
-        mutation.complete();
+        mutation.complete(true);
         await started;
         await pumpEventQueue();
 
@@ -193,7 +193,7 @@ void main() {
 
     test('does not prompt when the system already decided', () async {
       port.current = NotificationPermissionStatus.denied;
-      when(() => graphQl.startTravel(any())).thenAnswer((_) async {});
+      when(() => graphQl.startTravel(any())).thenAnswer((_) async => true);
 
       await repository.start(characterId: 'c-1', poiId: 'city-marker-2');
       await pumpEventQueue();
@@ -233,10 +233,22 @@ void main() {
       expect(port.statusCalls, 0);
     });
 
-    test('an unsuccessful answer fails as unknown, no prompt', () async {
+    test('an unsuccessful answer fails as declined, no prompt', () async {
+      when(() => graphQl.startTravel(any())).thenAnswer((_) async => false);
+
+      await expectLater(
+        repository.start(characterId: 'c-1', poiId: 'city-marker-2'),
+        _failsWith(TravelFailure.declined),
+      );
+      await pumpEventQueue();
+
+      expect(port.statusCalls, 0);
+    });
+
+    test('a malformed answer fails as unknown, no prompt', () async {
       when(
         () => graphQl.startTravel(any()),
-      ).thenThrow(const FormatException('startTravel not successful'));
+      ).thenThrow(const FormatException('startTravel malformed'));
 
       await expectLater(
         repository.start(characterId: 'c-1', poiId: 'city-marker-2'),
@@ -249,7 +261,7 @@ void main() {
 
     test('a failing permission gate does not make start throw', () async {
       port.statusFailure = Exception('x');
-      when(() => graphQl.startTravel(any())).thenAnswer((_) async {});
+      when(() => graphQl.startTravel(any())).thenAnswer((_) async => true);
 
       await expectLater(
         repository.start(characterId: 'c-1', poiId: 'city-marker-2'),
@@ -262,7 +274,7 @@ void main() {
 
     test('completes even if the permission gate never answers', () async {
       final hanging = _HangingPermissionPort();
-      when(() => graphQl.startTravel(any())).thenAnswer((_) async {});
+      when(() => graphQl.startTravel(any())).thenAnswer((_) async => true);
 
       await expectLater(
         buildRepository(
@@ -278,7 +290,7 @@ void main() {
       fakeAsync((async) {
         when(
           () => graphQl.startTravel(any()),
-        ).thenAnswer((_) => Completer<void>().future);
+        ).thenAnswer((_) => Completer<bool>().future);
         Object? failure;
 
         repository
