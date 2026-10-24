@@ -9,11 +9,13 @@ import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/repository/character_deletion_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
+import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
+import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -24,6 +26,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_foc
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:klimmeck_guide/shared/components/kg_notification_banner.dart';
@@ -80,6 +83,9 @@ void main() {
     when(() => splashCubit.getImages(any())).thenAnswer((_) async {});
     when(() => splashCubit.startBootstrapWatch()).thenReturn(null);
     when(() => splashCubit.stopBootstrapWatch()).thenReturn(null);
+    when(
+      () => graphQl.getServerTime(),
+    ).thenAnswer((_) async => DateTime.utc(2026, 10, 24, 10));
   });
 
   tearDown(() => messaging.close());
@@ -103,6 +109,11 @@ void main() {
             RepositoryProvider<UserRefreshRequests>.value(value: refreshBus),
             RepositoryProvider<NotificationTapRouter>.value(
               value: NotificationTapRouter(intents: sink, links: links),
+            ),
+            RepositoryProvider<NotificationPermissionGate>.value(
+              value: NotificationPermissionGate(
+                FakeNotificationPermissionPort(),
+              ),
             ),
           ],
           child: BlocProvider<AuthCubit>.value(
@@ -182,6 +193,39 @@ void main() {
     expect(questCubit.isClosed, isTrue);
     expect(acceptanceCubit.isClosed, isTrue);
     expect(mapFocusCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides the travel cubit and closes it on removal', (
+    tester,
+  ) async {
+    late TravelCubit travelCubit;
+    late ServerClockService clock;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        travelCubit = context.read<TravelCubit>();
+        clock = context.read<ServerClockService>();
+        return const Text('main');
+      },
+    );
+
+    expect(travelCubit.state, const TravelIdle());
+    expect(clock, isA<ServerClockService>());
+    expect(travelCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(travelCubit.isClosed, isTrue);
+  });
+
+  testWidgets('syncs the server clock once when the session starts', (
+    tester,
+  ) async {
+    await pumpShell(tester, state: const SplashData());
+    await tester.pump();
+
+    verify(() => graphQl.getServerTime()).called(1);
   });
 
   testWidgets('provides the notification preferences loaded for the user', (

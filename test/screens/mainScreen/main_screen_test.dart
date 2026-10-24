@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
+import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
@@ -20,6 +21,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -90,6 +92,8 @@ void main() {
     late MockQuestAcceptanceCubit acceptanceCubit;
     late MockInAppNotificationsCubit noticesCubit;
     late StreamController<QuestAcceptanceState> acceptanceStates;
+    late MockTravelCubit travelCubit;
+    late StreamController<TravelState> travelStates;
 
     setUp(() {
       registerFallbackValue(const KGNotification(title: '', description: ''));
@@ -101,6 +105,14 @@ void main() {
         acceptanceCubit,
         acceptanceStates.stream,
         initialState: const QuestAcceptanceIdle(),
+      );
+      travelCubit = MockTravelCubit();
+      travelStates = StreamController<TravelState>.broadcast();
+      addTearDown(travelStates.close);
+      whenListen(
+        travelCubit,
+        travelStates.stream,
+        initialState: const TravelIdle(),
       );
       final svg =
           File('${Directory.systemTemp.createTempSync('kg_svg').path}/i.svg')
@@ -154,6 +166,7 @@ void main() {
               BlocProvider<NotificationIntentCubit>.value(value: intentCubit),
               BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
+              BlocProvider<TravelCubit>.value(value: travelCubit),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -290,6 +303,35 @@ void main() {
           ),
         ).called(1);
         verify(() => acceptanceCubit.reset()).called(1);
+      },
+    );
+
+    testWidgets(
+      'a travel rejection answered away from the map still shows the banner',
+      (tester) async {
+        final controller = await pumpOpenSatchel(tester, 'city-marker-1');
+        await tapItem(tester, 5);
+        expect(controller.page!.round(), 5);
+
+        travelStates.add(
+          TravelFailed(
+            destination: City.fromJson(travelCityJson()),
+            failure: TravelFailure.inProgress,
+            stage: TravelStage.start,
+          ),
+        );
+        await tester.pump();
+
+        verify(
+          () => noticesCubit.publishNotice(
+            const KGNotification(
+              title: 'Viaggio non partito',
+              description: 'Sei già in viaggio',
+            ),
+            dedupKey: 'travel|inProgress|city-2',
+          ),
+        ).called(1);
+        verify(() => travelCubit.reset()).called(1);
       },
     );
   });
