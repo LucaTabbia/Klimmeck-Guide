@@ -9,6 +9,8 @@ import 'package:latlong2/latlong.dart';
 import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/quest/quest.dart';
+import '../../../../models/travel/active_travel.dart';
+import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../characterCubit/character_cubit.dart';
@@ -19,6 +21,9 @@ import 'layers/city_markers_layer.dart';
 import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
+import 'layers/travel_route_layer.dart';
+import 'mapFocusCubit/map_focus_cubit.dart';
+import 'travelProgressCubit/travel_progress_cubit.dart';
 import 'utils/map_constants.dart';
 import 'utils/map_utils.dart';
 
@@ -37,6 +42,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(MapConstants.initialZoom);
   late final LatLngBounds _bounds;
   late final MapOptions _mapOptions;
+  bool _isMapReady = false;
+
+  // Travel state: vive con la mappa, ticchetta solo a mappa montata
+  late final TravelProgressCubit _progressCubit;
 
   // Animation controllers
   late AnimationController _questAnimationController;
@@ -57,7 +66,15 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     super.initState();
     _initializeBounds();
     _initializeAnimationControllers();
+    _initializeTravelProgress();
     _initializeMapOptions();
+  }
+
+  void _initializeTravelProgress() {
+    _progressCubit = TravelProgressCubit(clock: context.read<ServerClockService>())
+      ..follow(_activeTravelOf(context.read<CharacterCubit>().state));
+    // D-10: un arrivo già scaduto al montaggio non passa dal listener.
+    if (_refetchCountOf(_progressCubit.state) > 0) _rereadCharacter();
   }
 
   void _initializeBounds() {
@@ -87,6 +104,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       cameraConstraint: CameraConstraint.contain(bounds: _bounds),
       onTap: _handleMapTap,
       onPositionChanged: _handlePositionChanged,
+      onMapReady: _handleMapReady,
     );
   }
 
@@ -102,51 +120,81 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _questAnimationController.dispose();
     _smoothTimer?.cancel();
     _zoomNotifier.dispose();
+    _progressCubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<WorldMapCubit, WorldMapState>(
-      listener: (context, state) {
-        if (state is WorldMapLoadData) {
-          setState(() => _selectedLore = state.lore);
-          _showCityInfoModal();
-        }
-      },
-      child: BackgroundImage(
-        child: GestureDetector(
-          onTap: () => setState(() => _selectedQuest = null),
-          child: FlutterMap(
-            mapController: _mapController,
-            options: _mapOptions,
-            children: [
-              _buildMapImage(),
-              CityMarkersLayer(
-                cities: widget.cities,
-                zoomNotifier: _zoomNotifier,
-              ),
-              QuestMarkersLayer(
-                cities: widget.cities,
-                zoomNotifier: _zoomNotifier,
-                onQuestSelected: _selectQuest,
-              ),
-              CharacterMarkerLayer(
-                cities: widget.cities,
-                zoomNotifier: _zoomNotifier,
-                mapController: _mapController,
-                bounds: _bounds,
-                onDragUpdate: _handleCharacterDragUpdate,
-                onDragEnd: _handleCharacterDragEnd,
-              ),
-              QuestPaperLayer(onOpen: _openFromPaper),
-              QuestInfoOverlay(
-                animationController: _questAnimationController,
-                selectedQuest: _selectedQuest,
-                stateLabel: _selectedStateLabel,
-              ),
-            ],
-          ),
+    return BlocProvider<TravelProgressCubit>.value(
+      value: _progressCubit,
+      child: MultiBlocListener(listeners: _buildListeners(), child: _buildMap()),
+    );
+  }
+
+  List<BlocListener> _buildListeners() {
+    return [
+      BlocListener<WorldMapCubit, WorldMapState>(
+        listener: (context, state) {
+          if (state is WorldMapLoadData) {
+            setState(() => _selectedLore = state.lore);
+            _showCityInfoModal();
+          }
+        },
+      ),
+      BlocListener<CharacterCubit, CharacterState>(
+        listenWhen: (previous, current) =>
+            _activeTravelOf(previous) != _activeTravelOf(current),
+        listener: (_, state) => _progressCubit.follow(_activeTravelOf(state)),
+      ),
+      // D-10: rilettura silenziosa, non logica di completamento.
+      BlocListener<TravelProgressCubit, TravelProgressState>(
+        bloc: _progressCubit,
+        listenWhen: (previous, current) =>
+            _refetchCountOf(current) > _refetchCountOf(previous),
+        listener: (_, _) => _rereadCharacter(),
+      ),
+      BlocListener<MapFocusCubit, MapFocusState>(
+        listenWhen: (_, current) => current.isCharacterFocusPending,
+        listener: (_, _) => _consumeCharacterFocus(),
+      ),
+    ];
+  }
+
+  Widget _buildMap() {
+    return BackgroundImage(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedQuest = null),
+        child: FlutterMap(
+          mapController: _mapController,
+          options: _mapOptions,
+          children: [
+            _buildMapImage(),
+            const TravelRouteLayer(),
+            CityMarkersLayer(
+              cities: widget.cities,
+              zoomNotifier: _zoomNotifier,
+            ),
+            QuestMarkersLayer(
+              cities: widget.cities,
+              zoomNotifier: _zoomNotifier,
+              onQuestSelected: _selectQuest,
+            ),
+            CharacterMarkerLayer(
+              cities: widget.cities,
+              zoomNotifier: _zoomNotifier,
+              mapController: _mapController,
+              bounds: _bounds,
+              onDragUpdate: _handleCharacterDragUpdate,
+              onDragEnd: _handleCharacterDragEnd,
+            ),
+            QuestPaperLayer(onOpen: _openFromPaper),
+            QuestInfoOverlay(
+              animationController: _questAnimationController,
+              selectedQuest: _selectedQuest,
+              stateLabel: _selectedStateLabel,
+            ),
+          ],
         ),
       ),
     );
@@ -163,6 +211,41 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
   }
 
+
+  static ActiveTravel? _activeTravelOf(CharacterState state) =>
+      state is CharacterLoaded ? state.character.status?.activeTravel : null;
+
+  static int _refetchCountOf(TravelProgressState state) =>
+      state is TravelProgressActive ? state.arrivalRefetchCount : 0;
+
+  void _rereadCharacter() => context.read<CharacterCubit>().refreshCharacter();
+
+  /// D-09: con un viaggio in corso la camera inquadra la pedina una volta sola,
+  /// quando la mappa è pronta (MapController inutilizzabile prima, Pitfall 8).
+  void _handleMapReady() {
+    _isMapReady = true;
+    final pawn = _travellingPawnPoint();
+    if (pawn != null) _mapController.move(pawn, _mapController.camera.zoom);
+    _consumeCharacterFocus();
+  }
+
+  /// D-15: il tap su «Viaggio completato» centra la camera sulla pedina.
+  void _consumeCharacterFocus() {
+    if (!_isMapReady) return;
+    if (!context.read<MapFocusCubit>().consumeCharacterFocus()) return;
+    final pawn = _travellingPawnPoint() ?? _characterLocation();
+    if (pawn != null) _mapController.move(pawn, _mapController.camera.zoom);
+  }
+
+  LatLng? _travellingPawnPoint() {
+    final progress = _progressCubit.state;
+    return progress is TravelProgressActive ? progress.position : null;
+  }
+
+  LatLng? _characterLocation() {
+    final state = context.read<CharacterCubit>().state;
+    return state is CharacterLoaded ? state.character.status?.location?.location : null;
+  }
 
   void _handleMapTap(TapPosition pos, LatLng latLng) {
     if (_selectedQuest != null) {

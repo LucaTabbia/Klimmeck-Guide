@@ -216,6 +216,7 @@ void main() {
         characterLoaded(locationId: 'city-marker-2', location: destinationWire),
       );
       await tester.pump();
+      await tester.pump();
 
       expect(find.byType(PolylineLayer), findsNothing);
     });
