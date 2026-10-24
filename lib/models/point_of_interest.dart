@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/wire_lat_lng.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'city.dart';
@@ -25,10 +26,7 @@ class PointOfInterest extends Equatable {
       id: json["id"] as String,
       type: json["type"]?.map((poiType) => PoiType.values.byName(poiType)),
       location: json["location"][0] != null
-          ? LatLng(
-              (json["location"][0] as num).toDouble(),
-              (json["location"][1] as num).toDouble(),
-            )
+          ? latLngFromWire(json["location"] as List<dynamic>)
           : null,
       city: json["city"] != null ? City.fromJson(json['city']) : null,
       quest: json["quest"] != null ? Quest.fromJson(json['quest']) : null,
