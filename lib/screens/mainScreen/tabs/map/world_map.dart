@@ -343,7 +343,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _mapController.fitCamera(
       CameraFit.coordinates(
         coordinates: points,
-        padding: EdgeInsets.fromLTRB(48, 48, 48, height * 0.5 + 24),
+        padding: EdgeInsets.fromLTRB(
+          MapConstants.previewRoutePadding,
+          MapConstants.previewRoutePadding,
+          MapConstants.previewRoutePadding,
+          height * MapConstants.previewSheetHeightFraction + MapConstants.previewSheetGap,
+        ),
         maxZoom: MapConstants.maxZoom,
       ),
     );
