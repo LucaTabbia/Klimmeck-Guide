@@ -23,6 +23,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
@@ -43,6 +44,8 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 ///
 /// Accettazione quest (Phase 6): qui e non nella Board, così una risposta
 /// arrivata dopo un cambio tab non si perde.
+///
+/// Fuoco della camera della mappa (Phase 7 D-15): latched qui perché il tap su una notifica arriva prima che la mappa sia montata.
 ///
 /// `SyncHealth` e `UserRefreshRequests` arrivano dallo scope di sessione
 /// (`SessionSyncScope`), `AppLifecycleEvents` dalla radice dell'app, tutti
@@ -145,6 +148,7 @@ class AuthenticatedShell extends StatelessWidget {
           create: (_) =>
               QuestAcceptanceCubit(QuestAcceptanceRepository(graphQl: graphQl)),
         ),
+        BlocProvider<MapFocusCubit>(create: (_) => MapFocusCubit()),
       ],
       child: Stack(
         fit: StackFit.expand,
