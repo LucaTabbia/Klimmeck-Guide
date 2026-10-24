@@ -99,10 +99,9 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
     _timer = null;
   }
 
-  /// D-06: la polilinea ripetuta a ogni `characterUpdated` non si rimisura.
-  bool _isSameTravel(ActiveTravel travel) =>
-      _travel?.startTime == travel.startTime &&
-      _travel?.endTime == travel.endTime;
+  /// D-06: la polilinea ripetuta a ogni `characterUpdated` non si rimisura;
+  /// stessi orari con un'altra strada o un'altra meta sì (IN-04).
+  bool _isSameTravel(ActiveTravel travel) => travel == _travel;
 
   /// WR-03: su un orologio non sincronizzato (offset zero, ora del device) la
   /// pedina avanza ma nessun arrivo e nessuna rilettura vengono decisi; il
