@@ -177,6 +177,44 @@ void main() {
     expect(departButton(tester).onPressed, isNull);
   });
 
+  testWidgets('disables Resta while the start is in flight', (tester) async {
+    await pumpSheet(tester, starting());
+
+    expect(stayButton(tester).onPressed, isNull);
+  });
+
+  testWidgets('back and barrier cannot dismiss a start in flight', (
+    tester,
+  ) async {
+    await openSheet(tester, starting());
+
+    final navigator = Navigator.of(
+      tester.element(find.byType(TravelConfirmationSheet)),
+    );
+    await navigator.maybePop();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+    verifyNever(() => cubit.cancel());
+  });
+
+  testWidgets('a start rejection still closes the blocked sheet', (
+    tester,
+  ) async {
+    await openSheet(tester, starting());
+
+    states.add(
+      TravelFailed(
+        destination: valdoria,
+        failure: TravelFailure.noPath,
+        stage: TravelStage.start,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TravelConfirmationSheet), findsNothing);
+  });
+
   testWidgets('renders the lore image when the destination has one', (
     tester,
   ) async {

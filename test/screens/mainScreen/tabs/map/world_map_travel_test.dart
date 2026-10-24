@@ -162,6 +162,12 @@ Future<void> dragPawnBy(WidgetTester tester, Offset offset) async {
   await tester.pumpAndSettle();
 }
 
+/// Il foglio apre a metà schermo (PaperSheetModal): si trascina dalla pergamena visibile.
+Future<void> dragSheetDown(WidgetTester tester) async {
+  await tester.dragFrom(const Offset(390, 250), const Offset(0, 300));
+  await tester.pumpAndSettle();
+}
+
 TravelConfirming confirmingAlong(List<List<double>> coordinates) =>
     TravelConfirming(
       destination: cityB,
@@ -414,6 +420,39 @@ void main() {
 
       expect(find.byType(TravelConfirmationSheet), findsNothing);
       verify(() => travelCubit.cancel()).called(1);
+    });
+
+    testWidgets('dragging the sheet down cannot dismiss a start in flight', (
+      tester,
+    ) async {
+      previewKeepsTheSheetOpen();
+      await pumpWorldMap(tester, character: characterLoaded());
+      await dragPawnBy(tester, const Offset(300, 0));
+      travelStates.add(
+        TravelStarting(
+          destination: cityB,
+          preview: TravelPreview.fromJson(travelPreviewJson()),
+          eta: travelEnd,
+          previewedAt: travelStart,
+        ),
+      );
+      await tester.pump();
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+    });
+
+    testWidgets('dragging the sheet down dismisses it before the start', (
+      tester,
+    ) async {
+      previewKeepsTheSheetOpen();
+      await pumpWorldMap(tester, character: characterLoaded());
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
     });
 
     testWidgets('a preview rejected before the first frame leaves no sheet', (
