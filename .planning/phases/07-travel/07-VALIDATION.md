@@ -54,8 +54,8 @@ created: 2026-10-24
 | 07-06-02 | 06 | 2 | TRAVEL-03 | T-07-06-02/04/05/06 | ≤ 2 refetch requests per offset, timer stops only when settled on a synced clock, recomputes + restarts on `offsetChanges` ("resync" test), server time only | cubit (fake_async) | `flutter test test/screens/mainScreen/tabs/map/travelProgressCubit` | ✅ (07-06-01) | ✅ green |
 | 07-07-01 | 07 | 3 | TRAVEL-02 | T-07-07-01/02/05 | double "Parti" ignored; late answers ignored by request token; 30 s hold | cubit (fake_async) | `flutter test test/screens/mainScreen/travelCubit` | ❌ W0 | ✅ green |
 | 07-07-02 | 07 | 3 | TRAVEL-02 | T-07-07-03/04/06 | banner by code once; settle on activeTravel; clock/cubit closed with the shell | widget | `flutter test test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart test/screens/auth` | ❌ W0 + ✅ extend | ✅ green |
-| 07-08-01 | 08 | 4 | TRAVEL-03 | T-07-08-01 | degenerate polylines skipped | widget | `flutter test test/screens/mainScreen/tabs/map/travel_route_layer_test.dart` | ❌ W0 | ⬜ pending |
-| 07-08-02 | 08 | 4 | TRAVEL-02 | T-07-08-02/03/04/05 | "Parti" only on shown numbers; sheet closes itself if mounted on an already settled state; no chrome; no blocking loading | widget | `flutter test test/screens/mainScreen/tabs/map/travel_confirmation_sheet_test.dart` | ❌ W0 | ⬜ pending |
+| 07-08-01 | 08 | 4 | TRAVEL-03 | T-07-08-01 | degenerate polylines skipped | widget | `flutter test test/screens/mainScreen/tabs/map/travel_route_layer_test.dart` | ❌ W0 | ✅ green |
+| 07-08-02 | 08 | 4 | TRAVEL-02 | T-07-08-02/03/04/05 | "Parti" only on shown numbers; sheet closes itself if mounted on an already settled state; no chrome; no blocking loading | widget | `flutter test test/screens/mainScreen/tabs/map/travel_confirmation_sheet_test.dart` | ❌ W0 | ✅ green |
 | 07-09-01 | 09 | 5 | TRAVEL-03, TRAVEL-04 | T-07-09-02/03/04 | controller used only after map ready; bounded rereads; no leaked timers | widget | `flutter test test/screens/mainScreen/tabs/map` | ❌ W0 | ⬜ pending |
 | 07-09-02 | 09 | 5 | TRAVEL-02 | T-07-09-01/05/06 | no client teleport; same city silent; cubit passed to the root sheet; no sheet stuck after an early rejection | widget | `flutter test test/screens/mainScreen/tabs/map test/screens/mainScreen/characterCubit` | ✅ (07-09-01) | ⬜ pending |
 | 07-10-01 | 10 | 6 | TRAVEL-02 | T-07-10-02/04 | drag only when free; no spring back on unrelated events | widget | `flutter test test/screens/mainScreen/tabs/map` | ❌ W0 | ⬜ pending |
@@ -75,7 +75,7 @@ Wave 0 is folded into the RED step of each task (TDD): every `❌ W0` file above
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `departureWire`/`destinationWire`, `travelPathJson`, `activeTravelJson`, `travelPreviewJson`, `travellingCharacterJson`, `travelCityJson` (07-01 Task 2; polyline endpoints equal the POI locations, C1)
 - [x] `test/helpers/fakes/fake_server_clock_service.dart` — settable server now, settable `isSynced`, `resync(...)` emitting on `offsetChanges` (07-03 Task 1)
 - [ ] `test/helpers/mocks.dart` — `MockTravelRepository` (07-05), `MockTravelCubit` (07-07), `MockTravelProgressCubit` (07-08), `MockWorldMapCubit` (07-09)
-- [ ] `test/helpers/map_harness.dart` — minimal offline `FlutterMap` wrapper (07-08 Task 1)
+- [x] `test/helpers/map_harness.dart` — minimal offline `FlutterMap` wrapper (07-08 Task 1)
 - [ ] C1 device probe written into the E2E recipe (07-11 Task 2 step 1)
 
 No framework install needed: every library is already in `pubspec.yaml` / `pubspec.lock`.
