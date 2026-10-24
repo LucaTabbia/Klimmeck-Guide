@@ -43,8 +43,8 @@ created: 2026-10-24
 | 07-01-03 | 01 | 1 | TRAVEL-01, TRAVEL-04 | T-07-01-01/02/03 | `activeTravel` parsed, no `copyWith` forgery, no `pet` selected | unit | `flutter test test/models/character test/graphql test/repository/services/graphql test/screens/mainScreen/characterCubit` | ❌ W0 (+ extend fragment test) | ✅ green |
 | 07-02-01 | 02 | 1 | TRAVEL-03 | T-07-02-01/02 | no crash on degenerate routes; progress only from server now | unit | `flutter test test/models/travel/travel_route_test.dart` | ❌ W0 | ✅ green |
 | 07-02-02 | 02 | 1 | TRAVEL-02 | T-07-02-03 | same city → no destination (D-02) | unit | `flutter test test/models/travel/travel_time_format_test.dart test/models/travel/travel_destination_test.dart` | ❌ W0 | ✅ green |
-| 07-03-01 | 03 | 1 | TRAVEL-03 | T-07-03-01/02 | RTT offset, silent failure, resync on resume, `offsetChanges` after each successful sync | unit (fake_async) | `flutter test test/repository/services/time/server_clock_service_test.dart` | ❌ W0 | ⬜ pending |
-| 07-03-02 | 03 | 1 | TRAVEL-02 | T-07-03-03/04/05 | codes only, fixed copy, no banner on UNAUTHENTICATED | unit | `flutter test test/repository/travel_failure_test.dart test/repository/quest_acceptance_failure_test.dart test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit` | ❌ W0 | ⬜ pending |
+| 07-03-01 | 03 | 1 | TRAVEL-03 | T-07-03-01/02 | RTT offset, silent failure, resync on resume, `offsetChanges` after each successful sync | unit (fake_async) | `flutter test test/repository/services/time/server_clock_service_test.dart` | ❌ W0 | ✅ green |
+| 07-03-02 | 03 | 1 | TRAVEL-02 | T-07-03-03/04/05 | codes only, fixed copy, no banner on UNAUTHENTICATED | unit | `flutter test test/repository/travel_failure_test.dart test/repository/quest_acceptance_failure_test.dart test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit` | ❌ W0 | ✅ green |
 | 07-04-01 | 04 | 2 | TRAVEL-03 | T-07-04-01 | Board + Shop disabled off a marker and while travelling | unit + widget | `flutter test test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart` | ✅ extend | ⬜ pending |
 | 07-04-02 | 04 | 2 | TRAVEL-03 | T-07-04-02/03 | travelEnd tap only latches a focus on the own pawn | cubit + widget | `flutter test test/screens/mainScreen/tabs/map/map_focus_cubit_test.dart test/screens/mainScreen/components/notification_intent_landing_test.dart test/screens/auth/authenticated_shell_test.dart` | ❌ W0 + ✅ extend | ⬜ pending |
 | 07-05-01 | 05 | 2 | TRAVEL-02, TRAVEL-03 | T-07-05-06 | typed `$request`; registry 32 | unit + scripted | `flutter test test/models/request/travel_request_test.dart test/graphql/travel_documents_test.dart test/tool` (+ early schema check) | ❌ W0 | ⬜ pending |
@@ -73,7 +73,7 @@ created: 2026-10-24
 Wave 0 is folded into the RED step of each task (TDD): every `❌ W0` file above is created failing-first by its own task, before the implementation.
 
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `departureWire`/`destinationWire`, `travelPathJson`, `activeTravelJson`, `travelPreviewJson`, `travellingCharacterJson`, `travelCityJson` (07-01 Task 2; polyline endpoints equal the POI locations, C1)
-- [ ] `test/helpers/fakes/fake_server_clock_service.dart` — settable server now, settable `isSynced`, `resync(...)` emitting on `offsetChanges` (07-03 Task 1)
+- [x] `test/helpers/fakes/fake_server_clock_service.dart` — settable server now, settable `isSynced`, `resync(...)` emitting on `offsetChanges` (07-03 Task 1)
 - [ ] `test/helpers/mocks.dart` — `MockTravelRepository` (07-05), `MockTravelCubit` (07-07), `MockTravelProgressCubit` (07-08), `MockWorldMapCubit` (07-09)
 - [ ] `test/helpers/map_harness.dart` — minimal offline `FlutterMap` wrapper (07-08 Task 1)
 - [ ] C1 device probe written into the E2E recipe (07-11 Task 2 step 1)
