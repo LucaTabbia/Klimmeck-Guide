@@ -20,6 +20,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
@@ -160,6 +161,7 @@ void main() {
     late CharacterCubit characterCubit;
     late QuestCubit questCubit;
     late QuestAcceptanceCubit acceptanceCubit;
+    late MapFocusCubit mapFocusCubit;
     await pumpShell(
       tester,
       state: const SplashData(),
@@ -167,6 +169,7 @@ void main() {
         characterCubit = context.read<CharacterCubit>();
         questCubit = context.read<QuestCubit>();
         acceptanceCubit = context.read<QuestAcceptanceCubit>();
+        mapFocusCubit = context.read<MapFocusCubit>();
         return const Text('main');
       },
     );
@@ -178,6 +181,7 @@ void main() {
     expect(characterCubit.isClosed, isTrue);
     expect(questCubit.isClosed, isTrue);
     expect(acceptanceCubit.isClosed, isTrue);
+    expect(mapFocusCubit.isClosed, isTrue);
   });
 
   testWidgets('provides the notification preferences loaded for the user', (

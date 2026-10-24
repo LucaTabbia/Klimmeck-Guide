@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_popup_registry.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 
 import '../../../helpers/auth_fixtures.dart';
 import '../../../helpers/test_app.dart';
@@ -50,13 +51,18 @@ void main() {
     WidgetTester tester, {
     int initialPage = 0,
     Map<NotificationCategory, NotificationPopup>? popups,
+    MapFocusCubit? mapFocus,
   }) async {
     final controller = PageController(initialPage: initialPage);
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       buildTestApp(
-        home: BlocProvider<NotificationIntentCubit>.value(
-          value: cubit,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<NotificationIntentCubit>.value(value: cubit),
+            if (mapFocus != null)
+              BlocProvider<MapFocusCubit>.value(value: mapFocus),
+          ],
           child: Scaffold(
             body: NotificationIntentLanding(
               pageController: controller,
@@ -145,7 +151,32 @@ void main() {
     expect(poppedUp, [questIntent]);
   });
 
-  test('Phase 5 registers no notification popup', () {
-    expect(defaultNotificationPopups, isEmpty);
+  testWidgets('a travelEnd tap only latches the camera focus on the pawn', (
+    tester,
+  ) async {
+    await startSession(tester);
+    final mapFocus = MapFocusCubit();
+    addTearDown(mapFocus.close);
+    final controller = await pumpLanding(
+      tester,
+      popups: defaultNotificationPopups,
+      mapFocus: mapFocus,
+    );
+    controller.jumpToPage(3);
+    await tester.pump();
+
+    cubit.offer(travelIntent);
+    await tester.pumpAndSettle();
+
+    expect(find.text('page 0'), findsOneWidget);
+    expect(mapFocus.state.isCharacterFocusPending, isTrue);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
+  });
+
+  test('Phase 7 registers only the travelEnd popup', () {
+    expect(defaultNotificationPopups.keys.toSet(), {
+      NotificationCategory.travelEnd,
+    });
   });
 }
