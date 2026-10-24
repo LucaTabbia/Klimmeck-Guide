@@ -38,9 +38,9 @@ created: 2026-10-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 1 | TRAVEL-02 | T-07-01-05 | "no cost" amendment on record (C3) | docs | `grep -c 'ETA + costo' .planning/PROJECT.md docs/rules/ui-ux.md` (= 0) + `grep -c '_Emendato il 2026-10-24' .planning/REQUIREMENTS.md` (≥ 2) | ✅ | ⬜ pending |
-| 07-01-02 | 01 | 1 | TRAVEL-01, TRAVEL-04 | T-07-01-01/04 | malformed travel → null; shared point order (C1) | unit | `flutter test test/models/wire_lat_lng_test.dart test/models/point_of_interest_test.dart test/models/travel` | ❌ W0 | ⬜ pending |
-| 07-01-03 | 01 | 1 | TRAVEL-01, TRAVEL-04 | T-07-01-01/02/03 | `activeTravel` parsed, no `copyWith` forgery, no `pet` selected | unit | `flutter test test/models/character test/graphql test/repository/services/graphql test/screens/mainScreen/characterCubit` | ❌ W0 (+ extend fragment test) | ⬜ pending |
+| 07-01-01 | 01 | 1 | TRAVEL-02 | T-07-01-05 | "no cost" amendment on record (C3) | docs | `grep -c 'ETA + costo' .planning/PROJECT.md docs/rules/ui-ux.md` (= 0) + `grep -c '_Emendato il 2026-10-24' .planning/REQUIREMENTS.md` (≥ 2) | ✅ | ✅ green |
+| 07-01-02 | 01 | 1 | TRAVEL-01, TRAVEL-04 | T-07-01-01/04 | malformed travel → null; shared point order (C1) | unit | `flutter test test/models/wire_lat_lng_test.dart test/models/point_of_interest_test.dart test/models/travel` | ❌ W0 | ✅ green |
+| 07-01-03 | 01 | 1 | TRAVEL-01, TRAVEL-04 | T-07-01-01/02/03 | `activeTravel` parsed, no `copyWith` forgery, no `pet` selected | unit | `flutter test test/models/character test/graphql test/repository/services/graphql test/screens/mainScreen/characterCubit` | ❌ W0 (+ extend fragment test) | ✅ green |
 | 07-02-01 | 02 | 1 | TRAVEL-03 | T-07-02-01/02 | no crash on degenerate routes; progress only from server now | unit | `flutter test test/models/travel/travel_route_test.dart` | ❌ W0 | ⬜ pending |
 | 07-02-02 | 02 | 1 | TRAVEL-02 | T-07-02-03 | same city → no destination (D-02) | unit | `flutter test test/models/travel/travel_time_format_test.dart test/models/travel/travel_destination_test.dart` | ❌ W0 | ⬜ pending |
 | 07-03-01 | 03 | 1 | TRAVEL-03 | T-07-03-01/02 | RTT offset, silent failure, resync on resume, `offsetChanges` after each successful sync | unit (fake_async) | `flutter test test/repository/services/time/server_clock_service_test.dart` | ❌ W0 | ⬜ pending |
@@ -72,7 +72,7 @@ created: 2026-10-24
 
 Wave 0 is folded into the RED step of each task (TDD): every `❌ W0` file above is created failing-first by its own task, before the implementation.
 
-- [ ] `test/helpers/fixtures/travel_fixtures.dart` — `departureWire`/`destinationWire`, `travelPathJson`, `activeTravelJson`, `travelPreviewJson`, `travellingCharacterJson`, `travelCityJson` (07-01 Task 2; polyline endpoints equal the POI locations, C1)
+- [x] `test/helpers/fixtures/travel_fixtures.dart` — `departureWire`/`destinationWire`, `travelPathJson`, `activeTravelJson`, `travelPreviewJson`, `travellingCharacterJson`, `travelCityJson` (07-01 Task 2; polyline endpoints equal the POI locations, C1)
 - [ ] `test/helpers/fakes/fake_server_clock_service.dart` — settable server now, settable `isSynced`, `resync(...)` emitting on `offsetChanges` (07-03 Task 1)
 - [ ] `test/helpers/mocks.dart` — `MockTravelRepository` (07-05), `MockTravelCubit` (07-07), `MockTravelProgressCubit` (07-08), `MockWorldMapCubit` (07-09)
 - [ ] `test/helpers/map_harness.dart` — minimal offline `FlutterMap` wrapper (07-08 Task 1)
