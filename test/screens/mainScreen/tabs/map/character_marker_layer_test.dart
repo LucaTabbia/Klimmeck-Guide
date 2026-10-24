@@ -22,6 +22,7 @@ import '../../../../helpers/map_harness.dart';
 import '../../../../helpers/mocks.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 
+/// Città entrambe nel riquadro dell'harness (zoom 2: ~5,7 px per grado).
 final City cityA = City.fromJson({
   ...travelCityJson(
     id: 'city-1',
@@ -38,14 +39,14 @@ final City cityB = City.fromJson({
     id: 'city-2',
     name: 'Valdoria',
     markerId: 'city-marker-2',
-    marker: const [10.0, 120.0],
+    marker: const [10.0, 60.0],
     image: null,
   ),
   'type': 'drusteaCapital',
 });
 
 const LatLng home = LatLng(10, 20);
-const LatLng destination = LatLng(10, 120);
+const LatLng destination = LatLng(10, 60);
 
 CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
@@ -235,6 +236,7 @@ void main() {
         });
         characterStates.add(CharacterLoaded(withAssets));
         await tester.pump();
+        await tester.pump();
 
         expect(pawnPoint(tester), destination);
       },
@@ -249,6 +251,7 @@ void main() {
 
       travelStates.add(const TravelIdle());
       await tester.pump();
+      await tester.pump();
 
       expect(pawnPoint(tester), home);
       expect(pawnDraggable(tester).maxSimultaneousDrags, isNull);
@@ -259,7 +262,7 @@ void main() {
     testWidgets('releasing east resolves the nearest city', (tester) async {
       await pumpLayer(tester, character: characterLoaded());
 
-      await tester.drag(find.byType(Draggable<Object>), const Offset(300, 0));
+      await tester.drag(find.byType(Draggable<Object>), const Offset(200, 0));
       await tester.pumpAndSettle();
 
       expect(dragEnds, [(destination, cityB)]);
