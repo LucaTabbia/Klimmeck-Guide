@@ -21,8 +21,8 @@ Phase: 7 (Travel) — EXECUTING
 Plan: 11 of 11
 Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
 Next Phase: 8 (Spells Section) once Phase 7 ships (PR to develop); BE Phase 9 (Combat Result & Admin Outcomes) planned in the same session and executing in parallel on the BE repo
-Status: Phase 7 gate passed — awaiting the device UAT (07-11 checkpoint); schema check 32/32 vs BE origin/develop 3df1b37, flutter test 1644 green, analyze 54 issues / 0 errors
-Last activity: 2026-10-24 -- Phase 7 plan 07-11 Task 1 gate passed (docs(phase-7) 4d7e57e); 07-HUMAN-UAT.md opened with 12 pending steps; awaiting the Android device E2E verdict
+Status: Phase 7 gate passed — awaiting the device UAT (07-11 checkpoint, 12 steps in 07-HUMAN-UAT.md); code review done (3 warnings + 6 info → 8 fixed, 1 not needed, 07-REVIEW-FIX.md), verification human_needed with 0 gaps (07-VERIFICATION.md), security secured 58/58 (07-SECURITY.md); after the UAT verdict: continuation of 07-11 Task 3, then PR to develop
+Last activity: 2026-10-24 -- Phase 7 plans 07-01..07-10 executed, gate 07-11 Task 1 passed (1671 tests after the review fixes, analyze 54/0, schema check 32/32), review/fix/verify/security done; blocked on the device UAT
 
 ## Current Milestone
 
