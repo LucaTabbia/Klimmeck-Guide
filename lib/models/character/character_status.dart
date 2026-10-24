@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/models/travel/active_travel.dart';
 
 import '../coins.dart';
 import '../enums/title_type.dart';
@@ -18,6 +19,7 @@ class CharacterStatus extends Equatable {
     required this.title,
     required this.level,
     required this.maxActiveSpells,
+    this.activeTravel,
   });
 
   final int? xp;
@@ -30,6 +32,9 @@ class CharacterStatus extends Equatable {
   final int? currentLifePoints;
   final int? maxLifePoints;
   final int? maxActiveSpells;
+
+  /// Viaggio in corso (BE Phase 8); `null` = fermo. Un viaggio malformato vale `null`.
+  final ActiveTravel? activeTravel;
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
@@ -53,6 +58,7 @@ class CharacterStatus extends Equatable {
             ? TitleType.values.byName(json['title'])
             : null,
         maxActiveSpells: json['maxActiveSpells']?.toInt(),
+        activeTravel: ActiveTravel.tryFromJson(json['activeTravel']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -66,6 +72,7 @@ class CharacterStatus extends Equatable {
     "maxLifePoints": maxLifePoints,
     "title": title?.name,
     "maxActiveSpells": maxActiveSpells,
+    "activeTravel": activeTravel?.toJson(),
   };
 
   CharacterStatus copyWith({
@@ -91,6 +98,7 @@ class CharacterStatus extends Equatable {
       currentLifePoints: currentLifePoints ?? this.currentLifePoints,
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
       maxActiveSpells: maxActiveSpells ?? this.maxActiveSpells,
+      activeTravel: activeTravel,
     );
   }
 
@@ -106,5 +114,6 @@ class CharacterStatus extends Equatable {
     currentLifePoints,
     maxLifePoints,
     maxActiveSpells,
+    activeTravel,
   ];
 }

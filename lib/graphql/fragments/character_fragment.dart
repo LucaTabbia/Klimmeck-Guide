@@ -35,6 +35,16 @@ class CharacterFragment {
       location {
         ${LocationFragment.fields}
       }
+      activeTravel {
+        road {
+          coordinates
+          distance
+        }
+        startTime
+        endTime
+        duration
+        to
+      }
       spells {
         ${SpellFragment.fields}
       }
