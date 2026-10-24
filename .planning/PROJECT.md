@@ -33,6 +33,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Menu zaino (SatchelMenu) con animazioni — existing
 - ✓ Schermata info equipaggiamento (EquipmentInfoSheetDisplay) — existing
 - ✓ Notifiche push FCM + banner in-app per fine viaggio, streamer live, fine quest (Android; iOS rinviata; prompt del permesso cablato dalla Phase 7) — Phase 5 (2026-10-20)
+- ✓ Accettazione quest con lo swipe-left "strappa foglio" (strappo orizzontale con feedback aptico, il BE resta il giudice: rifiuti mappati per `extensions.code` sul banner in-app, timeout client 15 s) e schede quest per famiglia (combat / narrativa con lore scorrevole / servizio) con indicatori di eleggibilità (titolo, slot per rango D-32, loot consigliato) e riga `Punti canale: saldo / costo`; board raggiungibile solo da un marker di città con le quest della città (worldMission comprese) e la sola story del titolo esatto, quest piene strappate per tutti/per rango, story e worldMission in parallelo alla corsia standard e strappate per il proprietario; foglio della quest standard sulla Map con etichetta di stato server-driven ("In viaggio" / per tipo, nessun countdown); parsing tollerante del catalogo editato a mano — Validated in Phase 6: Quest Accept & Info Sheets (E2E su Android 12/12 il 2026-10-22 contro BE develop con la Phase 8; QUEST-01..07 emendati; PR FE dopo la merge BE PR #11)
 - ✓ Architettura BLoC/Cubit con layer repository — existing
 - ✓ Comunicazione GraphQL (query, mutation, subscription) + REST — existing
 - ✓ Mappa con flutter_map e coordinate LatLng — existing
@@ -54,8 +55,6 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 
 **v1.0 Core Loop (in corso):**
 
-- [ ] Gesture swipe-left "strappa foglio" per accettare quest nel tab board (tutti i tipi)
-- [ ] Layout quest info sheets distinti per tipo (hunt, enemy, boss, dungeon, heal, aid, job, study, story, worldMission)
 - [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
 - [ ] UI conferma viaggio con ETA + costo
 - [ ] Sezione Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
@@ -132,7 +131,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | ✓ Good — Phase 3 (2026-10-14) |
 | Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
 | Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | ✓ Validated on Android by Phase 5 (2026-10-20): data-only FCM + local notifications; iOS/APNs deferred |
-| Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali   | — Pending |
+| Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali; lo swipe è la conferma (nessun dialog, nessun undo), il BE resta il giudice e gli errori arrivano sul banner in-app per codice | ✓ Good — Phase 6 (2026-10-22): 12 plan + 3 quick task, 1350 test verdi, E2E 12/12 su device; strappo orizzontale deciso in UAT (D-06), worldMission legata alla città (D-11), visuali provvisorie (D-19) |
 | Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme: l'app non può completare l'OAuth da sola. Il BE custodisce il secret ed emette access JWT + refresh token; l'app non vede mai un token Twitch | ✓ Good — Phase 11 (2026-10-06) |
 | Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |
 | Creazione personaggio: pagina unica provvisoria, BE fonte di verità per età/razza e stato iniziale | L'utente ha chiesto un layout provvisorio subito dopo la login; la tabella età per razza (dal lore) e le patrie vivono nel BE ed arrivano via `raceTraits`, il FE non duplica regole | ✓ Good — Phase 2 + BE Phase 02.1 (2026-10-09) |
@@ -160,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-10-18 — after Phase 4 completion (Settings tab: notification toggles persisted per user, logout, character deletion via BE `deleteCharacter`; FE PR to develop opened after the security audit)_
+_Last updated: 2026-10-22 — after Phase 6 completion (quest accept with the tear gesture, per-type info sheets, lanes and torn-for-everyone rules, server-driven state label on the Map; device E2E 12/12; FE PR to develop opened after the security audit)_

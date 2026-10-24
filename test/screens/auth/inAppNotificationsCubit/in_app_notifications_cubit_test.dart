@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/models/push_event.dart';
@@ -304,6 +305,111 @@ void main() {
 
       expect(sink.offered.single, travelA.intent);
       expect(cubit.state.current, questA);
+    });
+  });
+
+  group('publishNotice', () {
+    const notice = KGNotification(
+      title: 'Missione non accettata',
+      description: 'Punti canale insufficienti',
+    );
+    const key = 'quest-acceptance|insufficientPoints|q-1';
+
+    test('shows the notice in the banner, not as a push', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+
+        expect(cubit.state.notice?.notification, notice);
+        expect(cubit.state.current, isNull);
+      });
+    });
+
+    test('hides the notice after the display duration', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+
+        async.elapse(InAppNotificationsCubit.defaultDisplayDuration);
+
+        expect(cubit.state, const InAppNotificationsState());
+      });
+    });
+
+    test('ignores the same key inside the window and shows it after', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+        cubit.publishNotice(notice, dedupKey: key);
+        async.elapse(InAppNotificationsCubit.defaultDisplayDuration);
+        expect(cubit.state, const InAppNotificationsState());
+
+        async.elapse(const Duration(milliseconds: 1));
+        cubit.publishNotice(notice, dedupKey: key);
+
+        expect(cubit.state.notice?.notification, notice);
+      });
+    });
+
+    test('a push arriving during a notice waits its turn', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+        cubit.publish(travelA);
+        expect(cubit.state.notice?.notification, notice);
+        expect(cubit.state.current, isNull);
+
+        async.elapse(InAppNotificationsCubit.defaultDisplayDuration);
+
+        expect(cubit.state.current, travelA);
+        expect(cubit.state.notice, isNull);
+      });
+    });
+
+    test('a notice arriving during a push waits its turn', () {
+      withCubit((async, cubit, events) {
+        cubit.publish(travelA);
+        cubit.publishNotice(notice, dedupKey: key);
+        expect(cubit.state.current, travelA);
+        expect(cubit.state.notice, isNull);
+
+        async.elapse(InAppNotificationsCubit.defaultDisplayDuration);
+
+        expect(cubit.state.notice?.notification, notice);
+        expect(cubit.state.current, isNull);
+      });
+    });
+
+    test('dismiss moves to the next in the queue', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+        cubit.publish(travelA);
+
+        cubit.dismiss();
+        expect(cubit.state.current, travelA);
+
+        cubit.dismiss();
+        expect(cubit.state, const InAppNotificationsState());
+      });
+    });
+
+    test('never touches the tap router', () {
+      withCubit((async, cubit, events) {
+        cubit.publishNotice(notice, dedupKey: key);
+        cubit.dismiss();
+        async.flushMicrotasks();
+
+        expect(sink.offered, isEmpty);
+        expect(links.opened, isEmpty);
+      });
+    });
+
+    test('does nothing after close', () {
+      withCubit((async, cubit, events) {
+        cubit.close();
+        async.flushMicrotasks();
+
+        cubit.publishNotice(notice, dedupKey: key);
+
+        expect(cubit.state, const InAppNotificationsState());
+        expect(async.pendingTimers, isEmpty);
+      });
     });
   });
 

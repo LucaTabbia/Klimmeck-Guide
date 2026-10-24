@@ -8,19 +8,33 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../models/quest/quest.dart';
+import '../../../models/quest/quest_sheet_details.dart';
+import '../../../models/quest/quest_viewer.dart';
 import '../cards/equipment_item_card.dart';
 
-class QuestInfoSheet extends StatefulWidget {
-  const QuestInfoSheet({super.key, required this.quest});
+class QuestInfoSheet extends StatelessWidget {
+  const QuestInfoSheet({
+    super.key,
+    required this.quest,
+    this.viewer,
+    this.stateLabel,
+  });
 
   final Quest? quest;
 
-  @override
-  State<QuestInfoSheet> createState() => _QuestInfoSheetState();
-}
+  /// Chi guarda (board): abilita titolo evidenziato, motivo del blocco, saldo.
+  /// Null = sola lettura (mappa).
+  final QuestViewer? viewer;
 
-class _QuestInfoSheetState extends State<QuestInfoSheet> {
-  late Duration? questDuration;
+  /// Etichetta di stato della corsia (mappa, D-15).
+  final String? stateLabel;
+
+  static const Key combatFamilyKey = ValueKey('questSheet.family.combat');
+  static const Key narrativeFamilyKey = ValueKey('questSheet.family.narrative');
+  static const Key serviceFamilyKey = ValueKey('questSheet.family.service');
+  static const Key costLineKey = ValueKey('questSheet.costLine');
+  static const Key blockedReasonKey = ValueKey('questSheet.blockedReason');
+  static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
 
   static const double _aspectRatio = 315 / 375;
   static const double _heightMultiplier = 1.5;
@@ -30,24 +44,6 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
     right: 0.111,
     bottom: 0.13,
   );
-
-  @override
-  void initState() {
-    questDuration = widget.quest?.infos?.timeToComplete != null
-        ? Duration(milliseconds: widget.quest!.infos!.timeToComplete!)
-        : null;
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant QuestInfoSheet oldWidget) {
-    if (oldWidget.quest != widget.quest) {
-      questDuration = widget.quest?.infos?.timeToComplete != null
-          ? Duration(milliseconds: widget.quest!.infos!.timeToComplete!)
-          : null;
-    }
-    super.didUpdateWidget(oldWidget);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +59,7 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
           height: sheetHeight,
           width: sheetWidth,
         ),
-        if (widget.quest != null) _buildContent(sheetWidth, sheetHeight),
+        if (quest != null) _buildContent(sheetWidth, sheetHeight),
       ],
     );
   }
@@ -82,7 +78,7 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
         child: Column(
           children: [
             Expanded(flex: 3, child: _buildQuestInfo()),
-            if (widget.quest!.prizes != null)
+            if (quest!.prizes != null)
               Expanded(flex: 2, child: _buildRewards()),
           ],
         ),
@@ -91,76 +87,171 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
   }
 
   Widget _buildQuestInfo() {
+    final details = QuestSheetDetails.of(quest!, viewer: viewer);
+    final theme = KlimmeckGuideTheme.instance;
     return Column(
       children: [
         Flexible(
-          flex: 1,
           child: AutoSizeText(
-            widget.quest!.infos!.title!,
+            quest!.infos?.title ?? '',
             maxFontSize: 24,
             minFontSize: 10,
             maxLines: 2,
             textAlign: TextAlign.center,
-            style: KlimmeckGuideTheme.instance.headlineLarge,
+            style: theme.headlineLarge,
           ),
         ),
-
         Expanded(
           flex: 4,
-          child: Row(
-            children: [
-              Column(
-                children: [
-                  if (widget.quest!.infos!.enemy != null)
-                    Expanded(
-                      flex: 3,
-                      child: Image.asset(
-                        widget.quest!.infos!.enemy!.imagePath!,
-                        fit: BoxFit.contain,
-                      ),
+          child: switch (details.family) {
+            QuestSheetFamily.combat => _combatBody(details),
+            QuestSheetFamily.narrative => _narrativeBody(details),
+            QuestSheetFamily.service => _serviceBody(details),
+          },
+        ),
+        if (details.blockedReason != null)
+          Text(
+            details.blockedReason!,
+            key: blockedReasonKey,
+            style: theme.bodyLarge.copyWith(color: KlimmeckGuideTheme.bloodRed),
+          ),
+        if (stateLabel != null)
+          Text(stateLabel!, key: stateLabelKey, style: theme.specialText),
+      ],
+    );
+  }
+
+  Widget _combatBody(QuestSheetDetails details) {
+    final enemy = quest!.infos?.enemy;
+    return Row(
+      key: combatFamilyKey,
+      children: [
+        if (enemy != null)
+          Expanded(
+            child: Column(
+              children: [
+                if (enemy.imagePath != null)
+                  Expanded(
+                    child: Image.asset(
+                      enemy.imagePath!,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
                     ),
-                  if (widget.quest!.infos!.enemy != null)
-                    Expanded(
-                      flex: 1,
-                      child: AutoSizeText(
-                        widget.quest!.infos!.enemy!.name!,
-                        maxFontSize: 12,
-                        minFontSize: 8,
-                        textAlign: TextAlign.center,
-                        style: KlimmeckGuideTheme.instance.bodyLarge,
-                      ),
-                    ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  if (questDuration != null)
-                    AutoSizeText(
-                      "Tempo richiesto: ${getStringToShowFromDuration(questDuration!)}",
-                      maxFontSize: 20,
-                      minFontSize: 8,
-                      textAlign: TextAlign.left,
-                      style: KlimmeckGuideTheme.instance.bodyLarge,
-                    ),
-                  if (widget.quest!.requirements?.requiredPoints != null)
-                    AutoSizeText(
-                      "Punti canale richiesti: 3000 / ${widget.quest!.requirements?.requiredPoints}",
-                      maxFontSize: 16,
-                      minFontSize: 8,
-                      maxLines: 1,
-                      textAlign: TextAlign.left,
-                      style: KlimmeckGuideTheme.instance.bodyLarge,
-                    ),
-                ],
-              ),
-            ],
+                  ),
+                AutoSizeText(
+                  enemy.name ?? '',
+                  maxFontSize: 12,
+                  minFontSize: 8,
+                  textAlign: TextAlign.center,
+                  style: KlimmeckGuideTheme.instance.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ..._timeLine(),
+                ..._titleLine(details),
+                ..._slotLines(details),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
+
+  Widget _narrativeBody(QuestSheetDetails details) {
+    return Column(
+      key: narrativeFamilyKey,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (details.loreParagraphs.isNotEmpty)
+          Expanded(
+            child: SingleChildScrollView(
+              child: Text(
+                details.loreParagraphs.join('\n\n'),
+                style: KlimmeckGuideTheme.instance.bodyLarge,
+              ),
+            ),
+          ),
+        ..._costLine(details),
+        ..._titleLine(details),
+        ..._slotLines(details),
+      ],
+    );
+  }
+
+  Widget _serviceBody(QuestSheetDetails details) {
+    final theme = KlimmeckGuideTheme.instance;
+    return SingleChildScrollView(
+      key: serviceFamilyKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ..._timeLine(),
+          ..._titleLine(details),
+          if (details.recommendedLootLines.isNotEmpty) ...[
+            Text('Consigliati', style: theme.specialText),
+            for (final line in details.recommendedLootLines)
+              Text(line, style: theme.bodyLarge),
+          ],
+          ..._slotLines(details),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _timeLine() {
+    final millis = quest!.infos?.timeToComplete;
+    if (millis == null) return const [];
+    return [
+      Text(
+        'Tempo richiesto: ${getStringToShowFromDuration(Duration(milliseconds: millis))}',
+        style: KlimmeckGuideTheme.instance.bodyLarge,
+      ),
+    ];
+  }
+
+  List<Widget> _titleLine(QuestSheetDetails details) {
+    final text = details.requiredTitleText;
+    if (text == null) return const [];
+    return [
+      Text(
+        text,
+        style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
+          color: details.isTitleIneligible ? KlimmeckGuideTheme.bloodRed : null,
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _costLine(QuestSheetDetails details) {
+    final cost = details.costLine;
+    if (cost == null) return const [];
+    return [
+      Text(
+        cost.text,
+        key: costLineKey,
+        style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
+          color: cost.isInsufficient ? KlimmeckGuideTheme.bloodRed : null,
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _slotLines(QuestSheetDetails details) => [
+    for (final line in details.slotLines)
+      Text(
+        line.text,
+        style: line.isViewerRank
+            ? KlimmeckGuideTheme.instance.specialText
+            : KlimmeckGuideTheme.instance.bodyLarge,
+      ),
+  ];
 
   Widget _buildRewards() {
     return LayoutBuilder(
@@ -182,24 +273,23 @@ class _QuestInfoSheetState extends State<QuestInfoSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (widget.quest!.prizes?.prizeCoins != null)
+                  if (quest!.prizes?.prizeCoins != null)
                     CoinsDisplay(
-                      coins: widget.quest!.prizes!.prizeCoins!,
+                      coins: quest!.prizes!.prizeCoins!,
                       height: constraints.maxHeight - 30,
                       width: constraints.maxWidth * 0.5,
                     ),
-                  if (widget.quest!.prizes!.prizeItem != null)
+                  if (quest!.prizes!.prizeItem != null)
                     Flexible(
-                      child: widget.quest!.prizes!.prizeItem!.isEquipment
+                      child: quest!.prizes!.prizeItem!.isEquipment
                           ? EquipmentItemCard(
                               isSelected: false,
                               size: constraints.maxHeight - 30,
                               equipmentItem:
-                                  widget.quest!.prizes!.prizeItem!.asEquipment!,
+                                  quest!.prizes!.prizeItem!.asEquipment!,
                             )
                           : LootItemCard(
-                              lootItem:
-                                  widget.quest!.prizes!.prizeItem!.asLoot!,
+                              lootItem: quest!.prizes!.prizeItem!.asLoot!,
                               size: constraints.maxHeight - 30,
                             ),
                     ),

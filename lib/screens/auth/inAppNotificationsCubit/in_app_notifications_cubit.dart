@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/models/push_event.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
@@ -39,7 +40,7 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
   final NotificationTapRouter _router;
   final DateTime Function() _now;
   final Duration _displayDuration;
-  final Queue<PushEvent> _queue = Queue<PushEvent>();
+  final Queue<Object> _queue = Queue<Object>();
   final Map<String, DateTime> _expiresAt = {};
   late final StreamSubscription<PushEvent> _subscription;
   Timer? _dismissTimer;
@@ -54,7 +55,20 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
     if (_expiresAt.containsKey(key)) return;
     _expiresAt[key] = now.add(_dedupWindowOf(event));
     _queue.add(event);
-    if (state.current == null) _showNext();
+    if (!state.isShowing) _showNext();
+  }
+
+  /// Avviso locale (D-20 C1): stessa coda e stessa durata dei push; la finestra
+  /// di dedup è la durata di visualizzazione.
+  void publishNotice(KGNotification notification, {required String dedupKey}) {
+    if (isClosed) return;
+    final now = _now();
+    _expiresAt.removeWhere((_, expiry) => !now.isBefore(expiry));
+    final key = 'notice|$dedupKey';
+    if (_expiresAt.containsKey(key)) return;
+    _expiresAt[key] = now.add(_displayDuration);
+    _queue.add(InAppNotice(notification: notification, dedupKey: dedupKey));
+    if (!state.isShowing) _showNext();
   }
 
   /// Tap o chiusura: passa al prossimo in coda.
@@ -76,7 +90,12 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
       emit(const InAppNotificationsState());
       return;
     }
-    emit(InAppNotificationsState(current: _queue.removeFirst()));
+    final next = _queue.removeFirst();
+    emit(switch (next) {
+      final PushEvent event => InAppNotificationsState(current: event),
+      final InAppNotice notice => InAppNotificationsState(notice: notice),
+      _ => const InAppNotificationsState(),
+    });
     _dismissTimer = Timer(_displayDuration, _showNext);
   }
 

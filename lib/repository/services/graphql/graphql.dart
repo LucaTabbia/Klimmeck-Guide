@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
@@ -19,6 +21,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
@@ -154,7 +157,34 @@ class KlimmeckGraphQl {
       throw Exception('No quest found');
     }
 
-    return questsData.map((json) => Quest.fromJson(json)).toList();
+    final quests = <Quest>[];
+    for (final json in questsData) {
+      final quest = Quest.tryFromJson(json);
+      if (quest == null) {
+        debugPrint('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
+        continue;
+      }
+      quests.add(quest);
+    }
+    return quests;
+  }
+
+  /// Id dei POI della città (marker incluso). Lancia [OperationException] o
+  /// [FormatException].
+  Future<Set<String>> getCityPointIds(String cityId) async {
+    final data = _dataOrThrow(
+      await performQuery(CityQueries.getCity, variables: {'id': cityId}),
+    );
+    final city = data['city'];
+    if (city is! Map<String, dynamic>) {
+      throw const FormatException('city missing');
+    }
+    return Set.unmodifiable({
+      if (city['markerLocation'] case {'id': final String markerId}) markerId,
+      for (final poi
+          in (city['pointsOfInterest'] as List<dynamic>? ?? const []))
+        if (poi case {'id': final String poiId}) poiId,
+    });
   }
 
   Future<List<EquipmentItem>> getEquipmentItems(List<String> ids) async {
@@ -417,6 +447,21 @@ class KlimmeckGraphQl {
       await performMutation(query: CharacterMutations.deleteCharacter),
     );
     return _userFrom(data['deleteCharacter']);
+  }
+
+  /// Accetta la quest (D-05). La corsia e il saldo arrivano dalle subscription,
+  /// mai da questa risposta (D-03). Lancia [OperationException] o [FormatException].
+  Future<void> acceptQuest(AcceptQuestRequest request) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: QuestMutations.acceptQuest,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    final result = data['acceptQuest'];
+    if (result is! Map<String, dynamic> || result['successful'] != true) {
+      throw const FormatException('acceptQuest not successful');
+    }
   }
 
   /// Registra il device per il push (D-07): `platform` è un valore di `PushPlatform`.

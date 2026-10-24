@@ -25,6 +25,8 @@ class KlimmeckGuideTheme {
   ];
 
   // Colors
+  /// Velo scuro delle voci della borsa disabilitate (Phase 6 D-13, provvisorio).
+  static const Color disabledScrim = Color(0xB3000000);
   static const Color primaryGold = Color(0xFFFFD700);
   static const Color darkBronze = Color(0xFF8B6C00);
   static const Color royalCrimson = Color(0xFF8B0000);

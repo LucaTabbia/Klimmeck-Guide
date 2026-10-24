@@ -8,10 +8,14 @@ class QuestInfoOverlay extends StatelessWidget {
     super.key,
     required this.animationController,
     required this.selectedQuest,
+    this.stateLabel,
   });
 
   final AnimationController animationController;
   final Quest? selectedQuest;
+
+  /// Stato della corsia quando il foglio si apre dalla mappa (D-07/D-15).
+  final String? stateLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,10 @@ class QuestInfoOverlay extends StatelessWidget {
               width: screenHeight * 1.5 * (315 / 375),
               child: selectedQuest != null
                   ? SingleChildScrollView(
-                      child: QuestInfoSheet(quest: selectedQuest),
+                      child: QuestInfoSheet(
+                        quest: selectedQuest,
+                        stateLabel: stateLabel,
+                      ),
                     )
                   : null,
             ),

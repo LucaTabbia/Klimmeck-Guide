@@ -18,6 +18,7 @@ import 'layers/character_marker_layer.dart';
 import 'layers/city_markers_layer.dart';
 import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
+import 'layers/quest_paper_layer.dart';
 import 'utils/map_constants.dart';
 import 'utils/map_utils.dart';
 
@@ -49,6 +50,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // UI state
   Lore? _selectedLore;
   Quest? _selectedQuest;
+  String? _selectedStateLabel;
 
   @override
   void initState() {
@@ -137,9 +139,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                 onDragUpdate: _handleCharacterDragUpdate,
                 onDragEnd: _handleCharacterDragEnd,
               ),
+              QuestPaperLayer(onOpen: _openFromPaper),
               QuestInfoOverlay(
                 animationController: _questAnimationController,
                 selectedQuest: _selectedQuest,
+                stateLabel: _selectedStateLabel,
               ),
             ],
           ),
@@ -202,7 +206,18 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _selectQuest(Quest quest) {
-    setState(() => _selectedQuest = quest);
+    setState(() {
+      _selectedQuest = quest;
+      _selectedStateLabel = null;
+    });
+    _questAnimationController.forward();
+  }
+
+  void _openFromPaper(Quest quest, String stateLabel) {
+    setState(() {
+      _selectedQuest = quest;
+      _selectedStateLabel = stateLabel;
+    });
     _questAnimationController.forward();
   }
 

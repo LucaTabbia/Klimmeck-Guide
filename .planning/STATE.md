@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-10-20T20:30:00Z"
-last_activity: 2026-10-20 -- Phase 5 complete; FE PR #29 opened to develop
+last_updated: "2026-10-22T18:23:55.336Z"
+last_activity: 2026-10-22
 progress:
   total_phases: 12
-  completed_phases: 6
-  total_plans: 50
-  completed_plans: 50
+  completed_phases: 7
+  total_plans: 62
+  completed_plans: 62
   percent: 100
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 5 (notifications-infrastructure) — COMPLETE 2026-10-20 (9/9 plans; device UAT approved; code review 0 critical / 3 warnings fixed; verification passed 5/5; security audit filed)
-Plan: 9 of 9
-Completed phases: 01 (dev-auth-stub), 02 (character-creation — with BE companion phase 02.1), 03 (real-time-sync-foundation — PR #27 merged 2026-10-14), 04 (settings-screen — PR #28 merged 2026-10-18; BE companion Phase 03.1 merged as BE PR #6 on 2026-10-16), 05 (notifications-infrastructure — Android only, UAT 2026-10-20; FE PR #29 to develop opened 2026-10-20; BE Phase 5 FCM merged in BE PR #8), 11 (auth-session-bootstrap — executed ahead of phases 2–10 on user request, with the dev bypass kept)
-Next Phase: 06 (quest-accept-info-sheets) — blocked by BE Phase 7 (QUEST-04: `activeStoryQuest`/`activeWorldMissionQuest` on schema + subscription); discuss can start meanwhile. BE Phase 6 (EventSub) is at its human-verify checkpoint (Twitch CLI UAT pending).
-Status: Phase 5 complete — PR #29 open, awaiting review/merge
-Last activity: 2026-10-20 -- Phase 5 closed: ROADMAP/STATE/PROJECT updated; stale blockers (Twitch keys, logout entry point, character deletion) resolved; new BE/ops item: FCM topic subscription needs `roles/firebasecloudmessaging.admin` on the service account
+Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick tasks 261022-f0n worldMission city rule, 261022-qkx tear geometry; device E2E 12/12 passed against BE develop @ 2a3449a; code review 0 critical / 3 warning / 10 info, warnings + 3 info fixed in TDD; verification passed 7/7 requirements; security audit: 54 threats, 46 mitigated, 4 accepted, 4 transferred to the BE, 0 open)
+Plan: 12 of 12
+Completed phases: 2
+Next Phase: 07 (travel) after the Phase 6 FE PR; BE Phase 8 (Travel lifecycle) is merged on BE develop (PR #11), so the lockstep with the Phase 7 FE is unblocked.
+Status: Phase 6 complete — FE PR #30 open (merge after BE PR #11, already merged; BE PR #12 scheduler timeout open), awaiting review; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 contract on develop
+Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes landed (1350 tests green, analyze 54/0 errors), verification passed; FE PR #30 to develop opened after the security audit; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 merged (BE PR #11), BE PR #12 (scheduler timeout) open
 
 ## Current Milestone
 
@@ -50,5 +50,14 @@ Last activity: 2026-10-20 -- Phase 5 closed: ROADMAP/STATE/PROJECT updated; stal
 - ~~BE/ops — topic FCM `streamer-live`~~ — **risolto il 2026-10-20:** `firebase-admin` 14.5 iscrive ai topic con l'API FCM v1 (permesso `cloudmessaging.topicSubscriptions.create`); il ruolo **Firebase Cloud Messaging API Admin** (`roles/firebasecloudmessaging.admin`) è stato aggiunto al service account e la subscribe v1 sul token reale riesce. Dettagli in `phases/05-notifications-infrastructure/BACKEND-NOTES.md` §5.1.
 - **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
-- **QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.
+- ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
 - **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 261022-f0n | worldMission listed and acceptable only in its own city (D-11/D-16 amended, user correction) | 2026-10-22 | 10d6298 | [261022-f0n-worldmission-listed-and-acceptable-only-](./quick/261022-f0n-worldmission-listed-and-acceptable-only-/) |
+| fast-261022 | quest parsing tolerant to catalog items without description and prizeItem as AssetQuantity (board empty with the live catalog) | 2026-10-22 | e4211cc | — (gsd-fast, inline) |
+| fast-261022b | prize loot crash in the quest sheet (effect/power selected for prizeItem, LootItemCard null-safe) | 2026-10-22 | c663be2 | — (gsd-fast, inline) |
+| 261022-qkx | tear geometry: horizontal tear at 10% height, lower piece slides off-screen unclipped, seeded jaggedness (D-06 amended after the device UAT) | 2026-10-22 | f8e08ef | [261022-qkx-tear-geometry-horizontal-tear-near-the-t](./quick/261022-qkx-tear-geometry-horizontal-tear-near-the-t/) |

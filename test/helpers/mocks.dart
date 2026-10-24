@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
+import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -14,9 +16,11 @@ import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
@@ -64,6 +68,12 @@ class MockCharacterCreationRepository extends Mock
 class MockCharacterDeletionRepository extends Mock
     implements CharacterDeletionRepository {}
 
+class MockQuestBoardRepository extends Mock
+    implements QuestBoardRepository {}
+
+class MockQuestAcceptanceRepository extends Mock
+    implements QuestAcceptanceRepository {}
+
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
 class MockPushSessionCleanup extends Mock implements PushSessionCleanup {}
@@ -72,6 +82,9 @@ class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
 
 class MockCharacterCreationCubit extends MockCubit<CharacterCreationState>
     implements CharacterCreationCubit {}
+
+class MockInAppNotificationsCubit extends MockCubit<InAppNotificationsState>
+    implements InAppNotificationsCubit {}
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
@@ -93,3 +106,6 @@ class MockNotificationPermissionCubit
 
 class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
     implements CharacterDeletionCubit {}
+
+class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
+    implements QuestAcceptanceCubit {}

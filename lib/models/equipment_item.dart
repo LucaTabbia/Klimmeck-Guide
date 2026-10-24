@@ -27,7 +27,8 @@ class EquipmentItem extends AssetItem with EquatableMixin {
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
     name: json['name'],
-    description: json['description'],
+    // il documento `quests` seleziona gli item con i soli simpleFields
+    description: json['description'] ?? '',
     equipType: json['equipType'] != null
         ? EquipType.values.byName(json['equipType'])
         : null,

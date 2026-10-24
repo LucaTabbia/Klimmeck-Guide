@@ -60,7 +60,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
 - [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
-- [ ] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, live countdown on `pendingQuest`, parallel story/worldMission lanes.
+- [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
@@ -192,7 +192,7 @@ Plans:
 **Plans**: TBD
 
 ### Phase 6: Quest Accept & Info Sheets
-**Goal**: Users can view per-type quest details in the info sheet and accept a quest via the swipe-left tear-paper gesture; accepted quests show a live server-anchored countdown, and story/worldMission quests run in parallel to the standard pendingQuest.
+**Goal**: Users can view per-type quest details in the info sheet and accept a quest via the swipe-left tear-paper gesture; the accepted standard-lane quest stays on the Map as a paper with a server-driven state label (no countdown, CONTEXT D-15), and story/worldMission quests run in parallel to the standard pendingQuest.
 **Depends on**: Phase 3 (live `pendingQuest`, `activeStoryQuest`, `activeWorldMissionQuest`, coins, twitchPoints), Phase 1 (authenticated mutation)
 **Scope**: L
 **Backend prerequisite**: **QUEST-04 is a backend prerequisite.** Character must expose `activeStoryQuest` and `activeWorldMissionQuest` (or equivalent) on the GraphQL schema and emit them via the Character subscription before this phase can start. Frontend work in this phase is blocked until that ships to staging.
@@ -200,14 +200,27 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The `QuestInfoSheet` above the board shows per-type layout variants for `hunt`, `enemy`, `boss`, `dungeon`, `story`, `worldMission`, `heal`, `aid`, `job`, `study` — surfacing the fields relevant to each type.
   2. Swiping left on the `QuestInfoSheet` (not on the board list) with the tear-paper animation + haptic feedback triggers accept; on success the app navigates to the Map tab with the torn quest paper shown on top of the stack.
-  3. A quest of type `story` or `worldMission` is hidden from the board as soon as its corresponding active field is populated, without blocking acceptance of other quest types.
-  4. While `pendingQuest` is populated, the board shows a live countdown driven by `startDate + waitingTime`, anchored to server timestamps (not device clock).
-  5. On acceptance failure (insufficient balance, quest already taken, server error), optimistic state rolls back and the error surfaces via the existing shop-flow error pattern.
+  3. ~~A quest of type `story` or `worldMission` is hidden from the board as soon as its corresponding active field is populated, without blocking acceptance of other quest types.~~ **Superseded (CONTEXT D-08/D-12):** an accepted `story`/`worldMission` stays on the board torn for its owner; the other lanes stay acceptable.
+  4. ~~While `pendingQuest` is populated, the board shows a live countdown driven by `startDate + waitingTime`, anchored to server timestamps (not device clock).~~ **Superseded (CONTEXT D-15):** no countdown; the standard-lane paper on the Map carries a server-driven state label ("In viaggio" while `startDate` is null, a per-type label afterwards).
+  5. On acceptance failure (insufficient balance, quest already taken, server error), optimistic state rolls back and the error surfaces via the existing shop-flow error pattern. **Amended (CONTEXT D-04, C3):** the error surface is the Phase 5 in-app banner with copy chosen by `extensions.code`.
 **Decisions to make during discuss step**:
   - **QUEST-03 confirmation flow** (open question from STATE.md): dialog with cost preview before swipe? undo window after swipe? cost surface location? Must be resolved during this phase's discuss step.
   - Gesture arena disambiguation (custom `GestureDetector` with drag threshold — NOT `Dismissible`).
-**Plans**: TBD
-**UI hint**: yes
+  - _Resolved in the Phase 6 discuss (2026-10-21): swipe = confirmation, no dialog, no undo (D-01); cost line for story/worldMission only (D-02); custom `GestureDetector` (D-01/D-06)._
+**Plans**: 12 plans
+  - [x] 06-01-PLAN.md — Wave 1: REQUIREMENTS/ROADMAP amendments; rank slots, registrations with rank, D-32 capacity, tolerant quest parsing; three lanes in models + fragment; fixtures
+  - [x] 06-02-PLAN.md — Wave 2: pure availability layer (lanes, classifier in BE order, board policy, cost line, state label, blocked reasons, title labels)
+  - [x] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
+  - [x] 06-04-PLAN.md — Wave 1: in-app banner publishNotice for local domain notices (D-20 C1)
+  - [x] 06-05-PLAN.md — Wave 1: TearablePaper (pure gesture model, jagged clipper, haptics, spring back, recompose)
+  - [x] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
+  - [x] 06-07-PLAN.md — Wave 3: board data (GetCity, interim quest requirements, tolerant getQuests, silent refreshQuests)
+  - [x] 06-08-PLAN.md — Wave 3: satchel Board entry disabled outside a city marker
+  - [x] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
+  - [x] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
+  - [x] 06-11-PLAN.md — Wave 5: Map quest paper with the state label, read-only overlay
+  - [x] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
+**UI hint**: no (CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 7: Travel
 **Goal**: Users can initiate travel to a POI with an explicit confirmation showing backend-provided ETA, then watch their character move along the road in real time, with accurate reconstruction after an app kill mid-travel.
@@ -331,7 +344,7 @@ Plans:
 | 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 0/0 | Not started | - |
+| 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 0/0 | Not started | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |

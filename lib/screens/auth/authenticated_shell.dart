@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/push_event.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
+import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
@@ -17,6 +18,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
@@ -38,6 +40,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// I Cubit gameplay vivono qui e si chiudono quando `AuthGate` rimuove la
 /// shell (logout/cambio account); usano `SafeEmit`, quindi una risposta
 /// ancora in volo alla chiusura viene ignorata.
+///
+/// Accettazione quest (Phase 6): qui e non nella Board, così una risposta
+/// arrivata dopo un cambio tab non si perde.
 ///
 /// `SyncHealth` e `UserRefreshRequests` arrivano dallo scope di sessione
 /// (`SessionSyncScope`), `AppLifecycleEvents` dalla radice dell'app, tutti
@@ -98,7 +103,9 @@ class AuthenticatedShell extends StatelessWidget {
             userRefresh: context.read<UserRefreshRequests>(),
           ),
         ),
-        BlocProvider<QuestCubit>(create: (_) => QuestCubit(graphQl)),
+        BlocProvider<QuestCubit>(
+          create: (_) => QuestCubit(QuestBoardRepository(graphQl: graphQl)),
+        ),
         BlocProvider<TransactionCubit>(
           create: (_) => TransactionCubit(graphQl),
         ),
@@ -133,6 +140,10 @@ class AuthenticatedShell extends StatelessWidget {
           create: (_) => CharacterDeletionCubit(
             CharacterDeletionRepository(graphQl: graphQl),
           ),
+        ),
+        BlocProvider<QuestAcceptanceCubit>(
+          create: (_) =>
+              QuestAcceptanceCubit(QuestAcceptanceRepository(graphQl: graphQl)),
         ),
       ],
       child: Stack(
@@ -203,6 +214,7 @@ class _ShellBodyState extends State<_ShellBody> {
 
 /// Banner in alto sopra il gioco (D-17); i dialog sul Navigator radice restano
 /// sopra (accettato). Il tap passa solo dal cubit (UI → Cubit → Service, D-19).
+/// Gli avvisi locali (Phase 6) usano lo stesso banner; il tap li chiude soltanto.
 class _InAppNotificationOverlay extends StatelessWidget {
   const _InAppNotificationOverlay();
 
@@ -219,7 +231,7 @@ class _InAppNotificationOverlay extends StatelessWidget {
           child: BlocBuilder<InAppNotificationsCubit, InAppNotificationsState>(
             builder: (context, state) => AnimatedSwitcher(
               duration: _transition,
-              child: _bannerFor(context, state.current),
+              child: _bannerFor(context, state),
             ),
           ),
         ),
@@ -227,12 +239,26 @@ class _InAppNotificationOverlay extends StatelessWidget {
     );
   }
 
-  static Widget _bannerFor(BuildContext context, PushEvent? event) {
-    if (event == null) return const SizedBox.shrink();
-    return KgNotificationBanner(
-      key: ValueKey(event.dedupKey),
-      notification: event.notification,
-      onTap: () => context.read<InAppNotificationsCubit>().open(event),
-    );
+  static Widget _bannerFor(
+    BuildContext context,
+    InAppNotificationsState state,
+  ) {
+    final event = state.current;
+    if (event != null) {
+      return KgNotificationBanner(
+        key: ValueKey(event.dedupKey),
+        notification: event.notification,
+        onTap: () => context.read<InAppNotificationsCubit>().open(event),
+      );
+    }
+    final notice = state.notice;
+    if (notice != null) {
+      return KgNotificationBanner(
+        key: ValueKey('notice|${notice.dedupKey}'),
+        notification: notice.notification,
+        onTap: () => context.read<InAppNotificationsCubit>().dismiss(),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
