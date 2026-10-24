@@ -314,10 +314,18 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       context: context,
       builder: (_) => BlocProvider.value(
         value: travelCubit,
-        child: PaperSheetModal(child: TravelConfirmationSheet(destination: destination)),
+        child: NotificationListener<DraggableScrollableNotification>(
+          onNotification: (_) => _isStartInFlight(travelCubit),
+          child: PaperSheetModal(child: TravelConfirmationSheet(destination: destination)),
+        ),
       ),
     ).whenComplete(travelCubit.cancel);
   }
+
+  /// WR-01: trascinato al minimo il foglio chiude la rotta con `Navigator.pop`
+  /// (salta il PopScope del foglio); con la partenza in volo la notifica si ferma qui.
+  static bool _isStartInFlight(TravelCubit travelCubit) =>
+      travelCubit.state is TravelStarting;
 
   /// D-04: la camera inquadra partenza e meta sopra il foglio (che occupa metà schermo).
   void _fitPreviewRoute(TravelConfirming state) {

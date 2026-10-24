@@ -11,8 +11,9 @@ typedef _TravelNumbers = ({String distance, String duration, String arrival});
 
 /// Conferma del viaggio su pergamena (07-CONTEXT D-03): meta subito, poi
 /// distanza, durata ed ETA del BE (ETA = ora server stimata + durata, C4).
-/// "Parti" è l'unica via a `startTravel`; "Resta" annulla. Si chiude da sé
-/// all'avvio o a un rifiuto (il banner lo pubblica TravelOutcomeListener).
+/// "Parti" è l'unica via a `startTravel`; "Resta" annulla. Mentre la partenza
+/// è in volo né "Resta" né indietro/barriera chiudono il foglio: si chiude da
+/// sé all'avvio o a un rifiuto (il banner lo pubblica TravelOutcomeListener).
 /// Nessun costo (BE Phase 8). Stile provvisorio (nessuna UI phase).
 class TravelConfirmationSheet extends StatefulWidget {
   const TravelConfirmationSheet({super.key, required this.destination});
@@ -55,11 +56,21 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   Widget build(BuildContext context) => BlocListener<TravelCubit, TravelState>(
     listenWhen: (_, current) =>
         current is TravelStarted || current is TravelFailed,
-    listener: (context, _) => Navigator.of(context).maybePop(),
+    listener: (context, _) => _closeSettled(context),
     child: BlocBuilder<TravelCubit, TravelState>(
-      builder: (context, state) => _content(context, state),
+      builder: (context, state) => PopScope(
+        canPop: state is! TravelStarting,
+        child: _content(context, state),
+      ),
     ),
   );
+
+  /// `pop` e non `maybePop`: il PopScope ricostruito dopo il listener blocca
+  /// ancora l'uscita da `TravelStarting`.
+  void _closeSettled(BuildContext context) {
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    Navigator.of(context).pop();
+  }
 
   Widget _content(BuildContext context, TravelState state) {
     final image = widget.destination.relatedLore?.image;
@@ -131,10 +142,12 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
       _action(
         key: TravelConfirmationSheet.stayKey,
         label: 'Resta',
-        onPressed: () {
-          context.read<TravelCubit>().cancel();
-          Navigator.of(context).maybePop();
-        },
+        onPressed: state is TravelStarting
+            ? null
+            : () {
+                context.read<TravelCubit>().cancel();
+                Navigator.of(context).maybePop();
+              },
       ),
       _action(
         key: TravelConfirmationSheet.departKey,
