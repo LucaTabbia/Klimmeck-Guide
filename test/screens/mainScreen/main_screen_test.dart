@@ -24,6 +24,7 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
+import '../../helpers/fixtures/travel_fixtures.dart';
 import '../../helpers/landscape.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -119,8 +120,9 @@ void main() {
 
     Future<PageController> pumpOpenSatchel(
       WidgetTester tester,
-      String locationId,
-    ) async {
+      String locationId, {
+      Map<String, dynamic>? activeTravel,
+    }) async {
       useLandscapePhone(tester);
       final authStates = StreamController<AuthState>.broadcast();
       final intentCubit = NotificationIntentCubit(authStates.stream);
@@ -132,7 +134,14 @@ void main() {
         characterCubit,
         Stream<CharacterState>.empty(),
         initialState: CharacterLoaded(
-          Character.fromJson(characterWithLanesJson(locationId: locationId)),
+          Character.fromJson(
+            activeTravel == null
+                ? characterWithLanesJson(locationId: locationId)
+                : travellingCharacterJson(
+                    locationId: locationId,
+                    activeTravel: activeTravel,
+                  ),
+          ),
         ),
       );
       await tester.pumpWidget(
@@ -185,12 +194,63 @@ void main() {
       expect(controller.page!.round(), 0);
     });
 
+    testWidgets('off a city marker the Negozio item does nothing', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(tester, 'poi-9');
+
+      await tapItem(tester, SatchelLayout.shopPageIndex);
+
+      expect(controller.page!.round(), 0);
+    });
+
     testWidgets('off a city marker another item still navigates', (
       tester,
     ) async {
       final controller = await pumpOpenSatchel(tester, 'poi-9');
 
-      await tapItem(tester, 5);
+      await tapItem(tester, 6);
+
+      expect(controller.page!.round(), 6);
+    });
+
+    testWidgets(
+      'while travelling from a city marker board and shop do nothing',
+      (tester) async {
+        final controller = await pumpOpenSatchel(
+          tester,
+          'city-marker-1',
+          activeTravel: activeTravelJson(),
+        );
+
+        await tapItem(tester, SatchelLayout.boardPageIndex);
+        expect(controller.page!.round(), 0);
+
+        await tapItem(tester, SatchelLayout.shopPageIndex);
+        expect(controller.page!.round(), 0);
+      },
+    );
+
+    testWidgets('while travelling the Profilo item still navigates', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        activeTravel: activeTravelJson(),
+      );
+
+      await tapItem(tester, 1);
+
+      expect(controller.page!.round(), 1);
+    });
+
+    testWidgets('on a city marker the Negozio item opens the shop', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(tester, 'city-marker-1');
+
+      await tapItem(tester, SatchelLayout.shopPageIndex);
 
       expect(controller.page!.round(), 5);
     });
