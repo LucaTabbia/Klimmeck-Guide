@@ -26,6 +26,7 @@ import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
 import 'layers/travel_route_layer.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
+import 'travelProgressCubit/arrival_reread_ledger.dart';
 import 'travelProgressCubit/travel_progress_cubit.dart';
 import 'utils/map_constants.dart';
 import 'utils/map_utils.dart';
@@ -74,10 +75,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _initializeTravelProgress() {
-    _progressCubit = TravelProgressCubit(clock: context.read<ServerClockService>())
-      ..follow(_activeTravelOf(context.read<CharacterCubit>().state));
+    _progressCubit = TravelProgressCubit(
+      clock: context.read<ServerClockService>(),
+      rereads: context.read<ArrivalRereadLedger>(),
+    )..follow(_activeTravelOf(context.read<CharacterCubit>().state));
     // D-10: un arrivo già scaduto al montaggio non passa dal listener.
-    if (_refetchCountOf(_progressCubit.state) > 0) _rereadCharacter();
+    _claimArrivalReread();
   }
 
   void _initializeBounds() {
@@ -155,7 +158,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         bloc: _progressCubit,
         listenWhen: (previous, current) =>
             _refetchCountOf(current) > _refetchCountOf(previous),
-        listener: (_, _) => _rereadCharacter(),
+        listener: (_, _) => _claimArrivalReread(),
       ),
       BlocListener<MapFocusCubit, MapFocusState>(
         listenWhen: (_, current) => current.isCharacterFocusPending,
@@ -226,7 +229,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   static int _refetchCountOf(TravelProgressState state) =>
       state is TravelProgressActive ? state.arrivalRefetchCount : 0;
 
-  void _rereadCharacter() => context.read<CharacterCubit>().refreshCharacter();
+  /// WR-02: il registro della sessione tiene il tetto delle riletture per viaggio.
+  void _claimArrivalReread() {
+    if (_progressCubit.claimArrivalReread()) {
+      context.read<CharacterCubit>().refreshCharacter();
+    }
+  }
 
   /// D-09: con un viaggio in corso la camera inquadra la pedina una volta sola,
   /// quando la mappa è pronta (MapController inutilizzabile prima, Pitfall 8).

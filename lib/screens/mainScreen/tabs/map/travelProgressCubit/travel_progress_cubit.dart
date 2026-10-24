@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -18,8 +19,10 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
     with SafeEmit<TravelProgressState> {
   TravelProgressCubit({
     required ServerClockService clock,
+    ArrivalRereadLedger? rereads,
     Duration tick = defaultTick,
   }) : _clock = clock,
+       _rereads = rereads ?? ArrivalRereadLedger(),
        _tick = tick,
        super(const TravelProgressIdle()) {
     _offsetSubscription = clock.offsetChanges.listen((_) => _onOffsetChanged());
@@ -29,15 +32,15 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
   static const Duration defaultTick = Duration(seconds: 1);
 
   /// Riletture silenziose dopo `endTime`: subito e oltre uno sweep del BE (60 s).
-  /// WorldMap rilegge il personaggio (in silenzio) a ogni incremento di
-  /// `arrivalRefetchCount`: non è logica di completamento, solo una rilettura
-  /// del BE (D-10).
+  /// WorldMap rilegge il personaggio (in silenzio) quando [claimArrivalReread]
+  /// lo autorizza: non è logica di completamento, solo una rilettura del BE (D-10).
   static const List<Duration> arrivalRefetchDelays = [
     Duration(seconds: 5),
     Duration(seconds: 65),
   ];
 
   final ServerClockService _clock;
+  final ArrivalRereadLedger _rereads;
   final Duration _tick;
   late final StreamSubscription<void> _offsetSubscription;
   Timer? _timer;
@@ -50,6 +53,15 @@ class TravelProgressCubit extends Cubit<TravelProgressState>
     _travel = travel;
     _route = TravelRoute.of(travel.road.points);
     _refresh();
+  }
+
+  /// Al massimo una rilettura per soglia raggiunta e per viaggio, contata nel
+  /// registro della sessione (WR-02): né un rimontaggio della mappa né un
+  /// resync all'indietro superano il tetto di [arrivalRefetchDelays].
+  bool claimArrivalReread() {
+    final snapshot = state;
+    if (snapshot is! TravelProgressActive) return false;
+    return _rereads.claim(snapshot.travel, due: snapshot.arrivalRefetchCount);
   }
 
   void _stopFollowing() {

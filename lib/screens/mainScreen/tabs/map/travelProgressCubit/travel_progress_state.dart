@@ -35,7 +35,8 @@ final class TravelProgressActive extends TravelProgressState {
   /// Progresso 1: «In arrivo…» finché il BE non svuota `activeTravel` (D-10).
   final bool isArriving;
 
-  /// Richieste di rilettura silenziosa del personaggio dopo `endTime` (0..2).
+  /// Soglie di rilettura silenziosa raggiunte dopo `endTime` (0..2); quante
+  /// riletture partono davvero lo decide `claimArrivalReread`.
   final int arrivalRefetchCount;
 
   @override
