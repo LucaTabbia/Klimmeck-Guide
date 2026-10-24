@@ -83,15 +83,15 @@ class _MainScreenState extends State<MainScreen>
             return BlocSelector<
               CharacterCubit,
               CharacterState,
-              PointOfInterest?
+              (PointOfInterest?, bool)
             >(
-              selector: (characterState) => characterState is CharacterLoaded
-                  ? characterState.character.status?.location
-                  : null,
-              builder: (context, location) {
+              selector: _satchelInputsOf,
+              builder: (context, inputs) {
+                final (location, isTravelling) = inputs;
                 final disabledPages = disabledSatchelPages(
                   location: location,
                   cities: state.cities,
+                  isTravelling: isTravelling,
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
@@ -203,19 +203,28 @@ class _MainScreenState extends State<MainScreen>
     pageController.jumpToPage(index);
   }
 
-  /// Difesa: nessun percorso apre una pagina disabilitata (D-11).
+  /// Difesa: nessun percorso apre una pagina disabilitata (D-11, D-12).
   bool _isPageDisabled(int index) {
     final screen = context.read<MainScreenCubit>().state;
     if (screen is! MainScreenLoadData) return false;
-    final character = context.read<CharacterCubit>().state;
-    final location = character is CharacterLoaded
-        ? character.character.status?.location
-        : null;
+    final (location, isTravelling) = _satchelInputsOf(
+      context.read<CharacterCubit>().state,
+    );
     return disabledSatchelPages(
       location: location,
       cities: screen.cities,
+      isTravelling: isTravelling,
     ).contains(index);
   }
+
+  /// Posizione e viaggio in corso: gli input della disponibilità della borsa (D-12).
+  static (PointOfInterest?, bool) _satchelInputsOf(CharacterState state) =>
+      state is CharacterLoaded
+      ? (
+          state.character.status?.location,
+          state.character.status?.activeTravel != null,
+        )
+      : (null, false);
 
   @override
   void dispose() {
