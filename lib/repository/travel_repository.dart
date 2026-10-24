@@ -39,9 +39,10 @@ class TravelRepository {
     required String characterId,
     required String poiId,
   }) async {
-    await _guard(
+    final started = await _guard(
       () => _graphQl.startTravel(TravelRequest(id: characterId, poiId: poiId)),
     );
+    if (!started) throw const TravelException(TravelFailure.declined);
     _askNotificationPermission();
   }
 

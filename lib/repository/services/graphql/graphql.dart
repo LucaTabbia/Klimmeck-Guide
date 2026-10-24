@@ -496,8 +496,9 @@ class KlimmeckGraphQl {
   }
 
   /// Avvia il viaggio (D-05): il viaggio arriva su `characterUpdated`, mai da
-  /// questa risposta. Lancia [OperationException] o [FormatException].
-  Future<void> startTravel(TravelRequest request) async {
+  /// questa risposta; restituisce solo `successful`. Lancia [OperationException]
+  /// o [FormatException] per una risposta malformata.
+  Future<bool> startTravel(TravelRequest request) async {
     final data = _dataOrThrow(
       await performMutation(
         query: TravelMutations.startTravel,
@@ -505,9 +506,13 @@ class KlimmeckGraphQl {
       ),
     );
     final result = data['startTravel'];
-    if (result is! Map<String, dynamic> || result['successful'] != true) {
-      throw const FormatException('startTravel not successful');
+    final successful = result is Map<String, dynamic>
+        ? result['successful']
+        : null;
+    if (successful is! bool) {
+      throw const FormatException('startTravel malformed');
     }
+    return successful;
   }
 
   /// Registra il device per il push (D-07): `platform` è un valore di `PushPlatform`.

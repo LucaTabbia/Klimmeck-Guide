@@ -29,6 +29,10 @@ enum TravelFailure {
   /// Nessuna risposta entro il timeout client: la richiesta non è annullata,
   /// un viaggio partito comunque arriva via `characterUpdated`.
   timedOut,
+
+  /// `startTravel` ha risposto `successful: false` senza codice: un rifiuto del
+  /// BE, distinto da una risposta malformata (`unknown`).
+  declined,
   unknown,
 }
 
