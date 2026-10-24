@@ -372,7 +372,8 @@ void main() {
       await dragPawnBy(tester, const Offset(300, 0));
       expect(find.byType(TravelConfirmationSheet), findsOneWidget);
 
-      await tester.tapAt(const Offset(390, 10));
+      // PaperSheetModal occupa tutta l'altezza: la barriera non riceve tap.
+      Navigator.of(tester.element(find.byType(TravelConfirmationSheet))).pop();
       await tester.pumpAndSettle();
 
       expect(find.byType(TravelConfirmationSheet), findsNothing);

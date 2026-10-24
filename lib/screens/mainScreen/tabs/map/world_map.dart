@@ -10,11 +10,14 @@ import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../models/travel/active_travel.dart';
+import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../travelCubit/travel_cubit.dart';
 import 'components/city_modal.dart';
+import 'components/travel_confirmation_sheet.dart';
 import 'cubit/world_map_cubit.dart';
 import 'layers/character_marker_layer.dart';
 import 'layers/city_markers_layer.dart';
@@ -158,6 +161,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         listenWhen: (_, current) => current.isCharacterFocusPending,
         listener: (_, _) => _consumeCharacterFocus(),
       ),
+      BlocListener<TravelCubit, TravelState>(
+        listenWhen: (previous, current) =>
+            previous is! TravelConfirming && current is TravelConfirming,
+        listener: (_, state) => _fitPreviewRoute(state as TravelConfirming),
+      ),
     ];
   }
 
@@ -277,15 +285,52 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _animateMapTo(clampedCenter);
   }
 
+  /// D-01/D-02: la città più vicina al rilascio è la meta; quella in cui il
+  /// personaggio si trova già non apre nulla (la pedina torna al suo posto).
   void _handleCharacterDragEnd(LatLng? finalLocation, City? targetCity) {
     _stopAnimation();
+    final character = context.read<CharacterCubit>().state;
+    if (character is! CharacterLoaded) return;
+    final destination = travelDestinationFor(
+      target: targetCity,
+      location: character.character.status?.location,
+    );
+    if (destination == null) return;
+    final travelCubit = context.read<TravelCubit>();
+    travelCubit.preview(characterId: character.character.id, destination: destination);
+    _showTravelConfirmation(travelCubit, destination);
+  }
 
-    if (targetCity != null && finalLocation != null) {
-      context.read<CharacterCubit>().changeCharacterLocation(
-            finalLocation,
-            targetCity.markerLocation!.id,
-          );
-    }
+  /// D-03/D-04: foglio di pergamena con la rotta visibile dietro (barriera
+  /// trasparente); chiuderlo in qualsiasi modo annulla il flusso. Il foglio sta
+  /// sul Navigator radice, fuori dai provider della shell (Pitfall 5).
+  void _showTravelConfirmation(TravelCubit travelCubit, City destination) {
+    showModalBottomSheet<void>(
+      useSafeArea: false,
+      isScrollControlled: true,
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.transparent,
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: travelCubit,
+        child: PaperSheetModal(child: TravelConfirmationSheet(destination: destination)),
+      ),
+    ).whenComplete(travelCubit.cancel);
+  }
+
+  /// D-04: la camera inquadra partenza e meta sopra il foglio (che occupa metà schermo).
+  void _fitPreviewRoute(TravelConfirming state) {
+    final points = state.preview.road.points;
+    if (!_isMapReady || points.length < 2) return;
+    final height = MediaQuery.of(context).size.height;
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: points,
+        padding: EdgeInsets.fromLTRB(48, 48, 48, height * 0.5 + 24),
+        maxZoom: MapConstants.maxZoom,
+      ),
+    );
   }
 
   void _selectQuest(Quest quest) {
