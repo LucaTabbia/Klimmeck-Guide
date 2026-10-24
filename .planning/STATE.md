@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-10-22T18:23:55.336Z"
-last_activity: 2026-10-22
+status: planning
+last_updated: "2026-10-24T14:30:00.000Z"
+last_activity: 2026-10-24
 progress:
   total_phases: 12
   completed_phases: 7
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick tasks 261022-f0n worldMission city rule, 261022-qkx tear geometry; device E2E 12/12 passed against BE develop @ 2a3449a; code review 0 critical / 3 warning / 10 info, warnings + 3 info fixed in TDD; verification passed 7/7 requirements; security audit: 54 threats, 46 mitigated, 4 accepted, 4 transferred to the BE, 0 open)
-Plan: 12 of 12
-Completed phases: 2
-Next Phase: 07 (travel) after the Phase 6 FE PR; BE Phase 8 (Travel lifecycle) is merged on BE develop (PR #11), so the lockstep with the Phase 7 FE is unblocked.
-Status: Phase 6 complete — FE PR #30 open (merge after BE PR #11, already merged; BE PR #12 scheduler timeout open), awaiting review; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 contract on develop
-Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes landed (1350 tests green, analyze 54/0 errors), verification passed; FE PR #30 to develop opened after the security audit; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 merged (BE PR #11), BE PR #12 (scheduler timeout) open
+Phase: 7 (travel) — CONTEXT GATHERED 2026-10-24 (interactive discuss, 07-CONTEXT D-01..D-20; BE Phase 8 contract merged on BE develop with PR #11 and PR #12, no lockstep)
+Plan: 0 of TBD
+Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
+Next Phase: 07 (travel) — /gsd-plan-phase 7 on branch feat/07-travel; BE Phase 9 (Combat Result & Admin Outcomes) discussed in the same session (BE 09-CONTEXT), it unblocks FE Phases 9 and 10
+Status: Phase 7 context gathered — ready to plan (/gsd-plan-phase 7); FE PR #30 (Phase 6) merged 2026-10-24
+Last activity: 2026-10-24 -- Phase 7 discuss: pawn-drag trigger, parchment confirmation with travelPreview and drawn route, floating remaining-time label, Board and Shop only on a city marker, error catalogue by code, camera-only travelEnd popup; BE Phase 9 discussed the same day (resolver port with placeholder rules, aid/death chain, XP/level/HP tables, result contract, GM queue, shop guard)
 
 ## Current Milestone
 
@@ -51,6 +51,7 @@ Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes land
 - **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
+- ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 - **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
 
 ### Quick Tasks Completed
