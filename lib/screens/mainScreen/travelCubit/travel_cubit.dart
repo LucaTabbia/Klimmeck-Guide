@@ -41,6 +41,8 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   /// uguale.
   int _previewToken = 0;
 
+  /// Passa a `TravelPreviewing` prima del primo `await`: la mappa apre il
+  /// foglio solo se lo stato è cambiato (IN-06); fuori da Idle non fa nulla.
   Future<void> preview({
     required String characterId,
     required City destination,

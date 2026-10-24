@@ -306,6 +306,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     if (destination == null) return;
     final travelCubit = context.read<TravelCubit>();
     travelCubit.preview(characterId: character.character.id, destination: destination);
+    // IN-06: preview() passa a TravelPreviewing prima del primo await; se l'ha ignorata, niente foglio.
+    if (travelCubit.state is! TravelPreviewing) return;
     _showTravelConfirmation(travelCubit, destination);
   }
 
