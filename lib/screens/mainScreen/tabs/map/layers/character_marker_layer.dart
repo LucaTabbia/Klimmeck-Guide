@@ -97,16 +97,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
       markers: [
         Marker(
           point: point,
-          child: _scaled(
-            KeyedSubtree(
-              key: CharacterMarkerLayer.pawnKey,
-              child: CachedSvg(
-                height: MapConstants.characterMarkerSize,
-                width: MapConstants.characterMarkerSize,
-                url: pawnPath,
-              ),
-            ),
-          ),
+          child: _scaled(_pawn(pawnPath)),
         ),
         Marker(
           point: point,
@@ -177,13 +168,17 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
       ),
       onDragUpdate: _handleDragUpdate,
       onDragEnd: (_) => _handleDragEnd(),
-      child: KeyedSubtree(
-        key: CharacterMarkerLayer.pawnKey,
-        child: CachedSvg(
-          height: MapConstants.characterMarkerSize,
-          width: MapConstants.characterMarkerSize,
-          url: pawnPath,
-        ),
+      child: _pawn(pawnPath),
+    );
+  }
+
+  static Widget _pawn(String pawnPath) {
+    return KeyedSubtree(
+      key: CharacterMarkerLayer.pawnKey,
+      child: CachedSvg(
+        height: MapConstants.characterMarkerSize,
+        width: MapConstants.characterMarkerSize,
+        url: pawnPath,
       ),
     );
   }
