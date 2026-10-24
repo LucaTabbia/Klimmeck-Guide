@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -5,7 +6,9 @@ import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
+import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
+import '../../../../../theme/kg_theme.dart';
 import '../../../characterCubit/character_cubit.dart';
 import '../../../travelCubit/travel_cubit.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
@@ -24,6 +27,7 @@ class CharacterMarkerLayer extends StatefulWidget {
   });
 
   static const Key pawnKey = ValueKey('map.pawn');
+  static const Key travelLabelKey = ValueKey('map.travelLabel');
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
@@ -37,6 +41,9 @@ class CharacterMarkerLayer extends StatefulWidget {
 }
 
 class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
+  static const double _labelWidth = 160;
+  static const double _labelHeight = 72;
+
   /// Punto sotto il dito, valorizzato solo durante il trascinamento.
   LatLng? _dragPoint;
 
@@ -76,6 +83,9 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
     );
   }
 
+  /// D-08/D-13: in viaggio (libero o verso una quest) la pedina sta sul punto
+  /// interpolato, senza trascinamento né tap; sopra fluttua solo il tempo
+  /// rimanente, poi «In arrivo…» finché il BE non chiude il viaggio (D-10).
   Widget _buildTravellingPawn(
     CharacterLoaded state,
     TravelProgressActive progress,
@@ -87,11 +97,38 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
       markers: [
         Marker(
           point: point,
-          child: _scaled(_buildDraggablePawn(pawnPath, canDrag: false)),
+          child: _scaled(
+            KeyedSubtree(
+              key: CharacterMarkerLayer.pawnKey,
+              child: CachedSvg(
+                height: MapConstants.characterMarkerSize,
+                width: MapConstants.characterMarkerSize,
+                url: pawnPath,
+              ),
+            ),
+          ),
+        ),
+        Marker(
+          point: point,
+          width: _labelWidth,
+          height: _labelHeight,
+          alignment: Alignment.topCenter,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: _TravelLabel(
+              key: CharacterMarkerLayer.travelLabelKey,
+              text: _labelOf(progress),
+            ),
+          ),
         ),
       ],
     );
   }
+
+  static String _labelOf(TravelProgressActive progress) =>
+      progress.isArriving
+          ? travelArrivingLabel
+          : formatTravelDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
   /// nessuna conferma aperta). Pre-controllo: il BE resta giudice (D-14).
@@ -180,5 +217,37 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
         MapUtils.findCityContainingPoint(releasePoint, widget.cities) ??
         MapUtils.findNearestCity(releasePoint, widget.cities);
     widget.onDragEnd(targetCity?.markerLocation?.location, targetCity);
+  }
+}
+
+/// Etichetta di viaggio: solo testo, non intercetta i gesti della mappa.
+class _TravelLabel extends StatelessWidget {
+  const _TravelLabel({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: KlimmeckGuideTheme.parchment,
+          borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: KlimmeckGuideTheme.spacingSm,
+            vertical: KlimmeckGuideTheme.spacingXs,
+          ),
+          child: AutoSizeText(
+            text,
+            maxLines: 1,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: KlimmeckGuideTheme.darkWood,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
