@@ -247,7 +247,7 @@ Plans:
   - [x] 07-07-PLAN.md — Wave 3: TravelCubit (preview → confirm → start), TravelOutcomeListener (banner, settle on activeTravel), shell providers
   - [x] 07-08-PLAN.md — Wave 4: TravelRouteLayer (dashed preview, two-tone live route) + TravelConfirmationSheet (parchment, Parti/Resta) + map test harness
   - [x] 07-09-PLAN.md — Wave 5: WorldMap wiring (progress cubit, route layer, one-shot framing, travelEnd focus, refetch, drag end → preview sheet + camera fit); drop the teleport stub
-  - [ ] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
+  - [x] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
   - [ ] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
 **UI hint**: no (07-CONTEXT: no UI phase, every visual is provisional and reworked by the user)
 
@@ -357,7 +357,7 @@ Plans:
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
-| 7. Travel | 9/11 | In Progress | - |
+| 7. Travel | 10/11 | In Progress | - |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
