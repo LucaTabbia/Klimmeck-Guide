@@ -17,12 +17,14 @@ ActiveTravel travel({
   String startTime = '2026-10-24T10:00:00.000Z',
   String endTime = '2026-10-24T12:40:00.000Z',
   double duration = 9600000,
+  String to = 'city-marker-2',
   Map<String, dynamic>? road,
 }) => ActiveTravel.fromJson(
   activeTravelJson(
     startTime: startTime,
     endTime: endTime,
     duration: duration,
+    to: to,
     road: road,
   ),
 );
@@ -159,6 +161,51 @@ void main() {
         expect(state, isNot(previous));
         expect(state.travel, other);
         expect(state.route.points, other.road.points);
+        cubit.close();
+      });
+    });
+
+    test('same times towards another destination rebuild the route', () {
+      fakeAsync((async) {
+        final cubit = TravelProgressCubit(
+          clock: FakeServerClockService(halfway),
+        )..follow(travel());
+        final other = travel(
+          to: 'quest-marker-9',
+          road: travelPathJson(
+            coordinates: const [
+              [12.0, 23.0],
+              [14.0, 25.0],
+            ],
+          ),
+        );
+
+        cubit.follow(other);
+
+        expect(activeState(cubit).travel, other);
+        expect(activeState(cubit).route.points, other.road.points);
+        cubit.close();
+      });
+    });
+
+    test('same times on another road rebuild the route', () {
+      fakeAsync((async) {
+        final cubit = TravelProgressCubit(
+          clock: FakeServerClockService(halfway),
+        )..follow(travel());
+        final rerouted = travel(
+          road: travelPathJson(
+            coordinates: const [
+              [10.0, 20.0],
+              [11.0, 21.0],
+              [12.0, 22.0],
+            ],
+          ),
+        );
+
+        cubit.follow(rerouted);
+
+        expect(activeState(cubit).route.points, rerouted.road.points);
         cubit.close();
       });
     });
