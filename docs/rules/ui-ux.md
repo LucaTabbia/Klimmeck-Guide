@@ -42,7 +42,7 @@
 ## Gesture e interazioni di dominio
 
 - **Accept quest:** swipe-left "strappa foglio" (regola di design chiave, non rimpiazzare con tap).
-- **Travel conferma:** modal con ETA + costo prima di spedire la mutation.
+- **Travel conferma:** foglio di pergamena (bottom sheet, mai `AlertDialog`) con distanza, durata ed ETA forniti dal backend (`travelPreview`), nessun costo, prima di spedire la mutation (Phase 7 D-03).
 - **Tap accidentali da evitare:** azioni distruttive (annulla quest, logout) richiedono conferma o gesture esplicita.
 
 ## Navigazione

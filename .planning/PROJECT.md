@@ -17,7 +17,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - Auth Twitch (OAuth + refresh + logout/switch) e sezione Impostazioni
 - Sync utente real-time via GraphQL subscription (punti canale, stato, progressione)
 - Quest accept gesture (swipe-left "strappa foglio") + quest info sheets per tipo
-- Viaggio con conferma (ETA + costo) e timer live
+- Viaggio con conferma (distanza, durata ed ETA dal backend, nessun costo) e posizione live sulla rotta
 - Notifiche Firebase (FCM/APNs) + in-app per fine viaggio, streamer live, fine quest
 - Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
 - UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite, premi, XP
@@ -56,7 +56,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 **v1.0 Core Loop (in corso):**
 
 - [ ] UI spostamento sulla mappa con timer live basato su distanza e velocità strade
-- [ ] UI conferma viaggio con ETA + costo
+- [ ] UI conferma viaggio con distanza, durata ed ETA dal backend (nessun costo, Phase 7 D-03)
 - [ ] Sezione Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
 - [ ] UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite subite, premi, XP
 - [ ] Admin panel: lista pendingRequest story/worldMission

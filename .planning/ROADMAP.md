@@ -229,13 +229,14 @@ Plans:
 **Backend prerequisite**: **TRAVEL-01 is a backend prerequisite.** Character must expose `status.activeTravel { road, startTime, endTime, duration }` on the GraphQL schema and emit it via the Character subscription before this phase can start. Frontend work in this phase is blocked until that ships to staging.
 **Requirements**: TRAVEL-01, TRAVEL-02, TRAVEL-03, TRAVEL-04
 **Success Criteria** (what must be TRUE):
-  1. Initiating travel to a POI opens an explicit confirmation surface showing destination + ETA exactly as received from the backend (no client-side ETA math) before the mutation fires.
+  1. Initiating travel to a POI opens an explicit confirmation surface showing destination + ETA exactly as received from the backend (no client-side ETA math) before the mutation fires. **Amended (07-CONTEXT D-01..D-03, C4):** the free travel targets a city marker chosen by dragging the pawn; the parchment sheet shows backend distance, duration and ETA (`serverNow + preview.duration`: arithmetic on server values, no client ETA from distance or speed), no cost.
   2. Once `activeTravel` is populated, the character visibly moves along `road.coordinates`, interpolated from `(now - startTime) / duration` anchored to server timestamps.
   3. When the backend clears `activeTravel` and updates `location`, the UI snaps to the new location via the subscription stream with no frontend-side completion logic.
   4. If the app is killed mid-travel, relaunching reconstructs the travel state from `activeTravel` and the character resumes at the correct interpolated position on the road.
 **Decisions to make during discuss step**:
   - **TRAVEL-02 confirmation dialog** (open question from STATE.md): exact dialog content/style, button copy, cost display. Must be resolved during this phase's discuss step.
   - Gameplay surface — NO app-style chrome in the map/travel UI.
+  - _Resolved in the Phase 7 discuss (2026-10-24): pawn-drag trigger, parchment sheet with backend distance/duration/ETA, "Parti"/"Resta", no cost (D-01..D-05)._
 **Plans**: 11 plans
   - [ ] 07-01-PLAN.md — Wave 1: doc amendments (no cost, C3); shared wire→LatLng helper (C1); ActiveTravel/TravelPath/TravelPreview models; `activeTravel` on CharacterStatus and in the fragment; travel fixtures
   - [ ] 07-02-PLAN.md — Wave 1: pure route geometry (cumulative length, interpolation, split), server-time progress, Italian duration/distance/ETA strings, drag destination rule (D-02)
@@ -248,7 +249,7 @@ Plans:
   - [ ] 07-09-PLAN.md — Wave 5: WorldMap wiring (progress cubit, route layer, one-shot framing, travelEnd focus, refetch, drag end → preview sheet + camera fit); drop the teleport stub
   - [ ] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
   - [ ] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
-**UI hint**: yes
+**UI hint**: no (07-CONTEXT: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 8: Spells Section (Journal Tab)
 **Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
