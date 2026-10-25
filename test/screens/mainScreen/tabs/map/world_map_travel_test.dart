@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/abandon_pa
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
@@ -640,6 +641,40 @@ void main() {
       );
       expect(sheet.quest.id, 'e-1');
       expect(sheet.characterId, 'c-1');
+    });
+
+    testWidgets('a quest opened from a marker offers no abandon action', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      await tester.tapAt(const Offset(200, 300));
+      await tester.pumpAndSettle();
+      expect(find.byType(QuestInfoSheet), findsNothing);
+
+      tester
+          .widget<QuestMarkersLayer>(find.byType(QuestMarkersLayer))
+          .onQuestSelected(enemy);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+      expect(find.byKey(QuestInfoSheet.stateLabelKey), findsNothing);
+    });
+
+    testWidgets('dragging the confirmation down cannot dismiss an abandon', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      final action = find.byKey(QuestInfoSheet.abandonKey);
+      await tester.ensureVisible(action);
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      abandonStates.add(const QuestAbandoning('e-1'));
+      await tester.pump();
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(AbandonPartySheet), findsOneWidget);
     });
 
     testWidgets('a started lane offers no abandon action', (tester) async {
