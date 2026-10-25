@@ -41,6 +41,7 @@ void main() {
       NotificationCategory.travelEnd: true,
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: true,
+      NotificationCategory.questCancelled: true,
     });
   });
 
@@ -77,6 +78,7 @@ void main() {
       NotificationCategory.travelEnd: true,
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: false,
+      NotificationCategory.questCancelled: true,
     });
   });
 
