@@ -1,7 +1,7 @@
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_failure.dart';
 
-const String questAbandonNoticeTitle = 'Gruppo non abbandonato';
+const String questAbandonNoticeTitle = 'Abbandono non riuscito';
 
 /// Copy di dominio provvisoria (nessuna UI phase). Nessun avviso per
 /// FORBIDDEN/UNAUTHENTICATED: li gestisce il flusso di sessione.
