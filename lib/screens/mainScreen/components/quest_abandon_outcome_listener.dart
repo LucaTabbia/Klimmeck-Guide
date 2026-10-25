@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/quest_abandon_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_notice.dart';
 
@@ -10,6 +12,12 @@ class QuestAbandonOutcomeListener extends StatelessWidget {
   const QuestAbandonOutcomeListener({super.key, required this.child});
 
   final Widget child;
+
+  /// Dopo questi rifiuti la corsia mostrata è stantia: rilettura silenziosa.
+  static const Set<QuestAbandonFailure> _staleLaneFailures = {
+    QuestAbandonFailure.notWaiting,
+    QuestAbandonFailure.notFound,
+  };
 
   @override
   Widget build(BuildContext context) =>
@@ -21,7 +29,12 @@ class QuestAbandonOutcomeListener extends StatelessWidget {
       );
 
   void _onOutcome(BuildContext context, QuestAbandonState state) {
-    if (state is QuestAbandonFailed) _announce(context, state);
+    if (state is QuestAbandonFailed) {
+      _announce(context, state);
+      if (_staleLaneFailures.contains(state.failure)) {
+        context.read<CharacterCubit>().refreshCharacter();
+      }
+    }
     context.read<QuestAbandonCubit>().reset();
   }
 
