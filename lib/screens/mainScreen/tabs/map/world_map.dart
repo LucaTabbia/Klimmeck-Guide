@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/pending_quest.dart';
+import '../../../../models/quest/board_policy.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../models/quest/quest_state_label.dart';
 import '../../../../models/travel/active_travel.dart';
@@ -430,6 +431,19 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       _selectedLane = lane;
     });
     _questAnimationController.forward();
+    if (lane.isWaitingForParty) _refreshPartyCount();
+  }
+
+  /// WR-02: il k/N legge la lista quest; aprendo il foglio la si rilegge.
+  void _refreshPartyCount() {
+    final character = context.read<CharacterCubit>().state;
+    if (character is! CharacterLoaded) return;
+    context.read<QuestCubit>().refreshQuests(
+      cityId: currentCityOf(
+        widget.cities,
+        character.character.status?.location,
+      )?.id,
+    );
   }
 
   /// WR-01: il foglio della carta segue la corsia; svuotata o passata a
