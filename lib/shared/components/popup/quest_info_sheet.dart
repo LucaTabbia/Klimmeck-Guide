@@ -138,11 +138,9 @@ class QuestInfoSheet extends StatelessWidget {
       style: TextButton.styleFrom(
         minimumSize: _minTapTarget,
         foregroundColor: KlimmeckGuideTheme.bloodRed,
+        textStyle: theme.bodyLarge,
       ),
-      child: Text(
-        abandonLabel,
-        style: theme.bodyLarge.copyWith(color: KlimmeckGuideTheme.bloodRed),
-      ),
+      child: const Text(abandonLabel),
     ),
   );
 
