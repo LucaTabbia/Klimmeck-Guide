@@ -10,6 +10,7 @@ class NotificationPreferencesState extends Equatable {
     NotificationCategory.travelEnd: NotificationCategory.defaultEnabled,
     NotificationCategory.streamerLive: NotificationCategory.defaultEnabled,
     NotificationCategory.questEnd: NotificationCategory.defaultEnabled,
+    NotificationCategory.questCancelled: NotificationCategory.defaultEnabled,
   };
 
   final Map<NotificationCategory, bool> enabled;

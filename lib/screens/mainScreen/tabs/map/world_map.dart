@@ -8,7 +8,9 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
+import '../../../../models/pending_quest.dart';
 import '../../../../models/quest/quest.dart';
+import '../../../../models/quest/quest_state_label.dart';
 import '../../../../models/travel/active_travel.dart';
 import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
@@ -43,7 +45,9 @@ class WorldMap extends StatefulWidget {
 class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // Map state
   final MapController _mapController = MapController();
-  final ValueNotifier<double> _zoomNotifier = ValueNotifier(MapConstants.initialZoom);
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(
+    MapConstants.initialZoom,
+  );
   late final LatLngBounds _bounds;
   late final MapOptions _mapOptions;
   bool _isMapReady = false;
@@ -122,7 +126,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _questAnimationController.removeStatusListener(_onQuestAnimationStatusChanged);
+    _questAnimationController.removeStatusListener(
+      _onQuestAnimationStatusChanged,
+    );
     _questAnimationController.dispose();
     _smoothTimer?.cancel();
     _zoomNotifier.dispose();
@@ -134,7 +140,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return BlocProvider<TravelProgressCubit>.value(
       value: _progressCubit,
-      child: MultiBlocListener(listeners: _buildListeners(), child: _buildMap()),
+      child: MultiBlocListener(
+        listeners: _buildListeners(),
+        child: _buildMap(),
+      ),
     );
   }
 
@@ -222,7 +231,6 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
   }
 
-
   static ActiveTravel? _activeTravelOf(CharacterState state) =>
       state is CharacterLoaded ? state.character.status?.activeTravel : null;
 
@@ -260,7 +268,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   LatLng? _characterLocation() {
     final state = context.read<CharacterCubit>().state;
-    return state is CharacterLoaded ? state.character.status?.location?.location : null;
+    return state is CharacterLoaded
+        ? state.character.status?.location?.location
+        : null;
   }
 
   void _handleMapTap(TapPosition pos, LatLng latLng) {
@@ -287,7 +297,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     final screenCenter = Offset(screenSize.width / 2, screenSize.height / 2);
     final localOffset = _mapController.camera.latLngToScreenOffset(newLocation);
     final dragOffset = localOffset - screenCenter;
-    final newCenter = _mapController.camera.screenOffsetToLatLng(screenCenter + dragOffset);
+    final newCenter = _mapController.camera.screenOffsetToLatLng(
+      screenCenter + dragOffset,
+    );
     final clampedCenter = MapUtils.clampToBounds(newCenter, _bounds);
 
     _animateMapTo(clampedCenter);
@@ -305,7 +317,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
     if (destination == null) return;
     final travelCubit = context.read<TravelCubit>();
-    travelCubit.preview(characterId: character.character.id, destination: destination);
+    travelCubit.preview(
+      characterId: character.character.id,
+      destination: destination,
+    );
     // IN-06: preview() passa a TravelPreviewing prima del primo await; se l'ha ignorata, niente foglio.
     if (travelCubit.state is! TravelPreviewing) return;
     _showTravelConfirmation(travelCubit, destination);
@@ -326,7 +341,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         value: travelCubit,
         child: NotificationListener<DraggableScrollableNotification>(
           onNotification: (_) => _isStartInFlight(travelCubit),
-          child: PaperSheetModal(child: TravelConfirmationSheet(destination: destination)),
+          child: PaperSheetModal(
+            child: TravelConfirmationSheet(destination: destination),
+          ),
         ),
       ),
     ).whenComplete(travelCubit.cancel);
@@ -349,7 +366,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
           MapConstants.previewRoutePadding,
           MapConstants.previewRoutePadding,
           MapConstants.previewRoutePadding,
-          height * MapConstants.previewSheetHeightFraction + MapConstants.previewSheetGap,
+          height * MapConstants.previewSheetHeightFraction +
+              MapConstants.previewSheetGap,
         ),
         maxZoom: MapConstants.maxZoom,
       ),
@@ -364,14 +382,13 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _questAnimationController.forward();
   }
 
-  void _openFromPaper(Quest quest, String stateLabel) {
+  void _openFromPaper(Quest quest, PendingQuest lane) {
     setState(() {
       _selectedQuest = quest;
-      _selectedStateLabel = stateLabel;
+      _selectedStateLabel = questStateLabel(lane, quest);
     });
     _questAnimationController.forward();
   }
-
 
   void _showCityInfoModal() {
     if (_selectedLore == null) return;
@@ -382,10 +399,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
       backgroundColor: Colors.transparent,
       context: context,
-      builder: (context) => PaperSheetModal(child: CityModal(lore: _selectedLore!)),
+      builder: (context) =>
+          PaperSheetModal(child: CityModal(lore: _selectedLore!)),
     );
   }
-
 
   void _animateMapTo(LatLng target) {
     final clampedTarget = MapUtils.clampToBounds(target, _bounds);
@@ -410,13 +427,21 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         return;
       }
 
-      _velocityX = (_velocityX + deltaLng * MapConstants.scrollAcceleration) *
+      _velocityX =
+          (_velocityX + deltaLng * MapConstants.scrollAcceleration) *
           MapConstants.scrollDamping;
-      _velocityY = (_velocityY + deltaLat * MapConstants.scrollAcceleration) *
+      _velocityY =
+          (_velocityY + deltaLat * MapConstants.scrollAcceleration) *
           MapConstants.scrollDamping;
 
-      final newLat = (current.latitude + _velocityY).clamp(_bounds.south, _bounds.north);
-      final newLng = (current.longitude + _velocityX).clamp(_bounds.west, _bounds.east);
+      final newLat = (current.latitude + _velocityY).clamp(
+        _bounds.south,
+        _bounds.north,
+      );
+      final newLng = (current.longitude + _velocityX).clamp(
+        _bounds.west,
+        _bounds.east,
+      );
 
       _mapController.move(LatLng(newLat, newLng), _mapController.camera.zoom);
     });

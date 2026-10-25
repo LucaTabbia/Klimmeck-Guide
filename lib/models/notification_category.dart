@@ -3,7 +3,8 @@
 enum NotificationCategory {
   travelEnd('travel_end', 'travelEnd'),
   streamerLive('streamer_live', 'streamerLive'),
-  questEnd('quest_end', 'questEnd');
+  questEnd('quest_end', 'questEnd'),
+  questCancelled('quest_cancelled', 'questCancelled');
 
   const NotificationCategory(this.storageKey, this.wireType);
 

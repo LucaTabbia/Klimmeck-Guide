@@ -45,5 +45,6 @@ class NotificationPreferencesSection extends StatelessWidget {
     NotificationCategory.travelEnd => 'Fine viaggio',
     NotificationCategory.streamerLive => 'Streamer in live',
     NotificationCategory.questEnd => 'Fine quest',
+    NotificationCategory.questCancelled => 'Missione annullata',
   };
 }
