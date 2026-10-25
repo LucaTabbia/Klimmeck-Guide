@@ -69,7 +69,7 @@ void main() {
   SwitchListTile tile(WidgetTester tester, String storageKey) =>
       tester.widget<SwitchListTile>(tileOf(storageKey));
 
-  testWidgets('shows title and three labelled switches in order', (
+  testWidgets('shows title and four labelled switches in order', (
     tester,
   ) async {
     await pumpSection(
@@ -81,8 +81,14 @@ void main() {
     final travel = tester.getTopLeft(find.text('Fine viaggio')).dy;
     final live = tester.getTopLeft(find.text('Streamer in live')).dy;
     final quest = tester.getTopLeft(find.text('Fine quest')).dy;
-    expect(travel < live && live < quest, isTrue);
-    for (final key in ['travel_end', 'streamer_live', 'quest_end']) {
+    final cancelled = tester.getTopLeft(find.text('Missione annullata')).dy;
+    expect(travel < live && live < quest && quest < cancelled, isTrue);
+    for (final key in [
+      'travel_end',
+      'streamer_live',
+      'quest_end',
+      'quest_cancelled',
+    ]) {
       expect(tile(tester, key).value, isTrue);
     }
   });

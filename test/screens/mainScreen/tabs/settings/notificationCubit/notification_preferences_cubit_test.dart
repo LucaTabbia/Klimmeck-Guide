@@ -12,11 +12,13 @@ NotificationPreferencesState loaded({
   bool travelEnd = true,
   bool streamerLive = true,
   bool questEnd = true,
+  bool questCancelled = true,
 }) => NotificationPreferencesState(
   enabled: {
     NotificationCategory.travelEnd: travelEnd,
     NotificationCategory.streamerLive: streamerLive,
     NotificationCategory.questEnd: questEnd,
+    NotificationCategory.questCancelled: questCancelled,
   },
   isLoaded: true,
 );
