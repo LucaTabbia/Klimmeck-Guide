@@ -17,7 +17,7 @@ void main() {
       test('${failure.name} has the fixed copy', () {
         final notice = questAbandonNoticeFor(failure)!;
 
-        expect(notice.title, questAbandonNoticeTitle);
+        expect(notice.title, 'Abbandono non riuscito');
         expect(notice.description, description);
       });
     });
