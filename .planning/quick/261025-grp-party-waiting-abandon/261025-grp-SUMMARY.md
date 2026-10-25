@@ -108,3 +108,7 @@ A standard quest waiting for its party now reads "In attesa del gruppo k/N" on t
 5. Settings shows the "Missione annullata" toggle. A disbanded party (24 h) arrives as a banner or system notification.
 
 ## Self-Check: PASSED
+
+## Schema check (orchestratore, 2026-10-25)
+
+Eseguito dall'orchestratore contro lo schema del branch BE `feat/09-combat-result-admin-outcomes` (commit d16f01a, piano 09-19 rigenerato dal boot reale): `dump_documents` = 33 documenti, `validate_documents.js` = 33/33 OK, exit 0. Resta da ripetere contro `origin/develop` del BE dopo il merge della PR #13, prima di aprire la PR di questo branch.
