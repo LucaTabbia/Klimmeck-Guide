@@ -143,6 +143,23 @@ void main() {
     expect(find.text('In attesa del gruppo 2/3'), findsOneWidget);
   });
 
+  testWidgets('a long label never widens the paper column', (tester) async {
+    await pumpLayer(
+      tester,
+      character: characterWith(
+        characterWithLanesJson(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: null,
+            arrivedAt: '2026-10-25T09:30:00.000Z',
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byKey(QuestPaperLayer.paperKey)).width, 110);
+  });
+
   testWidgets('hunt lane reads Cacciando…', (tester) async {
     await pumpLayer(
       tester,
