@@ -18,6 +18,7 @@ import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../characterCubit/character_cubit.dart';
 import '../../questAbandonCubit/quest_abandon_cubit.dart';
+import '../../questCubit/quest_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
 import 'components/abandon_party_sheet.dart';
 import 'components/city_modal.dart';
@@ -69,8 +70,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // UI state
   Lore? _selectedLore;
   Quest? _selectedQuest;
-  String? _selectedStateLabel;
-  VoidCallback? _selectedOnAbandon;
+
+  /// Corsia del foglio aperto dalla carta; null = aperto da un marker.
+  PendingQuest? _selectedLane;
 
   @override
   void initState() {
@@ -122,13 +124,13 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _onQuestAnimationStatusChanged(AnimationStatus status) {
-    if (status.isDismissed) {
-      setState(() {
-        _selectedQuest = null;
-        _selectedOnAbandon = null;
-      });
-    }
+    if (status.isDismissed) _clearSelection();
   }
+
+  void _clearSelection() => setState(() {
+    _selectedQuest = null;
+    _selectedLane = null;
+  });
 
   @override
   void dispose() {
@@ -188,13 +190,18 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         listenWhen: (_, current) => current is QuestAbandoned,
         listener: (_, _) => _closeQuestSheet(),
       ),
+      BlocListener<CharacterCubit, CharacterState>(
+        listenWhen: (previous, current) =>
+            _pendingLaneOf(previous) != _pendingLaneOf(current),
+        listener: (_, state) => _followLane(_pendingLaneOf(state)),
+      ),
     ];
   }
 
   Widget _buildMap() {
     return BackgroundImage(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedQuest = null),
+        onTap: _clearSelection,
         child: FlutterMap(
           mapController: _mapController,
           options: _mapOptions,
@@ -219,16 +226,37 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
               onDragEnd: _handleCharacterDragEnd,
             ),
             QuestPaperLayer(onOpen: _openFromPaper),
-            QuestInfoOverlay(
-              animationController: _questAnimationController,
-              selectedQuest: _selectedQuest,
-              stateLabel: _selectedStateLabel,
-              onAbandon: _selectedOnAbandon,
-            ),
+            _buildQuestOverlay(),
           ],
         ),
       ),
     );
+  }
+
+  /// Etichetta e azione nascono dalla corsia seguita e dalla lista corrente.
+  Widget _buildQuestOverlay() {
+    return BlocBuilder<QuestCubit, QuestState>(
+      builder: (context, questState) {
+        final quest = _currentOf(_selectedQuest, questState);
+        final lane = _selectedLane;
+        return QuestInfoOverlay(
+          animationController: _questAnimationController,
+          selectedQuest: quest,
+          stateLabel: lane == null ? null : questStateLabel(lane, quest),
+          onAbandon: quest != null && lane?.isWaitingForParty == true
+              ? () => _confirmAbandon(quest)
+              : null,
+        );
+      },
+    );
+  }
+
+  static Quest? _currentOf(Quest? selected, QuestState state) {
+    if (selected == null || state is! QuestLoaded) return selected;
+    for (final quest in state.quests) {
+      if (quest.id == selected.id) return quest;
+    }
+    return selected;
   }
 
   Widget _buildMapImage() {
@@ -244,6 +272,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   static ActiveTravel? _activeTravelOf(CharacterState state) =>
       state is CharacterLoaded ? state.character.status?.activeTravel : null;
+
+  static PendingQuest? _pendingLaneOf(CharacterState state) =>
+      state is CharacterLoaded ? state.character.quests?.pendingQuest : null;
 
   static int _refetchCountOf(TravelProgressState state) =>
       state is TravelProgressActive ? state.arrivalRefetchCount : 0;
@@ -388,8 +419,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void _selectQuest(Quest quest) {
     setState(() {
       _selectedQuest = quest;
-      _selectedStateLabel = null;
-      _selectedOnAbandon = null;
+      _selectedLane = null;
     });
     _questAnimationController.forward();
   }
@@ -397,12 +427,21 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void _openFromPaper(Quest quest, PendingQuest lane) {
     setState(() {
       _selectedQuest = quest;
-      _selectedStateLabel = questStateLabel(lane, quest);
-      _selectedOnAbandon = lane.isWaitingForParty
-          ? () => _confirmAbandon(quest)
-          : null;
+      _selectedLane = lane;
     });
     _questAnimationController.forward();
+  }
+
+  /// WR-01: il foglio della carta segue la corsia; svuotata o passata a
+  /// un'altra quest, il foglio si chiude.
+  void _followLane(PendingQuest? lane) {
+    final selected = _selectedLane;
+    if (selected == null) return;
+    if (lane == null || lane.quest?.id != selected.quest?.id) {
+      _closeQuestSheet();
+      return;
+    }
+    setState(() => _selectedLane = lane);
   }
 
   /// Conferma su pergamena prima di `abandonQuest` (ui-ux.md: azione
