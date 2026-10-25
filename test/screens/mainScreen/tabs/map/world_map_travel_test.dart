@@ -657,5 +657,54 @@ void main() {
 
       expect(find.byType(QuestInfoSheet), findsNothing);
     });
+
+    testWidgets('the open sheet follows the lane once the party sets off', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsOneWidget);
+
+      characterStates.add(
+        characterLoaded(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: '2026-10-25T10:00:00.000Z',
+            arrivedAt: arrival,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey)).data,
+        'In combattimento…',
+      );
+    });
+
+    testWidgets('the open sheet closes once the lane empties', (tester) async {
+      await openPaper(tester);
+
+      characterStates.add(characterLoaded());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('the open sheet closes once the lane holds another quest', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      characterStates.add(
+        characterLoaded(
+          pendingQuest: laneJson(questId: 'e-2', arrivedAt: arrival),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
   });
 }
