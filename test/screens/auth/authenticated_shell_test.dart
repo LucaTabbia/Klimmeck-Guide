@@ -20,6 +20,8 @@ import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
@@ -173,6 +175,7 @@ void main() {
     late CharacterCubit characterCubit;
     late QuestCubit questCubit;
     late QuestAcceptanceCubit acceptanceCubit;
+    late QuestAbandonCubit abandonCubit;
     late MapFocusCubit mapFocusCubit;
     await pumpShell(
       tester,
@@ -181,18 +184,21 @@ void main() {
         characterCubit = context.read<CharacterCubit>();
         questCubit = context.read<QuestCubit>();
         acceptanceCubit = context.read<QuestAcceptanceCubit>();
+        abandonCubit = context.read<QuestAbandonCubit>();
         mapFocusCubit = context.read<MapFocusCubit>();
         return const Text('main');
       },
     );
 
     expect(characterCubit.isClosed, isFalse);
+    expect(find.byType(QuestAbandonOutcomeListener), findsOneWidget);
 
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(characterCubit.isClosed, isTrue);
     expect(questCubit.isClosed, isTrue);
     expect(acceptanceCubit.isClosed, isTrue);
+    expect(abandonCubit.isClosed, isTrue);
     expect(mapFocusCubit.isClosed, isTrue);
   });
 
