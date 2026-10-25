@@ -72,10 +72,7 @@ void main() {
   testWidgets('shows title and four labelled switches in order', (
     tester,
   ) async {
-    await pumpSection(
-      tester,
-      const NotificationPreferencesState(isLoaded: true),
-    );
+    await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
 
     expect(find.text('Notifiche'), findsOneWidget);
     final travel = tester.getTopLeft(find.text('Fine viaggio')).dy;
@@ -96,8 +93,8 @@ void main() {
   testWidgets('reflects a disabled category', (tester) async {
     await pumpSection(
       tester,
-      const NotificationPreferencesState(
-        enabled: {
+      NotificationPreferencesState(
+        enabled: const {
           NotificationCategory.travelEnd: true,
           NotificationCategory.streamerLive: false,
           NotificationCategory.questEnd: true,
@@ -112,10 +109,7 @@ void main() {
   });
 
   testWidgets('tapping a switch toggles its category once', (tester) async {
-    await pumpSection(
-      tester,
-      const NotificationPreferencesState(isLoaded: true),
-    );
+    await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
 
     await tester.tap(tileOf('quest_end'));
     await tester.pump();
@@ -126,7 +120,7 @@ void main() {
   });
 
   testWidgets('is inert without a spinner until loaded', (tester) async {
-    await pumpSection(tester, const NotificationPreferencesState());
+    await pumpSection(tester, NotificationPreferencesState());
 
     for (final key in ['travel_end', 'streamer_live', 'quest_end']) {
       expect(tile(tester, key).onChanged, isNull);
@@ -141,10 +135,7 @@ void main() {
   testWidgets('shows no permission hint and keeps tap targets >= 44', (
     tester,
   ) async {
-    await pumpSection(
-      tester,
-      const NotificationPreferencesState(isLoaded: true),
-    );
+    await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
 
     expect(
       find.textContaining(RegExp('permess', caseSensitive: false)),
@@ -165,10 +156,7 @@ void main() {
         status: NotificationPermissionStatus.denied,
       ),
     );
-    await pumpSection(
-      tester,
-      const NotificationPreferencesState(isLoaded: true),
-    );
+    await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
 
     final hint = find.text(NotificationPermissionHint.message);
     expect(hint, findsOneWidget);

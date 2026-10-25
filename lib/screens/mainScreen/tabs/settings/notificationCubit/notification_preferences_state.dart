@@ -1,17 +1,16 @@
 part of 'notification_preferences_cubit.dart';
 
 class NotificationPreferencesState extends Equatable {
-  const NotificationPreferencesState({
-    this.enabled = defaults,
+  NotificationPreferencesState({
+    Map<NotificationCategory, bool>? enabled,
     this.isLoaded = false,
-  });
+  }) : enabled = enabled ?? defaults;
 
-  static const Map<NotificationCategory, bool> defaults = {
-    NotificationCategory.travelEnd: NotificationCategory.defaultEnabled,
-    NotificationCategory.streamerLive: NotificationCategory.defaultEnabled,
-    NotificationCategory.questEnd: NotificationCategory.defaultEnabled,
-    NotificationCategory.questCancelled: NotificationCategory.defaultEnabled,
-  };
+  /// IN-07: derivata dall'enum, una nuova categoria nasce già con il default.
+  static final Map<NotificationCategory, bool> defaults = Map.unmodifiable({
+    for (final category in NotificationCategory.values)
+      category: NotificationCategory.defaultEnabled,
+  });
 
   final Map<NotificationCategory, bool> enabled;
   final bool isLoaded;

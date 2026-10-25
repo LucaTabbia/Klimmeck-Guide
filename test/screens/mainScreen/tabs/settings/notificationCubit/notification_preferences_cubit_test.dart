@@ -46,10 +46,27 @@ void main() {
 
   setUp(() => store = InMemoryNotificationPreferencesStore());
 
+  test('the defaults cover every category, enabled', () {
+    expect(NotificationPreferencesState.defaults, {
+      for (final category in NotificationCategory.values)
+        category: NotificationCategory.defaultEnabled,
+    });
+  });
+
+  test('the defaults cannot be changed', () {
+    expect(
+      () =>
+          NotificationPreferencesState.defaults[NotificationCategory
+                  .travelEnd] =
+              false,
+      throwsUnsupportedError,
+    );
+  });
+
   test('starts with every category enabled and not loaded', () {
     final state = buildCubit().state;
 
-    expect(state, const NotificationPreferencesState());
+    expect(state, NotificationPreferencesState());
     expect(state.isLoaded, isFalse);
     for (final category in NotificationCategory.values) {
       expect(state.isEnabled(category), isTrue);
@@ -105,7 +122,7 @@ void main() {
 
     await cubit.toggle(NotificationCategory.questEnd, enabled: false);
 
-    expect(cubit.state, const NotificationPreferencesState());
+    expect(cubit.state, NotificationPreferencesState());
     expect(store.writes, 0);
   });
 

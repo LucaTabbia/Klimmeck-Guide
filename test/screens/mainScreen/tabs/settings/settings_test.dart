@@ -42,7 +42,7 @@ void main() {
     whenListen(
       notificationCubit,
       const Stream<NotificationPreferencesState>.empty(),
-      initialState: const NotificationPreferencesState(isLoaded: true),
+      initialState: NotificationPreferencesState(isLoaded: true),
     );
     whenListen(
       deletionCubit,
