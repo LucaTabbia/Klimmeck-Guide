@@ -75,6 +75,7 @@ late StreamController<QuestAbandonState> abandonStates;
 late MapFocusCubit mapFocusCubit;
 late StreamController<CharacterState> characterStates;
 late StreamController<TravelState> travelStates;
+late StreamController<QuestState> questStates;
 late FakeServerClockService serverClock;
 late ArrivalRereadLedger arrivalRereads;
 
@@ -106,11 +107,7 @@ Future<void> pumpWorldMap(
   serverClock = FakeServerClockService(serverNow ?? travelStart);
   whenListen(characterCubit, characterStates.stream, initialState: character);
   whenListen(travelCubit, travelStates.stream, initialState: travelState);
-  whenListen(
-    questCubit,
-    const Stream<QuestState>.empty(),
-    initialState: QuestLoaded(quests),
-  );
+  whenListen(questCubit, questStates.stream, initialState: QuestLoaded(quests));
   whenListen(
     abandonCubit,
     abandonStates.stream,
@@ -225,7 +222,11 @@ void main() {
     arrivalRereads = ArrivalRereadLedger();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
+    questStates = StreamController<QuestState>.broadcast();
     when(() => characterCubit.refreshCharacter()).thenAnswer((_) async {});
+    when(
+      () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+    ).thenAnswer((_) async {});
     when(
       () => travelCubit.preview(
         characterId: any(named: 'characterId'),
@@ -243,6 +244,7 @@ void main() {
   tearDown(() async {
     await characterStates.close();
     await travelStates.close();
+    await questStates.close();
     await abandonStates.close();
     await mapFocusCubit.close();
   });
@@ -705,6 +707,50 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('opening the paper of a waiting lane rereads the quests', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+    });
+
+    testWidgets('opening the paper of a started lane rereads nothing', (
+      tester,
+    ) async {
+      await openPaper(tester, startDate: '2026-10-25T10:00:00.000Z');
+
+      verifyNever(() => questCubit.refreshQuests(cityId: any(named: 'cityId')));
+    });
+
+    testWidgets('the open sheet counts the party from the current list', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      questStates.add(
+        QuestLoaded([
+          buildQuest(
+            id: 'e-1',
+            type: 'enemy',
+            slots: [
+              {'title': null, 'count': 3},
+            ],
+            registered: [
+              {'character': 'c-1', 'title': 'rookie'},
+              {'character': 'c-2', 'title': 'rookie'},
+            ],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey)).data,
+        'In attesa del gruppo 2/3',
+      );
     });
   });
 }

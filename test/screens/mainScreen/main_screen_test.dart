@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/party_waiting_refresh_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
@@ -196,6 +197,17 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    testWidgets('follows the awaited party with the loaded cities', (
+      tester,
+    ) async {
+      await pumpOpenSatchel(tester, 'city-marker-1');
+
+      final listener = tester.widget<PartyWaitingRefreshListener>(
+        find.byType(PartyWaitingRefreshListener),
+      );
+      expect(listener.cities, cities);
+    });
 
     testWidgets('off a city marker the Bacheca item does nothing', (
       tester,
