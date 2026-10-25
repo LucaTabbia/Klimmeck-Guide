@@ -19,7 +19,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 ///
 /// Validata contro `src/schema.gql` del backend da `validate_documents.js`.
 /// La Phase 5 aggiunge `RegisterPushDevice` e `UnregisterPushDevice`; la
-/// Phase 7 aggiunge `GetServerTime`, `GetTravelPreview` e `StartTravel`; ogni
+/// Phase 7 aggiunge `GetServerTime`, `GetTravelPreview` e `StartTravel`; il
+/// quick 261025-grp aggiunge `AbandonQuest`; ogni
 /// documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
@@ -47,6 +48,7 @@ final Map<String, String> schemaCheckDocuments = {
   'equipSpell': CharacterMutations.equipSpell,
   'unequipSpell': CharacterMutations.unequipSpell,
   'AcceptQuest': QuestMutations.acceptQuest,
+  'AbandonQuest': QuestMutations.abandonQuest,
   'StartTravel': TravelMutations.startTravel,
   'RegisterPushDevice': PushMutations.registerPushDevice,
   'UnregisterPushDevice': PushMutations.unregisterPushDevice,

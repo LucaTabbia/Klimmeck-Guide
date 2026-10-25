@@ -17,7 +17,9 @@ import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../questAbandonCubit/quest_abandon_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
+import 'components/abandon_party_sheet.dart';
 import 'components/city_modal.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'cubit/world_map_cubit.dart';
@@ -68,6 +70,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   Lore? _selectedLore;
   Quest? _selectedQuest;
   String? _selectedStateLabel;
+  VoidCallback? _selectedOnAbandon;
 
   @override
   void initState() {
@@ -120,7 +123,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   void _onQuestAnimationStatusChanged(AnimationStatus status) {
     if (status.isDismissed) {
-      setState(() => _selectedQuest = null);
+      setState(() {
+        _selectedQuest = null;
+        _selectedOnAbandon = null;
+      });
     }
   }
 
@@ -178,6 +184,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             previous is! TravelConfirming && current is TravelConfirming,
         listener: (_, state) => _fitPreviewRoute(state as TravelConfirming),
       ),
+      BlocListener<QuestAbandonCubit, QuestAbandonState>(
+        listenWhen: (_, current) => current is QuestAbandoned,
+        listener: (_, _) => _closeQuestSheet(),
+      ),
     ];
   }
 
@@ -213,6 +223,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
               animationController: _questAnimationController,
               selectedQuest: _selectedQuest,
               stateLabel: _selectedStateLabel,
+              onAbandon: _selectedOnAbandon,
             ),
           ],
         ),
@@ -378,6 +389,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     setState(() {
       _selectedQuest = quest;
       _selectedStateLabel = null;
+      _selectedOnAbandon = null;
     });
     _questAnimationController.forward();
   }
@@ -386,8 +398,45 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     setState(() {
       _selectedQuest = quest;
       _selectedStateLabel = questStateLabel(lane, quest);
+      _selectedOnAbandon = lane.isWaitingForParty
+          ? () => _confirmAbandon(quest)
+          : null;
     });
     _questAnimationController.forward();
+  }
+
+  /// Conferma su pergamena prima di `abandonQuest` (ui-ux.md: azione
+  /// distruttiva); come il viaggio, il foglio sta sul Navigator radice.
+  void _confirmAbandon(Quest quest) {
+    final character = context.read<CharacterCubit>().state;
+    if (character is! CharacterLoaded) return;
+    final abandonCubit = context.read<QuestAbandonCubit>();
+    showModalBottomSheet<void>(
+      useSafeArea: false,
+      isScrollControlled: true,
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: abandonCubit,
+        child: NotificationListener<DraggableScrollableNotification>(
+          onNotification: (_) => abandonCubit.state is QuestAbandoning,
+          child: PaperSheetModal(
+            child: AbandonPartySheet(
+              quest: quest,
+              characterId: character.character.id,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Abbandonata la quest la corsia si svuota (`characterUpdated`): il foglio
+  /// aperto dalla carta non ha più senso.
+  void _closeQuestSheet() {
+    if (_selectedQuest == null) return;
+    _questAnimationController.reverse();
   }
 
   void _showCityInfoModal() {

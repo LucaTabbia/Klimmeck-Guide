@@ -24,6 +24,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
@@ -466,6 +467,21 @@ class KlimmeckGraphQl {
     final result = data['acceptQuest'];
     if (result is! Map<String, dynamic> || result['successful'] != true) {
       throw const FormatException('acceptQuest not successful');
+    }
+  }
+
+  /// Lascia il gruppo in attesa sul marker (BE 09-19). Lancia
+  /// [OperationException] o [FormatException].
+  Future<void> abandonQuest(AbandonQuestRequest request) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: QuestMutations.abandonQuest,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    final result = data['abandonQuest'];
+    if (result is! Map<String, dynamic> || result['successful'] != true) {
+      throw const FormatException('abandonQuest not successful');
     }
   }
 
