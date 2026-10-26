@@ -5,7 +5,7 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
-import 'package:klimmeck_guide/screens/mainScreen/components/party_waiting_refresh_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
@@ -97,8 +97,7 @@ class _MainScreenState extends State<MainScreen>
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
-                  child: PartyWaitingRefreshListener(
-                    cities: state.cities,
+                  child: PartyWatchListener(
                     child: TravelOutcomeListener(
                       child: Scaffold(
                         body: Stack(
