@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
@@ -96,35 +97,37 @@ class _MainScreenState extends State<MainScreen>
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
-                  child: TravelOutcomeListener(
-                    child: Scaffold(
-                      body: Stack(
-                        alignment: Alignment.topLeft,
-                        children: [
-                          NotificationIntentLanding(
-                            pageController: pageController,
-                            child: PageView(
-                              physics: const NeverScrollableScrollPhysics(),
-                              controller: pageController,
-                              onPageChanged: onPageChanged,
-                              children:
-                                  widget.pagesBuilder?.call(state.cities) ??
-                                  _buildPages(state.cities),
+                  child: PartyWatchListener(
+                    child: TravelOutcomeListener(
+                      child: Scaffold(
+                        body: Stack(
+                          alignment: Alignment.topLeft,
+                          children: [
+                            NotificationIntentLanding(
+                              pageController: pageController,
+                              child: PageView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                controller: pageController,
+                                onPageChanged: onPageChanged,
+                                children:
+                                    widget.pagesBuilder?.call(state.cities) ??
+                                    _buildPages(state.cities),
+                              ),
                             ),
-                          ),
-                          MenuBackground(
-                            selectedIndex: currentPage,
-                            onTap: onItemTap,
-                            opacityAnimation: _opacityAnimation,
-                            disabledPages: disabledPages,
-                          ),
-                          SatchelMenu(
-                            currentPage: currentPage,
-                            onItemTap: onItemTap,
-                            parentAnimationController: _animationController,
-                            disabledPages: disabledPages,
-                          ),
-                        ],
+                            MenuBackground(
+                              selectedIndex: currentPage,
+                              onTap: onItemTap,
+                              opacityAnimation: _opacityAnimation,
+                              disabledPages: disabledPages,
+                            ),
+                            SatchelMenu(
+                              currentPage: currentPage,
+                              onItemTap: onItemTap,
+                              parentAnimationController: _animationController,
+                              disabledPages: disabledPages,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

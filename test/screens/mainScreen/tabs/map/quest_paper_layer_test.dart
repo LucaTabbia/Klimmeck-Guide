@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/pending_quest.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_paper_asset.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -20,7 +21,7 @@ import '../../../../helpers/test_app.dart';
 void main() {
   late MockCharacterCubit characterCubit;
   late MockQuestCubit questCubit;
-  late List<(Quest, String)> opened;
+  late List<(Quest, PendingQuest)> opened;
 
   setUp(() {
     opened = [];
@@ -34,7 +35,14 @@ void main() {
     QuestState? quests,
   }) async {
     useLandscapePhone(tester);
-    final q = buildQuest(id: 'e-1', type: 'enemy');
+    final q = buildQuest(
+      id: 'e-1',
+      type: 'enemy',
+      slots: [
+        {'title': null, 'count': 3},
+      ],
+      registered: ['c-1', 'c-2'],
+    );
     final h = buildQuest(id: 'h-1', type: 'hunt');
     seedSvgCache([
       questPaperAssetId(q, isTorn: false),
@@ -61,7 +69,7 @@ void main() {
             body: Stack(
               children: [
                 QuestPaperLayer(
-                  onOpen: (quest, label) => opened.add((quest, label)),
+                  onOpen: (quest, lane) => opened.add((quest, lane)),
                 ),
               ],
             ),
@@ -114,6 +122,42 @@ void main() {
     );
 
     expect(find.text('In viaggio'), findsOneWidget);
+  });
+
+  testWidgets('reads the party count while waiting on the marker', (
+    tester,
+  ) async {
+    await pumpLayer(
+      tester,
+      character: characterWith(
+        characterWithLanesJson(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: null,
+            arrivedAt: '2026-10-25T09:30:00.000Z',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('In attesa del gruppo 2/3'), findsOneWidget);
+  });
+
+  testWidgets('a long label never widens the paper column', (tester) async {
+    await pumpLayer(
+      tester,
+      character: characterWith(
+        characterWithLanesJson(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: null,
+            arrivedAt: '2026-10-25T09:30:00.000Z',
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byKey(QuestPaperLayer.paperKey)).width, 110);
   });
 
   testWidgets('hunt lane reads Cacciando…', (tester) async {
@@ -182,7 +226,7 @@ void main() {
     expect(find.byKey(QuestPaperLayer.paperKey), findsNothing);
   });
 
-  testWidgets('tapping the paper reports the quest and its label', (
+  testWidgets('tapping the paper reports the quest and its lane', (
     tester,
   ) async {
     await pumpLayer(
@@ -196,6 +240,6 @@ void main() {
 
     expect(opened, hasLength(1));
     expect(opened.single.$1.id, 'e-1');
-    expect(opened.single.$2, 'In combattimento…');
+    expect(opened.single.$2.id, 'pq-1');
   });
 }

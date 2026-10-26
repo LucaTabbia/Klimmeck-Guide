@@ -42,7 +42,7 @@ void main() {
     whenListen(
       notificationCubit,
       const Stream<NotificationPreferencesState>.empty(),
-      initialState: const NotificationPreferencesState(isLoaded: true),
+      initialState: NotificationPreferencesState(isLoaded: true),
     );
     whenListen(
       deletionCubit,
@@ -114,6 +114,7 @@ void main() {
     expect(ordered, [...ordered]..sort());
     expect(find.text('Streamer in live'), findsOneWidget);
     expect(find.text('Fine quest'), findsOneWidget);
+    expect(find.text('Missione annullata'), findsOneWidget);
   });
 
   testWidgets('a denied system permission shows the hint in the tab', (

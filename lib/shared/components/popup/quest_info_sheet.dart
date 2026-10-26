@@ -18,6 +18,7 @@ class QuestInfoSheet extends StatelessWidget {
     required this.quest,
     this.viewer,
     this.stateLabel,
+    this.onAbandon,
   });
 
   final Quest? quest;
@@ -29,12 +30,18 @@ class QuestInfoSheet extends StatelessWidget {
   /// Etichetta di stato della corsia (mappa, D-15).
   final String? stateLabel;
 
+  /// Solo dalla mappa, mentre la corsia aspetta il gruppo (BE 09-19).
+  final VoidCallback? onAbandon;
+
   static const Key combatFamilyKey = ValueKey('questSheet.family.combat');
   static const Key narrativeFamilyKey = ValueKey('questSheet.family.narrative');
   static const Key serviceFamilyKey = ValueKey('questSheet.family.service');
   static const Key costLineKey = ValueKey('questSheet.costLine');
   static const Key blockedReasonKey = ValueKey('questSheet.blockedReason');
   static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
+  static const Key abandonKey = ValueKey('questSheet.abandon');
+  static const String abandonLabel = 'Abbandona il gruppo';
+  static const Size _minTapTarget = Size(44, 44);
 
   static const double _aspectRatio = 315 / 375;
   static const double _heightMultiplier = 1.5;
@@ -117,9 +124,25 @@ class QuestInfoSheet extends StatelessWidget {
           ),
         if (stateLabel != null)
           Text(stateLabel!, key: stateLabelKey, style: theme.specialText),
+        if (onAbandon != null) _abandonAction(theme),
       ],
     );
   }
+
+  Widget _abandonAction(KlimmeckGuideTheme theme) => Semantics(
+    label: abandonLabel,
+    button: true,
+    child: TextButton(
+      key: abandonKey,
+      onPressed: onAbandon,
+      style: TextButton.styleFrom(
+        minimumSize: _minTapTarget,
+        foregroundColor: KlimmeckGuideTheme.bloodRed,
+        textStyle: theme.bodyLarge,
+      ),
+      child: const Text(abandonLabel),
+    ),
+  );
 
   Widget _combatBody(QuestSheetDetails details) {
     final enemy = quest!.infos?.enemy;

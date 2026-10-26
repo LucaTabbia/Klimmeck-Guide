@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
+import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -21,6 +22,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
@@ -72,11 +74,13 @@ class MockCharacterCreationRepository extends Mock
 class MockCharacterDeletionRepository extends Mock
     implements CharacterDeletionRepository {}
 
-class MockQuestBoardRepository extends Mock
-    implements QuestBoardRepository {}
+class MockQuestBoardRepository extends Mock implements QuestBoardRepository {}
 
 class MockQuestAcceptanceRepository extends Mock
     implements QuestAcceptanceRepository {}
+
+class MockQuestAbandonRepository extends Mock
+    implements QuestAbandonRepository {}
 
 class MockTravelRepository extends Mock implements TravelRepository {}
 
@@ -115,6 +119,9 @@ class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
 
 class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
     implements QuestAcceptanceCubit {}
+
+class MockQuestAbandonCubit extends MockCubit<QuestAbandonState>
+    implements QuestAbandonCubit {}
 
 class MockTravelCubit extends MockCubit<TravelState> implements TravelCubit {}
 

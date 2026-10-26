@@ -8,24 +8,32 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/quest/quest_paper_asset.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/abandon_party_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
+import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fakes/fake_server_clock_service.dart';
+import '../../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/mocks.dart';
@@ -63,9 +71,12 @@ late MockCharacterCubit characterCubit;
 late MockQuestCubit questCubit;
 late MockWorldMapCubit worldMapCubit;
 late MockTravelCubit travelCubit;
+late MockQuestAbandonCubit abandonCubit;
+late StreamController<QuestAbandonState> abandonStates;
 late MapFocusCubit mapFocusCubit;
 late StreamController<CharacterState> characterStates;
 late StreamController<TravelState> travelStates;
+late StreamController<QuestState> questStates;
 late FakeServerClockService serverClock;
 late ArrivalRereadLedger arrivalRereads;
 
@@ -73,12 +84,14 @@ CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
   String locationId = 'city-marker-1',
   List<double> location = departureWire,
+  Map<String, dynamic>? pendingQuest,
 }) => CharacterLoaded(
   Character.fromJson(
     travellingCharacterJson(
       activeTravel: activeTravel,
       locationId: locationId,
       location: location,
+      pendingQuest: pendingQuest,
     ),
   ),
 );
@@ -89,15 +102,17 @@ Future<void> pumpWorldMap(
   required CharacterState character,
   TravelState travelState = const TravelIdle(),
   DateTime? serverNow,
+  List<Quest> quests = const [],
 }) async {
   useLandscapePhone(tester);
   serverClock = FakeServerClockService(serverNow ?? travelStart);
   whenListen(characterCubit, characterStates.stream, initialState: character);
   whenListen(travelCubit, travelStates.stream, initialState: travelState);
+  whenListen(questCubit, questStates.stream, initialState: QuestLoaded(quests));
   whenListen(
-    questCubit,
-    const Stream<QuestState>.empty(),
-    initialState: const QuestLoaded([]),
+    abandonCubit,
+    abandonStates.stream,
+    initialState: const QuestAbandonIdle(),
   );
   whenListen(
     worldMapCubit,
@@ -118,6 +133,7 @@ Future<void> pumpWorldMap(
             BlocProvider<WorldMapCubit>.value(value: worldMapCubit),
             BlocProvider<TravelCubit>.value(value: travelCubit),
             BlocProvider<MapFocusCubit>.value(value: mapFocusCubit),
+            BlocProvider<QuestAbandonCubit>.value(value: abandonCubit),
           ],
           child: Scaffold(body: WorldMap(cities: [cityA, cityB])),
         ),
@@ -201,11 +217,17 @@ void main() {
     questCubit = MockQuestCubit();
     worldMapCubit = MockWorldMapCubit();
     travelCubit = MockTravelCubit();
+    abandonCubit = MockQuestAbandonCubit();
+    abandonStates = StreamController<QuestAbandonState>.broadcast();
     mapFocusCubit = MapFocusCubit();
     arrivalRereads = ArrivalRereadLedger();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
+    questStates = StreamController<QuestState>.broadcast();
     when(() => characterCubit.refreshCharacter()).thenAnswer((_) async {});
+    when(
+      () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+    ).thenAnswer((_) async {});
     when(
       () => travelCubit.preview(
         characterId: any(named: 'characterId'),
@@ -223,6 +245,8 @@ void main() {
   tearDown(() async {
     await characterStates.close();
     await travelStates.close();
+    await questStates.close();
+    await abandonStates.close();
     await mapFocusCubit.close();
   });
 
@@ -575,6 +599,193 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expectCentreAt(tester, const LatLng(0, 0));
+    });
+  });
+  group('abandon the waiting party (quick 261025-grp)', () {
+    final enemy = buildQuest(id: 'e-1', type: 'enemy');
+    const arrival = '2026-10-25T09:30:00.000Z';
+
+    Future<void> openPaper(WidgetTester tester, {String? startDate}) async {
+      seedSvgCache([
+        questPaperAssetId(enemy, isTorn: false),
+        CloudinaryAssets.emptySheet,
+      ]);
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: startDate,
+            arrivedAt: arrival,
+          ),
+        ),
+        quests: [enemy],
+      );
+      await tester.tap(find.byKey(QuestPaperLayer.paperKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the paper of a waiting lane offers to abandon the party', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      final action = find.byKey(QuestInfoSheet.abandonKey);
+      expect(action, findsOneWidget);
+      await tester.ensureVisible(action);
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+
+      final sheet = tester.widget<AbandonPartySheet>(
+        find.byType(AbandonPartySheet),
+      );
+      expect(sheet.quest.id, 'e-1');
+      expect(sheet.characterId, 'c-1');
+    });
+
+    testWidgets('a quest opened from a marker offers no abandon action', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      await tester.tapAt(const Offset(200, 300));
+      await tester.pumpAndSettle();
+      expect(find.byType(QuestInfoSheet), findsNothing);
+
+      tester
+          .widget<QuestMarkersLayer>(find.byType(QuestMarkersLayer))
+          .onQuestSelected(enemy);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+      expect(find.byKey(QuestInfoSheet.stateLabelKey), findsNothing);
+    });
+
+    testWidgets('dragging the confirmation down cannot dismiss an abandon', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      final action = find.byKey(QuestInfoSheet.abandonKey);
+      await tester.ensureVisible(action);
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      abandonStates.add(const QuestAbandoning('e-1'));
+      await tester.pump();
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(AbandonPartySheet), findsOneWidget);
+    });
+
+    testWidgets('a started lane offers no abandon action', (tester) async {
+      await openPaper(tester, startDate: '2026-10-25T10:00:00.000Z');
+
+      expect(find.byType(QuestInfoSheet), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+    });
+
+    testWidgets('the quest sheet closes once the quest is abandoned', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      abandonStates.add(const QuestAbandoned('e-1'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('the open sheet follows the lane once the party sets off', (
+      tester,
+    ) async {
+      await openPaper(tester);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsOneWidget);
+
+      characterStates.add(
+        characterLoaded(
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: '2026-10-25T10:00:00.000Z',
+            arrivedAt: arrival,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey)).data,
+        'In combattimento…',
+      );
+    });
+
+    testWidgets('the open sheet closes once the lane empties', (tester) async {
+      await openPaper(tester);
+
+      characterStates.add(characterLoaded());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('the open sheet closes once the lane holds another quest', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      characterStates.add(
+        characterLoaded(
+          pendingQuest: laneJson(questId: 'e-2', arrivedAt: arrival),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('opening the paper of a waiting lane rereads the quests', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+    });
+
+    testWidgets('opening the paper of a started lane rereads nothing', (
+      tester,
+    ) async {
+      await openPaper(tester, startDate: '2026-10-25T10:00:00.000Z');
+
+      verifyNever(() => questCubit.refreshQuests(cityId: any(named: 'cityId')));
+    });
+
+    testWidgets('the open sheet counts the party from the current list', (
+      tester,
+    ) async {
+      await openPaper(tester);
+
+      questStates.add(
+        QuestLoaded([
+          buildQuest(
+            id: 'e-1',
+            type: 'enemy',
+            slots: [
+              {'title': null, 'count': 3},
+            ],
+            registered: [
+              {'character': 'c-1', 'title': 'rookie'},
+              {'character': 'c-2', 'title': 'rookie'},
+            ],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey)).data,
+        'In attesa del gruppo 2/3',
+      );
     });
   });
 }

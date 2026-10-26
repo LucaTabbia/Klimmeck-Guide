@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
@@ -21,8 +22,10 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
@@ -159,6 +162,10 @@ class AuthenticatedShell extends StatelessWidget {
           create: (_) =>
               QuestAcceptanceCubit(QuestAcceptanceRepository(graphQl: graphQl)),
         ),
+        BlocProvider<QuestAbandonCubit>(
+          create: (_) =>
+              QuestAbandonCubit(QuestAbandonRepository(graphQl: graphQl)),
+        ),
         BlocProvider<MapFocusCubit>(create: (_) => MapFocusCubit()),
         RepositoryProvider<ServerClockService>(
           lazy: false,
@@ -188,13 +195,15 @@ class AuthenticatedShell extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          BlocListener<CharacterDeletionCubit, CharacterDeletionState>(
-            listenWhen: (previous, current) =>
-                previous.deletedUser == null && current.deletedUser != null,
-            listener: _handOverDeletedUser,
-            child: _ShellBody(
-              characterId: characterId,
-              mainScreenBuilder: mainScreenBuilder,
+          QuestAbandonOutcomeListener(
+            child: BlocListener<CharacterDeletionCubit, CharacterDeletionState>(
+              listenWhen: (previous, current) =>
+                  previous.deletedUser == null && current.deletedUser != null,
+              listener: _handOverDeletedUser,
+              child: _ShellBody(
+                characterId: characterId,
+                mainScreenBuilder: mainScreenBuilder,
+              ),
             ),
           ),
           const _InAppNotificationOverlay(),

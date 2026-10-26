@@ -2,11 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 
 void main() {
-  test('exposes the three categories in display order', () {
+  test('exposes the four categories in display order', () {
     expect(NotificationCategory.values, [
       NotificationCategory.travelEnd,
       NotificationCategory.streamerLive,
       NotificationCategory.questEnd,
+      NotificationCategory.questCancelled,
     ]);
   });
 
@@ -16,6 +17,7 @@ void main() {
       expect(NotificationCategory.travelEnd.storageKey, 'travel_end');
       expect(NotificationCategory.streamerLive.storageKey, 'streamer_live');
       expect(NotificationCategory.questEnd.storageKey, 'quest_end');
+      expect(NotificationCategory.questCancelled.storageKey, 'quest_cancelled');
     },
   );
 
@@ -25,6 +27,7 @@ void main() {
       expect(NotificationCategory.travelEnd.wireType, 'travelEnd');
       expect(NotificationCategory.streamerLive.wireType, 'streamerLive');
       expect(NotificationCategory.questEnd.wireType, 'questEnd');
+      expect(NotificationCategory.questCancelled.wireType, 'questCancelled');
     });
   });
 
@@ -41,6 +44,10 @@ void main() {
       expect(
         NotificationCategory.fromWireType('questEnd'),
         NotificationCategory.questEnd,
+      );
+      expect(
+        NotificationCategory.fromWireType('questCancelled'),
+        NotificationCategory.questCancelled,
       );
     });
 
@@ -62,6 +69,7 @@ void main() {
     test('is true for the events of a single player', () {
       expect(NotificationCategory.travelEnd.isPersonal, isTrue);
       expect(NotificationCategory.questEnd.isPersonal, isTrue);
+      expect(NotificationCategory.questCancelled.isPersonal, isTrue);
     });
 
     test('is false for the streamer live broadcast', () {

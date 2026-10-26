@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +19,7 @@ import '../../../questCubit/quest_cubit.dart';
 class QuestPaperLayer extends StatelessWidget {
   const QuestPaperLayer({super.key, required this.onOpen});
 
-  final void Function(Quest quest, String stateLabel) onOpen;
+  final void Function(Quest quest, PendingQuest lane) onOpen;
 
   static const Key paperKey = ValueKey('map.questPaper');
   static const double _paperSize = 110;
@@ -41,7 +42,7 @@ class QuestPaperLayer extends StatelessWidget {
                 laneOf(type) != QuestLane.standard) {
               return const SizedBox.shrink();
             }
-            final label = questStateLabel(lane, type);
+            final label = questStateLabel(lane, quest);
             return Align(
               alignment: Alignment.topLeft,
               child: SafeArea(
@@ -49,7 +50,7 @@ class QuestPaperLayer extends StatelessWidget {
                   padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingMd),
                   child: GestureDetector(
                     key: paperKey,
-                    onTap: () => onOpen(quest, label),
+                    onTap: () => onOpen(quest, lane),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -64,11 +65,17 @@ class QuestPaperLayer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Text(
-                          label,
-                          style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-                            color: KlimmeckGuideTheme.parchment,
-                            shadows: KlimmeckGuideTheme.bordersForText,
+                        SizedBox(
+                          width: _paperSize,
+                          child: AutoSizeText(
+                            label,
+                            maxLines: 1,
+                            textAlign: TextAlign.center,
+                            style: KlimmeckGuideTheme.instance.bodyLarge
+                                .copyWith(
+                                  color: KlimmeckGuideTheme.parchment,
+                                  shadows: KlimmeckGuideTheme.bordersForText,
+                                ),
                           ),
                         ),
                       ],

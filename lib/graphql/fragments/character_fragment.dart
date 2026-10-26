@@ -20,7 +20,8 @@ class CharacterFragment {
     }
   ''';
 
-  static String get statusFields => '''
+  static String get statusFields =>
+      '''
     status {
       coins {
         ${CoinsFragment.fields}
@@ -51,7 +52,8 @@ class CharacterFragment {
     }
   ''';
 
-  static String get assetsFields => '''
+  static String get assetsFields =>
+      '''
     assets {
       wearedEquipment {
         ${WearedEquipmentFragment.withFields(EquipmentFragment.fieldsWithFullSpell)}
@@ -89,6 +91,7 @@ class CharacterFragment {
       pendingQuest {
         id
         startDate
+        arrivedAt
         waitingTime
         pointsSpent
         quest {
@@ -116,7 +119,8 @@ class CharacterFragment {
     }
   ''';
 
-  static String get fullFields => '''
+  static String get fullFields =>
+      '''
     id
     $infosFields
     $statusFields
@@ -124,4 +128,3 @@ class CharacterFragment {
     $questsFields
   ''';
 }
-

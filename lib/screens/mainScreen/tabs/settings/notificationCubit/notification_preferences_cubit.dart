@@ -12,7 +12,7 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
     with SafeEmit<NotificationPreferencesState> {
   NotificationPreferencesCubit(this._store, {required String userId})
     : _userId = userId,
-      super(const NotificationPreferencesState());
+      super(NotificationPreferencesState());
 
   final NotificationPreferencesStore _store;
   final String _userId;
@@ -30,7 +30,7 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
       emit(NotificationPreferencesState(enabled: _persisted, isLoaded: true));
     } catch (error) {
       debugPrint('[NotificationPreferences] read failed: ${error.runtimeType}');
-      emit(const NotificationPreferencesState(isLoaded: true));
+      emit(NotificationPreferencesState(isLoaded: true));
     }
   }
 

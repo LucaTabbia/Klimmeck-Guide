@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
@@ -23,6 +24,7 @@ Future<void> _pump(
   Quest? quest, {
   QuestViewer? viewer,
   String? stateLabel,
+  VoidCallback? onAbandon,
 }) async {
   useLandscapePhone(tester);
   await tester.pumpWidget(
@@ -33,6 +35,7 @@ Future<void> _pump(
             quest: quest,
             viewer: viewer,
             stateLabel: stateLabel,
+            onAbandon: onAbandon,
           ),
         ),
       ),
@@ -237,6 +240,52 @@ void main() {
 
       await _pump(tester, buildQuest(type: 'hunt'));
       expect(find.byKey(QuestInfoSheet.stateLabelKey), findsNothing);
+    });
+
+    testWidgets('offers no abandon action without a callback', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'boss'),
+        stateLabel: 'In attesa del gruppo 1/3',
+      );
+
+      expect(find.byKey(QuestInfoSheet.abandonKey), findsNothing);
+    });
+
+    testWidgets('the abandon action calls back once', (tester) async {
+      var abandons = 0;
+      await _pump(
+        tester,
+        buildQuest(type: 'boss'),
+        stateLabel: 'In attesa del gruppo 1/3',
+        onAbandon: () => abandons++,
+      );
+
+      final action = find.byKey(QuestInfoSheet.abandonKey);
+      expect(
+        find.descendant(of: action, matching: find.text('Abbandona il gruppo')),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(action);
+      await tester.tap(action);
+
+      expect(abandons, 1);
+    });
+
+    testWidgets('the abandon action reads in blood red body text', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'boss'), onAbandon: () {});
+
+      final style = tester
+          .renderObject<RenderParagraph>(find.text(QuestInfoSheet.abandonLabel))
+          .text
+          .style!;
+      expect(style.color, KlimmeckGuideTheme.bloodRed);
+      expect(
+        style.fontFamily,
+        KlimmeckGuideTheme.instance.bodyLarge.fontFamily,
+      );
     });
   });
 

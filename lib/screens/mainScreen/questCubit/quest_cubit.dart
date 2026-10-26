@@ -17,6 +17,8 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
   final Duration cityRetryDelay;
   Timer? _cityRetry;
   int _refreshGeneration = 0;
+  StreamSubscription<Quest>? _questWatch;
+  String? _watchedQuestId;
 
   static const Duration defaultCityRetryDelay = Duration(seconds: 2);
 
@@ -87,9 +89,59 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
     }
   }
 
+  /// Segue `questUpdated` della quest: ogni Quest ricevuta sostituisce quella
+  /// con lo stesso id nella lista (k/N di «In attesa del gruppo» in tempo reale).
+  /// Una sola quest seguita alla volta; su errore lo stato resta e il watch cade.
+  void watchQuest(String questId) {
+    if (questId == _watchedQuestId) return;
+    unwatchQuest();
+    _watchedQuestId = questId;
+    _questWatch = repository
+        .watchQuest(questId)
+        .listen(
+          _replaceQuest,
+          onError: (Object error) {
+            debugPrint('Quest watch failed (${error.runtimeType})');
+            _forgetWatch();
+          },
+          onDone: _forgetWatch,
+          cancelOnError: true,
+        );
+  }
+
+  void unwatchQuest() {
+    unawaited(_questWatch?.cancel());
+    _forgetWatch();
+  }
+
+  void _forgetWatch() {
+    _questWatch = null;
+    _watchedQuestId = null;
+  }
+
+  void _replaceQuest(Quest quest) {
+    final current = state;
+    if (current is! QuestLoaded) return;
+    final isListed = current.quests.any((listed) => listed.id == quest.id);
+    final quests = isListed
+        ? [
+            for (final listed in current.quests)
+              listed.id == quest.id ? quest : listed,
+          ]
+        : [...current.quests, quest];
+    emit(
+      QuestLoaded(
+        List.unmodifiable(quests),
+        cityId: current.cityId,
+        cityPointIds: current.cityPointIds,
+      ),
+    );
+  }
+
   @override
   Future<void> close() {
     _cityRetry?.cancel();
+    unwatchQuest();
     return super.close();
   }
 }

@@ -8,11 +8,17 @@ import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dar
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
 
-  for (final lane in [
-    'pendingQuest',
-    'activeStoryQuest',
-    'activeWorldMissionQuest',
-  ]) {
+  test('selects pendingQuest with timing, arrival, points and quest id', () {
+    expect(
+      fields,
+      contains(
+        'pendingQuest { id startDate arrivedAt waitingTime pointsSpent '
+        'quest { id } }',
+      ),
+    );
+  });
+
+  for (final lane in ['activeStoryQuest', 'activeWorldMissionQuest']) {
     test('selects $lane with timing, points and the quest id only', () {
       expect(
         fields,
@@ -20,6 +26,10 @@ void main() {
       );
     });
   }
+
+  test('selects arrivedAt only on the standard lane', () {
+    expect(RegExp(r'\barrivedAt\b').allMatches(fields), hasLength(1));
+  });
 
   test('selects completedQuests ids', () {
     expect(fields, contains('completedQuests { id }'));

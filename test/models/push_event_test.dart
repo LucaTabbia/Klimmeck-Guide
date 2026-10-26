@@ -47,6 +47,18 @@ void main() {
       expect(event?.id, 'q-1');
     });
 
+    test('keeps the quest id of a disbanded party', () {
+      final event = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'questCancelled',
+        'title': 'Missione annullata',
+        'id': 'q-1',
+      });
+
+      expect(event?.category, NotificationCategory.questCancelled);
+      expect(event?.id, 'q-1');
+    });
+
     test('drops an id sent with a streamer live broadcast', () {
       final event = PushEvent.tryParse({...streamerLiveData(), 'id': 'x'});
 

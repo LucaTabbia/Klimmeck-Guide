@@ -8,14 +8,20 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
 import '../../../../models/lore.dart';
+import '../../../../models/pending_quest.dart';
+import '../../../../models/quest/board_policy.dart';
 import '../../../../models/quest/quest.dart';
+import '../../../../models/quest/quest_state_label.dart';
 import '../../../../models/travel/active_travel.dart';
 import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../questAbandonCubit/quest_abandon_cubit.dart';
+import '../../questCubit/quest_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
+import 'components/abandon_party_sheet.dart';
 import 'components/city_modal.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'cubit/world_map_cubit.dart';
@@ -43,7 +49,9 @@ class WorldMap extends StatefulWidget {
 class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // Map state
   final MapController _mapController = MapController();
-  final ValueNotifier<double> _zoomNotifier = ValueNotifier(MapConstants.initialZoom);
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(
+    MapConstants.initialZoom,
+  );
   late final LatLngBounds _bounds;
   late final MapOptions _mapOptions;
   bool _isMapReady = false;
@@ -63,7 +71,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // UI state
   Lore? _selectedLore;
   Quest? _selectedQuest;
-  String? _selectedStateLabel;
+
+  /// Corsia del foglio aperto dalla carta; null = aperto da un marker.
+  PendingQuest? _selectedLane;
 
   @override
   void initState() {
@@ -115,14 +125,19 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _onQuestAnimationStatusChanged(AnimationStatus status) {
-    if (status.isDismissed) {
-      setState(() => _selectedQuest = null);
-    }
+    if (status.isDismissed) _clearSelection();
   }
+
+  void _clearSelection() => setState(() {
+    _selectedQuest = null;
+    _selectedLane = null;
+  });
 
   @override
   void dispose() {
-    _questAnimationController.removeStatusListener(_onQuestAnimationStatusChanged);
+    _questAnimationController.removeStatusListener(
+      _onQuestAnimationStatusChanged,
+    );
     _questAnimationController.dispose();
     _smoothTimer?.cancel();
     _zoomNotifier.dispose();
@@ -134,7 +149,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return BlocProvider<TravelProgressCubit>.value(
       value: _progressCubit,
-      child: MultiBlocListener(listeners: _buildListeners(), child: _buildMap()),
+      child: MultiBlocListener(
+        listeners: _buildListeners(),
+        child: _buildMap(),
+      ),
     );
   }
 
@@ -169,13 +187,22 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             previous is! TravelConfirming && current is TravelConfirming,
         listener: (_, state) => _fitPreviewRoute(state as TravelConfirming),
       ),
+      BlocListener<QuestAbandonCubit, QuestAbandonState>(
+        listenWhen: (_, current) => current is QuestAbandoned,
+        listener: (_, _) => _closeQuestSheet(),
+      ),
+      BlocListener<CharacterCubit, CharacterState>(
+        listenWhen: (previous, current) =>
+            _pendingLaneOf(previous) != _pendingLaneOf(current),
+        listener: (_, state) => _followLane(_pendingLaneOf(state)),
+      ),
     ];
   }
 
   Widget _buildMap() {
     return BackgroundImage(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedQuest = null),
+        onTap: _clearSelection,
         child: FlutterMap(
           mapController: _mapController,
           options: _mapOptions,
@@ -200,15 +227,37 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
               onDragEnd: _handleCharacterDragEnd,
             ),
             QuestPaperLayer(onOpen: _openFromPaper),
-            QuestInfoOverlay(
-              animationController: _questAnimationController,
-              selectedQuest: _selectedQuest,
-              stateLabel: _selectedStateLabel,
-            ),
+            _buildQuestOverlay(),
           ],
         ),
       ),
     );
+  }
+
+  /// Etichetta e azione nascono dalla corsia seguita e dalla lista corrente.
+  Widget _buildQuestOverlay() {
+    return BlocBuilder<QuestCubit, QuestState>(
+      builder: (context, questState) {
+        final quest = _currentOf(_selectedQuest, questState);
+        final lane = _selectedLane;
+        return QuestInfoOverlay(
+          animationController: _questAnimationController,
+          selectedQuest: quest,
+          stateLabel: lane == null ? null : questStateLabel(lane, quest),
+          onAbandon: quest != null && lane?.isWaitingForParty == true
+              ? () => _confirmAbandon(quest)
+              : null,
+        );
+      },
+    );
+  }
+
+  static Quest? _currentOf(Quest? selected, QuestState state) {
+    if (selected == null || state is! QuestLoaded) return selected;
+    for (final quest in state.quests) {
+      if (quest.id == selected.id) return quest;
+    }
+    return selected;
   }
 
   Widget _buildMapImage() {
@@ -222,9 +271,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
   }
 
-
   static ActiveTravel? _activeTravelOf(CharacterState state) =>
       state is CharacterLoaded ? state.character.status?.activeTravel : null;
+
+  static PendingQuest? _pendingLaneOf(CharacterState state) =>
+      state is CharacterLoaded ? state.character.quests?.pendingQuest : null;
 
   static int _refetchCountOf(TravelProgressState state) =>
       state is TravelProgressActive ? state.arrivalRefetchCount : 0;
@@ -260,7 +311,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   LatLng? _characterLocation() {
     final state = context.read<CharacterCubit>().state;
-    return state is CharacterLoaded ? state.character.status?.location?.location : null;
+    return state is CharacterLoaded
+        ? state.character.status?.location?.location
+        : null;
   }
 
   void _handleMapTap(TapPosition pos, LatLng latLng) {
@@ -287,7 +340,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     final screenCenter = Offset(screenSize.width / 2, screenSize.height / 2);
     final localOffset = _mapController.camera.latLngToScreenOffset(newLocation);
     final dragOffset = localOffset - screenCenter;
-    final newCenter = _mapController.camera.screenOffsetToLatLng(screenCenter + dragOffset);
+    final newCenter = _mapController.camera.screenOffsetToLatLng(
+      screenCenter + dragOffset,
+    );
     final clampedCenter = MapUtils.clampToBounds(newCenter, _bounds);
 
     _animateMapTo(clampedCenter);
@@ -305,7 +360,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     );
     if (destination == null) return;
     final travelCubit = context.read<TravelCubit>();
-    travelCubit.preview(characterId: character.character.id, destination: destination);
+    travelCubit.preview(
+      characterId: character.character.id,
+      destination: destination,
+    );
     // IN-06: preview() passa a TravelPreviewing prima del primo await; se l'ha ignorata, niente foglio.
     if (travelCubit.state is! TravelPreviewing) return;
     _showTravelConfirmation(travelCubit, destination);
@@ -326,7 +384,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         value: travelCubit,
         child: NotificationListener<DraggableScrollableNotification>(
           onNotification: (_) => _isStartInFlight(travelCubit),
-          child: PaperSheetModal(child: TravelConfirmationSheet(destination: destination)),
+          child: PaperSheetModal(
+            child: TravelConfirmationSheet(destination: destination),
+          ),
         ),
       ),
     ).whenComplete(travelCubit.cancel);
@@ -349,7 +409,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
           MapConstants.previewRoutePadding,
           MapConstants.previewRoutePadding,
           MapConstants.previewRoutePadding,
-          height * MapConstants.previewSheetHeightFraction + MapConstants.previewSheetGap,
+          height * MapConstants.previewSheetHeightFraction +
+              MapConstants.previewSheetGap,
         ),
         maxZoom: MapConstants.maxZoom,
       ),
@@ -359,19 +420,77 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void _selectQuest(Quest quest) {
     setState(() {
       _selectedQuest = quest;
-      _selectedStateLabel = null;
+      _selectedLane = null;
     });
     _questAnimationController.forward();
   }
 
-  void _openFromPaper(Quest quest, String stateLabel) {
+  void _openFromPaper(Quest quest, PendingQuest lane) {
     setState(() {
       _selectedQuest = quest;
-      _selectedStateLabel = stateLabel;
+      _selectedLane = lane;
     });
     _questAnimationController.forward();
+    if (lane.isWaitingForParty) _refreshPartyCount();
   }
 
+  /// WR-02: il k/N legge la lista quest; aprendo il foglio la si rilegge.
+  void _refreshPartyCount() {
+    final character = context.read<CharacterCubit>().state;
+    if (character is! CharacterLoaded) return;
+    context.read<QuestCubit>().refreshQuests(
+      cityId: currentCityOf(
+        widget.cities,
+        character.character.status?.location,
+      )?.id,
+    );
+  }
+
+  /// WR-01: il foglio della carta segue la corsia; svuotata o passata a
+  /// un'altra quest, il foglio si chiude.
+  void _followLane(PendingQuest? lane) {
+    final selected = _selectedLane;
+    if (selected == null) return;
+    if (lane == null || lane.quest?.id != selected.quest?.id) {
+      _closeQuestSheet();
+      return;
+    }
+    setState(() => _selectedLane = lane);
+  }
+
+  /// Conferma su pergamena prima di `abandonQuest` (ui-ux.md: azione
+  /// distruttiva); come il viaggio, il foglio sta sul Navigator radice.
+  void _confirmAbandon(Quest quest) {
+    final character = context.read<CharacterCubit>().state;
+    if (character is! CharacterLoaded) return;
+    final abandonCubit = context.read<QuestAbandonCubit>();
+    showModalBottomSheet<void>(
+      useSafeArea: false,
+      isScrollControlled: true,
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: abandonCubit,
+        child: NotificationListener<DraggableScrollableNotification>(
+          onNotification: (_) => abandonCubit.state is QuestAbandoning,
+          child: PaperSheetModal(
+            child: AbandonPartySheet(
+              quest: quest,
+              characterId: character.character.id,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Abbandonata la quest la corsia si svuota (`characterUpdated`): il foglio
+  /// aperto dalla carta non ha più senso.
+  void _closeQuestSheet() {
+    if (_selectedQuest == null) return;
+    _questAnimationController.reverse();
+  }
 
   void _showCityInfoModal() {
     if (_selectedLore == null) return;
@@ -382,10 +501,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
       backgroundColor: Colors.transparent,
       context: context,
-      builder: (context) => PaperSheetModal(child: CityModal(lore: _selectedLore!)),
+      builder: (context) =>
+          PaperSheetModal(child: CityModal(lore: _selectedLore!)),
     );
   }
-
 
   void _animateMapTo(LatLng target) {
     final clampedTarget = MapUtils.clampToBounds(target, _bounds);
@@ -410,13 +529,21 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         return;
       }
 
-      _velocityX = (_velocityX + deltaLng * MapConstants.scrollAcceleration) *
+      _velocityX =
+          (_velocityX + deltaLng * MapConstants.scrollAcceleration) *
           MapConstants.scrollDamping;
-      _velocityY = (_velocityY + deltaLat * MapConstants.scrollAcceleration) *
+      _velocityY =
+          (_velocityY + deltaLat * MapConstants.scrollAcceleration) *
           MapConstants.scrollDamping;
 
-      final newLat = (current.latitude + _velocityY).clamp(_bounds.south, _bounds.north);
-      final newLng = (current.longitude + _velocityX).clamp(_bounds.west, _bounds.east);
+      final newLat = (current.latitude + _velocityY).clamp(
+        _bounds.south,
+        _bounds.north,
+      );
+      final newLng = (current.longitude + _velocityX).clamp(
+        _bounds.west,
+        _bounds.east,
+      );
 
       _mapController.move(LatLng(newLat, newLng), _mapController.camera.zoom);
     });
