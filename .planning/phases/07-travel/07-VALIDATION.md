@@ -1,7 +1,7 @@
 ---
 phase: 7
 slug: travel
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-10-24
@@ -61,8 +61,8 @@ created: 2026-10-24
 | 07-10-01 | 10 | 6 | TRAVEL-02 | T-07-10-02/04 | drag only when free; no spring back on unrelated events | widget | `flutter test test/screens/mainScreen/tabs/map` | ❌ W0 | ✅ green |
 | 07-10-02 | 10 | 6 | TRAVEL-03, TRAVEL-04 | T-07-10-01/03/05 | pawn from backend data only; snap on the BE event; reconstruction after kill | widget | `flutter test test/screens/mainScreen/tabs/map` | ✅ (07-10-01, 07-09) | ✅ green |
 | 07-11-01 | 11 | 7 | all | T-07-11-01/02 | documents valid vs BE `origin/develop`; gates | scripted + full suite | schema check (32 `OK`) + `flutter test` + `flutter analyze` | ✅ | ✅ green |
-| 07-11-02 | 11 | 7 | all | T-07-11-03/04 | server-time interpolation, prompt after "Parti", rejections as domain banners | manual | device E2E (`07-HUMAN-UAT.md`) | — | ⬜ pending (human E2E) |
-| 07-11-03 | 11 | 7 | all | T-07-11-05/06 | ticks only for passed steps | docs | `grep -c '^status: complete' .planning/phases/07-travel/07-HUMAN-UAT.md` | — | ⬜ pending |
+| 07-11-02 | 11 | 7 | all | T-07-11-03/04 | server-time interpolation, prompt after "Parti", rejections as domain banners | manual | device E2E (`07-HUMAN-UAT.md`) | — | ✅ green (device E2E 2026-10-26: steps 1-11 pass, 12 observed) |
+| 07-11-03 | 11 | 7 | all | T-07-11-05/06 | ticks only for passed steps | docs | `grep -c '^status: complete' .planning/phases/07-travel/07-HUMAN-UAT.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -106,4 +106,4 @@ No framework install needed: every library is already in `pubspec.yaml` / `pubsp
 - [x] Feedback latency < 60s per task
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-10-26

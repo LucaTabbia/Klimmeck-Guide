@@ -61,7 +61,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
-- [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
+- [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
@@ -248,7 +248,7 @@ Plans:
   - [x] 07-08-PLAN.md — Wave 4: TravelRouteLayer (dashed preview, two-tone live route) + TravelConfirmationSheet (parchment, Parti/Resta) + map test harness
   - [x] 07-09-PLAN.md — Wave 5: WorldMap wiring (progress cubit, route layer, one-shot framing, travelEnd focus, refetch, drag end → preview sheet + camera fit); drop the teleport stub
   - [x] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
-  - [ ] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
+  - [x] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
 **UI hint**: no (07-CONTEXT: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 8: Spells Section (Journal Tab)
@@ -357,7 +357,7 @@ Plans:
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
-| 7. Travel | 10/11 | In Progress | - |
+| 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
@@ -409,10 +409,10 @@ Plans:
 | QUEST-05 | Phase 6 | Pending |
 | QUEST-06 | Phase 6 | Pending |
 | QUEST-07 | Phase 6 | Pending |
-| TRAVEL-01 | Phase 7 (BE prereq) | Pending |
-| TRAVEL-02 | Phase 7 | Pending |
-| TRAVEL-03 | Phase 7 | Pending |
-| TRAVEL-04 | Phase 7 | Pending |
+| TRAVEL-01 | Phase 7 (BE prereq) | Complete |
+| TRAVEL-02 | Phase 7 | Complete |
+| TRAVEL-03 | Phase 7 | Complete |
+| TRAVEL-04 | Phase 7 | Complete |
 | SPELL-01 | Phase 8 | Pending |
 | SPELL-02 | Phase 8 | Pending |
 | SPELL-03 | Phase 8 | Pending |

@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-24T18:00:00.000Z"
-last_activity: 2026-10-24 -- Phase 7 gate passed (07-11 Task 1), awaiting the device UAT
+last_updated: "2026-10-26T18:00:00.000Z"
+last_activity: 2026-10-26 -- Phase 7 complete (device UAT 11/11 pass + 1 observation)
 progress:
   total_phases: 12
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 73
-  completed_plans: 66
-  percent: 90
+  completed_plans: 67
+  percent: 92
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 7 (Travel) — EXECUTING
+Phase: 7 (Travel) — COMPLETE (2026-10-26)
 Plan: 11 of 11
-Completed phases: 7 (1, 2, 3, 4, 5, 6, 11)
-Next Phase: 8 (Spells Section) once Phase 7 ships (PR to develop); BE Phase 9 (Combat Result & Admin Outcomes) planned in the same session and executing in parallel on the BE repo
-Status: Phase 7 gate passed — awaiting the device UAT (07-11 checkpoint, 12 steps in 07-HUMAN-UAT.md); code review done (3 warnings + 6 info → 8 fixed, 1 not needed, 07-REVIEW-FIX.md), verification human_needed with 0 gaps (07-VERIFICATION.md), security secured 58/58 (07-SECURITY.md); after the UAT verdict: continuation of 07-11 Task 3, then PR to develop
-Last activity: 2026-10-24 -- Phase 7 plans 07-01..07-10 executed, gate 07-11 Task 1 passed (1671 tests after the review fixes, analyze 54/0, schema check 32/32), review/fix/verify/security done; blocked on the device UAT
+Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
+Next Phase: quick task «tratteggio della rotta in oro» (richiesta dell'utente nella UAT, passo 3) on `feat/07-travel`, then FE PR `feat/07-travel` → `develop`; then FE Phase 9/10 once the BE PR #13 (BE Phase 9, Combat Result & Admin Outcomes) is merged
+Status: Phase 7 complete — device E2E on Android (Samsung SM-S938B) 2026-10-26: steps 1-11 pass, step 12 observed («12: Ulby»), against the local BE `feat/09-combat-result-admin-outcomes` @ c4582b9 (contains `origin/develop` 3df1b37 + BE Phase 9); TRAVEL-01..04 ticked; verification passed; BACKEND-NOTES §3/§4 carry the §11 d outcome for the BE side (to be copied into BE 08-HUMAN-UAT.md). Note: the branch `feat/party-waiting` is stacked on `feat/07-travel`
+Last activity: 2026-10-26 -- Phase 7 device UAT recorded (07-HUMAN-UAT.md), 07-11 complete
 
 ## Current Milestone
 

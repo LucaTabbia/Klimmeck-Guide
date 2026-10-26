@@ -104,13 +104,13 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 ### Travel
 
-- [ ] **TRAVEL-01**: Backend exposes a new optional field on Character (e.g. `status.activeTravel { road: Road, startTime, endTime, duration }`) that represents a travel in progress. ETA, duration and validation are computed server-side. This field is a prerequisite for the frontend travel UI.
+- [x] **TRAVEL-01**: Backend exposes a new optional field on Character (e.g. `status.activeTravel { road: Road, startTime, endTime, duration }`) that represents a travel in progress. ETA, duration and validation are computed server-side. This field is a prerequisite for the frontend travel UI.
   - _Nota 2026-10-24: consegnato dal BE Phase 8 su `develop` (PR #11 e #12): `activeTravel { road { coordinates distance } startTime endTime duration to }`, `travelPreview`, `startTravel`, `serverTime`. La spunta arriva con il piano finale della FE Phase 7 (07-11)._
-- [ ] **TRAVEL-02**: User can initiate travel to a destination POI and must explicitly confirm before the mutation fires. The confirmation surface shows destination + ETA **as received from the backend** (no client-side calculation). Exact dialog content/style is deferred — see Open Questions in `STATE.md`.
+- [x] **TRAVEL-02**: User can initiate travel to a destination POI and must explicitly confirm before the mutation fires. The confirmation surface shows destination + ETA **as received from the backend** (no client-side calculation). Exact dialog content/style is deferred — see Open Questions in `STATE.md`.
   - _Emendato il 2026-10-24 (Phase 7 discuss, D-01..D-05): il viaggio parte trascinando la pedina su una città (la più vicina al punto di rilascio); la conferma è un foglio di pergamena con nome e immagine della città, distanza, durata ed ETA forniti dal backend (`travelPreview`; l'ETA mostrata è l'ora del server stimata più `duration`), rotta tratteggiata dietro il foglio e azioni «Parti» / «Resta». Nessun costo: il backend non ne prevede. Il permesso notifiche si chiede solo dopo un `startTravel` riuscito. La domanda aperta in STATE.md è risolta._
-- [ ] **TRAVEL-03**: Once `activeTravel` is populated, the UI shows the character moving along `road.coordinates` in real time. Current position is computed by interpolating along the coordinate list based on `(now - startTime) / duration`, anchored to server timestamps. When the backend clears `activeTravel` and updates `location`, the UI snaps to the new location via the subscription stream — no frontend-side completion logic.
+- [x] **TRAVEL-03**: Once `activeTravel` is populated, the UI shows the character moving along `road.coordinates` in real time. Current position is computed by interpolating along the coordinate list based on `(now - startTime) / duration`, anchored to server timestamps. When the backend clears `activeTravel` and updates `location`, the UI snaps to the new location via the subscription stream — no frontend-side completion logic.
   - _Emendato il 2026-10-24 (D-06..D-10, D-12, D-13): la rotta intera resta visibile con il tratto percorso in un altro tono, sopra la pedina fluttua solo il tempo rimanente («In arrivo…» a fine percorso) e la pedina scatta sulla nuova posizione solo all'evento del backend. Durante qualsiasi viaggio (anche quello automatico verso una quest) e fuori da un marker di città Bacheca e Negozio sono disabilitati._
-- [ ] **TRAVEL-04**: If the app is killed mid-travel, on relaunch the travel state is reconstructed from `activeTravel` via the subscription and the position on the road is recomputed accurately
+- [x] **TRAVEL-04**: If the app is killed mid-travel, on relaunch the travel state is reconstructed from `activeTravel` via the subscription and the position on the road is recomputed accurately
 
 ### Spells (Journal Tab)
 
@@ -216,7 +216,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SYNC-01 through SYNC-07     | Phase 3 | Complete (activeTravel/activeStoryQuest/activeWorldMissionQuest join the fragment in Phases 6/7, D-05; FE PR after the BE Phase 3 PR, D-04) |
 | NOTIF-01 through NOTIF-08   | Phase 5 | Complete (Android only; NOTIF-02 prompt call site in Phase 7; context popups in Phases 7/9) |
 | QUEST-01 through QUEST-07   | Phase 6 | Complete (QUEST-03/04/05/06/07 as amended 2026-10-21; Android device E2E 2026-10-22) |
-| TRAVEL-01 through TRAVEL-04 | TBD   | Pending |
+| TRAVEL-01 through TRAVEL-04 | Phase 7 | Complete (TRAVEL-01 shipped by BE Phase 8; TRAVEL-02/03 amended 2026-10-24; Android device E2E 2026-10-26) |
 | SPELL-01 through SPELL-07   | TBD   | Pending |
 | COMBAT-01 through COMBAT-07 | TBD   | Pending |
 | ADMIN-01 through ADMIN-08   | TBD   | Pending |
@@ -231,4 +231,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_
+_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-26 — Phase 7 complete: TRAVEL-01..04 ticked after the Android device E2E (07-HUMAN-UAT.md, steps 1-11 pass)_

@@ -1,48 +1,12 @@
 ---
 phase: 07-travel
 verified: 2026-10-24T00:00:00Z
-status: human_needed
-score: 4/4 success criteria, 4/4 requirement IDs accounted for (automated); 12 device steps pending
+status: passed
+score: 4/4 success criteria, 4/4 requirement IDs accounted for; device UAT 2026-10-26 steps 1-11 pass, step 12 observed
 overrides_applied: 0
 re_verification: null
 gaps: []
-human_verification:
-  - test: "UAT 1 - Preview + C1 probe (BE handoff 11 d.1, D-03/D-04, C1)"
-    expected: "Drag the pawn from a city marker onto another city: the parchment sheet shows the city name (and image if the lore has one) at once, then distance (km), duration ('2 h 40 min' style) and arrival ('oggi/domani alle HH:mm'); no cost line. Behind the sheet the DASHED route starts exactly on the pawn and ends on the destination marker (if it starts elsewhere or looks mirrored, FAIL). Camera fits both ends. 'Resta': route gone, pawn back on its city."
-    why_human: "Real travelPreview against the BE and the visual C1 probe (lat/lng order of road.coordinates on the map) cannot be observed without a device"
-  - test: "UAT 2 - Same city (D-02)"
-    expected: "Drag and release the pawn on its own city: it springs back, no sheet, no banner."
-    why_human: "Gesture behaviour on device"
-  - test: "UAT 3 - Start (D-05, D-06, D-08, D-12)"
-    expected: "Drag again, tap 'Parti'. The notification permission prompt appears only now (only if the OS has not decided yet). The pawn leaves along the route; the travelled part has a different tone; only the remaining time floats above the pawn. Bacheca and Negozio dark and inert; Profilo, Diario, Libreria, Impostazioni open; tapping a city still opens its lore sheet; tapping the pawn does nothing."
-    why_human: "Real startTravel, OS permission prompt timing, visual result"
-  - test: "UAT 4 - Server time (BE 11 d.2, D-07)"
-    expected: "Move the phone clock +/-2 h, return to the app: pawn at the same point of the route, remaining time unchanged (within a minute)."
-    why_human: "Needs a real device clock change and the real serverTime query"
-  - test: "UAT 5 - Kill mid-travel (BE 11 d.3, D-09, D-11, TRAVEL-04)"
-    expected: "Swipe the app away, relaunch: after cold start the pawn is on the route at the right point, the camera frames it once, the label shows the remaining time; free panning does not snap back."
-    why_human: "Real process kill and cold start"
-  - test: "UAT 6 - Arrival (BE 11 d.4, D-10, D-15, D-16)"
-    expected: "At the end the label reads 'In arrivo...' and the pawn waits on the last point. App in background/killed: push 'Viaggio completato'; tap opens the Map centred on the pawn, no popup. Short travel in foreground: pawn snaps to the new city and the in-app banner 'Viaggio completato' appears (tap goes to Map)."
-    why_human: "Real FCM push, tap routing to camera, backend travel lifecycle"
-  - test: "UAT 7 - Automatic quest travel (BE 11 d.5, D-13, D-17)"
-    expected: "Accept a standard-lane quest whose marker is not the current position: Map with route, moving pawn and label like a free travel; quest paper says 'In viaggio'. At arrival the pawn snaps, the paper label switches to the per-type label, NO push and no FE banner."
-    why_human: "Real BE quest-driven travel"
-  - test: "UAT 8 - Rejections (BE 11 d.6, D-14)"
-    expected: "Sheet open on a destination; by hand start a travel or accept a standard quest for the same character; tap 'Parti': sheet closes, pawn springs back, banner 'Sei gia in viaggio' (TRAVEL_IN_PROGRESS) or 'Non puoi partire durante una missione in corso' (QUEST_IN_PROGRESS), never technical text. Pawn not draggable during a travel nor while a standard quest is pending."
-    why_human: "Needs a second client issuing mutations against the real BE"
-  - test: "UAT 9 - Teleport by hand (BE 11 d.7)"
-    expected: "As innkeeper, teleportCharacter on a character in a free travel: route disappears, pawn snaps to the new POI, no push; on a character with a pendingQuest the answer is QUEST_IN_PROGRESS."
-    why_human: "Manual BE mutation, observed on device"
-  - test: "UAT 10 - Pet (BE 11 d.8)"
-    expected: "With the speedModifier: 2 pet equipped (assets.pet ObjectId) the preview duration for the same pair of cities is half of the one without the pet."
-    why_human: "Backend data setup and real preview"
-  - test: "UAT 11 - Board/Shop off a city (D-12)"
-    expected: "With the character on a quest POI (after UAT 7), Bacheca and Negozio are dark and do nothing."
-    why_human: "Needs the real post-quest location on device"
-  - test: "UAT 12 - Nearest-city rule (Pitfall 10, observation only)"
-    expected: "At low zoom release the pawn between cities where a village is hidden; note which city the sheet names (D-01 keeps 'nearest city'; 'Resta' is the escape). Not a pass/fail gate."
-    why_human: "Subjective observation on device"
+human_verification: []  # resolved 2026-10-26 by the device UAT (07-HUMAN-UAT.md, status: complete); the 12 steps are listed in the outcome section below
 ---
 
 # Phase 7: Travel - Verification Report
@@ -121,3 +85,24 @@ No automated gaps. Every ROADMAP success criterion and every PLAN must-have is b
 
 _Verified: 2026-10-24_
 _Verifier: Claude (gsd-verifier)_
+
+## Human verification outcome (2026-10-26)
+
+Device UAT on Android (Samsung SM-S938B, USB, `adb reverse tcp:3000`), FE `feat/07-travel` @ 596e6c7, local BE from `feat/09-combat-result-admin-outcomes` @ c4582b9 (contains `origin/develop` 3df1b37 + BE Phase 9, PR #13). Full record with the user's verbatim notes and the DB preparation in `07-HUMAN-UAT.md` (`status: complete`).
+
+| UAT | Step | Result |
+|-----|------|--------|
+| 1 | Preview + C1 probe | pass (route starting on the pawn: no anomaly reported) |
+| 2 | Same city | pass |
+| 3 | Start | pass (gold dash colour requested → follow-up quick task) |
+| 4 | Server time | pass |
+| 5 | Kill mid-travel | pass |
+| 6 | Arrival (background push + foreground snap/banner) | pass (6b redone with coherent `startTime`/`endTime`; first attempt invalid, orchestrator DB error, no FE defect) |
+| 7 | Automatic quest travel | pass |
+| 8 | Rejections (`QUEST_IN_PROGRESS`, `TRAVEL_IN_PROGRESS`, no drag) | pass |
+| 9 | Teleport by hand (9A free travel, 9B `QUEST_IN_PROGRESS`) | pass |
+| 10 | Pet `speedModifier: 2` | pass |
+| 11 | Board/Shop off a city | pass |
+| 12 | Nearest-city rule (observation) | observed: "Ulby" |
+
+The `human_needed` items above are resolved: status `passed`, no gaps. TRAVEL-01..04 ticked in REQUIREMENTS.md and the roadmap row closed by plan 07-11 Task 3.
