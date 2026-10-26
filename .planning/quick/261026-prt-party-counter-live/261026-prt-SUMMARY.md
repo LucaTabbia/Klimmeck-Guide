@@ -93,3 +93,8 @@ completed: 2026-10-26
 3. If B abandons, k goes back down. When the party is complete and on the marker, the lane starts, the label changes to the per-type label and the watch stops.
 
 ## Self-Check: PASSED
+
+## Schema check (orchestratore, 2026-10-26)
+
+Eseguito dall'orchestratore contro lo schema del branch BE `feat/09-combat-result-admin-outcomes` dopo il piano 09-20 (commit 4fa5208, `questUpdated` rigenerato dal boot reale): `dump_documents` = 34 documenti, `validate_documents.js` = 34/34 OK, exit 0. Da ripetere contro `origin/develop` del BE dopo il merge della PR #13.
+
