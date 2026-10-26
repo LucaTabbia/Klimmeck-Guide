@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-26T18:00:00.000Z"
-last_activity: 2026-10-26 -- Phase 7 complete (device UAT 11/11 pass + 1 observation)
+last_updated: "2026-10-26T21:50:00.000Z"
+last_activity: 2026-10-26 -- Phase 7 closed after the device UAT (12/12) and the gold-dash quick task; PR #31 feat/07-travel → develop opened
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,7 +21,7 @@ Phase: 7 (Travel) — COMPLETE (2026-10-26)
 Plan: 11 of 11
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
 Next Phase: quick task «tratteggio della rotta in oro» (richiesta dell'utente nella UAT, passo 3) on `feat/07-travel`, then FE PR `feat/07-travel` → `develop`; then FE Phase 9/10 once the BE PR #13 (BE Phase 9, Combat Result & Admin Outcomes) is merged
-Status: Phase 7 complete — device E2E on Android (Samsung SM-S938B) 2026-10-26: steps 1-11 pass, step 12 observed («12: Ulby»), against the local BE `feat/09-combat-result-admin-outcomes` @ c4582b9 (contains `origin/develop` 3df1b37 + BE Phase 9); TRAVEL-01..04 ticked; verification passed; BACKEND-NOTES §3/§4 carry the §11 d outcome for the BE side (to be copied into BE 08-HUMAN-UAT.md). Note: the branch `feat/party-waiting` is stacked on `feat/07-travel`
+Status: Phase 7 complete — PR #31 (feat/07-travel → develop) open, awaiting review/merge; then merge BE PR #13, then the stacked FE branch feat/party-waiting (its PR after both merges), then FE Phase 9 (Spells Section) per the roadmap
 Last activity: 2026-10-26 -- Phase 7 device UAT recorded (07-HUMAN-UAT.md), 07-11 complete
 
 ## Current Milestone
