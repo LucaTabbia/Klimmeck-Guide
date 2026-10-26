@@ -3,11 +3,14 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 
-/// Pagine della borsa non raggiungibili ora. Phase 6: la Bacheca solo da un
-/// marker di città (D-11); FE Phase 7 aggiunge qui il viaggio in corso (D-13).
+/// Pagine della borsa non raggiungibili ora: Bacheca e Negozio solo su un
+/// marker di città e mai durante un viaggio, anche quello automatico verso una
+/// quest (Phase 6 D-11, Phase 7 D-12). La posizione resta quella di partenza
+/// finché il BE non chiude il viaggio, quindi serve il flag del viaggio.
 Set<int> disabledSatchelPages({
   required PointOfInterest? location,
   required List<City> cities,
-}) => isOnCityMarker(cities, location)
+  required bool isTravelling,
+}) => isOnCityMarker(cities, location) && !isTravelling
     ? const {}
-    : const {SatchelLayout.boardPageIndex};
+    : const {SatchelLayout.boardPageIndex, SatchelLayout.shopPageIndex};

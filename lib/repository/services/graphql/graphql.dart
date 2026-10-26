@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/travel_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
@@ -10,6 +11,8 @@ import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
@@ -25,6 +28,8 @@ import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
+import 'package:klimmeck_guide/models/request/travel_request.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
@@ -464,6 +469,52 @@ class KlimmeckGraphQl {
     }
   }
 
+  /// Ora del server per l'offset dell'interpolazione (Phase 7 D-07). Lancia
+  /// [OperationException] o [FormatException].
+  Future<DateTime> getServerTime() async {
+    final data = _dataOrThrow(
+      await performQuery(ServerTimeQueries.getServerTime),
+    );
+    final serverTime = data['serverTime'];
+    if (serverTime is! String) {
+      throw const FormatException('serverTime missing');
+    }
+    return DateTime.parse(serverTime);
+  }
+
+  /// Anteprima del viaggio per il foglio di conferma (D-03): stesse regole e
+  /// codici di `startTravel`, nessuna scrittura. Lancia [OperationException] o
+  /// [FormatException].
+  Future<TravelPreview> previewTravel(TravelRequest request) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        TravelQueries.getTravelPreview,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    return _travelPreviewFrom(data['travelPreview']);
+  }
+
+  /// Avvia il viaggio (D-05): il viaggio arriva su `characterUpdated`, mai da
+  /// questa risposta; restituisce solo `successful`. Lancia [OperationException]
+  /// o [FormatException] per una risposta malformata.
+  Future<bool> startTravel(TravelRequest request) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: TravelMutations.startTravel,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    final result = data['startTravel'];
+    final successful = result is Map<String, dynamic>
+        ? result['successful']
+        : null;
+    if (successful is! bool) {
+      throw const FormatException('startTravel malformed');
+    }
+    return successful;
+  }
+
   /// Registra il device per il push (D-07): `platform` è un valore di `PushPlatform`.
   /// Lancia [OperationException]; il Boolean restituito è sempre `true`.
   Future<void> registerPushDevice({
@@ -512,6 +563,18 @@ class KlimmeckGraphQl {
       return User.fromJson(json);
     } on Object catch (error) {
       throw FormatException('user malformed: ${error.runtimeType}');
+    }
+  }
+
+  /// Confine di parsing dell'anteprima (stesso pattern di `_userFrom`).
+  TravelPreview _travelPreviewFrom(Object? json) {
+    if (json is! Map<String, dynamic>) {
+      throw const FormatException('travelPreview missing');
+    }
+    try {
+      return TravelPreview.fromJson(json);
+    } on Object catch (error) {
+      throw FormatException('travelPreview malformed: ${error.runtimeType}');
     }
   }
 }

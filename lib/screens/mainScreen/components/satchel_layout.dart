@@ -36,6 +36,9 @@ class SatchelEntry extends Equatable {
 abstract final class SatchelLayout {
   /// Pagina della Bacheca (disabilitata fuori da un marker di città, Phase 6 D-11).
   static const int boardPageIndex = 4;
+
+  /// Pagina del Negozio (disabilitata fuori da un marker di città e in viaggio, Phase 7 D-12).
+  static const int shopPageIndex = 5;
   static const int columns = 4;
   static const int rows = 2;
   static const double borderWidth = 2;
@@ -75,14 +78,14 @@ abstract final class SatchelLayout {
       row: 0,
     ),
     SatchelEntry(
-      pageIndex: 4,
+      pageIndex: boardPageIndex,
       label: 'Bacheca',
       assetPath: CloudinaryAssets.board,
       column: 1,
       row: 1,
     ),
     SatchelEntry(
-      pageIndex: 5,
+      pageIndex: shopPageIndex,
       label: 'Negozio',
       assetPath: CloudinaryAssets.shop,
       column: 2,

@@ -15,6 +15,7 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
@@ -22,9 +23,12 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,6 +78,8 @@ class MockQuestBoardRepository extends Mock
 class MockQuestAcceptanceRepository extends Mock
     implements QuestAcceptanceRepository {}
 
+class MockTravelRepository extends Mock implements TravelRepository {}
+
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
 class MockPushSessionCleanup extends Mock implements PushSessionCleanup {}
@@ -109,3 +115,11 @@ class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
 
 class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
     implements QuestAcceptanceCubit {}
+
+class MockTravelCubit extends MockCubit<TravelState> implements TravelCubit {}
+
+class MockTravelProgressCubit extends MockCubit<TravelProgressState>
+    implements TravelProgressCubit {}
+
+class MockWorldMapCubit extends MockCubit<WorldMapState>
+    implements WorldMapCubit {}

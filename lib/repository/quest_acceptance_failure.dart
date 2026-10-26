@@ -2,6 +2,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/travel_failure.dart'
+    show travelInProgressCode;
 
 const String questSlotBusyCode = 'QUEST_SLOT_BUSY';
 const String questFullCode = 'QUEST_FULL';
@@ -10,7 +12,6 @@ const String questTitleMismatchCode = 'QUEST_TITLE_MISMATCH';
 const String questNotInCityCode = 'QUEST_NOT_IN_CITY';
 const String questNotAcceptableCode = 'QUEST_NOT_ACCEPTABLE';
 const String insufficientPointsCode = 'INSUFFICIENT_POINTS';
-const String travelInProgressCode = 'TRAVEL_IN_PROGRESS';
 
 /// Esiti di dominio del rifiuto di `acceptQuest`; la UI li traduce in copy (D-04).
 enum QuestAcceptanceFailure {

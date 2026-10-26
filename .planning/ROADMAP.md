@@ -61,7 +61,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
-- [ ] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`.
+- [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
@@ -229,15 +229,27 @@ Plans:
 **Backend prerequisite**: **TRAVEL-01 is a backend prerequisite.** Character must expose `status.activeTravel { road, startTime, endTime, duration }` on the GraphQL schema and emit it via the Character subscription before this phase can start. Frontend work in this phase is blocked until that ships to staging.
 **Requirements**: TRAVEL-01, TRAVEL-02, TRAVEL-03, TRAVEL-04
 **Success Criteria** (what must be TRUE):
-  1. Initiating travel to a POI opens an explicit confirmation surface showing destination + ETA exactly as received from the backend (no client-side ETA math) before the mutation fires.
+  1. Initiating travel to a POI opens an explicit confirmation surface showing destination + ETA exactly as received from the backend (no client-side ETA math) before the mutation fires. **Amended (07-CONTEXT D-01..D-03, C4):** the free travel targets a city marker chosen by dragging the pawn; the parchment sheet shows backend distance, duration and ETA (`serverNow + preview.duration`: arithmetic on server values, no client ETA from distance or speed), no cost.
   2. Once `activeTravel` is populated, the character visibly moves along `road.coordinates`, interpolated from `(now - startTime) / duration` anchored to server timestamps.
   3. When the backend clears `activeTravel` and updates `location`, the UI snaps to the new location via the subscription stream with no frontend-side completion logic.
   4. If the app is killed mid-travel, relaunching reconstructs the travel state from `activeTravel` and the character resumes at the correct interpolated position on the road.
 **Decisions to make during discuss step**:
   - **TRAVEL-02 confirmation dialog** (open question from STATE.md): exact dialog content/style, button copy, cost display. Must be resolved during this phase's discuss step.
   - Gameplay surface — NO app-style chrome in the map/travel UI.
-**Plans**: TBD
-**UI hint**: yes
+  - _Resolved in the Phase 7 discuss (2026-10-24): pawn-drag trigger, parchment sheet with backend distance/duration/ETA, "Parti"/"Resta", no cost (D-01..D-05)._
+**Plans**: 11 plans
+  - [x] 07-01-PLAN.md — Wave 1: doc amendments (no cost, C3); shared wire→LatLng helper (C1); ActiveTravel/TravelPath/TravelPreview models; `activeTravel` on CharacterStatus and in the fragment; travel fixtures
+  - [x] 07-02-PLAN.md — Wave 1: pure route geometry (cumulative length, interpolation, split), server-time progress, Italian duration/distance/ETA strings, drag destination rule (D-02)
+  - [x] 07-03-PLAN.md — Wave 1: ServerClockService (serverTime offset, RTT, resync on resume) + fake; TravelFailure by `extensions.code` + banner catalogue (D-14)
+  - [x] 07-04-PLAN.md — Wave 2: Board and Shop only on a city marker and never while travelling (D-12); MapFocusCubit + `travelEnd` popup entry (D-15)
+  - [x] 07-05-PLAN.md — Wave 2: GetServerTime/GetTravelPreview/StartTravel documents + registry (29 → 32), cities lore image, KlimmeckGraphQl methods, TravelRepository with the permission gate after success (D-05)
+  - [x] 07-06-PLAN.md — Wave 2: TravelProgressCubit (route memoised per startTime, 1 s tick on server time, arrival hold, silent refetch requests)
+  - [x] 07-07-PLAN.md — Wave 3: TravelCubit (preview → confirm → start), TravelOutcomeListener (banner, settle on activeTravel), shell providers
+  - [x] 07-08-PLAN.md — Wave 4: TravelRouteLayer (dashed preview, two-tone live route) + TravelConfirmationSheet (parchment, Parti/Resta) + map test harness
+  - [x] 07-09-PLAN.md — Wave 5: WorldMap wiring (progress cubit, route layer, one-shot framing, travelEnd focus, refetch, drag end → preview sheet + camera fit); drop the teleport stub
+  - [x] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
+  - [x] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
+**UI hint**: no (07-CONTEXT: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 8: Spells Section (Journal Tab)
 **Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
@@ -345,7 +357,7 @@ Plans:
 | 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
-| 7. Travel | 0/0 | Not started | - |
+| 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
@@ -397,10 +409,10 @@ Plans:
 | QUEST-05 | Phase 6 | Pending |
 | QUEST-06 | Phase 6 | Pending |
 | QUEST-07 | Phase 6 | Pending |
-| TRAVEL-01 | Phase 7 (BE prereq) | Pending |
-| TRAVEL-02 | Phase 7 | Pending |
-| TRAVEL-03 | Phase 7 | Pending |
-| TRAVEL-04 | Phase 7 | Pending |
+| TRAVEL-01 | Phase 7 (BE prereq) | Complete |
+| TRAVEL-02 | Phase 7 | Complete |
+| TRAVEL-03 | Phase 7 | Complete |
+| TRAVEL-04 | Phase 7 | Complete |
 | SPELL-01 | Phase 8 | Pending |
 | SPELL-02 | Phase 8 | Pending |
 | SPELL-03 | Phase 8 | Pending |

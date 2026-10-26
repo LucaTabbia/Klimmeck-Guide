@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-10-22T18:23:55.336Z"
-last_activity: 2026-10-22
+status: executing
+last_updated: "2026-10-26T21:50:00.000Z"
+last_activity: 2026-10-26 -- Phase 7 closed after the device UAT (12/12) and the gold-dash quick task; PR #31 feat/07-travel → develop opened
 progress:
   total_phases: 12
-  completed_phases: 7
-  total_plans: 62
-  completed_plans: 62
-  percent: 100
+  completed_phases: 8
+  total_plans: 73
+  completed_plans: 67
+  percent: 92
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 6 (quest-accept-info-sheets) — COMPLETE 2026-10-22 (12/12 plans + quick tasks 261022-f0n worldMission city rule, 261022-qkx tear geometry; device E2E 12/12 passed against BE develop @ 2a3449a; code review 0 critical / 3 warning / 10 info, warnings + 3 info fixed in TDD; verification passed 7/7 requirements; security audit: 54 threats, 46 mitigated, 4 accepted, 4 transferred to the BE, 0 open)
-Plan: 12 of 12
-Completed phases: 2
-Next Phase: 07 (travel) after the Phase 6 FE PR; BE Phase 8 (Travel lifecycle) is merged on BE develop (PR #11), so the lockstep with the Phase 7 FE is unblocked.
-Status: Phase 6 complete — FE PR #30 open (merge after BE PR #11, already merged; BE PR #12 scheduler timeout open), awaiting review; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 contract on develop
-Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes landed (1350 tests green, analyze 54/0 errors), verification passed; FE PR #30 to develop opened after the security audit; next /gsd-discuss-phase 7 (Travel) — BE Phase 8 merged (BE PR #11), BE PR #12 (scheduler timeout) open
+Phase: 7 (Travel) — COMPLETE (2026-10-26)
+Plan: 11 of 11
+Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
+Next Phase: quick task «tratteggio della rotta in oro» (richiesta dell'utente nella UAT, passo 3) on `feat/07-travel`, then FE PR `feat/07-travel` → `develop`; then FE Phase 9/10 once the BE PR #13 (BE Phase 9, Combat Result & Admin Outcomes) is merged
+Status: Phase 7 complete — PR #31 (feat/07-travel → develop) open, awaiting review/merge; then merge BE PR #13, then the stacked FE branch feat/party-waiting (its PR after both merges), then FE Phase 9 (Spells Section) per the roadmap
+Last activity: 2026-10-26 -- Phase 7 device UAT recorded (07-HUMAN-UAT.md), 07-11 complete
 
 ## Current Milestone
 
@@ -51,7 +51,7 @@ Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes land
 - **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
-- **TRAVEL-02 confirmation dialog** — contenuto e stile del dialog di conferma viaggio (destination, ETA dal backend, eventuale costo, pulsanti) — da definire in UI phase. Requirement già marcato TBD.
+- ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 
 ### Quick Tasks Completed
 
@@ -61,3 +61,4 @@ Last activity: 2026-10-22 -- Phase 6 closed: device E2E 12/12, review fixes land
 | fast-261022 | quest parsing tolerant to catalog items without description and prizeItem as AssetQuantity (board empty with the live catalog) | 2026-10-22 | e4211cc | — (gsd-fast, inline) |
 | fast-261022b | prize loot crash in the quest sheet (effect/power selected for prizeItem, LootItemCard null-safe) | 2026-10-22 | c663be2 | — (gsd-fast, inline) |
 | 261022-qkx | tear geometry: horizontal tear at 10% height, lower piece slides off-screen unclipped, seeded jaggedness (D-06 amended after the device UAT) | 2026-10-22 | f8e08ef | [261022-qkx-tear-geometry-horizontal-tear-near-the-t](./quick/261022-qkx-tear-geometry-horizontal-tear-near-the-t/) |
+| 261026-gld | dashed route (preview and remaining part) in primaryGold after the device UAT (D-06 amended, user feedback on step 3) | 2026-10-26 | 8ba1154 | [261026-gld-gold-route-dash](./quick/261026-gld-gold-route-dash/) |

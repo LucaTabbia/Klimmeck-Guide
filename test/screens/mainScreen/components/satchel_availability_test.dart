@@ -19,25 +19,56 @@ City city(String markerId) => City.fromJson({
 
 void main() {
   final cities = [city('city-marker-1')];
+  const boardAndShop = {
+    SatchelLayout.boardPageIndex,
+    SatchelLayout.shopPageIndex,
+  };
 
-  test('the board is disabled away from a city marker', () {
-    expect(disabledSatchelPages(location: poi('quest-poi'), cities: cities), {
-      SatchelLayout.boardPageIndex,
-    });
+  test('board and shop are disabled away from a city marker', () {
+    expect(
+      disabledSatchelPages(
+        location: poi('quest-poi'),
+        cities: cities,
+        isTravelling: false,
+      ),
+      boardAndShop,
+    );
   });
 
-  test('on a city marker nothing is disabled', () {
+  test('on a city marker without a travel nothing is disabled', () {
     expect(
-      disabledSatchelPages(location: poi('city-marker-1'), cities: cities),
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: cities,
+        isTravelling: false,
+      ),
       isEmpty,
     );
   });
 
-  test('unknown location or no cities disables the board', () {
-    expect(disabledSatchelPages(location: null, cities: cities), {4});
+  test('on a city marker while travelling board and shop are disabled', () {
     expect(
-      disabledSatchelPages(location: poi('city-marker-1'), cities: const []),
-      {4},
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: cities,
+        isTravelling: true,
+      ),
+      boardAndShop,
+    );
+  });
+
+  test('unknown location or no cities disables board and shop', () {
+    expect(
+      disabledSatchelPages(location: null, cities: cities, isTravelling: false),
+      {4, 5},
+    );
+    expect(
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: const [],
+        isTravelling: false,
+      ),
+      {4, 5},
     );
   });
 
@@ -45,5 +76,11 @@ void main() {
     final board = SatchelLayout.entries.firstWhere((e) => e.label == 'Bacheca');
     expect(SatchelLayout.boardPageIndex, 4);
     expect(board.pageIndex, SatchelLayout.boardPageIndex);
+  });
+
+  test('shopPageIndex is the page of the Negozio entry', () {
+    final shop = SatchelLayout.entries.firstWhere((e) => e.label == 'Negozio');
+    expect(SatchelLayout.shopPageIndex, 5);
+    expect(shop.pageIndex, SatchelLayout.shopPageIndex);
   });
 }

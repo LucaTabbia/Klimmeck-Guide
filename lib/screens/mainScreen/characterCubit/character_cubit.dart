@@ -13,7 +13,6 @@ import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.da
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 import 'package:klimmeck_guide/utils/silent_retry.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../../../models/character/character.dart';
 
@@ -94,11 +93,6 @@ class CharacterCubit extends Cubit<CharacterState>
     _health.touch();
     if (_eventCount == eventsBefore) emit(CharacterLoaded(character));
   }
-
-  Future<void> changeCharacterLocation(
-    LatLng newLocation,
-    String locationId,
-  ) async {}
 
   void subscribeToCharacter(String id) {
     _sub?.cancel();
