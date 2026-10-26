@@ -96,5 +96,5 @@ completed: 2026-10-26
 
 ## Schema check (orchestratore, 2026-10-26)
 
-Eseguito dall'orchestratore contro lo schema del branch BE `feat/09-combat-result-admin-outcomes` dopo il piano 09-20 (commit 4fa5208, `questUpdated` rigenerato dal boot reale): `dump_documents` = 34 documenti, `validate_documents.js` = 34/34 OK, exit 0. Da ripetere contro `origin/develop` del BE dopo il merge della PR #13.
+Eseguito dall'orchestratore contro lo schema del branch BE `feat/09-combat-result-admin-outcomes` dopo il piano 09-20 (commit 4fa5208, `questUpdated` rigenerato dal boot reale): `dump_documents` = 34 documenti, `validate_documents.js` = 34/34 OK, exit 0. Ripetuto il 2026-10-26 dopo i merge delle PR FE #31 e BE #13 e il rebase su `develop`: 34/34 OK contro `origin/develop:src/schema.gql` del BE (121601e); suite completa 1778 verde, analyze 0 errori.
 
