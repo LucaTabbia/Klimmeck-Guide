@@ -7,9 +7,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:latlong2/latlong.dart';
 
 /// Rotta del viaggio sotto i marker (07-CONTEXT D-04, D-06): tratteggiata
-/// durante l'anteprima e fino all'arrivo di `activeTravel`; in viaggio il
-/// tratto percorso è pieno in un tono, il rimanente tratteggiato in un altro.
-/// Stile provvisorio (nessuna UI phase).
+/// in oro durante l'anteprima e fino all'arrivo di `activeTravel`; in viaggio
+/// il tratto percorso è pieno in cremisi, il rimanente resta tratteggiato in
+/// oro (UAT su device 2026-10-26). Stile provvisorio (nessuna UI phase).
 class TravelRouteLayer extends StatelessWidget {
   const TravelRouteLayer({super.key});
 
@@ -60,7 +60,7 @@ List<Polyline> _liveRoute(TravelProgressActive progress) => [
 
 Polyline _dashedRemaining(List<LatLng> points) => Polyline(
   points: points,
-  color: KlimmeckGuideTheme.darkWood,
+  color: KlimmeckGuideTheme.primaryGold,
   strokeWidth: _remainingStrokeWidth,
   pattern: _dashed,
 );
