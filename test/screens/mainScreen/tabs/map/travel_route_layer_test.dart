@@ -161,7 +161,7 @@ void main() {
       expect(travelled.color, KlimmeckGuideTheme.royalCrimson);
       expect(remaining.points, const [b, c, c]);
       expect(isDashed(remaining), isTrue);
-      expect(remaining.color, KlimmeckGuideTheme.darkWood);
+      expect(remaining.color, KlimmeckGuideTheme.primaryGold);
     });
 
     testWidgets('skips a travelled part with fewer than two points', (
@@ -225,7 +225,7 @@ void main() {
       expect(polylines, hasLength(1));
       expect(polylines.single.points, preview.road.points);
       expect(isDashed(polylines.single), isTrue);
-      expect(polylines.single.color, KlimmeckGuideTheme.darkWood);
+      expect(polylines.single.color, KlimmeckGuideTheme.primaryGold);
     });
 
     test('lets the live route win over the preview', () {
