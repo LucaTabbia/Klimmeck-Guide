@@ -329,4 +329,138 @@ void main() {
       isNot(QuestLoaded(const [])),
     );
   });
+
+  group('watchQuest', () {
+    final adventurer = {'character': 'c-1', 'title': 'rookie'};
+    final otherAdventurer = {'character': 'c-2', 'title': 'rookie'};
+    final waiting = buildQuest(id: 'q-1', registered: [adventurer]);
+    final joined = buildQuest(
+      id: 'q-1',
+      registered: [adventurer, otherAdventurer],
+    );
+    final other = buildQuest(id: 'q-2');
+    late StreamController<Quest> updates;
+    late int cancellations;
+
+    QuestLoaded loaded(List<Quest> quests) =>
+        QuestLoaded(quests, cityId: 'city-1', cityPointIds: const {'p-1'});
+
+    setUp(() {
+      cancellations = 0;
+      updates = StreamController<Quest>.broadcast(
+        onCancel: () => cancellations++,
+      );
+      when(
+        () => repository.watchQuest(any()),
+      ).thenAnswer((_) => updates.stream);
+    });
+
+    tearDown(() => updates.close());
+
+    blocTest<QuestCubit, QuestState>(
+      'replaces the watched quest and keeps the city',
+      build: () => QuestCubit(repository),
+      seed: () => loaded([waiting, other]),
+      act: (cubit) async {
+        cubit.watchQuest('q-1');
+        updates.add(joined);
+      },
+      expect: () => [
+        loaded([joined, other]),
+      ],
+      verify: (_) => verify(() => repository.watchQuest('q-1')).called(1),
+    );
+
+    blocTest<QuestCubit, QuestState>(
+      'appends a watched quest missing from the list',
+      build: () => QuestCubit(repository),
+      seed: () => loaded([other]),
+      act: (cubit) async {
+        cubit.watchQuest('q-1');
+        updates.add(joined);
+      },
+      expect: () => [
+        loaded([other, joined]),
+      ],
+    );
+
+    blocTest<QuestCubit, QuestState>(
+      'ignores an update while the list is not loaded',
+      build: () => QuestCubit(repository),
+      act: (cubit) async {
+        cubit.watchQuest('q-1');
+        updates.add(joined);
+      },
+      expect: () => <QuestState>[],
+    );
+
+    test('watching the same quest twice subscribes once', () async {
+      final cubit = QuestCubit(repository);
+
+      cubit.watchQuest('q-1');
+      cubit.watchQuest('q-1');
+
+      verify(() => repository.watchQuest('q-1')).called(1);
+      await cubit.close();
+    });
+
+    test('watching another quest cancels the previous watch', () async {
+      final cubit = QuestCubit(repository);
+
+      cubit.watchQuest('q-1');
+      cubit.watchQuest('q-2');
+      await pumpEventQueue();
+
+      expect(cancellations, 1);
+      verify(() => repository.watchQuest('q-2')).called(1);
+      await cubit.close();
+    });
+
+    blocTest<QuestCubit, QuestState>(
+      'unwatchQuest stops the updates',
+      build: () => QuestCubit(repository),
+      seed: () => loaded([waiting]),
+      act: (cubit) async {
+        cubit.watchQuest('q-1');
+        cubit.unwatchQuest();
+        updates.add(joined);
+      },
+      expect: () => <QuestState>[],
+      verify: (_) => expect(cancellations, 1),
+    );
+
+    test('watching again after unwatchQuest subscribes again', () async {
+      final cubit = QuestCubit(repository);
+
+      cubit.watchQuest('q-1');
+      cubit.unwatchQuest();
+      cubit.watchQuest('q-1');
+
+      verify(() => repository.watchQuest('q-1')).called(2);
+      await cubit.close();
+    });
+
+    test('close cancels the watch', () async {
+      final cubit = QuestCubit(repository);
+      cubit.watchQuest('q-1');
+
+      await cubit.close();
+
+      expect(cancellations, 1);
+    });
+
+    blocTest<QuestCubit, QuestState>(
+      'a stream error keeps the state and drops the watch',
+      build: () => QuestCubit(repository),
+      seed: () => loaded([waiting]),
+      act: (cubit) async {
+        cubit.watchQuest('q-1');
+        updates.addError(const FormatException('quest missing'));
+        await pumpEventQueue();
+        cubit.watchQuest('q-1');
+      },
+      expect: () => <QuestState>[],
+      verify: (_) => verify(() => repository.watchQuest('q-1')).called(2),
+    );
+  });
 }
