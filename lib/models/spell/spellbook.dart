@@ -82,19 +82,31 @@ class Spellbook extends Equatable {
         state.spellId: state,
     };
     final serverActiveById = _serverActiveById(character);
-    final active = serverActiveById.values.toList();
+    final optimisticById = _optimisticActiveById(
+      serverActiveById: serverActiveById,
+      knownById: {for (final spell in spells) spell.id: spell},
+      pending: pending,
+    );
+    final active = optimisticById.values.toList();
+
+    SpellSlot slotAt(int index) {
+      if (index >= active.length) return const SpellSlot.empty();
+      final spell = active[index];
+      return SpellSlot.filled(
+        spell: spell,
+        usages: _usagesOf(
+          spell,
+          statesById[spell.id],
+          serverActiveById[spell.id],
+        ),
+        isPending: pending.containsKey(spell.id),
+      );
+    }
 
     return Spellbook._(
       isVisible: spells.isNotEmpty || slotCount > 0,
       slotCount: slotCount,
-      slots: List.unmodifiable(
-        List.generate(
-          slotCount,
-          (index) => index < active.length
-              ? _slotOf(active[index], statesById)
-              : const SpellSlot.empty(),
-        ),
-      ),
+      slots: List.unmodifiable(List.generate(slotCount, slotAt)),
       entries: List.unmodifiable(
         spells.map(
           (spell) => SpellbookEntry(
@@ -104,13 +116,13 @@ class Spellbook extends Equatable {
               statesById[spell.id],
               serverActiveById[spell.id],
             ),
-            isActive: serverActiveById.containsKey(spell.id),
-            isPending: false,
+            isActive: optimisticById.containsKey(spell.id),
+            isPending: pending.containsKey(spell.id),
             recoveries: statesById[spell.id]?.recoveries ?? const [],
           ),
         ),
       ),
-      activeSpellIds: List.unmodifiable(serverActiveById.keys),
+      activeSpellIds: List.unmodifiable(optimisticById.keys),
       pending: Map.unmodifiable(pending),
     );
   }
@@ -131,6 +143,17 @@ class Spellbook extends Equatable {
     return null;
   }
 
+  SpellToggleIntent intentFor(String spellId) {
+    if (pending.containsKey(spellId)) return SpellToggleIntent.ignoredPending;
+    if (activeSpellIds.contains(spellId)) return SpellToggleIntent.unequip;
+    if (entryFor(spellId) == null) return SpellToggleIntent.ignoredUnknown;
+    if (slotCount == 0) return SpellToggleIntent.blockedNoSlots;
+    if (activeSpellIds.length >= slotCount) {
+      return SpellToggleIntent.blockedSlotsFull;
+    }
+    return SpellToggleIntent.equip;
+  }
+
   /// Magie attive lato server con `spell` valorizzata, nell'ordine del BE (F6).
   static Map<String, ActiveSpell> _serverActiveById(Character? character) {
     final byId = <String, ActiveSpell>{};
@@ -142,17 +165,24 @@ class Spellbook extends Equatable {
     return byId;
   }
 
-  static SpellSlot _slotOf(
-    ActiveSpell active,
-    Map<String, SpellState> statesById,
-  ) {
-    final spell = active.spell;
-    if (spell == null) return const SpellSlot.empty();
-    return SpellSlot.filled(
-      spell: spell,
-      usages: _usagesOf(spell, statesById[spell.id], active),
-      isPending: false,
-    );
+  /// Server − unequip in attesa + equip in attesa (nell'ordine dei tap): stesso
+  /// ordine che il BE conferma (`$push` / `$pull`).
+  static Map<String, Spell> _optimisticActiveById({
+    required Map<String, ActiveSpell> serverActiveById,
+    required Map<String, Spell> knownById,
+    required Map<String, SpellOperation> pending,
+  }) {
+    final byId = <String, Spell>{
+      for (final MapEntry(key: id, value: active) in serverActiveById.entries)
+        if (pending[id] != SpellOperation.unequip)
+          if (active.spell case final spell?) id: spell,
+    };
+    for (final MapEntry(key: id, value: operation) in pending.entries) {
+      final spell = knownById[id];
+      if (operation != SpellOperation.equip || spell == null) continue;
+      byId.putIfAbsent(id, () => spell);
+    }
+    return byId;
   }
 
   /// Tabella di fallback (D-03): stato 9.1, poi usi attivi, poi catalogo.
