@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -309,6 +310,7 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 75));
 
       final shake = tester
@@ -372,13 +374,11 @@ void main() {
       tester,
     ) async {
       final haptics = recordHaptics(tester);
-      final recovery = SpellRecoveryCubit(clock: clock)
-        ..follow(SpellRecoveryCubit.inputsOf(Spellbook.of(_character())));
-      addTearDown(recovery.close);
       await pumpSpellsHarness(
         tester,
-        BlocProvider<SpellRecoveryCubit>.value(
-          value: recovery,
+        BlocProvider<SpellRecoveryCubit>(
+          create: (_) => SpellRecoveryCubit(clock: clock)
+            ..follow(SpellRecoveryCubit.inputsOf(Spellbook.of(_character()))),
           child: SpellDetailsSheet(spell: _spellA),
         ),
         wrap: withProviders,
@@ -400,7 +400,7 @@ void main() {
 
       verify(() => spellsCubit.toggle(_character(), 'spell-a')).called(1);
       expect(haptics, ['HapticFeedbackType.lightImpact']);
-      await recovery.close();
+      expect(sheet.recovery, isA<SpellRecoveryCountdown>());
     });
   });
 }
