@@ -44,15 +44,6 @@ QuestResult _success(String id, {int minute = 0}) =>
 class _PresenterHarness {
   _PresenterHarness() {
     when(() => repository.watch(any())).thenAnswer((_) => live.stream);
-    results = QuestResultsCubit(
-      characterId: 'c-1',
-      repository: repository,
-      pending: pending,
-      acknowledger: acknowledger,
-      lifecycle: lifecycle,
-      connectionRestored: connectionRestored,
-      userRefresh: refreshBus,
-    );
     whenListen(travel, travelStates.stream, initialState: const TravelIdle());
     whenListen(
       character,
@@ -81,7 +72,18 @@ class _PresenterHarness {
       StreamController<TravelState>.broadcast();
   final StreamController<CharacterState> characterStates =
       StreamController<CharacterState>.broadcast();
-  late final QuestResultsCubit results;
+
+  /// Creato al primo uso dentro il test: la coda delle conferme nasce nella
+  /// zona fake del tester, non in quella reale di `setUp`.
+  late final QuestResultsCubit results = QuestResultsCubit(
+    characterId: 'c-1',
+    repository: repository,
+    pending: pending,
+    acknowledger: acknowledger,
+    lifecycle: lifecycle,
+    connectionRestored: connectionRestored,
+    userRefresh: refreshBus,
+  );
 
   Future<void> pump(WidgetTester tester) async {
     useLandscapePhone(tester);
@@ -159,6 +161,9 @@ void main() {
       CloudinaryAssets.emptyCardSheet,
       CloudinaryAssets.healEffect,
       CloudinaryAssets.helmetType,
+      CloudinaryAssets.goldCoin,
+      CloudinaryAssets.silverCoin,
+      CloudinaryAssets.copperCoin,
     ]);
     h = _PresenterHarness();
   });
