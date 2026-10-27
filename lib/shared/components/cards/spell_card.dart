@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../theme/kg_theme.dart';
@@ -12,19 +13,24 @@ class SpellCard extends StatelessWidget {
 
   final Spell spell;
   final double size;
-  final Function(Spell)? onTap;
   final int? usages;
+
+  /// Segnalibro rosso delle magie attive (D-14); `null` = nessun segnalibro.
+  final bool? isMarked;
 
   const SpellCard({
     super.key,
     required this.spell,
     required this.size,
-    this.onTap,
     this.usages,
+    this.isMarked,
   });
 
   @override
   Widget build(BuildContext context) {
+    final useType = spell.useType;
+    final energyType = spell.energyDamage?.type;
+    final power = spell.energyDamage?.power;
     return RepaintBoundary(
       child: SizedBox(
         height: size,
@@ -41,23 +47,23 @@ class SpellCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      CachedSvg(
-                        url: spell.useType!.imagePath,
-                        height: size / 2.5,
-                        width: size / 2.5,
-                      ),
-                      CachedSvg(
-                        url: spell.energyDamage!.type!.imagePath,
-                        height: size / 2.5,
-                        width: size / 2.5,
-                      ),
+                      if (useType != null)
+                        CachedSvg(
+                          url: useType.imagePath,
+                          height: size / 2.5,
+                          width: size / 2.5,
+                        ),
+                      if (energyType != null)
+                        CachedSvg(
+                          url: energyType.imagePath,
+                          height: size / 2.5,
+                          width: size / 2.5,
+                        ),
                     ],
                   ),
                   _buildTextSection(text: spell.name ?? ""),
-                  if (spell.energyDamage!.power != 0)
-                    _buildTextSection(
-                      text: spell.energyDamage!.power.toString(),
-                    ),
+                  if (power != null && power != 0)
+                    _buildTextSection(text: power.toString()),
                 ],
               ),
             ),
@@ -114,6 +120,8 @@ class SpellCard extends StatelessWidget {
                   ),
                 ),
               ),
+            if (isMarked != null)
+              CardBookmark(isMarked: isMarked!, cardSize: size),
           ],
         ),
       ),

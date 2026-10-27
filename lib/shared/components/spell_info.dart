@@ -49,7 +49,7 @@ class SpellInfo extends StatelessWidget {
                 child: AutoSizeText(
                   minFontSize: 10,
                   maxFontSize: 20,
-                  spell.energyDamage!.power.toString() ?? "",
+                  '${spell.energyDamage?.power ?? ''}',
                   style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
