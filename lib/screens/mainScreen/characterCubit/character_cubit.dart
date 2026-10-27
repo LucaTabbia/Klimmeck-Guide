@@ -24,9 +24,13 @@ part 'character_state.dart';
 /// regola 2): errori e chiusure dello stream ri-sottoscrivono in silenzio con
 /// backoff limitato (D-14) e ogni evento rimpiazza l'intero `Character` (D-19).
 ///
-/// FORBIDDEN/NOT_FOUND sullo stream e' terminale (vincolo backend): ritentare
-/// martellerebbe il server. Il cubit tiene l'ultimo stato e chiede un solo
-/// refresh dell'utente via `UserRefreshRequests`; il recupero spetta al
+/// FORBIDDEN/NOT_FOUND (load, refetch o stream) e' terminale (vincolo
+/// backend): ritentare martellerebbe il server. Un personaggio morto resta
+/// `currentCharacter` finche' il suo foglio non e' confermato (Phase 9 D-13):
+/// al cold start il cubit passa a `CharacterUnavailable` senza errore a
+/// schermo, in sessione tiene l'ultimo `CharacterLoaded`. In entrambi i casi
+/// chiede un solo refresh dell'utente via `UserRefreshRequests` per tutta la
+/// vita del cubit e smette di rileggere al resume; il recupero spetta al
 /// proprietario dello stream utente (la shell si ri-chiava al cambio di
 /// `currentCharacter`, plan 08).
 class CharacterCubit extends Cubit<CharacterState>
@@ -53,6 +57,7 @@ class CharacterCubit extends Cubit<CharacterState>
   int _attempt = 0;
   int _eventCount = 0;
   bool _isStreamTerminated = false;
+  bool _isCharacterGone = false;
   int _refreshGeneration = 0;
 
   Future<void> loadCharacter(String id) async {
@@ -67,7 +72,11 @@ class CharacterCubit extends Cubit<CharacterState>
       );
       subscribeToCharacter(id);
     } catch (error) {
-      if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
+      if (isAccessDeniedError(error)) {
+        _markCharacterGone();
+        emit(const CharacterUnavailable());
+        return;
+      }
       emit(CharacterError(error.toString()));
     }
   }
@@ -76,7 +85,7 @@ class CharacterCubit extends Cubit<CharacterState>
   /// nessun evento live lo ha superato nel frattempo; l'ultima richiesta vince.
   Future<void> refreshCharacter() async {
     final id = _characterId;
-    if (id == null || state is! CharacterLoaded) return;
+    if (id == null || _isCharacterGone || state is! CharacterLoaded) return;
     final generation = ++_refreshGeneration;
     final eventsBefore = _eventCount;
     final character = await silentRetry(
@@ -84,7 +93,7 @@ class CharacterCubit extends Cubit<CharacterState>
       isCancelled: () => isClosed || generation != _refreshGeneration,
       shouldRetry: (error) => !isAccessDeniedError(error),
       onGiveUp: (error) {
-        if (isAccessDeniedError(error)) _userRefresh.requestUserRefresh();
+        if (isAccessDeniedError(error)) _markCharacterGone();
       },
     );
     if (character == null || isClosed || generation != _refreshGeneration) {
@@ -130,6 +139,12 @@ class CharacterCubit extends Cubit<CharacterState>
         ? error.code
         : error.runtimeType;
     debugPrint('[Sync] characterUpdated rejected: $code');
+    _markCharacterGone();
+  }
+
+  void _markCharacterGone() {
+    if (_isCharacterGone) return;
+    _isCharacterGone = true;
     _userRefresh.requestUserRefresh();
   }
 
