@@ -6,12 +6,19 @@ import 'landscape.dart';
 import 'svg_cache_seed.dart';
 import 'test_app.dart';
 
-/// SVG usati dalle carte magia dei fixture (sfondo, segnalibro, fuoco, attacco, foglio, freccia del Dropdown).
+/// SVG usati dalle carte magia dei fixture (sfondo, segnalibro, fuoco, tipi d'uso, foglio, freccia del Dropdown).
 void seedSpellSvgs() => seedSvgCache([
   CloudinaryAssets.emptyCardSheet,
   CloudinaryAssets.bookmarkRed,
   CloudinaryAssets.fireEnergy,
   CloudinaryAssets.attackUse,
+  CloudinaryAssets.defenseUse,
+  CloudinaryAssets.controlUse,
+  CloudinaryAssets.illusionUse,
+  CloudinaryAssets.charmUse,
+  CloudinaryAssets.confuseUse,
+  CloudinaryAssets.enhanceUse,
+  CloudinaryAssets.infuseUse,
   CloudinaryAssets.emptySheet,
   CloudinaryAssets.arrowDown,
 ]);

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
@@ -14,7 +15,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_s
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
@@ -62,6 +65,32 @@ Character _character({
 Finder _row(String letter) => find.byKey(ValueKey('spell-row-spell-$letter'));
 
 Finder _slot(String letter) => find.byKey(ValueKey('spell-slot-spell-$letter'));
+
+Map<String, dynamic> _defenseSpellJson() =>
+    spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense');
+
+Map<String, dynamic> _untypedSpellJson() =>
+    spellJson(id: 'spell-c', name: 'Magia c', useType: null);
+
+/// A attacco, B difesa e attiva, C senza tipo d'uso; due slot.
+Character _mixedUseTypesCharacter() => spellbookCharacter(
+  spells: [_spellJson('a'), _defenseSpellJson(), _untypedSpellJson()],
+  activeSpells: [
+    activeSpellJson(spellId: 'spell-b', usages: 3, spell: _defenseSpellJson()),
+  ],
+);
+
+Finder _useTypeFilter() => find.byType(ItemsFilter<UseType>);
+
+Finder _chip(UseType useType) => find.descendant(
+  of: _useTypeFilter(),
+  matching: find.byWidgetPredicate(
+    (widget) => widget is CachedSvg && widget.url == useType.imagePath,
+  ),
+);
+
+Finder _allChip() =>
+    find.descendant(of: _useTypeFilter(), matching: find.text('Tutti'));
 
 const _lineOfB = 'Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12';
 
@@ -397,6 +426,60 @@ void main() {
       await tester.pumpWidget(const SizedBox());
 
       expect(recovery.isClosed, isTrue);
+    });
+  });
+
+  group('use-type filter', () {
+    testWidgets('a chip filters the known rows, «Tutti» restores them', (
+      tester,
+    ) async {
+      useCharacter(_mixedUseTypesCharacter());
+      await pumpSection(tester);
+
+      await tapAndSettle(tester, _chip(UseType.attack));
+      await tester.pumpAndSettle();
+
+      expect(_row('a'), findsOneWidget);
+      expect(_row('b'), findsNothing);
+      expect(_row('c'), findsNothing);
+      expect(_slot('b'), findsOneWidget);
+
+      await tapAndSettle(tester, _allChip());
+      await tester.pumpAndSettle();
+
+      for (final letter in ['a', 'b', 'c']) {
+        expect(_row(letter), findsOneWidget);
+      }
+      verifyNever(() => spellsCubit.toggle(any(), any()));
+    });
+
+    testWidgets('a vanished type drops the selection for good', (tester) async {
+      useCharacter(_mixedUseTypesCharacter());
+      await pumpSection(tester);
+
+      await tapAndSettle(tester, _chip(UseType.defense));
+      await tester.pumpAndSettle();
+      expect(_row('a'), findsNothing);
+
+      await emitCharacter(
+        tester,
+        spellbookCharacter(spells: [_spellJson('a'), _untypedSpellJson()]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_row('a'), findsOneWidget);
+      expect(_row('c'), findsOneWidget);
+      final filter = tester.widget<ItemsFilter<UseType>>(_useTypeFilter());
+      expect(filter.current, isNull);
+      expect(filter.values, [UseType.attack]);
+
+      await emitCharacter(tester, _mixedUseTypesCharacter());
+      await tester.pumpAndSettle();
+
+      for (final letter in ['a', 'b', 'c']) {
+        expect(_row(letter), findsOneWidget);
+      }
+      verifyNever(() => spellsCubit.toggle(any(), any()));
     });
   });
 

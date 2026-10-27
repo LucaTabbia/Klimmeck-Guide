@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
@@ -7,7 +8,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/known_
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/spell_resist.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/spell_slot_row.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/spellbook_content.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
 
 import '../../../../../helpers/fixtures/spell_fixtures.dart';
 import '../../../../../helpers/spells_harness.dart';
@@ -28,9 +31,28 @@ Spellbook _threeSpellsOneActive() => Spellbook.of(
   ),
 );
 
+/// A attacco, B difesa e attiva, C senza tipo d'uso; due slot.
+Spellbook _mixedUseTypes() => Spellbook.of(
+  spellbookCharacter(
+    spells: [
+      _spellJson('a'),
+      spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense'),
+      spellJson(id: 'spell-c', name: 'Magia c', useType: null),
+    ],
+    activeSpells: [
+      activeSpellJson(
+        spellId: 'spell-b',
+        usages: 3,
+        spell: spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense'),
+      ),
+    ],
+  ),
+);
+
 class _Gestures {
   final toggles = <String>[];
   final details = <Spell>[];
+  final useTypeFilters = <UseType?>[];
 }
 
 Future<_Gestures> _pump(
@@ -38,6 +60,7 @@ Future<_Gestures> _pump(
   Spellbook spellbook, {
   Map<String, SpellRecoveryStatus> recoveries = const {},
   SpellResistSignal? resistSignal,
+  UseType? useTypeFilter,
   _Gestures? gestures,
 }) async {
   final recorded = gestures ?? _Gestures();
@@ -50,6 +73,8 @@ Future<_Gestures> _pump(
       onToggle: recorded.toggles.add,
       onShowDetails: recorded.details.add,
       resistSignal: resistSignal,
+      useTypeFilter: useTypeFilter,
+      onUseTypeFilterChanged: recorded.useTypeFilters.add,
     ),
   );
   return recorded;
@@ -64,6 +89,21 @@ Finder _slotBoxes() => find.byWidgetPredicate(
       widget.key is ValueKey<String> &&
       (widget.key! as ValueKey<String>).value.startsWith('spell-slot-box-'),
 );
+
+Finder _useTypeFilter() => find.byType(ItemsFilter<UseType>);
+
+ItemsFilter<UseType> _filterOf(WidgetTester tester) =>
+    tester.widget(_useTypeFilter());
+
+Finder _chip(UseType useType) => find.descendant(
+  of: _useTypeFilter(),
+  matching: find.byWidgetPredicate(
+    (widget) => widget is CachedSvg && widget.url == useType.imagePath,
+  ),
+);
+
+Finder _allChip() =>
+    find.descendant(of: _useTypeFilter(), matching: find.text('Tutti'));
 
 SpellCard _rowCard(WidgetTester tester, String letter) => tester.widget(
   find.descendant(of: _row(letter), matching: find.byType(SpellCard)),
@@ -223,5 +263,82 @@ void main() {
     );
     expect(find.byType(KnownSpellRow), findsOneWidget);
     expect(find.text('Non hai ancora imparato nessuna magia'), findsNothing);
+  });
+
+  group('use-type filter', () {
+    testWidgets('shows one chip per present use type, in enum order', (
+      tester,
+    ) async {
+      await _pump(tester, _mixedUseTypes());
+      await tester.pumpAndSettle();
+
+      expect(_useTypeFilter(), findsOneWidget);
+      expect(_filterOf(tester).values, [UseType.defense, UseType.attack]);
+      expect(_filterOf(tester).current, isNull);
+      for (final letter in ['a', 'b', 'c']) {
+        expect(_row(letter), findsOneWidget);
+      }
+    });
+
+    testWidgets('a selected type hides the other rows, never the slots', (
+      tester,
+    ) async {
+      await _pump(tester, _mixedUseTypes(), useTypeFilter: UseType.attack);
+      await tester.pumpAndSettle();
+
+      expect(_row('a'), findsOneWidget);
+      expect(_row('b'), findsNothing);
+      expect(_row('c'), findsNothing);
+      expect(_slot('b'), findsOneWidget);
+      expect(_slotBoxes(), findsNWidgets(2));
+    });
+
+    testWidgets('a type not present falls back to «Tutti»', (tester) async {
+      await _pump(tester, _mixedUseTypes(), useTypeFilter: UseType.control);
+      await tester.pumpAndSettle();
+
+      expect(_filterOf(tester).current, isNull);
+      for (final letter in ['a', 'b', 'c']) {
+        expect(_row(letter), findsOneWidget);
+      }
+    });
+
+    testWidgets('chip taps report the chosen type, «Tutti» reports null', (
+      tester,
+    ) async {
+      final gestures = await _pump(tester, _mixedUseTypes());
+      await tester.pumpAndSettle();
+
+      await tester.tap(_chip(UseType.defense));
+      await tester.pump();
+      expect(gestures.useTypeFilters, [UseType.defense]);
+
+      await tester.tap(_allChip());
+      await tester.pump();
+      expect(gestures.useTypeFilters.last, isNull);
+      expect(gestures.toggles, isEmpty);
+    });
+
+    testWidgets('no known spells: no chips', (tester) async {
+      await _pump(tester, Spellbook.of(spellbookCharacter(spells: const [])));
+      await tester.pumpAndSettle();
+
+      expect(_useTypeFilter(), findsNothing);
+    });
+
+    testWidgets('known spells without use type: no chips', (tester) async {
+      await _pump(
+        tester,
+        Spellbook.of(
+          spellbookCharacter(
+            spells: [spellJson(id: 'spell-c', name: 'Magia c', useType: null)],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_useTypeFilter(), findsNothing);
+      expect(_row('c'), findsOneWidget);
+    });
   });
 }
