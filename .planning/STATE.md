@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-10-27T12:31:14.238Z"
-last_activity: "2026-10-27 -- Phase 8 plans 01-11 executed, reviewed, fixed, verified and audited; 08-12 waits for the BE 9.1 PR merge"
+last_activity: "2026-10-27 -- Phase 8 device UAT passed 12/12; phase extended with plans 08-13/08-14 at the user's request"
 progress:
   total_phases: 12
   completed_phases: 8
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves; plans 08-01..08-11 done and hardened (review 2 WR/4 IN → 4 fixed, verification human_needed 4/4 SC, security 34/34 closed + 6 deferred to 08-12); 08-12 gated by the BE 9.1 PR
-Plan: 11 of 12
+Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves; plans 08-01..08-11 done and hardened (review 2 WR/4 IN → 4 fixed, verification human_needed 4/4 SC, security 34/34 closed + 6 deferred to 08-12); 08-12 done (BE 9.1 gate, schema_check 34 OK, device UAT 12/12 pass); extended to 14 plans with 08-13/08-14 (2026-10-27, user request)
+Plan: 12 of 14
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: plan 08-12 on `feat/08-spells-section-journal-tab` (schema gate on BE `origin/develop`, `spellStates` in `CharacterFragment`, `tool/schema_check`, device E2E checkpoint, closure) only after the BE Phase 9.1 PR is merged on BE `develop`; 08-12 contract-alignment step also applies `.toUtc()` in `SpellState.fromJson` (security observation O-1) and re-runs the verifier (re_verification); then FE Phase 9 (Combat Result Sheet)
-Status: Executing Phase 8 — plans 08-01..08-11 complete and hardened; 08-12 Task 1 gate passed — awaiting the device UAT (08-12 checkpoint); BE origin/develop 10e5f43 (PR #14), spellStates in CharacterFragment, schema_check 34 OK, 2096 tests green, analyzer 53/0
-Last activity: 2026-10-27 -- Phase 8 plans 01-11 executed, reviewed, fixed, verified and audited; 08-12 waits for the BE 9.1 PR merge
+Next Phase: plan 08-13 (use-type filter + use-type line for spells, shop chips limited to the present types) then plan 08-14 (effect labels + filter for items) on the same branch `feat/08-spells-section-journal-tab`; then the FE PR `feat/08-spells-section-journal-tab` → `develop`; then FE Phase 9 (Combat Result Sheet)
+Status: Executing Phase 8 — plans 08-01..08-12 complete (device UAT 12/12 pass on 2026-10-27, SPELL-01..07 ticked); extension plans 08-13/08-14 (use-type filter + line, effect labels + filter, shop chips) being planned; FE PR after them
+Last activity: 2026-10-27 -- Phase 8 device UAT passed 12/12; phase extended with plans 08-13/08-14 at the user's request
 
 ## Current Milestone
 
@@ -53,7 +53,7 @@ Last activity: 2026-10-27 -- Phase 8 plans 01-11 executed, reviewed, fixed, veri
 - ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
 - ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 - ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
-- **BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop` (contract proposed in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md`).
+- ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed

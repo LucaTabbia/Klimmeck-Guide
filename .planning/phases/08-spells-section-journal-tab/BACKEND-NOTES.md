@@ -81,3 +81,12 @@ Semantica richiesta dal FE:
 ## 7. Stato
 
 - 2026-10-27 — proposta scritta nel discuss FE Phase 8; BE Phase 9.1 inserita nel roadmap BE con CONTEXT scritto dalla stessa sessione; in attesa della PR BE.
+- 2026-10-27 — **E2E su device Android superato 12/12** contro BE `develop` `10e5f43` (PR #14, Phase 9.1) in locale, sweep a 60 s di default; FE `ba7d866`. Esito rilevante per il BE:
+  - countdown dal primo istante di `spellStates[].recoveries` sul tempo server corretto (passi 2 e 11: cambio orologio del telefono di ±2 h senza effetto);
+  - ritardo dello sweep osservato: +28 s (passo 2, uso restituito alle 18:15:26 per l'istante 18:14:58, DB 2/3 con un istante residuo) e +19 s (passo 3, «1 usi restituiti» alle 18:19:26 per l'istante 18:19:07);
+  - recupero con magia disequipaggiata confermato (passo 3: slot vuoto, uso restituito, riequip a 3/3 invariato, nessun reset);
+  - mirror `activeSpells[].usages` coerente con `spellStates` (slot 2 a 2/3);
+  - `equipSpell` via GraphQL con l'app in background consegnato live da `characterUpdated` (passo 9, ramo A: nessun `SPELL_ALREADY_ACTIVE` osservato perché la subscription è arrivata prima del tap);
+  - il change stream MongoDB sulla collection characters consegna anche gli aggiornamenti diretti al DB (semine `mage`/`adventurer` e promozione a `mage` ricevute live).
+  Dati UAT: un solo personaggio attivo nel DB dev, seminato prima come `mage` poi come `adventurer` da uno script in scratchpad (mai in repo); magie Palla di fuoco e Scurovisione. Nessun id utente, token o valore `.env` nelle note.
+  Da riportare in BE .planning/phases/09.1-spell-state-and-recovery-contract/ (UAT) a cura del lato BE (questo repo non modifica il BE).

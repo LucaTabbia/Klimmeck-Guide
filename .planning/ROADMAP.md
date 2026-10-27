@@ -278,7 +278,7 @@ Plans:
   - [x] 08-09-PLAN.md — Wave 3: slot row, known-spell rows, shake, SpellbookContent
   - [x] 08-10-PLAN.md — Wave 4: spell notices, SpellOutcomeListener, shell provider + MainScreen mount
   - [x] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
-  - [ ] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
+  - [x] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
 **UI hint**: yes
 
 ### Phase 9: Combat Result Sheet

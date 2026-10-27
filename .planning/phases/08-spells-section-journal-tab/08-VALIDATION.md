@@ -1,8 +1,8 @@
 ---
 phase: 8
 slug: spells-section-journal-tab
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-10-27
 ---
@@ -62,8 +62,8 @@ created: 2026-10-27
 | 8-11-01 | 11 | 5 | SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-07 | T-8-31 / T-8-32 / T-8-34 | haptic chosen from the `SpellsCubit.toggle` intent (equip/unequip → light impact, blocked → selection click, ignored → none); `SpellRecoveryCubit` created by the section's `BlocProvider(create:)` and closed on unmount; re-followed on every new character; no `BlocProvider<SpellsCubit>`, no AppBar/SnackBar/AlertDialog/spinner in the section | widget | `flutter test test/screens/mainScreen/tabs/journal/sections` | ✅ | ✅ green |
 | 8-11-02 | 11 | 5 | SPELL-01, SPELL-04, SPELL-07 | T-8-33 | `journal.dart` hosts `SpellsSection` (no spell `!` reads left) and the long-press `SpellDetailsSheet` in the existing sliding sheet (top 0, right 0 when open, closed by a tap outside); `SpellRow` deleted | widget | `flutter test test/screens/mainScreen/tabs/journal test/shared` | ✅ | ✅ green |
 | 8-12-01 | 12 | 6 | SPELL-01..07 | T-8-35 / T-8-36 / T-8-40 | BE gate first (`spellStates` on BE `origin/develop:src/schema.gql`, ref `10e5f43`, PR #14); SDL equal to the proposal A1/A2; `SpellState.fromJson` normalises every instant to UTC (`.toUtc()`, O-1); `CharacterFragment` selects `spellStates { usages recoveries spell { id } }` only through `character`/`characterUpdated` (BE Pitfall 4); recorded handoff payload parses; `tool/schema_check` 34 OK; full suite green (2096); analyzer 53 issues / 0 errors; BE repo read with `fetch`/`show` only | unit + schema | `flutter test test/graphql test/tool test/models/spell && flutter test` + `tool/schema_check` (dump + validate vs BE `origin/develop`) | ✅ | ✅ green |
-| 8-12-02 | 12 | 6 | SPELL-01..07 | T-8-37 / T-8-38 | device E2E (12 steps of `08-HUMAN-UAT.md`) against the local BE `develop` with the 9.1 UAT data; no secrets or user ids in the notes | manual | `08-HUMAN-UAT.md` | ✅ | ⬜ pending (human E2E) |
-| 8-12-03 | 12 | 6 | SPELL-01..07 | T-8-39 | requirements ticked only for passed steps; roadmap row closed; BE handoff updated | docs | `grep "SPELL-01 through SPELL-07" .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
+| 8-12-02 | 12 | 6 | SPELL-01..07 | T-8-37 / T-8-38 | device E2E (12 steps of `08-HUMAN-UAT.md`) against the local BE `develop` with the 9.1 UAT data; no secrets or user ids in the notes | manual | `08-HUMAN-UAT.md` | ✅ | ✅ green (12/12 pass on Android, 2026-10-27; step 9 branch A) |
+| 8-12-03 | 12 | 6 | SPELL-01..07 | T-8-39 | requirements ticked only for passed steps; roadmap row closed; BE handoff updated | docs | `grep "SPELL-01 through SPELL-07" .planning/REQUIREMENTS.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -105,6 +105,6 @@ No framework install needed.
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [ ] Feedback latency < 8s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** {pending / approved YYYY-MM-DD}
+**Approval:** approved 2026-10-27
