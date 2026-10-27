@@ -4,12 +4,18 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/repository/quest_result_delivery_ports.dart';
+import 'package:klimmeck_guide/repository/quest_result_failure.dart';
 import 'package:klimmeck_guide/repository/quest_result_repository.dart';
+import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result_notice.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/backend_identifier.dart';
+import 'package:klimmeck_guide/utils/backoff.dart';
+import 'package:klimmeck_guide/utils/silent_retry.dart';
 
 part 'quest_results_state.dart';
 
@@ -27,13 +33,21 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     required AppLifecycleEvents lifecycle,
     required ConnectionRestoredEvents connectionRestored,
     required UserRefreshRequests userRefresh,
-  }) : _pending = pending,
+  }) : _characterId = characterId,
+       _repository = repository,
+       _pending = pending,
        _acknowledger = acknowledger,
+       _lifecycle = lifecycle,
+       _connectionRestored = connectionRestored,
        _userRefresh = userRefresh,
        super(const QuestResultsState());
 
+  final String _characterId;
+  final QuestResultRepository _repository;
   final PendingQuestResults _pending;
   final QuestResultAcknowledger _acknowledger;
+  final AppLifecycleEvents _lifecycle;
+  final ConnectionRestoredEvents _connectionRestored;
   final UserRefreshRequests _userRefresh;
 
   /// Fogli chiusi in questa sessione: dedup locale (D-10).
@@ -50,10 +64,51 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   Future<void> _acknowledgementTail = Future<void>.value();
   bool _hasRequestedRefreshAfterDeath = false;
 
-  Future<void> refetchPending() async {
-    final results = await _pending.fetchUnacknowledged();
-    for (final result in results) {
-      _accept(result, isLive: false);
+  StreamSubscription<QuestResult>? _subscription;
+  StreamSubscription<void>? _foregroundSubscription;
+  StreamSubscription<void>? _restoredSubscription;
+  Timer? _resubscribeTimer;
+  int _attempt = 0;
+  bool _isStreamTerminated = false;
+  Future<void>? _refetchInFlight;
+
+  /// Apre le tre sorgenti per la vita della shell (D-09): subscription,
+  /// rilettura al cold start, al resume e alla riconnessione.
+  void start() {
+    _subscribe();
+    _foregroundSubscription = _lifecycle.foregrounded.listen(
+      (_) => _onForeground(),
+    );
+    _restoredSubscription = _connectionRestored.restored.listen(
+      (_) => unawaited(refetchPending()),
+    );
+    unawaited(refetchPending());
+  }
+
+  /// Rilegge i risultati non confermati (D-09 c), una lettura alla volta:
+  /// prima ritenta le conferme fallite (D-10), poi la lettura in silenzio.
+  Future<void> refetchPending() => _refetchInFlight ??= _performRefetch()
+      .whenComplete(() => _refetchInFlight = null);
+
+  /// Tap su `questEnd` (D-11): solo l'id del payload, filtrato, e il risultato
+  /// sempre riletto dal BE. NOT_FOUND/FORBIDDEN diventano un avviso; gli
+  /// errori di rete restano muti (li copre la rilettura al resume).
+  Future<void> requestFromTap(String? id) async {
+    final resultId = validBackendIdentifier(id);
+    if (resultId == null || _isKnown(resultId)) return;
+    try {
+      _accept(await _repository.fetch(resultId), isLive: false);
+    } on QuestResultException catch (error) {
+      if (!_isNoticeWorthy(error.failure)) return;
+      emit(
+        state.copyWith(
+          notice: QuestResultNotice(
+            resultId: resultId,
+            failure: error.failure,
+            serial: (state.notice?.serial ?? 0) + 1,
+          ),
+        ),
+      );
     }
   }
 
@@ -128,6 +183,95 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     _userRefresh.requestUserRefresh();
   }
 
+  void _onForeground() {
+    final showing = state.showing;
+    if (showing != null &&
+        showing.isDeath &&
+        state.deathAcknowledgement == DeathAcknowledgement.failed) {
+      unawaited(acknowledgeDeath(showing.id));
+    }
+    unawaited(refetchPending());
+  }
+
+  Future<void> _performRefetch() async {
+    await _retryPendingAcknowledgements();
+    final results = await silentRetry(
+      () => _pending.fetchUnacknowledged(),
+      isCancelled: () => isClosed,
+      shouldRetry: _isTransient,
+    );
+    for (final result in results ?? const <QuestResult>[]) {
+      _accept(result, isLive: false);
+    }
+  }
+
+  Future<void> _retryPendingAcknowledgements() async {
+    for (final id in List<String>.of(_pendingAcks)) {
+      if (isClosed) return;
+      await _acknowledgeQuietly(id);
+    }
+  }
+
+  static bool _isTransient(Object error) =>
+      error is! QuestResultException ||
+      !const {
+        QuestResultFailure.forbidden,
+        QuestResultFailure.unauthenticated,
+        QuestResultFailure.notFound,
+      }.contains(error.failure);
+
+  static bool _isNoticeWorthy(QuestResultFailure failure) =>
+      failure == QuestResultFailure.notFound ||
+      failure == QuestResultFailure.forbidden;
+
+  void _subscribe() {
+    _subscription = _repository
+        .watch(_characterId)
+        .listen(_onLiveResult, onError: _onStreamError, onDone: _onStreamDone);
+  }
+
+  void _onLiveResult(QuestResult result) {
+    _attempt = 0;
+    _accept(result, isLive: true);
+  }
+
+  /// Evento malformato: saltato, lo stream resta aperto. FORBIDDEN/NOT_FOUND:
+  /// il personaggio è morto o archiviato, stop definitivo e una rilettura,
+  /// perché il foglio di morte può stare solo nella lista non confermata
+  /// (D-13, checker I2). Il refresh dell'utente spetta a `CharacterCubit`.
+  void _onStreamError(Object error) {
+    if (error is FormatException) return;
+    if (isAccessDeniedError(error)) {
+      _terminateStream();
+      return;
+    }
+    _scheduleResubscribe();
+  }
+
+  void _onStreamDone() {
+    if (isClosed || _isStreamTerminated) return;
+    _scheduleResubscribe();
+  }
+
+  void _terminateStream() {
+    if (_isStreamTerminated) return;
+    _isStreamTerminated = true;
+    unawaited(_subscription?.cancel());
+    unawaited(refetchPending());
+  }
+
+  void _scheduleResubscribe() {
+    if (_resubscribeTimer != null || isClosed || _isStreamTerminated) return;
+    unawaited(_subscription?.cancel());
+    _resubscribeTimer = Timer(
+      exponentialBackoff(_attempt++, max: WsReconnectPolicy.maxReconnectDelay),
+      () {
+        _resubscribeTimer = null;
+        if (!isClosed && !_isStreamTerminated) _subscribe();
+      },
+    );
+  }
+
   Future<void> _acknowledgeQuietly(String id) async {
     try {
       await _serialised(() => _acknowledger.acknowledge(id));
@@ -172,5 +316,16 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   static int _byResolution(QuestResult a, QuestResult b) {
     final byTime = a.resolvedAt.compareTo(b.resolvedAt);
     return byTime != 0 ? byTime : a.id.compareTo(b.id);
+  }
+
+  @override
+  Future<void> close() {
+    _resubscribeTimer?.cancel();
+    return Future.wait([
+      ?_subscription?.cancel(),
+      ?_foregroundSubscription?.cancel(),
+      ?_restoredSubscription?.cancel(),
+      super.close(),
+    ]);
   }
 }
