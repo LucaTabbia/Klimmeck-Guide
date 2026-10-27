@@ -46,6 +46,11 @@ class CharacterFragment {
         duration
         to
       }
+      awaitingAid {
+        quest
+        aidQuest
+        since
+      }
       spells {
         ${SpellFragment.fields}
       }
