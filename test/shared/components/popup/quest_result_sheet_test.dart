@@ -154,7 +154,13 @@ void main() {
     });
 
     testWidgets('a tap on the block skips to the end', (tester) async {
-      await _pump(tester, questResult(successResultJson()));
+      // Senza oggetti: le quantità a matita delle card animano da sole.
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(consumablesUsed: const [], rewardItems: const []),
+        ),
+      );
       await tester.pump();
       await tester.ensureVisible(find.byKey(QuestResultSheet.hpKey));
       await tester.pump(const Duration(milliseconds: 100));
