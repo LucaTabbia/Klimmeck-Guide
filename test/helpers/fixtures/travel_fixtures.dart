@@ -38,14 +38,22 @@ Map<String, dynamic> travelPreviewJson({
   'road': road ?? travelPathJson(),
 };
 
+/// Ferito in attesa di soccorso dalle 11:00 UTC (09-CONTEXT D-16).
+Map<String, dynamic> awaitingAidJson({
+  String quest = 'q-1',
+  String aidQuest = 'aid-1',
+  String since = '2026-10-27T11:00:00.000Z',
+}) => {'quest': quest, 'aidQuest': aidQuest, 'since': since};
+
 /// Personaggio con pedina (infos.sex), posizione sul marker di partenza e,
-/// a scelta, un viaggio e una corsia standard.
+/// a scelta, un viaggio, una corsia standard e lo stato di ferito.
 Map<String, dynamic> travellingCharacterJson({
   String id = 'c-1',
   String locationId = 'city-marker-1',
   List<double> location = departureWire,
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
+  Map<String, dynamic>? awaitingAid,
 }) => {
   'id': id,
   'infos': {'name': 'Aldo', 'sex': 'male'},
@@ -53,6 +61,7 @@ Map<String, dynamic> travellingCharacterJson({
     'title': 'rookie',
     'location': {'id': locationId, 'location': location},
     'activeTravel': activeTravel,
+    if (awaitingAid != null) 'awaitingAid': awaitingAid,
   },
   'quests': {
     'completedQuests': const [],
