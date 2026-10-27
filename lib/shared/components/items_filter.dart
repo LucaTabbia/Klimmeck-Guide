@@ -1,9 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../shared/components/cached_svg.dart';
-import '../../../../../theme/kg_theme.dart';
+import '../../theme/kg_theme.dart';
+import 'cached_svg.dart';
 
+/// Chip a icone con «Tutti» (null) e selezione singola; i valori arrivano già filtrati da chi chiama (D-23).
 class ItemsFilter<T> extends StatelessWidget {
   const ItemsFilter({
     super.key,
@@ -14,7 +15,7 @@ class ItemsFilter<T> extends StatelessWidget {
   });
 
   final List<T> values;
-  final Function(T?) onTap;
+  final ValueChanged<T?> onTap;
   final T? current;
   final String Function(T) getImage;
 

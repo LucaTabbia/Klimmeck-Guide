@@ -4,8 +4,8 @@ import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/items_filter.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
 
 import '../../../../../models/enums/effect_type.dart';
 import '../../../../../models/enums/equip_type.dart';
