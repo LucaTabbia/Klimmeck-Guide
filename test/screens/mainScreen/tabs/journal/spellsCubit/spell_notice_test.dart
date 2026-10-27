@@ -84,6 +84,13 @@ void main() {
       });
     }
 
+    test('a settle by timeout shows no banner (WR-01)', () {
+      expect(
+        spellNoticeFor(_outcome(kind: SpellOutcomeKind.settledByTimeout)),
+        isNull,
+      );
+    });
+
     test('a failed outcome without a failure reads as unknown', () {
       expect(
         spellNoticeFor(_outcome()),

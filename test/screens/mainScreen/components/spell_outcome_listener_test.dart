@@ -172,6 +172,46 @@ void main() {
       });
     }
 
+    testWidgets('timedOut: banner and silent re-read (WR-01)', (tester) async {
+      await pumpListener(tester);
+
+      await emitSpells(tester, failedWith(SpellEquipFailure.timedOut));
+
+      verify(
+        () => notices.publishNotice(
+          const KGNotification(
+            title: 'Magia non equipaggiata',
+            description:
+                'Il server non ha risposto in tempo: '
+                'controlla le magie prima di riprovare',
+          ),
+          dedupKey: 'spell|failed|timedOut|spell-a',
+        ),
+      ).called(1);
+      verify(() => characterCubit.refreshCharacter()).called(1);
+    });
+
+    testWidgets('a settle by timeout: no banner, silent re-read (WR-01)', (
+      tester,
+    ) async {
+      await pumpListener(tester);
+
+      await emitSpells(
+        tester,
+        const SpellsState(
+          outcome: SpellOutcome(
+            sequence: 1,
+            spellId: 'spell-a',
+            operation: SpellOperation.unequip,
+            kind: SpellOutcomeKind.settledByTimeout,
+          ),
+        ),
+      );
+
+      verifyNoNotice();
+      verify(() => characterCubit.refreshCharacter()).called(1);
+    });
+
     testWidgets('connection: banner with the unequip title, no re-read', (
       tester,
     ) async {

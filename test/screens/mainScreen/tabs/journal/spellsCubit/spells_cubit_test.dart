@@ -417,14 +417,42 @@ void main() {
       });
     }
 
-    test('a success still unmatched at the timeout clears silently', () {
+    test('a success still unmatched at the timeout clears with a realign '
+        'outcome (WR-01)', () {
+      fakeAsync((async) {
+        final (cubit, states) = start();
+        cubit.toggle(_character(active: [_spellB]), _spellB);
+        calls.single.complete();
+        async.elapse(SpellsCubit.defaultSettleTimeout);
+
+        expect(states, [
+          const SpellsState(pending: {_spellB: SpellOperation.unequip}),
+          const SpellsState(
+            outcome: SpellOutcome(
+              sequence: 1,
+              spellId: _spellB,
+              operation: SpellOperation.unequip,
+              kind: SpellOutcomeKind.settledByTimeout,
+            ),
+          ),
+        ]);
+        expect(async.pendingTimers, isEmpty);
+        cubit.close();
+      });
+    });
+
+    test('a late matching sync after the realign outcome emits nothing', () {
       fakeAsync((async) {
         final (cubit, states) = start();
         cubit.toggle(_character(), _spellA);
         calls.single.complete();
         async.elapse(SpellsCubit.defaultSettleTimeout);
+        final settled = states.length;
 
-        expect(states, [pendingA, const SpellsState()]);
+        cubit.sync(_character(active: [_spellA]));
+        async.flushMicrotasks();
+
+        expect(states, hasLength(settled));
         cubit.close();
       });
     });

@@ -325,6 +325,37 @@ void main() {
       expect(shake, isNot(0));
       await tester.pumpAndSettle();
     });
+    testWidgets('a settle by timeout does not shake the row (WR-01)', (
+      tester,
+    ) async {
+      await pumpSection(tester);
+
+      await emitSpells(
+        tester,
+        const SpellsState(
+          outcome: SpellOutcome(
+            sequence: 1,
+            spellId: 'spell-b',
+            operation: SpellOperation.equip,
+            kind: SpellOutcomeKind.settledByTimeout,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 75));
+
+      final shake = tester
+          .widget<Transform>(
+            find
+                .descendant(of: _row('b'), matching: find.byType(Transform))
+                .first,
+          )
+          .transform
+          .getTranslation()
+          .x;
+      expect(shake, 0);
+      await tester.pumpAndSettle();
+    });
   });
 
   group('live countdown', () {
