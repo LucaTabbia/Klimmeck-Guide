@@ -33,6 +33,25 @@ void main() {
       ]);
     });
 
+    test('normalises an offset-bearing instant to the same UTC instant', () {
+      final state = SpellState.fromJson(
+        spellStateJson(recoveries: const ['2026-10-27T12:12:00.000+02:00']),
+      );
+
+      expect(state.recoveries.single, DateTime.utc(2026, 10, 27, 10, 12));
+      expect(state.recoveries.single.isUtc, isTrue);
+    });
+
+    test('normalises an instant without zone to UTC', () {
+      const raw = '2026-10-27T10:12:00.000';
+      final state = SpellState.fromJson(
+        spellStateJson(recoveries: const [raw]),
+      );
+
+      expect(state.recoveries.single, DateTime.parse(raw).toUtc());
+      expect(state.recoveries.single.isUtc, isTrue);
+    });
+
     test('recoveries are unmodifiable', () {
       final state = SpellState.fromJson(spellStateJson());
 
