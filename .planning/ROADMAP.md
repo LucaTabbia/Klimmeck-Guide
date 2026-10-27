@@ -277,7 +277,7 @@ Plans:
   - [x] 08-08-PLAN.md — Wave 3: SpellInfo extended + SpellInfoSheet (bookmark toggle)
   - [x] 08-09-PLAN.md — Wave 3: slot row, known-spell rows, shake, SpellbookContent
   - [x] 08-10-PLAN.md — Wave 4: spell notices, SpellOutcomeListener, shell provider + MainScreen mount
-  - [ ] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
+  - [x] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
   - [ ] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
 **UI hint**: yes
 
@@ -372,7 +372,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 10/12 | In Progress | - |
+| 8. Spells Section (Journal Tab) | 11/12 | In Progress | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
