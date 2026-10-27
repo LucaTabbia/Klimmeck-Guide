@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dar
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_result_presenter.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
@@ -77,9 +78,16 @@ class _MainScreenState extends State<MainScreen>
     context.read<QuestCubit>().loadQuest();
   }
 
+  /// Il presenter dei risultati avvolge anche il loader: il foglio di morte
+  /// deve aprirsi anche al cold start di un personaggio non disponibile
+  /// (Phase 9 D-13).
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    return QuestResultPresenter(child: _buildScreen(context));
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return MultiBlocListener(
       listeners: [
         BlocListener<CharacterCubit, CharacterState>(
