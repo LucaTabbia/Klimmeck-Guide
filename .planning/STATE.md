@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-10-27T12:00:00.000Z"
-last_activity: 2026-10-27 -- Phase 8 (Spells Section) discussed interactively; CONTEXT + DISCUSSION-LOG + BACKEND-NOTES written on feat/08-spells-section-journal-tab; BE Phase 9.1 (Spell State and Recovery Contract) inserted and BE Phase 10 discussed in the same session
+status: executing
+last_updated: "2026-10-27T12:00:10.721Z"
+last_activity: "2026-10-27 -- Phase 8 planned: 12 plans in 6 waves (08-12 schema gate waits for the BE 9.1 PR)"
 progress:
   total_phases: 12
   completed_phases: 8
-  total_plans: 73
-  completed_plans: 67
-  percent: 92
+  total_plans: 85
+  completed_plans: 73
+  percent: 86
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 8 (Spells Section (Journal Tab)) — CONTEXT GATHERED (2026-10-27), ready to plan
-Plan: 0 of TBD
+Phase: 8 (Spells Section (Journal Tab)) — PLANNED (2026-10-27), 12 plans in 6 waves, ready to execute
+Plan: 0 of 12
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: `/gsd-plan-phase 8` on `feat/08-spells-section-journal-tab`; the schema-gated final plan waits for the BE PR of Phase 9.1 (Spell State and Recovery Contract, `CharacterStatus.spellStates`); then FE Phase 9 (Combat Result Sheet)
-Status: Phase 8 context gathered — ready to plan (branch `feat/08-spells-section-journal-tab` off develop; BE companion Phase 9.1 inserted in the BE roadmap with its CONTEXT, BE Phase 10 context gathered on the stacked branch `feat/10-hardening`)
-Last activity: 2026-10-27 -- Phase 8 discuss: real countdown via BE 9.1 (user rule: recovery never stops, state per known spell), tap toggle, client-side block + banner on full slots, long-press detail sheet, red bookmark on active spells, optimistic pending look with 15 s rollback, section absent without spells, neutral line with zero slots
+Next Phase: `/gsd-execute-phase 8` on `feat/08-spells-section-journal-tab` (sequential executors, plans 08-01..08-11 now); 08-12 (schema gate, device E2E) only after the BE Phase 9.1 PR is merged on BE `develop` (`CharacterStatus.spellStates`); then FE Phase 9 (Combat Result Sheet)
+Status: Phase 8 planned — ready to execute (research + CONTEXT amended F1–F10, VALIDATION.md template, 12 plans passed the plan-checker after one revision round: 0 blockers, 0 warnings)
+Last activity: 2026-10-27 -- Phase 8 planned: 12 plans in 6 waves (08-12 schema gate waits for the BE 9.1 PR)
 
 ## Current Milestone
 
