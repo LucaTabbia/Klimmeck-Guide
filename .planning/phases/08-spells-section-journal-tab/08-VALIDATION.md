@@ -40,6 +40,8 @@ created: 2026-10-27
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 8-01-01 | 01 | 1 | SPELL-05 | T-8-01 / T-8-02 | malformed `spellStates` entries skipped, non-list → `null`, the rest of the status parses; recoveries UTC and sorted ascending | unit | `flutter test test/models/spell/spell_state_test.dart test/models/character` | ✅ | ✅ green |
 | 8-01-02 | 01 | 1 | SPELL-02 | — | N/A (pure move, behaviour identical) | unit | `flutter test test/utils/game_duration_format_test.dart test/models/travel test/screens/mainScreen/tabs/map` | ✅ | ✅ green |
+| 8-02-01 | 02 | 1 | SPELL-03, SPELL-06 | T-8-03 / T-8-04 | `EquipSpellRequest` never sends `usages`; `EquipSpell`/`UnequipSpell` return only `successful` (no state from the response); registry keys renamed, still 34 | unit | `flutter test test/models/request/equip_spell_request_test.dart test/graphql/spell_documents_test.dart test/tool test/repository/services/graphql/graphql_spells_test.dart` | ✅ | ✅ green |
+| 8-02-02 | 02 | 1 | SPELL-04, SPELL-06 | T-8-05 / T-8-06 / T-8-07 | classification by `extensions.code` only (message ignored); `FORBIDDEN` → `forbidden`; 15 s → `timedOut`; no `OperationException` escapes `SpellsRepository` | unit | `flutter test test/repository/spell_equip_failure_test.dart test/repository/spells_repository_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

@@ -268,7 +268,7 @@ Plans:
 **Backend prerequisite**: BE Phase 9.1 — per-spell state `spellStates { spell usages recoveries }` that outlives equip/disequip (user rule 2026-10-27); proposed in `.planning/phases/08-spells-section-journal-tab/BACKEND-NOTES.md`, fixed in the BE `09.1-CONTEXT.md`. Only the schema-gated final plan waits for it.
 **Plans**: 12 plans
   - [x] 08-01-PLAN.md — Wave 1: SpellState + optional spellStates, spell fixtures, shared formatGameDuration
-  - [ ] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
+  - [x] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
   - [ ] 08-03-PLAN.md — Wave 2: shared BookmarkRibbon + pencil counter, SpellCard bookmark, pending-ink tokens
   - [ ] 08-04-PLAN.md — Wave 2: recovery status on server time + Italian spell lines
   - [ ] 08-05-PLAN.md — Wave 2: pure Spellbook view (slots, fallback, optimistic overlay, intents)
@@ -372,7 +372,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 1/12 | In Progress | - |
+| 8. Spells Section (Journal Tab) | 2/12 | In Progress | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
