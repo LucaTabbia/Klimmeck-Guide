@@ -129,11 +129,11 @@ void main() {
       SpellRecoveryFull(),
     ]);
     expect(
-      find.text('Usi: 1/3 · prossimo tra 12 min · Danno: Fuoco 12'),
+      find.text('Usi: 1/3 · prossimo tra 12 min · Attacco: Fuoco 12'),
       findsOneWidget,
     );
     expect(
-      find.text('Usi: 3 · Recupero: 2 h · Danno: Fuoco 12'),
+      find.text('Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12'),
       findsNWidgets(2),
     );
   });

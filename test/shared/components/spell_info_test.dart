@@ -60,7 +60,7 @@ void main() {
 
     expect(find.text('Dardo di fuoco'), findsOneWidget);
     expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
-    expect(find.text('Danno: Fuoco 12'), findsOneWidget);
+    expect(find.text('Attacco: Fuoco 12'), findsOneWidget);
     expect(find.text('Uso: Attacco'), findsOneWidget);
     expect(find.text('Usi massimi: 3'), findsOneWidget);
     expect(find.text('Recupero: 2 h'), findsOneWidget);

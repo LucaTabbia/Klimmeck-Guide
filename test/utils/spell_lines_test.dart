@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/energy_damage.dart';
+import 'package:klimmeck_guide/models/enums/energy_type.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
@@ -21,48 +23,55 @@ void main() {
     );
 
     test('full usages show the recovery time', () {
-      expect(line(usages: 3), 'Usi: 3 · Recupero: 2 h · Danno: Fuoco 12');
+      expect(line(usages: 3), 'Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12');
     });
 
     test('below the maximum shows the countdown', () {
       expect(
         line(recovery: const SpellRecoveryCountdown(remainingMinutes: 12)),
-        'Usi: 1/3 · prossimo tra 12 min · Danno: Fuoco 12',
+        'Usi: 1/3 · prossimo tra 12 min · Attacco: Fuoco 12',
       );
     });
 
     test('under one minute reads «meno di 1 min»', () {
       expect(
         line(recovery: const SpellRecoveryCountdown(remainingMinutes: 0)),
-        'Usi: 1/3 · prossimo tra meno di 1 min · Danno: Fuoco 12',
+        'Usi: 1/3 · prossimo tra meno di 1 min · Attacco: Fuoco 12',
       );
     });
 
     test('long countdowns use hours and minutes', () {
       expect(
         line(recovery: const SpellRecoveryCountdown(remainingMinutes: 150)),
-        'Usi: 1/3 · prossimo tra 2 h 30 min · Danno: Fuoco 12',
+        'Usi: 1/3 · prossimo tra 2 h 30 min · Attacco: Fuoco 12',
       );
     });
 
     test('a passed instant reads «in arrivo…»', () {
       expect(
         line(recovery: const SpellRecoveryArriving()),
-        'Usi: 1/3 · in arrivo… · Danno: Fuoco 12',
+        'Usi: 1/3 · in arrivo… · Attacco: Fuoco 12',
       );
     });
 
     test('no instants reads «in recupero»', () {
       expect(
         line(recovery: const SpellRecoveryUnknown()),
-        'Usi: 1/3 · in recupero · Danno: Fuoco 12',
+        'Usi: 1/3 · in recupero · Attacco: Fuoco 12',
       );
     });
 
     test('zero power drops the number', () {
       expect(
         line(of: Spell.fromJson(spellJson(power: 0)), usages: 3),
-        'Usi: 3 · Recupero: 2 h · Danno: Fuoco',
+        'Usi: 3 · Recupero: 2 h · Attacco: Fuoco',
+      );
+    });
+
+    test('a spell without use type keeps «Danno»', () {
+      expect(
+        line(of: Spell.fromJson(spellJson(useType: null)), usages: 3),
+        'Usi: 3 · Recupero: 2 h · Danno: Fuoco 12',
       );
     });
 
@@ -76,7 +85,7 @@ void main() {
     test('no recovery time at full usages drops the recovery item', () {
       expect(
         line(of: Spell.fromJson(spellJson(recoveryTime: null)), usages: 3),
-        'Usi: 3 · Danno: Fuoco 12',
+        'Usi: 3 · Attacco: Fuoco 12',
       );
     });
 
@@ -94,8 +103,55 @@ void main() {
     test('unknown usages and maximum drop the usages item', () {
       expect(
         line(of: Spell.fromJson(spellJson(maxUsages: null)), usages: null),
-        'Recupero: 2 h · Danno: Fuoco 12',
+        'Recupero: 2 h · Attacco: Fuoco 12',
       );
+    });
+  });
+
+  group('spellDamageLabel', () {
+    const fire12 = EnergyDamage(type: EnergyType.fire, power: 12);
+
+    test('the use type introduces energy and power', () {
+      expect(
+        spellDamageLabel(fire12, useType: UseType.attack),
+        'Attacco: Fuoco 12',
+      );
+      expect(
+        spellDamageLabel(fire12, useType: UseType.defense),
+        'Difesa: Fuoco 12',
+      );
+    });
+
+    test('zero or missing power drops the number', () {
+      expect(
+        spellDamageLabel(
+          const EnergyDamage(type: EnergyType.fire, power: 0),
+          useType: UseType.attack,
+        ),
+        'Attacco: Fuoco',
+      );
+      expect(
+        spellDamageLabel(
+          const EnergyDamage(type: EnergyType.fire, power: null),
+          useType: UseType.attack,
+        ),
+        'Attacco: Fuoco',
+      );
+    });
+
+    test('without use type it reads «Danno»', () {
+      expect(spellDamageLabel(fire12), 'Danno: Fuoco 12');
+    });
+
+    test('without energy type there is no label', () {
+      expect(
+        spellDamageLabel(
+          const EnergyDamage(type: null, power: 12),
+          useType: UseType.attack,
+        ),
+        isNull,
+      );
+      expect(spellDamageLabel(null, useType: UseType.attack), isNull);
     });
   });
 

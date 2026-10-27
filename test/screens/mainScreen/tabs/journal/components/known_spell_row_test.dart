@@ -90,7 +90,7 @@ void main() {
     expect(_card(tester).isMarked, isFalse);
     expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
     expect(
-      find.text('Usi: 3 · Recupero: 2 h · Danno: Fuoco 12'),
+      find.text('Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12'),
       findsOneWidget,
     );
   });
@@ -111,7 +111,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Usi: 1/3 · prossimo tra 12 min · Danno: Fuoco 12'),
+      find.text('Usi: 1/3 · prossimo tra 12 min · Attacco: Fuoco 12'),
       findsOneWidget,
     );
   });

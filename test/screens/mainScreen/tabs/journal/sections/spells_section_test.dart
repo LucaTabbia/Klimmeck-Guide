@@ -63,7 +63,7 @@ Finder _row(String letter) => find.byKey(ValueKey('spell-row-spell-$letter'));
 
 Finder _slot(String letter) => find.byKey(ValueKey('spell-slot-spell-$letter'));
 
-const _lineOfB = 'Usi: 3 · Recupero: 2 h · Danno: Fuoco 12';
+const _lineOfB = 'Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12';
 
 void main() {
   late MockCharacterCubit characterCubit;
@@ -175,7 +175,7 @@ void main() {
       await pumpSection(tester);
 
       expect(
-        find.text('Usi: 1/3 · prossimo tra 12 min · Danno: Fuoco 12'),
+        find.text('Usi: 1/3 · prossimo tra 12 min · Attacco: Fuoco 12'),
         findsOneWidget,
       );
       expect(find.text(_lineOfB), findsOneWidget);
@@ -199,7 +199,7 @@ void main() {
       await pumpSection(tester);
 
       expect(
-        find.text('Usi: 1/3 · in recupero · Danno: Fuoco 12'),
+        find.text('Usi: 1/3 · in recupero · Attacco: Fuoco 12'),
         findsOneWidget,
       );
     });
@@ -372,7 +372,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Usi: 2/3 · prossimo tra 42 min · Danno: Fuoco 12'),
+        find.text('Usi: 2/3 · prossimo tra 42 min · Attacco: Fuoco 12'),
         findsOneWidget,
       );
     });
@@ -384,7 +384,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(
-        find.text('Usi: 1/3 · prossimo tra 11 min · Danno: Fuoco 12'),
+        find.text('Usi: 1/3 · prossimo tra 11 min · Attacco: Fuoco 12'),
         findsOneWidget,
       );
     });
