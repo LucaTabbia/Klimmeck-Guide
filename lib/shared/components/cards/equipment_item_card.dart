@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../theme/kg_theme.dart';
@@ -31,7 +32,6 @@ class EquipmentItemCard extends StatefulWidget {
 
 class _EquipmentItemCardState extends State<EquipmentItemCard> {
   static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
-  static final _bookmarkUrl = CloudinaryAssets.url(CloudinaryAssets.bookmarkRed);
   late bool? _isSelected;
 
   @override
@@ -172,31 +172,7 @@ class _EquipmentItemCardState extends State<EquipmentItemCard> {
                 ),
               ),
             if (_isSelected != null)
-              Padding(
-                padding: EdgeInsets.only(top: widget.size / 25),
-                child: SizedBox(
-                  height: widget.size - widget.size / 25,
-                  width: widget.size,
-                  child: Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        top: !_isSelected! ? -(widget.size / 2.5) + 20 : 0,
-                        left: 5,
-                        child: RotatedBox(
-                          quarterTurns: 3,
-                          child: SizedBox(
-                            height: (widget.size / 2.5),
-                            width: (widget.size / 2.5),
-                            child: CachedSvg(url: _bookmarkUrl),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              CardBookmark(isMarked: _isSelected!, cardSize: widget.size),
           ],
         ),
       ),
