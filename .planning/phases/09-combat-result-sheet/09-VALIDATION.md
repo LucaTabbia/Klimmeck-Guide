@@ -50,8 +50,8 @@ created: 2026-10-27
 | 9-05-01 | 05 | 1 | COMBAT-07 | T-9-14 | Map-free state Flutter-free, equality-filtered | bloc | `flutter test test/screens/mainScreen/tabs/map/mapAvailabilityCubit` | ✅ | ✅ green |
 | 9-05-02 | 05 | 1 | COMBAT-09 | T-9-12 | one restore event per false→true transition | unit + bloc + widget | `flutter test test/repository/services/sync test/screens/auth/syncCubit test/screens/auth/session_sync_scope_test.dart test/screens/auth/auth_gate_test.dart` | ✅ | ✅ green |
 | 9-05-03 | 05 | 1 | COMBAT-01 | T-9-13 | `suppress` drops queued/current banner of the key | unit | `flutter test test/screens/auth/inAppNotificationsCubit` | ✅ (extend) | ✅ green |
-| 9-06-01 | 06 | 3 | COMBAT-07, COMBAT-09, COMBAT-08 | T-9-27, T-9-29, T-9-30 | dedup by id; external pop requeues without ack; death ack awaited, then exactly one `requestUserRefresh` | bloc | `flutter test test/screens/mainScreen/questResultsCubit/quest_results_queue_test.dart` | ❌ W0 | ⬜ pending |
-| 9-06-02 | 06 | 3 | COMBAT-01, COMBAT-09 | T-9-26, T-9-28, T-9-31 | tap id validated, re-read from BE; bounded retries; terminal codes stop and trigger one refetch | bloc (fake_async) | `flutter test test/screens/mainScreen/questResultsCubit` | ❌ W0 | ⬜ pending |
+| 9-06-01 | 06 | 3 | COMBAT-07, COMBAT-09, COMBAT-08 | T-9-27, T-9-29, T-9-30 | dedup by id; external pop requeues without ack; death ack awaited, then exactly one `requestUserRefresh` | bloc | `flutter test test/screens/mainScreen/questResultsCubit/quest_results_queue_test.dart` | ✅ | ✅ green |
+| 9-06-02 | 06 | 3 | COMBAT-01, COMBAT-09 | T-9-26, T-9-28, T-9-31 | tap id validated, re-read from BE; bounded retries; terminal codes stop and trigger one refetch | bloc (fake_async) | `flutter test test/screens/mainScreen/questResultsCubit` | ✅ | ✅ green |
 | 9-07-01 | 07 | 2 | COMBAT-02 | T-9-20 | HP fraction clamped, `max` 0 safe | widget + unit | `flutter test test/theme test/shared/components/hp_delta_bar_test.dart` | ✅ | ✅ green |
 | 9-07-02 | 07 | 2 | COMBAT-02, COMBAT-03, COMBAT-04, COMBAT-05, COMBAT-06 | T-9-21, T-9-22 | button-only dismissal; pure widget, no state source; tap skips the HP animation via a keyed rebuild | widget | `flutter test test/shared/components/popup` | ✅ | ✅ green |
 | 9-08-01 | 08 | 2 | COMBAT-09, COMBAT-08 | T-9-23, T-9-24 | one user refresh, no refetch loop for a dead current character | bloc (fake_async) | `flutter test test/screens/mainScreen/characterCubit test/screens/mainScreen/main_screen_test.dart test/screens/auth` | ✅ (extend) | ✅ green |
@@ -78,7 +78,7 @@ created: 2026-10-27
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` — one recorded payload per outcome, null enemy/spell, orphan item, with/without `acknowledgedAt` (plan 09-01)
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
 - [ ] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04 ✅), `MockQuestResultRepository` (09-03 ✅), `MockQuestResultsCubit` (09-11)
-- [ ] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
+- [x] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
 - [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents`
 
 ---

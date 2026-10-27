@@ -309,7 +309,7 @@ Plans:
   - [x] 09-03-PLAN.md — Wave 2: result fragment, OnQuestResultReceived/GetQuestResult (36/36), QuestResultRepository, delivery ports + null objects
   - [x] 09-04-PLAN.md — Wave 1: AWAITING_AID in travel/acceptance, TransactionFailure + typed TransactionCubit, SHOP_NOT_IN_CITY banner
   - [x] 09-05-PLAN.md — Wave 1: MapAvailabilityCubit, ConnectionRestoredBus, InAppNotificationsCubit.suppress
-  - [ ] 09-06-PLAN.md — Wave 3: QuestResultsCubit (FIFO queue, three sources, refetch triggers, acks, death ack)
+  - [x] 09-06-PLAN.md — Wave 3: QuestResultsCubit (FIFO queue, three sources, refetch triggers, acks, death ack)
   - [x] 09-07-PLAN.md — Wave 2: QuestResultSheet for the five outcomes + animated HpDeltaBar + healGreen token
   - [x] 09-08-PLAN.md — Wave 2: CharacterUnavailable (death cold start), Board/Shop disabled and pawn label/drag gate while awaiting aid
   - [ ] 09-09-PLAN.md — Wave 3: MapAvailabilityCubit in the shell, page/quest-sheet/drag writers
@@ -395,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 7/13 | In Progress | - |
+| 9. Combat Result Sheet | 8/13 | In Progress | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
