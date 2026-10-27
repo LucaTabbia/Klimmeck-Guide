@@ -63,7 +63,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
-- [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
+- [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
@@ -375,7 +375,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 14/14 | In Progress | - |
+| 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
@@ -430,18 +430,18 @@ Plans:
 | TRAVEL-02 | Phase 7 | Complete |
 | TRAVEL-03 | Phase 7 | Complete |
 | TRAVEL-04 | Phase 7 | Complete |
-| SPELL-01 | Phase 8 | Pending |
-| SPELL-02 | Phase 8 | Pending |
-| SPELL-03 | Phase 8 | Pending |
-| SPELL-04 | Phase 8 | Pending |
-| SPELL-05 | Phase 8 | Pending |
-| SPELL-06 | Phase 8 | Pending |
-| SPELL-07 | Phase 8 | Pending |
-| SPELL-08 | Phase 8 | Pending |
-| SPELL-09 | Phase 8 | Pending |
-| ITEM-01 | Phase 8 | Pending |
-| ITEM-02 | Phase 8 | Pending |
-| SHOP-01 | Phase 8 | Pending |
+| SPELL-01 | Phase 8 | Complete |
+| SPELL-02 | Phase 8 | Complete |
+| SPELL-03 | Phase 8 | Complete |
+| SPELL-04 | Phase 8 | Complete |
+| SPELL-05 | Phase 8 | Complete |
+| SPELL-06 | Phase 8 | Complete |
+| SPELL-07 | Phase 8 | Complete |
+| SPELL-08 | Phase 8 | Complete |
+| SPELL-09 | Phase 8 | Complete |
+| ITEM-01 | Phase 8 | Complete |
+| ITEM-02 | Phase 8 | Complete |
+| SHOP-01 | Phase 8 | Complete |
 | COMBAT-01 | Phase 9 | Pending |
 | COMBAT-02 | Phase 9 | Pending |
 | COMBAT-03 | Phase 9 | Pending |

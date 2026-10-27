@@ -49,3 +49,16 @@ Manual E2E of plan 08-12 (blocking checkpoint). The app runs on the Android phon
 ## Outcome
 
 **12/12 pass** on 2026-10-27 — no gaps. Step 9 happened in branch A (the subscription delivered the GraphQL `equipSpell` before the tap). Adaptations (single character in two roles, tunnel removal and a silent listener instead of airplane mode, live DB seeds through the BE change stream, step 3 instant shortened to +30 s at the user's request) are in the session notes above; none changes what a step proves. SPELL-01..SPELL-07 are proven on the device.
+
+## Extension check (2026-10-27, plans 08-13/08-14)
+
+Same device, same local BE (`10e5f43`), FE rebuilt at `058e135` then at `95af6b6`; the user's own character (legend: five known spells, four owned loot items, one slot). Checked with the user after the review, fix and audit of the extension:
+
+| Check | Expected | Result | Note |
+|-------|----------|--------|------|
+| 13. **Spell chips** (SPELL-08, D-22/D-23) | «Tutti» + one chip per use type present among the known spells (Difesa, Attacco, Controllo in enum order); a chip filters the rows and leaves the slot row untouched; «Tutti» restores the list | pass | «Tutto corretto» |
+| 14. **Spell line** (SPELL-09, D-24) | rows read «Attacco: Fuoco 1000», «Difesa: Radioso 950», «Controllo: Psichico 2000»…; the long-press sheet keeps «Uso: Attacco» and shows the same line | pass | «Tutto corretto» |
+| 15. **Item chips and lines** (ITEM-01, ITEM-02, D-25..D-27) | «Oggetti» shows «Tutti» + Cura, Sazietà, Danno; rows read «Danno: 10», «Danno: 20», «Cura: 500», «Sazietà: 50»; a chip filters the rows | pass, after one fix | first build: the chip row was centred instead of left-aligned (user: «La lista dei filtri per gli oggetti invece di essere allineata a sinistra è al centro dello schermo»); cause: the «Oggetti» `Column` used the default cross-axis alignment, and the shop columns had the same latent defect; fixed in TDD (`test(filters)…` + `fix(filters): start the chip rows at the left edge of the rows`, `95af6b6`) with two geometry tests; second build: «Tutto corretto» |
+| 16. **Shop chips** (SHOP-01, D-23) | armour and item chips limited to the types present on sale; item rows carry the effect line | pass | «Tutto corretto» (same alignment fix applied) |
+
+Outcome of the extension check: 4/4 pass on the rebuilt app; no open gap.

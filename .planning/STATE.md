@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-10-27T12:31:14.238Z"
-last_activity: "2026-10-27 -- Phase 8 plan 08-13 executed (present-types helper, shared ItemsFilter, «Attacco: Fuoco 12» line, UseType chips in the spells section, shop chips limited to the present types)"
+status: planning
+last_updated: "2026-10-27T18:34:02.000Z"
+last_activity: "2026-10-27 -- Phase 8 completed (14 plans, device UAT 12/12 + extension check 4/4, extension 08-13/08-14 reviewed, fixed, verified and audited); FE PR opened"
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 87
-  completed_plans: 74
-  percent: 85
+  completed_plans: 87
+  percent: 100
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves; plans 08-01..08-11 done and hardened (review 2 WR/4 IN → 4 fixed, verification human_needed 4/4 SC, security 34/34 closed + 6 deferred to 08-12); 08-12 done (BE 9.1 gate, schema_check 34 OK, device UAT 12/12 pass); extended to 14 plans with 08-13/08-14 (2026-10-27, user request)
-Plan: 14 of 14
-Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: Phase 8 review → verify → fix → security → device check on `feat/08-spells-section-journal-tab`; then the FE PR `feat/08-spells-section-journal-tab` → `develop`; then FE Phase 9 (Combat Result Sheet)
-Status: Executing Phase 8 — all 14 plans executed (device UAT 12/12 pass on 2026-10-27, SPELL-01..07 ticked; 08-13 SPELL-08/09 + SHOP-01 and 08-14 ITEM-01/02 awaiting verification); next: review → verify → fix → security → device check, then the FE PR
-Last activity: 2026-10-27 -- Phase 8 plan 08-14 executed (EffectType Italian labels, «Cura: 12» line in the shared ItemRow, EffectType chips on the Journal «Oggetti» section, shared Journal test harness)
+Phase: 9 (Combat Result Sheet) — NOT STARTED (Phase 8 complete on 2026-10-27: 14 plans in 8 waves, device UAT 12/12 + extension check 4/4; FE PR `feat/08-spells-section-journal-tab` → `develop` opened)
+Plan: —
+Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
+Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-discuss-phase 9` then plan on `feat/09-combat-result-sheet` off `develop`, after the Phase 8 PR merge; BE follow-up: rebase `feat/10-hardening` on BE `develop`
+Status: Phase 8 complete (2026-10-27) — PR open on `develop`; next: Phase 9 discuss
+Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, fixed, verified and audited; extension device check 4/4; FE PR opened)
 
 ## Current Milestone
 
