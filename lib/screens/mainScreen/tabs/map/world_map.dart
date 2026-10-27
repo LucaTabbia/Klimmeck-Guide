@@ -31,6 +31,7 @@ import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
 import 'layers/travel_route_layer.dart';
+import 'mapAvailabilityCubit/map_availability_cubit.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
 import 'travelProgressCubit/arrival_reread_ledger.dart';
 import 'travelProgressCubit/travel_progress_cubit.dart';
@@ -59,6 +60,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   // Travel state: vive con la mappa, ticchetta solo a mappa montata
   late final TravelProgressCubit _progressCubit;
 
+  /// Letto in `initState`: `dispose` non può usare `context.read`.
+  late final MapAvailabilityCubit _availability;
+
   // Animation controllers
   late AnimationController _questAnimationController;
 
@@ -78,6 +82,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _availability = context.read<MapAvailabilityCubit>();
     _initializeBounds();
     _initializeAnimationControllers();
     _initializeTravelProgress();
@@ -128,13 +133,20 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     if (status.isDismissed) _clearSelection();
   }
 
-  void _clearSelection() => setState(() {
-    _selectedQuest = null;
-    _selectedLane = null;
-  });
+  void _clearSelection() {
+    setState(() {
+      _selectedQuest = null;
+      _selectedLane = null;
+    });
+    _availability.questSheetChanged(false);
+  }
 
+  /// Un flag rimasto acceso bloccherebbe ogni foglio esiti (T-9-14).
   @override
   void dispose() {
+    _availability
+      ..questSheetChanged(false)
+      ..pawnDragChanged(false);
     _questAnimationController.removeStatusListener(
       _onQuestAnimationStatusChanged,
     );
@@ -334,6 +346,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   void _handleCharacterDragUpdate(LatLng newLocation) {
+    _availability.pawnDragChanged(true);
     final screenSize = (context.findRenderObject() as RenderBox?)?.size;
     if (screenSize == null) return;
 
@@ -351,6 +364,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   /// D-01/D-02: la città più vicina al rilascio è la meta; quella in cui il
   /// personaggio si trova già non apre nulla (la pedina torna al suo posto).
   void _handleCharacterDragEnd(LatLng? finalLocation, City? targetCity) {
+    _availability.pawnDragChanged(false);
     _stopAnimation();
     final character = context.read<CharacterCubit>().state;
     if (character is! CharacterLoaded) return;
@@ -422,6 +436,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       _selectedQuest = quest;
       _selectedLane = null;
     });
+    _availability.questSheetChanged(true);
     _questAnimationController.forward();
   }
 
@@ -430,6 +445,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       _selectedQuest = quest;
       _selectedLane = lane;
     });
+    _availability.questSheetChanged(true);
     _questAnimationController.forward();
     if (lane.isWaitingForParty) _refreshPartyCount();
   }
