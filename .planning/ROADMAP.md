@@ -50,6 +50,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 
 - **QUEST-04** — `activeStoryQuest` / `activeWorldMissionQuest` fields on `Character` (or `CharacterQuests`). Blocks Phase 6 (Quest Accept).
 - **TRAVEL-01** — `status.activeTravel { road, startTime, endTime, duration }` on `Character`. Blocks Phase 7 (Travel).
+- **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -253,7 +254,7 @@ Plans:
 
 ### Phase 8: Spells Section (Journal Tab)
 **Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
-**Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`)
+**Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`), **BE Phase 9.1 Spell State and Recovery Contract** (`CharacterStatus.spellStates { spell usages recoveries }`, additive; the BE PR merges before the FE plan that selects it — added 2026-10-27)
 **Scope**: M
 **Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07
 **Success Criteria** (what must be TRUE):
@@ -264,6 +265,7 @@ Plans:
 **Decisions to make during discuss step**:
   - Audit what the existing partial Spells section already provides vs what must be built.
   - Gameplay surface — NO app-style chrome.
+**Backend prerequisite**: BE Phase 9.1 — per-spell state `spellStates { spell usages recoveries }` that outlives equip/disequip (user rule 2026-10-27); proposed in `.planning/phases/08-spells-section-journal-tab/BACKEND-NOTES.md`, fixed in the BE `09.1-CONTEXT.md`. Only the schema-gated final plan waits for it.
 **Plans**: TBD
 **UI hint**: yes
 
