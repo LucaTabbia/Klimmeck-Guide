@@ -465,6 +465,7 @@ void main() {
 
         expect(cubit.toggle(_character(), _spellA), SpellToggleIntent.equip);
         calls.first.complete();
+        async.flushMicrotasks();
         calls.last.completeError(
           const SpellEquipException(SpellEquipFailure.slotsFull),
         );
@@ -479,6 +480,101 @@ void main() {
           failedA(SpellEquipFailure.slotsFull, sequence: 2),
         ]);
         cubit.close();
+      });
+    });
+
+    group('one mutation in flight at a time (WR-02)', () {
+      (SpellsCubit, List<SpellsState>) swapAForB() {
+        final (cubit, states) = start();
+        final full = _character(active: [_spellA]);
+        expect(cubit.toggle(full, _spellA), SpellToggleIntent.unequip);
+        expect(cubit.toggle(full, _spellB), SpellToggleIntent.equip);
+        return (cubit, states);
+      }
+
+      void verifyEquipOfBStarted() => verify(
+        () => repository.equip(characterId: 'c-1', spellId: _spellB),
+      ).called(1);
+
+      test('both taps are optimistic at once, only the first call starts', () {
+        fakeAsync((async) {
+          final (cubit, _) = swapAForB();
+          async.flushMicrotasks();
+
+          expect(cubit.state.pending, {
+            _spellA: SpellOperation.unequip,
+            _spellB: SpellOperation.equip,
+          });
+          verify(
+            () => repository.unequip(characterId: 'c-1', spellId: _spellA),
+          ).called(1);
+          verifyNoEquip();
+          expect(calls, hasLength(1));
+          cubit.close();
+        });
+      });
+
+      test(
+        'the next call starts when the previous completes, in tap order',
+        () {
+          fakeAsync((async) {
+            final (cubit, _) = swapAForB();
+            calls.single.complete();
+            async.flushMicrotasks();
+
+            verifyEquipOfBStarted();
+            expect(calls, hasLength(2));
+            cubit.close();
+          });
+        },
+      );
+
+      test('the next call starts when the previous fails', () {
+        fakeAsync((async) {
+          final (cubit, _) = swapAForB();
+          calls.single.completeError(
+            const SpellEquipException(SpellEquipFailure.connection),
+          );
+          async.flushMicrotasks();
+
+          verifyEquipOfBStarted();
+          cubit.close();
+        });
+      });
+
+      test('the settle timeout still counts from the tap', () {
+        fakeAsync((async) {
+          final (cubit, states) = swapAForB();
+          async.elapse(SpellsCubit.defaultSettleTimeout);
+
+          expect(cubit.state.pending, isEmpty);
+          expect(states.last.outcome?.spellId, _spellB);
+          expect(states.last.outcome?.failure, SpellEquipFailure.timedOut);
+          cubit.close();
+        });
+      });
+
+      test('a queued operation settled before its turn is never sent', () {
+        fakeAsync((async) {
+          final (cubit, _) = swapAForB();
+          async.elapse(SpellsCubit.defaultSettleTimeout);
+          calls.single.complete();
+          async.flushMicrotasks();
+
+          verifyNoEquip();
+          cubit.close();
+        });
+      });
+
+      test('close drops the queued calls', () {
+        fakeAsync((async) {
+          final (cubit, _) = swapAForB();
+          cubit.close();
+          calls.single.complete();
+          async.flushMicrotasks();
+
+          verifyNoEquip();
+        });
       });
     });
 
