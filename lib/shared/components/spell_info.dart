@@ -49,7 +49,7 @@ class SpellInfo extends StatelessWidget {
   }
 
   List<String> _detailLines() => [
-    spellDamageLabel(spell.energyDamage),
+    spellDamageLabel(spell.energyDamage, useType: spell.useType),
     spellMaxUsagesLabel(spell.maxUsages),
     spellRecoveryTimeLabel(spell),
     spellLearnLabel(spell),

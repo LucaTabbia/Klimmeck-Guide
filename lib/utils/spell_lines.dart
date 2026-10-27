@@ -42,12 +42,15 @@ String? spellRecoveryTimeLabel(Spell spell) {
   return 'Recupero: ${formatGameDuration(Duration(milliseconds: milliseconds))}';
 }
 
-String? spellDamageLabel(EnergyDamage? damage) {
+/// Energia e potenza introdotte dal tipo d'uso («Attacco: Fuoco 12», D-24);
+/// senza tipo d'uso resta «Danno».
+String? spellDamageLabel(EnergyDamage? damage, {UseType? useType}) {
   final type = damage?.type;
   if (type == null) return null;
+  final prefix = useType?.label ?? 'Danno';
   final power = damage?.power;
-  if (power == null || power == 0) return 'Danno: ${type.label}';
-  return 'Danno: ${type.label} $power';
+  if (power == null || power == 0) return '$prefix: ${type.label}';
+  return '$prefix: ${type.label} $power';
 }
 
 String? spellUseTypeLabel(UseType? useType) =>
@@ -70,8 +73,9 @@ String? spellLearnLabel(Spell spell) {
   return 'Per impararla: ${parts.join(spellLineSeparator)}';
 }
 
-/// Riga compatta della lista (D-13, D-05): usi, poi recupero (durata a usi
-/// pieni, countdown sotto il massimo), poi danno.
+/// Riga compatta della lista (D-13, D-05, D-24): usi, poi recupero (durata a
+/// usi pieni, countdown sotto il massimo), poi energia introdotta dal tipo
+/// d'uso.
 String spellSummaryLine({
   required Spell spell,
   required int? usages,
@@ -81,5 +85,5 @@ String spellSummaryLine({
   recovery is SpellRecoveryFull
       ? spellRecoveryTimeLabel(spell)
       : spellRecoveryLabel(recovery),
-  spellDamageLabel(spell.energyDamage),
+  spellDamageLabel(spell.energyDamage, useType: spell.useType),
 ].whereType<String>().join(spellLineSeparator);
