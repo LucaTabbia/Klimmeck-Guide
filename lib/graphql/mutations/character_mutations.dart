@@ -39,7 +39,7 @@ class CharacterMutations {
     }''';
 
   static const String equipSpell = r'''
-    mutation equipSpell($request: EquipSpellRequest!) {
+    mutation EquipSpell($request: EquipSpellRequest!) {
       equipSpell(request: $request) {
         response
         successful
@@ -47,7 +47,7 @@ class CharacterMutations {
     }''';
 
   static const String unequipSpell = r'''
-    mutation unequipSpell($request: EquipSpellRequest!) {
+    mutation UnequipSpell($request: EquipSpellRequest!) {
       unequipSpell(request: $request) {
         response
         successful
