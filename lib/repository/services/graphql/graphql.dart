@@ -406,22 +406,21 @@ class KlimmeckGraphQl {
     return Lore.fromJson(loreData);
   }
 
+  /// Lancia [OperationException] (codici in `transaction_failure.dart`) o
+  /// [FormatException].
   Future<String> doTransaction(TransactionRequest request) async {
-    final result = await performMutation(
-      query: CharacterMutations.doTransaction,
-      variables: {"request": request},
+    final data = _dataOrThrow(
+      await performMutation(
+        query: CharacterMutations.doTransaction,
+        variables: {"request": request},
+      ),
     );
-    if (result.hasException) {
-      final errorMessage = getGenericErrorMessage(result.exception);
-      throw Exception(errorMessage);
+    final result = data['doTransaction'];
+    final response = result is Map<String, dynamic> ? result['response'] : null;
+    if (response is! String) {
+      throw const FormatException('doTransaction malformed');
     }
-
-    final dynamic transactionResult = result.data?['doTransaction'];
-    if (transactionResult == null) {
-      throw Exception('Bad Transaction');
-    }
-
-    return transactionResult["response"];
+    return response;
   }
 
   Future<String> equipItem(EquipItemRequest request) async {
