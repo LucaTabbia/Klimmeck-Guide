@@ -4,9 +4,9 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
-import '../animated_pencil_text.dart';
 
 class EquipmentItemCard extends StatefulWidget {
   const EquipmentItemCard({
@@ -122,54 +122,7 @@ class _EquipmentItemCardState extends State<EquipmentItemCard> {
               Positioned(
                 right: 7,
                 top: 5,
-                child: SizedBox(
-                  height: 50,
-                  width: 25,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                            final fadeIn = CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(
-                                0.3,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            );
-
-                            final scaleIn = Tween<double>(
-                              begin: 1.2,
-                              end: 1.0,
-                            ).animate(fadeIn);
-
-                            return FadeTransition(
-                              opacity: fadeIn,
-                              child: ScaleTransition(
-                                scale: scaleIn,
-                                child: child,
-                              ),
-                            );
-                          },
-                      layoutBuilder: (currentChild, previousChildren) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      child: AnimatedPencilText(
-                        key: ValueKey<int>(widget.quantity!),
-                        text: widget.quantity!.toString(),
-                      ),
-                    ),
-                  ),
-                ),
+                child: UsagesPencilCounter(value: widget.quantity!),
               ),
             if (_isSelected != null)
               CardBookmark(isMarked: _isSelected!, cardSize: widget.size),

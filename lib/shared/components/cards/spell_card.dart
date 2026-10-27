@@ -4,9 +4,9 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
-import '../animated_pencil_text.dart';
 
 class SpellCard extends StatelessWidget {
   static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
@@ -71,54 +71,7 @@ class SpellCard extends StatelessWidget {
               Positioned(
                 right: 7,
                 bottom: 0,
-                child: SizedBox(
-                  height: 50,
-                  width: 25,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                            final fadeIn = CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(
-                                0.3,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            );
-
-                            final scaleIn = Tween<double>(
-                              begin: 1.2,
-                              end: 1.0,
-                            ).animate(fadeIn);
-
-                            return FadeTransition(
-                              opacity: fadeIn,
-                              child: ScaleTransition(
-                                scale: scaleIn,
-                                child: child,
-                              ),
-                            );
-                          },
-                      layoutBuilder: (currentChild, previousChildren) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      child: AnimatedPencilText(
-                        key: ValueKey<int>(usages!),
-                        text: usages.toString(),
-                      ),
-                    ),
-                  ),
-                ),
+                child: UsagesPencilCounter(value: usages!),
               ),
             if (isMarked != null)
               CardBookmark(isMarked: isMarked!, cardSize: size),
