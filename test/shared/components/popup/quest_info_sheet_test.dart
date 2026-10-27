@@ -56,10 +56,10 @@ void main() {
       'enemy': 'combat',
       'boss': 'combat',
       'dungeon': 'combat',
+      'aid': 'combat',
       'story': 'narrative',
       'worldMission': 'narrative',
       'heal': 'service',
-      'aid': 'service',
       'job': 'service',
       'study': 'service',
       'crime': 'service',
@@ -95,6 +95,23 @@ void main() {
       expect(find.text('Arbusto maligno'), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
       expect(find.textContaining('Tempo richiesto: '), findsOneWidget);
+    });
+
+    testWidgets('aid shows the enemy name and no cost line', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'aid',
+          requiredPoints: null,
+          enemy: {'id': 'enemy-1', 'name': 'Lupo grigio', 'imagePath': null},
+        ),
+        viewer: buildViewer(twitchPoints: 1200),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(QuestInfoSheet.combatFamilyKey), findsOneWidget);
+      expect(find.text('Lupo grigio'), findsOneWidget);
+      expect(find.textContaining('Punti canale'), findsNothing);
     });
 
     testWidgets('renders without enemy and without image', (tester) async {

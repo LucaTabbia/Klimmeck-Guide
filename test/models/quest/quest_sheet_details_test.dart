@@ -18,12 +18,13 @@ Map<String, dynamic> reg(String id, String? title) => {
 
 void main() {
   group('questSheetFamilyOf', () {
-    test('maps every quest type to its family', () {
+    test('maps every quest type to its family (aid is combat, D-17)', () {
       for (final type in [
         QuestType.hunt,
         QuestType.enemy,
         QuestType.boss,
         QuestType.dungeon,
+        QuestType.aid,
       ]) {
         expect(questSheetFamilyOf(type), QuestSheetFamily.combat);
       }
@@ -32,7 +33,6 @@ void main() {
       }
       for (final type in [
         QuestType.heal,
-        QuestType.aid,
         QuestType.job,
         QuestType.study,
         QuestType.crime,
