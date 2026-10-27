@@ -128,6 +128,15 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 - [x] **SPELL-07**: The UI respects backend-determined slot availability — slot unlocks (e.g. after gaining `mage` title) are driven by changes in `maxActiveSpells`, not frontend logic
   - _Nota 2026-10-27 (D-10..D-12): la riga degli slot ha esattamente `maxActiveSpells` box; con `maxActiveSpells == 0` nessuna riga di slot e una riga di copy neutro senza numeri; senza magie conosciute la sezione non viene costruita._
 
+- [ ] **SPELL-08**: The known-spell list can be filtered by `useType` with the shop's icon chips («Tutti» + one chip per use type present in the list); the slot row never changes _(added 2026-10-27 after the Phase 8 device UAT, D-22/D-23)_
+- [ ] **SPELL-09**: The compact spell line and the detail sheet show the use-type label in place of «Danno» («Attacco: Fuoco 12»; «Danno: …» only when `useType` is missing); the sheet keeps its «Uso: …» line _(added 2026-10-27, D-24)_
+
+### Journal Items and Shop (Phase 8 extension, added 2026-10-27)
+
+- [ ] **ITEM-01**: `EffectType` has an Italian label (Cura, Sazietà, Danno, Esplorazione, Nessun effetto) and every loot item row (Journal and shop, shared `ItemRow`) shows «<label>: <power>» under the description (D-25/D-26)
+- [ ] **ITEM-02**: The Journal «Oggetti» section can be filtered by `effect` with the same icon chips, limited to the effect types present among the owned items (D-27/D-23)
+- [ ] **SHOP-01**: The shop filters show only the equip/effect types present in the lists on sale or owned (D-23)
+
 ### Combat Result Sheet
 
 - [ ] **COMBAT-01**: When a combat resolves, the user sees a full-screen result sheet (not a bottom sheet), triggered by a subscription event in foreground or by an FCM push when backgrounded
@@ -222,6 +231,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | QUEST-01 through QUEST-07   | Phase 6 | Complete (QUEST-03/04/05/06/07 as amended 2026-10-21; Android device E2E 2026-10-22) |
 | TRAVEL-01 through TRAVEL-04 | Phase 7 | Complete (TRAVEL-01 shipped by BE Phase 8; TRAVEL-02/03 amended 2026-10-24; Android device E2E 2026-10-26) |
 | SPELL-01 through SPELL-07   | Phase 8 | Complete |
+| SPELL-08, SPELL-09          | Phase 8 | Pending |
+| ITEM-01, ITEM-02, SHOP-01   | Phase 8 | Pending |
 | COMBAT-01 through COMBAT-07 | TBD   | Pending |
 | ADMIN-01 through ADMIN-08   | TBD   | Pending |
 | HARDEN-01 through HARDEN-06 | TBD   | Pending |

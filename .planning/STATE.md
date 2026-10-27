@@ -8,9 +8,9 @@ last_activity: "2026-10-27 -- Phase 8 device UAT passed 12/12; phase extended wi
 progress:
   total_phases: 12
   completed_phases: 8
-  total_plans: 85
-  completed_plans: 73
-  percent: 86
+  total_plans: 87
+  completed_plans: 74
+  percent: 85
 ---
 
 # Project State

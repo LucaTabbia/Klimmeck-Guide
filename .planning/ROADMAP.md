@@ -256,17 +256,18 @@ Plans:
 **Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
 **Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`), **BE Phase 9.1 Spell State and Recovery Contract** (`CharacterStatus.spellStates { spell usages recoveries }`, additive; the BE PR merges before the FE plan that selects it — added 2026-10-27)
 **Scope**: M
-**Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07
+**Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07, SPELL-08, SPELL-09, ITEM-01, ITEM-02, SHOP-01 (the last five added on 2026-10-27, extension after the device UAT)
 **Success Criteria** (what must be TRUE):
   1. The Journal tab shows the list of owned spells with `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary.
   2. Tapping a spell assigns it to an available active slot (slot count = `maxActiveSpells`, backend-driven); tapping an active slot disequips it; UI updates optimistically and rolls back on backend failure.
   3. Every known spell below its maximum shows the remaining `usages` and a live «prossimo tra X» countdown from `status.spellStates[].recoveries` against server time (static «in recupero» without an instant); the slot card shows the usages only. _(Amended 2026-10-27 after the Phase 8 research, per the SPELL-05 amendment.)_
   4. Slot availability reflects `maxActiveSpells` changes from the subscription (e.g. new slot appearing after a title change) with no frontend slot logic.
+  5. (extension 2026-10-27) The known-spell list and the Journal «Oggetti» section can be filtered by use type / effect type with the shop's icon chips limited to the types present (the shop chips follow the same rule); the spell line reads «Attacco: Fuoco 12» and every loot row «Cura: 12».
 **Decisions to make during discuss step**:
   - Audit what the existing partial Spells section already provides vs what must be built.
   - Gameplay surface — NO app-style chrome.
 **Backend prerequisite**: BE Phase 9.1 — per-spell state `spellStates { spell usages recoveries }` that outlives equip/disequip (user rule 2026-10-27); proposed in `.planning/phases/08-spells-section-journal-tab/BACKEND-NOTES.md`, fixed in the BE `09.1-CONTEXT.md`. Only the schema-gated final plan waits for it.
-**Plans**: 12 plans
+**Plans**: 14 plans
   - [x] 08-01-PLAN.md — Wave 1: SpellState + optional spellStates, spell fixtures, shared formatGameDuration
   - [x] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
   - [x] 08-03-PLAN.md — Wave 2: shared BookmarkRibbon + pencil counter, SpellCard bookmark, pending-ink tokens
@@ -279,6 +280,8 @@ Plans:
   - [x] 08-10-PLAN.md — Wave 4: spell notices, SpellOutcomeListener, shell provider + MainScreen mount
   - [x] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
   - [x] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
+  - [ ] 08-13-PLAN.md — Wave 7 (extension 2026-10-27): present-types helper, «Attacco: Fuoco 12» line, UseType chips in the spells section, shop chips limited to the present types
+  - [ ] 08-14-PLAN.md — Wave 8 (extension 2026-10-27): EffectType labels, «Cura: 12» line in the shared ItemRow, EffectType chips in the Journal «Oggetti» section
 **UI hint**: yes
 
 ### Phase 9: Combat Result Sheet
@@ -372,7 +375,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 11/12 | In Progress | - |
+| 8. Spells Section (Journal Tab) | 12/14 | In Progress | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
@@ -434,6 +437,11 @@ Plans:
 | SPELL-05 | Phase 8 | Pending |
 | SPELL-06 | Phase 8 | Pending |
 | SPELL-07 | Phase 8 | Pending |
+| SPELL-08 | Phase 8 | Pending |
+| SPELL-09 | Phase 8 | Pending |
+| ITEM-01 | Phase 8 | Pending |
+| ITEM-02 | Phase 8 | Pending |
+| SHOP-01 | Phase 8 | Pending |
 | COMBAT-01 | Phase 9 | Pending |
 | COMBAT-02 | Phase 9 | Pending |
 | COMBAT-03 | Phase 9 | Pending |
