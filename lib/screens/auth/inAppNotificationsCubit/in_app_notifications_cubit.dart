@@ -12,7 +12,8 @@ import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 part 'in_app_notifications_state.dart';
 
 /// Banner in-app della shell (D-17/D-18): unico percorso di pubblicazione per
-/// ogni produttore (FCM in foreground oggi, le subscription di Phase 7/9 domani).
+/// ogni produttore (FCM in foreground, gli avvisi locali, la subscription dei
+/// risultati di Phase 9).
 /// Uno alla volta, in coda, chiusura automatica; un evento già visto nella
 /// finestra di dedup non si ripete.
 class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
@@ -69,6 +70,20 @@ class InAppNotificationsCubit extends Cubit<InAppNotificationsState>
     _expiresAt[key] = now.add(_displayDuration);
     _queue.add(InAppNotice(notification: notification, dedupKey: dedupKey));
     if (!state.isShowing) _showNext();
+  }
+
+  /// Un foglio esiti già aperto (D-07, C6): la chiave conta come vista per la
+  /// finestra personale e un banner in coda o visibile con la stessa chiave
+  /// sparisce.
+  void suppress(String dedupKey) {
+    if (isClosed) return;
+    final now = _now();
+    _expiresAt.removeWhere((_, expiry) => !now.isBefore(expiry));
+    _expiresAt[dedupKey] = now.add(personalDedupWindow);
+    _queue.removeWhere(
+      (entry) => entry is PushEvent && entry.dedupKey == dedupKey,
+    );
+    if (state.current?.dedupKey == dedupKey) _showNext();
   }
 
   /// Tap o chiusura: passa al prossimo in coda.
