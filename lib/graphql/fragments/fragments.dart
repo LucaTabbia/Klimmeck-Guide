@@ -8,5 +8,6 @@ export 'equipment_fragment.dart';
 export 'location_fragment.dart';
 export 'loot_fragment.dart';
 export 'quest_fragment.dart';
+export 'quest_result_fragment.dart';
 export 'spell_fragment.dart';
 export 'user_fragment.dart';

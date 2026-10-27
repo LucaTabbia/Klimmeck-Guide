@@ -10,9 +10,11 @@ import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 
@@ -22,7 +24,9 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// La Phase 5 aggiunge `RegisterPushDevice` e `UnregisterPushDevice`; la
 /// Phase 7 aggiunge `GetServerTime`, `GetTravelPreview` e `StartTravel`; il
 /// quick 261025-grp aggiunge `AbandonQuest`; il quick 261026-prt aggiunge
-/// `OnQuestUpdated`; la Phase 8 rinomina `EquipSpell` e `UnequipSpell`;
+/// `OnQuestUpdated`; la Phase 8 rinomina `EquipSpell` e `UnequipSpell`; la
+/// Phase 9 aggiunge `OnQuestResultReceived` e `GetQuestResult` (i documenti
+/// BE 9.2 col piano 09-12);
 /// ogni documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
@@ -41,6 +45,7 @@ final Map<String, String> schemaCheckDocuments = {
   'equipmentAssetsQuantity': EquipmentItemQueries.getAllEquipmentAssetsQuantity,
   'equipmentItemsByIds': EquipmentItemQueries.getEquipmentItemsByIds,
   'quests': QuestQueries.getAllQuests,
+  'GetQuestResult': QuestResultQueries.getQuestResult,
   'lores': LoreQueries.getAllLores,
   'lore': LoreQueries.getLoreById,
   'CreateCharacter': CharacterMutations.createCharacter,
@@ -60,4 +65,5 @@ final Map<String, String> schemaCheckDocuments = {
   'characterUpdated': CharacterSubscriptions.characterUpdated,
   'OnUserChanged': UserSubscriptions.userUpdated,
   'OnQuestUpdated': QuestSubscriptions.questUpdated,
+  'OnQuestResultReceived': QuestResultSubscriptions.questResultReceived,
 };
