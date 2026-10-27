@@ -3,7 +3,7 @@ phase: 8
 slug: spells-section-journal-tab
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-10-27
 ---
 
@@ -61,6 +61,9 @@ created: 2026-10-27
 | 8-10-02 | 10 | 4 | SPELL-06 | T-8-30 | `SpellsCubit` provided by `AuthenticatedShell` (fresh `SpellsState`, closed on shell removal), never by a Journal tab; `SpellOutcomeListener` mounted in `MainScreen` so a rollback banner appears on any page | widget | `flutter test test/screens/auth test/screens/mainScreen/main_screen_test.dart test/screens/mainScreen/components` | ✅ | ✅ green |
 | 8-11-01 | 11 | 5 | SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-07 | T-8-31 / T-8-32 / T-8-34 | haptic chosen from the `SpellsCubit.toggle` intent (equip/unequip → light impact, blocked → selection click, ignored → none); `SpellRecoveryCubit` created by the section's `BlocProvider(create:)` and closed on unmount; re-followed on every new character; no `BlocProvider<SpellsCubit>`, no AppBar/SnackBar/AlertDialog/spinner in the section | widget | `flutter test test/screens/mainScreen/tabs/journal/sections` | ✅ | ✅ green |
 | 8-11-02 | 11 | 5 | SPELL-01, SPELL-04, SPELL-07 | T-8-33 | `journal.dart` hosts `SpellsSection` (no spell `!` reads left) and the long-press `SpellDetailsSheet` in the existing sliding sheet (top 0, right 0 when open, closed by a tap outside); `SpellRow` deleted | widget | `flutter test test/screens/mainScreen/tabs/journal test/shared` | ✅ | ✅ green |
+| 8-12-01 | 12 | 6 | SPELL-01..07 | T-8-35 / T-8-36 / T-8-40 | BE gate first (`spellStates` on BE `origin/develop:src/schema.gql`, ref `10e5f43`, PR #14); SDL equal to the proposal A1/A2; `SpellState.fromJson` normalises every instant to UTC (`.toUtc()`, O-1); `CharacterFragment` selects `spellStates { usages recoveries spell { id } }` only through `character`/`characterUpdated` (BE Pitfall 4); recorded handoff payload parses; `tool/schema_check` 34 OK; full suite green (2096); analyzer 53 issues / 0 errors; BE repo read with `fetch`/`show` only | unit + schema | `flutter test test/graphql test/tool test/models/spell && flutter test` + `tool/schema_check` (dump + validate vs BE `origin/develop`) | ✅ | ✅ green |
+| 8-12-02 | 12 | 6 | SPELL-01..07 | T-8-37 / T-8-38 | device E2E (12 steps of `08-HUMAN-UAT.md`) against the local BE `develop` with the 9.1 UAT data; no secrets or user ids in the notes | manual | `08-HUMAN-UAT.md` | ✅ | ⬜ pending (human E2E) |
+| 8-12-03 | 12 | 6 | SPELL-01..07 | T-8-39 | requirements ticked only for passed steps; roadmap row closed; BE handoff updated | docs | `grep "SPELL-01 through SPELL-07" .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -69,10 +72,10 @@ created: 2026-10-27
 ## Wave 0 Requirements
 
 - [x] `test/helpers/fixtures/spell_fixtures.dart`: `spellJson`, `activeSpellJson`, `spellStateJson`, `spellbookCharacterJson` (with and without `spellStates`; UTC ISO instants) — plan 08-01
-- [ ] `test/helpers/mocks.dart`: `MockSpellsRepository`, `MockSpellsCubit`, `MockSpellRecoveryCubit` (registerFallbackValue for `Character` where `toggle`/`sync` are verified)
-- [ ] (base in 08-09: `test/helpers/spells_harness.dart` `pumpSpellsHarness(tester, child, {wrap})` + `seedSpellSvgs()`; providers via `wrap` in 08-11) A section harness helper (fixed-width `SingleChildScrollView` + providers: `CharacterCubit`, `SpellsCubit`, `RepositoryProvider<ServerClockService>.value(FakeServerClockService)`) and `seedSvgCache` ids for the spell fixtures
+- [x] `test/helpers/mocks.dart`: `MockSpellsRepository`, `MockSpellsCubit`, `MockSpellRecoveryCubit` (registerFallbackValue for `Character` where `toggle`/`sync` are verified) — `MockSpellRecoveryCubit` not needed: the section owns its ticker (D-16) and its tests drive the real cubit with `FakeServerClockService`
+- [x] (base in 08-09: `test/helpers/spells_harness.dart` `pumpSpellsHarness(tester, child, {wrap})` + `seedSpellSvgs()`; providers via `wrap` in 08-11) A section harness helper (fixed-width `SingleChildScrollView` + providers: `CharacterCubit`, `SpellsCubit`, `RepositoryProvider<ServerClockService>.value(FakeServerClockService)`) and `seedSvgCache` ids for the spell fixtures
 - [x] Move `test/models/travel/travel_time_format_test.dart`'s `formatTravelDuration` group to `test/utils/game_duration_format_test.dart` — plan 08-01
-- [ ] `main_screen_test.dart` provider for `MockSpellsCubit` (Pitfall 9) in the plan that mounts the listener
+- [x] `main_screen_test.dart` provider for `MockSpellsCubit` (Pitfall 9) in the plan that mounts the listener
 
 No framework install needed.
 
@@ -97,10 +100,10 @@ No framework install needed.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
 - [ ] Feedback latency < 8s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
