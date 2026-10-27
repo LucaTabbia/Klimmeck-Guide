@@ -54,6 +54,20 @@ class _ShopModalState extends State<ShopModal> {
     super.initState();
   }
 
+  /// Un tipo sparito dalle liste riporta i chip a «Tutti» per sempre (D-23).
+  @override
+  void didUpdateWidget(ShopModal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    selectedEquipFilter = retainedFilterSelection(
+      selectedEquipFilter,
+      presentEquipTypes(widget.equipments),
+    );
+    selectedEffectFilter = retainedFilterSelection(
+      selectedEffectFilter,
+      presentEffectTypes(widget.items),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemSize = (MediaQuery.of(context).size.width - 200) / 5;
