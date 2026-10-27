@@ -24,6 +24,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outco
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
@@ -227,6 +228,27 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(travelCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides the spells cubit and closes it on removal', (
+    tester,
+  ) async {
+    late SpellsCubit spellsCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        spellsCubit = context.read<SpellsCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(spellsCubit.state, const SpellsState());
+    expect(spellsCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(spellsCubit.isClosed, isTrue);
   });
 
   testWidgets('syncs the server clock once when the session starts', (
