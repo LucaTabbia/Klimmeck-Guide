@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,6 +37,11 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
   /// Richieste riuscite in attesa di `characterUpdated`: mai stato dalla
   /// risposta della mutation (D-16).
   final Set<String> _succeeded = {};
+
+  /// Una mutation alla volta, in ordine di tap: «togli A, metti C» a slot
+  /// pieni non può arrivare al BE invertito. L'overlay resta immediato.
+  final Queue<Future<void> Function()> _mutations = Queue();
+  bool _isSending = false;
 
   /// Calcolato sulla vista ottimistica e restituito subito: il widget lo usa
   /// per l'aptica (D-08).
@@ -82,6 +88,7 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
     _timers.clear();
     _tokens.clear();
     _succeeded.clear();
+    _mutations.clear();
     return super.close();
   }
 
@@ -97,22 +104,33 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
         pending: Map.unmodifiable({...state.pending, spellId: operation}),
       ),
     );
-    unawaited(
-      _send(
+    _mutations.add(
+      () => _send(
         characterId: characterId,
         spellId: spellId,
         operation: operation,
         token: token,
       ),
     );
+    if (!_isSending) unawaited(_drainMutations());
   }
 
+  Future<void> _drainMutations() async {
+    _isSending = true;
+    while (_mutations.isNotEmpty) {
+      await _mutations.removeFirst()();
+    }
+    _isSending = false;
+  }
+
+  /// Un'operazione chiusa mentre era in coda (timeout, `close`) non parte.
   Future<void> _send({
     required String characterId,
     required String spellId,
     required SpellOperation operation,
     required int token,
   }) async {
+    if (_tokens[spellId] != token) return;
     try {
       await (operation == SpellOperation.equip
           ? _repository.equip(characterId: characterId, spellId: spellId)
