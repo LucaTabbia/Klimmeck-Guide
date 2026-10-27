@@ -2,18 +2,19 @@
 phase: 08
 slug: spells-section-journal-tab
 audited: 2026-10-27
-status: secured_with_deferred
+status: secured
 asvs_level: 1
 block_on: high
-threats_total: 40
-threats_mitigated: 33
-threats_accepted: 0
+threats_total: 50
+threats_mitigated: 44
+threats_accepted: 5
 threats_transferred: 1
 threats_open: 0
 threats_open_blocking: 0
-threats_deferred: 6
+threats_deferred: 0
 open_ids: []
-deferred_ids: [T-8-35, T-8-36, T-8-37, T-8-38, T-8-39, T-8-40]
+deferred_ids: []
+updated: 2026-10-27
 ---
 
 # Phase 08 - Security (Spells Section, Journal Tab, FE)
@@ -113,3 +114,74 @@ None. The `## Threat Flags` of the eleven `08-NN-SUMMARY.md` (08-01..08-11) repo
 | Date | Event |
 |------|-------|
 | 2026-10-27 | Audit of plans 08-01..08-11 at HEAD `bc4b99e`: 34 threats verified (33 mitigate, 1 transfer), all CLOSED; 6 threats of 08-12 DEFERRED; 507 targeted tests green; no unregistered flags. |
+
+## Update 2026-10-27 - 08-12 outcome and extension 08-13/08-14
+
+Read at HEAD `62fd38c` (later `7e34e8a`, a fixer test commit; the fixer edits to `journal.dart` and `shop_modal.dart` do not touch the threat surface). The six deferred threats of 08-12 are resolved and the extension threats T-8-41..T-8-50 are verified. No `.env` read, no BE repo touched. Targeted suite (`test/utils`, `test/shared/components`, `test/screens/mainScreen/tabs/journal`, `test/models/enums`): 348 tests; one run showed a transient red `journal_items_test.dart` "WR-01" case (the fixer's failing-test-first commit `7e34e8a` landing mid-audit); the same file re-run is 5/5 green.
+
+### 1. Deferred threats of 08-12 (T-8-35..T-8-40) - resolved
+
+| Threat | Cat. | Disp | Status | Evidence |
+|--------|------|------|--------|----------|
+| T-8-35 | DoS | M | CLOSED | BE gate passed first (`spellStates` on BE `origin/develop` `10e5f43`, PR #14, `08-12-SUMMARY.md`); `tool/schema_check` 34 OK vs that ref (SUMMARY, `08-VALIDATION.md` row 8-12-01); `character_fragment.dart:52-58` selects `spellStates { usages recoveries spell { id } }` (`test/graphql/character_fragment_test.dart`); device E2E 12/12 against the live BE confirms the stream works; parser stays tolerant (T-8-01). |
+| T-8-36 | Tampering | M | CLOSED | SDL read equal to proposal A1/A2 before the edit (SUMMARY "BE gate"); `spell_state.dart:14-22` parses `spell.id`, `usages`, `recoveries`; handoff payload parse test in 08-VALIDATION; no semantic drift checkpoint raised. |
+| T-8-37 | Info disc. | M | CLOSED | `grep -niE "token\|bearer\|twitchId\|MONGO_URI\|DEV_AUTH\|eyJ\|mongodb\|24-hex"` over `08-HUMAN-UAT.md`, `08-12-SUMMARY.md`, `BACKEND-NOTES.md`: every hit is prose ("no tokens in the transcript", "Nessun id utente, token o valore `.env`", "change stream MongoDB"); no values, no 24-hex ids, no JWTs. UAT notes line 30 states no user ids, Twitch ids, tokens or `.env` values. `.env` untracked (`git ls-files` shows only `.env.example`). |
+| T-8-38 | Tampering | M | CLOSED | Device UAT step 11 "pass" (server offset drives the countdown, `08-HUMAN-UAT.md`), plus unit coverage T-8-10/T-8-19; `spell_state.dart:19` now `.toUtc()` (closes O-1). |
+| T-8-39 | Repudiation | M | CLOSED | `REQUIREMENTS.md`: SPELL-01..07 `[x]` and traceability `Complete`; each maps to passed steps in the 08-12 SUMMARY table (all 12 pass). SPELL-08/09 correctly `[ ]` / `Pending` (extension, not yet device-proven). |
+| T-8-40 | Tampering | M | CLOSED | BE read via `fetch`/`show` only (SUMMARY); `git diff 0bc37b8..HEAD --stat` shows no BE path (only the FE copy `BACKEND-NOTES.md`). |
+
+Observation O-1 is resolved (`.toUtc()` in `SpellState.fromJson`).
+
+### 2. Extension 08-13 (T-8-41..T-8-45)
+
+| Threat | Cat. | Disp | Status | Evidence (file:line) | Test |
+|--------|------|------|--------|----------------------|------|
+| T-8-41 | DoS | M | CLOSED | `filter_values.dart:8-11` `found.whereType<T>()` drops nulls; `:20-30` reads `asset.item?.asEquipment?.equipType` / `item?.asLoot?.effect`; `shop_modal.dart` uses `e.item?.asEquipment?.equipType`; the old `e.item! as EquipmentItem` cast was removed (diff). Remaining `item!.id` at `shop_modal.dart:113,117,155,159` are pre-existing (not in the diff), see O-4. | `filter_values_test.dart` null cases |
+| T-8-42 | Tampering | M | CLOSED | `spellbook_content.dart:51` slot row fed `spellbook.slots`; only `_entriesOf(filter)` (`:81-83`) filters known rows | `spellbook_content_test.dart` slot under filter |
+| T-8-43 | Info disc. | A | CLOSED (accepted) | Selection is a widget field (`useTypeFilter` passed down, `setState` owner in `spells_section.dart`); grep `SharedPreferences` over journal, shop, `items_filter.dart`, `filter_values.dart` = 0; no GraphQL/repository change (see below). Logged below. | acceptance grep |
+| T-8-44 | Spoofing | M | CLOSED | `items_filter.dart` reuses theme tokens (`KlimmeckGuideTheme.*`) and `CachedSvg`; grep `CircularProgress|Loader|showDialog|Skeleton|AppBar` over the new files = 0 | `items_filter_test.dart` |
+| T-8-45 | Repudiation | A | CLOSED (accepted) | `spell_lines.dart:47-53` prefix is `useType?.label ?? 'Danno'`; presentational only, BE stays the source of truth. Logged below. | `spell_lines_test.dart` |
+
+### 3. Extension 08-14 (T-8-46..T-8-50)
+
+| Threat | Cat. | Disp | Status | Evidence (file:line) | Test |
+|--------|------|------|--------|----------------------|------|
+| T-8-46 | DoS | M | CLOSED | `journal.dart:227` `character.assets?.ownedItems ?? const <AssetQuantity>[]`; `:244-245` `if (owned.item case final item?)`; quantity passed nullable; grep `ownedItems!` = 0 | `journal_items_test.dart` (5 cases incl. empty list, vanished effect) |
+| T-8-47 | DoS | M | CLOSED | `item_lines.dart:8-14` null effect -> `null`, null/0 power dropped; `item_row.dart:36,86` prints the line only when non-null | `item_lines_test.dart`, `item_row_test.dart` |
+| T-8-48 | Info disc. | A | CLOSED (accepted) | `_selectedEffect` is a `State` field (`journal.dart:228`), never persisted nor sent; grep `SharedPreferences` = 0. Logged below. | acceptance grep |
+| T-8-49 | Spoofing | M | CLOSED | shared `ItemsFilter` + theme tokens; no chrome/loader widgets in `journal.dart` items section (grep) | `items_filter_test.dart` |
+| T-8-50 | Repudiation | A | CLOSED (accepted) | `effect_type.dart` `label` is a fixed Italian constant; `item_lines.dart` header "Copy provvisoria (D-19)"; BE stays the source of truth. Logged below. | `effect_type_test.dart` |
+
+Cross-cutting checks for the extension:
+
+- No data-path change: `git diff 36fd7c8..HEAD --stat` lists no file under `lib/graphql`, `lib/repository`, `lib/services` or `lib/network`; the filters are pure view state, no network or GraphQL document change.
+- Enum parsing unchanged: the `effect_type.dart` diff only adds a `label` constant per value; `imageId` and `imagePath` (via `CloudinaryAssets.url`) are unchanged, parsing by name untouched. Chips use `imagePath` only: no new asset or URL.
+- Rendering: BE strings are not interpolated into anything executable; the new copy is `'${effect.label}: $power'` (fixed label plus an `int`) and `'$prefix: ${type.label} $power'`; no URI, launch, HTML or format sink.
+- Logging: no `print`/`debugPrint` in any new file (grep). The two pre-existing `debugPrint` of O-2 are unchanged.
+- Null-safety: no new `!` on BE data in the audited new code (grep; only pre-existing `shop_modal.dart` `item!.id`).
+- DoS by chips: `presentFilterValues` returns a subset of `T.values` (`EffectType` 5, `UseType` and `EquipType` enum-sized), so chip count is bounded by the enum size.
+
+### Accepted Risks Log (added)
+
+| Threat | Risk | Rationale |
+|--------|------|-----------|
+| T-8-43 | filter selection state | In-memory only, never persisted or sent, no PII (D-22). |
+| T-8-45 | spell use-type copy may differ from BE logic | Presentational; BE is source of truth (CLAUDE.md rule 4); `Danno` fallback when `useType` is null. |
+| T-8-48 | items filter selection state | In-memory only, never persisted or sent (D-28). |
+| T-8-50 | item effect copy may differ from BE logic | Presentational; BE is source of truth. |
+
+### Unregistered Flags (update)
+
+None. `08-12`, `08-13` and `08-14` SUMMARY threat sections report no new surface or map to registered ids.
+
+### Observations (added, no threat id)
+
+- O-4: `shop_modal.dart:113,117,155,159` keep `item!.id` on rows of the shop lists. Pre-existing, outside the 08-13 register (the extension removed a `!` there, it added none); a partial payload with a null `item` would crash the shop list only. Optional hardening in a later phase.
+- O-5: `EffectType.none` renders «Nessun effetto» as a line and chip (review IN-02); copy only, no security impact.
+- O-6: reviewer WR-01/WR-02 (state written in build path, stale shop selection) are correctness items handled by the fixer; neither changes a threat disposition.
+
+### Audit Trail (added)
+
+| Date | Event |
+|------|-------|
+| 2026-10-27 | Update at HEAD `62fd38c`/`7e34e8a`: T-8-35..T-8-40 CLOSED (08-12 executed, device UAT 12/12, schema_check 34 OK); T-8-41..T-8-50 verified (6 mitigate, 4 accept), all CLOSED. Totals 50 threats: 44 mitigated, 5 accepted, 1 transferred, 0 open, 0 deferred. Status `secured`. |

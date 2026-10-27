@@ -1,43 +1,25 @@
 ---
 phase: 08-spells-section-journal-tab
 verified: 2026-10-27T00:00:00Z
-status: human_needed
-score: 4/4 success criteria verified in code and tests (plans 08-01..08-11); 7/7 requirement IDs accounted for; device E2E and plan 08-12 pending
+status: passed
+score: 5/5 success criteria and 12/12 requirement IDs verified (code, tests, device UAT 12/12)
 overrides_applied: 0
-re_verification: null
+re_verification:
+  previous_status: human_needed
+  previous_score: 4/4 success criteria in code, device E2E pending
+  gaps_closed:
+    - "Device E2E of SC1-SC4 (08-HUMAN-UAT.md, 12/12 pass)"
+    - "Plan 08-12: spellStates in CharacterFragment, schema gate 34 OK"
+  gaps_remaining: []
+  regressions: []
 gaps: []
-human_verification:
-  - test: "SC3 / SPELL-05 live countdown. With BE 9.1 merged and the fragment selecting spellStates, use a spell so usages < max. Open Journal > Magie imparate."
-    expected: "The row shows «Usi: n/max · prossimo tra X min», X counts down on its own against server time; at the recovery instant the label goes to the «in arrivo» wording until characterUpdated restores the use; at max usages no recovery text is shown; the slot card shows only the usages counter."
-    why_human: "Needs the real BE 9.1 payload, real Bull recovery jobs and wall-clock time; the code is tested only against fixtures and a fixed server clock."
-  - test: "D-01 recovery never stops. Unequip a spell that has a pending recovery, wait for its instant, then re-equip."
-    expected: "The use is recovered at the original instant regardless of the equip state; equipping does not reset usages."
-    why_human: "Backend behaviour (BE 9.1) observable only end to end on device."
-  - test: "SC2 / SPELL-03, SPELL-04, SPELL-06 optimistic equip/unequip with the real backend. Tap an inactive spell with a free slot; tap an active row; tap a card in a slot."
-    expected: "The card enters or leaves the slot at once with the attenuated «ink still wet» look, becomes full when characterUpdated arrives; the red bookmark appears on the row and the row keeps its place; light haptic at the tap. No UI chrome, no blocking loader."
-    why_human: "Visual feel, haptics and subscription timing on a physical device."
-  - test: "SC2 rollback. Provoke a rejection (e.g. equip from a second client to create a race, or MAX_ACTIVE_SPELLS_REACHED / SPELL_ALREADY_ACTIVE)."
-    expected: "The card springs back; banner «Magia non equipaggiata» / «Magia non tolta» with domain copy for real errors; ALREADY_ACTIVE and NOT_ACTIVE give no banner and a silent refetch that realigns the view; UNAUTHENTICATED silent."
-    why_human: "Needs a real rejection from the backend and visual check of the spring-back and banner."
-  - test: "D-07 / D-11 full and zero slots. Fill every slot and tap another inactive spell; then (title below mage) maxActiveSpells == 0."
-    expected: "No BE call, the card resists, selectionClick haptic, banner «Slot pieni: disequipaggia una magia»; with zero slots the slot row is replaced by «Nessuno slot per le magie: cresci di rango» and a tap gives «Nessuno slot disponibile»; the list stays visible."
-    why_human: "Haptic and animation feel, and real maxActiveSpells values."
-  - test: "SC4 / SPELL-07 slot unlock. While the Journal is open, change the character's title (or maxActiveSpells) from the admin side."
-    expected: "The slot row re-renders to exactly the new maxActiveSpells boxes via characterUpdated, no frontend threshold or title logic."
-    why_human: "Needs a live subscription event from the real backend."
-  - test: "D-09 long-press sheet. Long-press a row and a slot card."
-    expected: "The detail sheet rises on the right side of the journal page with name, description, element and power, use type, max usages, recovery time, learn requirements, current usages and next recovery, plus the equip/disequip toggle; a tap outside dismisses it."
-    why_human: "Layout and gesture feel; every visual is provisional."
-  - test: "Tab change and clock change. Switch tab while an equip is pending; change the device clock."
-    expected: "Pending state and banner survive the tab switch (SpellsCubit provided by the shell); the countdown follows server time, not the device clock."
-    why_human: "Depends on the PageView lifecycle and device settings on a real device."
 ---
 
 # Phase 8: Spells Section (Journal Tab) - Verification Report
 
 **Phase Goal:** The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
 **Branch:** feat/08-spells-section-journal-tab @ 4f69586 (86 files changed vs 0bc37b8)
-**Re-verification:** No, initial verification.
+**Re-verification:** Yes, 2026-10-27 (see the section at the end); first pass was human_needed.
 **Scope note:** by CONTEXT D-03 plan 08-12 (schema-gated close) runs only after the BE Phase 9.1 PR is merged on BE `develop`. Its must-haves are deferred, not gaps.
 
 ## Evidence gathered (run by the verifier)
@@ -105,7 +87,82 @@ See the `human_verification` frontmatter (8 items): live countdown, never-stoppi
 
 No gaps in plans 08-01..08-11. The remaining work is the schema-gated plan 08-12 and the device UAT, both waiting for the BE Phase 9.1 PR.
 
+## Re-verification 2026-10-27
+
+**Status: passed. Score 5/5 success criteria, 12/12 requirement IDs.** The eight `human_verification` items of the first report are closed by `08-HUMAN-UAT.md` (12/12 pass, Samsung SM-S938B, BE `develop` 10e5f43 with 9.1). Plans 08-13 and 08-14 (extension, success criterion 5) verified on the code, not on the summaries.
+
+### Evidence run by the verifier
+
+| Check | Result |
+|-------|--------|
+| `flutter test` (full, foreground) | 2134 passed, 0 failed ("All tests passed!"), baseline matched |
+| `flutter analyze` | 53 issues, 0 errors (baseline, none new) |
+| `dart format` | not run (rule) |
+| `spellStates {` in `lib/graphql/fragments/character_fragment.dart`; `CharacterStatus.spellStates` parser | present (`character_status.dart:24,42,67`) |
+| `ItemsFilter` single copy | `lib/shared/components/items_filter.dart`; no import of the old shop path remains in lib/test |
+
+### Success criteria 1-4 (device-proven)
+
+| # | Verdict | Device UAT rows | Code |
+|---|---------|-----------------|------|
+| 1 | VERIFIED | Step 1 pass | `Spellbook.of`, `KnownSpellRow`, `spell_lines.dart` |
+| 2 | VERIFIED | Steps 3, 4, 5, 8, 9, 12B pass (optimistic toggle, full slots, rollback by tunnel removal, race branch A, timeout banner on the Map) | `SpellsCubit`, `SpellsRepository`, `SpellOutcomeListener` |
+| 3 | VERIFIED | Steps 2, 3, 11 pass (countdown, use credited by the BE sweep +28 s, recovery while unequipped, server-time not device clock) | `spellRecoveryStatusOf`, `SpellRecoveryCubit`; fragment now selects `spellStates` |
+| 4 | VERIFIED | Steps 1, 6, 7, 12A pass (slot count follows `maxActiveSpells`, zero slots, no spells, live unlock) | `Spellbook` slot generation, no title logic |
+
+Step 10 (long-press sheet) pass covers D-09. UAT adaptations (single character in two roles, tunnel removal instead of airplane mode, live DB seeds) do not change what a step proves.
+
+### Success criterion 5 (extension, code and tests)
+
+VERIFIED. The known-spell list and the Journal «Oggetti» section filter by use type / effect type with the shop's icon chips limited to present types; the shop follows the same rule; the spell line reads «Attacco: Fuoco 12» and loot rows «Cura: 12».
+
+**08-13 must_haves**
+
+| Truth | Evidence |
+|-------|----------|
+| Chips «Tutti» + present use types in enum order between slot row and known rows | `spellbook_content.dart:43,62-68,75-78` (`presentFilterValues(UseType.values, …)`); test `spellbook_content_test` «shows one chip per present use type, in enum order» |
+| Selected type hides other rows, slot row untouched | `spellbook_content.dart:57-83` (`SpellSlotRow` outside `_entriesOf`); tests «a selected type hides the other rows, never the slots», `spells_section_test` «a chip filters the known rows, «Tutti» restores them» |
+| Null `useType` only under «Tutti», no empty chip | `filter_values.dart:7-10` (`whereType<T>`); tests «known spells without use type: no chips», «keeps the enum order and drops duplicates and nulls» |
+| Vanished selection falls back to «Tutti» | `spellbook_content.dart:44` + `spells_section.dart:98-111` (`_dropVanishedUseTypeFilter`); tests «a type not present falls back to «Tutti»», `spells_section_test` «a vanished type drops the selection for good», `filter_values_test` «a vanished selection falls back to «Tutti»» |
+| Line «Attacco: Fuoco 12», «Attacco: Fuoco» power 0/null, «Danno: Fuoco 12» when null; sheet keeps «Uso: Attacco» | `spell_lines.dart` `spellDamageLabel` (prefix `useType?.label ?? 'Danno'`); `spell_info.dart:52` passes `useType`; tests `spell_lines_test.dart:26-53,73-74,116-154`, `spell_info_test.dart:63-64` |
+| Shop chips only present `EquipType`/`EffectType`, fallback to «Tutti» | `shop_modal.dart:61-70,103-108,146-151` (`presentEquipTypes`/`presentEffectTypes`/`retainedFilterSelection`); helpers tested in `filter_values_test.dart:91,104` |
+| Local view state only | `_useTypeFilter` in `_SpellsSectionState` (`spells_section.dart:79`), shop `setState` fields; no cubit/repository/network |
+
+**08-14 must_haves**
+
+| Truth | Evidence |
+|-------|----------|
+| `EffectType` labels (Nessun effetto, Cura, Sazietà, Danno, Esplorazione) | `effect_type.dart:4-10`; test «effects have an Italian label» |
+| Loot rows «Cura: 12», power null/0 → «Cura», null effect → no line, equipment none | `item_lines.dart` `itemEffectLabel`; `item_row.dart:35-36` (loot only); tests `item_lines_test.dart:19-50`, `item_row_test.dart:56,70,76,83` |
+| «Oggetti» chips present effects, filter, «Tutti» restores, null effect only under «Tutti» | `journal.dart:226-245` (`ItemsFilter<EffectType>`, `shownItems`); tests `journal_items_test.dart:129,142` |
+| Vanished effect falls back to «Tutti» | `journal.dart:231` (`retainedFilterSelection`); test `journal_items_test.dart:156` |
+| No owned items with effect → no chip row; other sections unchanged | `journal.dart:238` (`if (effectTypes.isNotEmpty)`); test `journal_items_test.dart:175` |
+
+### Requirements traceability (SPELL-01..09, ITEM-01, ITEM-02, SHOP-01)
+
+| ID | Verdict | Evidence |
+|----|---------|----------|
+| SPELL-01 | SATISFIED | `Spellbook.of`; UAT step 1; `spellbook_test` |
+| SPELL-02 | SATISFIED | `spell_lines.dart`, `KnownSpellRow`; UAT step 1; `spell_lines_test` |
+| SPELL-03 | SATISFIED | `SpellsCubit.toggle`; UAT steps 4, 5; cubit tests |
+| SPELL-04 | SATISFIED | tap on slot card / active row; UAT steps 4, 10 |
+| SPELL-05 | SATISFIED | `spellRecoveryStatusOf`, `SpellRecoveryCubit`, `spellStates` fragment; UAT steps 2, 3, 11 |
+| SPELL-06 | SATISFIED | pending overlay + rollback; UAT steps 8, 9, 12B |
+| SPELL-07 | SATISFIED | `maxActiveSpells` slot count; UAT steps 1, 6, 12A |
+| SPELL-08 | SATISFIED in code and tests (no device row) | `spellbook_content.dart:43-83`, `spells_section.dart:79-111`; `spellbook_content_test.dart:269-329`, `spells_section_test.dart:433,456` |
+| SPELL-09 | SATISFIED in code and tests (no device row) | `spell_lines.dart` `spellDamageLabel`, `spell_info.dart:52`; `spell_lines_test.dart:116-154`, `spell_info_test.dart:63-64` |
+| ITEM-01 | SATISFIED in code and tests | `effect_type.dart`, `item_lines.dart`, `item_row.dart:36`; `item_lines_test`, `item_row_test` |
+| ITEM-02 | SATISFIED in code and tests | `journal.dart:226-245`; `journal_items_test.dart:129-175` |
+| SHOP-01 | SATISFIED in code, helper-level tests only | `shop_modal.dart:61-70,103,146`; `filter_values_test.dart:91,104` |
+
+### Notes (no gap, informational)
+
+- `REQUIREMENTS.md` still shows SPELL-08, SPELL-09, ITEM-01, ITEM-02, SHOP-01 unticked and `Pending` in the traceability table (lines 131-138, 234-235), while the roadmap plans 08-13/08-14 are ticked. Housekeeping for the orchestrator at phase close, not a code gap.
+- No widget test covers `ShopModal` itself (SHOP-01 wiring is verified by reading `shop_modal.dart:61-151` and by the unit tests of the shared helpers). Warning, non-blocking.
+- The extension (SC5, SPELL-08/09, ITEM-01/02, SHOP-01) has no device UAT row; the visual result of the chips and the new lines is provisional per D-19. Not blocking: the user asked for the extension after the device UAT and success criterion 5 is observable in code and widget tests.
+- No gaps, no anti-pattern blockers in the files touched by 08-13/08-14.
+
 ---
 
-_Verified: 2026-10-27_
+_Verified: 2026-10-27 (re-verification)_
 _Verifier: Claude (gsd-verifier)_
