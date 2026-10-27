@@ -7,6 +7,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_watchdog.dart';
 import 'package:klimmeck_guide/screens/auth/syncCubit/session_sync_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -37,7 +38,7 @@ OperationException _operationError(String code) => OperationException(
 );
 
 class SyncHarness {
-  SyncHarness() {
+  SyncHarness({this.restoredBus}) {
     when(() => api.subscribeToUser()).thenAnswer((_) {
       final controller = StreamController<User>();
       userStreams.add(controller);
@@ -53,9 +54,12 @@ class SyncHarness {
       connection: connection.stream,
       lifecycle: lifecycle,
       userRefreshRequests: refreshRequests.stream,
+      connectionRestored: restoredBus,
     );
     cubit.stream.listen(states.add);
   }
+
+  final ConnectionRestoredBus? restoredBus;
 
   final MockKlimmeckGraphQl api = MockKlimmeckGraphQl();
   final MockAuthTokenService auth = MockAuthTokenService();
@@ -495,6 +499,63 @@ void main() {
       expect(h.lifecycle.hasListeners, isFalse);
       expect(h.refreshRequests.hasListener, isFalse);
       expect(async.pendingTimers, isEmpty);
+    });
+  });
+
+  group('connection restored', () {
+    int restoredAfter(List<bool> transitions) {
+      var restored = 0;
+      fakeAsync((async) {
+        final bus = ConnectionRestoredBus();
+        bus.restored.listen((_) => restored++);
+        final harness = SyncHarness(restoredBus: bus);
+        harness.cubit.start();
+
+        for (final isConnected in transitions) {
+          harness.connection.add(isConnected);
+          async.flushMicrotasks();
+        }
+
+        harness.dispose();
+        bus.close();
+        async.flushMicrotasks();
+      });
+      return restored;
+    }
+
+    test('the first connection is not a restore', () {
+      expect(restoredAfter([true]), 0);
+    });
+
+    test('a drop followed by a connection is one restore', () {
+      expect(restoredAfter([true, false, true]), 1);
+    });
+
+    test('repeated drops and connections count once', () {
+      expect(restoredAfter([true, false, false, true, true]), 1);
+    });
+
+    test('a first connection after an initial drop is not a restore', () {
+      expect(restoredAfter([false, true]), 0);
+    });
+
+    test('every drop and reconnection counts once', () {
+      expect(restoredAfter([true, false, true, false, true]), 2);
+    });
+
+    withHarness('without a bus the socket still drives the watchdog', (
+      h,
+      async,
+    ) {
+      h.cubit.start();
+
+      h.connection
+        ..add(true)
+        ..add(false)
+        ..add(true);
+      async.flushMicrotasks();
+
+      expect(h.watchdog.isDegraded, isFalse);
     });
   });
 
