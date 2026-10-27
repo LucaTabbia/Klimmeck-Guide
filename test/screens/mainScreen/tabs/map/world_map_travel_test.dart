@@ -24,6 +24,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
@@ -74,6 +75,7 @@ late MockTravelCubit travelCubit;
 late MockQuestAbandonCubit abandonCubit;
 late StreamController<QuestAbandonState> abandonStates;
 late MapFocusCubit mapFocusCubit;
+late MapAvailabilityCubit mapAvailability;
 late StreamController<CharacterState> characterStates;
 late StreamController<TravelState> travelStates;
 late StreamController<QuestState> questStates;
@@ -134,6 +136,7 @@ Future<void> pumpWorldMap(
             BlocProvider<TravelCubit>.value(value: travelCubit),
             BlocProvider<MapFocusCubit>.value(value: mapFocusCubit),
             BlocProvider<QuestAbandonCubit>.value(value: abandonCubit),
+            BlocProvider<MapAvailabilityCubit>.value(value: mapAvailability),
           ],
           child: Scaffold(body: WorldMap(cities: [cityA, cityB])),
         ),
@@ -209,7 +212,8 @@ TravelConfirming confirmingAlong(List<List<double>> coordinates) =>
       previewedAt: travelStart,
     );
 
-void main() {
+/// Cubit della shell e stream condivisi dai test della mappa reale.
+void setUpWorldMapHarness() {
   setUpAll(() => registerFallbackValue(cityA));
 
   setUp(() {
@@ -220,6 +224,7 @@ void main() {
     abandonCubit = MockQuestAbandonCubit();
     abandonStates = StreamController<QuestAbandonState>.broadcast();
     mapFocusCubit = MapFocusCubit();
+    mapAvailability = MapAvailabilityCubit();
     arrivalRereads = ArrivalRereadLedger();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
@@ -248,7 +253,12 @@ void main() {
     await questStates.close();
     await abandonStates.close();
     await mapFocusCubit.close();
+    await mapAvailability.close();
   });
+}
+
+void main() {
+  setUpWorldMapHarness();
 
   final midTravel = travelStart.add(const Duration(minutes: 80));
 
