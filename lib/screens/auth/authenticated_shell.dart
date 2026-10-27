@@ -18,6 +18,7 @@ import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.da
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
+import 'package:klimmeck_guide/repository/spells_repository.dart';
 import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -29,6 +30,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
@@ -190,6 +192,9 @@ class AuthenticatedShell extends StatelessWidget {
             ),
             clock: context.read<ServerClockService>(),
           ),
+        ),
+        BlocProvider<SpellsCubit>(
+          create: (_) => SpellsCubit(SpellsRepository(graphQl: graphQl)),
         ),
       ],
       child: Stack(
