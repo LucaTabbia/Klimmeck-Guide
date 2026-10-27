@@ -1,13 +1,17 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/utils/filter_values.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
@@ -40,6 +44,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   SpellRecoveryCubit? _selectedSpellRecovery;
   List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
+  EffectType? _selectedEffect;
 
   late AnimationController _animationController;
   late Animation<double> _positionAnimation;
@@ -219,19 +224,33 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildOwnedItemsSection(Character character, double lootSize) {
+    final ownedItems = character.assets?.ownedItems ?? const <AssetQuantity>[];
+    final effectTypes = presentEffectTypes(ownedItems);
+    // Un effetto sparito dagli oggetti posseduti riporta i chip a «Tutti» (D-23),
+    // come `_filteredItems` viene riallineato in `build`.
+    _selectedEffect = retainedFilterSelection(_selectedEffect, effectTypes);
+    final shownItems = _selectedEffect == null
+        ? ownedItems
+        : ownedItems.where((owned) => owned.item?.asLoot?.effect == _selectedEffect);
     return Dropdown(
       sectionName: "Oggetti",
       data: Column(
         children: [
-          ...List.generate(
-            character.assets!.ownedItems!.length,
-            (index) => ItemRow(
-              assetItem: character.assets!.ownedItems![index].item!,
-              quantity: character.assets!.ownedItems![index].quantity!,
-              showCoins: false,
-              size: lootSize,
+          if (effectTypes.isNotEmpty)
+            ItemsFilter<EffectType>(
+              values: effectTypes,
+              current: _selectedEffect,
+              onTap: (effect) => setState(() => _selectedEffect = effect),
+              getImage: (effect) => effect.imagePath,
             ),
-          ),
+          for (final owned in shownItems)
+            if (owned.item case final item?)
+              ItemRow(
+                assetItem: item,
+                quantity: owned.quantity,
+                showCoins: false,
+                size: lootSize,
+              ),
         ],
       ),
     );
