@@ -47,6 +47,8 @@ created: 2026-10-27
 | 8-03-03 | 03 | 2 | SPELL-05 | — | N/A (pure extraction: `UsagesPencilCounter` shared by both cards, behaviour identical) | widget | `flutter test test/shared/components` | ✅ | ✅ green |
 | 8-04-01 | 04 | 2 | SPELL-05 | T-8-10 | recovery derived only from `recoveries[0] − serverNow` (earliest instant); usages never restored locally; past instant → `Arriving` until the BE emits; full/over-max/null max → `Full`; no instants → `Unknown`; countdown quantized to whole minutes (0 = under a minute) | unit | `flutter test test/models/spell/spell_recovery_status_test.dart` | ✅ | ✅ green |
 | 8-04-02 | 04 | 2 | SPELL-02, SPELL-05 | T-8-11 | durations formatted (no raw ms), fixed Italian copy, no ids; summary line, detail labels and empty-state copies defined once | unit | `flutter test test/utils/spell_lines_test.dart` | ✅ | ✅ green |
+| 8-05-01 | 05 | 2 | SPELL-01, SPELL-04, SPELL-07 | T-8-12 / T-8-14 | null `ActiveSpell.spell` skipped; slots generated from `maxActiveSpells` only with a bounds check (extra actives only marked in the list); usages fallback state → `ActiveSpell.usages` → catalog `maxUsages`; visibility iff spells or slots | unit | `flutter test test/models/spell/spellbook_test.dart` | ✅ | ✅ green |
+| 8-05-02 | 05 | 2 | SPELL-03, SPELL-04 | T-8-13 | optimistic view = server − pending unequips + pending equips (tap order, known spells only, no duplicates); intents on the optimistic count (pending → ignored, F5 slots-full block, no slots → blocked, legacy active with 0 slots → unequip) | unit | `flutter test test/models/spell/spellbook_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
