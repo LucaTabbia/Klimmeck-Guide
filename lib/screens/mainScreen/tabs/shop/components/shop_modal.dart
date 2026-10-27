@@ -112,6 +112,7 @@ class _ShopModalState extends State<ShopModal> {
                     isEquipOpen = !isEquipOpen;
                   }),
                   data: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (equipTypes.isNotEmpty)
                         ItemsFilter<EquipType>(
@@ -155,6 +156,7 @@ class _ShopModalState extends State<ShopModal> {
                     isItemOpen = !isItemOpen;
                   }),
                   data: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (effectTypes.isNotEmpty)
                         ItemsFilter<EffectType>(

@@ -251,6 +251,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     return Dropdown(
       sectionName: "Oggetti",
       data: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (effectTypes.isNotEmpty)
             ItemsFilter<EffectType>(
