@@ -68,6 +68,8 @@ void main() {
   });
 
   testWidgets('loads exactly the character of the session', (tester) async {
+    final availability = MapAvailabilityCubit();
+    addTearDown(availability.close);
     await tester.pumpWidget(
       buildTestApp(
         home: MultiBlocProvider(
@@ -75,6 +77,7 @@ void main() {
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
+            BlocProvider<MapAvailabilityCubit>.value(value: availability),
           ],
           child: const MainScreen(characterId: 'c-42'),
         ),
@@ -274,6 +277,17 @@ void main() {
 
         expect(find.byType(PageView), findsOneWidget);
         expect(availability.state.isMapPage, isTrue);
+      });
+
+      testWidgets('a removed main screen is no longer the map page', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+
+        await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+        expect(availability.state.isMapPage, isFalse);
       });
 
       testWidgets('the map page follows every satchel navigation', (

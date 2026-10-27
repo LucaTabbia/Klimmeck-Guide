@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
@@ -50,12 +51,14 @@ class _MainScreenState extends State<MainScreen>
   late AnimationController _animationController;
   late Animation<double> _opacityAnimation;
   late PageController pageController;
+  late final MapAvailabilityCubit _mapAvailability;
   int currentPage = 0;
   bool isFirstLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _mapAvailability = context.read<MapAvailabilityCubit>();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -77,15 +80,24 @@ class _MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocListener<CharacterCubit, CharacterState>(
-      listener: (context, state) {
-        if (state is CharacterLoaded && isFirstLoading) {
-          setState(() {
-            isFirstLoading = false;
-          });
-          context.read<MainScreenCubit>().loadData();
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CharacterCubit, CharacterState>(
+          listener: (context, state) {
+            if (state is CharacterLoaded && isFirstLoading) {
+              setState(() {
+                isFirstLoading = false;
+              });
+              context.read<MainScreenCubit>().loadData();
+            }
+          },
+        ),
+        BlocListener<MainScreenCubit, MainScreenState>(
+          listenWhen: (previous, current) =>
+              previous is! MainScreenLoadData && current is MainScreenLoadData,
+          listener: (_, _) => _reportMapPage(currentPage),
+        ),
+      ],
       child: BlocBuilder<MainScreenCubit, MainScreenState>(
         builder: (context, state) {
           if (state is MainScreenLoadData) {
@@ -202,7 +214,14 @@ class _MainScreenState extends State<MainScreen>
     setState(() {
       currentPage = page;
     });
+    _reportMapPage(page);
   }
+
+  /// Phase 9 D-23 (F1): la pagina iniziale non passa da `onPageChanged`, il
+  /// loader di cold start non è mai la mappa.
+  void _reportMapPage(int page) => _mapAvailability.pageChanged(
+    isMapPage: page == NotificationIntentLanding.worldMapPageIndex,
+  );
 
   Future<void> onItemTap(int index) async {
     if (_isPageDisabled(index)) return;
@@ -243,6 +262,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _mapAvailability.pageChanged(isMapPage: false);
     _animationController.dispose();
     pageController.dispose();
     super.dispose();

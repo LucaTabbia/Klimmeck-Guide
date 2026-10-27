@@ -33,6 +33,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
@@ -58,6 +59,10 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// arrivata dopo un cambio tab non si perde.
 ///
 /// Fuoco della camera della mappa (Phase 7 D-15): latched qui perché il tap su una notifica arriva prima che la mappa sia montata.
+///
+/// Disponibilità della mappa (Phase 9 D-23): pagina, overlay quest e
+/// trascinamento della pedina, qui perché la coda dei risultati vive oltre il
+/// tab.
 ///
 /// Viaggio (Phase 7): ora del server stimata (sync alla creazione e al resume,
 /// D-07) e conferma del viaggio, qui perché una risposta tardiva sopravviva al
@@ -169,6 +174,9 @@ class AuthenticatedShell extends StatelessWidget {
               QuestAbandonCubit(QuestAbandonRepository(graphQl: graphQl)),
         ),
         BlocProvider<MapFocusCubit>(create: (_) => MapFocusCubit()),
+        BlocProvider<MapAvailabilityCubit>(
+          create: (_) => MapAvailabilityCubit(),
+        ),
         RepositoryProvider<ServerClockService>(
           lazy: false,
           create: (context) {
