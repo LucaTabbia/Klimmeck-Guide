@@ -172,6 +172,22 @@ void main() {
     expectDescriptions(potion: true, bread: true, stone: true);
   });
 
+  testWidgets('an effect gone between two frames still falls back (WR-01)', (
+    tester,
+  ) async {
+    await pumpItems(tester);
+    await tapAndSettle(tester, _chip(EffectType.hunger));
+
+    characterStates
+      ..add(CharacterLoaded(_characterOwning([_potion, _stone])))
+      ..add(CharacterLoaded(_characterOwning([_potion, _bread, _stone])));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(_filter(tester).current, isNull);
+    expectDescriptions(potion: true, bread: true, stone: true);
+  });
+
   testWidgets('without owned items no chip row is shown', (tester) async {
     useCharacter(_characterOwning(const []));
 
