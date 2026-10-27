@@ -15,11 +15,13 @@ import 'registered_adventurer.dart';
 
 enum QuestSheetFamily { combat, narrative, service }
 
+/// Famiglia del foglio sulla Bacheca (Phase 6 D-09); la aid è un combattimento (Phase 9 D-17).
 QuestSheetFamily questSheetFamilyOf(QuestType? type) => switch (type) {
   QuestType.hunt ||
   QuestType.enemy ||
   QuestType.boss ||
-  QuestType.dungeon => QuestSheetFamily.combat,
+  QuestType.dungeon ||
+  QuestType.aid => QuestSheetFamily.combat,
   QuestType.story || QuestType.worldMission => QuestSheetFamily.narrative,
   _ => QuestSheetFamily.service,
 };
