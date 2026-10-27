@@ -14,7 +14,7 @@ class SpellState extends Equatable {
     usages: (json['usages'] as num).toInt(),
     recoveries: List<DateTime>.unmodifiable(
       (json['recoveries'] as List)
-          .map((value) => DateTime.parse(value as String))
+          .map((value) => DateTime.parse(value as String).toUtc())
           .toList()
         ..sort(),
     ),
