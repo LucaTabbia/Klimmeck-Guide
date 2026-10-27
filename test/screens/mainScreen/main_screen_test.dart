@@ -27,8 +27,10 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
@@ -43,11 +45,25 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockQuestCubit questCubit;
   late MockMainScreenCubit mainScreenCubit;
+  late MockQuestResultsCubit questResultsCubit;
+  late MockNotificationPreferencesCubit preferencesCubit;
 
   setUp(() {
     characterCubit = MockCharacterCubit();
     questCubit = MockQuestCubit();
     mainScreenCubit = MockMainScreenCubit();
+    questResultsCubit = MockQuestResultsCubit();
+    preferencesCubit = MockNotificationPreferencesCubit();
+    whenListen(
+      questResultsCubit,
+      const Stream<QuestResultsState>.empty(),
+      initialState: const QuestResultsState(),
+    );
+    whenListen(
+      preferencesCubit,
+      const Stream<NotificationPreferencesState>.empty(),
+      initialState: NotificationPreferencesState(),
+    );
     whenListen(
       characterCubit,
       Stream<CharacterState>.empty(),
@@ -70,6 +86,12 @@ void main() {
   testWidgets('loads exactly the character of the session', (tester) async {
     final availability = MapAvailabilityCubit();
     addTearDown(availability.close);
+    final travelCubit = MockTravelCubit();
+    whenListen(
+      travelCubit,
+      const Stream<TravelState>.empty(),
+      initialState: const TravelIdle(),
+    );
     await tester.pumpWidget(
       buildTestApp(
         home: MultiBlocProvider(
@@ -78,6 +100,14 @@ void main() {
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
             BlocProvider<MapAvailabilityCubit>.value(value: availability),
+            BlocProvider<TravelCubit>.value(value: travelCubit),
+            BlocProvider<InAppNotificationsCubit>.value(
+              value: MockInAppNotificationsCubit(),
+            ),
+            BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+            BlocProvider<NotificationPreferencesCubit>.value(
+              value: preferencesCubit,
+            ),
           ],
           child: const MainScreen(characterId: 'c-42'),
         ),
@@ -195,6 +225,10 @@ void main() {
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
               BlocProvider<MapAvailabilityCubit>.value(value: availability),
+              BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+              BlocProvider<NotificationPreferencesCubit>.value(
+                value: preferencesCubit,
+              ),
             ],
             child: MainScreen(
               characterId: 'c-1',
