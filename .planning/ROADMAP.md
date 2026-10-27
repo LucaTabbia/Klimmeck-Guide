@@ -260,7 +260,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The Journal tab shows the list of owned spells with `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary.
   2. Tapping a spell assigns it to an available active slot (slot count = `maxActiveSpells`, backend-driven); tapping an active slot disequips it; UI updates optimistically and rolls back on backend failure.
-  3. Each `ActiveSpell` shows remaining `usages` and, where applicable, a recovery indicator derived from `spell.recoveryTime`.
+  3. Every known spell below its maximum shows the remaining `usages` and a live «prossimo tra X» countdown from `status.spellStates[].recoveries` against server time (static «in recupero» without an instant); the slot card shows the usages only. _(Amended 2026-10-27 after the Phase 8 research, per the SPELL-05 amendment.)_
   4. Slot availability reflects `maxActiveSpells` changes from the subscription (e.g. new slot appearing after a title change) with no frontend slot logic.
 **Decisions to make during discuss step**:
   - Audit what the existing partial Spells section already provides vs what must be built.
