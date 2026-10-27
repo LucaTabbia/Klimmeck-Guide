@@ -25,6 +25,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
@@ -228,6 +229,27 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(travelCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides the map availability cubit and closes it on removal', (
+    tester,
+  ) async {
+    late MapAvailabilityCubit availabilityCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        availabilityCubit = context.read<MapAvailabilityCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(availabilityCubit.state, const MapAvailabilityState());
+    expect(availabilityCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(availabilityCubit.isClosed, isTrue);
   });
 
   testWidgets('provides the spells cubit and closes it on removal', (

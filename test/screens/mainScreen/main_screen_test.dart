@@ -20,6 +20,7 @@ import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
@@ -27,6 +28,7 @@ import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
@@ -102,8 +104,11 @@ void main() {
     late StreamController<TravelState> travelStates;
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
+    late MapAvailabilityCubit availability;
 
     setUp(() {
+      availability = MapAvailabilityCubit();
+      addTearDown(availability.close);
       registerFallbackValue(const KGNotification(title: '', description: ''));
       acceptanceCubit = MockQuestAcceptanceCubit();
       noticesCubit = MockInAppNotificationsCubit();
@@ -146,7 +151,7 @@ void main() {
       );
     });
 
-    Future<PageController> pumpOpenSatchel(
+    Future<void> pumpMainScreen(
       WidgetTester tester,
       String locationId, {
       Map<String, dynamic>? activeTravel,
@@ -186,6 +191,7 @@ void main() {
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
+              BlocProvider<MapAvailabilityCubit>.value(value: availability),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -198,12 +204,30 @@ void main() {
         ),
       );
       await tester.pump();
+    }
+
+    Future<PageController> openSatchel(WidgetTester tester) async {
       await tester.tap(find.byType(CachedSvg).last);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       return tester.widget<PageView>(find.byType(PageView)).controller!;
+    }
+
+    Future<PageController> pumpOpenSatchel(
+      WidgetTester tester,
+      String locationId, {
+      Map<String, dynamic>? activeTravel,
+      Map<String, dynamic>? awaitingAid,
+    }) async {
+      await pumpMainScreen(
+        tester,
+        locationId,
+        activeTravel: activeTravel,
+        awaitingAid: awaitingAid,
+      );
+      return openSatchel(tester);
     }
 
     Future<void> tapItem(WidgetTester tester, int pageIndex) async {
@@ -215,6 +239,60 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    group('map availability', () {
+      late StreamController<MainScreenState> screenStates;
+
+      setUp(() {
+        screenStates = StreamController<MainScreenState>.broadcast();
+        addTearDown(screenStates.close);
+        whenListen(
+          mainScreenCubit,
+          screenStates.stream,
+          initialState: MainScreenInitial(),
+        );
+      });
+
+      Future<void> loadPages(WidgetTester tester) async {
+        screenStates.add(MainScreenLoadData(cities));
+        await tester.pump();
+        await tester.pump();
+      }
+
+      testWidgets('the cold-start loader is never the map page', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+
+        expect(find.byType(PageView), findsNothing);
+        expect(availability.state.isMapPage, isFalse);
+      });
+
+      testWidgets('the loaded pages open on the map page', (tester) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+
+        expect(find.byType(PageView), findsOneWidget);
+        expect(availability.state.isMapPage, isTrue);
+      });
+
+      testWidgets('the map page follows every satchel navigation', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+        final controller = await openSatchel(tester);
+
+        await tapItem(tester, 1);
+        expect(controller.page!.round(), 1);
+        expect(availability.state.isMapPage, isFalse);
+
+        await openSatchel(tester);
+        await tapItem(tester, NotificationIntentLanding.worldMapPageIndex);
+        expect(controller.page!.round(), 0);
+        expect(availability.state.isMapPage, isTrue);
+      });
+    });
 
     testWidgets('follows the awaited party', (tester) async {
       await pumpOpenSatchel(tester, 'city-marker-1');
