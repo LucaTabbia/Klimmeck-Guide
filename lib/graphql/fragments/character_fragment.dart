@@ -49,6 +49,13 @@ class CharacterFragment {
       spells {
         ${SpellFragment.fields}
       }
+      spellStates {
+        usages
+        recoveries
+        spell {
+          id
+        }
+      }
     }
   ''';
 
