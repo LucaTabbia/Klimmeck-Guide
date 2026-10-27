@@ -139,13 +139,16 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 ### Combat Result Sheet
 
-- [ ] **COMBAT-01**: When a combat resolves, the user sees a full-screen result sheet (not a bottom sheet), triggered by a subscription event in foreground or by an FCM push when backgrounded
+- [ ] **COMBAT-01**: When a combat resolves, the user sees a full-screen result sheet (not a bottom sheet), triggered by a subscription event in foreground or by an FCM push when backgrounded _(amended 2026-10-27, D-06/D-07/D-13: the sheet is presented only on the Map tab; from any other tab the in-app banner leads there; the death sheet opens on any tab)_
 - [ ] **COMBAT-02**: The sheet shows HP before vs HP after (`currentLifePoints` delta against `maxLifePoints`) with an animated transition
 - [ ] **COMBAT-03**: The sheet lists consumables and `activeSpells` used during the combat (derived from the combat result payload)
 - [ ] **COMBAT-04**: The sheet lists `InjuryType` values received during the combat, rendered with human-readable labels
 - [ ] **COMBAT-05**: The sheet lists rewards obtained (equipment, items, coins) and XP earned
-- [ ] **COMBAT-06**: User must tap to dismiss the result sheet; it cannot be accidentally swiped away
-- [ ] **COMBAT-07**: If the result arrives while the user is navigating or in a modal, it is queued and shown at a safe moment (not interrupting critical flows)
+- [ ] **COMBAT-06**: User must tap to dismiss the result sheet; it cannot be accidentally swiped away _(2026-10-27, D-05: one explicit button at the bottom; scrim, Android back and swipe ignored)_
+- [ ] **COMBAT-07**: If the result arrives while the user is navigating or in a modal, it is queued and shown at a safe moment (not interrupting critical flows) _(amended 2026-10-27, D-06..D-08: queued until the Map tab is visible and free — no sheet or dialog open, no pawn drag — then shown FIFO by `resolvedAt`, one sheet at a time)_
+- [ ] **COMBAT-08**: After a lost fight the Map shows the wounded state (`status.awaitingAid`): «In attesa di soccorso» over the pawn, pawn drag, Board and Shop disabled as during a travel, `AWAITING_AID` / `SHOP_NOT_IN_CITY` mapped to the banner _(added 2026-10-27, D-16; Phase 7 deferred item)_
+- [ ] **COMBAT-09**: No result sheet is ever lost: the app reads the unacknowledged results of the user at cold start, resume and reconnection (BE Phase 9.2 `unacknowledgedQuestResults`) and acknowledges each sheet when the player closes it (`acknowledgeQuestResult`); every source (subscription, push, query) is deduplicated by result id _(added 2026-10-27, D-09/D-10; BE prerequisite)_
+- [ ] **COMBAT-10**: The `aid` quest («Soccorso: …») uses the combat sheet family on the Board (enemy, time, rank slots, party counter); a started quest stays torn until it concludes because the BE keeps its seats after the start (BE Phase 9.2, user rule) _(added 2026-10-27, D-17/D-18)_
 
 ### Admin Panel (innkeeper role)
 
@@ -233,17 +236,17 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SPELL-01 through SPELL-07   | Phase 8 | Complete |
 | SPELL-08, SPELL-09          | Phase 8 | Complete |
 | ITEM-01, ITEM-02, SHOP-01   | Phase 8 | Complete |
-| COMBAT-01 through COMBAT-07 | TBD   | Pending |
+| COMBAT-01 through COMBAT-10 | Phase 9 | Pending (COMBAT-01/06/07 amended 2026-10-27; COMBAT-08/09/10 added; COMBAT-09/10 need BE Phase 9.2) |
 | ADMIN-01 through ADMIN-08   | TBD   | Pending |
 | HARDEN-01 through HARDEN-06 | TBD   | Pending |
 
 **Coverage:**
 
-- v1 requirements: 79 total (74 original + 5 DEV-AUTH)
+- v1 requirements: 87 total (74 original + 5 DEV-AUTH + 5 Phase 8 extension + 3 COMBAT-08..10 added 2026-10-27)
 - Mapped to phases: 12 (DEV-AUTH → Phase 1, AUTH → Phase 11); rest still TBD
 - Unmapped: 67 (pending roadmap)
 
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-26 — Phase 7 complete: TRAVEL-01..04 ticked after the Android device E2E (07-HUMAN-UAT.md, steps 1-11 pass)_
+_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-26 — Phase 7 complete: TRAVEL-01..04 ticked after the Android device E2E (07-HUMAN-UAT.md, steps 1-11 pass)_ · _Last updated: 2026-10-27 — Phase 9 discuss: COMBAT-01/06/07 amended, COMBAT-08/09/10 added (CONTEXT D-01..D-22); BE Phase 9.2 inserted_

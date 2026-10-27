@@ -1,7 +1,7 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.
+**Last updated:** 2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites. _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
 **Granularity:** Standard (12 phases)
 **Coverage:** 79/79 v1 requirements mapped
@@ -51,6 +51,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 - **QUEST-04** — `activeStoryQuest` / `activeWorldMissionQuest` fields on `Character` (or `CharacterQuests`). Blocks Phase 6 (Quest Accept).
 - **TRAVEL-01** — `status.activeTravel { road, startTime, endTime, duration }` on `Character`. Blocks Phase 7 (Travel).
 - **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
+- **COMBAT-09 / COMBAT-10** — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` (additive) and the seats of a started quest kept by the archive (BE Phase 9.2, added 2026-10-27). Blocks only the schema-gated plans and the device E2E of Phase 9 (Combat Result Sheet); the BE Phase 9 contract (`questResultReceived`, `questResult`, push `questEnd`) is already on BE `develop`.
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -64,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
-- [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
+- [ ] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death hold before the creation page, wounded state on the Map, `aid` as a combat sheet. (discussed 2026-10-27)
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
@@ -285,20 +286,25 @@ Plans:
 **UI hint**: yes
 
 ### Phase 9: Combat Result Sheet
-**Goal**: When a combat resolves, the user sees a full-screen result sheet with HP delta, consumables and spells used, injuries received, rewards, and XP — triggered by subscription in foreground or FCM push in background, and queued safely if a critical flow is active.
-**Depends on**: Phase 3 (subscription delivers the result), Phase 5 (FCM fallback for background), Phase 8 (spells must be in place so "spells used" lines resolve correctly)
+**Goal**: When a quest resolves, the user sees a full-screen parchment with the outcome — HP before/after animated against the maximum, consumables and spells used, injuries, rewards, XP with level and title changes, spell learned, adventurers saved — dismissed only with an explicit button and presented only on the Map tab (the in-app banner leads there from anywhere); results queue by `resolvedAt`, arrive from the subscription in foreground, the `questEnd` push in background and the BE Phase 9.2 unacknowledged-results query at cold start/resume so none is ever lost, and each closed sheet is acknowledged. The phase also closes the three outcome consequences left to it: the death flow (sheet first, then character creation), the «in attesa di soccorso» state on the Map, and the `aid` quest as a combat sheet. _(Amended 2026-10-27 in the Phase 9 discuss, CONTEXT D-01..D-22.)_
+**Depends on**: Phase 3 (subscription delivers the result), Phase 5 (push `questEnd` and the banner/tap router), Phase 7 (pawn label and disabled pages pattern), Phase 8 (spells in place so "spells used" lines resolve), **BE Phase 9** (`QuestResult`, `questResultReceived`, `questResult`, push `questEnd` — merged), **BE Phase 9.2 Quest Result Delivery Contract** (unacknowledged results + ack + seats kept on started quests; the BE PR merges before the FE schema-gated plans — inserted 2026-10-27)
 **Scope**: M
-**Requirements**: COMBAT-01, COMBAT-02, COMBAT-03, COMBAT-04, COMBAT-05, COMBAT-06, COMBAT-07
+**Requirements**: COMBAT-01, COMBAT-02, COMBAT-03, COMBAT-04, COMBAT-05, COMBAT-06, COMBAT-07, COMBAT-08, COMBAT-09, COMBAT-10 (the last three added on 2026-10-27)
 **Success Criteria** (what must be TRUE):
-  1. When a combat resolves in foreground, a full-screen result sheet (not a bottom sheet) appears; when in background, an FCM push brings the user into the same result view on tap.
-  2. The sheet shows `currentLifePoints` before vs after against `maxLifePoints` with an animated transition.
-  3. The sheet lists consumables used, `activeSpells` used, `InjuryType` values received (with human-readable labels), rewards obtained, and XP earned.
-  4. The sheet requires an explicit tap to dismiss; swipe-dismiss is disabled.
-  5. If a result arrives while the user is navigating or inside a modal, it is queued and presented at a safe moment without interrupting the active flow.
+  1. When a quest resolves while the Map tab is visible and free, the full-screen parchment appears at once; from any other tab the in-app banner «Missione conclusa» appears and its tap lands on the Map and opens the sheet; a `questEnd` push tap does the same from background or killed state (`questResult(id)`). **Amended 2026-10-27 (D-06/D-07/D-11, user rule: «Il foglio risultati si vede solo una volta entrati nel tab mappa»).**
+  2. The sheet shows `hpBefore` vs `hpAfter` against `maxLifePoints` with a life bar and counting numbers (D-02).
+  3. The sheet lists consumables used, spells used, `InjuryType` values received with Italian labels, rewards (coins and items), XP earned, level and title changes, the spell learned and the number of adventurers saved; one widget with a header and ink colour per outcome (D-03/D-04).
+  4. The sheet is dismissed only with its button; scrim, back and swipe do nothing (D-05).
+  5. Several results are queued FIFO by `resolvedAt` and shown one at a time, only when the Map is free (no sheet/dialog open, no pawn drag); results pending in the queue open when the player enters the Map (D-07/D-08).
+  6. A result produced while the app was closed, with the push lost or notifications disabled, still appears at the next cold start or resume (BE 9.2 `unacknowledgedQuestResults`), and a sheet closed with the button never comes back (`acknowledgeQuestResult`, D-09/D-10).
+  7. On `death` the sheet opens on any tab and the character-creation page appears only after it is closed (routing hold, D-13/D-14); on `rescued` the sheet reads «Sei stato salvato» and the pawn is already in the city (D-15).
+  8. With `status.awaitingAid` set, the Map shows «In attesa di soccorso» over the pawn and pawn drag, Board and Shop are disabled as during a travel (D-16); the `aid` quest uses the combat sheet family on the Board and a started quest stays torn until it concludes (D-17/D-18, BE 9.2).
 **Decisions to make during discuss step**:
-  - Subscription contract: does `combatResult` carry the full payload or a result ID requiring follow-up query? Confirm with backend before implementation.
+  - ~~Subscription contract: does `combatResult` carry the full payload or a result ID requiring follow-up query? Confirm with backend before implementation.~~ **Resolved by the BE Phase 9 handoff:** the subscription carries the full `QuestResult`, the push only the result id; no `combatResult` type exists.
+  - _Resolved in the Phase 9 discuss (2026-10-27): Map-only presentation with the banner as the gateway, FIFO queue, explicit button, death exception with routing hold, BE 9.2 companion for never-lost results, wounded state and `aid` family (D-01..D-22)._
+**Backend prerequisite**: BE Phase 9.2 — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` and the seats of started quests kept by the archive; proposed in `.planning/phases/09-combat-result-sheet/BACKEND-NOTES.md`, fixed in the BE `09.2-CONTEXT.md`. Only the schema-gated plans and the device E2E wait for it.
 **Plans**: TBD
-**UI hint**: yes
+**UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 10: Admin Panel (innkeeper)
 **Goal**: When `User.role == innkeeper`, the streamer has a dedicated admin surface to review and approve/reject pending story/worldMission requests, teleport characters, and assign monsters/grade/rewards/injuries as combat outcomes — with every mutation enforced server-side and audit-logged.
