@@ -245,7 +245,9 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
     final shownItems = selectedEffect == null
         ? ownedItems
-        : ownedItems.where((owned) => owned.item?.asLoot?.effect == selectedEffect);
+        : ownedItems.where(
+            (owned) => owned.item?.asLoot?.effect == selectedEffect,
+          );
     return Dropdown(
       sectionName: "Oggetti",
       data: Column(
