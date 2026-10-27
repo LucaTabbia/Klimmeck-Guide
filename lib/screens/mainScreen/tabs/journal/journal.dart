@@ -223,15 +223,29 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
+  List<AssetQuantity> _ownedItemsOf(Character character) =>
+      character.assets?.ownedItems ?? const <AssetQuantity>[];
+
+  /// Un effetto sparito dagli oggetti riporta i chip a «Tutti» (D-23).
+  void _dropVanishedEffectFilter(CharacterState state) {
+    if (state is! CharacterLoaded) return;
+    final retained = retainedFilterSelection(
+      _selectedEffect,
+      presentEffectTypes(_ownedItemsOf(state.character)),
+    );
+    if (retained != _selectedEffect) setState(() => _selectedEffect = retained);
+  }
+
   Widget _buildOwnedItemsSection(Character character, double lootSize) {
-    final ownedItems = character.assets?.ownedItems ?? const <AssetQuantity>[];
+    final ownedItems = _ownedItemsOf(character);
     final effectTypes = presentEffectTypes(ownedItems);
-    // Un effetto sparito dagli oggetti posseduti riporta i chip a «Tutti» (D-23),
-    // come `_filteredItems` viene riallineato in `build`.
-    _selectedEffect = retainedFilterSelection(_selectedEffect, effectTypes);
-    final shownItems = _selectedEffect == null
+    final selectedEffect = retainedFilterSelection(
+      _selectedEffect,
+      effectTypes,
+    );
+    final shownItems = selectedEffect == null
         ? ownedItems
-        : ownedItems.where((owned) => owned.item?.asLoot?.effect == _selectedEffect);
+        : ownedItems.where((owned) => owned.item?.asLoot?.effect == selectedEffect);
     return Dropdown(
       sectionName: "Oggetti",
       data: Column(
@@ -239,7 +253,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
           if (effectTypes.isNotEmpty)
             ItemsFilter<EffectType>(
               values: effectTypes,
-              current: _selectedEffect,
+              current: selectedEffect,
               onTap: (effect) => setState(() => _selectedEffect = effect),
               getImage: (effect) => effect.imagePath,
             ),
@@ -407,7 +421,8 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocBuilder<CharacterCubit, CharacterState>(
+    return BlocConsumer<CharacterCubit, CharacterState>(
+      listener: (context, state) => _dropVanishedEffectFilter(state),
       builder: (context, state) {
         if (state is CharacterLoaded) {
           Character character = state.character;
