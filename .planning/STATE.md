@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 9 (Combat Result Sheet) — EXECUTING (started 2026-10-27): 13 plans in 7 waves on `feat/09-combat-result-sheet` off `develop`; waves 6–7 (09-12, 09-13) gated on the BE Phase 9.2 PR merge
-Plan: 1 of 13
+Plan: 2 of 13
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
 Next Phase: execute FE Phase 9 waves 1–5 (`/gsd-execute-phase 9`, plans 09-01..09-11); 09-12/09-13 run after the BE Phase 9.2 PR (`feat/09.2-quest-result-delivery-contract`, 7 plans, planned 2026-10-27) is merged on BE `develop`; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2)
 Status: Executing Phase 9 — waves 1–5 (plans 09-01..09-11) in progress, one executor at a time; 09-12/09-13 wait for the BE 9.2 merge on BE `develop`
-Last activity: 2026-10-27 -- Phase 9 execution started: waves 1–5 (plans 09-01..09-11) on feat/09-combat-result-sheet; 09-12/09-13 gated on the BE Phase 9.2 PR merge
+Last activity: 2026-10-27 -- Plan 09-02 complete (AwaitingAid on the status + fragment, aid in the combat family, D-22 notes); 09-12/09-13 gated on the BE Phase 9.2 PR merge
 
 ## Current Milestone
 

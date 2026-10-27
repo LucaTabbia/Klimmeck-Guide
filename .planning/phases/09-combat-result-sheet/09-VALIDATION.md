@@ -40,8 +40,8 @@ created: 2026-10-27
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 9-01-01 | 01 | 1 | COMBAT-03, COMBAT-05 | T-9-01, T-9-02, T-9-03 | malformed results → null, never throw; no `enemy.locations`; equipment rewards keep `equipType` | unit | `flutter test test/models/quest_result` | ✅ | ✅ green |
 | 9-01-02 | 01 | 1 | COMBAT-04, COMBAT-05 | T-9-04 | generic BE copy only in the banner | unit | `flutter test test/models/enums test/models/quest_result` | ✅ | ✅ green |
-| 9-02-01 | 02 | 1 | COMBAT-08 | T-9-05, T-9-06 | malformed `awaitingAid` → null, status survives; only BE-develop fields selected | unit | `flutter test test/models/character test/graphql test/tool` | ✅ (extend) | ⬜ pending |
-| 9-02-02 | 02 | 1 | COMBAT-10 | T-9-07 | aid only changes the layout; BE stays the judge | unit + widget | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart test/screens/mainScreen/tabs/board` | ✅ (invert) | ⬜ pending |
+| 9-02-01 | 02 | 1 | COMBAT-08 | T-9-05, T-9-06 | malformed `awaitingAid` → null, status survives; only BE-develop fields selected | unit | `flutter test test/models/character test/graphql test/tool` | ✅ (extend) | ✅ green |
+| 9-02-02 | 02 | 1 | COMBAT-10 | T-9-07 | aid only changes the layout; BE stays the judge | unit + widget | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart test/screens/mainScreen/tabs/board` | ✅ (invert) | ✅ green |
 | 9-03-01 | 03 | 2 | COMBAT-01, COMBAT-09 | T-9-17 | no 9.2 field/operation before the merge; 36/36 vs BE develop | unit + schema check | `flutter test test/graphql test/tool` | ❌ W0 | ⬜ pending |
 | 9-03-02 | 03 | 2 | COMBAT-01, COMBAT-09 | T-9-15, T-9-16, T-9-18, T-9-19 | malformed event does not close the stream; failures by code; 15 s timeout | unit | `flutter test test/repository/quest_result_failure_test.dart test/repository/quest_result_repository_test.dart test/repository/quest_result_delivery_ports_test.dart test/repository/services/graphql` | ❌ W0 | ⬜ pending |
 | 9-04-01 | 04 | 1 | COMBAT-08 | T-9-08 | `AWAITING_AID` mapped by code only | unit | `flutter test test/repository/travel_failure_test.dart test/repository/quest_acceptance_failure_test.dart test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit test/screens/mainScreen/components` | ✅ (extend) | ⬜ pending |
@@ -76,7 +76,7 @@ created: 2026-10-27
 ## Wave 0 Requirements
 
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` — one recorded payload per outcome, null enemy/spell, orphan item, with/without `acknowledgedAt` (plan 09-01)
-- [ ] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
+- [x] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
 - [ ] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04), `MockQuestResultRepository` (09-03), `MockQuestResultsCubit` (09-11)
 - [ ] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
 - [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents`
