@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/asset_item.dart';
 import '../../models/equipment_item.dart';
 import '../../theme/kg_theme.dart';
+import '../../utils/item_lines.dart';
 import 'cards/equipment_item_card.dart';
 import 'cards/loot_item_card.dart';
 import 'coins_display.dart';
@@ -31,6 +32,8 @@ class ItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lootItem = assetItem.asLoot;
+    final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
@@ -63,14 +66,30 @@ class ItemRow extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: Text(
-                assetItem.description,
-                style: KlimmeckGuideTheme.instance.bodyMedium,
-              ),
+              child: _buildTexts(effectLine),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTexts(String? effectLine) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          assetItem.description,
+          style: KlimmeckGuideTheme.instance.bodyMedium,
+        ),
+        if (effectLine != null)
+          Text(
+            effectLine,
+            key: ValueKey('item-effect-${assetItem.id}'),
+            style: KlimmeckGuideTheme.instance.bodyMedium,
+          ),
+      ],
     );
   }
 }
