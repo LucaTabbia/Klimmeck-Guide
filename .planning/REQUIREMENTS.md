@@ -116,13 +116,26 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 > **Note:** Una sezione Magie esiste già nel tab Journal in forma parziale. I requirement sotto definiscono la scope per v1.0; durante l'implementazione si verificherà puntualmente cosa è già presente e cosa manca davvero.
 
-- [ ] **SPELL-01**: User can view owned spells in the Journal tab, sourced from `Character.status.spells`
-- [ ] **SPELL-02**: For each owned spell, the UI shows: `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary
-- [ ] **SPELL-03**: User can equip a spell to one of the available active slots (slot count = `Character.status.maxActiveSpells`, dynamic and backend-driven) by tapping it
-- [ ] **SPELL-04**: User can disequip an `ActiveSpell` from a slot by tapping it
-- [ ] **SPELL-05**: For each `ActiveSpell`, the UI displays the remaining `usages` and (where applicable) a recovery indicator derived from `spell.recoveryTime`
-- [ ] **SPELL-06**: Slot assignment updates optimistically and rolls back on backend failure
-- [ ] **SPELL-07**: The UI respects backend-determined slot availability — slot unlocks (e.g. after gaining `mage` title) are driven by changes in `maxActiveSpells`, not frontend logic
+- [x] **SPELL-01**: User can view owned spells in the Journal tab, sourced from `Character.status.spells`
+- [x] **SPELL-02**: For each owned spell, the UI shows: `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary
+- [x] **SPELL-03**: User can equip a spell to one of the available active slots (slot count = `Character.status.maxActiveSpells`, dynamic and backend-driven) by tapping it
+  - _Emendato il 2026-10-27 (Phase 8 discuss, D-06/D-07): il tap sulla riga è un toggle (equip se inattiva, disequip se attiva); con slot pieni o `maxActiveSpells == 0` il client non chiama il BE e mostra il banner; il BE resta il giudice (`MAX_ACTIVE_SPELLS_REACHED`). Il campo deprecato `EquipSpellRequest.usages` non viene inviato._
+- [x] **SPELL-04**: User can disequip an `ActiveSpell` from a slot by tapping it
+  - _Emendato il 2026-10-27 (D-06, D-09): anche il tap sulla carta nello slot disequipaggia; il long-press su riga o carta apre il foglio di dettaglio (`SpellInfo` esteso, pattern `EquipmentInfoSheet`)._
+- [x] **SPELL-05**: For each `ActiveSpell`, the UI displays the remaining `usages` and (where applicable) a recovery indicator derived from `spell.recoveryTime`
+  - _Emendato il 2026-10-27 (D-01..D-05): countdown reale «prossimo tra X» nella riga della lista, calcolato dal tempo server sul primo istante di `CharacterStatus.spellStates[].recoveries` (BE Phase 9.1, contratto additivo proposto in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md`). Usi e recuperi sono per magia conosciuta e sopravvivono a equip/disequip (regola dell'utente: «Il timer di recupero non si interrompe mai»); senza `recoveries` il FE mostra «in recupero» senza tempo; la carta nello slot mostra solo gli usi._
+- [x] **SPELL-06**: Slot assignment updates optimistically and rolls back on backend failure
+- [x] **SPELL-07**: The UI respects backend-determined slot availability — slot unlocks (e.g. after gaining `mage` title) are driven by changes in `maxActiveSpells`, not frontend logic
+  - _Nota 2026-10-27 (D-10..D-12): la riga degli slot ha esattamente `maxActiveSpells` box; con `maxActiveSpells == 0` nessuna riga di slot e una riga di copy neutro senza numeri; senza magie conosciute la sezione non viene costruita._
+
+- [x] **SPELL-08**: The known-spell list can be filtered by `useType` with the shop's icon chips («Tutti» + one chip per use type present in the list); the slot row never changes _(added 2026-10-27 after the Phase 8 device UAT, D-22/D-23)_
+- [x] **SPELL-09**: The compact spell line and the detail sheet show the use-type label in place of «Danno» («Attacco: Fuoco 12»; «Danno: …» only when `useType` is missing); the sheet keeps its «Uso: …» line _(added 2026-10-27, D-24)_
+
+### Journal Items and Shop (Phase 8 extension, added 2026-10-27)
+
+- [x] **ITEM-01**: `EffectType` has an Italian label (Cura, Sazietà, Danno, Esplorazione, Nessun effetto) and every loot item row (Journal and shop, shared `ItemRow`) shows «<label>: <power>» under the description (D-25/D-26)
+- [x] **ITEM-02**: The Journal «Oggetti» section can be filtered by `effect` with the same icon chips, limited to the effect types present among the owned items (D-27/D-23)
+- [x] **SHOP-01**: The shop filters show only the equip/effect types present in the lists on sale or owned (D-23)
 
 ### Combat Result Sheet
 
@@ -217,7 +230,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | NOTIF-01 through NOTIF-08   | Phase 5 | Complete (Android only; NOTIF-02 prompt call site in Phase 7; context popups in Phases 7/9) |
 | QUEST-01 through QUEST-07   | Phase 6 | Complete (QUEST-03/04/05/06/07 as amended 2026-10-21; Android device E2E 2026-10-22) |
 | TRAVEL-01 through TRAVEL-04 | Phase 7 | Complete (TRAVEL-01 shipped by BE Phase 8; TRAVEL-02/03 amended 2026-10-24; Android device E2E 2026-10-26) |
-| SPELL-01 through SPELL-07   | TBD   | Pending |
+| SPELL-01 through SPELL-07   | Phase 8 | Complete |
+| SPELL-08, SPELL-09          | Phase 8 | Complete |
+| ITEM-01, ITEM-02, SHOP-01   | Phase 8 | Complete |
 | COMBAT-01 through COMBAT-07 | TBD   | Pending |
 | ADMIN-01 through ADMIN-08   | TBD   | Pending |
 | HARDEN-01 through HARDEN-06 | TBD   | Pending |

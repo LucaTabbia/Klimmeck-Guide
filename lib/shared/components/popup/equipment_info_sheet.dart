@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 
@@ -332,23 +333,13 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
           ),
         ),
         if (widget.isEquipped != null)
-          AnimatedPositioned(
-            duration: Duration(milliseconds: 300),
-            top: !widget.isEquipped!
-                ? -(MediaQuery.of(context).size.height / 2.5) +
-                      MediaQuery.of(context).size.height / 4
-                : 0,
+          BookmarkRibbon(
+            isMarked: widget.isEquipped!,
+            length: MediaQuery.of(context).size.height / 2.5,
+            peek: MediaQuery.of(context).size.height / 4,
             left: 20,
-            child: GestureDetector(
-              onTap: () => widget.onEquip?.call(),
-              child: RotatedBox(
-                quarterTurns: 3,
-                child:               CachedSvg(
-                  url: CloudinaryAssets.url(CloudinaryAssets.bookmarkRed),
-                  height: MediaQuery.of(context).size.height / 2.5,
-                ),
-              ),
-            ),
+            curve: Curves.linear,
+            onTap: () => widget.onEquip?.call(),
           ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/travel/travel_time_format.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/game_duration_format.dart';
 
 typedef _TravelNumbers = ({String distance, String duration, String? arrival});
 
@@ -100,7 +101,7 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   _TravelNumbers? _numbersOf(TravelState state) => switch (state) {
     TravelQuote(:final preview, :final eta, :final previewedAt) => (
       distance: formatTravelDistance(preview.distance),
-      duration: formatTravelDuration(
+      duration: formatGameDuration(
         Duration(milliseconds: preview.duration.round()),
       ),
       arrival: _arrivalOf(eta, previewedAt),

@@ -22,8 +22,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// La Phase 5 aggiunge `RegisterPushDevice` e `UnregisterPushDevice`; la
 /// Phase 7 aggiunge `GetServerTime`, `GetTravelPreview` e `StartTravel`; il
 /// quick 261025-grp aggiunge `AbandonQuest`; il quick 261026-prt aggiunge
-/// `OnQuestUpdated`; ogni
-/// documento futuro va aggiunto qui
+/// `OnQuestUpdated`; la Phase 8 rinomina `EquipSpell` e `UnequipSpell`;
+/// ogni documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
@@ -47,8 +47,8 @@ final Map<String, String> schemaCheckDocuments = {
   'DeleteCharacter': CharacterMutations.deleteCharacter,
   'doTransaction': CharacterMutations.doTransaction,
   'equipItem': CharacterMutations.equipItem,
-  'equipSpell': CharacterMutations.equipSpell,
-  'unequipSpell': CharacterMutations.unequipSpell,
+  'EquipSpell': CharacterMutations.equipSpell,
+  'UnequipSpell': CharacterMutations.unequipSpell,
   'AcceptQuest': QuestMutations.acceptQuest,
   'AbandonQuest': QuestMutations.abandonQuest,
   'StartTravel': TravelMutations.startTravel,

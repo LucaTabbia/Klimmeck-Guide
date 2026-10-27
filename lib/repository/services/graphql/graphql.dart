@@ -29,6 +29,7 @@ import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
+import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
@@ -549,6 +550,38 @@ class KlimmeckGraphQl {
     if (successful is! bool) {
       throw const FormatException('startTravel malformed');
     }
+    return successful;
+  }
+
+  /// Equipaggia una magia (D-06): lo stato arriva su `characterUpdated`, mai da
+  /// questa risposta (D-16). Restituisce solo `successful`; lancia
+  /// [OperationException] o [FormatException] per una risposta malformata.
+  Future<bool> equipSpell(EquipSpellRequest request) =>
+      _spellSlotMutation(CharacterMutations.equipSpell, 'equipSpell', request);
+
+  /// Disequipaggia una magia (D-06), stesso contratto di [equipSpell].
+  Future<bool> unequipSpell(EquipSpellRequest request) => _spellSlotMutation(
+    CharacterMutations.unequipSpell,
+    'unequipSpell',
+    request,
+  );
+
+  Future<bool> _spellSlotMutation(
+    String document,
+    String field,
+    EquipSpellRequest request,
+  ) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: document,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    final result = data[field];
+    final successful = result is Map<String, dynamic>
+        ? result['successful']
+        : null;
+    if (successful is! bool) throw FormatException('$field malformed');
     return successful;
   }
 

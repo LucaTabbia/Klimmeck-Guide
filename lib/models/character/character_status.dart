@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/models/spell/spell_state.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 
 import '../coins.dart';
@@ -20,6 +21,7 @@ class CharacterStatus extends Equatable {
     required this.level,
     required this.maxActiveSpells,
     this.activeTravel,
+    this.spellStates,
   });
 
   final int? xp;
@@ -35,6 +37,9 @@ class CharacterStatus extends Equatable {
 
   /// Viaggio in corso (BE Phase 8); `null` = fermo. Un viaggio malformato vale `null`.
   final ActiveTravel? activeTravel;
+
+  /// Stato per magia conosciuta (BE 9.1); `null` = campo assente (backend pre-9.1 o fragment non ancora esteso, D-03).
+  final List<SpellState>? spellStates;
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
@@ -59,7 +64,15 @@ class CharacterStatus extends Equatable {
             : null,
         maxActiveSpells: json['maxActiveSpells']?.toInt(),
         activeTravel: ActiveTravel.tryFromJson(json['activeTravel']),
+        spellStates: _spellStatesFrom(json['spellStates']),
       );
+
+  static List<SpellState>? _spellStatesFrom(Object? json) {
+    if (json is! List) return null;
+    return List<SpellState>.unmodifiable(
+      json.map(SpellState.tryFromJson).whereType<SpellState>(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "location": location?.toJson(),
@@ -73,6 +86,7 @@ class CharacterStatus extends Equatable {
     "title": title?.name,
     "maxActiveSpells": maxActiveSpells,
     "activeTravel": activeTravel?.toJson(),
+    "spellStates": spellStates?.map((state) => state.toJson()).toList(),
   };
 
   CharacterStatus copyWith({
@@ -99,6 +113,7 @@ class CharacterStatus extends Equatable {
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
       maxActiveSpells: maxActiveSpells ?? this.maxActiveSpells,
       activeTravel: activeTravel,
+      spellStates: spellStates,
     );
   }
 
@@ -115,5 +130,6 @@ class CharacterStatus extends Equatable {
     maxLifePoints,
     maxActiveSpells,
     activeTravel,
+    spellStates,
   ];
 }

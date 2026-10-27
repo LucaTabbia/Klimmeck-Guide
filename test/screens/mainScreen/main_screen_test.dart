@@ -9,8 +9,10 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/notification.dart';
+import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
+import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -22,6 +24,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
@@ -95,6 +98,8 @@ void main() {
     late StreamController<QuestAcceptanceState> acceptanceStates;
     late MockTravelCubit travelCubit;
     late StreamController<TravelState> travelStates;
+    late MockSpellsCubit spellsCubit;
+    late StreamController<SpellsState> spellsStates;
 
     setUp(() {
       registerFallbackValue(const KGNotification(title: '', description: ''));
@@ -114,6 +119,14 @@ void main() {
         travelCubit,
         travelStates.stream,
         initialState: const TravelIdle(),
+      );
+      spellsCubit = MockSpellsCubit();
+      spellsStates = StreamController<SpellsState>.broadcast();
+      addTearDown(spellsStates.close);
+      whenListen(
+        spellsCubit,
+        spellsStates.stream,
+        initialState: const SpellsState(),
       );
       final svg =
           File('${Directory.systemTemp.createTempSync('kg_svg').path}/i.svg')
@@ -168,6 +181,7 @@ void main() {
               BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
               BlocProvider<TravelCubit>.value(value: travelCubit),
+              BlocProvider<SpellsCubit>.value(value: spellsCubit),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -339,6 +353,37 @@ void main() {
           ),
         ).called(1);
         verify(() => travelCubit.reset()).called(1);
+      },
+    );
+
+    testWidgets(
+      'a spell rollback answered away from the Journal shows the banner',
+      (tester) async {
+        final controller = await pumpOpenSatchel(tester, 'city-marker-1');
+        expect(controller.page!.round(), 0);
+
+        spellsStates.add(
+          const SpellsState(
+            outcome: SpellOutcome(
+              sequence: 1,
+              spellId: 'spell-1',
+              operation: SpellOperation.equip,
+              kind: SpellOutcomeKind.failed,
+              failure: SpellEquipFailure.connection,
+            ),
+          ),
+        );
+        await tester.pump();
+
+        verify(
+          () => noticesCubit.publishNotice(
+            const KGNotification(
+              title: 'Magia non equipaggiata',
+              description: 'Connessione assente, riprova',
+            ),
+            dedupKey: 'spell|failed|connection|spell-1',
+          ),
+        ).called(1);
       },
     );
   });

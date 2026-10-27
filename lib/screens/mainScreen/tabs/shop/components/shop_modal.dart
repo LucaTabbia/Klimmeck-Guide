@@ -4,8 +4,9 @@ import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/items_filter.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/utils/filter_values.dart';
 
 import '../../../../../models/enums/effect_type.dart';
 import '../../../../../models/enums/equip_type.dart';
@@ -53,23 +54,45 @@ class _ShopModalState extends State<ShopModal> {
     super.initState();
   }
 
+  /// Un tipo sparito dalle liste riporta i chip a «Tutti» per sempre (D-23).
+  @override
+  void didUpdateWidget(ShopModal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    selectedEquipFilter = retainedFilterSelection(
+      selectedEquipFilter,
+      presentEquipTypes(widget.equipments),
+    );
+    selectedEffectFilter = retainedFilterSelection(
+      selectedEffectFilter,
+      presentEffectTypes(widget.items),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemSize = (MediaQuery.of(context).size.width - 200) / 5;
 
-    final filteredEquipments = selectedEquipFilter == null
+    final equipTypes = presentEquipTypes(widget.equipments);
+    final equipFilter = retainedFilterSelection(
+      selectedEquipFilter,
+      equipTypes,
+    );
+    final effectTypes = presentEffectTypes(widget.items);
+    final effectFilter = retainedFilterSelection(
+      selectedEffectFilter,
+      effectTypes,
+    );
+
+    final filteredEquipments = equipFilter == null
         ? widget.equipments
         : widget.equipments
-              .where(
-                (e) =>
-                    (e.item! as EquipmentItem).equipType == selectedEquipFilter,
-              )
+              .where((e) => e.item?.asEquipment?.equipType == equipFilter)
               .toList();
 
-    final filteredItems = selectedEffectFilter == null
+    final filteredItems = effectFilter == null
         ? widget.items
         : widget.items
-              .where((i) => (i.item as LootItem).effect == selectedEffectFilter)
+              .where((i) => i.item?.asLoot?.effect == effectFilter)
               .toList();
 
     return LayoutBuilder(
@@ -89,15 +112,16 @@ class _ShopModalState extends State<ShopModal> {
                     isEquipOpen = !isEquipOpen;
                   }),
                   data: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ItemsFilter(
-                        values: EquipType.values,
-                        current: selectedEquipFilter,
-                        onTap: (value) => setState(() {
-                          selectedEquipFilter = value;
-                        }),
-                        getImage: (EquipType value) => value.imagePath,
-                      ),
+                      if (equipTypes.isNotEmpty)
+                        ItemsFilter<EquipType>(
+                          values: equipTypes,
+                          current: equipFilter,
+                          onTap: (value) =>
+                              setState(() => selectedEquipFilter = value),
+                          getImage: (value) => value.imagePath,
+                        ),
                       ...List.generate(filteredEquipments.length, (index) {
                         final selectedAsset = selectedItems.firstWhereOrNull(
                           (q) =>
@@ -132,15 +156,16 @@ class _ShopModalState extends State<ShopModal> {
                     isItemOpen = !isItemOpen;
                   }),
                   data: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ItemsFilter(
-                        values: EffectType.values,
-                        current: selectedEffectFilter,
-                        onTap: (value) => setState(() {
-                          selectedEffectFilter = value;
-                        }),
-                        getImage: (EffectType value) => value.imagePath,
-                      ),
+                      if (effectTypes.isNotEmpty)
+                        ItemsFilter<EffectType>(
+                          values: effectTypes,
+                          current: effectFilter,
+                          onTap: (value) =>
+                              setState(() => selectedEffectFilter = value),
+                          getImage: (value) => value.imagePath,
+                        ),
                       ...List.generate(filteredItems.length, (index) {
                         final selectedAsset = selectedItems.firstWhereOrNull(
                           (q) => q.item?.id == filteredItems[index].item!.id,

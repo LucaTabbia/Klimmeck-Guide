@@ -1,12 +1,17 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
+import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
-import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
-import 'package:klimmeck_guide/shared/components/spell_row.dart';
+import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/utils/filter_values.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
@@ -35,8 +40,11 @@ class Journal extends StatefulWidget {
 class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   List<EquipmentItem> _equippedItems = [];
   EquipmentItem? _selectedEquipment;
+  Spell? _selectedSpell;
+  SpellRecoveryCubit? _selectedSpellRecovery;
   List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
+  EffectType? _selectedEffect;
 
   late AnimationController _animationController;
   late Animation<double> _positionAnimation;
@@ -59,7 +67,11 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
 
   void _onAnimationStatusChanged(AnimationStatus status) {
     if (status.isDismissed) {
-      setState(() => _selectedEquipment = null);
+      setState(() {
+        _selectedEquipment = null;
+        _selectedSpell = null;
+        _selectedSpellRecovery = null;
+      });
     }
   }
 
@@ -147,71 +159,6 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildSpellsSection(double lootSize) {
-    return BlocSelector<CharacterCubit, CharacterState, Character?>(
-      selector: (state) {
-        if (state is CharacterLoaded) {
-          return state.character;
-        }
-        return null;
-      },
-      builder: (context, character) {
-        return Dropdown(
-          sectionName: "Magie imparate",
-          data: Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    ...List.generate(
-                      character!.status!.maxActiveSpells!,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: Container(
-                          height: lootSize,
-                          width: lootSize,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(15)),
-                            border: Border.all(
-                              color: KlimmeckGuideTheme.deepNight,
-                              width: 2,
-                            ),
-                          ),
-                          child: character.assets!.activeSpells!.length > index
-                              ? SpellCard(
-                                  spell: character
-                                      .assets!
-                                      .activeSpells![index]
-                                      .spell!,
-                                  size: lootSize,
-                                  usages: character
-                                      .assets!
-                                      .activeSpells![index]
-                                      .usages,
-                                )
-                              : SizedBox.shrink(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                ...List.generate(
-                  character.status!.spells!.length,
-                  (index) => SpellRow(
-                    spell: character.status!.spells![index],
-                    size: lootSize,
-                    usages: character.status!.spells![index].maxUsages,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildArmorSection(
     Character character,
     double screenWidth,
@@ -276,26 +223,57 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
+  List<AssetQuantity> _ownedItemsOf(Character character) =>
+      character.assets?.ownedItems ?? const <AssetQuantity>[];
+
+  /// Un effetto sparito dagli oggetti riporta i chip a «Tutti» (D-23).
+  void _dropVanishedEffectFilter(CharacterState state) {
+    if (state is! CharacterLoaded) return;
+    final retained = retainedFilterSelection(
+      _selectedEffect,
+      presentEffectTypes(_ownedItemsOf(state.character)),
+    );
+    if (retained != _selectedEffect) setState(() => _selectedEffect = retained);
+  }
+
   Widget _buildOwnedItemsSection(Character character, double lootSize) {
+    final ownedItems = _ownedItemsOf(character);
+    final effectTypes = presentEffectTypes(ownedItems);
+    final selectedEffect = retainedFilterSelection(
+      _selectedEffect,
+      effectTypes,
+    );
+    final shownItems = selectedEffect == null
+        ? ownedItems
+        : ownedItems.where(
+            (owned) => owned.item?.asLoot?.effect == selectedEffect,
+          );
     return Dropdown(
       sectionName: "Oggetti",
       data: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ...List.generate(
-            character.assets!.ownedItems!.length,
-            (index) => ItemRow(
-              assetItem: character.assets!.ownedItems![index].item!,
-              quantity: character.assets!.ownedItems![index].quantity!,
-              showCoins: false,
-              size: lootSize,
+          if (effectTypes.isNotEmpty)
+            ItemsFilter<EffectType>(
+              values: effectTypes,
+              current: selectedEffect,
+              onTap: (effect) => setState(() => _selectedEffect = effect),
+              getImage: (effect) => effect.imagePath,
             ),
-          ),
+          for (final owned in shownItems)
+            if (owned.item case final item?)
+              ItemRow(
+                assetItem: item,
+                quantity: owned.quantity,
+                showCoins: false,
+                size: lootSize,
+              ),
         ],
       ),
     );
   }
 
-  Widget _buildEquipmentInfoSheet(double screenWidth) {
+  Widget _buildInfoSheet(double screenWidth) {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -327,11 +305,21 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                         return Placeholder();
                       },
                     )
-                  : null,
+                  : _buildSpellSheet(),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget? _buildSpellSheet() {
+    final spell = _selectedSpell;
+    final recovery = _selectedSpellRecovery;
+    if (spell == null || recovery == null) return null;
+    return BlocProvider<SpellRecoveryCubit>.value(
+      value: recovery,
+      child: SpellDetailsSheet(spell: spell),
     );
   }
 
@@ -359,7 +347,20 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   void _selectEquipment(EquipmentItem item) {
-    setState(() => _selectedEquipment = item);
+    setState(() {
+      _selectedEquipment = item;
+      _selectedSpell = null;
+      _selectedSpellRecovery = null;
+    });
+    _animationController.forward();
+  }
+
+  void _selectSpell(Spell spell, SpellRecoveryCubit recovery) {
+    setState(() {
+      _selectedEquipment = null;
+      _selectedSpell = spell;
+      _selectedSpellRecovery = recovery;
+    });
     _animationController.forward();
   }
 
@@ -423,7 +424,8 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocBuilder<CharacterCubit, CharacterState>(
+    return BlocConsumer<CharacterCubit, CharacterState>(
+      listener: (context, state) => _dropVanishedEffectFilter(state),
       builder: (context, state) {
         if (state is CharacterLoaded) {
           Character character = state.character;
@@ -464,7 +466,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                               ),
                               _buildCoinsSection(),
                               _buildInjuriesSection(),
-                              _buildSpellsSection(lootSize),
+                              SpellsSection(
+                                cardSize: lootSize,
+                                onShowDetails: _selectSpell,
+                              ),
                               _buildArmorSection(
                                 character,
                                 screenWidth,
@@ -478,7 +483,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  _buildEquipmentInfoSheet(screenWidth),
+                  _buildInfoSheet(screenWidth),
                 ],
               ),
             ),

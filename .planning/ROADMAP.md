@@ -50,6 +50,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 
 - **QUEST-04** — `activeStoryQuest` / `activeWorldMissionQuest` fields on `Character` (or `CharacterQuests`). Blocks Phase 6 (Quest Accept).
 - **TRAVEL-01** — `status.activeTravel { road, startTime, endTime, duration }` on `Character`. Blocks Phase 7 (Travel).
+- **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -62,7 +63,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
-- [ ] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback.
+- [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
 - [ ] **Phase 9: Combat Result Sheet** — Full-screen combat outcome with HP delta animation, consumables/spells used, injuries, rewards, XP; queued if a flow is active.
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
@@ -253,18 +254,34 @@ Plans:
 
 ### Phase 8: Spells Section (Journal Tab)
 **Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
-**Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`)
+**Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`), **BE Phase 9.1 Spell State and Recovery Contract** (`CharacterStatus.spellStates { spell usages recoveries }`, additive; the BE PR merges before the FE plan that selects it — added 2026-10-27)
 **Scope**: M
-**Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07
+**Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07, SPELL-08, SPELL-09, ITEM-01, ITEM-02, SHOP-01 (the last five added on 2026-10-27, extension after the device UAT)
 **Success Criteria** (what must be TRUE):
   1. The Journal tab shows the list of owned spells with `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary.
   2. Tapping a spell assigns it to an available active slot (slot count = `maxActiveSpells`, backend-driven); tapping an active slot disequips it; UI updates optimistically and rolls back on backend failure.
-  3. Each `ActiveSpell` shows remaining `usages` and, where applicable, a recovery indicator derived from `spell.recoveryTime`.
+  3. Every known spell below its maximum shows the remaining `usages` and a live «prossimo tra X» countdown from `status.spellStates[].recoveries` against server time (static «in recupero» without an instant); the slot card shows the usages only. _(Amended 2026-10-27 after the Phase 8 research, per the SPELL-05 amendment.)_
   4. Slot availability reflects `maxActiveSpells` changes from the subscription (e.g. new slot appearing after a title change) with no frontend slot logic.
+  5. (extension 2026-10-27) The known-spell list and the Journal «Oggetti» section can be filtered by use type / effect type with the shop's icon chips limited to the types present (the shop chips follow the same rule); the spell line reads «Attacco: Fuoco 12» and every loot row «Cura: 12».
 **Decisions to make during discuss step**:
   - Audit what the existing partial Spells section already provides vs what must be built.
   - Gameplay surface — NO app-style chrome.
-**Plans**: TBD
+**Backend prerequisite**: BE Phase 9.1 — per-spell state `spellStates { spell usages recoveries }` that outlives equip/disequip (user rule 2026-10-27); proposed in `.planning/phases/08-spells-section-journal-tab/BACKEND-NOTES.md`, fixed in the BE `09.1-CONTEXT.md`. Only the schema-gated final plan waits for it.
+**Plans**: 14 plans
+  - [x] 08-01-PLAN.md — Wave 1: SpellState + optional spellStates, spell fixtures, shared formatGameDuration
+  - [x] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
+  - [x] 08-03-PLAN.md — Wave 2: shared BookmarkRibbon + pencil counter, SpellCard bookmark, pending-ink tokens
+  - [x] 08-04-PLAN.md — Wave 2: recovery status on server time + Italian spell lines
+  - [x] 08-05-PLAN.md — Wave 2: pure Spellbook view (slots, fallback, optimistic overlay, intents)
+  - [x] 08-06-PLAN.md — Wave 3: SpellsCubit pending overlay (15 s settle, tokens)
+  - [x] 08-07-PLAN.md — Wave 3: SpellRecoveryCubit countdown ticker
+  - [x] 08-08-PLAN.md — Wave 3: SpellInfo extended + SpellInfoSheet (bookmark toggle)
+  - [x] 08-09-PLAN.md — Wave 3: slot row, known-spell rows, shake, SpellbookContent
+  - [x] 08-10-PLAN.md — Wave 4: spell notices, SpellOutcomeListener, shell provider + MainScreen mount
+  - [x] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
+  - [x] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
+  - [x] 08-13-PLAN.md — Wave 7 (extension 2026-10-27): present-types helper, «Attacco: Fuoco 12» line, UseType chips in the spells section, shop chips limited to the present types
+  - [x] 08-14-PLAN.md — Wave 8 (extension 2026-10-27): EffectType labels, «Cura: 12» line in the shared ItemRow, EffectType chips in the Journal «Oggetti» section
 **UI hint**: yes
 
 ### Phase 9: Combat Result Sheet
@@ -358,7 +375,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 0/0 | Not started | - |
+| 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
@@ -413,13 +430,18 @@ Plans:
 | TRAVEL-02 | Phase 7 | Complete |
 | TRAVEL-03 | Phase 7 | Complete |
 | TRAVEL-04 | Phase 7 | Complete |
-| SPELL-01 | Phase 8 | Pending |
-| SPELL-02 | Phase 8 | Pending |
-| SPELL-03 | Phase 8 | Pending |
-| SPELL-04 | Phase 8 | Pending |
-| SPELL-05 | Phase 8 | Pending |
-| SPELL-06 | Phase 8 | Pending |
-| SPELL-07 | Phase 8 | Pending |
+| SPELL-01 | Phase 8 | Complete |
+| SPELL-02 | Phase 8 | Complete |
+| SPELL-03 | Phase 8 | Complete |
+| SPELL-04 | Phase 8 | Complete |
+| SPELL-05 | Phase 8 | Complete |
+| SPELL-06 | Phase 8 | Complete |
+| SPELL-07 | Phase 8 | Complete |
+| SPELL-08 | Phase 8 | Complete |
+| SPELL-09 | Phase 8 | Complete |
+| ITEM-01 | Phase 8 | Complete |
+| ITEM-02 | Phase 8 | Complete |
+| SHOP-01 | Phase 8 | Complete |
 | COMBAT-01 | Phase 9 | Pending |
 | COMBAT-02 | Phase 9 | Pending |
 | COMBAT-03 | Phase 9 | Pending |

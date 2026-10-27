@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-10-26T21:50:00.000Z"
-last_activity: 2026-10-26 -- Phase 7 closed after the device UAT (12/12) and the gold-dash quick task; PR #31 feat/07-travel → develop opened
+status: planning
+last_updated: "2026-10-27T18:34:02.000Z"
+last_activity: "2026-10-27 -- Phase 8 completed (14 plans, device UAT 12/12 + extension check 4/4, extension 08-13/08-14 reviewed, fixed, verified and audited); FE PR opened"
 progress:
   total_phases: 12
-  completed_phases: 8
-  total_plans: 73
-  completed_plans: 67
-  percent: 92
+  completed_phases: 9
+  total_plans: 87
+  completed_plans: 87
+  percent: 100
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 7 (Travel) — COMPLETE (2026-10-26)
-Plan: 11 of 11
-Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: quick task «tratteggio della rotta in oro» (richiesta dell'utente nella UAT, passo 3) on `feat/07-travel`, then FE PR `feat/07-travel` → `develop`; then FE Phase 9/10 once the BE PR #13 (BE Phase 9, Combat Result & Admin Outcomes) is merged
-Status: Phase 7 complete — PR #31 (feat/07-travel → develop) open, awaiting review/merge; then merge BE PR #13, then the stacked FE branch feat/party-waiting (its PR after both merges), then FE Phase 9 (Spells Section) per the roadmap
-Last activity: 2026-10-26 -- Phase 7 device UAT recorded (07-HUMAN-UAT.md), 07-11 complete
+Phase: 9 (Combat Result Sheet) — NOT STARTED (Phase 8 complete on 2026-10-27: 14 plans in 8 waves, device UAT 12/12 + extension check 4/4; FE PR `feat/08-spells-section-journal-tab` → `develop` opened)
+Plan: —
+Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
+Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-discuss-phase 9` then plan on `feat/09-combat-result-sheet` off `develop`, after the Phase 8 PR merge; BE follow-up: rebase `feat/10-hardening` on BE `develop`
+Status: Phase 8 complete (2026-10-27) — PR open on `develop`; next: Phase 9 discuss
+Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, fixed, verified and audited; extension device check 4/4; FE PR opened)
 
 ## Current Milestone
 
@@ -52,7 +52,9 @@ Last activity: 2026-10-26 -- Phase 7 device UAT recorded (07-HUMAN-UAT.md), 07-1
 - **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
 - ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
 - ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
-- **feat/party-waiting:** rebased on `develop` (2026-10-26) after the merges of FE PR #31 and BE PR #13; schema check 34/34 against BE `develop`; PR #32 to `develop` open (2026-10-26), awaiting review/merge; after it: `/gsd-discuss-phase 9` (Spells Section).
+- ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
+- ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
+- **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed
 

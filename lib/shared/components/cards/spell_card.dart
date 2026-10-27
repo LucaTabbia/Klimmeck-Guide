@@ -2,29 +2,35 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
-import '../animated_pencil_text.dart';
 
 class SpellCard extends StatelessWidget {
   static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
 
   final Spell spell;
   final double size;
-  final Function(Spell)? onTap;
   final int? usages;
+
+  /// Segnalibro rosso delle magie attive (D-14); `null` = nessun segnalibro.
+  final bool? isMarked;
 
   const SpellCard({
     super.key,
     required this.spell,
     required this.size,
-    this.onTap,
     this.usages,
+    this.isMarked,
   });
 
   @override
   Widget build(BuildContext context) {
+    final useType = spell.useType;
+    final energyType = spell.energyDamage?.type;
+    final power = spell.energyDamage?.power;
     return RepaintBoundary(
       child: SizedBox(
         height: size,
@@ -41,23 +47,23 @@ class SpellCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      CachedSvg(
-                        url: spell.useType!.imagePath,
-                        height: size / 2.5,
-                        width: size / 2.5,
-                      ),
-                      CachedSvg(
-                        url: spell.energyDamage!.type!.imagePath,
-                        height: size / 2.5,
-                        width: size / 2.5,
-                      ),
+                      if (useType != null)
+                        CachedSvg(
+                          url: useType.imagePath,
+                          height: size / 2.5,
+                          width: size / 2.5,
+                        ),
+                      if (energyType != null)
+                        CachedSvg(
+                          url: energyType.imagePath,
+                          height: size / 2.5,
+                          width: size / 2.5,
+                        ),
                     ],
                   ),
                   _buildTextSection(text: spell.name ?? ""),
-                  if (spell.energyDamage!.power != 0)
-                    _buildTextSection(
-                      text: spell.energyDamage!.power.toString(),
-                    ),
+                  if (power != null && power != 0)
+                    _buildTextSection(text: power.toString()),
                 ],
               ),
             ),
@@ -65,55 +71,10 @@ class SpellCard extends StatelessWidget {
               Positioned(
                 right: 7,
                 bottom: 0,
-                child: SizedBox(
-                  height: 50,
-                  width: 25,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                            final fadeIn = CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(
-                                0.3,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            );
-
-                            final scaleIn = Tween<double>(
-                              begin: 1.2,
-                              end: 1.0,
-                            ).animate(fadeIn);
-
-                            return FadeTransition(
-                              opacity: fadeIn,
-                              child: ScaleTransition(
-                                scale: scaleIn,
-                                child: child,
-                              ),
-                            );
-                          },
-                      layoutBuilder: (currentChild, previousChildren) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      child: AnimatedPencilText(
-                        key: ValueKey<int>(usages!),
-                        text: usages.toString(),
-                      ),
-                    ),
-                  ),
-                ),
+                child: UsagesPencilCounter(value: usages!),
               ),
+            if (isMarked != null)
+              CardBookmark(isMarked: isMarked!, cardSize: size),
           ],
         ),
       ),

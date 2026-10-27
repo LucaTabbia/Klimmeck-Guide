@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_ou
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -99,34 +100,36 @@ class _MainScreenState extends State<MainScreen>
                   cities: state.cities,
                   child: PartyWatchListener(
                     child: TravelOutcomeListener(
-                      child: Scaffold(
-                        body: Stack(
-                          alignment: Alignment.topLeft,
-                          children: [
-                            NotificationIntentLanding(
-                              pageController: pageController,
-                              child: PageView(
-                                physics: const NeverScrollableScrollPhysics(),
-                                controller: pageController,
-                                onPageChanged: onPageChanged,
-                                children:
-                                    widget.pagesBuilder?.call(state.cities) ??
-                                    _buildPages(state.cities),
+                      child: SpellOutcomeListener(
+                        child: Scaffold(
+                          body: Stack(
+                            alignment: Alignment.topLeft,
+                            children: [
+                              NotificationIntentLanding(
+                                pageController: pageController,
+                                child: PageView(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  controller: pageController,
+                                  onPageChanged: onPageChanged,
+                                  children:
+                                      widget.pagesBuilder?.call(state.cities) ??
+                                      _buildPages(state.cities),
+                                ),
                               ),
-                            ),
-                            MenuBackground(
-                              selectedIndex: currentPage,
-                              onTap: onItemTap,
-                              opacityAnimation: _opacityAnimation,
-                              disabledPages: disabledPages,
-                            ),
-                            SatchelMenu(
-                              currentPage: currentPage,
-                              onItemTap: onItemTap,
-                              parentAnimationController: _animationController,
-                              disabledPages: disabledPages,
-                            ),
-                          ],
+                              MenuBackground(
+                                selectedIndex: currentPage,
+                                onTap: onItemTap,
+                                opacityAnimation: _opacityAnimation,
+                                disabledPages: disabledPages,
+                              ),
+                              SatchelMenu(
+                                currentPage: currentPage,
+                                onItemTap: onItemTap,
+                                parentAnimationController: _animationController,
+                                disabledPages: disabledPages,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

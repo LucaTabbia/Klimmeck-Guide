@@ -2,10 +2,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
-import '../animated_pencil_text.dart';
 
 class EquipmentItemCard extends StatefulWidget {
   const EquipmentItemCard({
@@ -31,7 +32,6 @@ class EquipmentItemCard extends StatefulWidget {
 
 class _EquipmentItemCardState extends State<EquipmentItemCard> {
   static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
-  static final _bookmarkUrl = CloudinaryAssets.url(CloudinaryAssets.bookmarkRed);
   late bool? _isSelected;
 
   @override
@@ -122,81 +122,10 @@ class _EquipmentItemCardState extends State<EquipmentItemCard> {
               Positioned(
                 right: 7,
                 top: 5,
-                child: SizedBox(
-                  height: 50,
-                  width: 25,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                            final fadeIn = CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(
-                                0.3,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            );
-
-                            final scaleIn = Tween<double>(
-                              begin: 1.2,
-                              end: 1.0,
-                            ).animate(fadeIn);
-
-                            return FadeTransition(
-                              opacity: fadeIn,
-                              child: ScaleTransition(
-                                scale: scaleIn,
-                                child: child,
-                              ),
-                            );
-                          },
-                      layoutBuilder: (currentChild, previousChildren) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      child: AnimatedPencilText(
-                        key: ValueKey<int>(widget.quantity!),
-                        text: widget.quantity!.toString(),
-                      ),
-                    ),
-                  ),
-                ),
+                child: UsagesPencilCounter(value: widget.quantity!),
               ),
             if (_isSelected != null)
-              Padding(
-                padding: EdgeInsets.only(top: widget.size / 25),
-                child: SizedBox(
-                  height: widget.size - widget.size / 25,
-                  width: widget.size,
-                  child: Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        top: !_isSelected! ? -(widget.size / 2.5) + 20 : 0,
-                        left: 5,
-                        child: RotatedBox(
-                          quarterTurns: 3,
-                          child: SizedBox(
-                            height: (widget.size / 2.5),
-                            width: (widget.size / 2.5),
-                            child: CachedSvg(url: _bookmarkUrl),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              CardBookmark(isMarked: _isSelected!, cardSize: widget.size),
           ],
         ),
       ),
