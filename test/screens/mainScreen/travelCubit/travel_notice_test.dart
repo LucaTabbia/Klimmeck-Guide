@@ -13,6 +13,7 @@ void main() {
       TravelFailure.noPath: 'Nessuna strada porta a questa meta',
       TravelFailure.questInProgress:
           'Non puoi partire durante una missione in corso',
+      TravelFailure.awaitingAid: 'Sei in attesa di soccorso: non puoi partire',
       TravelFailure.notFound: 'Questa meta non è più raggiungibile',
       TravelFailure.forbidden: 'Questo personaggio non può partire',
       TravelFailure.connection: 'Connessione assente, riprova',
