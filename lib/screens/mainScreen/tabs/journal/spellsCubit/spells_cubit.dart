@@ -23,8 +23,10 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
   final SpellsRepository _repository;
   final Duration settleTimeout;
 
-  /// Ultimo personaggio visto (tap o subscription): una risposta riuscita
-  /// chiude subito l'operazione se il BE l'ha già riflessa.
+  /// Ultimo personaggio visto: una risposta riuscita chiude subito
+  /// l'operazione se il BE l'ha già riflessa. Lo aggiorna solo `sync`; il
+  /// personaggio del tap serve finché nessuno stato è arrivato, perché il
+  /// widget può non essersi ancora ricostruito sull'ultimo `characterUpdated`.
   Character? _latest;
   int _nextToken = 0;
   int _sequence = 0;
@@ -46,7 +48,7 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
   /// Calcolato sulla vista ottimistica e restituito subito: il widget lo usa
   /// per l'aptica (D-08).
   SpellToggleIntent toggle(Character character, String spellId) {
-    _latest = character;
+    _latest ??= character;
     final intent = Spellbook.of(
       character,
       pending: state.pending,
