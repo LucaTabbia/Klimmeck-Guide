@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/repository/spells_repository.dart';
 import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -83,6 +84,8 @@ class MockQuestAbandonRepository extends Mock
     implements QuestAbandonRepository {}
 
 class MockTravelRepository extends Mock implements TravelRepository {}
+
+class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
