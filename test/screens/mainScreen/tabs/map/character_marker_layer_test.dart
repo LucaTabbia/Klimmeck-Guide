@@ -53,11 +53,13 @@ const LatLng destination = LatLng(10, 60);
 CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
+  Map<String, dynamic>? awaitingAid,
 }) => CharacterLoaded(
   Character.fromJson(
     travellingCharacterJson(
       activeTravel: activeTravel,
       pendingQuest: pendingQuest,
+      awaitingAid: awaitingAid,
     ),
   ),
 );
@@ -185,6 +187,55 @@ void main() {
 
       expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
       expect(pawnPoint(tester), home);
+    });
+  });
+
+  group('wounded pawn (Phase 9 D-16)', () {
+    testWidgets('awaiting aid shows the label and blocks the drag', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(awaitingAid: awaitingAidJson()),
+      );
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.awaitingAidLabelKey),
+          matching: find.text('In attesa di soccorso'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(CharacterMarkerLayer.travelLabelKey), findsNothing);
+      expect(pawnPoint(tester), home);
+    });
+
+    testWidgets('the awaiting-aid label ignores pointer events', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(awaitingAid: awaitingAidJson()),
+      );
+
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.awaitingAidLabelKey),
+          matching: find.byType(IgnorePointer),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a free character shows no awaiting-aid label', (tester) async {
+      await pumpLayer(tester, character: characterLoaded());
+
+      expect(
+        find.byKey(CharacterMarkerLayer.awaitingAidLabelKey),
+        findsNothing,
+      );
+      expect(pawnDraggable(tester).maxSimultaneousDrags, isNull);
     });
   });
 
