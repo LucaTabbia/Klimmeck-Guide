@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Segnalibro rosso degli oggetti equipaggiati e delle magie attive (D-14):
 /// `AnimatedPositioned` da mettere direttamente in uno `Stack`. Segnato: tutto
@@ -14,6 +15,7 @@ class BookmarkRibbon extends StatelessWidget {
     this.width,
     this.left = 5,
     this.curve = Curves.easeInOut,
+    this.opacity = 1,
     this.onTap,
   });
 
@@ -29,11 +31,19 @@ class BookmarkRibbon extends StatelessWidget {
   final double peek;
   final double left;
   final Curve curve;
+
+  /// Inchiostro del segnalibro: `pendingInkOpacity` mentre l'operazione che
+  /// rappresenta è in corso (D-16).
+  final double opacity;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final ribbon = RotatedBox(quarterTurns: 3, child: _svg());
+    final ribbon = AnimatedOpacity(
+      opacity: opacity,
+      duration: KlimmeckGuideTheme.pendingInkDuration,
+      child: RotatedBox(quarterTurns: 3, child: _svg()),
+    );
     return AnimatedPositioned(
       duration: slideDuration,
       curve: curve,

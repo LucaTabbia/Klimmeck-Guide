@@ -72,7 +72,12 @@ class SpellInfo extends StatelessWidget {
               child: CachedSvg(url: iconUrl),
             ),
           if (child != null)
-            Padding(padding: const EdgeInsets.only(left: 10.0), child: child),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: child,
+              ),
+            ),
         ],
       ),
     );
