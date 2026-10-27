@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
@@ -11,6 +12,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
+import 'package:klimmeck_guide/utils/filter_values.dart';
 
 /// Apre il foglio di dettaglio: il Diario lo ospita nel suo Stack con il cubit
 /// del countdown della sezione (D-09, D-16).
@@ -73,6 +75,9 @@ class _SpellsSectionBody extends StatefulWidget {
 }
 
 class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
+  /// Selezione dei chip: stato di vista locale, mai persistito né inviato (D-22).
+  UseType? _useTypeFilter;
+
   @override
   void initState() {
     super.initState();
@@ -88,13 +93,31 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
     );
   }
 
+  void _onCharacter(CharacterState state) {
+    _follow(state);
+    if (state is CharacterLoaded) _dropVanishedUseTypeFilter(state.character);
+  }
+
+  void _selectUseType(UseType? useType) =>
+      setState(() => _useTypeFilter = useType);
+
+  /// Un tipo sparito dalle magie conosciute riporta i chip a «Tutti» (D-23).
+  void _dropVanishedUseTypeFilter(Character character) {
+    final useTypes = presentFilterValues(
+      UseType.values,
+      Spellbook.of(character).entries.map((entry) => entry.spell.useType),
+    );
+    final retained = retainedFilterSelection(_useTypeFilter, useTypes);
+    if (retained != _useTypeFilter) setState(() => _useTypeFilter = retained);
+  }
+
   @override
   Widget build(BuildContext context) =>
       BlocListener<CharacterCubit, CharacterState>(
         listenWhen: (previous, current) =>
             current is CharacterLoaded &&
             _characterOf(previous) != current.character,
-        listener: (context, state) => _follow(state),
+        listener: (context, state) => _onCharacter(state),
         child: BlocSelector<CharacterCubit, CharacterState, Character?>(
           selector: _characterOf,
           builder: (context, character) =>
@@ -127,6 +150,8 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
           resistSignal: outcome == null || !outcome.springsBack
               ? null
               : (spellId: outcome.spellId, sequence: outcome.sequence),
+          useTypeFilter: _useTypeFilter,
+          onUseTypeFilterChanged: _selectUseType,
         ),
       ),
     );
