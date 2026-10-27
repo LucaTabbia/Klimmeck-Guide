@@ -11,7 +11,8 @@
 1. **Consumed as-is from BE Phase 9:** `questResultReceived(characterId)` (full payload, no snapshot), `questResult(id)`, push `questEnd` with `data.id` = result id, the five `outcome` values, `status.awaitingAid`, `AWAITING_AID` / `SHOP_NOT_IN_CITY`, the `aid` quest on the board. Nothing in this handoff changes them.
 2. **Requested for BE Phase 9.2 (user decisions 2026-10-27):**
    - a query of the **unacknowledged results of the authenticated user** (§2.1) and a mutation that **acknowledges** one result (§2.2), plus the additive field `QuestResult.acknowledgedAt` (§2.3) — so that no result sheet is ever lost (push lost, notifications disabled, force stop, death);
-   - **seats of a started quest are no longer freed by the archive** (§2.4) — so that a started quest stays torn on the board until it concludes, as the user specified.
+   - **seats of a started quest are no longer freed by the archive** (§2.4) — so that a started quest stays torn on the board until it concludes, as the user specified;
+   - **the death no longer unlinks `User.currentCharacter`: the acknowledgement of the `death` result does** (§2.2, user decision 2026-10-27) — so that the death sheet always precedes the creation page, cold start included.
 3. **FE behaviour the BE should know (§3):** the sheet is shown only on the Map tab (banner elsewhere), the death sheet anywhere with a routing hold; the acknowledgement is sent when the player closes the sheet; the FE publishes the in-app banner itself from the subscription with the generic BE copy; several results are queued by `resolvedAt`.
 
 ---
@@ -90,6 +91,7 @@ type Mutation {
 - Sets `acknowledgedAt = now` **only if null** (conditional update): a second call is a no-op that still answers `successful: true` (idempotent, the FE retries best-effort after a network failure).
 - `NOT_FOUND` «Risultato non trovato» for a malformed or unknown id (no DB access when malformed); `FORBIDDEN` «Questo risultato non ti appartiene» for another user's result, **innkeeper included** (same policy as `questResult`).
 - Not an admin action: no audit log. Called when the player presses the sheet's button (never on display, never on reception).
+- **Death (user decision 2026-10-27, BE 9.2 D-12):** for a result with `outcome: death` the acknowledgement also unlinks `User.currentCharacter` (conditional: only if it still points to `result.character`) in the same transaction; the death itself no longer unlinks it. `me` / `userUpdated` keep returning the dead character's id as `currentCharacter` until the ack (the archived character stays invisible everywhere else: `character(id)`, `characterUpdated`, owner-only mutations answer `NOT_FOUND`); `createCharacter` stays refused until then. The FE awaits this acknowledgement before routing.
 
 ### 2.3 `QuestResult.acknowledgedAt`
 
@@ -117,6 +119,7 @@ User, 2026-10-27: *«finché una missione non è conclusa il foglio resta strapp
 2. Pre-deploy results: backfill at boot or not (§2.3).
 3. Whether `acknowledgeQuestResult` returns `CommonResponse` (proposed, like `abandonQuest`) or the updated `QuestResult`.
 4. Whether `Quest.startedAt` should also go on the wire (not needed by the FE with §2.4; the BE may expose it for the UAT).
+5. The populate of `User.currentCharacter` for an archived character: `me` and `userUpdated` must still return at least `{ id }` of the dead character until the acknowledgement (§2.2), otherwise the FE cannot tell «dead, result pending» from «no character».
 
 ---
 
@@ -124,7 +127,7 @@ User, 2026-10-27: *«finché una missione non è conclusa il foglio resta strapp
 
 - **Map-only presentation (D-06):** the sheet is shown only while the Map tab is visible and free (no sheet/dialog open, no pawn drag); elsewhere the player gets the in-app banner and its tap lands on the Map and opens the sheet. Results wait in a FIFO queue by `resolvedAt`.
 - **Banner source (D-12):** the FE publishes the banner from the subscription event with the dedup key `questEnd|<resultId>` and the **generic BE copy** («Missione conclusa» / «La tua missione è terminata: scopri com'è andata.»); the foreground push with the same type and id is deduplicated. The «fine quest» toggle silences notification and banner, never the sheet.
-- **Death (D-13/D-14):** the death sheet is shown anywhere; the routing to the character creation on `currentCharacter: null` is held until the sheet is closed (cap ~10 s if the result has not arrived); the acknowledgement of a `death` result is sent by the user after the character is gone — the mutation must accept it (user-scoped ownership).
+- **Death (D-13/D-14):** the death sheet is shown anywhere (and unlocks the queue ahead of it); the FE acknowledges from the sheet's button and then routes to the creation page on `userUpdated(null)`, which the BE emits only at the acknowledgement (§2.2) — no FE hold. At a cold start after a death the shell boots with the dead id as current and tolerates `NOT_FOUND` on `character(id)` and the subscriptions until the unacknowledged query delivers the death sheet.
 - **Push tap (D-11):** `questResult(id)` only for ids unknown locally; an acknowledged id → Map only. `NOT_FOUND`/`FORBIDDEN` → domain banner, no retry.
 - **Wounded state (D-16):** `status.awaitingAid != null` → label on the pawn, pawn drag / Board / Shop disabled client-side; `AWAITING_AID` and `SHOP_NOT_IN_CITY` still mapped to a banner.
 - **Aid on the board (D-17):** rendered with the combat sheet family (enemy, time, rank slots, k/N); free (`requiredPoints: null`).
