@@ -13,7 +13,7 @@
    - a query of the **unacknowledged results of the authenticated user** (§2.1) and a mutation that **acknowledges** one result (§2.2), plus the additive field `QuestResult.acknowledgedAt` (§2.3) — so that no result sheet is ever lost (push lost, notifications disabled, force stop, death);
    - **seats of a started quest are no longer freed by the archive** (§2.4) — so that a started quest stays torn on the board until it concludes, as the user specified;
    - **the death no longer unlinks `User.currentCharacter`: the acknowledgement of the `death` result does** (§2.2, user decision 2026-10-27) — so that the death sheet always precedes the creation page, cold start included.
-3. **FE behaviour the BE should know (§3):** the sheet is shown only on the Map tab (banner elsewhere), the death sheet anywhere with a routing hold; the acknowledgement is sent when the player closes the sheet; the FE publishes the in-app banner itself from the subscription with the generic BE copy; several results are queued by `resolvedAt`.
+3. **FE behaviour the BE should know (§3):** the sheet is shown only on the Map tab (banner elsewhere), the death sheet anywhere, the creation page only after the acknowledgement (the BE keeps `currentCharacter` until then, no FE hold); the acknowledgement is sent when the player closes the sheet; the FE publishes the in-app banner itself from the subscription with the generic BE copy; several results are queued by `resolvedAt`.
 
 ---
 

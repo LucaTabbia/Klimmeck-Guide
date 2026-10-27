@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-10-27T20:30:00.000Z"
-last_activity: "2026-10-27 -- Phase 9 context gathered (CONTEXT D-01..D-22, BACKEND-NOTES proposal for the BE Phase 9.2, COMBAT-08/09/10 added); BE Phase 9.2 inserted"
+status: executing
+last_updated: "2026-10-27T22:00:43.338Z"
+last_activity: "2026-10-27 -- Phase 9 planned: 13 plans in 7 waves; BE Phase 9.2 planned the same day (7 plans), FE plans 09-12/09-13 gated on its merge"
 progress:
   total_phases: 12
   completed_phases: 9
-  total_plans: 87
+  total_plans: 100
   completed_plans: 87
-  percent: 100
+  percent: 87
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — CONTEXT GATHERED (2026-10-27) on `feat/09-combat-result-sheet` off `develop` (Phase 8 PR #33 merged on 2026-10-27)
-Plan: Not started
+Phase: 9 (Combat Result Sheet) — PLANNED (2026-10-27): 13 plans in 7 waves on `feat/09-combat-result-sheet` off `develop`; waves 6–7 (09-12, 09-13) gated on the BE Phase 9.2 PR merge
+Plan: 0 of 13
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
-Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-plan-phase 9` on `feat/09-combat-result-sheet`; the schema-gated plans wait for the BE Phase 9.2 PR (`feat/09.2-quest-result-delivery-contract`); BE follow-up: plan BE 9.2, then BE 10 (`feat/10-hardening` restacked on 9.2)
-Status: Phase 9 context gathered (2026-10-27, D-01..D-22) — ready to plan; BE Phase 9.2 companion inserted with its CONTEXT
-Last activity: 2026-10-27 -- Phase 9 context gathered (CONTEXT, DISCUSSION-LOG, BACKEND-NOTES proposal for BE 9.2; COMBAT-08/09/10 added, COMBAT-01/06/07 amended)
+Next Phase: execute FE Phase 9 waves 1–5 (`/gsd-execute-phase 9`, plans 09-01..09-11); 09-12/09-13 run after the BE Phase 9.2 PR (`feat/09.2-quest-result-delivery-contract`, 7 plans, planned 2026-10-27) is merged on BE `develop`; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2)
+Status: Phase 9 planned (2026-10-27: 13 plans / 7 waves, passed the plan-checker after one revision round) — ready to execute waves 1–5; the gated plans wait for the BE 9.2 merge
+Last activity: 2026-10-27 -- Phase 9 planned: 13 plans in 7 waves (models and ports, map availability, result queue, parchment sheet, wounded state, death flow without a hold, shell wiring, BE-gated documents and device E2E)
 
 ## Current Milestone
 

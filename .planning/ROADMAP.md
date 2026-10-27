@@ -65,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
-- [ ] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death hold before the creation page, wounded state on the Map, `aid` as a combat sheet. (discussed 2026-10-27)
+- [ ] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (discussed 2026-10-27)
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
@@ -301,9 +301,22 @@ Plans:
   8. With `status.awaitingAid` set, the Map shows «In attesa di soccorso» over the pawn and pawn drag, Board and Shop are disabled as during a travel (D-16); the `aid` quest uses the combat sheet family on the Board and a started quest stays torn until it concludes (D-17/D-18, BE 9.2).
 **Decisions to make during discuss step**:
   - ~~Subscription contract: does `combatResult` carry the full payload or a result ID requiring follow-up query? Confirm with backend before implementation.~~ **Resolved by the BE Phase 9 handoff:** the subscription carries the full `QuestResult`, the push only the result id; no `combatResult` type exists.
-  - _Resolved in the Phase 9 discuss (2026-10-27): Map-only presentation with the banner as the gateway, FIFO queue, explicit button, death exception with routing hold, BE 9.2 companion for never-lost results, wounded state and `aid` family (D-01..D-22)._
+  - _Resolved in the Phase 9 discuss (2026-10-27): Map-only presentation with the banner as the gateway, FIFO queue, explicit button, death exception (sheet on any tab; the BE keeps `currentCharacter` until the acknowledgement, no FE hold), BE 9.2 companion for never-lost results, wounded state and `aid` family (D-01..D-22)._
 **Backend prerequisite**: BE Phase 9.2 — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` and the seats of started quests kept by the archive; proposed in `.planning/phases/09-combat-result-sheet/BACKEND-NOTES.md`, fixed in the BE `09.2-CONTEXT.md`. Only the schema-gated plans and the device E2E wait for it.
-**Plans**: TBD
+**Plans**: 13 plans
+  - [ ] 09-01-PLAN.md — Wave 1: QuestResult model family + fixtures, QuestType labels, injury label pinning, questEnd event copy
+  - [ ] 09-02-PLAN.md — Wave 1: AwaitingAid on the status + fragment, aid in the combat family, D-22 Boy Scout notes
+  - [ ] 09-03-PLAN.md — Wave 2: result fragment, OnQuestResultReceived/GetQuestResult (36/36), QuestResultRepository, delivery ports + null objects
+  - [ ] 09-04-PLAN.md — Wave 1: AWAITING_AID in travel/acceptance, TransactionFailure + typed TransactionCubit, SHOP_NOT_IN_CITY banner
+  - [ ] 09-05-PLAN.md — Wave 1: MapAvailabilityCubit, ConnectionRestoredBus, InAppNotificationsCubit.suppress
+  - [ ] 09-06-PLAN.md — Wave 3: QuestResultsCubit (FIFO queue, three sources, refetch triggers, acks, death ack)
+  - [ ] 09-07-PLAN.md — Wave 2: QuestResultSheet for the five outcomes + animated HpDeltaBar + healGreen token
+  - [ ] 09-08-PLAN.md — Wave 2: CharacterUnavailable (death cold start), Board/Shop disabled and pawn label/drag gate while awaiting aid
+  - [ ] 09-09-PLAN.md — Wave 3: MapAvailabilityCubit in the shell, page/quest-sheet/drag writers
+  - [ ] 09-10-PLAN.md — Wave 4: QuestResultPresenter (Map gating, banner vs suppress, button-only dialog, death anywhere)
+  - [ ] 09-11-PLAN.md — Wave 5: QuestResultsCubit in the shell, questEnd popup, presenter mounted in MainScreen
+  - [ ] 09-12-PLAN.md — Wave 6 (BE 9.2 gated): 9.2 documents + acknowledgedAt, 38/38 schema check, repository ports live
+  - [ ] 09-13-PLAN.md — Wave 7 (BE 9.2 gated): phase gates, device E2E (checkpoint), traceability and closure
 **UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 10: Admin Panel (innkeeper)
@@ -382,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 0/0 | Not started | - |
+| 9. Combat Result Sheet | 0/13 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
