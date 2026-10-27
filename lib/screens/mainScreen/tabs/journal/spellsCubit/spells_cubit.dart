@@ -18,7 +18,8 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
   SpellsCubit(this._repository, {this.settleTimeout = defaultSettleTimeout})
     : super(const SpellsState());
 
-  static const Duration defaultSettleTimeout = Duration(seconds: 15);
+  /// Stessa durata della richiesta (D-16): un solo valore da cambiare.
+  static const Duration defaultSettleTimeout = SpellsRepository.defaultTimeout;
 
   final SpellsRepository _repository;
   final Duration settleTimeout;

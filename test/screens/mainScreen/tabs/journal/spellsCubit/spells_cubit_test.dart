@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
+import 'package:klimmeck_guide/repository/spells_repository.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -64,6 +65,11 @@ void main() {
   );
 
   group('toggle and sync', () {
+    test('settles on the same 15 s as the repository (IN-02)', () {
+      expect(SpellsCubit.defaultSettleTimeout, SpellsRepository.defaultTimeout);
+      expect(SpellsCubit.defaultSettleTimeout, const Duration(seconds: 15));
+    });
+
     test('starts empty', () {
       final cubit = build();
       expect(cubit.state, const SpellsState());
