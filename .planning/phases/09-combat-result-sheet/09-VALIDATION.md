@@ -61,8 +61,8 @@ created: 2026-10-27
 | 9-09-02 | 09 | 3 | COMBAT-07 | T-9-37 | writers reset on dispose | widget | `flutter test test/screens/mainScreen/tabs/map` | ✅ | ✅ green |
 | 9-10-01 | 10 | 4 | COMBAT-01, COMBAT-06, COMBAT-07 | T-9-32, T-9-34, T-9-35 | scrim/back/swipe ignored; external pop requeues; suppress only for the arriving result that opens now, banner otherwise; `CharacterUnavailable` triggers a refetch | widget | `flutter test test/screens/mainScreen/components/quest_result_presenter_test.dart test/screens/mainScreen/questResultsCubit` | ✅ | ✅ green |
 | 9-10-02 | 10 | 4 | COMBAT-08, COMBAT-09 | T-9-33, T-9-36 | death sheet first, ack awaited before closing, one user refresh after it | widget | `flutter test test/screens/mainScreen/components/quest_result_presenter_death_test.dart test/screens/mainScreen/components/quest_result_presenter_test.dart` | ✅ | ✅ green |
-| 9-11-01 | 11 | 5 | COMBAT-01, COMBAT-09 | T-9-39, T-9-40 | tap forwards only the validated id; stream closed with the shell | widget | `flutter test test/screens/auth test/screens/mainScreen/components/notification_intent_landing_test.dart` | ✅ (amend :177) | ⬜ pending |
-| 9-11-02 | 11 | 5 | COMBAT-01, COMBAT-07, COMBAT-08, COMBAT-09 | T-9-41 | death sheet over the loader at cold start | widget + full suite | `flutter test test/screens/mainScreen/main_screen_quest_results_test.dart test/screens/mainScreen/main_screen_test.dart && flutter test` | ❌ W0 | ⬜ pending |
+| 9-11-01 | 11 | 5 | COMBAT-01, COMBAT-09 | T-9-39, T-9-40 | tap forwards only the validated id; stream closed with the shell | widget | `flutter test test/screens/auth test/screens/mainScreen/components/notification_intent_landing_test.dart` | ✅ (amended) | ✅ green |
+| 9-11-02 | 11 | 5 | COMBAT-01, COMBAT-07, COMBAT-08, COMBAT-09 | T-9-41 | death sheet over the loader at cold start | widget + full suite | `flutter test test/screens/mainScreen/main_screen_quest_results_test.dart test/screens/mainScreen/main_screen_test.dart && flutter test` | ✅ | ✅ green (2432) |
 | 9-12-01 | 12 | 6 (gated) | COMBAT-09 | T-9-42, T-9-43, T-9-46 | BE gate first; 38/38 vs BE develop | unit + schema check | `flutter test test/graphql test/tool test/models/quest_result` | ✅ (extend) | ⬜ pending |
 | 9-12-02 | 12 | 6 (gated) | COMBAT-09 | T-9-44, T-9-45 | ack only displayed ids; malformed list entries skipped | unit + widget | `flutter test test/repository test/screens/auth test/screens/mainScreen` | ✅ (extend) | ⬜ pending |
 | 9-13-01 | 13 | 7 (gated) | COMBAT-01..10 | T-9-47 | full gates against the merged BE | full suite + analyze + schema check | `flutter test && flutter analyze` | ✅ | ⬜ pending |
@@ -77,9 +77,9 @@ created: 2026-10-27
 
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` — one recorded payload per outcome, null enemy/spell, orphan item, with/without `acknowledgedAt` (plan 09-01)
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
-- [ ] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04 ✅), `MockQuestResultRepository` (09-03 ✅), `MockQuestResultsCubit` (09-11)
+- [x] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04 ✅), `MockQuestResultRepository` (09-03 ✅), `MockQuestResultsCubit` (09-11 ✅)
 - [x] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
-- [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents`
+- [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11 ✅) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents` (09-11 ✅)
 
 ---
 
