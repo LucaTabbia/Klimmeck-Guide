@@ -44,9 +44,9 @@ created: 2026-10-27
 | 9-02-02 | 02 | 1 | COMBAT-10 | T-9-07 | aid only changes the layout; BE stays the judge | unit + widget | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart test/screens/mainScreen/tabs/board` | ✅ (invert) | ✅ green |
 | 9-03-01 | 03 | 2 | COMBAT-01, COMBAT-09 | T-9-17 | no 9.2 field/operation before the merge; 36/36 vs BE develop | unit + schema check | `flutter test test/graphql test/tool` | ❌ W0 | ⬜ pending |
 | 9-03-02 | 03 | 2 | COMBAT-01, COMBAT-09 | T-9-15, T-9-16, T-9-18, T-9-19 | malformed event does not close the stream; failures by code; 15 s timeout | unit | `flutter test test/repository/quest_result_failure_test.dart test/repository/quest_result_repository_test.dart test/repository/quest_result_delivery_ports_test.dart test/repository/services/graphql` | ❌ W0 | ⬜ pending |
-| 9-04-01 | 04 | 1 | COMBAT-08 | T-9-08 | `AWAITING_AID` mapped by code only | unit | `flutter test test/repository/travel_failure_test.dart test/repository/quest_acceptance_failure_test.dart test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit test/screens/mainScreen/components` | ✅ (extend) | ⬜ pending |
-| 9-04-02 | 04 | 1 | COMBAT-08 | T-9-08, T-9-09, T-9-10 | `doTransaction` rethrows the coded `OperationException` (failing-first service test); shop codes by `extensions.code`; no payload logging; cancellable reset | unit + bloc | `flutter test test/repository/services/graphql/graphql_transaction_test.dart test/repository/transaction_failure_test.dart test/screens/mainScreen/tabs/shop` | ❌ W0 | ⬜ pending |
-| 9-04-03 | 04 | 1 | COMBAT-08 | T-9-11 | `SHOP_NOT_IN_CITY` → banner | widget | `flutter test test/screens/mainScreen/tabs/shop test/screens/mainScreen/components` | ❌ W0 | ⬜ pending |
+| 9-04-01 | 04 | 1 | COMBAT-08 | T-9-08 | `AWAITING_AID` mapped by code only | unit | `flutter test test/repository/travel_failure_test.dart test/repository/quest_acceptance_failure_test.dart test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit test/screens/mainScreen/components` | ✅ (extend) | ✅ green |
+| 9-04-02 | 04 | 1 | COMBAT-08 | T-9-08, T-9-09, T-9-10 | `doTransaction` rethrows the coded `OperationException` (failing-first service test); shop codes by `extensions.code`; no payload logging; cancellable reset | unit + bloc | `flutter test test/repository/services/graphql/graphql_transaction_test.dart test/repository/transaction_failure_test.dart test/screens/mainScreen/tabs/shop` | ✅ | ✅ green |
+| 9-04-03 | 04 | 1 | COMBAT-08 | T-9-11 | `SHOP_NOT_IN_CITY` → banner | widget | `flutter test test/screens/mainScreen/tabs/shop test/screens/mainScreen/components` | ✅ | ✅ green |
 | 9-05-01 | 05 | 1 | COMBAT-07 | T-9-14 | Map-free state Flutter-free, equality-filtered | bloc | `flutter test test/screens/mainScreen/tabs/map/mapAvailabilityCubit` | ❌ W0 | ⬜ pending |
 | 9-05-02 | 05 | 1 | COMBAT-09 | T-9-12 | one restore event per false→true transition | unit + bloc + widget | `flutter test test/repository/services/sync test/screens/auth/syncCubit test/screens/auth/session_sync_scope_test.dart test/screens/auth/auth_gate_test.dart` | ❌ W0 | ⬜ pending |
 | 9-05-03 | 05 | 1 | COMBAT-01 | T-9-13 | `suppress` drops queued/current banner of the key | unit | `flutter test test/screens/auth/inAppNotificationsCubit` | ✅ (extend) | ⬜ pending |
@@ -77,7 +77,7 @@ created: 2026-10-27
 
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` — one recorded payload per outcome, null enemy/spell, orphan item, with/without `acknowledgedAt` (plan 09-01)
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
-- [ ] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04), `MockQuestResultRepository` (09-03), `MockQuestResultsCubit` (09-11)
+- [ ] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04 ✅), `MockQuestResultRepository` (09-03), `MockQuestResultsCubit` (09-11)
 - [ ] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
 - [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents`
 
