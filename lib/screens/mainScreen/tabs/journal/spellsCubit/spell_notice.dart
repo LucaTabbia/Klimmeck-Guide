@@ -8,12 +8,14 @@ const String spellUnequipNoticeTitle = 'Magia non tolta';
 const String _slotsFullLine = 'Slot pieni: disequipaggia una magia';
 
 /// Copy di dominio del banner (D-07, D-11, D-17), provvisoria (no UI phase).
-/// Nessun banner per le viste stantie (riallineamento silenzioso) né per
-/// UNAUTHENTICATED (il flusso di sessione sta già agendo).
+/// Nessun banner per le viste stantie e per una chiusura per timeout
+/// (riallineamento silenzioso) né per UNAUTHENTICATED (il flusso di sessione
+/// sta già agendo).
 KGNotification? spellNoticeFor(SpellOutcome outcome) {
   final description = switch (outcome.kind) {
     SpellOutcomeKind.blockedSlotsFull => _slotsFullLine,
     SpellOutcomeKind.blockedNoSlots => 'Nessuno slot disponibile',
+    SpellOutcomeKind.settledByTimeout => null,
     SpellOutcomeKind.failed => _failureLine(
       outcome.failure ?? SpellEquipFailure.unknown,
     ),

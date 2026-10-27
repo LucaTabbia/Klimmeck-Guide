@@ -14,13 +14,15 @@ class SpellOutcomeListener extends StatelessWidget {
   final Widget child;
 
   /// Dopo questi rifiuti la vista è stantia e il BE non emette nulla:
-  /// rilettura silenziosa (F1).
+  /// rilettura silenziosa (F1). Dopo un timeout l'esito è incerto: la
+  /// richiesta può essere stata eseguita, quindi si rilegge comunque.
   static const Set<SpellEquipFailure> _staleViewFailures = {
     SpellEquipFailure.alreadyActive,
     SpellEquipFailure.notActive,
     SpellEquipFailure.notKnown,
     SpellEquipFailure.slotsFull,
     SpellEquipFailure.notFound,
+    SpellEquipFailure.timedOut,
   };
 
   @override
@@ -62,7 +64,10 @@ class SpellOutcomeListener extends StatelessWidget {
     );
   }
 
-  static bool _isStaleView(SpellOutcome outcome) =>
-      outcome.kind == SpellOutcomeKind.failed &&
-      _staleViewFailures.contains(outcome.failure);
+  static bool _isStaleView(SpellOutcome outcome) => switch (outcome.kind) {
+    SpellOutcomeKind.settledByTimeout => true,
+    SpellOutcomeKind.failed => _staleViewFailures.contains(outcome.failure),
+    SpellOutcomeKind.blockedSlotsFull ||
+    SpellOutcomeKind.blockedNoSlots => false,
+  };
 }

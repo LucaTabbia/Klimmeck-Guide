@@ -124,7 +124,7 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
           ),
           onShowDetails: (spell) =>
               widget.onShowDetails(spell, context.read<SpellRecoveryCubit>()),
-          resistSignal: outcome == null
+          resistSignal: outcome == null || !outcome.springsBack
               ? null
               : (spellId: outcome.spellId, sequence: outcome.sequence),
         ),

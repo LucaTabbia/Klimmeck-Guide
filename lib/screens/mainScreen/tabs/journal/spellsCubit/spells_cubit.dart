@@ -135,10 +135,12 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
     _succeeded.add(spellId);
   }
 
+  /// Una richiesta riuscita senza `characterUpdated` ha un esito incerto: la
+  /// vista va riletta, senza banner (D-17).
   void _onSettleTimeout(String spellId, SpellOperation operation, int token) {
     if (_tokens[spellId] != token) return;
     if (_succeeded.contains(spellId)) {
-      _settle(spellId);
+      _close(spellId, operation, SpellOutcomeKind.settledByTimeout);
       return;
     }
     _fail(spellId, operation, token, SpellEquipFailure.timedOut);
@@ -156,6 +158,15 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
     SpellEquipFailure failure,
   ) {
     if (_tokens[spellId] != token) return;
+    _close(spellId, operation, SpellOutcomeKind.failed, failure: failure);
+  }
+
+  void _close(
+    String spellId,
+    SpellOperation operation,
+    SpellOutcomeKind kind, {
+    SpellEquipFailure? failure,
+  }) {
     _forget(spellId);
     emit(
       SpellsState(
@@ -164,7 +175,7 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
           sequence: ++_sequence,
           spellId: spellId,
           operation: operation,
-          kind: SpellOutcomeKind.failed,
+          kind: kind,
           failure: failure,
         ),
       ),
