@@ -18,11 +18,11 @@ progress:
 ## Current Position
 
 Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves; plans 08-01..08-11 done and hardened (review 2 WR/4 IN → 4 fixed, verification human_needed 4/4 SC, security 34/34 closed + 6 deferred to 08-12); 08-12 done (BE 9.1 gate, schema_check 34 OK, device UAT 12/12 pass); extended to 14 plans with 08-13/08-14 (2026-10-27, user request)
-Plan: 13 of 14
+Plan: 14 of 14
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: plan 08-14 (effect labels + filter for items) on the same branch `feat/08-spells-section-journal-tab`; then the FE PR `feat/08-spells-section-journal-tab` → `develop`; then FE Phase 9 (Combat Result Sheet)
-Status: Executing Phase 8 — plans 08-01..08-13 complete (device UAT 12/12 pass on 2026-10-27, SPELL-01..07 ticked; 08-13 SPELL-08/09 + SHOP-01 awaiting verification); next plan 08-14 (effect labels + filter for items); FE PR after it
-Last activity: 2026-10-27 -- Phase 8 plan 08-13 executed (present-types helper, shared ItemsFilter, «Attacco: Fuoco 12» line, UseType chips in the spells section, shop chips limited to the present types)
+Next Phase: Phase 8 review → verify → fix → security → device check on `feat/08-spells-section-journal-tab`; then the FE PR `feat/08-spells-section-journal-tab` → `develop`; then FE Phase 9 (Combat Result Sheet)
+Status: Executing Phase 8 — all 14 plans executed (device UAT 12/12 pass on 2026-10-27, SPELL-01..07 ticked; 08-13 SPELL-08/09 + SHOP-01 and 08-14 ITEM-01/02 awaiting verification); next: review → verify → fix → security → device check, then the FE PR
+Last activity: 2026-10-27 -- Phase 8 plan 08-14 executed (EffectType Italian labels, «Cura: 12» line in the shared ItemRow, EffectType chips on the Journal «Oggetti» section, shared Journal test harness)
 
 ## Current Milestone
 
