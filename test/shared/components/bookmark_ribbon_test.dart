@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../helpers/svg_cache_seed.dart';
 import '../../helpers/test_app.dart';
@@ -13,6 +14,7 @@ Future<void> _pumpRibbon(
   WidgetTester tester, {
   required bool isMarked,
   double? width,
+  double? opacity,
   VoidCallback? onTap,
 }) async {
   await tester.pumpWidget(
@@ -25,13 +27,23 @@ Future<void> _pumpRibbon(
             width: 200,
             child: Stack(
               children: [
-                BookmarkRibbon(
-                  isMarked: isMarked,
-                  length: 40,
-                  peek: 20,
-                  width: width,
-                  onTap: onTap,
-                ),
+                if (opacity == null)
+                  BookmarkRibbon(
+                    isMarked: isMarked,
+                    length: 40,
+                    peek: 20,
+                    width: width,
+                    onTap: onTap,
+                  )
+                else
+                  BookmarkRibbon(
+                    isMarked: isMarked,
+                    length: 40,
+                    peek: 20,
+                    width: width,
+                    opacity: opacity,
+                    onTap: onTap,
+                  ),
               ],
             ),
           ),
@@ -133,6 +145,32 @@ void main() {
       expect(svg.height, isNull);
       expect(box.height, 40);
       expect(box.width, 40);
+    });
+  });
+
+  group('BookmarkRibbon opacity', () {
+    testWidgets('default opacity is 1', (tester) async {
+      await _pumpRibbon(tester, isMarked: true);
+
+      final ribbon = tester.widget<BookmarkRibbon>(find.byType(BookmarkRibbon));
+      final ink = tester.widget<AnimatedOpacity>(
+        _insideRibbon(AnimatedOpacity),
+      );
+      expect(ribbon.opacity, 1);
+      expect(ink.opacity, 1);
+    });
+
+    testWidgets('a pending opacity fades the ribbon with the pending ink', (
+      tester,
+    ) async {
+      await _pumpRibbon(tester, isMarked: true, opacity: 0.5);
+
+      expect(_insideRibbon(AnimatedOpacity), findsOneWidget);
+      final ink = tester.widget<AnimatedOpacity>(
+        _insideRibbon(AnimatedOpacity),
+      );
+      expect(ink.opacity, 0.5);
+      expect(ink.duration, KlimmeckGuideTheme.pendingInkDuration);
     });
   });
 
