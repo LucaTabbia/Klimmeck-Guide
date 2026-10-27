@@ -19,8 +19,10 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -148,6 +150,7 @@ void main() {
       WidgetTester tester,
       String locationId, {
       Map<String, dynamic>? activeTravel,
+      Map<String, dynamic>? awaitingAid,
     }) async {
       useLandscapePhone(tester);
       final authStates = StreamController<AuthState>.broadcast();
@@ -161,11 +164,12 @@ void main() {
         Stream<CharacterState>.empty(),
         initialState: CharacterLoaded(
           Character.fromJson(
-            activeTravel == null
+            activeTravel == null && awaitingAid == null
                 ? characterWithLanesJson(locationId: locationId)
                 : travellingCharacterJson(
                     locationId: locationId,
                     activeTravel: activeTravel,
+                    awaitingAid: awaitingAid,
                   ),
           ),
         ),
@@ -272,6 +276,61 @@ void main() {
         tester,
         'city-marker-1',
         activeTravel: activeTravelJson(),
+      );
+
+      await tapItem(tester, 1);
+
+      expect(controller.page!.round(), 1);
+    });
+
+    testWidgets('awaiting aid on a city marker board and shop do nothing', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
+      );
+
+      await tapItem(tester, SatchelLayout.boardPageIndex);
+      expect(controller.page!.round(), 0);
+
+      await tapItem(tester, SatchelLayout.shopPageIndex);
+      expect(controller.page!.round(), 0);
+    });
+
+    testWidgets('awaiting aid the board and shop cells look disabled', (
+      tester,
+    ) async {
+      await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
+      );
+
+      const boardAndShop = {
+        SatchelLayout.boardPageIndex,
+        SatchelLayout.shopPageIndex,
+      };
+      expect(
+        tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
+        boardAndShop,
+      );
+      expect(
+        tester
+            .widget<MenuBackground>(find.byType(MenuBackground))
+            .disabledPages,
+        boardAndShop,
+      );
+    });
+
+    testWidgets('awaiting aid the Profilo item still navigates', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
       );
 
       await tapItem(tester, 1);
