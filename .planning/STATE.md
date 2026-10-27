@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-10-27T18:34:02.000Z"
-last_activity: "2026-10-27 -- Phase 8 completed (14 plans, device UAT 12/12 + extension check 4/4, extension 08-13/08-14 reviewed, fixed, verified and audited); FE PR opened"
+last_updated: "2026-10-27T20:30:00.000Z"
+last_activity: "2026-10-27 -- Phase 9 context gathered (CONTEXT D-01..D-22, BACKEND-NOTES proposal for the BE Phase 9.2, COMBAT-08/09/10 added); BE Phase 9.2 inserted"
 progress:
   total_phases: 12
   completed_phases: 9
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — NOT STARTED (Phase 8 complete on 2026-10-27: 14 plans in 8 waves, device UAT 12/12 + extension check 4/4; FE PR `feat/08-spells-section-journal-tab` → `develop` opened)
-Plan: —
+Phase: 9 (Combat Result Sheet) — CONTEXT GATHERED (2026-10-27) on `feat/09-combat-result-sheet` off `develop` (Phase 8 PR #33 merged on 2026-10-27)
+Plan: Not started
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
-Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-discuss-phase 9` then plan on `feat/09-combat-result-sheet` off `develop`, after the Phase 8 PR merge; BE follow-up: rebase `feat/10-hardening` on BE `develop`
-Status: Phase 8 complete (2026-10-27) — PR open on `develop`; next: Phase 9 discuss
-Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, fixed, verified and audited; extension device check 4/4; FE PR opened)
+Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-plan-phase 9` on `feat/09-combat-result-sheet`; the schema-gated plans wait for the BE Phase 9.2 PR (`feat/09.2-quest-result-delivery-contract`); BE follow-up: plan BE 9.2, then BE 10 (`feat/10-hardening` restacked on 9.2)
+Status: Phase 9 context gathered (2026-10-27, D-01..D-22) — ready to plan; BE Phase 9.2 companion inserted with its CONTEXT
+Last activity: 2026-10-27 -- Phase 9 context gathered (CONTEXT, DISCUSSION-LOG, BACKEND-NOTES proposal for BE 9.2; COMBAT-08/09/10 added, COMBAT-01/06/07 amended)
 
 ## Current Milestone
 
@@ -54,6 +54,7 @@ Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, 
 - ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 - ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
 - ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
+- **BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21).
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed
