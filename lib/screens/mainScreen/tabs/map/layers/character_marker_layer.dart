@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
@@ -119,7 +120,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
   static String _labelOf(TravelProgressActive progress) =>
       progress.isArriving
           ? travelArrivingLabel
-          : formatTravelDuration(progress.remainingTime);
+          : formatGameDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
   /// nessuna conferma aperta). Pre-controllo: il BE resta giudice (D-14).
