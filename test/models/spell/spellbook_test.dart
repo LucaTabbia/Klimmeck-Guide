@@ -193,4 +193,154 @@ void main() {
       expect(build(), build());
     });
   });
+
+  group('overlay', () {
+    test('a pending equip is appended to the slots and marked pending', () {
+      final spellbook = Spellbook.of(
+        _character(activeSpells: [_active(_a)]),
+        pending: const {_b: SpellOperation.equip},
+      );
+
+      expect(spellbook.activeSpellIds, [_a, _b]);
+      expect(spellbook.slots[1].spell, _spellB);
+      expect(spellbook.slots[1].isPending, isTrue);
+      expect(spellbook.slots[0].isPending, isFalse);
+      expect(spellbook.entryFor(_b)?.isActive, isTrue);
+      expect(spellbook.entryFor(_b)?.isPending, isTrue);
+    });
+
+    test('a pending unequip leaves the slot and compacts the row', () {
+      final spellbook = Spellbook.of(
+        _character(activeSpells: [_active(_a), _active(_b)]),
+        pending: const {_a: SpellOperation.unequip},
+      );
+
+      expect(spellbook.activeSpellIds, [_b]);
+      expect(spellbook.slots[0].spell, _spellB);
+      expect(spellbook.slots[1].isEmpty, isTrue);
+      expect(spellbook.entryFor(_a)?.isActive, isFalse);
+      expect(spellbook.entryFor(_a)?.isPending, isTrue);
+    });
+
+    test('pending equips are appended in tap order', () {
+      final spellbook = Spellbook.of(
+        _character(maxActiveSpells: 3, activeSpells: [_active(_a)]),
+        pending: const {_c: SpellOperation.equip, _b: SpellOperation.equip},
+      );
+
+      expect(spellbook.activeSpellIds, [_a, _c, _b]);
+    });
+
+    test('a pending equip of a spell active server-side is not duplicated', () {
+      final spellbook = Spellbook.of(
+        _character(activeSpells: [_active(_a)]),
+        pending: const {_a: SpellOperation.equip},
+      );
+
+      expect(spellbook.activeSpellIds, [_a]);
+      expect(spellbook.slots[1].isEmpty, isTrue);
+    });
+
+    test('a pending equip of an unknown spell is ignored', () {
+      final spellbook = Spellbook.of(
+        _character(activeSpells: [_active(_a)]),
+        pending: const {'spell-unknown': SpellOperation.equip},
+      );
+
+      expect(spellbook.activeSpellIds, [_a]);
+      expect(spellbook.slots[1].isEmpty, isTrue);
+      expect(spellbook.entryFor('spell-unknown'), isNull);
+    });
+
+    test('a pending equip slot takes its usages from the spell state', () {
+      final spellbook = Spellbook.of(
+        _character(spellStates: [spellStateJson(spellId: _b, usages: 1)]),
+        pending: const {_b: SpellOperation.equip},
+      );
+
+      expect(spellbook.slots[0].spell, _spellB);
+      expect(spellbook.slots[0].usages, 1);
+    });
+
+    test('a pending equip slot without state uses the catalog maxUsages', () {
+      final spellbook = Spellbook.of(
+        _character(),
+        pending: const {_b: SpellOperation.equip},
+      );
+
+      expect(spellbook.slots[0].usages, _spellB.maxUsages);
+    });
+  });
+
+  group('intentFor', () {
+    test('a pending spell is ignored', () {
+      final spellbook = Spellbook.of(
+        _character(activeSpells: [_active(_a)]),
+        pending: const {_a: SpellOperation.unequip},
+      );
+
+      expect(spellbook.intentFor(_a), SpellToggleIntent.ignoredPending);
+    });
+
+    test('an active spell is unequipped', () {
+      final spellbook = Spellbook.of(_character(activeSpells: [_active(_a)]));
+
+      expect(spellbook.intentFor(_a), SpellToggleIntent.unequip);
+    });
+
+    test('an inactive spell with a free slot is equipped', () {
+      final spellbook = Spellbook.of(_character(activeSpells: [_active(_a)]));
+
+      expect(spellbook.intentFor(_b), SpellToggleIntent.equip);
+    });
+
+    test('slots full on the optimistic count block the equip', () {
+      final spellbook = Spellbook.of(
+        _character(maxActiveSpells: 2, activeSpells: [_active(_a)]),
+        pending: const {_c: SpellOperation.equip},
+      );
+
+      expect(spellbook.intentFor(_b), SpellToggleIntent.blockedSlotsFull);
+    });
+
+    test('slots full on the server count block the equip', () {
+      final spellbook = Spellbook.of(
+        _character(maxActiveSpells: 1, activeSpells: [_active(_a)]),
+      );
+
+      expect(spellbook.intentFor(_b), SpellToggleIntent.blockedSlotsFull);
+    });
+
+    test('no slots block the equip of an inactive spell', () {
+      final spellbook = Spellbook.of(_character(maxActiveSpells: 0));
+
+      expect(spellbook.intentFor(_b), SpellToggleIntent.blockedNoSlots);
+    });
+
+    test('no slots still allow the unequip of a legacy active spell', () {
+      final spellbook = Spellbook.of(
+        _character(maxActiveSpells: 0, activeSpells: [_active(_a)]),
+      );
+
+      expect(spellbook.intentFor(_a), SpellToggleIntent.unequip);
+    });
+
+    test('an unknown spell is ignored', () {
+      final spellbook = Spellbook.of(_character());
+
+      expect(
+        spellbook.intentFor('spell-unknown'),
+        SpellToggleIntent.ignoredUnknown,
+      );
+    });
+
+    test('a pending unequip frees the slot for another equip', () {
+      final spellbook = Spellbook.of(
+        _character(maxActiveSpells: 1, activeSpells: [_active(_a)]),
+        pending: const {_a: SpellOperation.unequip},
+      );
+
+      expect(spellbook.intentFor(_b), SpellToggleIntent.equip);
+    });
+  });
 }
