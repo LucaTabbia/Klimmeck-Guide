@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-10-27T12:31:14.238Z"
-last_activity: "2026-10-27 -- Phase 8 execution started (12 plans, sequential executors; 08-12 gated by the BE 9.1 PR)"
+last_activity: "2026-10-27 -- Phase 8 plans 01-11 executed, reviewed, fixed, verified and audited; 08-12 waits for the BE 9.1 PR merge"
 progress:
   total_phases: 12
   completed_phases: 8
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves
+Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves; plans 08-01..08-11 done and hardened (review 2 WR/4 IN → 4 fixed, verification human_needed 4/4 SC, security 34/34 closed + 6 deferred to 08-12); 08-12 gated by the BE 9.1 PR
 Plan: 11 of 12
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
-Next Phase: `/gsd-execute-phase 8` on `feat/08-spells-section-journal-tab` (sequential executors, plans 08-01..08-11 now); 08-12 (schema gate, device E2E) only after the BE Phase 9.1 PR is merged on BE `develop` (`CharacterStatus.spellStates`); then FE Phase 9 (Combat Result Sheet)
-Status: Executing Phase 8 — plans 08-01..08-11 with sequential executors on `feat/08-spells-section-journal-tab`; 08-12 (schema gate + device E2E) only after the BE Phase 9.1 PR is merged
-Last activity: 2026-10-27 -- Phase 8 execution started (12 plans, sequential executors; 08-12 gated by the BE 9.1 PR)
+Next Phase: plan 08-12 on `feat/08-spells-section-journal-tab` (schema gate on BE `origin/develop`, `spellStates` in `CharacterFragment`, `tool/schema_check`, device E2E checkpoint, closure) only after the BE Phase 9.1 PR is merged on BE `develop`; 08-12 contract-alignment step also applies `.toUtc()` in `SpellState.fromJson` (security observation O-1) and re-runs the verifier (re_verification); then FE Phase 9 (Combat Result Sheet)
+Status: Executing Phase 8 — plans 08-01..08-11 complete, code review fixed, verification and security audit done (2026-10-27); 08-12 (schema gate + device E2E) waits for the BE Phase 9.1 PR merge on BE `develop`
+Last activity: 2026-10-27 -- Phase 8 plans 01-11 executed, reviewed, fixed, verified and audited; 08-12 waits for the BE 9.1 PR merge
 
 ## Current Milestone
 
