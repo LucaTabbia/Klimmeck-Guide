@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -71,5 +72,16 @@ void main() {
 
       expect(_ribbon(tester).isMarked, isFalse);
     });
+  });
+
+  testWidgets('a stacked item shows the shared quantity counter', (
+    tester,
+  ) async {
+    await _pump(tester, quantity: 2);
+
+    final counter = tester.widget<UsagesPencilCounter>(
+      find.byType(UsagesPencilCounter),
+    );
+    expect(counter.value, 2);
   });
 }

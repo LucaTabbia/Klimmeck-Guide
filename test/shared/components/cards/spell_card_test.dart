@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/shared/components/animated_pencil_text.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/spell_fixtures.dart';
@@ -117,6 +118,10 @@ void main() {
       find.byType(AnimatedPencilText),
     );
     expect(counter.text, '2');
+    final shared = tester.widget<UsagesPencilCounter>(
+      find.byType(UsagesPencilCounter),
+    );
+    expect(shared.value, 2);
   });
 
   test('pending ink tokens', () {
