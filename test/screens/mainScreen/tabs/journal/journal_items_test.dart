@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/shared/components/item_row.dart';
 
 import '../../../../helpers/fixtures/spell_fixtures.dart';
 import '../../../../helpers/journal_harness.dart';
@@ -195,5 +196,15 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(_effectFilter(), findsNothing);
+  });
+
+  testWidgets('the chip row starts at the left edge of the rows', (
+    tester,
+  ) async {
+    await pumpItems(tester);
+
+    final chipRowLeft = tester.getTopLeft(_effectFilter()).dx;
+    final firstRowLeft = tester.getTopLeft(find.byType(ItemRow).first).dx;
+    expect(chipRowLeft, firstRowLeft);
   });
 }

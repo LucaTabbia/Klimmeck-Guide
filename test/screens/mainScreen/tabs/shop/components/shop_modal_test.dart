@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/shared/components/item_row.dart';
 
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/svg_cache_seed.dart';
@@ -134,5 +135,15 @@ void main() {
     expect(_currentOf<EquipType>(tester), isNull);
     expect(find.text('Equipaggiamento e-helm'), findsOneWidget);
     expect(find.text('Equipaggiamento e-boots'), findsOneWidget);
+  });
+
+  testWidgets('the chip rows start at the left edge of the rows', (
+    tester,
+  ) async {
+    await pumpShop(tester, equipments: [_helm], items: [_potion]);
+
+    final rowsLeft = tester.getTopLeft(find.byType(ItemRow).first).dx;
+    expect(tester.getTopLeft(_filterOf<EquipType>()).dx, rowsLeft);
+    expect(tester.getTopLeft(_filterOf<EffectType>()).dx, rowsLeft);
   });
 }
