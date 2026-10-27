@@ -311,7 +311,7 @@ Plans:
   - [x] 09-05-PLAN.md — Wave 1: MapAvailabilityCubit, ConnectionRestoredBus, InAppNotificationsCubit.suppress
   - [ ] 09-06-PLAN.md — Wave 3: QuestResultsCubit (FIFO queue, three sources, refetch triggers, acks, death ack)
   - [x] 09-07-PLAN.md — Wave 2: QuestResultSheet for the five outcomes + animated HpDeltaBar + healGreen token
-  - [ ] 09-08-PLAN.md — Wave 2: CharacterUnavailable (death cold start), Board/Shop disabled and pawn label/drag gate while awaiting aid
+  - [x] 09-08-PLAN.md — Wave 2: CharacterUnavailable (death cold start), Board/Shop disabled and pawn label/drag gate while awaiting aid
   - [ ] 09-09-PLAN.md — Wave 3: MapAvailabilityCubit in the shell, page/quest-sheet/drag writers
   - [ ] 09-10-PLAN.md — Wave 4: QuestResultPresenter (Map gating, banner vs suppress, button-only dialog, death anywhere)
   - [ ] 09-11-PLAN.md — Wave 5: QuestResultsCubit in the shell, questEnd popup, presenter mounted in MainScreen
@@ -395,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 6/13 | In Progress | - |
+| 9. Combat Result Sheet | 7/13 | In Progress | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
