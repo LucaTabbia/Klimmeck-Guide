@@ -177,9 +177,86 @@ void main() {
       _loadAndSettle(h, async);
       async.flushMicrotasks();
 
-      expect(h.states, [CharacterLoading(), isA<CharacterError>()]);
+      expect(h.states, [CharacterLoading(), const CharacterUnavailable()]);
       expect(h.refreshRequests, 1);
       expect(h.subscriptions, 0);
+    });
+  });
+
+  group('CharacterCubit character gone (D-13)', () {
+    withHarness('NOT_FOUND on the cold start is quiet and unavailable', (
+      h,
+      async,
+    ) {
+      when(
+        () => h.api.getCharacter('c1'),
+      ).thenThrow(_accessDenied('NOT_FOUND'));
+
+      _loadAndSettle(h, async);
+
+      expect(h.states, [CharacterLoading(), const CharacterUnavailable()]);
+      expect(h.refreshRequests, 1);
+      expect(h.subscriptions, 0);
+    });
+
+    withHarness('resumes after an unavailable cold start do nothing', (
+      h,
+      async,
+    ) {
+      when(
+        () => h.api.getCharacter('c1'),
+      ).thenThrow(_accessDenied('NOT_FOUND'));
+      _loadAndSettle(h, async);
+      h.states.clear();
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 10));
+
+      verify(() => h.api.getCharacter('c1')).called(1);
+      expect(h.refreshRequests, 1);
+      expect(h.states, isEmpty);
+    });
+
+    withHarness('a refetch NOT_FOUND keeps Loaded and stops refetching', (
+      h,
+      async,
+    ) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+      when(
+        () => h.api.getCharacter('c1'),
+      ).thenAnswer((_) async => throw _accessDenied('NOT_FOUND'));
+
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 10));
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 10));
+
+      verify(() => h.api.getCharacter('c1')).called(2);
+      expect(h.refreshRequests, 1);
+      expect(h.states, isEmpty);
+      expect(h.cubit.state, CharacterLoaded(h._initial));
+    });
+
+    withHarness('a stream NOT_FOUND makes later resumes no-ops', (h, async) {
+      _loadAndSettle(h, async);
+      h.states.clear();
+
+      h.latestStream.addError(_streamError('NOT_FOUND'));
+      async.flushMicrotasks();
+      h.lifecycle.notifyForegrounded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 10));
+
+      verify(() => h.api.getCharacter('c1')).called(1);
+      expect(h.refreshRequests, 1);
+      expect(h.states, isEmpty);
+      expect(h.cubit.state, CharacterLoaded(h._initial));
     });
   });
 
