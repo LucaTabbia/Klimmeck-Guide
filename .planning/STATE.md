@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-27T12:00:10.721Z"
-last_activity: "2026-10-27 -- Phase 8 planned: 12 plans in 6 waves (08-12 schema gate waits for the BE 9.1 PR)"
+last_updated: "2026-10-27T12:31:14.238Z"
+last_activity: "2026-10-27 -- Phase 8 execution started (12 plans, sequential executors; 08-12 gated by the BE 9.1 PR)"
 progress:
   total_phases: 12
   completed_phases: 8
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 8 (Spells Section (Journal Tab)) — PLANNED (2026-10-27), 12 plans in 6 waves, ready to execute
+Phase: 8 (Spells Section (Journal Tab)) — EXECUTING (started 2026-10-27), 12 plans in 6 waves
 Plan: 0 of 12
 Completed phases: 8 (1, 2, 3, 4, 5, 6, 7, 11)
 Next Phase: `/gsd-execute-phase 8` on `feat/08-spells-section-journal-tab` (sequential executors, plans 08-01..08-11 now); 08-12 (schema gate, device E2E) only after the BE Phase 9.1 PR is merged on BE `develop` (`CharacterStatus.spellStates`); then FE Phase 9 (Combat Result Sheet)
-Status: Phase 8 planned — ready to execute (research + CONTEXT amended F1–F10, VALIDATION.md template, 12 plans passed the plan-checker after one revision round: 0 blockers, 0 warnings)
-Last activity: 2026-10-27 -- Phase 8 planned: 12 plans in 6 waves (08-12 schema gate waits for the BE 9.1 PR)
+Status: Executing Phase 8 — plans 08-01..08-11 with sequential executors on `feat/08-spells-section-journal-tab`; 08-12 (schema gate + device E2E) only after the BE Phase 9.1 PR is merged
+Last activity: 2026-10-27 -- Phase 8 execution started (12 plans, sequential executors; 08-12 gated by the BE 9.1 PR)
 
 ## Current Milestone
 
