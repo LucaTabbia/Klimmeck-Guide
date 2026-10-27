@@ -333,6 +333,20 @@ void main() {
       });
     });
 
+    test('a tap with an older character keeps the synced one (IN-01)', () {
+      fakeAsync((async) {
+        final (cubit, states) = start();
+        cubit.sync(_character(active: [_spellA]));
+        cubit.toggle(_character(), _spellA);
+        calls.single.complete();
+        async.flushMicrotasks();
+
+        expect(states, [pendingA, const SpellsState()]);
+        expect(async.pendingTimers, isEmpty);
+        cubit.close();
+      });
+    });
+
     test('a cleared operation emits nothing on late success or timer', () {
       fakeAsync((async) {
         final (cubit, states) = start();
