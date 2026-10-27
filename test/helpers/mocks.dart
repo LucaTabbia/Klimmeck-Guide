@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
+import 'package:klimmeck_guide/repository/quest_result_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -86,6 +87,8 @@ class MockQuestAbandonRepository extends Mock
     implements QuestAbandonRepository {}
 
 class MockTravelRepository extends Mock implements TravelRepository {}
+
+class MockQuestResultRepository extends Mock implements QuestResultRepository {}
 
 class MockSpellsRepository extends Mock implements SpellsRepository {}
 
