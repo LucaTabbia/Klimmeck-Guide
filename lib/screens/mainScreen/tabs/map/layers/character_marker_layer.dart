@@ -29,6 +29,10 @@ class CharacterMarkerLayer extends StatefulWidget {
 
   static const Key pawnKey = ValueKey('map.pawn');
   static const Key travelLabelKey = ValueKey('map.travelLabel');
+  static const Key awaitingAidLabelKey = ValueKey('map.awaitingAidLabel');
+
+  /// Copy provvisoria (Phase 9 D-19): il ferito attende il soccorso (D-16).
+  static const String awaitingAidLabel = 'In attesa di soccorso';
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
@@ -80,6 +84,20 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
             ),
           ),
         ),
+        if (state.character.status?.awaitingAid != null)
+          Marker(
+            point: point,
+            width: _labelWidth,
+            height: _labelHeight,
+            alignment: Alignment.topCenter,
+            child: const Align(
+              alignment: Alignment.topCenter,
+              child: _TravelLabel(
+                key: CharacterMarkerLayer.awaitingAidLabelKey,
+                text: CharacterMarkerLayer.awaitingAidLabel,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -123,10 +141,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
           : formatGameDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
-  /// nessuna conferma aperta). Pre-controllo: il BE resta giudice (D-14).
+  /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta).
+  /// Pre-controllo: il BE resta giudice (D-14).
   static bool _canStartTravel(CharacterLoaded state, TravelState travel) =>
       state.character.status?.activeTravel == null &&
       state.character.quests?.pendingQuest == null &&
+      state.character.status?.awaitingAid == null &&
       travel is TravelIdle;
 
   /// D-04: col foglio aperto la pedina sta sulla meta; altrimenti sulla
