@@ -32,6 +32,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/t
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -128,6 +129,9 @@ class MockQuestAbandonCubit extends MockCubit<QuestAbandonState>
     implements QuestAbandonCubit {}
 
 class MockTravelCubit extends MockCubit<TravelState> implements TravelCubit {}
+
+class MockTransactionCubit extends MockCubit<TransactionState>
+    implements TransactionCubit {}
 
 class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
 
