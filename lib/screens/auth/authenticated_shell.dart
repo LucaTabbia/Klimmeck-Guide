@@ -6,6 +6,8 @@ import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
+import 'package:klimmeck_guide/repository/quest_result_delivery_ports.dart';
+import 'package:klimmeck_guide/repository/quest_result_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
@@ -13,6 +15,7 @@ import 'package:klimmeck_guide/repository/services/push/notification_permission_
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/push/push_messaging_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
@@ -29,6 +32,7 @@ import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
@@ -64,15 +68,18 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// trascinamento della pedina, qui perché la coda dei risultati vive oltre il
 /// tab.
 ///
+/// Risultati delle quest (Phase 9 D-09): coda e consegna per tutta la vita
+/// della shell; le porte BE 9.2 sono oggetti nulli fino al piano 09-12.
+///
 /// Viaggio (Phase 7): ora del server stimata (sync alla creazione e al resume,
 /// D-07) e conferma del viaggio, qui perché una risposta tardiva sopravviva al
 /// cambio tab.
 ///
-/// `SyncHealth` e `UserRefreshRequests` arrivano dallo scope di sessione
-/// (`SessionSyncScope`), `AppLifecycleEvents` dalla radice dell'app, tutti
-/// montati sopra la shell. La shell e' chiavata per id personaggio in
-/// `SessionHome`: un nuovo id significa un nuovo cubit e mai due stream
-/// personaggio vivi insieme (D-08).
+/// `SyncHealth`, `UserRefreshRequests` e `ConnectionRestoredEvents` arrivano
+/// dallo scope di sessione (`SessionSyncScope`), `AppLifecycleEvents` dalla
+/// radice dell'app, tutti montati sopra la shell. La shell e' chiavata per id
+/// personaggio in `SessionHome`: un nuovo id significa un nuovo cubit e mai
+/// due stream personaggio vivi insieme (D-08).
 ///
 /// Impostazioni: preferenze notifiche dell'utente di sessione e eliminazione
 /// del personaggio (Phase 4), più lo stato del permesso notifiche di sistema
@@ -176,6 +183,18 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<MapFocusCubit>(create: (_) => MapFocusCubit()),
         BlocProvider<MapAvailabilityCubit>(
           create: (_) => MapAvailabilityCubit(),
+        ),
+        BlocProvider<QuestResultsCubit>(
+          lazy: false,
+          create: (context) => QuestResultsCubit(
+            characterId: characterId,
+            repository: QuestResultRepository(graphQl: graphQl),
+            pending: const NoPendingQuestResults(),
+            acknowledger: const NoQuestResultAcknowledger(),
+            lifecycle: context.read<AppLifecycleEvents>(),
+            connectionRestored: context.read<ConnectionRestoredEvents>(),
+            userRefresh: context.read<UserRefreshRequests>(),
+          )..start(),
         ),
         RepositoryProvider<ServerClockService>(
           lazy: false,
