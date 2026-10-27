@@ -304,7 +304,7 @@ Plans:
   - _Resolved in the Phase 9 discuss (2026-10-27): Map-only presentation with the banner as the gateway, FIFO queue, explicit button, death exception (sheet on any tab; the BE keeps `currentCharacter` until the acknowledgement, no FE hold), BE 9.2 companion for never-lost results, wounded state and `aid` family (D-01..D-22)._
 **Backend prerequisite**: BE Phase 9.2 — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` and the seats of started quests kept by the archive; proposed in `.planning/phases/09-combat-result-sheet/BACKEND-NOTES.md`, fixed in the BE `09.2-CONTEXT.md`. Only the schema-gated plans and the device E2E wait for it.
 **Plans**: 13 plans
-  - [ ] 09-01-PLAN.md — Wave 1: QuestResult model family + fixtures, QuestType labels, injury label pinning, questEnd event copy
+  - [x] 09-01-PLAN.md — Wave 1: QuestResult model family + fixtures, QuestType labels, injury label pinning, questEnd event copy
   - [ ] 09-02-PLAN.md — Wave 1: AwaitingAid on the status + fragment, aid in the combat family, D-22 Boy Scout notes
   - [ ] 09-03-PLAN.md — Wave 2: result fragment, OnQuestResultReceived/GetQuestResult (36/36), QuestResultRepository, delivery ports + null objects
   - [ ] 09-04-PLAN.md — Wave 1: AWAITING_AID in travel/acceptance, TransactionFailure + typed TransactionCubit, SHOP_NOT_IN_CITY banner
@@ -395,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 0/13 | Not started | - |
+| 9. Combat Result Sheet | 1/13 | In Progress | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
