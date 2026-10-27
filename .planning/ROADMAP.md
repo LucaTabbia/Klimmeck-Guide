@@ -270,7 +270,7 @@ Plans:
   - [x] 08-01-PLAN.md — Wave 1: SpellState + optional spellStates, spell fixtures, shared formatGameDuration
   - [x] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
   - [x] 08-03-PLAN.md — Wave 2: shared BookmarkRibbon + pencil counter, SpellCard bookmark, pending-ink tokens
-  - [ ] 08-04-PLAN.md — Wave 2: recovery status on server time + Italian spell lines
+  - [x] 08-04-PLAN.md — Wave 2: recovery status on server time + Italian spell lines
   - [ ] 08-05-PLAN.md — Wave 2: pure Spellbook view (slots, fallback, optimistic overlay, intents)
   - [ ] 08-06-PLAN.md — Wave 3: SpellsCubit pending overlay (15 s settle, tokens)
   - [ ] 08-07-PLAN.md — Wave 3: SpellRecoveryCubit countdown ticker
@@ -372,7 +372,7 @@ Plans:
 | 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 3/12 | In Progress | - |
+| 8. Spells Section (Journal Tab) | 4/12 | In Progress | - |
 | 9. Combat Result Sheet | 0/0 | Not started | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |

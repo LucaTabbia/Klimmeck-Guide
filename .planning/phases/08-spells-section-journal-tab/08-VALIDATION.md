@@ -45,6 +45,8 @@ created: 2026-10-27
 | 8-03-01 | 03 | 2 | SPELL-01, SPELL-05 | T-8-09 | one `BookmarkRibbon`; equipment card and sheet keep geometry (left, length, peek, curve, top offsets), sheet tap → `onEquip` once, no ribbon when the equip state is `null` | widget | `flutter test test/shared/components/bookmark_ribbon_test.dart test/shared/components/cards test/shared/components/popup` | ✅ | ✅ green |
 | 8-03-02 | 03 | 2 | SPELL-01, SPELL-05 | T-8-08 | `SpellCard` renders without `!` crashes when `useType`, `energyDamage` or `power` are null; bookmark only when `isMarked` is non-null; pending-ink tokens 0.5 / 200 ms | widget | `flutter test test/shared/components/cards` | ✅ | ✅ green |
 | 8-03-03 | 03 | 2 | SPELL-05 | — | N/A (pure extraction: `UsagesPencilCounter` shared by both cards, behaviour identical) | widget | `flutter test test/shared/components` | ✅ | ✅ green |
+| 8-04-01 | 04 | 2 | SPELL-05 | T-8-10 | recovery derived only from `recoveries[0] − serverNow` (earliest instant); usages never restored locally; past instant → `Arriving` until the BE emits; full/over-max/null max → `Full`; no instants → `Unknown`; countdown quantized to whole minutes (0 = under a minute) | unit | `flutter test test/models/spell/spell_recovery_status_test.dart` | ✅ | ✅ green |
+| 8-04-02 | 04 | 2 | SPELL-02, SPELL-05 | T-8-11 | durations formatted (no raw ms), fixed Italian copy, no ids; summary line, detail labels and empty-state copies defined once | unit | `flutter test test/utils/spell_lines_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
