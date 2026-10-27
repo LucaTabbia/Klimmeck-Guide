@@ -8,6 +8,7 @@ const String travelSameLocationCode = 'TRAVEL_SAME_LOCATION';
 const String travelDestinationNotAllowedCode = 'TRAVEL_DESTINATION_NOT_ALLOWED';
 const String travelNoPathCode = 'TRAVEL_NO_PATH';
 const String questInProgressCode = 'QUEST_IN_PROGRESS';
+const String awaitingAidCode = 'AWAITING_AID';
 
 /// Esiti di dominio del rifiuto di `travelPreview`/`startTravel` (BE Phase 8 §2);
 /// la UI li traduce in copy (07-CONTEXT D-14).
@@ -21,6 +22,9 @@ enum TravelFailure {
   /// Difetto di dati stradali: solo banner, il BE logga un WARN per il GM.
   noPath,
   questInProgress,
+
+  /// BE Phase 9 §2: il personaggio è ferito in attesa di soccorso (D-16).
+  awaitingAid,
   notFound,
   forbidden,
   unauthenticated,
@@ -57,6 +61,7 @@ TravelFailure travelFailureFrom(OperationException exception) {
     travelDestinationNotAllowedCode => TravelFailure.destinationNotAllowed,
     travelNoPathCode => TravelFailure.noPath,
     questInProgressCode => TravelFailure.questInProgress,
+    awaitingAidCode => TravelFailure.awaitingAid,
     notFoundCode => TravelFailure.notFound,
     forbiddenCode => TravelFailure.forbidden,
     unauthenticatedCode => TravelFailure.unauthenticated,

@@ -3,7 +3,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart'
-    show travelInProgressCode;
+    show awaitingAidCode, travelInProgressCode;
 
 const String questSlotBusyCode = 'QUEST_SLOT_BUSY';
 const String questFullCode = 'QUEST_FULL';
@@ -27,6 +27,9 @@ enum QuestAcceptanceFailure {
 
   /// BE Phase 8 D-19.
   travelInProgress,
+
+  /// BE Phase 9 §2: il personaggio è ferito in attesa di soccorso (D-16).
+  awaitingAid,
   unauthenticated,
   connection,
 
@@ -62,6 +65,7 @@ QuestAcceptanceFailure questAcceptanceFailureFrom(
     questNotAcceptableCode => QuestAcceptanceFailure.notAcceptable,
     insufficientPointsCode => QuestAcceptanceFailure.insufficientPoints,
     travelInProgressCode => QuestAcceptanceFailure.travelInProgress,
+    awaitingAidCode => QuestAcceptanceFailure.awaitingAid,
     notFoundCode => QuestAcceptanceFailure.notFound,
     forbiddenCode => QuestAcceptanceFailure.forbidden,
     unauthenticatedCode => QuestAcceptanceFailure.unauthenticated,
