@@ -207,7 +207,10 @@ void main() {
 
     test('an enemy with locations never reaches Enemy.fromJson', () {
       final json = questResultJson();
-      (json['enemy'] as Map<String, dynamic>)['locations'] = ['forest'];
+      json['enemy'] = <String, dynamic>{
+        ...json['enemy'] as Map<String, dynamic>,
+        'locations': ['forest'],
+      };
 
       expect(questResult(json).enemy!.name, 'Lupo grigio');
     });
