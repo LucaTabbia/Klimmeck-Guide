@@ -413,6 +413,92 @@ void main() {
     });
   });
 
+  group('suppress', () {
+    final questResult = PushEvent(
+      category: NotificationCategory.questEnd,
+      title: 'Quest completata',
+      body: 'Il risultato della tua quest è pronto.',
+      sentAt: DateTime.utc(2026, 10, 18, 12, 3),
+      id: 'r-1',
+    );
+    const resultKey = 'questEnd|r-1';
+
+    test('a suppressed key shows no banner for the personal window', () {
+      withCubit((async, cubit, events) {
+        cubit.suppress(resultKey);
+
+        cubit.publish(questResult);
+        expect(cubit.state.current, isNull);
+
+        async.elapse(InAppNotificationsCubit.personalDedupWindow);
+        cubit.publish(questResult);
+        expect(cubit.state.current, questResult);
+      });
+    });
+
+    test('drops a queued banner with the key and keeps the order', () {
+      withCubit((async, cubit, events) {
+        cubit
+          ..publish(travelA)
+          ..publish(questResult)
+          ..publish(questA)
+          ..publish(travelB);
+
+        cubit.suppress(resultKey);
+        expect(cubit.state.current, travelA);
+
+        cubit.dismiss();
+        expect(cubit.state.current, questA);
+        cubit.dismiss();
+        expect(cubit.state.current, travelB);
+        cubit.dismiss();
+        expect(cubit.state.current, isNull);
+      });
+    });
+
+    test('closes the current banner and shows the next with a fresh timer', () {
+      withCubit((async, cubit, events) {
+        cubit
+          ..publish(questResult)
+          ..publish(travelA);
+        async.elapse(const Duration(seconds: 3));
+
+        cubit.suppress(resultKey);
+        expect(cubit.state.current, travelA);
+
+        async.elapse(const Duration(milliseconds: 4999));
+        expect(cubit.state.current, travelA);
+        async.elapse(const Duration(milliseconds: 1));
+        expect(cubit.state.current, isNull);
+      });
+    });
+
+    test('an unrelated key leaves the banner and the queue untouched', () {
+      withCubit((async, cubit, events) {
+        cubit
+          ..publish(travelA)
+          ..publish(questA);
+
+        cubit.suppress(resultKey);
+        expect(cubit.state.current, travelA);
+
+        async.elapse(const Duration(seconds: 5));
+        expect(cubit.state.current, questA);
+      });
+    });
+
+    test('does nothing after close', () {
+      withCubit((async, cubit, events) {
+        cubit.close();
+        async.flushMicrotasks();
+
+        expect(() => cubit.suppress(resultKey), returnsNormally);
+        expect(cubit.state, const InAppNotificationsState());
+        expect(async.pendingTimers, isEmpty);
+      });
+    });
+  });
+
   test('open dismisses the banner before routing', () {
     late InAppNotificationsCubit observed;
     final probe = _StateProbeSink(() => observed.state.current);
