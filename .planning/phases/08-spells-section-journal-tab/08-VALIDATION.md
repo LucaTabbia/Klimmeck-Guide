@@ -42,6 +42,9 @@ created: 2026-10-27
 | 8-01-02 | 01 | 1 | SPELL-02 | — | N/A (pure move, behaviour identical) | unit | `flutter test test/utils/game_duration_format_test.dart test/models/travel test/screens/mainScreen/tabs/map` | ✅ | ✅ green |
 | 8-02-01 | 02 | 1 | SPELL-03, SPELL-06 | T-8-03 / T-8-04 | `EquipSpellRequest` never sends `usages`; `EquipSpell`/`UnequipSpell` return only `successful` (no state from the response); registry keys renamed, still 34 | unit | `flutter test test/models/request/equip_spell_request_test.dart test/graphql/spell_documents_test.dart test/tool test/repository/services/graphql/graphql_spells_test.dart` | ✅ | ✅ green |
 | 8-02-02 | 02 | 1 | SPELL-04, SPELL-06 | T-8-05 / T-8-06 / T-8-07 | classification by `extensions.code` only (message ignored); `FORBIDDEN` → `forbidden`; 15 s → `timedOut`; no `OperationException` escapes `SpellsRepository` | unit | `flutter test test/repository/spell_equip_failure_test.dart test/repository/spells_repository_test.dart` | ✅ | ✅ green |
+| 8-03-01 | 03 | 2 | SPELL-01, SPELL-05 | T-8-09 | one `BookmarkRibbon`; equipment card and sheet keep geometry (left, length, peek, curve, top offsets), sheet tap → `onEquip` once, no ribbon when the equip state is `null` | widget | `flutter test test/shared/components/bookmark_ribbon_test.dart test/shared/components/cards test/shared/components/popup` | ✅ | ✅ green |
+| 8-03-02 | 03 | 2 | SPELL-01, SPELL-05 | T-8-08 | `SpellCard` renders without `!` crashes when `useType`, `energyDamage` or `power` are null; bookmark only when `isMarked` is non-null; pending-ink tokens 0.5 / 200 ms | widget | `flutter test test/shared/components/cards` | ✅ | ✅ green |
+| 8-03-03 | 03 | 2 | SPELL-05 | — | N/A (pure extraction: `UsagesPencilCounter` shared by both cards, behaviour identical) | widget | `flutter test test/shared/components` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
