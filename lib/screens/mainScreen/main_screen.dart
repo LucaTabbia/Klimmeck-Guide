@@ -26,6 +26,12 @@ import '../../shared/components/kg_loader.dart';
 import '../../theme/kg_theme.dart';
 import 'cubit/main_screen_cubit.dart';
 
+typedef _SatchelInputs = ({
+  PointOfInterest? location,
+  bool isTravelling,
+  bool isAwaitingAid,
+});
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key, required this.characterId, this.pagesBuilder});
 
@@ -83,18 +89,14 @@ class _MainScreenState extends State<MainScreen>
       child: BlocBuilder<MainScreenCubit, MainScreenState>(
         builder: (context, state) {
           if (state is MainScreenLoadData) {
-            return BlocSelector<
-              CharacterCubit,
-              CharacterState,
-              (PointOfInterest?, bool)
-            >(
+            return BlocSelector<CharacterCubit, CharacterState, _SatchelInputs>(
               selector: _satchelInputsOf,
               builder: (context, inputs) {
-                final (location, isTravelling) = inputs;
                 final disabledPages = disabledSatchelPages(
-                  location: location,
+                  location: inputs.location,
                   cities: state.cities,
-                  isTravelling: isTravelling,
+                  isTravelling: inputs.isTravelling,
+                  isAwaitingAid: inputs.isAwaitingAid,
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
@@ -216,24 +218,28 @@ class _MainScreenState extends State<MainScreen>
   bool _isPageDisabled(int index) {
     final screen = context.read<MainScreenCubit>().state;
     if (screen is! MainScreenLoadData) return false;
-    final (location, isTravelling) = _satchelInputsOf(
-      context.read<CharacterCubit>().state,
-    );
+    final inputs = _satchelInputsOf(context.read<CharacterCubit>().state);
     return disabledSatchelPages(
-      location: location,
+      location: inputs.location,
       cities: screen.cities,
-      isTravelling: isTravelling,
+      isTravelling: inputs.isTravelling,
+      isAwaitingAid: inputs.isAwaitingAid,
     ).contains(index);
   }
 
-  /// Posizione e viaggio in corso: gli input della disponibilità della borsa (D-12).
-  static (PointOfInterest?, bool) _satchelInputsOf(CharacterState state) =>
-      state is CharacterLoaded
-      ? (
-          state.character.status?.location,
-          state.character.status?.activeTravel != null,
-        )
-      : (null, false);
+  /// Posizione, viaggio in corso e attesa di soccorso: gli input della
+  /// disponibilità della borsa (D-12, Phase 9 D-16).
+  static _SatchelInputs _satchelInputsOf(CharacterState state) {
+    if (state is! CharacterLoaded) {
+      return (location: null, isTravelling: false, isAwaitingAid: false);
+    }
+    final status = state.character.status;
+    return (
+      location: status?.location,
+      isTravelling: status?.activeTravel != null,
+      isAwaitingAid: status?.awaitingAid != null,
+    );
+  }
 
   @override
   void dispose() {
