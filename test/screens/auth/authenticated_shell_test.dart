@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/repository/services/push/notification_permission_
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
@@ -24,6 +25,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outco
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
@@ -91,6 +93,9 @@ void main() {
     when(
       () => graphQl.getServerTime(),
     ).thenAnswer((_) async => DateTime.utc(2026, 10, 24, 10));
+    when(
+      () => graphQl.subscribeToQuestResults(any()),
+    ).thenAnswer((_) => const Stream.empty());
   });
 
   tearDown(() => messaging.close());
@@ -112,6 +117,9 @@ void main() {
             RepositoryProvider<SyncHealth>.value(value: health),
             RepositoryProvider<AppLifecycleEvents>.value(value: lifecycle),
             RepositoryProvider<UserRefreshRequests>.value(value: refreshBus),
+            RepositoryProvider<ConnectionRestoredEvents>.value(
+              value: ConnectionRestoredBus(),
+            ),
             RepositoryProvider<NotificationTapRouter>.value(
               value: NotificationTapRouter(intents: sink, links: links),
             ),
@@ -251,6 +259,28 @@ void main() {
 
     expect(availabilityCubit.isClosed, isTrue);
   });
+
+  testWidgets(
+    'provides the quest results cubit started for the character and closes it on removal',
+    (tester) async {
+      late QuestResultsCubit questResultsCubit;
+      await pumpShell(
+        tester,
+        state: const SplashData(),
+        mainScreenBuilder: (context, _) {
+          questResultsCubit = context.read<QuestResultsCubit>();
+          return const Text('main');
+        },
+      );
+
+      verify(() => graphQl.subscribeToQuestResults(testCharacterId)).called(1);
+      expect(questResultsCubit.isClosed, isFalse);
+
+      await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+      expect(questResultsCubit.isClosed, isTrue);
+    },
+  );
 
   testWidgets('provides the spells cubit and closes it on removal', (
     tester,
