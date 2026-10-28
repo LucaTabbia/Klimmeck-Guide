@@ -237,12 +237,15 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     }
   }
 
+  /// Accesso negato e parsing (deterministico) non cambiano riprovando
+  /// (09-REVIEW IN-04).
   static bool _isTransient(Object error) =>
       error is! QuestResultException ||
       !const {
         QuestResultFailure.forbidden,
         QuestResultFailure.unauthenticated,
         QuestResultFailure.notFound,
+        QuestResultFailure.malformed,
       }.contains(error.failure);
 
   static bool _isNoticeWorthy(QuestResultFailure failure) =>
