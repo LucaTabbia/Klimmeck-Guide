@@ -198,7 +198,10 @@ void main() {
           ..closed('r-1');
         await pumpEventQueue();
 
-        expect(h.state, const QuestResultsState());
+        expect(
+          h.state,
+          const QuestResultsState(pendingRefetch: PendingRefetch.done),
+        );
         await h.offer([_success('r-1')]);
         expect(h.state.queue, isEmpty);
       },

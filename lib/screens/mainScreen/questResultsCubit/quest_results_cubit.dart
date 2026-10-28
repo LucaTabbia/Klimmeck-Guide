@@ -194,15 +194,25 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   }
 
   Future<void> _performRefetch() async {
+    emit(state.copyWith(pendingRefetch: PendingRefetch.inFlight));
     await _retryPendingAcknowledgements();
+    var hasGivenUp = false;
     final results = await silentRetry(
       () => _pending.fetchUnacknowledged(),
       isCancelled: () => isClosed,
       shouldRetry: _isTransient,
+      onGiveUp: (_) => hasGivenUp = true,
     );
     for (final result in results ?? const <QuestResult>[]) {
       _accept(result, isLive: false);
     }
+    emit(
+      state.copyWith(
+        pendingRefetch: hasGivenUp
+            ? PendingRefetch.failed
+            : PendingRefetch.done,
+      ),
+    );
   }
 
   Future<void> _retryPendingAcknowledgements() async {

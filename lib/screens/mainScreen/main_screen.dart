@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
@@ -161,35 +163,11 @@ class _MainScreenState extends State<MainScreen>
             );
           }
           if (state is MainScreenError) {
-            return Scaffold(
-              backgroundColor: KlimmeckGuideTheme.deepNight,
-              body: SafeArea(
-                child: RefreshIndicator(
-                  onRefresh: () => context.read<MainScreenCubit>().loadData(),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: SizedBox(
-                      height:
-                          MediaQuery.of(context).size.height -
-                          (MediaQuery.of(context).viewPadding.top +
-                              MediaQuery.of(context).viewPadding.bottom),
-                      child: const KGError(),
-                    ),
-                  ),
-                ),
-              ),
+            return _RetryableError(
+              onRefresh: () => context.read<MainScreenCubit>().loadData(),
             );
           }
-          return Scaffold(
-            backgroundColor: KlimmeckGuideTheme.deepNight,
-            body: SizedBox(
-              height:
-                  MediaQuery.of(context).size.height -
-                  (MediaQuery.of(context).viewPadding.bottom +
-                      MediaQuery.of(context).viewPadding.top),
-              child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
-            ),
-          );
+          return const _ColdStart();
         },
       ),
     );
@@ -278,4 +256,69 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+/// Loader del cold start. Un personaggio non disponibile resta qui finché il
+/// suo foglio di morte può arrivare; a rilettura conclusa senza fogli il
+/// giocatore riprova da sé (Phase 9 D-13, 09-REVIEW WR-03).
+class _ColdStart extends StatelessWidget {
+  const _ColdStart();
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnavailable = context.select<CharacterCubit, bool>(
+      (cubit) => cubit.state is CharacterUnavailable,
+    );
+    final isSettled = context.select<QuestResultsCubit, bool>(
+      (cubit) => cubit.state.isSettledWithoutSheets,
+    );
+    if (isUnavailable && isSettled) {
+      return _RetryableError(onRefresh: () => _retryUnavailable(context));
+    }
+    return Scaffold(
+      backgroundColor: KlimmeckGuideTheme.deepNight,
+      body: SizedBox(
+        height: _visibleHeight(context),
+        child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
+      ),
+    );
+  }
+
+  /// `me` riletto per uscire da un personaggio già staccato, la lista per un
+  /// foglio di morte non ancora letto.
+  static Future<void> _retryUnavailable(BuildContext context) {
+    context.read<UserRefreshRequests>().requestUserRefresh();
+    return context.read<QuestResultsCubit>().refetchPending();
+  }
+}
+
+/// Errore del cold start con pull-to-refresh (D-16).
+class _RetryableError extends StatelessWidget {
+  const _RetryableError({required this.onRefresh});
+
+  final RefreshCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: KlimmeckGuideTheme.deepNight,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: onRefresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: _visibleHeight(context),
+              child: const KGError(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+double _visibleHeight(BuildContext context) {
+  final media = MediaQuery.of(context);
+  return media.size.height - (media.viewPadding.top + media.viewPadding.bottom);
 }

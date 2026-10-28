@@ -3,6 +3,10 @@ part of 'quest_results_cubit.dart';
 /// Conferma del foglio di morte (D-10, D-13): attesa, non best-effort.
 enum DeathAcknowledgement { idle, inFlight, failed, done }
 
+/// Rilettura dei risultati non confermati (09-REVIEW WR-03): `failed` quando
+/// i tentativi silenziosi si arrendono, `done` quando la lettura è riuscita.
+enum PendingRefetch { idle, inFlight, done, failed }
+
 /// Coda dei risultati della shell (D-08..D-13): FIFO per `resolvedAt`, una
 /// sola istanza per id; `arrival` è l'ultimo arrivo live (banner o soppressione
 /// decisi dal presenter).
@@ -15,6 +19,7 @@ class QuestResultsState extends Equatable {
     this.arrivalSerial = 0,
     this.notice,
     this.deathAcknowledgement = DeathAcknowledgement.idle,
+    this.pendingRefetch = PendingRefetch.idle,
   });
 
   final List<QuestResult> queue;
@@ -26,6 +31,7 @@ class QuestResultsState extends Equatable {
   final int arrivalSerial;
   final QuestResultNotice? notice;
   final DeathAcknowledgement deathAcknowledgement;
+  final PendingRefetch pendingRefetch;
 
   QuestResult? get head => queue.isEmpty ? null : queue.first;
 
@@ -39,6 +45,16 @@ class QuestResultsState extends Equatable {
   bool get isAcceptingSheets =>
       deathAcknowledgement != DeathAcknowledgement.done;
 
+  /// Nessun foglio in coda o aperto e l'ultima rilettura conclusa: al cold
+  /// start di un personaggio non disponibile nessun foglio di morte sta per
+  /// arrivare (09-REVIEW WR-03).
+  bool get isSettledWithoutSheets =>
+      isAcceptingSheets &&
+      queue.isEmpty &&
+      showing == null &&
+      (pendingRefetch == PendingRefetch.done ||
+          pendingRefetch == PendingRefetch.failed);
+
   QuestResultsState copyWith({
     List<QuestResult>? queue,
     QuestResult? showing,
@@ -47,6 +63,7 @@ class QuestResultsState extends Equatable {
     int? arrivalSerial,
     QuestResultNotice? notice,
     DeathAcknowledgement? deathAcknowledgement,
+    PendingRefetch? pendingRefetch,
   }) => QuestResultsState(
     queue: queue ?? this.queue,
     showing: showing ?? this.showing,
@@ -55,6 +72,7 @@ class QuestResultsState extends Equatable {
     arrivalSerial: arrivalSerial ?? this.arrivalSerial,
     notice: notice ?? this.notice,
     deathAcknowledgement: deathAcknowledgement ?? this.deathAcknowledgement,
+    pendingRefetch: pendingRefetch ?? this.pendingRefetch,
   );
 
   /// Nessun foglio aperto: unico campo che torna `null`.
@@ -68,6 +86,7 @@ class QuestResultsState extends Equatable {
     arrivalSerial: arrivalSerial,
     notice: notice,
     deathAcknowledgement: deathAcknowledgement,
+    pendingRefetch: pendingRefetch,
   );
 
   @override
@@ -79,5 +98,6 @@ class QuestResultsState extends Equatable {
     arrivalSerial,
     notice,
     deathAcknowledgement,
+    pendingRefetch,
   ];
 }
