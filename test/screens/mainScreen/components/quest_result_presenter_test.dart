@@ -303,9 +303,8 @@ void main() {
       verifyNoSuppression();
     });
 
-    testWidgets('a live arrival behind a queued head gets the banner', (
-      tester,
-    ) async {
+    testWidgets('a live arrival behind an open sheet on the free map gets '
+        'no banner (09-REVIEW IN-03)', (tester) async {
       final behind = _success('result-b', minute: 1);
       h.pending.results = [_success('result-a')];
       await h.pump(tester);
@@ -314,8 +313,28 @@ void main() {
 
       await h.arrive(tester, behind);
 
-      verify(() => h.notices.publish(questEndEventOf(behind))).called(1);
-      verifyNever(() => h.notices.suppress('questEnd|result-b'));
+      verify(() => h.notices.suppress('questEnd|result-b')).called(1);
+      verifyNoBanner();
+    });
+
+    testWidgets('a live arrival behind a covered map still gets the banner', (
+      tester,
+    ) async {
+      final result = _success('result-1');
+      await h.pump(tester);
+      await h.enterMap(tester);
+      unawaited(
+        showDialog<void>(
+          context: _homeContext(tester),
+          builder: (_) => const Text('dialog'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await h.arrive(tester, result);
+
+      verify(() => h.notices.publish(questEndEventOf(result))).called(1);
+      verifyNoSuppression();
     });
   });
 
