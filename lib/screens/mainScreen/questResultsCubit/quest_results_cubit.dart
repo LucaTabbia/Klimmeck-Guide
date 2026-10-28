@@ -153,7 +153,7 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     if (showing == null || showing.id != id) return;
     emit(
       state.withoutShowing(
-        queue: _inserted(showing),
+        queue: _merged([showing]),
         position: state.position > 0 ? state.position - 1 : 0,
       ),
     );
@@ -209,16 +209,25 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
       shouldRetry: _isTransient,
       onGiveUp: (_) => hasGivenUp = true,
     );
-    for (final result in results ?? const <QuestResult>[]) {
-      _accept(result, isLive: false);
-    }
     emit(
       state.copyWith(
+        queue: _merged(_unseen(results ?? const [])),
         pendingRefetch: hasGivenUp
             ? PendingRefetch.failed
             : PendingRefetch.done,
       ),
     );
+  }
+
+  /// Il lotto entra in un solo passo, già ordinato: il primo foglio aperto è
+  /// il più vecchio qualunque sia l'ordine del BE (09-REVIEW IN-01).
+  List<QuestResult> _unseen(List<QuestResult> results) {
+    final unseen = <String, QuestResult>{};
+    for (final result in results) {
+      if (result.acknowledgedAt != null || _isKnown(result.id)) continue;
+      unseen.putIfAbsent(result.id, () => result);
+    }
+    return unseen.values.toList();
   }
 
   Future<void> _retryPendingAcknowledgements() async {
@@ -317,7 +326,7 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     if (result.acknowledgedAt != null || _isKnown(result.id)) return;
     emit(
       state.copyWith(
-        queue: _inserted(result),
+        queue: _merged([result]),
         arrival: isLive ? result : null,
         arrivalSerial: isLive ? state.arrivalSerial + 1 : null,
       ),
@@ -331,9 +340,9 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
       state.showing?.id == id ||
       state.queue.any((queued) => queued.id == id);
 
-  List<QuestResult> _inserted(QuestResult result) =>
+  List<QuestResult> _merged(Iterable<QuestResult> results) =>
       List<QuestResult>.unmodifiable(
-        <QuestResult>[...state.queue, result]..sort(_byResolution),
+        <QuestResult>[...state.queue, ...results]..sort(_byResolution),
       );
 
   static int _byResolution(QuestResult a, QuestResult b) {
