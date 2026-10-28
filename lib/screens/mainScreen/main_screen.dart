@@ -23,6 +23,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 
 import '../../shared/components/kg_error.dart';
@@ -124,35 +125,11 @@ class _MainScreenState extends State<MainScreen>
                   cities: state.cities,
                   child: PartyWatchListener(
                     child: TravelOutcomeListener(
-                      child: SpellOutcomeListener(
-                        child: Scaffold(
-                          body: Stack(
-                            alignment: Alignment.topLeft,
-                            children: [
-                              NotificationIntentLanding(
-                                pageController: pageController,
-                                child: PageView(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  controller: pageController,
-                                  onPageChanged: onPageChanged,
-                                  children:
-                                      widget.pagesBuilder?.call(state.cities) ??
-                                      _buildPages(state.cities),
-                                ),
-                              ),
-                              MenuBackground(
-                                selectedIndex: currentPage,
-                                onTap: onItemTap,
-                                opacityAnimation: _opacityAnimation,
-                                disabledPages: disabledPages,
-                              ),
-                              SatchelMenu(
-                                currentPage: currentPage,
-                                onItemTap: onItemTap,
-                                parentAnimationController: _animationController,
-                                disabledPages: disabledPages,
-                              ),
-                            ],
+                      child: TransactionOutcomeListener(
+                        child: SpellOutcomeListener(
+                          child: _buildPagesWithSatchel(
+                            state.cities,
+                            disabledPages,
                           ),
                         ),
                       ),
@@ -169,6 +146,38 @@ class _MainScreenState extends State<MainScreen>
           }
           return const _ColdStart();
         },
+      ),
+    );
+  }
+
+  Widget _buildPagesWithSatchel(List<City> cities, Set<int> disabledPages) {
+    return Scaffold(
+      body: Stack(
+        alignment: Alignment.topLeft,
+        children: [
+          NotificationIntentLanding(
+            pageController: pageController,
+            child: PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: pageController,
+              onPageChanged: onPageChanged,
+              children:
+                  widget.pagesBuilder?.call(cities) ?? _buildPages(cities),
+            ),
+          ),
+          MenuBackground(
+            selectedIndex: currentPage,
+            onTap: onItemTap,
+            opacityAnimation: _opacityAnimation,
+            disabledPages: disabledPages,
+          ),
+          SatchelMenu(
+            currentPage: currentPage,
+            onItemTap: onItemTap,
+            parentAnimationController: _animationController,
+            disabledPages: disabledPages,
+          ),
+        ],
       ),
     );
   }

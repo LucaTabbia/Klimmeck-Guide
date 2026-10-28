@@ -6,7 +6,6 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
@@ -260,143 +259,136 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return TransactionOutcomeListener(
-      child: BlocListener<TransactionCubit, TransactionState>(
+    return BlocListener<TransactionCubit, TransactionState>(
+      listener: (context, state) {
+        if (state is TransactionInitial) {
+          setState(() => _showTransactionMessage = false);
+        }
+        if (state is TransactionLoading) {
+          setState(() {
+            _showTransactionMessage = true;
+            _transactionMessage = "Controllo che sia tutto in ordine";
+          });
+        }
+        if (state is TransactionDone) {
+          setState(() {
+            _itemsToSell = [];
+            _itemsToBuy = [];
+            _transactionMessage =
+                "Sempre felice di fare affari! Posso esserle ancora utile?";
+          });
+        }
+        if (state is TransactionError) {
+          setState(() => _showRefusal(state.failure));
+        }
+      },
+      child: BlocConsumer<ShopCubit, ShopState>(
         listener: (context, state) {
-          if (state is TransactionInitial) {
-            setState(() => _showTransactionMessage = false);
-          }
-          if (state is TransactionLoading) {
+          if (state is ShopLoadData) {
             setState(() {
-              _showTransactionMessage = true;
-              _transactionMessage = "Controllo che sia tutto in ordine";
+              _allEquipments = state.equipmentItems;
+              _allItems = state.lootItems;
             });
-          }
-          if (state is TransactionDone) {
-            setState(() {
-              _itemsToSell = [];
-              _itemsToBuy = [];
-              _transactionMessage =
-                  "Sempre felice di fare affari! Posso esserle ancora utile?";
-            });
-          }
-          if (state is TransactionError) {
-            setState(() => _showRefusal(state.failure));
           }
         },
-        child: BlocConsumer<ShopCubit, ShopState>(
-          listener: (context, state) {
-            if (state is ShopLoadData) {
-              setState(() {
-                _allEquipments = state.equipmentItems;
-                _allItems = state.lootItems;
-              });
-            }
-          },
-          builder: (context, state) {
-            return BlocBuilder<CharacterCubit, CharacterState>(
-              builder: (context, characterState) {
-                final Character? character = (characterState is CharacterLoaded)
-                    ? characterState.character
-                    : null;
+        builder: (context, state) {
+          return BlocBuilder<CharacterCubit, CharacterState>(
+            builder: (context, characterState) {
+              final Character? character = (characterState is CharacterLoaded)
+                  ? characterState.character
+                  : null;
 
-                if (character == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              if (character == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                return Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: Image.asset(
-                        'assets/images/shopBackground.png',
-                        fit: BoxFit.cover,
-                      ),
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Image.asset(
+                      'assets/images/shopBackground.png',
+                      fit: BoxFit.cover,
                     ),
-                    if (_showTransactionMessage)
-                      TransactionMessageBubble(message: _transactionMessage),
+                  ),
+                  if (_showTransactionMessage)
+                    TransactionMessageBubble(message: _transactionMessage),
 
-                    _buildCoinsDisplay(),
+                  _buildCoinsDisplay(),
 
-                    Positioned(
-                      bottom: -10,
-                      child: Center(
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height / 1.5,
-                          width: MediaQuery.of(context).size.width / 1.2,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Spacer(flex: 2),
+                  Positioned(
+                    bottom: -10,
+                    child: Center(
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height / 1.5,
+                        width: MediaQuery.of(context).size.width / 1.2,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Spacer(flex: 2),
+                            GestureDetector(
+                              onTap: () => _showModalShop(
+                                _allEquipments,
+                                _allItems,
+                                true,
+                                character,
+                              ),
+                              child: CachedSvg(
+                                width: MediaQuery.of(context).size.width / 3.3,
+                                height:
+                                    MediaQuery.of(context).size.height / 1.7,
+                                url:
+                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
+                              ),
+                            ),
+                            const Spacer(),
+                            if (_itemsToBuy.isNotEmpty ||
+                                _itemsToSell.isNotEmpty)
                               GestureDetector(
-                                onTap: () => _showModalShop(
-                                  _allEquipments,
-                                  _allItems,
-                                  true,
-                                  character,
-                                ),
+                                onTap: () => _showModalTransaction(character),
                                 child: CachedSvg(
-                                  width:
-                                      MediaQuery.of(context).size.width / 3.3,
                                   height:
-                                      MediaQuery.of(context).size.height / 1.7,
-                                  url:
-                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
-                                ),
-                              ),
-                              const Spacer(),
-                              if (_itemsToBuy.isNotEmpty ||
-                                  _itemsToSell.isNotEmpty)
-                                GestureDetector(
-                                  onTap: () => _showModalTransaction(character),
-                                  child: CachedSvg(
-                                    height:
-                                        MediaQuery.of(context).size.height /
-                                        3.2,
-                                    width:
-                                        MediaQuery.of(context).size.width / 6,
-                                    url:
-                                        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
-                                  ),
-                                )
-                              else
-                                SizedBox(
+                                      MediaQuery.of(context).size.height / 3.2,
                                   width: MediaQuery.of(context).size.width / 6,
+                                  url:
+                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
                                 ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () => _showModalShop(
-                                  character.assets!.ownedEquipments!,
-                                  character.assets!.ownedItems!,
-                                  false,
-                                  character,
-                                ),
-                                child: SizedBox(
-                                  child: CachedSvg(
-                                    width:
-                                        MediaQuery.of(context).size.width / 3,
-                                    height:
-                                        MediaQuery.of(context).size.height /
-                                        2.3,
-                                    url:
-                                        "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
-                                  ),
+                              )
+                            else
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 6,
+                              ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () => _showModalShop(
+                                character.assets!.ownedEquipments!,
+                                character.assets!.ownedItems!,
+                                false,
+                                character,
+                              ),
+                              child: SizedBox(
+                                child: CachedSvg(
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  height:
+                                      MediaQuery.of(context).size.height / 2.3,
+                                  url:
+                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
                                 ),
                               ),
-                              const Spacer(flex: 4),
-                            ],
-                          ),
+                            ),
+                            const Spacer(flex: 4),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }

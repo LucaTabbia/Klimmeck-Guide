@@ -5,7 +5,8 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/tra
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_notice.dart';
 
 /// Rifiuti del negozio che meritano un banner per codice (D-16); gli altri
-/// restano al fumetto del negoziante in `Shop`.
+/// restano al fumetto del negoziante in `Shop`. Montato nel `MainScreen`: la
+/// risposta arriva anche dopo aver lasciato il negozio (09-REVIEW IN-05).
 class TransactionOutcomeListener extends StatelessWidget {
   const TransactionOutcomeListener({super.key, required this.child});
 
