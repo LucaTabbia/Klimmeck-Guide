@@ -248,6 +248,7 @@ void main() {
       QuestResultFailure.forbidden,
       QuestResultFailure.unauthenticated,
       QuestResultFailure.notFound,
+      QuestResultFailure.malformed,
     ]) {
       withHarness('a ${failure.name} read is not retried', (h, a) {
         h.pending.error = QuestResultException(failure);
