@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/repository/quest_result_failure.dart';
@@ -209,6 +210,25 @@ void main() {
 
       expect(h.state.deathAcknowledgement, DeathAcknowledgement.done);
       expect(h.acknowledger.acknowledged, ['d-1']);
+    });
+
+    withHarness('a read is queued as one sorted batch (09-REVIEW IN-01)', (
+      h,
+      a,
+    ) {
+      h.pending.results = [_success('r-2', minute: 1), _success('r-1')];
+      final queues = <List<String>>[];
+      h.cubit.stream
+          .map((state) => [for (final result in state.queue) result.id])
+          .where((ids) => ids.isNotEmpty)
+          .distinct(listEquals)
+          .listen(queues.add);
+
+      _start(h, a);
+
+      expect(queues, [
+        ['r-1', 'r-2'],
+      ]);
     });
 
     withHarness('a network failure of the read is retried in silence', (h, a) {
