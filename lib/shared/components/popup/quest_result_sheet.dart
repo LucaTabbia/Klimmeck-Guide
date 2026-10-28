@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
@@ -95,16 +97,18 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     setState(() => _isSkipped = true);
   }
 
+  /// Entrambi i lati dal vincolo più stretto: il riquadro resta nel rapporto
+  /// della pergamena anche su una finestra stretta (09-REVIEW WR-02).
   @override
   Widget build(BuildContext context) {
     return Center(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final sheetHeight = constraints.maxHeight;
-          final sheetWidth = (sheetHeight * _aspectRatio).clamp(
-            0.0,
+          final sheetWidth = math.min(
             constraints.maxWidth,
+            constraints.maxHeight * _aspectRatio,
           );
+          final sheetHeight = sheetWidth / _aspectRatio;
           return SizedBox(
             width: sheetWidth,
             height: sheetHeight,
