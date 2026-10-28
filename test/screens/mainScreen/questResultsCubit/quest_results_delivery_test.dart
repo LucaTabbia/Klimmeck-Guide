@@ -218,7 +218,10 @@ void main() {
       a.elapse(const Duration(minutes: 10));
 
       expect(h.pending.calls, defaultSilentRetryAttempts);
-      expect(h.state, const QuestResultsState());
+      expect(
+        h.state,
+        const QuestResultsState(pendingRefetch: PendingRefetch.failed),
+      );
     });
 
     for (final failure in [
@@ -233,9 +236,53 @@ void main() {
         a.elapse(const Duration(minutes: 10));
 
         expect(h.pending.calls, 1);
-        expect(h.state, const QuestResultsState());
+        expect(
+          h.state,
+          const QuestResultsState(pendingRefetch: PendingRefetch.failed),
+        );
       });
     }
+  });
+
+  group('QuestResultsCubit refetch progress (09-REVIEW WR-03)', () {
+    withHarness('starts idle', (h, a) {
+      expect(h.state.pendingRefetch, PendingRefetch.idle);
+    });
+
+    withHarness('a read in flight is inFlight', (h, a) {
+      h.pending.hold = Completer<void>();
+      _start(h, a);
+
+      expect(h.state.pendingRefetch, PendingRefetch.inFlight);
+    });
+
+    withHarness('a completed read is done', (h, a) {
+      _start(h, a);
+
+      expect(h.state.pendingRefetch, PendingRefetch.done);
+    });
+
+    withHarness('a read retried in silence stays inFlight', (h, a) {
+      h.pending.error = _connectionLost;
+      _start(h, a);
+
+      a.elapse(const Duration(seconds: 5));
+
+      expect(h.state.pendingRefetch, PendingRefetch.inFlight);
+    });
+
+    withHarness('a read that gives up is failed, a later one done', (h, a) {
+      h.pending.error = _connectionLost;
+      _start(h, a);
+      a.elapse(const Duration(minutes: 10));
+      expect(h.state.pendingRefetch, PendingRefetch.failed);
+
+      h.pending.error = null;
+      h.cubit.refetchPending();
+      a.flushMicrotasks();
+
+      expect(h.state.pendingRefetch, PendingRefetch.done);
+    });
   });
 
   group('QuestResultsCubit subscription (D-09 a, checker I2)', () {

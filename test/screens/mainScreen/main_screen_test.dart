@@ -15,6 +15,7 @@ import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -33,6 +34,8 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/kg_error.dart';
+import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
@@ -117,6 +120,116 @@ void main() {
 
     verify(() => characterCubit.loadCharacter('c-42')).called(1);
     verify(() => questCubit.loadQuest()).called(1);
+  });
+
+  group('unavailable character at cold start (09-REVIEW WR-03)', () {
+    late UserRefreshRequestBus refreshBus;
+    late int refreshRequests;
+
+    setUp(() {
+      refreshBus = UserRefreshRequestBus();
+      addTearDown(refreshBus.close);
+      refreshRequests = 0;
+      refreshBus.requests.listen((_) => refreshRequests++);
+      whenListen(
+        characterCubit,
+        Stream<CharacterState>.empty(),
+        initialState: const CharacterUnavailable(),
+      );
+      when(() => questResultsCubit.refetchPending()).thenAnswer((_) async {});
+    });
+
+    Future<void> pumpUnavailable(
+      WidgetTester tester,
+      QuestResultsState results,
+    ) async {
+      useLandscapePhone(tester);
+      final availability = MapAvailabilityCubit();
+      addTearDown(availability.close);
+      final travelCubit = MockTravelCubit();
+      whenListen(
+        travelCubit,
+        const Stream<TravelState>.empty(),
+        initialState: const TravelIdle(),
+      );
+      whenListen(
+        questResultsCubit,
+        const Stream<QuestResultsState>.empty(),
+        initialState: results,
+      );
+      await tester.pumpWidget(
+        buildTestApp(
+          home: RepositoryProvider<UserRefreshRequests>.value(
+            value: refreshBus,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CharacterCubit>.value(value: characterCubit),
+                BlocProvider<QuestCubit>.value(value: questCubit),
+                BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
+                BlocProvider<MapAvailabilityCubit>.value(value: availability),
+                BlocProvider<TravelCubit>.value(value: travelCubit),
+                BlocProvider<InAppNotificationsCubit>.value(
+                  value: MockInAppNotificationsCubit(),
+                ),
+                BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+                BlocProvider<NotificationPreferencesCubit>.value(
+                  value: preferencesCubit,
+                ),
+              ],
+              child: const MainScreen(characterId: 'c-42'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    for (final refetch in [PendingRefetch.idle, PendingRefetch.inFlight]) {
+      testWidgets('keeps the loader while the read is ${refetch.name}', (
+        tester,
+      ) async {
+        await pumpUnavailable(
+          tester,
+          QuestResultsState(pendingRefetch: refetch),
+        );
+
+        expect(find.byType(KGLoader), findsOneWidget);
+        expect(find.byType(KGError), findsNothing);
+      });
+    }
+
+    for (final refetch in [PendingRefetch.done, PendingRefetch.failed]) {
+      testWidgets('a ${refetch.name} read with no sheet offers a retry', (
+        tester,
+      ) async {
+        await pumpUnavailable(
+          tester,
+          QuestResultsState(pendingRefetch: refetch),
+        );
+
+        expect(find.byType(KGLoader), findsNothing);
+        expect(find.byType(KGError), findsOneWidget);
+
+        await tester.fling(find.byType(KGError), const Offset(0, 300), 1000);
+        await tester.pumpAndSettle();
+
+        verify(() => questResultsCubit.refetchPending()).called(1);
+        expect(refreshRequests, 1);
+      });
+    }
+
+    testWidgets('a death acknowledged keeps the loader', (tester) async {
+      await pumpUnavailable(
+        tester,
+        const QuestResultsState(
+          pendingRefetch: PendingRefetch.done,
+          deathAcknowledgement: DeathAcknowledgement.done,
+        ),
+      );
+
+      expect(find.byType(KGLoader), findsOneWidget);
+      expect(find.byType(KGError), findsNothing);
+    });
   });
 
   group('satchel wiring', () {
