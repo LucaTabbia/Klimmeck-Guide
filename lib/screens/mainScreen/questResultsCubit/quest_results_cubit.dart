@@ -42,6 +42,12 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
        _userRefresh = userRefresh,
        super(const QuestResultsState());
 
+  /// Le porte non garantiscono una risposta: un `Future` appeso fermerebbe
+  /// il single-flight della rilettura e la fila delle conferme, morte
+  /// compresa (09-REVIEW WR-04). `TimeoutException` è un fallimento come gli
+  /// altri: rilettura ritentata, conferma pendente, morte `failed`.
+  static const Duration portTimeout = Duration(seconds: 15);
+
   final String _characterId;
   final QuestResultRepository _repository;
   final PendingQuestResults _pending;
@@ -198,7 +204,7 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     await _retryPendingAcknowledgements();
     var hasGivenUp = false;
     final results = await silentRetry(
-      () => _pending.fetchUnacknowledged(),
+      () => _pending.fetchUnacknowledged().timeout(portTimeout),
       isCancelled: () => isClosed,
       shouldRetry: _isTransient,
       onGiveUp: (_) => hasGivenUp = true,
@@ -298,7 +304,9 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   }
 
   Future<void> _serialised(Future<void> Function() mutation) {
-    final run = _acknowledgementTail.then((_) => mutation());
+    final run = _acknowledgementTail.then(
+      (_) => mutation().timeout(portTimeout),
+    );
     _acknowledgementTail = run.catchError((Object _) {});
     return run;
   }
