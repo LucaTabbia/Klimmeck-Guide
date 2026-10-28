@@ -32,7 +32,9 @@ part 'character_state.dart';
 /// chiede un solo refresh dell'utente via `UserRefreshRequests` per tutta la
 /// vita del cubit e smette di rileggere al resume; il recupero spetta al
 /// proprietario dello stream utente (la shell si ri-chiava al cambio di
-/// `currentCharacter`, plan 08).
+/// `currentCharacter`, plan 08). Fragilità accettata (09-REVIEW IN-06): il
+/// blocco vale per tutta la vita del cubit perché il BE risponde questi codici
+/// in modo deterministico e `SessionSyncCubit` rilegge `me` a ogni resume.
 class CharacterCubit extends Cubit<CharacterState>
     with SafeEmit<CharacterState> {
   CharacterCubit(
