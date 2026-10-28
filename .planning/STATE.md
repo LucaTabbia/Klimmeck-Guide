@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-27T22:26:19.237Z"
-last_activity: "2026-10-27 -- Phase 9 execution started: waves 1–5 (plans 09-01..09-11) on feat/09-combat-result-sheet; 09-12/09-13 gated on the BE Phase 9.2 PR merge"
+last_updated: "2026-10-28T00:31:23.000Z"
+last_activity: "2026-10-28 -- Phase 9 parked at 11/13: plans 01-11 complete, review 0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed, verification human_needed (device E2E deferred to 09-13), security secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open); branch pushed as backup, no PR; 09-12/09-13 wait for the BE 9.2 PR #15 merge"
 progress:
   total_phases: 12
   completed_phases: 9
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — EXECUTING (started 2026-10-27): 13 plans in 7 waves on `feat/09-combat-result-sheet` off `develop`; waves 6–7 (09-12, 09-13) gated on the BE Phase 9.2 PR merge
+Phase: 9 (Combat Result Sheet) — EXECUTING, parked at 11/13 (2026-10-28): waves 1–5 (plans 09-01..09-11) done, reviewed, verified and audited on `feat/09-combat-result-sheet`; waves 6–7 (09-12, 09-13) wait for the BE Phase 9.2 PR #15 merge on BE `develop`
 Plan: 11 of 13
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
-Next Phase: execute FE Phase 9 waves 1–5 (`/gsd-execute-phase 9`, plans 09-01..09-11); 09-12/09-13 run after the BE Phase 9.2 PR (`feat/09.2-quest-result-delivery-contract`, 7 plans, planned 2026-10-27) is merged on BE `develop`; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2)
-Status: Executing Phase 9 — waves 1–5 (plans 09-01..09-11) in progress, one executor at a time; 09-12/09-13 wait for the BE 9.2 merge on BE `develop`
-Last activity: 2026-10-28 -- Plan 09-11 complete (app wiring: AuthenticatedShell starts QuestResultsCubit with the null-object 9.2 ports, questEnd tap → requestFromTap through the popup registry, QuestResultPresenter wraps the whole MainScreen including the cold-start loader; end-to-end widget test incl. death sheet over the loader); waves 1–5 done, 09-12/09-13 gated on the BE Phase 9.2 PR merge
+Next Phase: after the BE PR #15 (`feat/09.2-quest-result-delivery-contract`) is merged on BE `develop`, run plans 09-12 and 09-13 (`/gsd-execute-phase 9`: 9.2 documents + `acknowledgedAt`, schema check 38/38, device E2E checkpoint, traceability, closure) and open the FE PR; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2, to rebase and plan after the merge)
+Status: Executing Phase 9 — parked at 11/13 (plans 01–11 complete: review 0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed, verification `human_needed` with the 6 device-UAT items, security secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open)); waiting for the BE 9.2 merge (PR #15) before 09-12/09-13 and the device UAT
+Last activity: 2026-10-28 -- Phase 9 parked at 11/13 after the review → verifier → fixer → security pipeline on plans 01–11 (0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed; secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open)); branch pushed as backup without PR; next: 09-12/09-13 after the BE PR #15 merge
 
 ## Current Milestone
 
@@ -54,7 +54,7 @@ Last activity: 2026-10-28 -- Plan 09-11 complete (app wiring: AuthenticatedShell
 - ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 - ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
 - ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
-- **BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21).
+- **BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21). — **BE PR #15 open (2026-10-28, `feat/09.2-quest-result-delivery-contract` → `develop`, 7/7 plans, handoff `BACKEND-NOTES.md` of the BE phase)**: the gated FE plans 09-12/09-13 run after its merge.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed
