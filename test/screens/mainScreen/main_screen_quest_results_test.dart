@@ -27,6 +27,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
@@ -86,6 +87,11 @@ class _MainScreenHarness {
       const Stream<NotificationPreferencesState>.empty(),
       initialState: NotificationPreferencesState(),
     );
+    whenListen(
+      transactions,
+      const Stream<TransactionState>.empty(),
+      initialState: TransactionInitial(),
+    );
   }
 
   final MockQuestResultRepository repository = MockQuestResultRepository();
@@ -109,6 +115,7 @@ class _MainScreenHarness {
   final MockInAppNotificationsCubit notices = MockInAppNotificationsCubit();
   final MockTravelCubit travel = MockTravelCubit();
   final MockSpellsCubit spells = MockSpellsCubit();
+  final MockTransactionCubit transactions = MockTransactionCubit();
   final MockNotificationPreferencesCubit preferences =
       MockNotificationPreferencesCubit();
 
@@ -153,6 +160,7 @@ class _MainScreenHarness {
             BlocProvider<InAppNotificationsCubit>.value(value: notices),
             BlocProvider<TravelCubit>.value(value: travel),
             BlocProvider<SpellsCubit>.value(value: spells),
+            BlocProvider<TransactionCubit>.value(value: transactions),
             BlocProvider<MapAvailabilityCubit>.value(value: availability),
             BlocProvider<QuestResultsCubit>.value(value: results),
             BlocProvider<NotificationPreferencesCubit>.value(

@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
+import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -32,6 +33,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/kg_error.dart';
@@ -250,6 +252,8 @@ void main() {
     late StreamController<TravelState> travelStates;
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
+    late MockTransactionCubit transactionCubit;
+    late StreamController<TransactionState> transactionStates;
     late MapAvailabilityCubit availability;
 
     setUp(() {
@@ -280,6 +284,14 @@ void main() {
         spellsCubit,
         spellsStates.stream,
         initialState: const SpellsState(),
+      );
+      transactionCubit = MockTransactionCubit();
+      transactionStates = StreamController<TransactionState>.broadcast();
+      addTearDown(transactionStates.close);
+      whenListen(
+        transactionCubit,
+        transactionStates.stream,
+        initialState: TransactionInitial(),
       );
       final svg =
           File('${Directory.systemTemp.createTempSync('kg_svg').path}/i.svg')
@@ -337,6 +349,7 @@ void main() {
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
+              BlocProvider<TransactionCubit>.value(value: transactionCubit),
               BlocProvider<MapAvailabilityCubit>.value(value: availability),
               BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
               BlocProvider<NotificationPreferencesCubit>.value(
@@ -653,6 +666,26 @@ void main() {
         verify(() => travelCubit.reset()).called(1);
       },
     );
+
+    testWidgets('a shop refusal answered away from the shop shows the banner '
+        '(09-REVIEW IN-05)', (tester) async {
+      final controller = await pumpOpenSatchel(tester, 'city-marker-1');
+      await tapItem(tester, 1);
+      expect(controller.page!.round(), 1);
+
+      transactionStates.add(TransactionError(TransactionFailure.shopNotInCity));
+      await tester.pump();
+
+      verify(
+        () => noticesCubit.publishNotice(
+          const KGNotification(
+            title: 'Negozio non disponibile',
+            description: 'Il negozio è disponibile solo in città',
+          ),
+          dedupKey: 'transaction|shopNotInCity',
+        ),
+      ).called(1);
+    });
 
     testWidgets(
       'a spell rollback answered away from the Journal shows the banner',
