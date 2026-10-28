@@ -268,6 +268,25 @@ void main() {
       verify(() => h.repository.watch('c-1')).called(2);
     });
 
+    withHarness('a resubscription reads what resolved during the backoff', (
+      h,
+      a,
+    ) {
+      _start(h, a);
+      final delay = exponentialBackoff(
+        0,
+        max: WsReconnectPolicy.maxReconnectDelay,
+      );
+
+      h.latestStream.addError(Exception('ws'));
+      a.flushMicrotasks();
+      h.pending.results = [_success('r-gap')];
+      a.elapse(delay);
+
+      expect(h.subscriptions, 2);
+      expect(h.queuedIds, ['r-gap']);
+    });
+
     withHarness('a completed stream resubscribes', (h, a) {
       _start(h, a);
 
