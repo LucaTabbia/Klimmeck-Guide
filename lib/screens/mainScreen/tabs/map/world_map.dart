@@ -190,6 +190,15 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             _refetchCountOf(current) > _refetchCountOf(previous),
         listener: (_, _) => _claimArrivalReread(),
       ),
+      // IN-02: la pedina in viaggio sostituisce quella trascinabile e Flutter
+      // non chiama onDragEnd su un Draggable smontato.
+      BlocListener<TravelProgressCubit, TravelProgressState>(
+        bloc: _progressCubit,
+        listenWhen: (previous, current) =>
+            previous is! TravelProgressActive &&
+            current is TravelProgressActive,
+        listener: (_, _) => _endPawnDrag(),
+      ),
       BlocListener<MapFocusCubit, MapFocusState>(
         listenWhen: (_, current) => current.isCharacterFocusPending,
         listener: (_, _) => _consumeCharacterFocus(),
@@ -361,11 +370,15 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _animateMapTo(clampedCenter);
   }
 
+  void _endPawnDrag() {
+    _availability.pawnDragChanged(false);
+    _stopAnimation();
+  }
+
   /// D-01/D-02: la città più vicina al rilascio è la meta; quella in cui il
   /// personaggio si trova già non apre nulla (la pedina torna al suo posto).
   void _handleCharacterDragEnd(LatLng? finalLocation, City? targetCity) {
-    _availability.pawnDragChanged(false);
-    _stopAnimation();
+    _endPawnDrag();
     final character = context.read<CharacterCubit>().state;
     if (character is! CharacterLoaded) return;
     final destination = travelDestinationFor(
