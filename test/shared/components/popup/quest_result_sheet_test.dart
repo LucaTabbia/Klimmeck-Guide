@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
@@ -413,6 +414,38 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.byType(AppBar), findsNothing);
       }
+    });
+  });
+  group('layout (09-REVIEW WR-02)', () {
+    testWidgets('a narrow surface keeps the parchment ratio and the button '
+        'inside it', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        buildTestApp(
+          home: Scaffold(
+            body: QuestResultSheet(
+              result: questResult(successResultJson()),
+              onContinue: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final parchment = tester.getRect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is CachedSvg &&
+              widget.url == CloudinaryAssets.url(CloudinaryAssets.emptySheet),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(parchment.width / parchment.height, closeTo(315 / 375, 1e-6));
+      final button = tester.getRect(find.byKey(QuestResultSheet.continueKey));
+      expect(parchment.contains(button.topLeft), isTrue);
+      expect(parchment.contains(button.bottomRight), isTrue);
     });
   });
 }
