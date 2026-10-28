@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/quest/quest_paper_asset.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 
 import '../../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 import 'world_map_travel_test.dart' hide main;
@@ -108,6 +111,49 @@ void main() {
       await dragPawnBy(tester, const Offset(300, 0));
 
       expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+    });
+  });
+
+  group('pawn drag source removed (09-REVIEW IN-02)', () {
+    testWidgets('a travel that replaces the dragged pawn ends the drag', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+      final gesture = await startPawnDrag(tester);
+      expect(mapAvailability.state.isPawnDragging, isTrue);
+
+      characterStates.add(characterLoaded(activeTravel: activeTravelJson()));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(Draggable), findsNothing);
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+    });
+
+    testWidgets('an awaited aid keeps the pawn and ends the drag on release', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+      final gesture = await startPawnDrag(tester);
+
+      characterStates.add(
+        CharacterLoaded(
+          Character.fromJson(
+            travellingCharacterJson(
+              locationId: 'city-marker-1',
+              awaitingAid: awaitingAidJson(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
       expect(mapAvailability.state.isPawnDragging, isFalse);
     });
   });
