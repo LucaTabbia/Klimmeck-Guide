@@ -105,15 +105,16 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     _tryPresent();
   }
 
-  /// Banner solo se il foglio non può aprirsi subito (D-07, C6, checker I1):
-  /// la soppressione vale solo per il risultato che arriva e si apre ora.
+  /// Banner solo lontano dai fogli (D-07, C6, checker I1): sulla mappa
+  /// libera, o con una morte in coda, l'arrivo si apre ora o dopo il foglio
+  /// già aperto (09-REVIEW IN-03).
   void _announceArrival(QuestResultsState state) {
     final arrival = state.arrival;
     if (arrival == null || state.arrivalSerial == _handledArrival) return;
     _handledArrival = state.arrivalSerial;
     final event = questEndEventOf(arrival);
     final notices = context.read<InAppNotificationsCubit>();
-    if (_canPresent() && state.head?.id == arrival.id) {
+    if (_isSheetGround()) {
       notices.suppress(event.dedupKey);
       return;
     }
@@ -143,15 +144,21 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
   /// (D-08, D-13). Dopo la conferma della morte nessun altro foglio.
   bool _canPresent() {
     final state = _results.state;
-    if (_isPresenting ||
-        state.showing != null ||
-        !state.isAcceptingSheets ||
-        state.head == null) {
-      return false;
-    }
+    if (_isShowingSheet || state.head == null) return false;
+    return _isSheetGround();
+  }
+
+  bool get _isShowingSheet => _isPresenting || _results.state.showing != null;
+
+  /// Dove un foglio si apre, a parte quello già aperto: la sua route copre la
+  /// shell ma non conta come un'altra route sopra la mappa.
+  bool _isSheetGround() {
+    final state = _results.state;
+    if (!state.isAcceptingSheets) return false;
     final availability = _availability.state;
-    if (state.isUnlockedByDeath) return !availability.isRouteCovered;
-    return availability.isFree &&
+    if (availability.isRouteCovered && !_isShowingSheet) return false;
+    if (state.isUnlockedByDeath) return true;
+    return availability.isFreeBeneathRoutes &&
         context.read<TravelCubit>().state is TravelIdle;
   }
 

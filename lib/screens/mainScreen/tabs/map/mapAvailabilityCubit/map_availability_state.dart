@@ -21,8 +21,12 @@ final class MapAvailabilityState extends Equatable {
 
   final bool isPawnDragging;
 
-  bool get isFree =>
-      isMapPage && !isRouteCovered && !isQuestSheetOpen && !isPawnDragging;
+  bool get isFree => !isRouteCovered && isFreeBeneathRoutes;
+
+  /// Libera a parte le route sopra la shell: il presenter la usa sotto il
+  /// proprio foglio esiti (09-REVIEW IN-03).
+  bool get isFreeBeneathRoutes =>
+      isMapPage && !isQuestSheetOpen && !isPawnDragging;
 
   MapAvailabilityState copyWith({
     bool? isMapPage,
