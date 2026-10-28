@@ -260,6 +260,9 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     unawaited(refetchPending());
   }
 
+  /// La subscription non ha snapshot (BACKEND-NOTES §1): dopo averla
+  /// riaperta si rilegge la lista, così nessun risultato risolto durante il
+  /// backoff resta perso (09-REVIEW WR-01).
   void _scheduleResubscribe() {
     if (_resubscribeTimer != null || isClosed || _isStreamTerminated) return;
     unawaited(_subscription?.cancel());
@@ -267,7 +270,9 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
       exponentialBackoff(_attempt++, max: WsReconnectPolicy.maxReconnectDelay),
       () {
         _resubscribeTimer = null;
-        if (!isClosed && !_isStreamTerminated) _subscribe();
+        if (isClosed || _isStreamTerminated) return;
+        _subscribe();
+        unawaited(refetchPending());
       },
     );
   }
