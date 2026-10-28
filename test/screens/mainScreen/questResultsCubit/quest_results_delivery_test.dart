@@ -285,6 +285,40 @@ void main() {
     });
   });
 
+  group('QuestResultsCubit port timeout (09-REVIEW WR-04)', () {
+    withHarness('a read that never answers is retried after the timeout', (
+      h,
+      a,
+    ) {
+      h.pending.hold = Completer<void>();
+      _start(h, a);
+
+      a.elapse(QuestResultsCubit.portTimeout + exponentialBackoff(0));
+      expect(h.pending.calls, 2);
+
+      a.elapse(const Duration(minutes: 10));
+      expect(h.state.pendingRefetch, PendingRefetch.failed);
+      h.lifecycle.notifyForegrounded();
+      a.flushMicrotasks();
+      expect(h.pending.calls, defaultSilentRetryAttempts + 1);
+    });
+
+    withHarness('a death acknowledgement that never answers fails', (h, a) {
+      h.pending.results = [_death('d-1')];
+      _start(h, a);
+      h.acknowledger.hold = Completer<void>();
+      h.cubit.presented('d-1');
+      h.cubit.acknowledgeDeath('d-1');
+      a.flushMicrotasks();
+      expect(h.state.deathAcknowledgement, DeathAcknowledgement.inFlight);
+
+      a.elapse(QuestResultsCubit.portTimeout);
+
+      expect(h.state.deathAcknowledgement, DeathAcknowledgement.failed);
+      expect(h.state.showing?.id, 'd-1');
+    });
+  });
+
   group('QuestResultsCubit subscription (D-09 a, checker I2)', () {
     for (final code in ['NOT_FOUND', 'FORBIDDEN']) {
       withHarness('$code stops for good and reads the pending results', (h, a) {
