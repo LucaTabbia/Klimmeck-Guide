@@ -9,6 +9,7 @@ final class MapAvailabilityState extends Equatable {
     this.isRouteCovered = false,
     this.isQuestSheetOpen = false,
     this.isPawnDragging = false,
+    this.isTeleportMode = false,
   });
 
   final bool isMapPage;
@@ -21,23 +22,29 @@ final class MapAvailabilityState extends Equatable {
 
   final bool isPawnDragging;
 
+  /// Modalità teletrasporto del GM sulla Mappa (10-CONTEXT C13): nessun foglio
+  /// esiti sopra il flusso.
+  final bool isTeleportMode;
+
   bool get isFree => !isRouteCovered && isFreeBeneathRoutes;
 
   /// Libera a parte le route sopra la shell: il presenter la usa sotto il
   /// proprio foglio esiti (09-REVIEW IN-03).
   bool get isFreeBeneathRoutes =>
-      isMapPage && !isQuestSheetOpen && !isPawnDragging;
+      isMapPage && !isQuestSheetOpen && !isPawnDragging && !isTeleportMode;
 
   MapAvailabilityState copyWith({
     bool? isMapPage,
     bool? isRouteCovered,
     bool? isQuestSheetOpen,
     bool? isPawnDragging,
+    bool? isTeleportMode,
   }) => MapAvailabilityState(
     isMapPage: isMapPage ?? this.isMapPage,
     isRouteCovered: isRouteCovered ?? this.isRouteCovered,
     isQuestSheetOpen: isQuestSheetOpen ?? this.isQuestSheetOpen,
     isPawnDragging: isPawnDragging ?? this.isPawnDragging,
+    isTeleportMode: isTeleportMode ?? this.isTeleportMode,
   );
 
   @override
@@ -46,5 +53,6 @@ final class MapAvailabilityState extends Equatable {
     isRouteCovered,
     isQuestSheetOpen,
     isPawnDragging,
+    isTeleportMode,
   ];
 }

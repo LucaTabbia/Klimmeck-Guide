@@ -7,7 +7,8 @@ part 'map_availability_state.dart';
 /// Quando un foglio esiti può aprirsi sulla mappa (09-CONTEXT D-23). Vive nella
 /// shell e lo scrive solo la UI: `MainScreen` (pagina corrente),
 /// `QuestResultPresenter` (route sopra la shell, `ModalRoute.isCurrentOf`),
-/// `WorldMap` (foglio quest e trascinamento della pedina).
+/// `WorldMap` (foglio quest, trascinamento della pedina e modalità
+/// teletrasporto).
 class MapAvailabilityCubit extends Cubit<MapAvailabilityState>
     with SafeEmit<MapAvailabilityState> {
   MapAvailabilityCubit() : super(const MapAvailabilityState());
@@ -23,4 +24,7 @@ class MapAvailabilityCubit extends Cubit<MapAvailabilityState>
 
   void pawnDragChanged(bool isDragging) =>
       emit(state.copyWith(isPawnDragging: isDragging));
+
+  void teleportModeChanged(bool isTeleportMode) =>
+      emit(state.copyWith(isTeleportMode: isTeleportMode));
 }
