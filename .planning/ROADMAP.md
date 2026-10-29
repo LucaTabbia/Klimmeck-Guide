@@ -338,7 +338,7 @@ Plans:
   - `@Roles(innkeeper)` guard + audit logging (BE Phase 3), `completePendingRequest` and the queue (BE Phase 9), `teleportCharacter` (BE Phase 8): already on BE `develop`.
   - **BE-HARD-08 (BE Phase 10, added 2026-10-29):** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied. Blocks only the schema-gated plan and the device E2E (gate pattern of 08-12/09-12).
 **Plans**: 11 plans (11 sequential waves; 10-11 gated on the BE Phase 10 PR)
-- [ ] 10-01-PLAN.md — Pure models: queue entry, presence on the server clock, cards (grouping, seats, hiding, can-complete), participant draft, override diff, completion input, fixtures
+- [x] 10-01-PLAN.md — Pure models: queue entry, presence on the server clock, cards (grouping, seats, hiding, can-complete), participant draft, override diff, completion input, fixtures
 - [ ] 10-02-PLAN.md — Queue fragment + GetPendingRequests/OnPendingRequestsUpdated/CompletePendingRequest/TeleportCharacter (registry 42, schema check 42/42), service methods, InnkeeperFailure, InnkeeperRepository
 - [ ] 10-03-PLAN.md — Route-scoped PendingRequestsCubit: snapshot replace, silent resubscribe, terminal FORBIDDEN, tick, endTime+5/+65 s rereads, resume refetch, optimistic hide
 - [ ] 10-04-PLAN.md — TeleportTarget + TeleportModeCubit state machine (read first, same-city no-op, cancel guard) and the isTeleportMode availability flag
@@ -409,7 +409,7 @@ Plans:
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 0/11 | Not started | - |
+| 10. Admin Panel (innkeeper) | 1/11 | In Progress | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
