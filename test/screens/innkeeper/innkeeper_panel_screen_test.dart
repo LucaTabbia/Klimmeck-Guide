@@ -97,13 +97,10 @@ void main() {
     PendingRequestsState state, {
     _CompletionOpener openCompletion = openRequestCompletion,
     InnkeeperRepository? repository,
+    Stream<PendingRequestsState> states = const Stream.empty(),
   }) async {
     useLandscapePhone(tester);
-    whenListen(
-      cubit,
-      const Stream<PendingRequestsState>.empty(),
-      initialState: state,
-    );
+    whenListen(cubit, states, initialState: state);
     final panel = MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: authCubit),
@@ -130,6 +127,7 @@ void main() {
     DateTime? serverNow,
     _CompletionOpener openCompletion = openRequestCompletion,
     InnkeeperRepository? repository,
+    Stream<PendingRequestsState> states = const Stream.empty(),
   }) => pumpPanel(
     tester,
     PendingRequestsState(
@@ -139,6 +137,7 @@ void main() {
     ),
     openCompletion: openCompletion,
     repository: repository,
+    states: states,
   );
 
   testWidgets('the AppBar title is «Locanda»', (tester) async {
@@ -375,6 +374,44 @@ void main() {
       await tester.tap(find.text('Chiudi'));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('completing the last card still shows the results', (
+      tester,
+    ) async {
+      final states = StreamController<PendingRequestsState>();
+      addTearDown(states.close);
+      final exit = Completer<CompletionExit?>();
+      final results = [
+        QuestResult.fromJson(
+          questResultJson(character: 'char-aldo', outcome: 'gmCompleted'),
+        ),
+      ];
+      await pumpQueue(
+        tester,
+        [pendingRequestJson()],
+        openCompletion: (_, _) => exit.future,
+        states: states.stream,
+      );
+
+      await tester.tap(completeStory);
+      await tester.pump();
+      states.add(
+        PendingRequestsState(serverNow: _now, requests: [], isLoaded: true),
+      );
+      await tester.pump();
+      expect(find.text(InnkeeperPanelScreen.emptyTitle), findsOneWidget);
+      exit.complete(CompletionCompleted(results));
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Richiesta completata'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a vanished request is removed and the queue refetched', (
