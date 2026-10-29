@@ -6,9 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -32,6 +35,19 @@ import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
 final DateTime _now = DateTime.utc(2026, 10, 29, 12);
+
+const TeleportTarget _beaTarget = TeleportTarget(
+  characterId: 'char-bea',
+  name: 'Bea',
+  location: PointOfInterest(
+    id: 'poi-bea',
+    type: null,
+    location: null,
+    city: null,
+    quest: null,
+  ),
+  sex: SexType.female,
+);
 
 List<PendingRequest> _queue(List<Map<String, dynamic>> entries) =>
     List.unmodifiable(entries.map(PendingRequest.fromJson));
@@ -598,6 +614,82 @@ void main() {
       );
       expect(_teleportAction('char-bea'), findsNothing);
       expect(_teleportButton(tester, 'char-cosimo').onPressed, isNull);
+    });
+
+    // il progresso della lettura gira per sempre: niente pumpAndSettle
+    Future<void> settleRoute(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    Future<void> pushPanel(
+      WidgetTester tester,
+      TeleportModeState teleportState,
+    ) async {
+      useLandscapePhone(tester);
+      whenListen(
+        teleportCubit,
+        teleportStates.stream,
+        initialState: teleportState,
+      );
+      whenListen(
+        cubit,
+        const Stream<PendingRequestsState>.empty(),
+        initialState: PendingRequestsState(
+          serverNow: _now,
+          requests: _queue(worldMissionEntriesJson()),
+          isLoaded: true,
+        ),
+      );
+      await tester.pumpWidget(
+        buildTestApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider<AuthCubit>.value(value: authCubit),
+                        BlocProvider<PendingRequestsCubit>.value(value: cubit),
+                        BlocProvider<TeleportModeCubit>.value(
+                          value: teleportCubit,
+                        ),
+                      ],
+                      child: const InnkeeperPanelScreen(),
+                    ),
+                  ),
+                ),
+                child: const Text('apri'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('apri'));
+      await settleRoute(tester);
+    }
+
+    testWidgets('leaving the panel during the read cancels it', (tester) async {
+      await pushPanel(tester, const TeleportPreparing(characterId: 'char-bea'));
+
+      await tester.binding.handlePopRoute();
+      await settleRoute(tester);
+
+      expect(find.byType(InnkeeperPanelScreen), findsNothing);
+      verify(() => teleportCubit.cancel()).called(1);
+    });
+
+    testWidgets('the landing pop of an active mode keeps it', (tester) async {
+      await pushPanel(tester, const TeleportActive(target: _beaTarget));
+
+      tester
+          .state<NavigatorState>(find.byType(Navigator))
+          .popUntil((route) => route.isFirst);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InnkeeperPanelScreen), findsNothing);
+      verifyNever(() => teleportCubit.cancel());
     });
 
     testWidgets('a failed read shows the SnackBar and keeps the panel', (
