@@ -260,6 +260,27 @@ void main() {
       expect(find.byKey(CharacterMarkerLayer.pawnKey), findsOneWidget);
     });
 
+    testWidgets('leaving the mode during a pawn drag ends the drag', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(TeleportPawnLayer.pawnKey)),
+      );
+      await gesture.moveBy(const Offset(20, 0));
+      await tester.pump();
+      await gesture.moveBy(const Offset(20, 0));
+      await tester.pump();
+      expect(mapAvailability.state.isPawnDragging, isTrue);
+
+      await emitTeleport(tester, const TeleportIdle());
+
+      expect(find.byKey(TeleportPawnLayer.pawnKey), findsNothing);
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('a map mounted in teleport mode marks it at once', (
       tester,
     ) async {
