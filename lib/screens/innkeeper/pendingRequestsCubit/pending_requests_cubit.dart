@@ -59,6 +59,9 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
   /// Una coppia di riletture per personaggio, `endTime` e ritardo.
   final Set<String> _scheduledRereads = {};
   int _attempt = 0;
+
+  /// Cresce a ogni snapshot: una rilettura partita prima è più vecchia.
+  int _snapshotVersion = 0;
   bool _isTerminated = false;
   Future<void>? _refetchInFlight;
 
@@ -87,9 +90,11 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
   /// mai un ciclo.
   Future<void> _performRefetch() async {
     if (isClosed || _isTerminated) return;
+    final versionAtStart = _snapshotVersion;
     try {
       final requests = await _repository.fetchQueue();
-      if (isClosed || _isTerminated) return;
+      final isStale = _snapshotVersion != versionAtStart;
+      if (isClosed || _isTerminated || isStale) return;
       _applySnapshot(requests);
     } on InnkeeperException catch (error) {
       if (error.failure == InnkeeperFailure.forbidden) _terminate();
@@ -106,6 +111,7 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
 
   void _onSnapshot(List<PendingRequest> requests) {
     _attempt = 0;
+    _snapshotVersion++;
     _applySnapshot(requests);
   }
 
