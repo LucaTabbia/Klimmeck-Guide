@@ -346,7 +346,7 @@ Plans:
 - [x] 10-06-PLAN.md — RequestCompletionCubit (parallel reads, clamped edits, single submit with only changed participants, typed failures) and the neutral confirm style on the dialog
 - [x] 10-07-PLAN.md — Completion UI: «Completa» on the card, form route (HP slider, injury chips, steppers), confirmation recap, per-code outcomes, results recap
 - [x] 10-08-PLAN.md — Map pieces: shared drop rule and PawnDragging mixin (Phase 7 unchanged), PawnLabel, TeleportPawnLayer, in-style «Annulla» control
-- [ ] 10-09-PLAN.md — Shell TeleportModeCubit, optional city lore tap, WorldMap layer swap in teleport mode with drop/cancel wiring and availability sync
+- [x] 10-09-PLAN.md — Shell TeleportModeCubit, optional city lore tap, WorldMap layer swap in teleport mode with drop/cancel wiring and availability sync
 - [ ] 10-10-PLAN.md — TeleportModeLanding (jump to the Map, cancel off-Map or on lost role, panel re-push on success) and «Teletrasporta» on queue rows
 - [ ] 10-11-PLAN.md — ⛔ GATED on the BE Phase 10 PR (BE-HARD-08): pendingQuest selected, full gates 42/42, VALIDATION, device E2E checkpoint, traceability and BACKEND-NOTES §6
 **UI hint**: yes (no UI phase, Phases 4–9 precedent)
@@ -409,7 +409,7 @@ Plans:
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 8/11 | In Progress | - |
+| 10. Admin Panel (innkeeper) | 9/11 | In Progress | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
