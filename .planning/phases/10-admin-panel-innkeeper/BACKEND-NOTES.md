@@ -100,7 +100,7 @@ User rule (verbatim, 2026-10-29): *«Nessun personaggio che ha accetato una ques
 
 ## 5. UAT plan (device, after the BE Phase 10 merge)
 
-Data per BE Phase 9 §12 (g), §13 items 8–10. Innkeeper session with the dev bypass (`DEV_AUTH_ROLE=innkeeper`) or the real Twitch account with `role: innkeeper` in `users`; a second user as adventurer through `curl` with `DEV_AUTH_TWITCH_ID` (pattern of the Phase 9 UAT).
+Data per BE Phase 9 §12 (g), §13 items 8–10. **Identities (amended 2026-10-29, research C9):** the dev bypass is one cached identity per BE process whose role comes from the **BE** `.env` (the FE `DEV_AUTH_ROLE` is only the offline fallback), so the device runs the **real Twitch account promoted** with `db.users.updateOne({ twitchId: '<id>' }, { $set: { role: 'innkeeper' } })` followed by a re-login (the BE `RolesGuard` reads the JWT snapshot); the adventurers use the dev bypass with BE `DEV_AUTH_ROLE=adventurer` driven with `curl` (two identities for the worldMission: a second real account or sequential BE restarts with another `DEV_AUTH_TWITCH_ID`); the same adventurer bearer proves `FORBIDDEN` on `pendingRequests`.
 
 1. Adventurer accepts a story and two adventurers register to a worldMission → the panel shows a story card (1) and a worldMission card (2/N) live, no restart.
 2. One participant starts a free travel → greyed with the remaining time, «Completa» disabled; after arrival «Arrivato», button enabled (refetch by time).
