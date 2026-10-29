@@ -137,3 +137,50 @@ User, 2026-10-27: *«finché una missione non è conclusa il foglio resta strapp
 ## 4. UAT data the FE will need (after both PRs)
 
 BE Phase 9 handoff §12 (a)–(j) as they are, plus: one result per outcome for the dev character (job → `success`; lost fight → `failure` with the aid on the board; aid won by a second character → `rescued` + `success` with `rescuedCharacters`; aid timeout → `death`; GM completion → `gmCompleted`); a result created while the app is force-stopped with push disabled (to prove §2.1); a started boss with a participant deleted (to prove §2.4 on the board). `sendTestPush(input: { type: questEnd, id: "<questResultId>" })` for the tap path.
+
+---
+
+## 5. Esito (FE Phase 9, 2026-10-29)
+
+Device E2E of plan 09-13 on Android (Samsung SM S938B, USB, `adb reverse tcp:3000 tcp:3000`), app at FE `e930d4c`, against the BE run locally from `develop` **`8f30d1d`** (Phase 9 + 9.2, PR #15 merged) on `/api/graphql`, development DB, Redis in Docker. Record: `09-HUMAN-UAT.md` (12/12 pass; step 7 on the redo, step 8 observed on the Map). Session 2026-10-29 08:14–09:30 UTC.
+
+### 5.1 What the BE delivered right
+
+- **Boot backfill:** the first start marked the 3 legacy results as acknowledged; the first cold start of the FE was not flooded.
+- **`unacknowledgedQuestResults` at cold start:** a result produced with notifications revoked (`pm revoke`) and the app force-stopped (guard, resolved 08:27:29Z) opened on the Map at the next start (step 4a); two pending results (story `gmCompleted` 08:39:45Z via `completePendingRequest`, study `success` 08:40:29Z) came back in ascending `resolvedAt` order — «1 di 2» then «2 di 2» (step 5A).
+- **`acknowledgeQuestResult`:** every closed sheet was acknowledged (`acknowledgedAt` set by the button, e.g. 08:15:43Z for the 08:15:29Z job) and never reappeared after a kill + restart (step 1: 0 unacknowledged).
+- **Death unlink only at the ack (BE 9.2 D-12):** live death 08:57:34Z → `currentCharacter` unlinked only at the ack 09:00:39Z (step 8); cold-start death 09:27:34Z → ack 09:29:21Z, unlink only then (step 9). The creation page never preceded «Riposa in pace»; at the cold start no error screen, the death sheet opened over the loader. After a DB revive and relink the FE re-entered the game live through `userUpdated`, without a restart.
+- **Seats kept on a started quest (§2.4):** started 2-seat boss «Il Cuore della Caverna» (registrations 09:06:49Z and 09:07:57Z, started 09:08:40Z on arrival); after `deleteCharacter` of the second participant the quest stayed started with a placeholder seat (2/2 on the FE); the resolution at 09:17:34Z dropped the placeholder (`WARN … senza missione in attesa coerente: rimosso`) and produced one result for the remaining participant (step 11).
+- **Push `questEnd` with the result id:** the background notification tap opened the sheet through `questResult(id)` (step 3a); `sendTestPush(questEnd, <acknowledged id>)` → Map only; `sendTestPush(questEnd, <unknown id>)` → Map + «Risultato non disponibile» (`NOT_FOUND` mapped); `sendTestPush` answered `targeted 1 sent 1` both times.
+- **Outcomes end to end:** `success` (job, crime, hunt, guard, study with `spellLearned` «Scudo di Cristallo»), `gmCompleted` (story), `failure` (08:54:29Z, `awaitingAid` set, aid «Soccorso: Battuta di caccia nel Bosco di Talmvere» with 1 seat created), rescue (aid resolved 09:05:34Z → rescuer `success` with `rescuedCharacters` = 1, HP 40000 → 39950; wounded `rescued`, HP 900 → 900, no rewards — the wounded side checked in the DB only), `death` (aid lost by the rescuer, 08:57:34Z; aid timeout, 09:27:34Z).
+- **Deletion while wounded:** `deleteCharacter` from Impostazioni archived with `user_request`, unlinked at once (no death result, no hold) and concluded the pending aid (step 12).
+
+### 5.2 Rule change requested to the BE (F2)
+
+User, 2026-10-29, on step 11 (verbatim): *«Il nemico dovrebbe venir combattuto come se ci fossero ancora entrambi i personaggi, non solo Reavor. Altrimenti se tutti se ne andassero da una missione con un mostro forte sarebbe sconfitta automatica per chi resta. Per quello lasciamo il posto pieno»*.
+
+- **Observed today (BE 9.2 D-07):** the started 2-seat boss whose second participant deleted the character was fought at 09:17:34Z by the remaining member only; the placeholder registration was dropped at the resolution (`WARN … senza missione in attesa coerente: rimosso`).
+- **Requested:** the combat of a started quest counts the archived participant's seat as if it were still there (the placeholder kept by §2.4 also takes part in the fight, with the BE choosing how its contribution is computed — e.g. a snapshot of the character at the start), so that the participants who remain are not left to an automatic defeat.
+- **Routing:** BE Phase 10 or a 9.3 companion — decision pending (the user decides with the BE side). No FE change is expected: the FE only renders the result.
+
+### 5.3 FE items found (no BE change)
+
+- **F1 (FE, fixed on `feat/09-combat-result-sheet` before the FE PR):** the party counter / torn state of the own quest did not update during the own automatic travel; it read 2/2 only on arrival. User, 2026-10-29: *«Una missione risulta al completo non appena l'ultimo avventuriero la accetta, non all'arrivo sul marker»*. If the fix needs a BE event (e.g. `questUpdated` while the lane is travelling), the FE will say so in a follow-up note.
+- **F3 (FE, minor, to check):** on a solo quest the Map state label read «In attesa del gruppo» between the deadline (artificially backdated) and the resolution by the 60 s sweep; live the window is near zero.
+- **Product decision (step 5B):** a banner «Missione conclusa» while the Map is busy is intended (user, 2026-10-29: «Sì: banner finché la Mappa non è libera»).
+
+### 5.4 Notes for the BE UAT
+
+- `teleportCharacter` is refused with `QUEST_IN_PROGRESS` while the character is in an own started quest: the Board is not reachable then, so the torn 2/2 check of step 11 was done on the Map quest sheet.
+- The step-12 deletion of the wounded character concluded its pending aid; step 9 needed the aid reopened in the DB.
+- UAT data actually used: a real Twitch account on the device (character `legend`, XP at the cap) and a second account through the dev bypass (a rookie created with `createCharacter`, moved with `teleportCharacter`, deleted with `deleteCharacter`); deadlines and travels shortened by backdating `startDate` / `startTime`–`endTime`; `awaitingAid.since` backdated 8 days for the timeout; the enemy «Arbusto Maligno» rescaled for the defeats and restored at the end (100 HP / 25 xp); the boss «Il Cuore della Caverna» set to 2 seats; `prizes.spell` on the study. Lesson from step 7: a rookie rescuer without a weapon cannot win an aid against a rescaled enemy, and the lost aid kills the wounded character. No ids of real users, no tokens, no `.env` values.
+
+### 5.5 Answers observed to §2.5
+
+1. Ordering ascending by `resolvedAt` — confirmed on the device (step 5A); the cap was not exercised.
+2. Pre-deploy results — boot backfill (3 legacy results acknowledged).
+3. `acknowledgeQuestResult(id: String!): CommonResponse!` on BE `8f30d1d`.
+4. `Quest.startedAt` is not on the wire on BE `8f30d1d`; not needed by the FE.
+5. `me` / `userUpdated` kept the dead character's id until the ack (steps 8 and 9).
+
+Da riportare in BE .planning/phases/09.2-quest-result-delivery-contract/ (UAT) a cura del lato BE (questo repo non modifica il BE).

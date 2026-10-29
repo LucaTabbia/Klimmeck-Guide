@@ -1,8 +1,8 @@
 ---
 phase: 9
 slug: combat-result-sheet
-status: executing
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-10-27
 ---
@@ -66,8 +66,8 @@ created: 2026-10-27
 | 9-12-01 | 12 | 6 (gated) | COMBAT-09 | T-9-42, T-9-43, T-9-46 | BE gate first; 38/38 vs BE develop | unit + schema check | `flutter test test/graphql test/tool test/models/quest_result` | ✅ (extend) | ✅ green |
 | 9-12-02 | 12 | 6 (gated) | COMBAT-09 | T-9-44, T-9-45 | ack only displayed ids; malformed list entries skipped | unit + widget | `flutter test test/repository test/screens/auth test/screens/mainScreen` | ✅ (extend) | ✅ green |
 | 9-13-01 | 13 | 7 (gated) | COMBAT-01..10 | T-9-47 | full gates against the merged BE | full suite + analyze + schema check | `flutter test && flutter analyze` | ✅ | ✅ green (2483; analyze 52 / 0 errors; schema check 38/38 vs BE `8f30d1d`) |
-| 9-13-02 | 13 | 7 (gated) | COMBAT-01..10 | T-9-48, T-9-49 | device E2E, no secrets printed, death order observed | manual (human-verify) | `test -f .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending (human E2E) |
-| 9-13-03 | 13 | 7 (gated) | COMBAT-01..10 | T-9-50, T-9-51 | ticks only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by 9-13-02) | ⬜ pending (human E2E) |
+| 9-13-02 | 13 | 7 (gated) | COMBAT-01..10 | T-9-48, T-9-49 | device E2E, no secrets printed, death order observed | manual (human-verify) | `test -f .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ✅ | ✅ green (device UAT 12/12, 2026-10-29, `09-HUMAN-UAT.md`; step 7 on the redo, step 8 on the Map; findings F1/F2/F3 outside COMBAT) |
+| 9-13-03 | 13 | 7 (gated) | COMBAT-01..10 | T-9-50, T-9-51 | ticks only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ✅ | ✅ green (`status: complete`; COMBAT-01..10 ticked from the passed steps) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -111,8 +111,8 @@ All run in plan 09-13 Task 2, on the Android device, **after the BE 9.2 PR is me
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 15 s per task
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-10-29 (device UAT 12/12, `09-HUMAN-UAT.md`)
 </content>
 </invoke>

@@ -1,7 +1,7 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites. _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
+**Last updated:** 2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10). _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
 **Granularity:** Standard (12 phases)
 **Coverage:** 79/79 v1 requirements mapped
@@ -65,7 +65,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
-- [ ] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (discussed 2026-10-27)
+- [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
@@ -316,7 +316,7 @@ Plans:
   - [x] 09-10-PLAN.md — Wave 4: QuestResultPresenter (Map gating, banner vs suppress, button-only dialog, death anywhere)
   - [x] 09-11-PLAN.md — Wave 5: QuestResultsCubit in the shell, questEnd popup, presenter mounted in MainScreen
   - [x] 09-12-PLAN.md — Wave 6 (BE 9.2 gated): 9.2 documents + acknowledgedAt, 38/38 schema check, repository ports live
-  - [ ] 09-13-PLAN.md — Wave 7 (BE 9.2 gated): phase gates, device E2E (checkpoint), traceability and closure
+  - [x] 09-13-PLAN.md — Wave 7 (BE 9.2 gated): phase gates, device E2E (checkpoint), traceability and closure
 **UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 10: Admin Panel (innkeeper)
@@ -395,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 12/13 | In Progress | - |
+| 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
@@ -461,13 +461,16 @@ Plans:
 | ITEM-01 | Phase 8 | Complete |
 | ITEM-02 | Phase 8 | Complete |
 | SHOP-01 | Phase 8 | Complete |
-| COMBAT-01 | Phase 9 | Pending |
-| COMBAT-02 | Phase 9 | Pending |
-| COMBAT-03 | Phase 9 | Pending |
-| COMBAT-04 | Phase 9 | Pending |
-| COMBAT-05 | Phase 9 | Pending |
-| COMBAT-06 | Phase 9 | Pending |
-| COMBAT-07 | Phase 9 | Pending |
+| COMBAT-01 | Phase 9 | Complete |
+| COMBAT-02 | Phase 9 | Complete |
+| COMBAT-03 | Phase 9 | Complete |
+| COMBAT-04 | Phase 9 | Complete |
+| COMBAT-05 | Phase 9 | Complete |
+| COMBAT-06 | Phase 9 | Complete |
+| COMBAT-07 | Phase 9 | Complete |
+| COMBAT-08 | Phase 9 | Complete |
+| COMBAT-09 | Phase 9 | Complete |
+| COMBAT-10 | Phase 9 | Complete |
 | ADMIN-01 | Phase 10 | Pending |
 | ADMIN-02 | Phase 10 | Pending |
 | ADMIN-03 | Phase 10 | Pending |
