@@ -615,7 +615,11 @@ void main() {
     final enemy = buildQuest(id: 'e-1', type: 'enemy');
     const arrival = '2026-10-25T09:30:00.000Z';
 
-    Future<void> openPaper(WidgetTester tester, {String? startDate}) async {
+    Future<void> openPaper(
+      WidgetTester tester, {
+      String? startDate,
+      bool travelling = false,
+    }) async {
       seedSvgCache([
         questPaperAssetId(enemy, isTorn: false),
         CloudinaryAssets.emptySheet,
@@ -626,7 +630,7 @@ void main() {
           pendingQuest: laneJson(
             questId: 'e-1',
             startDate: startDate,
-            arrivedAt: arrival,
+            arrivedAt: travelling ? null : arrival,
           ),
         ),
         quests: [enemy],
@@ -758,6 +762,14 @@ void main() {
       tester,
     ) async {
       await openPaper(tester);
+
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+    });
+
+    testWidgets('opening the paper of a travelling lane rereads the quests', (
+      tester,
+    ) async {
+      await openPaper(tester, travelling: true);
 
       verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
     });
