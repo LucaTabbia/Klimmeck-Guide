@@ -63,8 +63,8 @@ created: 2026-10-27
 | 9-10-02 | 10 | 4 | COMBAT-08, COMBAT-09 | T-9-33, T-9-36 | death sheet first, ack awaited before closing, one user refresh after it | widget | `flutter test test/screens/mainScreen/components/quest_result_presenter_death_test.dart test/screens/mainScreen/components/quest_result_presenter_test.dart` | ✅ | ✅ green |
 | 9-11-01 | 11 | 5 | COMBAT-01, COMBAT-09 | T-9-39, T-9-40 | tap forwards only the validated id; stream closed with the shell | widget | `flutter test test/screens/auth test/screens/mainScreen/components/notification_intent_landing_test.dart` | ✅ (amended) | ✅ green |
 | 9-11-02 | 11 | 5 | COMBAT-01, COMBAT-07, COMBAT-08, COMBAT-09 | T-9-41 | death sheet over the loader at cold start | widget + full suite | `flutter test test/screens/mainScreen/main_screen_quest_results_test.dart test/screens/mainScreen/main_screen_test.dart && flutter test` | ✅ | ✅ green (2432) |
-| 9-12-01 | 12 | 6 (gated) | COMBAT-09 | T-9-42, T-9-43, T-9-46 | BE gate first; 38/38 vs BE develop | unit + schema check | `flutter test test/graphql test/tool test/models/quest_result` | ✅ (extend) | ⬜ pending |
-| 9-12-02 | 12 | 6 (gated) | COMBAT-09 | T-9-44, T-9-45 | ack only displayed ids; malformed list entries skipped | unit + widget | `flutter test test/repository test/screens/auth test/screens/mainScreen` | ✅ (extend) | ⬜ pending |
+| 9-12-01 | 12 | 6 (gated) | COMBAT-09 | T-9-42, T-9-43, T-9-46 | BE gate first; 38/38 vs BE develop | unit + schema check | `flutter test test/graphql test/tool test/models/quest_result` | ✅ (extend) | ✅ green |
+| 9-12-02 | 12 | 6 (gated) | COMBAT-09 | T-9-44, T-9-45 | ack only displayed ids; malformed list entries skipped | unit + widget | `flutter test test/repository test/screens/auth test/screens/mainScreen` | ✅ (extend) | ✅ green |
 | 9-13-01 | 13 | 7 (gated) | COMBAT-01..10 | T-9-47 | full gates against the merged BE | full suite + analyze + schema check | `flutter test && flutter analyze` | ✅ | ⬜ pending |
 | 9-13-02 | 13 | 7 (gated) | COMBAT-01..10 | T-9-48, T-9-49 | device E2E, no secrets printed, death order observed | manual (human-verify) | `test -f .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 9-13-03 | 13 | 7 (gated) | COMBAT-01..10 | T-9-50, T-9-51 | ticks only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by 9-13-02) | ⬜ pending |
@@ -79,7 +79,7 @@ created: 2026-10-27
 - [x] `test/helpers/fixtures/travel_fixtures.dart` — `awaitingAidJson` + `travellingCharacterJson(awaitingAid:)` (plan 09-02)
 - [x] `test/helpers/mocks.dart` — `MockTransactionCubit` (09-04 ✅), `MockQuestResultRepository` (09-03 ✅), `MockQuestResultsCubit` (09-11 ✅)
 - [x] `test/helpers/fakes/fake_pending_quest_results.dart`, `test/helpers/fakes/recording_quest_result_acknowledger.dart` (plan 09-06)
-- [ ] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11 ✅) and `getUnacknowledgedQuestResults` (09-12), provide `ConnectionRestoredEvents` (09-11 ✅)
+- [x] `test/screens/auth/authenticated_shell_test.dart` — stub `subscribeToQuestResults` (09-11 ✅) and `getUnacknowledgedQuestResults` (09-12 ✅), provide `ConnectionRestoredEvents` (09-11 ✅)
 
 ---
 

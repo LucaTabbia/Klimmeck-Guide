@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-28T00:31:23.000Z"
-last_activity: "2026-10-28 -- Phase 9 parked at 11/13: plans 01-11 complete, review 0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed, verification human_needed (device E2E deferred to 09-13), security secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open); branch pushed as backup, no PR; 09-12/09-13 wait for the BE 9.2 PR #15 merge"
+last_updated: "2026-10-29T08:10:00.000Z"
+last_activity: "2026-10-29 -- 09-12 complete: BE 9.2 contract live (38/38 OK vs BE develop 8f30d1d), next 09-13 device E2E"
 progress:
   total_phases: 12
   completed_phases: 9
   total_plans: 100
-  completed_plans: 87
-  percent: 87
+  completed_plans: 88
+  percent: 88
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — EXECUTING, parked at 11/13 (2026-10-28): waves 1–5 (plans 09-01..09-11) done, reviewed, verified and audited on `feat/09-combat-result-sheet`; waves 6–7 (09-12, 09-13) wait for the BE Phase 9.2 PR #15 merge on BE `develop`
-Plan: 11 of 13
+Phase: 9 (Combat Result Sheet) — EXECUTING, gate open (BE PR #15 merged 2026-10-29): 09-12 done, 09-13 (device E2E) next; plans 09-01..09-12 on `feat/09-combat-result-sheet`
+Plan: 12 of 13
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
-Next Phase: after the BE PR #15 (`feat/09.2-quest-result-delivery-contract`) is merged on BE `develop`, run plans 09-12 and 09-13 (`/gsd-execute-phase 9`: 9.2 documents + `acknowledgedAt`, schema check 38/38, device E2E checkpoint, traceability, closure) and open the FE PR; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2, to rebase and plan after the merge)
-Status: Executing Phase 9 — parked at 11/13 (plans 01–11 complete: review 0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed, verification `human_needed` with the 6 device-UAT items, security secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open)); waiting for the BE 9.2 merge (PR #15) before 09-12/09-13 and the device UAT
-Last activity: 2026-10-28 -- Phase 9 parked at 11/13 after the review → verifier → fixer → security pipeline on plans 01–11 (0 CR / 4 WR / 6 IN → 8 fixed + 2 not_needed; secured 51/51 (37 mitigated, 3 accepted, 1 transferred, 10 deferred to 09-12/09-13, 0 open)); branch pushed as backup without PR; next: 09-12/09-13 after the BE PR #15 merge
+Next Phase: plan 09-13 (`/gsd-execute-phase 9`: device E2E checkpoint, traceability, closure), then open the FE PR; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2, to rebase and plan after the merge)
+Status: Executing Phase 9 — gate open (BE PR #15 merged 2026-10-29): 09-12 done, 09-13 (device E2E) next (09-12: BE 9.2 documents + acknowledgedAt, schema check 38/38 vs BE develop 8f30d1d, QuestResultRepository implements both delivery ports in the shell)
+Last activity: 2026-10-29 -- 09-12 complete (BE 9.2 contract live: ListUnacknowledgedQuestResults + AcknowledgeQuestResult, 38/38 OK vs BE 8f30d1d, full suite 2483 green, analyzer 52); next: 09-13 device E2E
 
 ## Current Milestone
 

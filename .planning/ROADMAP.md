@@ -315,7 +315,7 @@ Plans:
   - [x] 09-09-PLAN.md — Wave 3: MapAvailabilityCubit in the shell, page/quest-sheet/drag writers
   - [x] 09-10-PLAN.md — Wave 4: QuestResultPresenter (Map gating, banner vs suppress, button-only dialog, death anywhere)
   - [x] 09-11-PLAN.md — Wave 5: QuestResultsCubit in the shell, questEnd popup, presenter mounted in MainScreen
-  - [ ] 09-12-PLAN.md — Wave 6 (BE 9.2 gated): 9.2 documents + acknowledgedAt, 38/38 schema check, repository ports live
+  - [x] 09-12-PLAN.md — Wave 6 (BE 9.2 gated): 9.2 documents + acknowledgedAt, 38/38 schema check, repository ports live
   - [ ] 09-13-PLAN.md — Wave 7 (BE 9.2 gated): phase gates, device E2E (checkpoint), traceability and closure
 **UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
@@ -395,7 +395,7 @@ Plans:
 | 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 11/13 | In Progress | - |
+| 9. Combat Result Sheet | 12/13 | In Progress | - |
 | 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
