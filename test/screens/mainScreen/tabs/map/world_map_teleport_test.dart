@@ -272,6 +272,7 @@ void main() {
 
     testWidgets('entering the mode closes an open quest sheet', (tester) async {
       final enemy = buildQuest(id: 'e-1', type: 'enemy');
+      seedSvgCache([CloudinaryAssets.emptySheet]);
       await pumpWorldMap(tester, character: characterLoaded(), quests: [enemy]);
       tester
           .widget<QuestMarkersLayer>(find.byType(QuestMarkersLayer))

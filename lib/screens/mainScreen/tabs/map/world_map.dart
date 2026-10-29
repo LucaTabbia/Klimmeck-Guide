@@ -17,12 +17,14 @@ import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
+import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
 import '../../questAbandonCubit/quest_abandon_cubit.dart';
 import '../../questCubit/quest_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
 import 'components/abandon_party_sheet.dart';
 import 'components/city_modal.dart';
+import 'components/teleport_mode_chip.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'cubit/world_map_cubit.dart';
 import 'layers/character_marker_layer.dart';
@@ -30,9 +32,11 @@ import 'layers/city_markers_layer.dart';
 import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
+import 'layers/teleport_pawn_layer.dart';
 import 'layers/travel_route_layer.dart';
 import 'mapAvailabilityCubit/map_availability_cubit.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
+import 'teleportModeCubit/teleport_mode_cubit.dart';
 import 'travelProgressCubit/arrival_reread_ledger.dart';
 import 'travelProgressCubit/travel_progress_cubit.dart';
 import 'utils/map_constants.dart';
@@ -83,6 +87,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _availability = context.read<MapAvailabilityCubit>();
+    _availability.teleportModeChanged(
+      context.read<TeleportModeCubit>().state is TeleportActive,
+    );
     _initializeBounds();
     _initializeAnimationControllers();
     _initializeTravelProgress();
@@ -146,7 +153,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void dispose() {
     _availability
       ..questSheetChanged(false)
-      ..pawnDragChanged(false);
+      ..pawnDragChanged(false)
+      ..teleportModeChanged(false);
     _questAnimationController.removeStatusListener(
       _onQuestAnimationStatusChanged,
     );
@@ -217,40 +225,95 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             _pendingLaneOf(previous) != _pendingLaneOf(current),
         listener: (_, state) => _followLane(_pendingLaneOf(state)),
       ),
+      BlocListener<TeleportModeCubit, TeleportModeState>(
+        listenWhen: (previous, current) =>
+            (previous is TeleportActive) != (current is TeleportActive),
+        listener: (_, state) => _syncTeleportMode(state),
+      ),
     ];
   }
 
+  /// La `FlutterMap` resta il primo figlio dello Stack in ogni modalità: spostata
+  /// ricreerebbe il suo stato e riaggancerebbe il `MapController`.
   Widget _buildMap() {
     return BackgroundImage(
-      child: GestureDetector(
-        onTap: _clearSelection,
-        child: FlutterMap(
-          mapController: _mapController,
-          options: _mapOptions,
+      child: BlocBuilder<TeleportModeCubit, TeleportModeState>(
+        builder: (context, teleport) => Stack(
+          fit: StackFit.expand,
           children: [
-            _buildMapImage(),
-            const TravelRouteLayer(),
-            CityMarkersLayer(
-              cities: widget.cities,
-              zoomNotifier: _zoomNotifier,
-              onCityTap: _openCityLore,
+            GestureDetector(
+              onTap: _clearSelection,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: _mapOptions,
+                children: teleport is TeleportActive
+                    ? _teleportLayers(teleport)
+                    : _gameLayers(),
+              ),
             ),
-            QuestMarkersLayer(
-              cities: widget.cities,
-              zoomNotifier: _zoomNotifier,
-              onQuestSelected: _selectQuest,
-            ),
-            CharacterMarkerLayer(
-              cities: widget.cities,
-              zoomNotifier: _zoomNotifier,
-              mapController: _mapController,
-              bounds: _bounds,
-              onDragUpdate: _handleCharacterDragUpdate,
-              onDragEnd: _handleCharacterDragEnd,
-            ),
-            QuestPaperLayer(onOpen: _openFromPaper),
-            _buildQuestOverlay(),
+            if (teleport is TeleportActive) _buildTeleportChip(teleport),
           ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _gameLayers() {
+    return [
+      _buildMapImage(),
+      const TravelRouteLayer(),
+      CityMarkersLayer(
+        cities: widget.cities,
+        zoomNotifier: _zoomNotifier,
+        onCityTap: _openCityLore,
+      ),
+      QuestMarkersLayer(
+        cities: widget.cities,
+        zoomNotifier: _zoomNotifier,
+        onQuestSelected: _selectQuest,
+      ),
+      CharacterMarkerLayer(
+        cities: widget.cities,
+        zoomNotifier: _zoomNotifier,
+        mapController: _mapController,
+        bounds: _bounds,
+        onDragUpdate: _handleCharacterDragUpdate,
+        onDragEnd: _handleCharacterDragEnd,
+      ),
+      QuestPaperLayer(onOpen: _openFromPaper),
+      _buildQuestOverlay(),
+    ];
+  }
+
+  /// 10-CONTEXT D-15/D-20/C14: solo la pedina scelta e le città come bersagli.
+  List<Widget> _teleportLayers(TeleportActive state) {
+    return [
+      _buildMapImage(),
+      CityMarkersLayer(cities: widget.cities, zoomNotifier: _zoomNotifier),
+      TeleportPawnLayer(
+        target: state.target,
+        cities: widget.cities,
+        zoomNotifier: _zoomNotifier,
+        mapController: _mapController,
+        canDrag: !state.isTeleporting,
+        onDragUpdate: _handleCharacterDragUpdate,
+        onDragEnd: _handleTeleportDragEnd,
+      ),
+    ];
+  }
+
+  Widget _buildTeleportChip(TeleportActive state) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
+          child: TeleportModeChip(
+            characterName: state.target.name,
+            failure: state.failure,
+            isTeleporting: state.isTeleporting,
+            onCancel: context.read<TeleportModeCubit>().cancel,
+          ),
         ),
       ),
     );
@@ -316,6 +379,23 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     final pawn = _travellingPawnPoint();
     if (pawn != null) _mapController.move(pawn, _mapController.camera.zoom);
     _consumeCharacterFocus();
+    final teleport = context.read<TeleportModeCubit>().state;
+    if (teleport is TeleportActive) _centreOnTeleportTarget(teleport);
+  }
+
+  /// C13: la modalità ferma i fogli esiti e chiude il foglio quest aperto.
+  void _syncTeleportMode(TeleportModeState state) {
+    final isActive = state is TeleportActive;
+    _availability.teleportModeChanged(isActive);
+    if (!isActive) return;
+    _closeQuestSheet();
+    _centreOnTeleportTarget(state);
+  }
+
+  void _centreOnTeleportTarget(TeleportActive state) {
+    final point = state.target.location.location;
+    if (!_isMapReady || point == null) return;
+    _mapController.move(point, _mapController.camera.zoom);
   }
 
   /// D-15: il tap su «Viaggio completato» centra la camera sulla pedina.
@@ -398,6 +478,13 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     // IN-06: preview() passa a TravelPreviewing prima del primo await; se l'ha ignorata, niente foglio.
     if (travelCubit.state is! TravelPreviewing) return;
     _showTravelConfirmation(travelCubit, destination);
+  }
+
+  /// C16: il cubit ignora la città in cui il personaggio si trova già.
+  void _handleTeleportDragEnd(LatLng? _, City? targetCity) {
+    _endPawnDrag();
+    if (targetCity == null) return;
+    context.read<TeleportModeCubit>().teleportTo(targetCity);
   }
 
   /// D-03/D-04: foglio di pergamena con la rotta visibile dietro (barriera

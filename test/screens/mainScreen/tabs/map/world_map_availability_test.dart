@@ -192,6 +192,7 @@ void main() {
     });
   });
 
+  // L'harness condiviso fornisce il `TeleportModeCubit` mockato (TeleportIdle di default).
   group('teleport mode (Phase 10 C13)', () {
     const teleportActive = TeleportActive(
       target: TeleportTarget(
