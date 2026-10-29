@@ -506,6 +506,23 @@ void main() {
       });
     });
 
+    test('a snapshot newer than a slow refetch wins over its result', () {
+      _runQueue((h, async) {
+        final answer = Completer<List<PendingRequest>>();
+        h.fetchAnswer = () => answer.future;
+        h.cubit.start();
+        h.push(async, _storyAndWorldQueue());
+
+        unawaited(h.cubit.refetch());
+        async.flushMicrotasks();
+        h.push(async, _storyQueue());
+        answer.complete(_storyAndWorldQueue());
+        async.flushMicrotasks();
+
+        expect(h.state.requests, _storyQueue());
+      });
+    });
+
     test('an app resume rereads the queue once', () {
       _runQueue((h, async) {
         h.cubit.start();
