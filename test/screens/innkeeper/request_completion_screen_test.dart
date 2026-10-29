@@ -220,6 +220,66 @@ void main() {
       expect(tester.widget<ElevatedButton>(_confirmButton).onPressed, isNull);
     });
 
+    Future<void> pushScreen(
+      WidgetTester tester,
+      RequestCompletionState state,
+    ) async {
+      useLandscapePhone(tester);
+      whenListen(
+        cubit,
+        const Stream<RequestCompletionState>.empty(),
+        initialState: state,
+      );
+      await tester.pumpWidget(
+        buildTestApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider<PendingRequestsCubit>.value(value: queue),
+                        BlocProvider<RequestCompletionCubit>.value(
+                          value: cubit,
+                        ),
+                      ],
+                      child: RequestCompletionScreen(card: _card),
+                    ),
+                  ),
+                ),
+                child: const Text('apri'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('apri'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('while submitting the system back keeps the form', (
+      tester,
+    ) async {
+      await pushScreen(tester, _editing.copyWith(isSubmitting: true));
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RequestCompletionScreen), findsOneWidget);
+    });
+
+    testWidgets('while editing the system back leaves the form', (
+      tester,
+    ) async {
+      await pushScreen(tester, _editing);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RequestCompletionScreen), findsNothing);
+    });
+
     testWidgets('an invalid override shows the form error', (tester) async {
       await pumpScreen(
         tester,
