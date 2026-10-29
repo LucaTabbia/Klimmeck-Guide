@@ -2,15 +2,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/models/travel/teleport_target.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/teleport_mode_chip.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/city_markers_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_pawn_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/travel_route_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
+import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/map_harness.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 import 'world_map_travel_test.dart' hide main;
+
+const LatLng aldheimMarker = LatLng(10, 20);
+
+/// Personaggio scelto dal GM, fermo ad Aldheim come la pedina del GM.
+const TeleportTarget bea = TeleportTarget(
+  characterId: 'char-bea',
+  name: 'Bea',
+  location: PointOfInterest(
+    id: 'city-marker-1',
+    type: null,
+    location: aldheimMarker,
+    city: null,
+    quest: null,
+  ),
+  sex: SexType.female,
+);
+
+const TeleportActive beaActive = TeleportActive(target: bea);
 
 /// Phase 10 ADMIN-04: la Mappa in modalità teletrasporto del GM.
 void main() {
@@ -105,6 +138,173 @@ void main() {
       await tester.pump();
 
       verify(() => worldMapCubit.loadLoreData('lore-city-2')).called(1);
+    });
+  });
+
+  Future<void> pumpTeleportMap(
+    WidgetTester tester, {
+    TeleportModeState teleportState = beaActive,
+  }) => pumpWorldMap(
+    tester,
+    character: characterLoaded(),
+    teleportState: teleportState,
+  );
+
+  Future<void> emitTeleport(
+    WidgetTester tester,
+    TeleportModeState state,
+  ) async {
+    teleportStates.add(state);
+    await tester.pump();
+    await tester.pump();
+  }
+
+  group('teleport layers (D-15, D-20, C14)', () {
+    testWidgets('only the chosen pawn and the cities are on the map', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester);
+
+      expect(find.byKey(TeleportPawnLayer.pawnKey), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(TeleportPawnLayer.nameLabelKey),
+          matching: find.text('Bea'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(CharacterMarkerLayer.pawnKey), findsNothing);
+      expect(find.byType(TravelRouteLayer), findsNothing);
+      expect(find.byType(QuestMarkersLayer), findsNothing);
+      expect(find.byType(QuestPaperLayer), findsNothing);
+      expect(find.byType(QuestInfoOverlay), findsNothing);
+      expect(find.byType(CityMarkersLayer), findsOneWidget);
+      expect(find.byType(TeleportModeChip), findsOneWidget);
+    });
+
+    testWidgets('a city in teleport mode opens no lore', (tester) async {
+      await pumpTeleportMap(tester);
+
+      final layer = tester.widget<CityMarkersLayer>(
+        find.byType(CityMarkersLayer),
+      );
+
+      expect(layer.onCityTap, isNull);
+      verifyNever(() => worldMapCubit.loadLoreData(any()));
+    });
+
+    testWidgets('a failure shows its line on the chip', (tester) async {
+      await pumpTeleportMap(
+        tester,
+        teleportState: const TeleportActive(
+          target: bea,
+          failure: InnkeeperFailure.questInProgress,
+        ),
+      );
+
+      expect(find.text('Il personaggio è in una missione in corso'), findsOne);
+    });
+  });
+
+  group('teleport gestures (D-16, T-10-33)', () {
+    testWidgets('«Annulla» cancels the mode once', (tester) async {
+      await pumpTeleportMap(tester);
+
+      await tester.tap(find.byKey(TeleportModeChip.cancelKey));
+      await tester.pump();
+
+      verify(() => teleportCubit.cancel()).called(1);
+    });
+
+    testWidgets('releasing the pawn on a city teleports there', (tester) async {
+      await pumpTeleportMap(tester);
+
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      verify(() => teleportCubit.teleportTo(cityB)).called(1);
+      verifyNever(
+        () => travelCubit.preview(
+          characterId: any(named: 'characterId'),
+          destination: any(named: 'destination'),
+        ),
+      );
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+    });
+
+    testWidgets('a teleport in flight keeps the pawn still', (tester) async {
+      await pumpTeleportMap(
+        tester,
+        teleportState: const TeleportActive(target: bea, isTeleporting: true),
+      );
+
+      await dragPawnBy(tester, const Offset(300, 0));
+
+      verifyNever(() => teleportCubit.teleportTo(any()));
+    });
+  });
+
+  group('teleport availability (C13, T-10-34)', () {
+    testWidgets('entering the mode marks the map and leaving restores it', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester, teleportState: const TeleportIdle());
+      expect(mapAvailability.state.isTeleportMode, isFalse);
+
+      await emitTeleport(tester, beaActive);
+      expect(mapAvailability.state.isTeleportMode, isTrue);
+      expect(find.byKey(TeleportPawnLayer.pawnKey), findsOneWidget);
+
+      await emitTeleport(tester, const TeleportIdle());
+      expect(mapAvailability.state.isTeleportMode, isFalse);
+      expect(find.byKey(TeleportPawnLayer.pawnKey), findsNothing);
+      expect(find.byKey(CharacterMarkerLayer.pawnKey), findsOneWidget);
+    });
+
+    testWidgets('a map mounted in teleport mode marks it at once', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester);
+
+      expect(mapAvailability.state.isTeleportMode, isTrue);
+      expect(find.byKey(TeleportPawnLayer.pawnKey), findsOneWidget);
+      expect(find.byKey(CharacterMarkerLayer.pawnKey), findsNothing);
+    });
+
+    testWidgets('entering the mode closes an open quest sheet', (tester) async {
+      final enemy = buildQuest(id: 'e-1', type: 'enemy');
+      await pumpWorldMap(tester, character: characterLoaded(), quests: [enemy]);
+      tester
+          .widget<QuestMarkersLayer>(find.byType(QuestMarkersLayer))
+          .onQuestSelected(enemy);
+      await tester.pumpAndSettle();
+      expect(mapAvailability.state.isQuestSheetOpen, isTrue);
+
+      await emitTeleport(tester, beaActive);
+      await tester.pumpAndSettle();
+      expect(mapAvailability.state.isQuestSheetOpen, isFalse);
+
+      await emitTeleport(tester, const TeleportIdle());
+      await tester.pumpAndSettle();
+      expect(find.byType(QuestInfoSheet), findsNothing);
+    });
+
+    testWidgets('entering the mode centres the camera on the chosen pawn', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester, teleportState: const TeleportIdle());
+      expectCentreAt(tester, const LatLng(0, 0));
+
+      await emitTeleport(tester, beaActive);
+
+      expectCentreAt(tester, aldheimMarker);
+    });
+
+    testWidgets('a map mounted in teleport mode centres on the pawn', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester);
+
+      expectCentreAt(tester, aldheimMarker);
     });
   });
 }

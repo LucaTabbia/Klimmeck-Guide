@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest/quest_paper_asset.dart';
+import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_confirmation_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../../helpers/fixtures/travel_fixtures.dart';
@@ -184,6 +189,52 @@ void main() {
 
       expect(mapAvailability.state.isPawnDragging, isFalse);
       await gesture.up();
+    });
+  });
+
+  group('teleport mode (Phase 10 C13)', () {
+    const teleportActive = TeleportActive(
+      target: TeleportTarget(
+        characterId: 'char-bea',
+        name: 'Bea',
+        location: PointOfInterest(
+          id: 'city-marker-1',
+          type: null,
+          location: LatLng(10, 20),
+          city: null,
+          quest: null,
+        ),
+        sex: SexType.female,
+      ),
+    );
+
+    setUp(() => seedSvgCache([CloudinaryAssets.adventurerFemalePawn]));
+
+    testWidgets('the teleport mode holds the result sheets back', (
+      tester,
+    ) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(),
+        teleportState: teleportActive,
+      );
+
+      expect(mapAvailability.state.isTeleportMode, isTrue);
+      expect(mapAvailability.state.isFreeBeneathRoutes, isFalse);
+    });
+
+    testWidgets('a map removed in teleport mode leaves no flag behind', (
+      tester,
+    ) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(),
+        teleportState: teleportActive,
+      );
+
+      await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+      expect(mapAvailability.state.isTeleportMode, isFalse);
     });
   });
 }
