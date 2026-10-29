@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-29T09:45:00.000Z"
-last_activity: "2026-10-29 -- 09-13 complete: device UAT 12/12, COMBAT-01..10 ticked, Phase 9 closed 13/13; next: F1 fix, then the FE PR"
+last_updated: "2026-10-29T09:42:54.000Z"
+last_activity: "2026-10-29 -- Phase 9 closed 13/13 with the device UAT 12/12; F1/F3 fixed on the branch (suite 2487); FE PR opened to develop; F2 and the F3 BE side routed to BE Phase 10 as BE-HARD-07"
 progress:
   total_phases: 12
   completed_phases: 10
@@ -20,9 +20,9 @@ progress:
 Phase: 9 (Combat Result Sheet) — COMPLETE 2026-10-29: 13/13 plans on `feat/09-combat-result-sheet`, Android device UAT 12/12 (`09-HUMAN-UAT.md`), COMBAT-01..10 ticked; findings F1 (FE, fix before the PR), F2 (BE rule change), F3 (FE, minor)
 Plan: 13 of 13
 Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
-Next Phase: fix F1 (party counter / torn state of the own quest live during the own travel) and check F3 («In attesa del gruppo» on a due solo quest) on `feat/09-combat-result-sheet`, then open the FE PR → `develop` (BE PR #15 already merged); then Phase 10 (Admin Panel); BE side: F2 to BE Phase 10 or a 9.3 companion (decision pending)
-Status: Phase 9 complete — device UAT 12/12 passed (2026-10-29, BE develop 8f30d1d); awaiting the F1 fix and the PR
-Last activity: 2026-10-29 -- 09-13 Task 3: UAT recorded, VALIDATION approved, REQUIREMENTS/ROADMAP/PROJECT closed, BACKEND-NOTES §5 outcome written for the BE
+Next Phase: merge the FE PR (`feat/09-combat-result-sheet` → `develop`); then `/gsd-discuss-phase 10` (Admin Panel) on the FE and `/gsd-plan-phase 10` on the BE (`feat/10-hardening`, rebased on develop, now carrying BE-HARD-07 from this UAT)
+Status: Phase 9 complete — device UAT 12/12 (2026-10-29, BE develop 8f30d1d), F1/F3 fixed on the branch, FE PR open to develop
+Last activity: 2026-10-29 -- F1/F3 fixed in TDD after the UAT (8 commits, suite 2487 green, analyzer 52/0); FE PR opened; F2 + F3 BE side recorded as BE-HARD-07 in the BE Phase 10 context
 
 ## Current Milestone
 

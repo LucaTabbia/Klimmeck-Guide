@@ -161,12 +161,12 @@ User, 2026-10-29, on step 11 (verbatim): *«Il nemico dovrebbe venir combattuto 
 
 - **Observed today (BE 9.2 D-07):** the started 2-seat boss whose second participant deleted the character was fought at 09:17:34Z by the remaining member only; the placeholder registration was dropped at the resolution (`WARN … senza missione in attesa coerente: rimosso`).
 - **Requested:** the combat of a started quest counts the archived participant's seat as if it were still there (the placeholder kept by §2.4 also takes part in the fight, with the BE choosing how its contribution is computed — e.g. a snapshot of the character at the start), so that the participants who remain are not left to an automatic defeat.
-- **Routing:** BE Phase 10 or a 9.3 companion — decision pending (the user decides with the BE side). No FE change is expected: the FE only renders the result.
+- **Routing:** BE Phase 10 or a 9.3 companion — decided 2026-10-29: BE Phase 10, requirement BE-HARD-07 / CONTEXT D-21 (the user decides with the BE side). No FE change is expected: the FE only renders the result.
 
 ### 5.3 FE items found (no BE change)
 
-- **F1 (FE, fixed on `feat/09-combat-result-sheet` before the FE PR):** the party counter / torn state of the own quest did not update during the own automatic travel; it read 2/2 only on arrival. User, 2026-10-29: *«Una missione risulta al completo non appena l'ultimo avventuriero la accetta, non all'arrivo sul marker»*. If the fix needs a BE event (e.g. `questUpdated` while the lane is travelling), the FE will say so in a follow-up note.
-- **F3 (FE, minor, to check):** on a solo quest the Map state label read «In attesa del gruppo» between the deadline (artificially backdated) and the resolution by the 60 s sweep; live the window is near zero.
+- **F1 (FE, FIXED on `feat/09-combat-result-sheet` on 2026-10-29, commits `06b9c26`..`8481cb3`):** the party counter / torn state of the own quest did not update during the own automatic travel; it read 2/2 only on arrival. User, 2026-10-29: *«Una missione risulta al completo non appena l'ultimo avventuriero la accetta, non all'arrivo sul marker»*. If the fix needs a BE event (e.g. `questUpdated` while the lane is travelling), the FE will say so in a follow-up note.
+- **F3 (FE side FIXED on 2026-10-29, `3a9e6db`/`5eb3250`: a solo quest on the marker reads as started; BE side → BE Phase 10 BE-HARD-07 D-22: write the pending `startDate` atomically with the arrival and emit `characterUpdated` — or an equivalent event — when the lane changes, otherwise a party quest that starts on the last arrival keeps «In attesa del gruppo k/N» on the FE until the result):** on a solo quest the Map state label read «In attesa del gruppo» between the deadline (artificially backdated) and the resolution by the 60 s sweep; live the window is near zero.
 - **Product decision (step 5B):** a banner «Missione conclusa» while the Map is busy is intended (user, 2026-10-29: «Sì: banner finché la Mappa non è libera»).
 
 ### 5.4 Notes for the BE UAT
