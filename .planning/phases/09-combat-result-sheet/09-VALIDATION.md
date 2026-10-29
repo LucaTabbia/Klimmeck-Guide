@@ -1,9 +1,9 @@
 ---
 phase: 9
 slug: combat-result-sheet
-status: draft
+status: executing
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-10-27
 ---
 
@@ -65,9 +65,9 @@ created: 2026-10-27
 | 9-11-02 | 11 | 5 | COMBAT-01, COMBAT-07, COMBAT-08, COMBAT-09 | T-9-41 | death sheet over the loader at cold start | widget + full suite | `flutter test test/screens/mainScreen/main_screen_quest_results_test.dart test/screens/mainScreen/main_screen_test.dart && flutter test` | ✅ | ✅ green (2432) |
 | 9-12-01 | 12 | 6 (gated) | COMBAT-09 | T-9-42, T-9-43, T-9-46 | BE gate first; 38/38 vs BE develop | unit + schema check | `flutter test test/graphql test/tool test/models/quest_result` | ✅ (extend) | ✅ green |
 | 9-12-02 | 12 | 6 (gated) | COMBAT-09 | T-9-44, T-9-45 | ack only displayed ids; malformed list entries skipped | unit + widget | `flutter test test/repository test/screens/auth test/screens/mainScreen` | ✅ (extend) | ✅ green |
-| 9-13-01 | 13 | 7 (gated) | COMBAT-01..10 | T-9-47 | full gates against the merged BE | full suite + analyze + schema check | `flutter test && flutter analyze` | ✅ | ⬜ pending |
-| 9-13-02 | 13 | 7 (gated) | COMBAT-01..10 | T-9-48, T-9-49 | device E2E, no secrets printed, death order observed | manual (human-verify) | `test -f .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
-| 9-13-03 | 13 | 7 (gated) | COMBAT-01..10 | T-9-50, T-9-51 | ticks only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by 9-13-02) | ⬜ pending |
+| 9-13-01 | 13 | 7 (gated) | COMBAT-01..10 | T-9-47 | full gates against the merged BE | full suite + analyze + schema check | `flutter test && flutter analyze` | ✅ | ✅ green (2483; analyze 52 / 0 errors; schema check 38/38 vs BE `8f30d1d`) |
+| 9-13-02 | 13 | 7 (gated) | COMBAT-01..10 | T-9-48, T-9-49 | device E2E, no secrets printed, death order observed | manual (human-verify) | `test -f .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending (human E2E) |
+| 9-13-03 | 13 | 7 (gated) | COMBAT-01..10 | T-9-50, T-9-51 | ticks only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" .planning/phases/09-combat-result-sheet/09-HUMAN-UAT.md` | ❌ (created by 9-13-02) | ⬜ pending (human E2E) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -106,11 +106,11 @@ All run in plan 09-13 Task 2, on the Android device, **after the BE 9.2 PR is me
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15 s per task
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15 s per task
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
