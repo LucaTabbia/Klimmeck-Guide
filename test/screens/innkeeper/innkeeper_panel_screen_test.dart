@@ -2,18 +2,26 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
+import 'package:klimmeck_guide/screens/innkeeper/request_completion_screen.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fixtures/pending_request_fixtures.dart';
+import '../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../helpers/landscape.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -22,6 +30,14 @@ final DateTime _now = DateTime.utc(2026, 10, 29, 12);
 
 List<PendingRequest> _queue(List<Map<String, dynamic>> entries) =>
     List.unmodifiable(entries.map(PendingRequest.fromJson));
+
+typedef _CompletionOpener =
+    Future<CompletionExit?> Function(BuildContext context, RequestCard card);
+
+ElevatedButton _completeButton(WidgetTester tester, String questId) =>
+    tester.widget<ElevatedButton>(
+      find.byKey(RequestCardView.completeKeyFor(questId)),
+    );
 
 Finder _greyedAncestorOf(Finder finder) => find.ancestor(
   of: finder,
@@ -51,23 +67,31 @@ void main() {
 
   Future<void> pumpPanel(
     WidgetTester tester,
-    PendingRequestsState state,
-  ) async {
+    PendingRequestsState state, {
+    _CompletionOpener openCompletion = openRequestCompletion,
+    InnkeeperRepository? repository,
+  }) async {
     useLandscapePhone(tester);
     whenListen(
       cubit,
       const Stream<PendingRequestsState>.empty(),
       initialState: state,
     );
+    final panel = MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: authCubit),
+        BlocProvider<PendingRequestsCubit>.value(value: cubit),
+      ],
+      child: InnkeeperPanelScreen(openCompletion: openCompletion),
+    );
     await tester.pumpWidget(
       buildTestApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<AuthCubit>.value(value: authCubit),
-            BlocProvider<PendingRequestsCubit>.value(value: cubit),
-          ],
-          child: const InnkeeperPanelScreen(),
-        ),
+        home: repository == null
+            ? panel
+            : RepositoryProvider<InnkeeperRepository>.value(
+                value: repository,
+                child: panel,
+              ),
       ),
     );
   }
@@ -76,6 +100,8 @@ void main() {
     WidgetTester tester,
     List<Map<String, dynamic>> entries, {
     DateTime? serverNow,
+    _CompletionOpener openCompletion = openRequestCompletion,
+    InnkeeperRepository? repository,
   }) => pumpPanel(
     tester,
     PendingRequestsState(
@@ -83,6 +109,8 @@ void main() {
       requests: _queue(entries),
       isLoaded: true,
     ),
+    openCompletion: openCompletion,
+    repository: repository,
   );
 
   testWidgets('the AppBar title is «Locanda»', (tester) async {
@@ -127,7 +155,7 @@ void main() {
     expect(find.textContaining('posti'), findsNothing);
   });
 
-  testWidgets('a card shows only the quest and the rows (D-08)', (
+  testWidgets('a card shows only the quest, the rows and «Completa» (D-08)', (
     tester,
   ) async {
     await pumpQueue(tester, [pendingRequestJson()]);
@@ -141,7 +169,13 @@ void main() {
         )
         .map((text) => text.data)
         .toSet();
-    expect(texts, {'La cripta di Valantar', 'Storia', 'Aldo', 'Presente'});
+    expect(texts, {
+      'La cripta di Valantar',
+      'Storia',
+      'Aldo',
+      'Presente',
+      'Completa',
+    });
   });
 
   testWidgets('a worldMission card shows the seats', (tester) async {
@@ -206,5 +240,214 @@ void main() {
 
     expect(find.text('Arrivato'), findsOneWidget);
     expect(_greyedAncestorOf(find.text('Arrivato')), findsNothing);
+  });
+
+  group('«Completa»', () {
+    final completeStory = find.byKey(
+      RequestCardView.completeKeyFor(storyQuestId),
+    );
+    final travel = queuedTravelJson(
+      endTime: _now.add(const Duration(minutes: 12)),
+    );
+
+    setUp(() {
+      when(() => cubit.refetch()).thenAnswer((_) async {});
+    });
+
+    _CompletionOpener exitWith(CompletionExit? exit) =>
+        (_, _) async => exit;
+
+    testWidgets('a story with a present participant can be completed', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [pendingRequestJson()]);
+
+      expect(completeStory, findsOneWidget);
+      expect(_completeButton(tester, storyQuestId).onPressed, isNotNull);
+    });
+
+    testWidgets('a traveller before endTime disables it', (tester) async {
+      await pumpQueue(tester, [pendingRequestJson(activeTravel: travel)]);
+
+      expect(_completeButton(tester, storyQuestId).onPressed, isNull);
+    });
+
+    testWidgets('the same traveller after endTime enables it', (tester) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(activeTravel: travel),
+      ], serverNow: _now.add(const Duration(minutes: 13)));
+
+      expect(_completeButton(tester, storyQuestId).onPressed, isNotNull);
+    });
+
+    testWidgets('a hidden busy participant disables it', (tester) async {
+      await pumpQueue(
+        tester,
+        worldMissionEntriesJson(
+          names: ['Bea', 'Cosimo', 'Dario'],
+          busyLanes: {'Dario': 'quest-standard-1'},
+        ),
+      );
+
+      expect(_completeButton(tester, worldMissionQuestId).onPressed, isNull);
+    });
+
+    testWidgets('tapping it opens the completion form', (tester) async {
+      final repository = MockInnkeeperRepository();
+      when(
+        () => repository.readCharacter('char-aldo'),
+      ).thenAnswer((_) async => Character.fromJson(participantCharacterJson()));
+      await pumpQueue(tester, [pendingRequestJson()], repository: repository);
+
+      await tester.tap(completeStory);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(RequestCompletionScreen), findsOneWidget);
+    });
+
+    testWidgets('a completion hides the card and shows the results', (
+      tester,
+    ) async {
+      final results = [
+        QuestResult.fromJson(
+          questResultJson(
+            character: 'char-aldo',
+            outcome: 'gmCompleted',
+            hpBefore: 18,
+            hpAfter: 5,
+            xpGained: 40,
+          ),
+        ),
+      ];
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+      ], openCompletion: exitWith(CompletionCompleted(results)));
+
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      final dialog = find.byType(AlertDialog);
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Richiesta completata'),
+        ),
+        findsOneWidget,
+      );
+      for (final text in ['Aldo', 'Missione completata', 'PV 18 → 5']) {
+        expect(
+          find.descendant(of: dialog, matching: find.text(text)),
+          findsOneWidget,
+          reason: text,
+        );
+      }
+      await tester.tap(find.text('Chiudi'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('a vanished request is removed and the queue refetched', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+      ], openCompletion: exitWith(const CompletionGone()));
+
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      verify(() => cubit.refetch()).called(1);
+      expect(find.text('Richiesta non più disponibile'), findsOneWidget);
+    });
+
+    testWidgets('a busy participant refetches without hiding the card', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+      ], openCompletion: exitWith(const CompletionBusy()));
+
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      verifyNever(() => cubit.markCompleted(any()));
+      verify(() => cubit.refetch()).called(1);
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text('Un partecipante è impegnato in una missione'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a forbidden exit closes the panel with the message', (
+      tester,
+    ) async {
+      useLandscapePhone(tester);
+      whenListen(
+        cubit,
+        const Stream<PendingRequestsState>.empty(),
+        initialState: PendingRequestsState(
+          serverNow: _now,
+          requests: _queue([pendingRequestJson()]),
+          isLoaded: true,
+        ),
+      );
+      await tester.pumpWidget(
+        buildTestApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider<AuthCubit>.value(value: authCubit),
+                        BlocProvider<PendingRequestsCubit>.value(value: cubit),
+                      ],
+                      child: InnkeeperPanelScreen(
+                        openCompletion: exitWith(const CompletionForbidden()),
+                      ),
+                    ),
+                  ),
+                ),
+                child: const Text('apri'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('apri'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InnkeeperPanelScreen), findsNothing);
+      expect(
+        find.text(InnkeeperPanelScreen.unavailableMessage),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('leaving the form with the back arrow changes nothing', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+      ], openCompletion: exitWith(null));
+
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      verifyNever(() => cubit.markCompleted(any()));
+      verifyNever(() => cubit.refetch());
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
   });
 }
