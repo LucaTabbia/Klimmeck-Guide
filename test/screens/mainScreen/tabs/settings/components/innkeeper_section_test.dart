@@ -103,11 +103,11 @@ void main() {
     expect(find.text('Locanda'), findsNothing);
 
     authStates.add(_sessionAs(RoleType.innkeeper));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Locanda'), findsOneWidget);
 
     authStates.add(_sessionAs(RoleType.adventurer));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Locanda'), findsNothing);
   });
 
