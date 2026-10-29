@@ -82,9 +82,11 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
     emit(TeleportSucceeded(target: active.target));
   }
 
+  /// Ignorato mentre il teletrasporto è in volo: la mutation è già partita e
+  /// il suo esito deve arrivare (anche col ruolo perso: FORBIDDEN → idle).
   void cancel() {
-    _generation++;
-    emit(const TeleportIdle());
+    if (state case TeleportActive(isTeleporting: true)) return;
+    _leave();
   }
 
   void acknowledgeSuccess() {
@@ -93,9 +95,14 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
 
   void _handleTeleportFailure(TeleportActive active, InnkeeperFailure failure) {
     if (failure == InnkeeperFailure.forbidden) {
-      cancel();
+      _leave();
       return;
     }
     emit(TeleportActive(target: active.target, failure: failure));
+  }
+
+  void _leave() {
+    _generation++;
+    emit(const TeleportIdle());
   }
 }

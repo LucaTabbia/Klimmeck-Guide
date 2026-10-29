@@ -68,11 +68,12 @@ class TeleportModeChip extends StatelessWidget {
   Widget _buildCancel(TextStyle? labelStyle) {
     return Semantics(
       button: true,
+      enabled: !isTeleporting,
       label: 'Annulla teletrasporto',
       child: GestureDetector(
         key: cancelKey,
         behavior: HitTestBehavior.opaque,
-        onTap: onCancel,
+        onTap: isTeleporting ? null : onCancel,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             minWidth: _minTapTarget,
