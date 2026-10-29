@@ -117,4 +117,126 @@ void main() {
       );
     });
   });
+
+  group('getUnacknowledgedQuestResults', () {
+    test(
+      'sends ListUnacknowledgedQuestResults and keeps the server order',
+      () async {
+        handler = (_) => Stream.value(
+          dataResponse({
+            'unacknowledgedQuestResults': [
+              failureResultJson(id: 'r-1'),
+              deathResultJson(id: 'r-2'),
+            ],
+          }),
+        );
+
+        final results = await buildGraphQl().getUnacknowledgedQuestResults();
+
+        expect(
+          operationNameOf(requests.single),
+          'ListUnacknowledgedQuestResults',
+        );
+        expect(requests.single.variables, isEmpty);
+        expect(results.map((result) => result.id), ['r-1', 'r-2']);
+      },
+    );
+
+    test('skips a malformed entry and keeps the valid ones', () async {
+      handler = (_) => Stream.value(
+        dataResponse({
+          'unacknowledgedQuestResults': [
+            {'id': 'broken'},
+            successResultJson(id: 'r-2'),
+          ],
+        }),
+      );
+
+      final results = await buildGraphQl().getUnacknowledgedQuestResults();
+
+      expect(results.map((result) => result.id), ['r-2']);
+    });
+
+    test('returns an empty list when nothing is pending', () async {
+      handler = (_) =>
+          Stream.value(dataResponse({'unacknowledgedQuestResults': []}));
+
+      expect(await buildGraphQl().getUnacknowledgedQuestResults(), isEmpty);
+    });
+
+    test('turns a payload that is not a list into a FormatException', () async {
+      handler = (_) =>
+          Stream.value(dataResponse({'unacknowledgedQuestResults': null}));
+
+      await expectLater(
+        buildGraphQl().getUnacknowledgedQuestResults(),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('throws the raw OperationException keeping the code', () async {
+      handler = (_) => Stream.value(errorCodeResponse('UNAUTHENTICATED'));
+
+      await expectLater(
+        buildGraphQl().getUnacknowledgedQuestResults(),
+        throwsA(
+          isA<OperationException>().having(
+            graphQlErrorCode,
+            'code',
+            'UNAUTHENTICATED',
+          ),
+        ),
+      );
+    });
+  });
+
+  group('acknowledgeQuestResult', () {
+    Response acknowledged({required bool successful}) => dataResponse({
+      'acknowledgeQuestResult': {
+        'successful': successful,
+        'response': 'Risultato confermato',
+      },
+    });
+
+    test('sends AcknowledgeQuestResult with the id', () async {
+      handler = (_) => Stream.value(acknowledged(successful: true));
+
+      await buildGraphQl().acknowledgeQuestResult('r-1');
+
+      expect(operationNameOf(requests.single), 'AcknowledgeQuestResult');
+      expect(requests.single.variables, {'id': 'r-1'});
+    });
+
+    test('turns an unsuccessful answer into a FormatException', () async {
+      handler = (_) => Stream.value(acknowledged(successful: false));
+
+      await expectLater(
+        buildGraphQl().acknowledgeQuestResult('r-1'),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('turns a missing payload into a FormatException', () async {
+      handler = (_) =>
+          Stream.value(dataResponse({'acknowledgeQuestResult': null}));
+
+      await expectLater(
+        buildGraphQl().acknowledgeQuestResult('r-1'),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    for (final code in ['NOT_FOUND', 'FORBIDDEN']) {
+      test('throws the raw OperationException for $code', () async {
+        handler = (_) => Stream.value(errorCodeResponse(code));
+
+        await expectLater(
+          buildGraphQl().acknowledgeQuestResult('r-1'),
+          throwsA(
+            isA<OperationException>().having(graphQlErrorCode, 'code', code),
+          ),
+        );
+      });
+    }
+  });
 }

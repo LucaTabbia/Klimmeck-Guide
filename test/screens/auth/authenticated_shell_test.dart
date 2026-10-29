@@ -96,6 +96,9 @@ void main() {
     when(
       () => graphQl.subscribeToQuestResults(any()),
     ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => graphQl.getUnacknowledgedQuestResults(),
+    ).thenAnswer((_) async => const []);
   });
 
   tearDown(() => messaging.close());
@@ -274,6 +277,7 @@ void main() {
       );
 
       verify(() => graphQl.subscribeToQuestResults(testCharacterId)).called(1);
+      verify(() => graphQl.getUnacknowledgedQuestResults()).called(1);
       expect(questResultsCubit.isClosed, isFalse);
 
       await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));

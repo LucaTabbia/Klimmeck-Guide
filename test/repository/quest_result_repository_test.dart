@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/repository/quest_result_delivery_ports.dart';
 import 'package:klimmeck_guide/repository/quest_result_failure.dart';
 import 'package:klimmeck_guide/repository/quest_result_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -110,5 +112,96 @@ void main() {
     ).thenAnswer((_) => stream);
 
     expect(repository.watch('c-1'), same(stream));
+  });
+
+  test('implements both BE 9.2 delivery ports', () {
+    expect(repository, isA<PendingQuestResults>());
+    expect(repository, isA<QuestResultAcknowledger>());
+  });
+
+  group('fetchUnacknowledged', () {
+    test('returns the pending results of the service', () async {
+      final results = [questResult(deathResultJson(id: 'r-1'))];
+      when(
+        () => graphQl.getUnacknowledgedQuestResults(),
+      ).thenAnswer((_) async => results);
+
+      expect(await repository.fetchUnacknowledged(), results);
+    });
+
+    _expectDeliveryFailures(
+      stub: (graphQl) => when(() => graphQl.getUnacknowledgedQuestResults()),
+      call: (repository) => repository.fetchUnacknowledged(),
+      graphQl: () => graphQl,
+      repository: () => repository,
+    );
+  });
+
+  group('acknowledge', () {
+    test('acknowledges the result on the service', () async {
+      when(
+        () => graphQl.acknowledgeQuestResult('r-1'),
+      ).thenAnswer((_) async {});
+
+      await repository.acknowledge('r-1');
+
+      verify(() => graphQl.acknowledgeQuestResult('r-1')).called(1);
+    });
+
+    _expectDeliveryFailures(
+      stub: (graphQl) => when(() => graphQl.acknowledgeQuestResult(any())),
+      call: (repository) => repository.acknowledge('r-1'),
+      graphQl: () => graphQl,
+      repository: () => repository,
+    );
+  });
+}
+
+void _expectDeliveryFailures<T>({
+  required When<Future<T>> Function(MockKlimmeckGraphQl graphQl) stub,
+  required Future<T> Function(QuestResultRepository repository) call,
+  required MockKlimmeckGraphQl Function() graphQl,
+  required QuestResultRepository Function() repository,
+}) {
+  final thrown = <QuestResultFailure, Object>{
+    QuestResultFailure.notFound: _coded('NOT_FOUND'),
+    QuestResultFailure.forbidden: _coded('FORBIDDEN'),
+    QuestResultFailure.connection: OperationException(
+      linkException: ServerException(
+        originalException: const SocketException('down'),
+      ),
+    ),
+    QuestResultFailure.malformed: const FormatException('not successful'),
+    QuestResultFailure.unknown: StateError('boom'),
+  };
+  thrown.forEach((failure, error) {
+    test('maps ${error.runtimeType} to ${failure.name}', () async {
+      stub(graphQl()).thenThrow(error);
+
+      await expectLater(call(repository()), _failsWith(failure));
+    });
+  });
+
+  test('fails as timedOut after 15 seconds without an answer', () {
+    fakeAsync((async) {
+      stub(graphQl()).thenAnswer((_) => Completer<T>().future);
+      Object? failure;
+
+      call(
+        repository(),
+      ).then<void>((_) {}, onError: (Object error) => failure = error);
+      async.elapse(const Duration(seconds: 14));
+      expect(failure, isNull);
+      async.elapse(const Duration(seconds: 1));
+
+      expect(
+        failure,
+        isA<QuestResultException>().having(
+          (e) => e.failure,
+          'failure',
+          QuestResultFailure.timedOut,
+        ),
+      );
+    });
   });
 }
