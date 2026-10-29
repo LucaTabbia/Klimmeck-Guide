@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dar
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/innkeeper_section.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -37,8 +38,15 @@ void main() {
   late MockAuthCubit authCubit;
   late StreamController<AuthState> authStates;
   late MockInnkeeperRepository repository;
+  late MockTeleportModeCubit teleportCubit;
 
   setUp(() {
+    teleportCubit = MockTeleportModeCubit();
+    whenListen(
+      teleportCubit,
+      const Stream<TeleportModeState>.empty(),
+      initialState: const TeleportIdle(),
+    );
     authCubit = MockAuthCubit();
     authStates = StreamController<AuthState>.broadcast();
     repository = MockInnkeeperRepository();
@@ -65,7 +73,10 @@ void main() {
               value: repository,
               child: RepositoryProvider<ServerClockService>.value(
                 value: FakeServerClockService(DateTime.utc(2026, 10, 29, 12)),
-                child: const Scaffold(body: InnkeeperSection()),
+                child: BlocProvider<TeleportModeCubit>.value(
+                  value: teleportCubit,
+                  child: const Scaffold(body: InnkeeperSection()),
+                ),
               ),
             ),
           ),

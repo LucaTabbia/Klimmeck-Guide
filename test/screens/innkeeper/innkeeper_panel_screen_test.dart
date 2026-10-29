@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,14 +9,17 @@ import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
@@ -39,6 +44,12 @@ ElevatedButton _completeButton(WidgetTester tester, String questId) =>
       find.byKey(RequestCardView.completeKeyFor(questId)),
     );
 
+Finder _teleportAction(String characterId) =>
+    find.byKey(ValueKey('innkeeper.teleport.$characterId'));
+
+TextButton _teleportButton(WidgetTester tester, String characterId) =>
+    tester.widget<TextButton>(_teleportAction(characterId));
+
 Finder _greyedAncestorOf(Finder finder) => find.ancestor(
   of: finder,
   matching: find.byWidgetPredicate(
@@ -51,9 +62,25 @@ Finder _greyedAncestorOf(Finder finder) => find.ancestor(
 void main() {
   late MockPendingRequestsCubit cubit;
   late MockAuthCubit authCubit;
+  late MockTeleportModeCubit teleportCubit;
+  late StreamController<TeleportModeState> teleportStates;
 
   setUp(() {
     cubit = MockPendingRequestsCubit();
+    teleportCubit = MockTeleportModeCubit();
+    teleportStates = StreamController<TeleportModeState>.broadcast();
+    addTearDown(teleportStates.close);
+    whenListen(
+      teleportCubit,
+      teleportStates.stream,
+      initialState: const TeleportIdle(),
+    );
+    when(
+      () => teleportCubit.prepare(
+        characterId: any(named: 'characterId'),
+        name: any(named: 'name'),
+      ),
+    ).thenAnswer((_) async {});
     authCubit = MockAuthCubit();
     whenListen(
       authCubit,
@@ -81,6 +108,7 @@ void main() {
       providers: [
         BlocProvider<AuthCubit>.value(value: authCubit),
         BlocProvider<PendingRequestsCubit>.value(value: cubit),
+        BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
       ],
       child: InnkeeperPanelScreen(openCompletion: openCompletion),
     );
@@ -174,6 +202,7 @@ void main() {
       'Storia',
       'Aldo',
       'Presente',
+      'Teletrasporta',
       'Completa',
     });
   });
@@ -408,6 +437,9 @@ void main() {
                       providers: [
                         BlocProvider<AuthCubit>.value(value: authCubit),
                         BlocProvider<PendingRequestsCubit>.value(value: cubit),
+                        BlocProvider<TeleportModeCubit>.value(
+                          value: teleportCubit,
+                        ),
                       ],
                       child: InnkeeperPanelScreen(
                         openCompletion: exitWith(const CompletionForbidden()),
@@ -448,6 +480,106 @@ void main() {
       verifyNever(() => cubit.refetch());
       expect(find.byType(SnackBar), findsNothing);
       expect(find.byType(AlertDialog), findsNothing);
+    });
+  });
+
+  group('«Teletrasporta» (10-CONTEXT D-15/D-19)', () {
+    testWidgets('every listed row has the action', (tester) async {
+      await pumpQueue(tester, [
+        ...worldMissionEntriesJson(
+          names: ['Bea', 'Cosimo', 'Dario'],
+          travels: {
+            'Cosimo': queuedTravelJson(
+              endTime: _now.add(const Duration(minutes: 12)),
+            ),
+            'Dario': queuedTravelJson(
+              endTime: _now.subtract(const Duration(seconds: 1)),
+            ),
+          },
+        ),
+        pendingRequestJson(awaitingAid: awaitingAidJson()),
+      ]);
+
+      for (final id in ['char-bea', 'char-cosimo', 'char-dario', 'char-aldo']) {
+        expect(_teleportAction(id), findsOneWidget, reason: id);
+        expect(_teleportButton(tester, id).onPressed, isNotNull, reason: id);
+      }
+      expect(find.text(ParticipantRow.teleportLabel), findsNWidgets(4));
+    });
+
+    testWidgets('a traveller keeps the action outside the greyed ink', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(
+          activeTravel: queuedTravelJson(
+            endTime: _now.add(const Duration(minutes: 12)),
+          ),
+        ),
+      ]);
+
+      expect(_greyedAncestorOf(_teleportAction('char-aldo')), findsNothing);
+    });
+
+    testWidgets('tapping it reads the character for the teleport', (
+      tester,
+    ) async {
+      await pumpQueue(tester, worldMissionEntriesJson());
+
+      await tester.tap(_teleportAction('char-bea'));
+      await tester.pump();
+
+      verify(
+        () => teleportCubit.prepare(characterId: 'char-bea', name: 'Bea'),
+      ).called(1);
+    });
+
+    testWidgets('the read shows a progress on its row and locks the others', (
+      tester,
+    ) async {
+      whenListen(
+        teleportCubit,
+        teleportStates.stream,
+        initialState: const TeleportPreparing(characterId: 'char-bea'),
+      );
+      await pumpQueue(tester, worldMissionEntriesJson());
+
+      expect(
+        find.descendant(
+          of: find.byKey(ParticipantRow.keyFor('char-bea')),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(_teleportAction('char-bea'), findsNothing);
+      expect(_teleportButton(tester, 'char-cosimo').onPressed, isNull);
+    });
+
+    testWidgets('a failed read shows the SnackBar and keeps the panel', (
+      tester,
+    ) async {
+      await pumpQueue(tester, worldMissionEntriesJson());
+
+      teleportStates.add(
+        const TeleportPreparationFailed(
+          characterId: 'char-bea',
+          failure: InnkeeperFailure.connection,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text(InnkeeperPanelScreen.teleportUnavailableMessage),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        InnkeeperPanelScreen.teleportUnavailableMessage,
+        'Impossibile aprire la mappa per il teletrasporto',
+      );
+      expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
     });
   });
 }

@@ -16,10 +16,12 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_server_clock_service.dart';
+import '../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../helpers/landscape.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -67,8 +69,21 @@ void main() {
     late StreamController<AuthState> authStates;
     late MockInnkeeperRepository repository;
     late StreamController<List<PendingRequest>> queue;
+    late MockTeleportModeCubit teleportCubit;
 
     setUp(() {
+      teleportCubit = MockTeleportModeCubit();
+      whenListen(
+        teleportCubit,
+        const Stream<TeleportModeState>.empty(),
+        initialState: const TeleportIdle(),
+      );
+      when(
+        () => teleportCubit.prepare(
+          characterId: any(named: 'characterId'),
+          name: any(named: 'name'),
+        ),
+      ).thenAnswer((_) async {});
       authCubit = MockAuthCubit();
       authStates = StreamController<AuthState>.broadcast();
       whenListen(
@@ -98,11 +113,14 @@ void main() {
                 value: repository,
                 child: RepositoryProvider<ServerClockService>.value(
                   value: FakeServerClockService(_now),
-                  child: Scaffold(
-                    body: Builder(
-                      builder: (context) => ElevatedButton(
-                        onPressed: () => openInnkeeperPanel(context),
-                        child: const Text('open'),
+                  child: BlocProvider<TeleportModeCubit>.value(
+                    value: teleportCubit,
+                    child: Scaffold(
+                      body: Builder(
+                        builder: (context) => ElevatedButton(
+                          onPressed: () => openInnkeeperPanel(context),
+                          child: const Text('open'),
+                        ),
                       ),
                     ),
                   ),
@@ -122,6 +140,21 @@ void main() {
       expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
       verify(() => repository.watchQueue()).called(1);
+    });
+
+    testWidgets('a row «Teletrasporta» reaches the shell teleport mode', (
+      tester,
+    ) async {
+      await pumpAndOpen(tester);
+      queue.add([PendingRequest.fromJson(pendingRequestJson())]);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Teletrasporta'));
+      await tester.pump();
+
+      verify(
+        () => teleportCubit.prepare(characterId: 'char-aldo', name: 'Aldo'),
+      ).called(1);
     });
 
     testWidgets('popping the panel cancels the queue subscription', (
