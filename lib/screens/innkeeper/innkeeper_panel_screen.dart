@@ -63,7 +63,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: _buildScaffold(),
+      child: _buildScaffold(context),
     );
   }
 
@@ -99,28 +99,30 @@ class InnkeeperPanelScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildScaffold() {
+  /// [panelContext] è quello della schermata: resta montato quando la coda si
+  /// svuota con il form aperto, così l'esito arriva comunque (WR-01).
+  Widget _buildScaffold(BuildContext panelContext) {
     return Scaffold(
       appBar: AppBar(title: const Text(title)),
       body: DecoratedBox(
         decoration: KlimmeckGuideTheme.getParchmentBackground(),
         child: SafeArea(
           child: BlocBuilder<PendingRequestsCubit, PendingRequestsState>(
-            builder: _buildQueue,
+            builder: (_, state) => _buildQueue(panelContext, state),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildQueue(BuildContext context, PendingRequestsState state) {
+  Widget _buildQueue(BuildContext panelContext, PendingRequestsState state) {
     if (!state.isLoaded) return const Center(child: KGLoader());
     final cards = state.cards;
     if (cards.isEmpty) return const _EmptyQueue();
     return BlocSelector<TeleportModeCubit, TeleportModeState, String?>(
       selector: (teleport) =>
           teleport is TeleportPreparing ? teleport.characterId : null,
-      builder: (context, preparingCharacterId) => ListView.separated(
+      builder: (_, preparingCharacterId) => ListView.separated(
         padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
         itemCount: cards.length,
         separatorBuilder: (_, _) =>
@@ -129,9 +131,9 @@ class InnkeeperPanelScreen extends StatelessWidget {
           key: RequestCardView.keyFor(cards[index].questId),
           card: cards[index],
           serverNow: state.serverNow,
-          onComplete: (card) => _complete(context, card),
+          onComplete: (card) => _complete(panelContext, card),
           preparingCharacterId: preparingCharacterId,
-          onTeleport: (participant) => context
+          onTeleport: (participant) => panelContext
               .read<TeleportModeCubit>()
               .prepare(characterId: participant.id, name: participant.name),
         ),
