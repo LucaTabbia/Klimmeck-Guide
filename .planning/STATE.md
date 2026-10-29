@@ -21,8 +21,8 @@ Phase: 9 (Combat Result Sheet) — EXECUTING, gate open (BE PR #15 merged 2026-1
 Plan: 12 of 13
 Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
 Next Phase: plan 09-13 (`/gsd-execute-phase 9`: device E2E checkpoint, traceability, closure), then open the FE PR; then BE Phase 10 (`feat/10-hardening`, stacked on 9.2, to rebase and plan after the merge)
-Status: Executing Phase 9 — gate open (BE PR #15 merged 2026-10-29): 09-12 done, 09-13 (device E2E) next (09-12: BE 9.2 documents + acknowledgedAt, schema check 38/38 vs BE develop 8f30d1d, QuestResultRepository implements both delivery ports in the shell)
-Last activity: 2026-10-29 -- 09-12 complete (BE 9.2 contract live: ListUnacknowledgedQuestResults + AcknowledgeQuestResult, 38/38 OK vs BE 8f30d1d, full suite 2483 green, analyzer 52); next: 09-13 device E2E
+Status: Executing Phase 9 — 09-13 gate passed (full suite 2483 green, analyzer 52 / 0 errors, schema check 38/38 vs BE develop 8f30d1d) — awaiting the device UAT (09-HUMAN-UAT.md, 12 steps pending)
+Last activity: 2026-10-29 -- 09-13 Task 1 gates passed (e930d4c), device UAT opened; next: the user runs the 12 device steps
 
 ## Current Milestone
 
