@@ -10,9 +10,13 @@ class RequestCardView extends StatelessWidget {
     super.key,
     required this.card,
     required this.serverNow,
+    required this.onComplete,
   });
 
   static Key keyFor(String questId) => ValueKey('innkeeper.card.$questId');
+
+  static Key completeKeyFor(String questId) =>
+      ValueKey('innkeeper.complete.$questId');
 
   static const String _fallbackTypeLabel = 'Richiesta';
   static const String busyParticipantNote =
@@ -20,6 +24,9 @@ class RequestCardView extends StatelessWidget {
 
   final RequestCard card;
   final DateTime serverNow;
+
+  /// Apre il form: unico ingresso al completamento, mai senza conferma (D-11).
+  final ValueChanged<RequestCard> onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +68,19 @@ class RequestCardView extends StatelessWidget {
               ),
               Text(busyParticipantNote, style: theme.bodyMedium),
             ],
+            const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+            // D-06/C6: abilitato solo con tutti presenti e nessuno in viaggio.
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                key: completeKeyFor(card.questId),
+                style: KlimmeckGuideTheme.primaryButtonStyle,
+                onPressed: card.canComplete(serverNow)
+                    ? () => onComplete(card)
+                    : null,
+                child: const Text('Completa'),
+              ),
+            ),
           ],
         ),
       ),

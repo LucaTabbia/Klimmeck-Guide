@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/results_recap_dialog.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -14,12 +19,22 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// esplicita). Si chiude da solo su `FORBIDDEN` o sul ruolo perso (D-04).
 /// Richiede [PendingRequestsCubit] e [AuthCubit] sopra di sé.
 class InnkeeperPanelScreen extends StatelessWidget {
-  const InnkeeperPanelScreen({super.key});
+  const InnkeeperPanelScreen({
+    super.key,
+    this.openCompletion = openRequestCompletion,
+  });
 
   static const String title = 'Locanda';
   static const String emptyTitle = 'Nessuna richiesta in attesa';
   static const String emptyNote = 'La coda si aggiorna da sola';
   static const String unavailableMessage = 'La Locanda non è disponibile';
+  static const String goneMessage = 'Richiesta non più disponibile';
+  static const String busyMessage =
+      'Un partecipante è impegnato in una missione';
+
+  /// Apre il form di completamento; iniettabile per guidare gli esiti nei test.
+  final Future<CompletionExit?> Function(BuildContext, RequestCard)
+  openCompletion;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +43,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
         BlocListener<PendingRequestsCubit, PendingRequestsState>(
           listenWhen: (previous, current) =>
               !previous.isForbidden && current.isForbidden,
-          listener: _closeForbidden,
+          listener: (context, _) => _closeUnavailable(context),
         ),
         BlocListener<AuthCubit, AuthState>(
           listenWhen: (previous, current) =>
@@ -41,10 +56,35 @@ class InnkeeperPanelScreen extends StatelessWidget {
   }
 
   // default per veto (10-CONTEXT D-04/C8): SnackBar invece del pop silenzioso
-  void _closeForbidden(BuildContext context, PendingRequestsState _) {
+  static void _closeUnavailable(BuildContext context) {
+    if (ModalRoute.of(context)?.isActive != true) return;
     final messenger = ScaffoldMessenger.of(context);
     closeInnkeeperPanel(context);
     messenger.showSnackBar(const SnackBar(content: Text(unavailableMessage)));
+  }
+
+  /// Traduce l'esito del form (10-CONTEXT D-13/D-14).
+  Future<void> _complete(BuildContext context, RequestCard card) async {
+    final queue = context.read<PendingRequestsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final exit = await openCompletion(context, card);
+    if (!context.mounted) return;
+    switch (exit) {
+      case CompletionCompleted(:final results):
+        queue.markCompleted(card.questId);
+        await showResultsRecap(context, card: card, results: results);
+      case CompletionGone():
+        queue.markCompleted(card.questId);
+        unawaited(queue.refetch());
+        messenger.showSnackBar(const SnackBar(content: Text(goneMessage)));
+      case CompletionBusy():
+        unawaited(queue.refetch());
+        messenger.showSnackBar(const SnackBar(content: Text(busyMessage)));
+      case CompletionForbidden():
+        _closeUnavailable(context);
+      case null:
+        return;
+    }
   }
 
   Widget _buildScaffold() {
@@ -74,6 +114,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
         key: RequestCardView.keyFor(cards[index].questId),
         card: cards[index],
         serverNow: state.serverNow,
+        onComplete: (card) => _complete(context, card),
       ),
     );
   }
