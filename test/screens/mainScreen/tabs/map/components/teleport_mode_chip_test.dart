@@ -83,6 +83,16 @@ void main() {
       expect(cancels, 1);
     });
 
+    testWidgets('tapping Annulla while teleporting does nothing', (
+      tester,
+    ) async {
+      await pumpChip(tester, isTeleporting: true);
+
+      await tester.tap(find.byKey(TeleportModeChip.cancelKey));
+
+      expect(cancels, 0);
+    });
+
     testWidgets('the cancel target is at least 44 by 44', (tester) async {
       await pumpChip(tester);
 

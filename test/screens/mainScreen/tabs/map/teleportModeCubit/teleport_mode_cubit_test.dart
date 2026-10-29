@@ -268,7 +268,7 @@ void main() {
     );
 
     blocTest<TeleportModeCubit, TeleportModeState>(
-      'a late success after cancel emits nothing',
+      'is ignored while the teleport is in flight, the success still lands',
       build: build,
       setUp: () {
         final pending = Completer<void>();
@@ -291,7 +291,7 @@ void main() {
       },
       expect: () => [
         TeleportActive(target: bea, isTeleporting: true),
-        const TeleportIdle(),
+        TeleportSucceeded(target: bea),
       ],
     );
   });
