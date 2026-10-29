@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
