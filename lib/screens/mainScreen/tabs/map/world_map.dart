@@ -460,7 +460,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     });
     _availability.questSheetChanged(true);
     _questAnimationController.forward();
-    if (lane.isWaitingForParty) _refreshPartyCount();
+    if (lane.isTravelling || lane.isWaitingForParty) _refreshPartyCount();
   }
 
   /// WR-02: il k/N legge la lista quest; aprendo il foglio la si rilegge.
