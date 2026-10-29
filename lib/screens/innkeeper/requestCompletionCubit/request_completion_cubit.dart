@@ -38,6 +38,12 @@ class RequestCompletionCubit extends Cubit<RequestCompletionState>
       emit(RequestCompletionEditing(drafts: await _readDrafts()));
     } on InnkeeperException catch (error) {
       emit(RequestCompletionLoadFailed(failure: error.failure));
+    } on Object {
+      // dati inattesi fuori dal repository (es. ParticipantDraft.from): mai
+      // un loader infinito
+      emit(
+        const RequestCompletionLoadFailed(failure: InnkeeperFailure.malformed),
+      );
     } finally {
       _isLoading = false;
     }
