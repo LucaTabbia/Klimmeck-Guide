@@ -189,11 +189,12 @@ void main() {
     verify(() => acceptance.reset()).called(1);
   });
 
-  testWidgets('success only resets', (tester) async {
+  testWidgets('success resets and rereads the quests', (tester) async {
     await pumpListener(tester);
 
     await emit(tester, const QuestAccepted('h-1'));
 
+    verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
     verify(() => acceptance.reset()).called(1);
     verifyNever(
       () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
