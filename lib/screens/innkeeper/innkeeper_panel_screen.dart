@@ -63,8 +63,20 @@ class InnkeeperPanelScreen extends StatelessWidget {
           ),
         ),
       ],
-      child: _buildScaffold(context),
+      child: PopScope(
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) _cancelTeleportRead(context);
+        },
+        child: _buildScaffold(context),
+      ),
     );
+  }
+
+  /// Una lettura per il teletrasporto vive col pannello: uscire la annulla.
+  /// Con la modalità già attiva il pop è l'atterraggio sulla Mappa (D-15).
+  static void _cancelTeleportRead(BuildContext context) {
+    final teleport = context.read<TeleportModeCubit>();
+    if (teleport.state is TeleportPreparing) teleport.cancel();
   }
 
   // default per veto (10-CONTEXT D-04/C8): SnackBar invece del pop silenzioso
