@@ -71,10 +71,7 @@ void main() {
   testWidgets('arriving on the marker watches the awaited quest', (
     tester,
   ) async {
-    await pumpListener(
-      tester,
-      initial: _character(pendingQuest: _travelling()),
-    );
+    await pumpListener(tester, initial: _character());
 
     await emit(tester, _character(pendingQuest: _waiting()));
 
@@ -123,12 +120,33 @@ void main() {
     verify(() => questCubit.watchQuest('q-2')).called(1);
   });
 
-  testWidgets('a lane still travelling watches nothing', (tester) async {
+  testWidgets('a lane still travelling watches its quest', (tester) async {
     await pumpListener(tester, initial: _character());
 
     await emit(tester, _character(pendingQuest: _travelling()));
 
-    verifyNever(() => questCubit.watchQuest(any()));
+    verify(() => questCubit.watchQuest('q-1')).called(1);
+    verifyNever(() => questCubit.unwatchQuest());
+  });
+
+  testWidgets('a lane travelling on mount is watched', (tester) async {
+    await pumpListener(
+      tester,
+      initial: _character(pendingQuest: _travelling()),
+    );
+
+    verify(() => questCubit.watchQuest('q-1')).called(1);
+  });
+
+  testWidgets('arriving on the marker keeps the same watch', (tester) async {
+    await pumpListener(
+      tester,
+      initial: _character(pendingQuest: _travelling()),
+    );
+
+    await emit(tester, _character(pendingQuest: _waiting()));
+
+    verify(() => questCubit.watchQuest('q-1')).called(1);
     verifyNever(() => questCubit.unwatchQuest());
   });
 
