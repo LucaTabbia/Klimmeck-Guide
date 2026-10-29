@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 
 import '../../../../../models/city.dart';
 import '../../../../../models/enums/city_size_type.dart';
 import '../components/city_marker.dart';
-import '../cubit/world_map_cubit.dart';
 import '../utils/map_constants.dart';
 
 class CityMarkersLayer extends StatelessWidget {
@@ -13,10 +11,14 @@ class CityMarkersLayer extends StatelessWidget {
     super.key,
     required this.cities,
     required this.zoomNotifier,
+    this.onCityTap,
   });
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
+
+  /// Null in modalità teletrasporto: le città restano bersagli, senza lore (10-CONTEXT C14).
+  final void Function(City city)? onCityTap;
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +36,7 @@ class CityMarkersLayer extends StatelessWidget {
                 scale: _calculateMarkerScale(zoom, city.type!.size),
                 child: CityMarker(
                   city: city,
-                  onTap: () => context
-                      .read<WorldMapCubit>()
-                      .loadLoreData(city.relatedLore!.id),
+                  onTap: onCityTap == null ? null : () => onCityTap!(city),
                 ),
               ),
             );

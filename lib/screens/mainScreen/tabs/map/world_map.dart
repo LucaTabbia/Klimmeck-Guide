@@ -233,6 +233,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             CityMarkersLayer(
               cities: widget.cities,
               zoomNotifier: _zoomNotifier,
+              onCityTap: _openCityLore,
             ),
             QuestMarkersLayer(
               cities: widget.cities,
@@ -336,6 +337,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         ? state.character.status?.location?.location
         : null;
   }
+
+  void _openCityLore(City city) =>
+      context.read<WorldMapCubit>().loadLoreData(city.relatedLore!.id);
 
   void _handleMapTap(TapPosition pos, LatLng latLng) {
     if (_selectedQuest != null) {

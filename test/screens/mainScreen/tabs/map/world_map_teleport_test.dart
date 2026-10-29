@@ -88,7 +88,8 @@ void main() {
       await pumpLayer(tester, null);
 
       await tester.tap(cityMarkerOf(cityA));
-      await tester.pump();
+      // Il tap passa alla mappa, che attende un eventuale doppio tap.
+      await tester.pump(const Duration(seconds: 1));
 
       expect(tester.takeException(), isNull);
       expect(tester.widget<CityMarker>(cityMarkerOf(cityA)).onTap, isNull);
