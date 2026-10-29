@@ -128,6 +128,18 @@ void main() {
     );
 
     blocTest<RequestCompletionCubit, RequestCompletionState>(
+      'an unexpected error while reading ends in a malformed load failure',
+      build: build,
+      setUp: () => when(
+        () => repository.readCharacter(_cosimo),
+      ).thenThrow(StateError('unexpected character shape')),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        const RequestCompletionLoadFailed(failure: InnkeeperFailure.malformed),
+      ],
+    );
+
+    blocTest<RequestCompletionCubit, RequestCompletionState>(
       'a retry after a failure loads again and opens the form',
       build: build,
       seed: () => const RequestCompletionLoadFailed(
