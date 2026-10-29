@@ -28,6 +28,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
@@ -305,6 +306,27 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(spellsCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides an idle teleport mode cubit and closes it on removal', (
+    tester,
+  ) async {
+    late TeleportModeCubit teleportCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        teleportCubit = context.read<TeleportModeCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(teleportCubit.state, const TeleportIdle());
+    expect(teleportCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(teleportCubit.isClosed, isTrue);
   });
 
   testWidgets('syncs the server clock once when the session starts', (
