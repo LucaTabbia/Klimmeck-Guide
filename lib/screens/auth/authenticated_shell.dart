@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
@@ -91,6 +92,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
+/// La Locanda (Phase 10) legge `InnkeeperRepository` e `ServerClockService` da qui con `openInnkeeperPanel`.
 class AuthenticatedShell extends StatelessWidget {
   const AuthenticatedShell({
     super.key,
@@ -213,6 +215,9 @@ class AuthenticatedShell extends StatelessWidget {
         ),
         RepositoryProvider<ArrivalRereadLedger>(
           create: (_) => ArrivalRereadLedger(),
+        ),
+        RepositoryProvider<InnkeeperRepository>(
+          create: (_) => InnkeeperRepository(graphQl: graphQl),
         ),
         BlocProvider<TravelCubit>(
           create: (context) => TravelCubit(

@@ -2,13 +2,17 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
+import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../helpers/landscape.dart';
 import '../../helpers/mocks.dart';
@@ -30,8 +34,20 @@ Finder _greyedAncestorOf(Finder finder) => find.ancestor(
 
 void main() {
   late MockPendingRequestsCubit cubit;
+  late MockAuthCubit authCubit;
 
-  setUp(() => cubit = MockPendingRequestsCubit());
+  setUp(() {
+    cubit = MockPendingRequestsCubit();
+    authCubit = MockAuthCubit();
+    whenListen(
+      authCubit,
+      const Stream<AuthState>.empty(),
+      initialState: AuthAuthenticated(
+        user: buildTestUser(role: RoleType.innkeeper),
+        accessToken: testAccessToken,
+      ),
+    );
+  });
 
   Future<void> pumpPanel(
     WidgetTester tester,
@@ -45,8 +61,11 @@ void main() {
     );
     await tester.pumpWidget(
       buildTestApp(
-        home: BlocProvider<PendingRequestsCubit>.value(
-          value: cubit,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthCubit>.value(value: authCubit),
+            BlocProvider<PendingRequestsCubit>.value(value: cubit),
+          ],
           child: const InnkeeperPanelScreen(),
         ),
       ),

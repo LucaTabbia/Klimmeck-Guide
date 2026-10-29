@@ -1,22 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
+import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
+import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pannello della Locanda (10-CONTEXT D-01/D-05..D-09): utility screen con la
 /// coda viva del GM; il loader solo fino al primo snapshot (apertura
-/// esplicita). Richiede [PendingRequestsCubit] sopra di sé.
+/// esplicita). Si chiude da solo su `FORBIDDEN` o sul ruolo perso (D-04).
+/// Richiede [PendingRequestsCubit] e [AuthCubit] sopra di sé.
 class InnkeeperPanelScreen extends StatelessWidget {
   const InnkeeperPanelScreen({super.key});
 
   static const String title = 'Locanda';
   static const String emptyTitle = 'Nessuna richiesta in attesa';
   static const String emptyNote = 'La coda si aggiorna da sola';
+  static const String unavailableMessage = 'La Locanda non è disponibile';
 
   @override
   Widget build(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PendingRequestsCubit, PendingRequestsState>(
+          listenWhen: (previous, current) =>
+              !previous.isForbidden && current.isForbidden,
+          listener: _closeForbidden,
+        ),
+        BlocListener<AuthCubit, AuthState>(
+          listenWhen: (previous, current) =>
+              isInnkeeperSession(previous) && !isInnkeeperSession(current),
+          listener: (context, _) => closeInnkeeperPanel(context),
+        ),
+      ],
+      child: _buildScaffold(),
+    );
+  }
+
+  // default per veto (10-CONTEXT D-04/C8): SnackBar invece del pop silenzioso
+  void _closeForbidden(BuildContext context, PendingRequestsState _) {
+    final messenger = ScaffoldMessenger.of(context);
+    closeInnkeeperPanel(context);
+    messenger.showSnackBar(const SnackBar(content: Text(unavailableMessage)));
+  }
+
+  Widget _buildScaffold() {
     return Scaffold(
       appBar: AppBar(title: const Text(title)),
       body: DecoratedBox(
