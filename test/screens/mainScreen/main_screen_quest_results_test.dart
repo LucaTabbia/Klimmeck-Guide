@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_end_event.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -26,6 +28,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -34,6 +37,7 @@ import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_pending_quest_results.dart';
 import '../../helpers/fakes/recording_quest_result_acknowledger.dart';
 import '../../helpers/fixtures/quest_fixtures.dart';
@@ -92,6 +96,20 @@ class _MainScreenHarness {
       const Stream<TransactionState>.empty(),
       initialState: TransactionInitial(),
     );
+    whenListen(
+      teleport,
+      const Stream<TeleportModeState>.empty(),
+      initialState: const TeleportIdle(),
+    );
+    when(() => teleport.cancel()).thenReturn(null);
+    whenListen(
+      auth,
+      const Stream<AuthState>.empty(),
+      initialState: AuthAuthenticated(
+        user: buildTestUser(role: RoleType.innkeeper),
+        accessToken: testAccessToken,
+      ),
+    );
   }
 
   final MockQuestResultRepository repository = MockQuestResultRepository();
@@ -118,6 +136,8 @@ class _MainScreenHarness {
   final MockTransactionCubit transactions = MockTransactionCubit();
   final MockNotificationPreferencesCubit preferences =
       MockNotificationPreferencesCubit();
+  final MockTeleportModeCubit teleport = MockTeleportModeCubit();
+  final MockAuthCubit auth = MockAuthCubit();
 
   /// Creati al primo uso dentro il test: la coda delle conferme nasce nella
   /// zona fake del tester, non in quella reale di `setUp`.
@@ -166,6 +186,8 @@ class _MainScreenHarness {
             BlocProvider<NotificationPreferencesCubit>.value(
               value: preferences,
             ),
+            BlocProvider<TeleportModeCubit>.value(value: teleport),
+            BlocProvider<AuthCubit>.value(value: auth),
           ],
           child: MainScreen(
             characterId: 'c-1',

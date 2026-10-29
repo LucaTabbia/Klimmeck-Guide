@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/notification.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
+import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
@@ -17,6 +21,7 @@ import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -32,14 +37,17 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/kg_error.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fixtures/quest_fixtures.dart';
 import '../../helpers/fixtures/travel_fixtures.dart';
 import '../../helpers/landscape.dart';
@@ -52,8 +60,29 @@ void main() {
   late MockMainScreenCubit mainScreenCubit;
   late MockQuestResultsCubit questResultsCubit;
   late MockNotificationPreferencesCubit preferencesCubit;
+  late MockTeleportModeCubit teleportCubit;
+  late StreamController<TeleportModeState> teleportStates;
+  late MockAuthCubit authCubit;
 
   setUp(() {
+    teleportCubit = MockTeleportModeCubit();
+    teleportStates = StreamController<TeleportModeState>.broadcast();
+    addTearDown(teleportStates.close);
+    whenListen(
+      teleportCubit,
+      teleportStates.stream,
+      initialState: const TeleportIdle(),
+    );
+    when(() => teleportCubit.cancel()).thenReturn(null);
+    authCubit = MockAuthCubit();
+    whenListen(
+      authCubit,
+      const Stream<AuthState>.empty(),
+      initialState: AuthAuthenticated(
+        user: buildTestUser(role: RoleType.innkeeper),
+        accessToken: testAccessToken,
+      ),
+    );
     characterCubit = MockCharacterCubit();
     questCubit = MockQuestCubit();
     mainScreenCubit = MockMainScreenCubit();
@@ -113,6 +142,8 @@ void main() {
             BlocProvider<NotificationPreferencesCubit>.value(
               value: preferencesCubit,
             ),
+            BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
+            BlocProvider<AuthCubit>.value(value: authCubit),
           ],
           child: const MainScreen(characterId: 'c-42'),
         ),
@@ -177,6 +208,8 @@ void main() {
                 BlocProvider<NotificationPreferencesCubit>.value(
                   value: preferencesCubit,
                 ),
+                BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
+                BlocProvider<AuthCubit>.value(value: authCubit),
               ],
               child: const MainScreen(characterId: 'c-42'),
             ),
@@ -355,6 +388,8 @@ void main() {
               BlocProvider<NotificationPreferencesCubit>.value(
                 value: preferencesCubit,
               ),
+              BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
+              BlocProvider<AuthCubit>.value(value: authCubit),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -465,6 +500,62 @@ void main() {
         await tapItem(tester, NotificationIntentLanding.worldMapPageIndex);
         expect(controller.page!.round(), 0);
         expect(availability.state.isMapPage, isTrue);
+      });
+
+      group('teleport mode (10-CONTEXT D-17)', () {
+        const bea = TeleportTarget(
+          characterId: 'char-bea',
+          name: 'Bea',
+          location: PointOfInterest(
+            id: 'city-marker-1',
+            type: null,
+            location: LatLng(1, 2),
+            city: null,
+            quest: null,
+          ),
+          sex: SexType.female,
+        );
+
+        testWidgets('another tab cancels the teleport mode', (tester) async {
+          await pumpMainScreen(tester, 'city-marker-1');
+          await loadPages(tester);
+          await openSatchel(tester);
+
+          await tapItem(tester, 1);
+
+          verify(() => teleportCubit.cancel()).called(1);
+        });
+
+        testWidgets('the map tab does not cancel the teleport mode', (
+          tester,
+        ) async {
+          await pumpMainScreen(tester, 'city-marker-1');
+          await loadPages(tester);
+          await openSatchel(tester);
+          await tapItem(tester, 1);
+          clearInteractions(teleportCubit);
+
+          await openSatchel(tester);
+          await tapItem(tester, NotificationIntentLanding.worldMapPageIndex);
+
+          verifyNever(() => teleportCubit.cancel());
+        });
+
+        testWidgets('entering the mode from another tab lands on the map '
+            'without cancelling it (P3)', (tester) async {
+          await pumpMainScreen(tester, 'city-marker-1');
+          await loadPages(tester);
+          final controller = await openSatchel(tester);
+          await tapItem(tester, 3);
+          clearInteractions(teleportCubit);
+
+          teleportStates.add(const TeleportActive(target: bea));
+          await tester.pumpAndSettle();
+
+          expect(controller.page!.round(), 0);
+          expect(availability.state.isMapPage, isTrue);
+          verifyNever(() => teleportCubit.cancel());
+        });
       });
     });
 
