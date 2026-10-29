@@ -341,7 +341,7 @@ Plans:
 - [x] 10-01-PLAN.md — Pure models: queue entry, presence on the server clock, cards (grouping, seats, hiding, can-complete), participant draft, override diff, completion input, fixtures
 - [x] 10-02-PLAN.md — Queue fragment + GetPendingRequests/OnPendingRequestsUpdated/CompletePendingRequest/TeleportCharacter (registry 42, schema check 42/42), service methods, InnkeeperFailure, InnkeeperRepository
 - [x] 10-03-PLAN.md — Route-scoped PendingRequestsCubit: snapshot replace, silent resubscribe, terminal FORBIDDEN, tick, endTime+5/+65 s rereads, resume refetch, optimistic hide
-- [ ] 10-04-PLAN.md — TeleportTarget + TeleportModeCubit state machine (read first, same-city no-op, cancel guard) and the isTeleportMode availability flag
+- [x] 10-04-PLAN.md — TeleportTarget + TeleportModeCubit state machine (read first, same-city no-op, cancel guard) and the isTeleportMode availability flag
 - [ ] 10-05-PLAN.md — Panel screen (loader, empty state, cards, greyed rows), openInnkeeperPanel root route, shell InnkeeperRepository, FORBIDDEN/lost-role close, role-gated «Locanda» section in Settings
 - [ ] 10-06-PLAN.md — RequestCompletionCubit (parallel reads, clamped edits, single submit with only changed participants, typed failures) and the neutral confirm style on the dialog
 - [ ] 10-07-PLAN.md — Completion UI: «Completa» on the card, form route (HP slider, injury chips, steppers), confirmation recap, per-code outcomes, results recap
@@ -409,7 +409,7 @@ Plans:
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 3/11 | In Progress | - |
+| 10. Admin Panel (innkeeper) | 4/11 | In Progress | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
