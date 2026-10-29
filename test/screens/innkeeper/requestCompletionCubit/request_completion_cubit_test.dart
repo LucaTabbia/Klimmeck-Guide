@@ -6,12 +6,15 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/participant_draft.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/fixtures/pending_request_fixtures.dart';
+import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/mocks.dart';
 
 const String _bea = 'char-bea';
@@ -44,8 +47,21 @@ final RequestCompletionEditing _editing = RequestCompletionEditing(
 RequestCompletionEditing _withBea(ParticipantDraft bea) =>
     RequestCompletionEditing(drafts: [bea, _cosimoDraft]);
 
+final List<QuestResult> _results = [
+  QuestResult.fromJson(questResultJson(id: 'result-bea', character: _bea)),
+  QuestResult.fromJson(
+    questResultJson(id: 'result-cosimo', character: _cosimo),
+  ),
+];
+
 void main() {
   late MockInnkeeperRepository repository;
+
+  setUpAll(() {
+    registerFallbackValue(
+      const CompletePendingRequestInput(pendingQuestId: '', outcomes: []),
+    );
+  });
 
   setUp(() {
     repository = MockInnkeeperRepository();
@@ -224,6 +240,105 @@ void main() {
       ),
       act: (cubit) => cubit.setSpellUsed(_bea, fireballSpellId, 1),
       expect: () => <RequestCompletionState>[],
+    );
+  });
+
+  group('submit', () {
+    void answerComplete() => when(
+      () => repository.complete(any()),
+    ).thenAnswer((_) async => _results);
+
+    blocTest<RequestCompletionCubit, RequestCompletionState>(
+      'nobody changed sends the first entry without outcomes',
+      build: build,
+      seed: () => _editing,
+      setUp: answerComplete,
+      act: (cubit) => cubit.submit(),
+      expect: () => [
+        _editing.copyWith(isSubmitting: true),
+        RequestCompletionSucceeded(results: _results),
+      ],
+      verify: (_) {
+        verify(
+          () => repository.complete(
+            const CompletePendingRequestInput(
+              pendingQuestId: 'pq-world-1',
+              outcomes: [],
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<RequestCompletionCubit, RequestCompletionState>(
+      'sends only the changed participants',
+      build: build,
+      seed: () => _editing,
+      setUp: answerComplete,
+      act: (cubit) async {
+        cubit.setHp(_bea, 5);
+        await cubit.submit();
+      },
+      verify: (_) {
+        final input =
+            verify(() => repository.complete(captureAny())).captured.single
+                as CompletePendingRequestInput;
+        expect(input.pendingQuestId, 'pq-world-1');
+        expect(input.outcomes.single.characterId, _bea);
+        expect(input.outcomes.single.hpAfter, 5);
+      },
+    );
+
+    for (final failure in [
+      InnkeeperFailure.overrideInvalid,
+      InnkeeperFailure.notParticipant,
+      InnkeeperFailure.notFound,
+      InnkeeperFailure.questInProgress,
+      InnkeeperFailure.forbidden,
+      InnkeeperFailure.connection,
+      InnkeeperFailure.timedOut,
+    ]) {
+      blocTest<RequestCompletionCubit, RequestCompletionState>(
+        '${failure.name} keeps the drafts and exposes the failure',
+        build: build,
+        seed: () => _editing,
+        setUp: () => when(
+          () => repository.complete(any()),
+        ).thenThrow(InnkeeperException(failure)),
+        act: (cubit) => cubit.submit(),
+        expect: () => [
+          _editing.copyWith(isSubmitting: true),
+          _editing.copyWith(failure: failure, failureSerial: 1),
+        ],
+      );
+    }
+
+    test('a second submit while in flight is ignored', () async {
+      final completion = Completer<List<QuestResult>>();
+      when(
+        () => repository.complete(any()),
+      ).thenAnswer((_) => completion.future);
+      final cubit = build();
+      await cubit.load();
+
+      final first = cubit.submit();
+      final second = cubit.submit();
+      completion.complete(_results);
+      await Future.wait([first, second]);
+
+      verify(() => repository.complete(any())).called(1);
+      expect(cubit.state, RequestCompletionSucceeded(results: _results));
+      await cubit.close();
+    });
+
+    blocTest<RequestCompletionCubit, RequestCompletionState>(
+      'outside the form submits nothing',
+      build: build,
+      act: (cubit) => cubit.submit(),
+      expect: () => <RequestCompletionState>[],
+      verify: (_) {
+        verifyNever(() => repository.complete(any()));
+      },
     );
   });
 
