@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/travel_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
@@ -153,6 +154,38 @@ class KlimmeckGraphQl {
       ),
     );
     return _questResultFrom(data['questResult']);
+  }
+
+  /// Risultati dell'utente non ancora confermati, nell'ordine del server (BE
+  /// 9.2 D-02). Una voce malformata è scartata, le altre restano (09-REVIEW
+  /// IN-04). Lancia [OperationException] o [FormatException] se la lista manca.
+  Future<List<QuestResult>> getUnacknowledgedQuestResults() async {
+    final data = _dataOrThrow(
+      await performQuery(QuestResultQueries.listUnacknowledgedQuestResults),
+    );
+    final entries = data['unacknowledgedQuestResults'];
+    if (entries is! List) {
+      throw const FormatException('unacknowledgedQuestResults missing');
+    }
+    return List.unmodifiable(
+      entries.map(QuestResult.tryFromJson).whereType<QuestResult>(),
+    );
+  }
+
+  /// Conferma un foglio chiuso (BE 9.2 D-03), idempotente; la conferma di una
+  /// morte stacca il personaggio corrente (D-12). Lancia [OperationException]
+  /// o [FormatException].
+  Future<void> acknowledgeQuestResult(String id) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: QuestResultMutations.acknowledgeQuestResult,
+        variables: {'id': id},
+      ),
+    );
+    final result = data['acknowledgeQuestResult'];
+    if (result is! Map<String, dynamic> || result['successful'] != true) {
+      throw const FormatException('acknowledgeQuestResult not successful');
+    }
   }
 
   void _throwIfStreamFailed(QueryResult result, {required String operation}) {

@@ -15,19 +15,3 @@ abstract interface class PendingQuestResults {
 abstract interface class QuestResultAcknowledger {
   Future<void> acknowledge(String resultId);
 }
-
-/// Finché il BE 9.2 non è su develop (piano 09-12): nessun risultato pendente.
-class NoPendingQuestResults implements PendingQuestResults {
-  const NoPendingQuestResults();
-
-  @override
-  Future<List<QuestResult>> fetchUnacknowledged() async => const [];
-}
-
-/// Finché il BE 9.2 non è su develop (piano 09-12): la conferma non parte.
-class NoQuestResultAcknowledger implements QuestResultAcknowledger {
-  const NoQuestResultAcknowledger();
-
-  @override
-  Future<void> acknowledge(String resultId) async {}
-}
