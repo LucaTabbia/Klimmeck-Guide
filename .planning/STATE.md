@@ -6,7 +6,7 @@ status: executing
 last_updated: "2026-10-29T18:47:34.000Z"
 last_activity: "2026-10-29 -- Phase 10 plans 10-01..10-10 executed, review fixed, verified (human_needed), audited; parked at 10/11 waiting for the BE Phase 10 PR (BE-HARD-08)"
 progress:
-  total_phases: 12
+  total_phases: 17
   completed_phases: 10
   total_plans: 111
   completed_plans: 100
@@ -37,6 +37,10 @@ Last activity: 2026-10-29 -- Phase 10 plans 10-01..10-10 executed (70 commits), 
 - Progressione livelli, apprendimento magie, sblocco slot magie: gestiti lato backend (frontend reattivo)
 - Shop e sezione lore già esistenti e funzionanti
 - Lista quest nel tab board quasi definitiva; mancano layout info sheet per tipo
+
+### Roadmap Evolution
+
+- Phases 13–17 added 2026-10-29 (user request, before closing v1.0): 13 City Shops ↔ BE 12, 14 Quest Generation companion ↔ BE 13 (`infos.enemies` replaces `infos.enemy`), 15 Travel Food ↔ BE 14, 16 Travel Ambushes ↔ BE 15, 17 Unlockable Lore ↔ BE 16; BE Phase 11 World Content (data-only, from `World building.docx`) is the data prerequisite of every device UAT. Execution order 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Each FE phase waits for the BE companion merge on BE `develop` (gate pattern 08-12/09-12). Contracts decided in the discuss of 2026-10-29 are recorded in the ROADMAP phase details; the BE roadmap carries the server rules.
 
 ## Open Questions / Blockers
 

@@ -172,6 +172,37 @@ Scopo: sbloccare test manuali di tutte le fasi gameplay senza attrito OAuth. Pha
 
 > **Backend concerns (out of scope for frontend hardening, tracked by BE team):** atomic balance debit / optimistic locking on `twitchPoints`, `Character.coins` and accepted quests, server-timestamp validation of travel completion, atomic clearing of `activeTravel` on admin teleport. These are fully server-side responsibilities; the frontend only reacts to authoritative state changes.
 
+### City Shops (Phase 13, added 2026-10-29)
+
+- [ ] **SHOP-02**: On a city marker the shop lists only that city's pool of items (equipment and loot) as served by the backend; the city size (village / city / capital) and the pool live on the backend (BE Phase 12, seeded by BE Phase 11); the frontend never filters by rarity itself and the shop sheet names the city
+- [ ] **SHOP-03**: Buying an item outside the current pool is refused by the backend with a stable code mapped on the in-app banner like the other transaction codes; selling works in every city; stock is infinite; legendary items are never on sale
+
+### Quest Generation companion (Phase 14, added 2026-10-29)
+
+- [ ] **QGEN-01**: Quest sheets list every enemy of the quest with its quantity from `infos.enemies: [{ enemy, quantity }]`; the single `infos.enemy` is removed from every document and model (BE Phase 13 replaces it)
+- [ ] **QGEN-02**: The result sheet lists the enemies fought, for standard-lane and ambush outcomes
+- [ ] **QGEN-03**: From the Locanda the innkeeper can trigger the quest generator («Genera missioni», BE `generateQuests`) with an explicit confirmation and sees how many quests were generated; `FORBIDDEN` and the other codes are mapped inline
+- [ ] **QGEN-04**: Fixed `crime` and `guard` quests render with the service family layout and `dungeon` with the combat family; no alignment mechanic (still out of scope)
+
+### Travel Food (Phase 15, added 2026-10-29)
+
+- [ ] **FOOD-01**: The travel confirmation sheet shows the food the backend will consume (items and quantities) and the HP lost on the uncovered kilometres, from `travelPreview`, before «Parti»
+- [ ] **FOOD-02**: Combat and service quest sheets show the food cost of the automatic travel to the marker next to the channel-points line, from a backend acceptance preview
+- [ ] **FOOD-03**: A departure or an acceptance refused for lack of food (backend starvation code) is explained on the in-app banner and the sheet recomposes
+- [ ] **FOOD-04**: Inventory and HP after a departure update only through `characterUpdated`; the frontend computes nothing (1 power = 3 minutes of march, minimum-waste selection, km n costs n HP: all server rules)
+
+### Travel Ambushes (Phase 16, added 2026-10-29)
+
+- [ ] **AMBUSH-01**: When the backend reroutes an `activeTravel` after a lost ambush, the pawn, the dashed route and the remaining time follow the new polyline live
+- [ ] **AMBUSH-02**: The ambush report is a variant of the result sheet (won: XP and coins; lost: HP delta, injuries, city reached), queued and acknowledged like the quest results and shown on the free Map
+- [ ] **AMBUSH-03**: The confirmation sheet never reveals an ambush; the arrival banner/push leads to the Map where the report appears
+
+### Unlockable Lore (Phase 17, added 2026-10-29)
+
+- [ ] **LORE-01**: The Library shows only the lore unlocked by the current character (backend-filtered), live after each unlock; locked lore is hidden; a book with nothing unlocked shows an empty state
+- [ ] **LORE-02**: Unknown enemies (never defeated by the character) show a darkened portrait and the name only on quest and result sheets; the knowledge flag comes from the backend
+- [ ] **LORE-03**: A new character starts with the home-city lore and its region only; deleting and recreating the character resets the Library
+
 ## Future Requirements
 
 Deferred to post-v1.0. Tracked but not in current roadmap.
@@ -199,12 +230,12 @@ Explicitly excluded from v1.0. Documented to prevent scope creep.
 | Frontend accessibility pass                         | Deferred to a later milestone — v1.0 does not optimize for screen reader, large text, or motor-impairment affordances                                             |
 | Guilds and arena                                    | V2; requires complex social system                                                                                                                                |
 | Guild blogs                                         | V2; depends on guild system                                                                                                                                       |
-| Category-specific shops                             | V2; v1 has a single generic shop (already exists)                                                                                                                 |
+| Shops by item category                              | V2; superseded in part on 2026-10-29: pools per city and size are Phase 13 (BE Phase 12); a shop per category (smith, alchemist…) remains V2                        |
 | Village visual with clickable houses                | V2; significant UI refactor                                                                                                                                       |
-| LLM-generated quests                                | V2; requires AI integration                                                                                                                                       |
+| LLM-generated quest descriptions                    | V2; the server-side generation and placement of consumable `enemy`/`boss` quests is BE Phase 13 (Phase 14 companion) with templated titles; prose by LLM stays V2    |
 | Audio upload/playback for story/worldMission        | V2; requires media storage                                                                                                                                        |
 | Speech-to-text for quest audio                      | V2; depends on audio upload                                                                                                                                       |
-| Good/evil alignment system (crime/guard)            | V2; complex mechanic (note: `crime` and `guard` QuestType enum values exist but are not surfaced in v1.0 layouts)                                                 |
+| Good/evil alignment system (crime/guard)            | V2; complex mechanic (fixed `crime`/`guard` quests seeded by BE Phase 11 render with the service layout, QGEN-04, without any alignment logic)                     |
 | Lore with navigable hyperlinks between entries      | V2                                                                                                                                                                |
 | Completed quest summary with details                | V2                                                                                                                                                                |
 | go_router deep link routing overhaul                | V2; manual `NavigationService` sufficient for v1                                                                                                                  |
@@ -238,15 +269,20 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ITEM-01, ITEM-02, SHOP-01   | Phase 8 | Complete |
 | COMBAT-01 through COMBAT-10 | Phase 9 | Complete (COMBAT-01/06/07 amended, COMBAT-08/09/10 added 2026-10-27; BE Phase 9.2 merged; Android device E2E 2026-10-29) |
 | ADMIN-01 through ADMIN-08   | Phase 10 | Pending (context gathered 2026-10-29; BE-HARD-08 companion in BE Phase 10) |
-| HARDEN-01 through HARDEN-06 | TBD   | Pending |
+| HARDEN-01 through HARDEN-06 | Phase 12 (executes last) | Pending |
+| SHOP-02, SHOP-03            | Phase 13 | Pending (added 2026-10-29; BE Phase 12) |
+| QGEN-01 through QGEN-04     | Phase 14 | Pending (added 2026-10-29; BE Phase 13, `enemies` replaces `enemy`) |
+| FOOD-01 through FOOD-04     | Phase 15 | Pending (added 2026-10-29; BE Phase 14) |
+| AMBUSH-01 through AMBUSH-03 | Phase 16 | Pending (added 2026-10-29; BE Phase 15) |
+| LORE-01 through LORE-03     | Phase 17 | Pending (added 2026-10-29; BE Phase 16) |
 
 **Coverage:**
 
-- v1 requirements: 87 total (74 original + 5 DEV-AUTH + 5 Phase 8 extension + 3 COMBAT-08..10 added 2026-10-27)
-- Mapped to phases: 12 (DEV-AUTH → Phase 1, AUTH → Phase 11); rest still TBD
-- Unmapped: 67 (pending roadmap)
+- v1 requirements: 103 total (74 original + 5 DEV-AUTH + 5 Phase 8 extension + 3 COMBAT-08..10 added 2026-10-27 + 16 added 2026-10-29: SHOP-02/03, QGEN-01..04, FOOD-01..04, AMBUSH-01..03, LORE-01..03)
+- Mapped to phases: all (Phases 1–17; HARDEN → Phase 12, executed last)
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-04-10_
-_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-26 — Phase 7 complete: TRAVEL-01..04 ticked after the Android device E2E (07-HUMAN-UAT.md, steps 1-11 pass)_ · _Last updated: 2026-10-27 — Phase 9 discuss: COMBAT-01/06/07 amended, COMBAT-08/09/10 added (CONTEXT D-01..D-22); BE Phase 9.2 inserted_ · _Last updated: 2026-10-29 — Phase 9 complete: COMBAT-01..10 ticked after the Android device E2E (09-HUMAN-UAT.md, 12/12 pass); party counter during the own travel (F1) is a Phase 7 behaviour fixed on the branch, not a COMBAT gap_ · _Last updated: 2026-10-29 — Phase 10 discuss: ADMIN-01..08 amended (no reject, no grade/monsters/rewards, completion form with overrides, teleport from the queue on the Map, busy standard lane hidden); BE-HARD-08 added to the BE Phase 10_
+_Last updated: 2026-10-09 — CHAR-06 deferred by user decision (Phase 2 D-17); CHAR-05 curated half deferred; CHAR-08 satisfied by the single-page flow (D-04)_ · _Last updated: 2026-04-14 — split Auth phase: introduced DEV-AUTH-01..05 (Phase 1, stub) and moved full OAuth (AUTH-01..07) to Phase 11 per decision to defer OAuth friction during manual QA_ · _Last updated: 2026-10-21 — Phase 6 discuss: QUEST-03/04/05/06/07 amended (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-24 — Phase 7 discuss: TRAVEL-02/03 amended, no travel cost (CONTEXT D-01..D-20)_ · _Last updated: 2026-10-26 — Phase 7 complete: TRAVEL-01..04 ticked after the Android device E2E (07-HUMAN-UAT.md, steps 1-11 pass)_ · _Last updated: 2026-10-27 — Phase 9 discuss: COMBAT-01/06/07 amended, COMBAT-08/09/10 added (CONTEXT D-01..D-22); BE Phase 9.2 inserted_ · _Last updated: 2026-10-29 — Phase 9 complete: COMBAT-01..10 ticked after the Android device E2E (09-HUMAN-UAT.md, 12/12 pass); party counter during the own travel (F1) is a Phase 7 behaviour fixed on the branch, not a COMBAT gap_ · _Last updated: 2026-10-29 — Phase 10 discuss: ADMIN-01..08 amended (no reject, no grade/monsters/rewards, completion form with overrides, teleport from the queue on the Map, busy standard lane hidden); BE-HARD-08 added to the BE Phase 10_ · _Last updated: 2026-10-29 — v1.0 extended: SHOP-02/03 (Phase 13), QGEN-01..04 (Phase 14), FOOD-01..04 (Phase 15), AMBUSH-01..03 (Phase 16), LORE-01..03 (Phase 17); Out of Scope amended for shops, LLM quests and crime/guard_

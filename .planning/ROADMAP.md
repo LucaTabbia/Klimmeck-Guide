@@ -1,10 +1,10 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites. _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
+**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
-**Granularity:** Standard (12 phases)
-**Coverage:** 79/79 v1 requirements mapped
+**Granularity:** Standard (17 phases)
+**Coverage:** 95/95 v1 requirements mapped (79 + 16 added 2026-10-29)
 
 ## Phase Ordering Rationale
 
@@ -38,6 +38,8 @@ Phase 11 (Auth & Session)     ← sostituisce l'implementazione di AuthTokenServ
 Phase 12 (Hardening)          ← always last; auditing include auth reale
 ```
 
+3. **Estensione del 2026-10-29 (Phases 13–17).** Prima di chiudere la v1.0 l'utente ha aggiunto sei fasi di contenuto e regole di gioco, specchiate sul backend (BE Phases 11–16): negozi con pool per città e taglia, generazione server-side delle quest consumabili con il contratto multi-nemico, cibo consumato dal viaggio, imboscate lungo la strada, lore sbloccabili per personaggio, e il popolamento del mondo dal documento di world building (solo BE, dati per le UAT). Le fasi FE 13–17 sono **companion**: consumano contratti e dati del backend e non calcolano nulla. **Ordine di esecuzione: 13 → 14 → 15 → 16 → 17 → 12**: l'hardening resta l'ultima fase eseguita anche se il numero è più basso (come già la Phase 11, completata prima della 10). Ogni fase FE parte solo dopo la merge della fase BE corrispondente su BE `develop` (gate pattern 08-12 / 09-12).
+
 ## UX Principles (non-phase, cross-cutting)
 
 - **Klimmeck Guide is a videogame.** Phases touching gameplay screens (Sync, Quest, Travel, Spells, Combat) must not introduce app-style chrome: no reconnection banners, no "loading" scaffolding, no status indicators outside Login, Character Creation, Settings, Admin.
@@ -53,6 +55,12 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 - **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
 - **COMBAT-09 / COMBAT-10** — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` (additive) and the seats of a started quest kept by the archive (BE Phase 9.2, added 2026-10-27). Blocks only the schema-gated plans and the device E2E of Phase 9 (Combat Result Sheet); the BE Phase 9 contract (`questResultReceived`, `questResult`, push `questEnd`) is already on BE `develop`.
 - **ADMIN-02 / ADMIN-03 (BE-HARD-08)** — `PendingRequestCharacter.pendingQuest` (additive) and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied (BE Phase 10, added 2026-10-29). Blocks only the schema-gated plan and the device E2E of Phase 10 (Admin Panel); the queue, the completion and the teleport are already on BE `develop`.
+
+- **SHOP-02 / SHOP-03 (BE Phase 12, added 2026-10-29)** — `City.size`, the city pool (`City.shopItems` or a dedicated query) and the refusal code for an item outside the pool. Blocks Phase 13 (City Shops); BE Phase 11 seeds the pools.
+- **QGEN-01..04 (BE Phase 13, added 2026-10-29)** — `QuestInfos.enemies: [{ enemy, quantity }]` **replaces** `infos.enemy` (declared non-additive change), `generateQuests` innkeeper mutation. Blocks Phase 14 (Quest Generation companion): the gated FE plans align the documents before the BE merge.
+- **FOOD-01..04 (BE Phase 14, added 2026-10-29)** — additive food/HP fields on `travelPreview`, an acceptance preview for the quest automatic travel, the starvation refusal code. Blocks Phase 15 (Travel Food).
+- **AMBUSH-01..03 (BE Phase 15, added 2026-10-29)** — `activeTravel` rewritten on a lost ambush, ambush outcome on `QuestResult`. Blocks Phase 16 (Travel Ambushes).
+- **LORE-01..03 (BE Phase 16, added 2026-10-29)** — lore queries filtered per character, `known` flag on quest/result enemies. Blocks Phase 17 (Unlockable Lore); BE Phase 11 seeds the lore.
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -70,6 +78,14 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
+
+- [ ] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (village / city / capital, backend-owned, never legendary); the refusal for an item outside the pool is mapped on the banner; sell anywhere, infinite stock. BE companion: BE Phase 12. _(added 2026-10-29)_
+- [ ] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_
+- [ ] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_
+- [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
+- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
+
+**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last.
 
 ## Phase Details
 
@@ -396,6 +412,74 @@ Plans:
   - Concrete test harness(es) for memory profiling and dual-device simulation.
 **Plans**: TBD
 
+### Phase 13: City Shops
+**Goal**: The shop a player opens on a city marker sells only that city's own pool of items — villages mostly common with a few uncommon, cities also some rare, capitals also some ultrarare, never legendary — with the pool, the city size and every refusal owned by the backend (BE Phase 12); selling stays possible everywhere, stock is infinite, prices are the catalogue's.
+**Depends on**: Phase 7 (shop only on a city marker), Phase 8 (shop filters, `ItemRow`), BE Phase 11 (catalogue and pools seeded), BE Phase 12 (`City.size`, pool, refusal code)
+**Scope**: S
+**Requirements**: SHOP-02, SHOP-03
+**Success Criteria** (what must be TRUE):
+  1. On a city marker the shop lists only the items of that city's pool (equipment and loot) as served by the backend; an item outside the pool never appears and cannot be bought; the shop sheet names the city (gameplay sheet, no utility chrome).
+  2. The backend refusal for an item outside the pool is mapped on the in-app banner like the other transaction codes; the frontend never filters by rarity or price itself.
+  3. Selling works in every city as today; the device UAT visits a village, a city and a capital and sees three different pools with the expected rarities and no legendary item.
+**Decisions made (2026-10-29)**: explicit `size` on `City` (BE), hand-curated pools loaded by the BE content script, sell anywhere, infinite stock, legendary never sold, catalogue prices everywhere.
+**Decisions to make during discuss step**: how the pool reaches the client (fields on `City` vs dedicated query), empty-pool copy, whether the size is shown.
+**Backend prerequisite**: BE Phase 12 merged on BE `develop`; BE Phase 11 data for the UAT.
+**Plans**: TBD
+
+### Phase 14: Quest Generation (frontend companion)
+**Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
+**Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 10 (Locanda panel), BE Phase 13
+**Scope**: M
+**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04
+**Success Criteria** (what must be TRUE):
+  1. Combat quest sheets list every enemy with its quantity («3 × Goblin, 1 × Hobgoblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
+  2. The result sheet shows the enemies fought, for standard-lane and ambush outcomes.
+  3. From the Locanda the innkeeper triggers «Genera missioni» (BE `generateQuests`) with explicit confirmation and sees the outcome (how many quests, or none); `FORBIDDEN` mapped inline.
+  4. Fixed `crime` and `guard` quests (BE Phase 11) render with the service family layout without any alignment mechanic; `dungeon` renders as combat.
+**Decisions made (2026-10-29)**: hard replacement of `enemy` (gated plans align before the BE merge, pattern 08-12/09-12); `hunt` and `dungeon` are fixed quests, never generated.
+**Backend prerequisite**: BE Phase 13 merged on BE `develop`.
+**Plans**: TBD
+
+### Phase 15: Travel Food
+**Goal**: Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
+**Depends on**: Phase 7 (confirmation sheet, travel cubit), Phase 6 (quest sheet cost line), Phase 8 (journal items), BE Phase 14
+**Scope**: M
+**Requirements**: FOOD-01, FOOD-02, FOOD-03, FOOD-04
+**Success Criteria** (what must be TRUE):
+  1. The travel confirmation sheet shows, from `travelPreview`, the food that will be eaten (items and quantities) and the HP lost on the uncovered kilometres (0 when covered) before «Parti»; nothing is computed on the client.
+  2. Combat and service quest sheets show the food cost of the automatic travel to the marker next to the channel-points line, from a backend preview; the swipe is refused with the starvation code when the character would not arrive with at least 1 HP, mapped on the banner.
+  3. `startTravel` refused with the starvation code → banner, sheet recomposed; after a departure the journal shows the reduced food and the Map the reduced HP through `characterUpdated`.
+  4. Teleport and instant jump unaffected; device UAT: trip fully covered, trip partially covered (HP lost), trip refused.
+**Decisions made (2026-10-29)**: 1 power = 3 minutes of march (500 m at base speed on a standard road), terrain + pet + injuries count through the duration; minimum-waste selection by the BE; uncovered km n costs n HP; applied at departure; applies to the quest automatic travel too.
+**Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
+**Plans**: TBD
+
+### Phase 16: Travel Ambushes
+**Goal**: A journey can be ambushed: the frontend renders the server's decision — the pawn keeps going after a victory, or turns back towards the nearest city after a defeat — and at arrival shows the ambush report on the result sheet, never lost (unacknowledged pipeline).
+**Depends on**: Phase 7 (route rendering from `activeTravel`), Phase 9 (result sheet + ack), Phase 15 (travel preview flow), BE Phase 15
+**Scope**: M
+**Requirements**: AMBUSH-01, AMBUSH-02, AMBUSH-03
+**Success Criteria** (what must be TRUE):
+  1. When the backend rewrites `activeTravel` after a lost ambush (new road, new `to`, new `endTime`) the pawn, the dashed route and the remaining time follow the new polyline live; no client-side guessing.
+  2. The ambush report is a variant of the result sheet (won: XP and coins; lost: HP delta, injuries, «portato a <città>»), queued with the other results and acknowledged on close, shown on the free Map like the other sheets.
+  3. The travel confirmation sheet never reveals an upcoming ambush; the arrival banner/push leads to the Map where the sheet appears.
+**Decisions made (2026-10-29)**: probability by km + night share (22–06 Europe/Rome), enemy by zone ≤ Medio band, resolution at ambush time (job), loss → HP ≥ 1 + injuries + reroute to the nearest city + standard-lane quest abandoned, food not refunded.
+**Backend prerequisite**: BE Phase 15 merged on BE `develop`.
+**Plans**: TBD
+
+### Phase 17: Unlockable Lore
+**Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
+**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), BE Phase 11 (lore seeded), BE Phase 16
+**Scope**: M
+**Requirements**: LORE-01, LORE-02, LORE-03
+**Success Criteria** (what must be TRUE):
+  1. The Library lists only the unlocked lore of the current character (backend-filtered), live after an unlock (city arrival, victory, study) without manual refresh; locked lore is hidden entirely; a book with nothing unlocked shows an empty-state line.
+  2. On quest and result sheets an enemy the character has never defeated shows a darkened portrait and the name only; known enemies render as today; the knowledge flag comes from the backend.
+  3. A new character sees exactly the home-city lore and its region; device UAT: travel to a new city → its lore appears; win against an enemy → its lore appears; delete and recreate → reset.
+**Decisions made (2026-10-29)**: per-character unlock, no cascade on `relatedLore`, enemy lore only on victory for all winners, study without spell → chance on a random locked lore among the study types, locked lore hidden.
+**Backend prerequisite**: BE Phase 16 merged on BE `develop`.
+**Plans**: TBD
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -411,7 +495,12 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 10/11 | In Progress | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 0/0 | Not started | - |
+| 12. Hardening | 0/0 | Not started (executes last) | - |
+| 13. City Shops | 0/0 | Not started | - |
+| 14. Quest Generation (companion) | 0/0 | Not started | - |
+| 15. Travel Food | 0/0 | Not started | - |
+| 16. Travel Ambushes | 0/0 | Not started | - |
+| 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
 
@@ -505,10 +594,27 @@ Plans:
 | HARDEN-04 | Phase 12 | Pending |
 | HARDEN-05 | Phase 12 | Pending |
 | HARDEN-06 | Phase 12 | Pending |
+| SHOP-02 | Phase 13 | Pending |
+| SHOP-03 | Phase 13 | Pending |
+| QGEN-01 | Phase 14 | Pending |
+| QGEN-02 | Phase 14 | Pending |
+| QGEN-03 | Phase 14 | Pending |
+| QGEN-04 | Phase 14 | Pending |
+| FOOD-01 | Phase 15 | Pending |
+| FOOD-02 | Phase 15 | Pending |
+| FOOD-03 | Phase 15 | Pending |
+| FOOD-04 | Phase 15 | Pending |
+| AMBUSH-01 | Phase 16 | Pending |
+| AMBUSH-02 | Phase 16 | Pending |
+| AMBUSH-03 | Phase 16 | Pending |
+| LORE-01 | Phase 17 | Pending |
+| LORE-02 | Phase 17 | Pending |
+| LORE-03 | Phase 17 | Pending |
 
-**Coverage:** 79 / 79 v1 requirements mapped. No orphans. No duplicates.
+**Coverage:** 95 / 95 v1 requirements mapped (79 + 16 added 2026-10-29). No orphans. No duplicates.
 
 ---
 
 _Roadmap created: 2026-04-10_
 _Last restructured: 2026-04-14 — Auth split in Phase 1 (Dev Auth Stub) + Phase 11 (full OAuth); Hardening shifted to Phase 12_
+_Last extended: 2026-10-29 — Phases 13–17 appended (City Shops, Quest Generation companion, Travel Food, Travel Ambushes, Unlockable Lore), mirrors of BE Phases 12–16 with BE Phase 11 World Content as data prerequisite; Phase 12 Hardening executes last_
