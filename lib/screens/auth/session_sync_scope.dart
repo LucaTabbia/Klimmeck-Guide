@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_watchdog.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -48,6 +49,13 @@ class SessionSyncScope extends StatelessWidget {
         RepositoryProvider<UserRefreshRequests>(
           create: (context) => context.read<UserRefreshRequestBus>(),
         ),
+        RepositoryProvider<ConnectionRestoredBus>(
+          create: (_) => ConnectionRestoredBus(),
+          dispose: (bus) => bus.close(),
+        ),
+        RepositoryProvider<ConnectionRestoredEvents>(
+          create: (context) => context.read<ConnectionRestoredBus>(),
+        ),
       ],
       child: BlocProvider<SessionSyncCubit>(
         lazy: false,
@@ -58,6 +66,7 @@ class SessionSyncScope extends StatelessWidget {
           connection: openConnectionStream(),
           lifecycle: context.read<AppLifecycleEvents>(),
           userRefreshRequests: context.read<UserRefreshRequestBus>().requests,
+          connectionRestored: context.read<ConnectionRestoredBus>(),
         )..start(),
         child: child,
       ),

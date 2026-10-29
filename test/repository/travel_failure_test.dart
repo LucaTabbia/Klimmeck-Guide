@@ -18,6 +18,7 @@ void main() {
       'TRAVEL_DESTINATION_NOT_ALLOWED': TravelFailure.destinationNotAllowed,
       'TRAVEL_NO_PATH': TravelFailure.noPath,
       'QUEST_IN_PROGRESS': TravelFailure.questInProgress,
+      'AWAITING_AID': TravelFailure.awaitingAid,
       'NOT_FOUND': TravelFailure.notFound,
       'FORBIDDEN': TravelFailure.forbidden,
       'UNAUTHENTICATED': TravelFailure.unauthenticated,
@@ -54,6 +55,19 @@ void main() {
       );
 
       expect(travelFailureFrom(exception), TravelFailure.forbidden);
+    });
+
+    test('ignores the awaiting-aid message under an unknown code', () {
+      final exception = OperationException(
+        graphqlErrors: [
+          GraphQLError(
+            message: 'Il tuo personaggio è in attesa di soccorso',
+            extensions: {'code': 'BOGUS'},
+          ),
+        ],
+      );
+
+      expect(travelFailureFrom(exception), TravelFailure.unknown);
     });
   });
 

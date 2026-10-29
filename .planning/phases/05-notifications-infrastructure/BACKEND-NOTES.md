@@ -3,7 +3,7 @@
 - **Fase FE:** `05-notifications-infrastructure` (requisiti NOTIF-01..NOTIF-08; decisioni D-01..D-22 in `05-CONTEXT.md`, con D-01, D-10, D-12, D-15 riviste dopo `05-RESEARCH.md` §"Conflicts with CONTEXT")
 - **Data:** 2026-10-19
 - **Stato:** contratto BE Phase 5 (PR #8, `origin/develop` `0828719`) consumato dal FE; UAT Android: approvato il 2026-10-20, vedi §5
-- **Consumatori:** BE (chiusura del test Android di `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/05-HUMAN-UAT.md`), FE Phase 7 (prompt del permesso alla prima conferma di viaggio, popup `travelEnd`), FE Phase 9 (popup `questEnd`/morte, `combatResult`)
+- **Consumatori:** BE (chiusura del test Android di `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/05-HUMAN-UAT.md`), FE Phase 7 (prompt del permesso alla prima conferma di viaggio, popup `travelEnd`), FE Phase 9 (popup `questEnd`)
 - **Fonte BE:** `Klimmeck-Guide-BE/.planning/phases/05-infrastruttura-push-fcm/BACKEND-NOTES.md` (§1 contratto, §2 payload, §6 ricetta `sendTestPush`). **Lo schema vince su questo documento.**
 
 ---
@@ -14,7 +14,7 @@
 2. **`deviceId` = UUID v4 device-wide** generato una volta e persistito in `shared_preferences` (`klimmeck.push.deviceId`); sopravvive a logout e cambio account, si perde solo con la reinstallazione. `platform: android` (iOS rinviato).
 3. **Nessun `subscribeToTopic` lato client:** l'iscrizione a `streamer-live` resta del BE (BE §2).
 4. **I toggle sono applicati solo sul device** (Phase 4 D-11), nei tre app state, prima di mostrare qualsiasi cosa (notifica di sistema o banner). Il BE continua a inviare a tutti i device registrati.
-5. **Tipi sconosciuti scartati in silenzio:** il parsing del payload accetta solo `travelEnd` / `questEnd` / `streamerLive`; un futuro `combatResult` non rompe l'app installata (verrà mostrato solo quando Phase 9 lo aggiunge al FE).
+5. **Tipi sconosciuti scartati in silenzio:** il parsing del payload accetta solo `travelEnd` / `questEnd` / `streamerLive` (nessun tipo `combatResult`: BE Phase 9 §4).
 6. **Revoca della sessione / sync persa non fanno unregister:** l'app pulisce l'utente attivo e la tray locale, ma non chiama il BE (non ha più un bearer valido). Il FE si affida al claim del token del BE (BE §5.6): il prossimo `registerPushDevice` di qualunque utente su quel device sposta la riga.
 7. **Unregister saltato se il token FCM non è mai stato visto** in questa sessione (`_hasSeenToken` del coordinator): nessuna chiamata di rete e nessuna attesa nel logout quando il device non si è mai registrato (es. Firebase non disponibile).
 
@@ -69,9 +69,9 @@ Registrate in `05-CONTEXT.md` come revisioni di D-01, D-10, D-12, D-15. L'utente
 
 - **Call site UNICO del prompt del permesso = prima conferma di viaggio (Phase 7):** `NotificationPermissionGate.ensureRequested()` (idempotente: chiede solo se lo stato OS è `notDetermined`, altrimenti restituisce lo stato corrente; il risultato **non** blocca il viaggio), raggiunto **tramite il cubit del viaggio**: il gate si inietta nel cubit alla `create` del provider, es. `TravelConfirmationCubit(gate: context.read<NotificationPermissionGate>())`, e un'azione del cubit chiama `ensureRequested()`. **Mai** `context.read<NotificationPermissionGate>().ensureRequested()` dentro un widget (UI → Cubit → Service, D-19 / `docs/rules/architecture.md`; stesso schema di `InAppNotificationsCubit.open()`).
 - **Guard da aggiornare:** `test/repository/services/push/push_boundaries_test.dart` vieta oggi ogni chiamata a `ensureRequested(` fuori dal gate; Phase 7 deve ammettere esplicitamente il file del cubit del viaggio (e solo quello) nello stesso commit che aggiunge il call site.
-- **Popup di contesto:** una voce in `defaultNotificationPopups` (`lib/screens/mainScreen/components/notification_popup_registry.dart`, vuota in Phase 5): `travelEnd` (Phase 7), `questEnd`/morte (Phase 9). Il tap porta già alla Map tab e consuma l'intent; il popup si aggancia lì e ri-interroga GraphQL (`character(id)` / `pendingQuest(id)`), mai dati dal payload.
+- **Popup di contesto:** una voce in `defaultNotificationPopups` (`lib/screens/mainScreen/components/notification_popup_registry.dart`, vuota in Phase 5): `travelEnd` (Phase 7), `questEnd`/morte (Phase 9). Il tap porta già alla Map tab e consuma l'intent; il popup si aggancia lì e ri-interroga GraphQL (`questResult(id)`: `data.id` del `questEnd` è l'id del risultato, BE Phase 9 §4), mai dati dal payload.
 - **Banner dalle subscription:** un produttore (cubit o servizio) chiama `InAppNotificationsCubit.publish(event)`; la dedup `(type, id)` (2 min; `streamerLive` per tipo, qualunque `sentAt`, 15 min dall'ultimo banner mostrato) è già garantita, quindi push foreground e subscription possono coesistere senza doppioni. Il tap del banner passa già da `InAppNotificationsCubit.open(event)` → `NotificationTapRouter`.
-- **`combatResult` (Phase 9):** aggiungere il valore a `NotificationCategory` / al parsing di `PushEvent`, la categoria dei toggle e la voce del popup; fino ad allora è scartato.
+- **`questEnd` (Phase 9, 2026-10-27):** nessun tipo push nuovo; `data.id` = id del `QuestResult`, letto con `questResult(id)` al tap (09-CONTEXT D-09/D-22).
 
 ---
 

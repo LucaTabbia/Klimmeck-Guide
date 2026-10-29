@@ -20,8 +20,7 @@ enum NotificationCategory {
   /// Eventi del singolo giocatore (con `id`), contro il broadcast `streamerLive`.
   bool get isPersonal => this != streamerLive;
 
-  /// `null` per tipi sconosciuti (es. il futuro `combatResult`): il chiamante
-  /// scarta il messaggio.
+  /// `null` per tipi sconosciuti: il chiamante scarta il messaggio.
   static NotificationCategory? fromWireType(Object? value) {
     for (final category in values) {
       if (category.wireType == value) return category;

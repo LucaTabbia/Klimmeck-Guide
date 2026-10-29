@@ -13,20 +13,31 @@ import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
+import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/kg_error.dart';
+import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
@@ -39,11 +50,25 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockQuestCubit questCubit;
   late MockMainScreenCubit mainScreenCubit;
+  late MockQuestResultsCubit questResultsCubit;
+  late MockNotificationPreferencesCubit preferencesCubit;
 
   setUp(() {
     characterCubit = MockCharacterCubit();
     questCubit = MockQuestCubit();
     mainScreenCubit = MockMainScreenCubit();
+    questResultsCubit = MockQuestResultsCubit();
+    preferencesCubit = MockNotificationPreferencesCubit();
+    whenListen(
+      questResultsCubit,
+      const Stream<QuestResultsState>.empty(),
+      initialState: const QuestResultsState(),
+    );
+    whenListen(
+      preferencesCubit,
+      const Stream<NotificationPreferencesState>.empty(),
+      initialState: NotificationPreferencesState(),
+    );
     whenListen(
       characterCubit,
       Stream<CharacterState>.empty(),
@@ -64,6 +89,14 @@ void main() {
   });
 
   testWidgets('loads exactly the character of the session', (tester) async {
+    final availability = MapAvailabilityCubit();
+    addTearDown(availability.close);
+    final travelCubit = MockTravelCubit();
+    whenListen(
+      travelCubit,
+      const Stream<TravelState>.empty(),
+      initialState: const TravelIdle(),
+    );
     await tester.pumpWidget(
       buildTestApp(
         home: MultiBlocProvider(
@@ -71,6 +104,15 @@ void main() {
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
+            BlocProvider<MapAvailabilityCubit>.value(value: availability),
+            BlocProvider<TravelCubit>.value(value: travelCubit),
+            BlocProvider<InAppNotificationsCubit>.value(
+              value: MockInAppNotificationsCubit(),
+            ),
+            BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+            BlocProvider<NotificationPreferencesCubit>.value(
+              value: preferencesCubit,
+            ),
           ],
           child: const MainScreen(characterId: 'c-42'),
         ),
@@ -80,6 +122,116 @@ void main() {
 
     verify(() => characterCubit.loadCharacter('c-42')).called(1);
     verify(() => questCubit.loadQuest()).called(1);
+  });
+
+  group('unavailable character at cold start (09-REVIEW WR-03)', () {
+    late UserRefreshRequestBus refreshBus;
+    late int refreshRequests;
+
+    setUp(() {
+      refreshBus = UserRefreshRequestBus();
+      addTearDown(refreshBus.close);
+      refreshRequests = 0;
+      refreshBus.requests.listen((_) => refreshRequests++);
+      whenListen(
+        characterCubit,
+        Stream<CharacterState>.empty(),
+        initialState: const CharacterUnavailable(),
+      );
+      when(() => questResultsCubit.refetchPending()).thenAnswer((_) async {});
+    });
+
+    Future<void> pumpUnavailable(
+      WidgetTester tester,
+      QuestResultsState results,
+    ) async {
+      useLandscapePhone(tester);
+      final availability = MapAvailabilityCubit();
+      addTearDown(availability.close);
+      final travelCubit = MockTravelCubit();
+      whenListen(
+        travelCubit,
+        const Stream<TravelState>.empty(),
+        initialState: const TravelIdle(),
+      );
+      whenListen(
+        questResultsCubit,
+        const Stream<QuestResultsState>.empty(),
+        initialState: results,
+      );
+      await tester.pumpWidget(
+        buildTestApp(
+          home: RepositoryProvider<UserRefreshRequests>.value(
+            value: refreshBus,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CharacterCubit>.value(value: characterCubit),
+                BlocProvider<QuestCubit>.value(value: questCubit),
+                BlocProvider<MainScreenCubit>.value(value: mainScreenCubit),
+                BlocProvider<MapAvailabilityCubit>.value(value: availability),
+                BlocProvider<TravelCubit>.value(value: travelCubit),
+                BlocProvider<InAppNotificationsCubit>.value(
+                  value: MockInAppNotificationsCubit(),
+                ),
+                BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+                BlocProvider<NotificationPreferencesCubit>.value(
+                  value: preferencesCubit,
+                ),
+              ],
+              child: const MainScreen(characterId: 'c-42'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    for (final refetch in [PendingRefetch.idle, PendingRefetch.inFlight]) {
+      testWidgets('keeps the loader while the read is ${refetch.name}', (
+        tester,
+      ) async {
+        await pumpUnavailable(
+          tester,
+          QuestResultsState(pendingRefetch: refetch),
+        );
+
+        expect(find.byType(KGLoader), findsOneWidget);
+        expect(find.byType(KGError), findsNothing);
+      });
+    }
+
+    for (final refetch in [PendingRefetch.done, PendingRefetch.failed]) {
+      testWidgets('a ${refetch.name} read with no sheet offers a retry', (
+        tester,
+      ) async {
+        await pumpUnavailable(
+          tester,
+          QuestResultsState(pendingRefetch: refetch),
+        );
+
+        expect(find.byType(KGLoader), findsNothing);
+        expect(find.byType(KGError), findsOneWidget);
+
+        await tester.fling(find.byType(KGError), const Offset(0, 300), 1000);
+        await tester.pumpAndSettle();
+
+        verify(() => questResultsCubit.refetchPending()).called(1);
+        expect(refreshRequests, 1);
+      });
+    }
+
+    testWidgets('a death acknowledged keeps the loader', (tester) async {
+      await pumpUnavailable(
+        tester,
+        const QuestResultsState(
+          pendingRefetch: PendingRefetch.done,
+          deathAcknowledgement: DeathAcknowledgement.done,
+        ),
+      );
+
+      expect(find.byType(KGLoader), findsOneWidget);
+      expect(find.byType(KGError), findsNothing);
+    });
   });
 
   group('satchel wiring', () {
@@ -100,8 +252,13 @@ void main() {
     late StreamController<TravelState> travelStates;
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
+    late MockTransactionCubit transactionCubit;
+    late StreamController<TransactionState> transactionStates;
+    late MapAvailabilityCubit availability;
 
     setUp(() {
+      availability = MapAvailabilityCubit();
+      addTearDown(availability.close);
       registerFallbackValue(const KGNotification(title: '', description: ''));
       acceptanceCubit = MockQuestAcceptanceCubit();
       noticesCubit = MockInAppNotificationsCubit();
@@ -128,6 +285,14 @@ void main() {
         spellsStates.stream,
         initialState: const SpellsState(),
       );
+      transactionCubit = MockTransactionCubit();
+      transactionStates = StreamController<TransactionState>.broadcast();
+      addTearDown(transactionStates.close);
+      whenListen(
+        transactionCubit,
+        transactionStates.stream,
+        initialState: TransactionInitial(),
+      );
       final svg =
           File('${Directory.systemTemp.createTempSync('kg_svg').path}/i.svg')
             ..writeAsStringSync(
@@ -144,10 +309,11 @@ void main() {
       );
     });
 
-    Future<PageController> pumpOpenSatchel(
+    Future<void> pumpMainScreen(
       WidgetTester tester,
       String locationId, {
       Map<String, dynamic>? activeTravel,
+      Map<String, dynamic>? awaitingAid,
     }) async {
       useLandscapePhone(tester);
       final authStates = StreamController<AuthState>.broadcast();
@@ -161,11 +327,12 @@ void main() {
         Stream<CharacterState>.empty(),
         initialState: CharacterLoaded(
           Character.fromJson(
-            activeTravel == null
+            activeTravel == null && awaitingAid == null
                 ? characterWithLanesJson(locationId: locationId)
                 : travellingCharacterJson(
                     locationId: locationId,
                     activeTravel: activeTravel,
+                    awaitingAid: awaitingAid,
                   ),
           ),
         ),
@@ -182,6 +349,12 @@ void main() {
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
+              BlocProvider<TransactionCubit>.value(value: transactionCubit),
+              BlocProvider<MapAvailabilityCubit>.value(value: availability),
+              BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
+              BlocProvider<NotificationPreferencesCubit>.value(
+                value: preferencesCubit,
+              ),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -194,12 +367,30 @@ void main() {
         ),
       );
       await tester.pump();
+    }
+
+    Future<PageController> openSatchel(WidgetTester tester) async {
       await tester.tap(find.byType(CachedSvg).last);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       return tester.widget<PageView>(find.byType(PageView)).controller!;
+    }
+
+    Future<PageController> pumpOpenSatchel(
+      WidgetTester tester,
+      String locationId, {
+      Map<String, dynamic>? activeTravel,
+      Map<String, dynamic>? awaitingAid,
+    }) async {
+      await pumpMainScreen(
+        tester,
+        locationId,
+        activeTravel: activeTravel,
+        awaitingAid: awaitingAid,
+      );
+      return openSatchel(tester);
     }
 
     Future<void> tapItem(WidgetTester tester, int pageIndex) async {
@@ -211,6 +402,71 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    group('map availability', () {
+      late StreamController<MainScreenState> screenStates;
+
+      setUp(() {
+        screenStates = StreamController<MainScreenState>.broadcast();
+        addTearDown(screenStates.close);
+        whenListen(
+          mainScreenCubit,
+          screenStates.stream,
+          initialState: MainScreenInitial(),
+        );
+      });
+
+      Future<void> loadPages(WidgetTester tester) async {
+        screenStates.add(MainScreenLoadData(cities));
+        await tester.pump();
+        await tester.pump();
+      }
+
+      testWidgets('the cold-start loader is never the map page', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+
+        expect(find.byType(PageView), findsNothing);
+        expect(availability.state.isMapPage, isFalse);
+      });
+
+      testWidgets('the loaded pages open on the map page', (tester) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+
+        expect(find.byType(PageView), findsOneWidget);
+        expect(availability.state.isMapPage, isTrue);
+      });
+
+      testWidgets('a removed main screen is no longer the map page', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+
+        await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+        expect(availability.state.isMapPage, isFalse);
+      });
+
+      testWidgets('the map page follows every satchel navigation', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+        final controller = await openSatchel(tester);
+
+        await tapItem(tester, 1);
+        expect(controller.page!.round(), 1);
+        expect(availability.state.isMapPage, isFalse);
+
+        await openSatchel(tester);
+        await tapItem(tester, NotificationIntentLanding.worldMapPageIndex);
+        expect(controller.page!.round(), 0);
+        expect(availability.state.isMapPage, isTrue);
+      });
+    });
 
     testWidgets('follows the awaited party', (tester) async {
       await pumpOpenSatchel(tester, 'city-marker-1');
@@ -272,6 +528,61 @@ void main() {
         tester,
         'city-marker-1',
         activeTravel: activeTravelJson(),
+      );
+
+      await tapItem(tester, 1);
+
+      expect(controller.page!.round(), 1);
+    });
+
+    testWidgets('awaiting aid on a city marker board and shop do nothing', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
+      );
+
+      await tapItem(tester, SatchelLayout.boardPageIndex);
+      expect(controller.page!.round(), 0);
+
+      await tapItem(tester, SatchelLayout.shopPageIndex);
+      expect(controller.page!.round(), 0);
+    });
+
+    testWidgets('awaiting aid the board and shop cells look disabled', (
+      tester,
+    ) async {
+      await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
+      );
+
+      const boardAndShop = {
+        SatchelLayout.boardPageIndex,
+        SatchelLayout.shopPageIndex,
+      };
+      expect(
+        tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
+        boardAndShop,
+      );
+      expect(
+        tester
+            .widget<MenuBackground>(find.byType(MenuBackground))
+            .disabledPages,
+        boardAndShop,
+      );
+    });
+
+    testWidgets('awaiting aid the Profilo item still navigates', (
+      tester,
+    ) async {
+      final controller = await pumpOpenSatchel(
+        tester,
+        'city-marker-1',
+        awaitingAid: awaitingAidJson(),
       );
 
       await tapItem(tester, 1);
@@ -355,6 +666,26 @@ void main() {
         verify(() => travelCubit.reset()).called(1);
       },
     );
+
+    testWidgets('a shop refusal answered away from the shop shows the banner '
+        '(09-REVIEW IN-05)', (tester) async {
+      final controller = await pumpOpenSatchel(tester, 'city-marker-1');
+      await tapItem(tester, 1);
+      expect(controller.page!.round(), 1);
+
+      transactionStates.add(TransactionError(TransactionFailure.shopNotInCity));
+      await tester.pump();
+
+      verify(
+        () => noticesCubit.publishNotice(
+          const KGNotification(
+            title: 'Negozio non disponibile',
+            description: 'Il negozio è disponibile solo in città',
+          ),
+          dedupKey: 'transaction|shopNotInCity',
+        ),
+      ).called(1);
+    });
 
     testWidgets(
       'a spell rollback answered away from the Journal shows the banner',

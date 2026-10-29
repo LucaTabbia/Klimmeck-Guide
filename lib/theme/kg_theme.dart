@@ -44,6 +44,9 @@ class KlimmeckGuideTheme {
   static const Color paleSilver = Color(0xFFD4D4DC);
   static const Color bloodRed = Color(0xFF9B1C1C);
 
+  /// Inchiostro dei guadagni di vita sul foglio esiti (Phase 9 D-02), provvisorio (D-19).
+  static const Color healGreen = Color(0xFF2E6B30);
+
   // Color Scheme
   static const ColorScheme colorScheme = ColorScheme(
     brightness: Brightness.light,

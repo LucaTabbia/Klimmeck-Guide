@@ -151,6 +151,12 @@ void main() {
     expect(KlimmeckGuideTheme.spacingXl, 32);
   });
 
+  test('healGreen is an opaque ink distinct from loss and neutral', () {
+    expect(KlimmeckGuideTheme.healGreen.a, 1.0);
+    expect(KlimmeckGuideTheme.healGreen, isNot(KlimmeckGuideTheme.bloodRed));
+    expect(KlimmeckGuideTheme.healGreen, isNot(KlimmeckGuideTheme.darkWood));
+  });
+
   testWidgets('keeps the app bar unchanged', (tester) async {
     init();
     final appBar = theme.materialTheme.appBarTheme;

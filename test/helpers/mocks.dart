@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
+import 'package:klimmeck_guide/repository/quest_result_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/backend_auth_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/browser_authenticator.dart';
@@ -26,12 +27,14 @@ import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -86,6 +89,8 @@ class MockQuestAbandonRepository extends Mock
 
 class MockTravelRepository extends Mock implements TravelRepository {}
 
+class MockQuestResultRepository extends Mock implements QuestResultRepository {}
+
 class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
@@ -127,7 +132,13 @@ class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
 class MockQuestAbandonCubit extends MockCubit<QuestAbandonState>
     implements QuestAbandonCubit {}
 
+class MockQuestResultsCubit extends MockCubit<QuestResultsState>
+    implements QuestResultsCubit {}
+
 class MockTravelCubit extends MockCubit<TravelState> implements TravelCubit {}
+
+class MockTransactionCubit extends MockCubit<TransactionState>
+    implements TransactionCubit {}
 
 class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
 

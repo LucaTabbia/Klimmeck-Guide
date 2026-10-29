@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/travel_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/auth_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
@@ -11,9 +12,11 @@ import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
@@ -25,6 +28,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
@@ -128,6 +132,62 @@ class KlimmeckGraphQl {
         return _questFrom(result.data?['questUpdated']);
       });
 
+  /// Esiti del personaggio in foreground (BE Phase 9 §3): payload completo,
+  /// nessuno snapshot. Un evento malformato diventa una FormatException senza
+  /// chiudere lo stream (T-9-15).
+  Stream<QuestResult> subscribeToQuestResults(String characterId) =>
+      performSubscription(
+        QuestResultSubscriptions.questResultReceived,
+        variables: {'characterId': characterId},
+      ).map((result) {
+        _throwIfStreamFailed(result, operation: 'questResultReceived');
+        return _questResultFrom(result.data?['questResultReceived']);
+      });
+
+  /// Esito per id (tap su `questEnd`, D-11). Lancia [OperationException] o
+  /// [FormatException].
+  Future<QuestResult> getQuestResult(String id) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        QuestResultQueries.getQuestResult,
+        variables: {'id': id},
+      ),
+    );
+    return _questResultFrom(data['questResult']);
+  }
+
+  /// Risultati dell'utente non ancora confermati, nell'ordine del server (BE
+  /// 9.2 D-02). Una voce malformata è scartata, le altre restano (09-REVIEW
+  /// IN-04). Lancia [OperationException] o [FormatException] se la lista manca.
+  Future<List<QuestResult>> getUnacknowledgedQuestResults() async {
+    final data = _dataOrThrow(
+      await performQuery(QuestResultQueries.listUnacknowledgedQuestResults),
+    );
+    final entries = data['unacknowledgedQuestResults'];
+    if (entries is! List) {
+      throw const FormatException('unacknowledgedQuestResults missing');
+    }
+    return List.unmodifiable(
+      entries.map(QuestResult.tryFromJson).whereType<QuestResult>(),
+    );
+  }
+
+  /// Conferma un foglio chiuso (BE 9.2 D-03), idempotente; la conferma di una
+  /// morte stacca il personaggio corrente (D-12). Lancia [OperationException]
+  /// o [FormatException].
+  Future<void> acknowledgeQuestResult(String id) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: QuestResultMutations.acknowledgeQuestResult,
+        variables: {'id': id},
+      ),
+    );
+    final result = data['acknowledgeQuestResult'];
+    if (result is! Map<String, dynamic> || result['successful'] != true) {
+      throw const FormatException('acknowledgeQuestResult not successful');
+    }
+  }
+
   void _throwIfStreamFailed(QueryResult result, {required String operation}) {
     if (!result.hasException) return;
     throw SubscriptionStreamException(
@@ -156,6 +216,15 @@ class KlimmeckGraphQl {
     } on Object catch (error) {
       throw FormatException('quest malformed: ${error.runtimeType}');
     }
+  }
+
+  QuestResult _questResultFrom(Object? json) {
+    if (json is! Map<String, dynamic>) {
+      throw const FormatException('questResult missing');
+    }
+    final result = QuestResult.tryFromJson(json);
+    if (result == null) throw const FormatException('questResult malformed');
+    return result;
   }
 
   Future<List<City>> getCities() async {
@@ -406,22 +475,21 @@ class KlimmeckGraphQl {
     return Lore.fromJson(loreData);
   }
 
+  /// Lancia [OperationException] (codici in `transaction_failure.dart`) o
+  /// [FormatException].
   Future<String> doTransaction(TransactionRequest request) async {
-    final result = await performMutation(
-      query: CharacterMutations.doTransaction,
-      variables: {"request": request},
+    final data = _dataOrThrow(
+      await performMutation(
+        query: CharacterMutations.doTransaction,
+        variables: {"request": request},
+      ),
     );
-    if (result.hasException) {
-      final errorMessage = getGenericErrorMessage(result.exception);
-      throw Exception(errorMessage);
+    final result = data['doTransaction'];
+    final response = result is Map<String, dynamic> ? result['response'] : null;
+    if (response is! String) {
+      throw const FormatException('doTransaction malformed');
     }
-
-    final dynamic transactionResult = result.data?['doTransaction'];
-    if (transactionResult == null) {
-      throw Exception('Bad Transaction');
-    }
-
-    return transactionResult["response"];
+    return response;
   }
 
   Future<String> equipItem(EquipItemRequest request) async {

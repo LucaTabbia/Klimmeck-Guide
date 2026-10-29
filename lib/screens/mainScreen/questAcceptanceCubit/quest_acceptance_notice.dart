@@ -31,6 +31,8 @@ KGNotification? questAcceptanceNoticeFor(
       'Questo personaggio non può accettare la missione',
     QuestAcceptanceFailure.travelInProgress =>
       "Sei in viaggio: riprova all'arrivo",
+    QuestAcceptanceFailure.awaitingAid =>
+      'Sei in attesa di soccorso: non puoi accettare missioni',
     QuestAcceptanceFailure.connection => 'Connessione assente, riprova',
     QuestAcceptanceFailure.timedOut =>
       'Il server non ha risposto in tempo: '

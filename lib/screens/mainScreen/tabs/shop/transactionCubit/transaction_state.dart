@@ -9,4 +9,8 @@ final class TransactionLoading extends TransactionState {}
 
 final class TransactionDone extends TransactionState {}
 
-final class TransactionError extends TransactionState {}
+final class TransactionError extends TransactionState {
+  TransactionError(this.failure);
+
+  final TransactionFailure failure;
+}

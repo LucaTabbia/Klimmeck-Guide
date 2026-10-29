@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -10,8 +11,10 @@ import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_popup_registry.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/auth_fixtures.dart';
+import '../../../helpers/mocks.dart';
 import '../../../helpers/test_app.dart';
 
 void main() {
@@ -52,6 +55,7 @@ void main() {
     int initialPage = 0,
     Map<NotificationCategory, NotificationPopup>? popups,
     MapFocusCubit? mapFocus,
+    QuestResultsCubit? questResults,
   }) async {
     final controller = PageController(initialPage: initialPage);
     addTearDown(controller.dispose);
@@ -62,6 +66,8 @@ void main() {
             BlocProvider<NotificationIntentCubit>.value(value: cubit),
             if (mapFocus != null)
               BlocProvider<MapFocusCubit>.value(value: mapFocus),
+            if (questResults != null)
+              BlocProvider<QuestResultsCubit>.value(value: questResults),
           ],
           child: Scaffold(
             body: NotificationIntentLanding(
@@ -174,9 +180,37 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
   });
 
-  test('Phase 7 registers only the travelEnd popup', () {
+  testWidgets('a questEnd tap lands on the map and asks the queue for it', (
+    tester,
+  ) async {
+    await startSession(tester);
+    final questResults = MockQuestResultsCubit();
+    when(() => questResults.requestFromTap(any())).thenAnswer((_) async {});
+    final controller = await pumpLanding(
+      tester,
+      popups: defaultNotificationPopups,
+      questResults: questResults,
+    );
+    controller.jumpToPage(3);
+    await tester.pump();
+
+    cubit.offer(
+      NotificationIntent(
+        category: NotificationCategory.questEnd,
+        id: 'result-7',
+        sentAt: DateTime.utc(2026, 10, 18, 12),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('page 0'), findsOneWidget);
+    verify(() => questResults.requestFromTap('result-7')).called(1);
+  });
+
+  test('registers the travelEnd and questEnd popups', () {
     expect(defaultNotificationPopups.keys.toSet(), {
       NotificationCategory.travelEnd,
+      NotificationCategory.questEnd,
     });
   });
 }

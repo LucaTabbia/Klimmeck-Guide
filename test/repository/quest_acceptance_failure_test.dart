@@ -23,6 +23,7 @@ void main() {
       'NOT_FOUND': QuestAcceptanceFailure.notFound,
       'FORBIDDEN': QuestAcceptanceFailure.forbidden,
       'TRAVEL_IN_PROGRESS': QuestAcceptanceFailure.travelInProgress,
+      'AWAITING_AID': QuestAcceptanceFailure.awaitingAid,
       'UNAUTHENTICATED': QuestAcceptanceFailure.unauthenticated,
       'SOMETHING_ELSE': QuestAcceptanceFailure.unknown,
     };
@@ -55,6 +56,22 @@ void main() {
     test('ignores the message text and relies on the code only', () {
       final exception = OperationException(
         graphqlErrors: [GraphQLError(message: 'Punti canale insufficienti')],
+      );
+
+      expect(
+        questAcceptanceFailureFrom(exception),
+        QuestAcceptanceFailure.unknown,
+      );
+    });
+
+    test('ignores the awaiting-aid message under an unknown code', () {
+      final exception = OperationException(
+        graphqlErrors: [
+          GraphQLError(
+            message: 'Il tuo personaggio è in attesa di soccorso',
+            extensions: {'code': 'BOGUS'},
+          ),
+        ],
       );
 
       expect(

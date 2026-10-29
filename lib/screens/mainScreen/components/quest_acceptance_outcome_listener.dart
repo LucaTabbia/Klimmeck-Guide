@@ -41,16 +41,19 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
       );
 
   void _onOutcome(BuildContext context, QuestAcceptanceState state) {
-    if (state is QuestAcceptanceFailed) {
-      _announce(context, state);
-      if (_staleListFailures.contains(state.failure)) {
-        context.read<QuestCubit>().refreshQuests(
-          cityId: _currentCityId(context),
-        );
-      }
-    }
+    if (state is QuestAcceptanceFailed) _announce(context, state);
+    if (_leavesStaleList(state)) _refreshQuests(context);
     context.read<QuestAcceptanceCubit>().reset();
   }
+
+  /// Accettata, la propria iscrizione è già sul server: il k/N va riletto.
+  bool _leavesStaleList(QuestAcceptanceState state) =>
+      state is QuestAccepted ||
+      (state is QuestAcceptanceFailed &&
+          _staleListFailures.contains(state.failure));
+
+  void _refreshQuests(BuildContext context) =>
+      context.read<QuestCubit>().refreshQuests(cityId: _currentCityId(context));
 
   void _announce(BuildContext context, QuestAcceptanceFailed state) {
     final notice = questAcceptanceNoticeFor(

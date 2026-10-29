@@ -4,10 +4,12 @@ import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
+import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_notice.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 
 import '../../../../models/character/character.dart';
@@ -247,6 +249,14 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     );
   }
 
+  void _showRefusal(TransactionFailure failure) {
+    if (transactionNoticeFor(failure) != null) {
+      _showTransactionMessage = false;
+      return;
+    }
+    _transactionMessage = "Hmmm... Qualcosa non mi torna. Riproviamo?";
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<TransactionCubit, TransactionState>(
@@ -269,9 +279,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
           });
         }
         if (state is TransactionError) {
-          setState(() {
-            _transactionMessage = "Hmmm... Qualcosa non mi torna. Riproviamo?";
-          });
+          setState(() => _showRefusal(state.failure));
         }
       },
       child: BlocConsumer<ShopCubit, ShopState>(

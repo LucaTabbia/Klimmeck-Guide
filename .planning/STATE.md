@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-10-27T18:34:02.000Z"
-last_activity: "2026-10-27 -- Phase 8 completed (14 plans, device UAT 12/12 + extension check 4/4, extension 08-13/08-14 reviewed, fixed, verified and audited); FE PR opened"
+status: executing
+last_updated: "2026-10-29T09:42:54.000Z"
+last_activity: "2026-10-29 -- Phase 9 closed 13/13 with the device UAT 12/12; F1/F3 fixed on the branch (suite 2487); FE PR opened to develop; F2 and the F3 BE side routed to BE Phase 10 as BE-HARD-07"
 progress:
   total_phases: 12
-  completed_phases: 9
-  total_plans: 87
-  completed_plans: 87
+  completed_phases: 10
+  total_plans: 100
+  completed_plans: 100
   percent: 100
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — NOT STARTED (Phase 8 complete on 2026-10-27: 14 plans in 8 waves, device UAT 12/12 + extension check 4/4; FE PR `feat/08-spells-section-journal-tab` → `develop` opened)
-Plan: —
-Completed phases: 9 (1, 2, 3, 4, 5, 6, 7, 8, 11)
-Next Phase: FE Phase 9 (Combat Result Sheet) — `/gsd-discuss-phase 9` then plan on `feat/09-combat-result-sheet` off `develop`, after the Phase 8 PR merge; BE follow-up: rebase `feat/10-hardening` on BE `develop`
-Status: Phase 8 complete (2026-10-27) — PR open on `develop`; next: Phase 9 discuss
-Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, fixed, verified and audited; extension device check 4/4; FE PR opened)
+Phase: 9 (Combat Result Sheet) — COMPLETE 2026-10-29: 13/13 plans on `feat/09-combat-result-sheet`, Android device UAT 12/12 (`09-HUMAN-UAT.md`), COMBAT-01..10 ticked; findings F1 (FE, fix before the PR), F2 (BE rule change), F3 (FE, minor)
+Plan: 13 of 13
+Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
+Next Phase: merge the FE PR (`feat/09-combat-result-sheet` → `develop`); then `/gsd-discuss-phase 10` (Admin Panel) on the FE and `/gsd-plan-phase 10` on the BE (`feat/10-hardening`, rebased on develop, now carrying BE-HARD-07 from this UAT)
+Status: Phase 9 complete — device UAT 12/12 (2026-10-29, BE develop 8f30d1d), F1/F3 fixed on the branch, FE PR open to develop
+Last activity: 2026-10-29 -- F1/F3 fixed in TDD after the UAT (8 commits, suite 2487 green, analyzer 52/0); FE PR opened; F2 + F3 BE side recorded as BE-HARD-07 in the BE Phase 10 context
 
 ## Current Milestone
 
@@ -54,6 +54,9 @@ Last activity: 2026-10-27 -- Phase 8 completed (extension 08-13/08-14 reviewed, 
 - ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
 - ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
 - ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
+- ~~**BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21). — **BE PR #15 open (2026-10-28, `feat/09.2-quest-result-delivery-contract` → `develop`, 7/7 plans, handoff `BACKEND-NOTES.md` of the BE phase)**: the gated FE plans 09-12/09-13 run after its merge. **Note for 09-12 (review fix IN-04, 2026-10-28):** the real `PendingQuestResults` adapter must parse the unacknowledged list item by item (`QuestResult.tryFromJson` per element, skip malformed entries and orphan items), mapping only a list-level shape error to `malformed`, because `malformed` is no longer retried by the cubit; RED adapter test: one malformed + one valid item → the valid one. Also stub `getUnacknowledgedQuestResults` in `authenticated_shell_test.dart` (the cubit refetches at `start()`).~~ — **resolved 2026-10-29:** merged on BE `develop` (PR #15, `8f30d1d`), consumed by plan 09-12 and proven by the device E2E (outcome in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5).
+- **F2 — BE rule change from the Phase 9 UAT (2026-10-29):** a started quest whose participant is archived should be fought as if the seat were still occupied (user: «Per quello lasciamo il posto pieno»); today the BE fights with the remaining members (BE 9.2 D-07). Routed in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5.2; BE Phase 10 or a 9.3 companion — decision pending.
+- **F1 / F3 — FE items from the Phase 9 UAT:** F1 party counter / torn state of the own quest not live during the own travel (fix on `feat/09-combat-result-sheet` before the PR); F3 «In attesa del gruppo» on a due solo quest (minor, to check).
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed

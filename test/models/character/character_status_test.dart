@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/character_status.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
@@ -8,14 +9,20 @@ import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import '../../helpers/fixtures/spell_fixtures.dart';
 import '../../helpers/fixtures/travel_fixtures.dart';
 
-Map<String, dynamic> statusJson({Object? activeTravel, Object? spellStates}) =>
-    {
-      'title': 'rookie',
-      'xp': 1,
-      'location': {'id': 'city-marker-1', 'location': departureWire},
-      'activeTravel': activeTravel,
-      if (spellStates != null) 'spellStates': spellStates,
-    };
+Map<String, dynamic> statusJson({
+  Object? activeTravel,
+  Object? spellStates,
+  Object? awaitingAid = _absent,
+}) => {
+  'title': 'rookie',
+  'xp': 1,
+  'location': {'id': 'city-marker-1', 'location': departureWire},
+  'activeTravel': activeTravel,
+  if (spellStates != null) 'spellStates': spellStates,
+  if (!identical(awaitingAid, _absent)) 'awaitingAid': awaitingAid,
+};
+
+const Object _absent = Object();
 
 void main() {
   test('parses activeTravel', () {
@@ -158,6 +165,89 @@ void main() {
 
       expect(copy.xp, 5);
       expect(copy.spellStates, status.spellStates);
+    });
+  });
+
+  group('awaitingAid', () {
+    void expectOtherFieldsParsed(CharacterStatus status) {
+      expect(status.location!.id, 'city-marker-1');
+      expect(status.title, TitleType.rookie);
+      expect(status.xp, 1);
+    }
+
+    test('a missing awaitingAid is null (legacy payload)', () {
+      final status = CharacterStatus.fromJson(statusJson());
+
+      expect(status.awaitingAid, isNull);
+      expectOtherFieldsParsed(status);
+    });
+
+    test('a null awaitingAid is null', () {
+      final status = CharacterStatus.fromJson(statusJson(awaitingAid: null));
+
+      expect(status.awaitingAid, isNull);
+    });
+
+    test('a valid awaitingAid is parsed', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(awaitingAid: awaitingAidJson()),
+      );
+
+      expect(status.awaitingAid, AwaitingAid.fromJson(awaitingAidJson()));
+      expectOtherFieldsParsed(status);
+    });
+
+    test('a malformed awaitingAid is null and the status survives', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(awaitingAid: 'broken'),
+      );
+
+      expect(status.awaitingAid, isNull);
+      expectOtherFieldsParsed(status);
+    });
+
+    test('toJson mirrors awaitingAid', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(awaitingAid: awaitingAidJson()),
+      );
+
+      expect(status.toJson()['awaitingAid'], awaitingAidJson());
+      expect(
+        CharacterStatus.fromJson(statusJson()).toJson()['awaitingAid'],
+        isNull,
+      );
+    });
+
+    test('props include awaitingAid', () {
+      expect(
+        CharacterStatus.fromJson(statusJson(awaitingAid: awaitingAidJson())) ==
+            CharacterStatus.fromJson(statusJson()),
+        isFalse,
+      );
+    });
+
+    test('copyWith keeps the current awaitingAid', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(awaitingAid: awaitingAidJson()),
+      );
+
+      final copy = status.copyWith(xp: 5);
+
+      expect(copy.xp, 5);
+      expect(copy.awaitingAid, status.awaitingAid);
+    });
+
+    test('travellingCharacterJson sets the wounded state only on request', () {
+      final wounded = Character.fromJson(
+        travellingCharacterJson(awaitingAid: awaitingAidJson()),
+      );
+      final free = travellingCharacterJson();
+
+      expect(wounded.status!.awaitingAid!.aidQuestId, 'aid-1');
+      expect(
+        (free['status'] as Map<String, dynamic>).containsKey('awaitingAid'),
+        isFalse,
+      );
     });
   });
 

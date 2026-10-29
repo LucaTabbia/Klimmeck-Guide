@@ -18,5 +18,21 @@ enum QuestType {
 
   String get imagePath => _imageId.isEmpty ? '' : CloudinaryAssets.url(_imageId);
 
+  /// Tipo di missione per il giocatore (09-CONTEXT D-03, C2), copy provvisoria (D-19).
+  String get label => switch (this) {
+    QuestType.hunt => 'Caccia',
+    QuestType.aid => 'Soccorso',
+    QuestType.enemy => 'Nemico',
+    QuestType.worldMission => 'Missione mondiale',
+    QuestType.boss => 'Boss',
+    QuestType.dungeon => 'Dungeon',
+    QuestType.story => 'Storia',
+    QuestType.study => 'Studio',
+    QuestType.heal => 'Cura',
+    QuestType.job => 'Lavoro',
+    QuestType.crime => 'Crimine',
+    QuestType.guard => 'Guardia',
+  };
+
   const QuestType({required String imageId}) : _imageId = imageId;
 }

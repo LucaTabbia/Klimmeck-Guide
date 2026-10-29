@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/auth/session_sync_scope.dart';
@@ -94,6 +95,55 @@ void main() {
     expect(captured.read<SyncHealth>(), isNotNull);
     expect(captured.read<UserRefreshRequests>(), isNotNull);
     expect(captured.read<SessionSyncCubit>(), isNotNull);
+  });
+
+  testWidgets('provides ConnectionRestoredEvents to the session', (
+    tester,
+  ) async {
+    late BuildContext captured;
+    await tester.pumpWidget(
+      scope(
+        child: Builder(
+          builder: (context) {
+            captured = context;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    var restored = 0;
+    captured.read<ConnectionRestoredEvents>().restored.listen(
+      (_) => restored++,
+    );
+
+    connection
+      ..add(true)
+      ..add(false)
+      ..add(true);
+    await tester.pump();
+
+    expect(restored, 1);
+  });
+
+  testWidgets('closes the reconnection bus when the session ends', (
+    tester,
+  ) async {
+    late BuildContext captured;
+    await tester.pumpWidget(
+      scope(
+        child: Builder(
+          builder: (context) {
+            captured = context;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final done = captured.read<ConnectionRestoredEvents>().restored.isEmpty;
+
+    await tester.pumpWidget(unmounted());
+
+    expect(await done, isTrue);
   });
 
   testWidgets('adopts a user event into the session', (tester) async {

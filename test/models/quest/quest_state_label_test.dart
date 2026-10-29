@@ -43,11 +43,18 @@ void main() {
     expect(questStateLabel(waiting(), boss), 'In attesa del gruppo 2/3');
   });
 
-  test('waiting without the quest or its seats drops the count', () {
+  test('waiting without the quest drops the count', () {
     expect(questStateLabel(waiting(), null), 'In attesa del gruppo');
+  });
+
+  test('a solo quest on the marker reads as started, not as a party', () {
     expect(
-      questStateLabel(waiting(), buildQuest(slots: const [])),
-      'In attesa del gruppo',
+      questStateLabel(waiting(), buildQuest(type: 'hunt', slots: const [])),
+      'Cacciando…',
+    );
+    expect(
+      questStateLabel(waiting(), buildQuest(type: 'crime', slots: const [])),
+      'In corso…',
     );
   });
 

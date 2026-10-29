@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell.dart';
@@ -22,6 +23,7 @@ class CharacterStatus extends Equatable {
     required this.maxActiveSpells,
     this.activeTravel,
     this.spellStates,
+    this.awaitingAid,
   });
 
   final int? xp;
@@ -40,6 +42,9 @@ class CharacterStatus extends Equatable {
 
   /// Stato per magia conosciuta (BE 9.1); `null` = campo assente (backend pre-9.1 o fragment non ancora esteso, D-03).
   final List<SpellState>? spellStates;
+
+  /// Ferito in attesa di soccorso (D-16); `null` = libero o campo assente.
+  final AwaitingAid? awaitingAid;
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
@@ -65,6 +70,7 @@ class CharacterStatus extends Equatable {
         maxActiveSpells: json['maxActiveSpells']?.toInt(),
         activeTravel: ActiveTravel.tryFromJson(json['activeTravel']),
         spellStates: _spellStatesFrom(json['spellStates']),
+        awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
       );
 
   static List<SpellState>? _spellStatesFrom(Object? json) {
@@ -87,6 +93,7 @@ class CharacterStatus extends Equatable {
     "maxActiveSpells": maxActiveSpells,
     "activeTravel": activeTravel?.toJson(),
     "spellStates": spellStates?.map((state) => state.toJson()).toList(),
+    "awaitingAid": awaitingAid?.toJson(),
   };
 
   CharacterStatus copyWith({
@@ -114,6 +121,7 @@ class CharacterStatus extends Equatable {
       maxActiveSpells: maxActiveSpells ?? this.maxActiveSpells,
       activeTravel: activeTravel,
       spellStates: spellStates,
+      awaitingAid: awaitingAid,
     );
   }
 
@@ -131,5 +139,6 @@ class CharacterStatus extends Equatable {
     maxActiveSpells,
     activeTravel,
     spellStates,
+    awaitingAid,
   ];
 }

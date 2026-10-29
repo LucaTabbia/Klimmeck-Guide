@@ -57,6 +57,30 @@ void main() {
     );
   });
 
+  test('on a city marker while awaiting aid board and shop are disabled', () {
+    expect(
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: cities,
+        isTravelling: false,
+        isAwaitingAid: true,
+      ),
+      boardAndShop,
+    );
+  });
+
+  test('on a city marker not awaiting aid nothing is disabled', () {
+    expect(
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: cities,
+        isTravelling: false,
+        isAwaitingAid: false,
+      ),
+      isEmpty,
+    );
+  });
+
   test('unknown location or no cities disables board and shop', () {
     expect(
       disabledSatchelPages(location: null, cities: cities, isTravelling: false),

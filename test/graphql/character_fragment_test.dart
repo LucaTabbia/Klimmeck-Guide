@@ -4,7 +4,10 @@ import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+
+import '../helpers/fixtures/travel_fixtures.dart';
 
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
@@ -77,6 +80,29 @@ void main() {
       states.expand((state) => state.recoveries).every((at) => at.isUtc),
       isTrue,
     );
+  });
+
+  test('statusFields selects awaitingAid with quest, aidQuest, since', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('awaitingAid { quest aidQuest since }'),
+    );
+  });
+
+  test('a recorded characterUpdated payload parses its awaitingAid', () {
+    final character = Character.fromJson(
+      travellingCharacterJson(awaitingAid: awaitingAidJson()),
+    );
+
+    expect(
+      character.status!.awaitingAid,
+      AwaitingAid(
+        questId: 'q-1',
+        aidQuestId: 'aid-1',
+        since: DateTime.utc(2026, 10, 27, 11),
+      ),
+    );
+    expect(character.status!.awaitingAid!.since.isUtc, isTrue);
   });
 
   test('fullFields never selects the pet (BE handoff 11 b)', () {

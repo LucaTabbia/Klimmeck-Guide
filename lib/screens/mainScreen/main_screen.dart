@@ -2,29 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_result_presenter.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 
 import '../../shared/components/kg_error.dart';
 import '../../shared/components/kg_loader.dart';
 import '../../theme/kg_theme.dart';
 import 'cubit/main_screen_cubit.dart';
+
+typedef _SatchelInputs = ({
+  PointOfInterest? location,
+  bool isTravelling,
+  bool isAwaitingAid,
+});
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key, required this.characterId, this.pagesBuilder});
@@ -44,12 +55,14 @@ class _MainScreenState extends State<MainScreen>
   late AnimationController _animationController;
   late Animation<double> _opacityAnimation;
   late PageController pageController;
+  late final MapAvailabilityCubit _mapAvailability;
   int currentPage = 0;
   bool isFirstLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _mapAvailability = context.read<MapAvailabilityCubit>();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -68,67 +81,55 @@ class _MainScreenState extends State<MainScreen>
     context.read<QuestCubit>().loadQuest();
   }
 
+  /// Il presenter dei risultati avvolge anche il loader: il foglio di morte
+  /// deve aprirsi anche al cold start di un personaggio non disponibile
+  /// (Phase 9 D-13).
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocListener<CharacterCubit, CharacterState>(
-      listener: (context, state) {
-        if (state is CharacterLoaded && isFirstLoading) {
-          setState(() {
-            isFirstLoading = false;
-          });
-          context.read<MainScreenCubit>().loadData();
-        }
-      },
+    return QuestResultPresenter(child: _buildScreen(context));
+  }
+
+  Widget _buildScreen(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CharacterCubit, CharacterState>(
+          listener: (context, state) {
+            if (state is CharacterLoaded && isFirstLoading) {
+              setState(() {
+                isFirstLoading = false;
+              });
+              context.read<MainScreenCubit>().loadData();
+            }
+          },
+        ),
+        BlocListener<MainScreenCubit, MainScreenState>(
+          listenWhen: (previous, current) =>
+              previous is! MainScreenLoadData && current is MainScreenLoadData,
+          listener: (_, _) => _reportMapPage(currentPage),
+        ),
+      ],
       child: BlocBuilder<MainScreenCubit, MainScreenState>(
         builder: (context, state) {
           if (state is MainScreenLoadData) {
-            return BlocSelector<
-              CharacterCubit,
-              CharacterState,
-              (PointOfInterest?, bool)
-            >(
+            return BlocSelector<CharacterCubit, CharacterState, _SatchelInputs>(
               selector: _satchelInputsOf,
               builder: (context, inputs) {
-                final (location, isTravelling) = inputs;
                 final disabledPages = disabledSatchelPages(
-                  location: location,
+                  location: inputs.location,
                   cities: state.cities,
-                  isTravelling: isTravelling,
+                  isTravelling: inputs.isTravelling,
+                  isAwaitingAid: inputs.isAwaitingAid,
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
                   child: PartyWatchListener(
                     child: TravelOutcomeListener(
-                      child: SpellOutcomeListener(
-                        child: Scaffold(
-                          body: Stack(
-                            alignment: Alignment.topLeft,
-                            children: [
-                              NotificationIntentLanding(
-                                pageController: pageController,
-                                child: PageView(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  controller: pageController,
-                                  onPageChanged: onPageChanged,
-                                  children:
-                                      widget.pagesBuilder?.call(state.cities) ??
-                                      _buildPages(state.cities),
-                                ),
-                              ),
-                              MenuBackground(
-                                selectedIndex: currentPage,
-                                onTap: onItemTap,
-                                opacityAnimation: _opacityAnimation,
-                                disabledPages: disabledPages,
-                              ),
-                              SatchelMenu(
-                                currentPage: currentPage,
-                                onItemTap: onItemTap,
-                                parentAnimationController: _animationController,
-                                disabledPages: disabledPages,
-                              ),
-                            ],
+                      child: TransactionOutcomeListener(
+                        child: SpellOutcomeListener(
+                          child: _buildPagesWithSatchel(
+                            state.cities,
+                            disabledPages,
                           ),
                         ),
                       ),
@@ -139,36 +140,44 @@ class _MainScreenState extends State<MainScreen>
             );
           }
           if (state is MainScreenError) {
-            return Scaffold(
-              backgroundColor: KlimmeckGuideTheme.deepNight,
-              body: SafeArea(
-                child: RefreshIndicator(
-                  onRefresh: () => context.read<MainScreenCubit>().loadData(),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: SizedBox(
-                      height:
-                          MediaQuery.of(context).size.height -
-                          (MediaQuery.of(context).viewPadding.top +
-                              MediaQuery.of(context).viewPadding.bottom),
-                      child: const KGError(),
-                    ),
-                  ),
-                ),
-              ),
+            return _RetryableError(
+              onRefresh: () => context.read<MainScreenCubit>().loadData(),
             );
           }
-          return Scaffold(
-            backgroundColor: KlimmeckGuideTheme.deepNight,
-            body: SizedBox(
-              height:
-                  MediaQuery.of(context).size.height -
-                  (MediaQuery.of(context).viewPadding.bottom +
-                      MediaQuery.of(context).viewPadding.top),
-              child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
-            ),
-          );
+          return const _ColdStart();
         },
+      ),
+    );
+  }
+
+  Widget _buildPagesWithSatchel(List<City> cities, Set<int> disabledPages) {
+    return Scaffold(
+      body: Stack(
+        alignment: Alignment.topLeft,
+        children: [
+          NotificationIntentLanding(
+            pageController: pageController,
+            child: PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: pageController,
+              onPageChanged: onPageChanged,
+              children:
+                  widget.pagesBuilder?.call(cities) ?? _buildPages(cities),
+            ),
+          ),
+          MenuBackground(
+            selectedIndex: currentPage,
+            onTap: onItemTap,
+            opacityAnimation: _opacityAnimation,
+            disabledPages: disabledPages,
+          ),
+          SatchelMenu(
+            currentPage: currentPage,
+            onItemTap: onItemTap,
+            parentAnimationController: _animationController,
+            disabledPages: disabledPages,
+          ),
+        ],
       ),
     );
   }
@@ -200,7 +209,14 @@ class _MainScreenState extends State<MainScreen>
     setState(() {
       currentPage = page;
     });
+    _reportMapPage(page);
   }
+
+  /// Phase 9 D-23 (F1): la pagina iniziale non passa da `onPageChanged`, il
+  /// loader di cold start non è mai la mappa.
+  void _reportMapPage(int page) => _mapAvailability.pageChanged(
+    isMapPage: page == NotificationIntentLanding.worldMapPageIndex,
+  );
 
   Future<void> onItemTap(int index) async {
     if (_isPageDisabled(index)) return;
@@ -216,27 +232,32 @@ class _MainScreenState extends State<MainScreen>
   bool _isPageDisabled(int index) {
     final screen = context.read<MainScreenCubit>().state;
     if (screen is! MainScreenLoadData) return false;
-    final (location, isTravelling) = _satchelInputsOf(
-      context.read<CharacterCubit>().state,
-    );
+    final inputs = _satchelInputsOf(context.read<CharacterCubit>().state);
     return disabledSatchelPages(
-      location: location,
+      location: inputs.location,
       cities: screen.cities,
-      isTravelling: isTravelling,
+      isTravelling: inputs.isTravelling,
+      isAwaitingAid: inputs.isAwaitingAid,
     ).contains(index);
   }
 
-  /// Posizione e viaggio in corso: gli input della disponibilità della borsa (D-12).
-  static (PointOfInterest?, bool) _satchelInputsOf(CharacterState state) =>
-      state is CharacterLoaded
-      ? (
-          state.character.status?.location,
-          state.character.status?.activeTravel != null,
-        )
-      : (null, false);
+  /// Posizione, viaggio in corso e attesa di soccorso: gli input della
+  /// disponibilità della borsa (D-12, Phase 9 D-16).
+  static _SatchelInputs _satchelInputsOf(CharacterState state) {
+    if (state is! CharacterLoaded) {
+      return (location: null, isTravelling: false, isAwaitingAid: false);
+    }
+    final status = state.character.status;
+    return (
+      location: status?.location,
+      isTravelling: status?.activeTravel != null,
+      isAwaitingAid: status?.awaitingAid != null,
+    );
+  }
 
   @override
   void dispose() {
+    _mapAvailability.pageChanged(isMapPage: false);
     _animationController.dispose();
     pageController.dispose();
     super.dispose();
@@ -244,4 +265,69 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+/// Loader del cold start. Un personaggio non disponibile resta qui finché il
+/// suo foglio di morte può arrivare; a rilettura conclusa senza fogli il
+/// giocatore riprova da sé (Phase 9 D-13, 09-REVIEW WR-03).
+class _ColdStart extends StatelessWidget {
+  const _ColdStart();
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnavailable = context.select<CharacterCubit, bool>(
+      (cubit) => cubit.state is CharacterUnavailable,
+    );
+    final isSettled = context.select<QuestResultsCubit, bool>(
+      (cubit) => cubit.state.isSettledWithoutSheets,
+    );
+    if (isUnavailable && isSettled) {
+      return _RetryableError(onRefresh: () => _retryUnavailable(context));
+    }
+    return Scaffold(
+      backgroundColor: KlimmeckGuideTheme.deepNight,
+      body: SizedBox(
+        height: _visibleHeight(context),
+        child: const Column(children: [Spacer(), KGLoader(), Spacer()]),
+      ),
+    );
+  }
+
+  /// `me` riletto per uscire da un personaggio già staccato, la lista per un
+  /// foglio di morte non ancora letto.
+  static Future<void> _retryUnavailable(BuildContext context) {
+    context.read<UserRefreshRequests>().requestUserRefresh();
+    return context.read<QuestResultsCubit>().refetchPending();
+  }
+}
+
+/// Errore del cold start con pull-to-refresh (D-16).
+class _RetryableError extends StatelessWidget {
+  const _RetryableError({required this.onRefresh});
+
+  final RefreshCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: KlimmeckGuideTheme.deepNight,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: onRefresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: _visibleHeight(context),
+              child: const KGError(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+double _visibleHeight(BuildContext context) {
+  final media = MediaQuery.of(context);
+  return media.size.height - (media.viewPadding.top + media.viewPadding.bottom);
 }

@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.da
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:klimmeck_guide/repository/services/graphql/ws_reconnect_policy.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
+import 'package:klimmeck_guide/repository/services/sync/connection_restored_events.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_watchdog.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
@@ -26,7 +27,9 @@ part 'session_sync_state.dart';
 /// FORBIDDEN/NOT_FOUND sullo stream e' terminale (vincolo backend): ritentare
 /// martellerebbe il server, l'unico rimedio e' un singolo refetch di `me`.
 /// Errori e chiusure transitorie ri-sottoscrivono in silenzio con backoff
-/// limitato (D-14); socket e stream alimentano il watchdog (D-15).
+/// limitato (D-14); socket e stream alimentano il watchdog (D-15). Ogni
+/// riconnessione del socket dopo la prima connessione va sul
+/// [ConnectionRestoredBus] (09-CONTEXT D-09).
 class SessionSyncCubit extends Cubit<SessionSyncState>
     with SafeEmit<SessionSyncState> {
   SessionSyncCubit({
@@ -36,12 +39,14 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
     required Stream<bool> connection,
     required AppLifecycleEvents lifecycle,
     required Stream<void> userRefreshRequests,
+    ConnectionRestoredBus? connectionRestored,
   }) : _api = api,
        _auth = auth,
        _watchdog = watchdog,
        _connection = connection,
        _lifecycle = lifecycle,
        _userRefreshRequests = userRefreshRequests,
+       _connectionRestored = connectionRestored,
        super(const SessionSyncStarting());
 
   final KlimmeckGraphQl _api;
@@ -50,6 +55,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   final Stream<bool> _connection;
   final AppLifecycleEvents _lifecycle;
   final Stream<void> _userRefreshRequests;
+  final ConnectionRestoredBus? _connectionRestored;
 
   StreamSubscription<User>? _userSubscription;
   StreamSubscription<bool>? _connectionSubscription;
@@ -60,16 +66,14 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   int _attempt = 0;
   int _eventCount = 0;
   bool _isUserStreamTerminated = false;
+  bool _hasConnected = false;
+  bool _isConnected = false;
   Future<void>? _refreshInFlight;
   Future<void>? _queuedRefresh;
 
   void start() {
     _subscribeToUser();
-    _connectionSubscription = _connection.listen(
-      (isConnected) => isConnected
-          ? _watchdog.markHealthy(SyncSource.socket)
-          : _watchdog.markDegraded(SyncSource.socket),
-    );
+    _connectionSubscription = _connection.listen(_onConnection);
     _backgroundSubscription = _lifecycle.backgrounded.listen(
       (_) => _watchdog.suspend(),
     );
@@ -103,6 +107,17 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
       if (identical(_refreshInFlight, flight)) _refreshInFlight = null;
     });
     return _refreshInFlight = flight;
+  }
+
+  void _onConnection(bool isConnected) {
+    isConnected
+        ? _watchdog.markHealthy(SyncSource.socket)
+        : _watchdog.markDegraded(SyncSource.socket);
+    if (isConnected && _hasConnected && !_isConnected) {
+      _connectionRestored?.notifyRestored();
+    }
+    if (isConnected) _hasConnected = true;
+    _isConnected = isConnected;
   }
 
   bool get _isSessionEnding => isClosed || _watchdog.isLatched;
