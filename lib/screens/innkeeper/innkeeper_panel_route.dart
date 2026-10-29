@@ -5,25 +5,31 @@ import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dar
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 
 /// Unico ingresso del pannello (10-CONTEXT D-04/C11): la route vive sul
-/// Navigator radice, fuori dai provider della shell, quindi repository e
-/// orologio del server si leggono qui dal chiamante e passano con `.value`.
-/// `AppLifecycleEvents` e `AuthCubit` stanno sopra MaterialApp.
+/// Navigator radice, fuori dai provider della shell, quindi repository,
+/// orologio del server e la modalità teletrasporto della shell (D-15) si
+/// leggono qui dal chiamante e passano con `.value`. `AppLifecycleEvents` e
+/// `AuthCubit` stanno sopra MaterialApp.
 Future<void> openInnkeeperPanel(BuildContext context) {
   final repository = context.read<InnkeeperRepository>();
   final clock = context.read<ServerClockService>();
+  final teleport = context.read<TeleportModeCubit>();
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       builder: (_) => RepositoryProvider<InnkeeperRepository>.value(
         value: repository,
-        child: BlocProvider<PendingRequestsCubit>(
-          create: (routeContext) => PendingRequestsCubit(
-            repository: repository,
-            clock: clock,
-            lifecycle: routeContext.read<AppLifecycleEvents>(),
-          )..start(),
-          child: const InnkeeperPanelScreen(),
+        child: BlocProvider<TeleportModeCubit>.value(
+          value: teleport,
+          child: BlocProvider<PendingRequestsCubit>(
+            create: (routeContext) => PendingRequestsCubit(
+              repository: repository,
+              clock: clock,
+              lifecycle: routeContext.read<AppLifecycleEvents>(),
+            )..start(),
+            child: const InnkeeperPanelScreen(),
+          ),
         ),
       ),
     ),

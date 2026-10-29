@@ -485,8 +485,9 @@ void main() {
 
   group('«Teletrasporta» (10-CONTEXT D-15/D-19)', () {
     testWidgets('every listed row has the action', (tester) async {
-      await pumpQueue(tester, [
-        ...worldMissionEntriesJson(
+      await pumpQueue(
+        tester,
+        worldMissionEntriesJson(
           names: ['Bea', 'Cosimo', 'Dario'],
           travels: {
             'Cosimo': queuedTravelJson(
@@ -497,14 +498,21 @@ void main() {
             ),
           },
         ),
-        pendingRequestJson(awaitingAid: awaitingAidJson()),
-      ]);
+      );
 
-      for (final id in ['char-bea', 'char-cosimo', 'char-dario', 'char-aldo']) {
+      for (final id in ['char-bea', 'char-cosimo', 'char-dario']) {
         expect(_teleportAction(id), findsOneWidget, reason: id);
         expect(_teleportButton(tester, id).onPressed, isNotNull, reason: id);
       }
-      expect(find.text(ParticipantRow.teleportLabel), findsNWidgets(4));
+      expect(find.text(ParticipantRow.teleportLabel), findsNWidgets(3));
+    });
+
+    testWidgets('an awaiting-aid row has the action too', (tester) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(awaitingAid: awaitingAidJson()),
+      ]);
+
+      expect(_teleportButton(tester, 'char-aldo').onPressed, isNotNull);
     });
 
     testWidgets('a traveller keeps the action outside the greyed ink', (

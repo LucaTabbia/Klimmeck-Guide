@@ -11,13 +11,16 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pannello della Locanda (10-CONTEXT D-01/D-05..D-09): utility screen con la
 /// coda viva del GM; il loader solo fino al primo snapshot (apertura
 /// esplicita). Si chiude da solo su `FORBIDDEN` o sul ruolo perso (D-04).
-/// Richiede [PendingRequestsCubit] e [AuthCubit] sopra di sé.
+/// «Teletrasporta» prepara la modalità della shell: il salto alla Mappa lo fa
+/// `TeleportModeLanding` (D-15). Richiede [PendingRequestsCubit], [AuthCubit]
+/// e [TeleportModeCubit] sopra di sé.
 class InnkeeperPanelScreen extends StatelessWidget {
   const InnkeeperPanelScreen({
     super.key,
@@ -31,6 +34,8 @@ class InnkeeperPanelScreen extends StatelessWidget {
   static const String goneMessage = 'Richiesta non più disponibile';
   static const String busyMessage =
       'Un partecipante è impegnato in una missione';
+  static const String teleportUnavailableMessage =
+      'Impossibile aprire la mappa per il teletrasporto';
 
   /// Apre il form di completamento; iniettabile per guidare gli esiti nei test.
   final Future<CompletionExit?> Function(BuildContext, RequestCard)
@@ -49,6 +54,13 @@ class InnkeeperPanelScreen extends StatelessWidget {
           listenWhen: (previous, current) =>
               isInnkeeperSession(previous) && !isInnkeeperSession(current),
           listener: (context, _) => closeInnkeeperPanel(context),
+        ),
+        BlocListener<TeleportModeCubit, TeleportModeState>(
+          listenWhen: (previous, current) =>
+              current is TeleportPreparationFailed && previous != current,
+          listener: (context, _) => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text(teleportUnavailableMessage)),
+          ),
         ),
       ],
       child: _buildScaffold(),
@@ -105,16 +117,24 @@ class InnkeeperPanelScreen extends StatelessWidget {
     if (!state.isLoaded) return const Center(child: KGLoader());
     final cards = state.cards;
     if (cards.isEmpty) return const _EmptyQueue();
-    return ListView.separated(
-      padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
-      itemCount: cards.length,
-      separatorBuilder: (_, _) =>
-          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
-      itemBuilder: (_, index) => RequestCardView(
-        key: RequestCardView.keyFor(cards[index].questId),
-        card: cards[index],
-        serverNow: state.serverNow,
-        onComplete: (card) => _complete(context, card),
+    return BlocSelector<TeleportModeCubit, TeleportModeState, String?>(
+      selector: (teleport) =>
+          teleport is TeleportPreparing ? teleport.characterId : null,
+      builder: (context, preparingCharacterId) => ListView.separated(
+        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
+        itemCount: cards.length,
+        separatorBuilder: (_, _) =>
+            const SizedBox(height: KlimmeckGuideTheme.spacingMd),
+        itemBuilder: (_, index) => RequestCardView(
+          key: RequestCardView.keyFor(cards[index].questId),
+          card: cards[index],
+          serverNow: state.serverNow,
+          onComplete: (card) => _complete(context, card),
+          preparingCharacterId: preparingCharacterId,
+          onTeleport: (participant) => context
+              .read<TeleportModeCubit>()
+              .prepare(characterId: participant.id, name: participant.name),
+        ),
       ),
     );
   }

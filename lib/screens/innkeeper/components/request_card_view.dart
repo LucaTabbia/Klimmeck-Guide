@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -11,6 +12,8 @@ class RequestCardView extends StatelessWidget {
     required this.card,
     required this.serverNow,
     required this.onComplete,
+    required this.onTeleport,
+    required this.preparingCharacterId,
   });
 
   static Key keyFor(String questId) => ValueKey('innkeeper.card.$questId');
@@ -27,6 +30,12 @@ class RequestCardView extends StatelessWidget {
 
   /// Apre il form: unico ingresso al completamento, mai senza conferma (D-11).
   final ValueChanged<RequestCard> onComplete;
+
+  /// Prepara il teletrasporto del partecipante (D-15).
+  final void Function(PendingRequestCharacter participant) onTeleport;
+
+  /// Il personaggio letto per il teletrasporto: blocca le altre righe.
+  final String? preparingCharacterId;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +66,10 @@ class RequestCardView extends StatelessWidget {
                 key: ParticipantRow.keyFor(participant.id),
                 participant: participant,
                 serverNow: serverNow,
+                isPreparingTeleport: preparingCharacterId == participant.id,
+                onTeleport: preparingCharacterId == null
+                    ? () => onTeleport(participant)
+                    : null,
               ),
             // default per veto (10-CONTEXT D-07): il partecipante impegnato
             // resta nascosto e la carta lo dice.
