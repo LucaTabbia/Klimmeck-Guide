@@ -535,6 +535,23 @@ void main() {
         expect(h.state.hiddenQuestIds, isEmpty);
       });
     });
+
+    test('a completion after the snapshot dropped the card hides nothing', () {
+      _runQueue((h, async) {
+        h.cubit.start();
+        h.push(async, _storyAndWorldQueue());
+        h.push(async, _storyQueue());
+
+        h.cubit.markCompleted(worldMissionQuestId);
+        expect(h.state.hiddenQuestIds, isEmpty);
+
+        h.push(async, _storyAndWorldQueue());
+        expect(h.state.cards.map((card) => card.questId), [
+          storyQuestId,
+          worldMissionQuestId,
+        ]);
+      });
+    });
   });
 
   group('PendingRequestsCubit close (P4)', () {
