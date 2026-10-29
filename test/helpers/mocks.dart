@@ -23,6 +23,7 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
@@ -150,3 +151,6 @@ class MockTravelProgressCubit extends MockCubit<TravelProgressState>
 
 class MockWorldMapCubit extends MockCubit<WorldMapState>
     implements WorldMapCubit {}
+
+class MockPendingRequestsCubit extends MockCubit<PendingRequestsState>
+    implements PendingRequestsCubit {}
