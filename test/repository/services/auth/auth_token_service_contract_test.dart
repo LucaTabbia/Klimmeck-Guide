@@ -37,7 +37,7 @@ void main() {
       const token = 'tok';
       final AuthState state = AuthAuthenticated(user: user, accessToken: token);
       expect((state as AuthAuthenticated).user, isA<User>());
-      expect((state as AuthAuthenticated).accessToken, isA<String>());
+      expect(state.accessToken, isA<String>());
     });
 
     test('AuthTokenService ha i 5 metodi del contratto', () {
