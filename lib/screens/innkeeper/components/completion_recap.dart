@@ -3,8 +3,10 @@ import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/participant_draft.dart';
 
-const String _unnamedItem = 'Oggetto';
-const String _unnamedSpell = 'Magia sconosciuta';
+/// Nomi di riserva condivisi da riepiloghi e form (copy provvisoria, D-22).
+const String unnamedItemLabel = 'Oggetto';
+const String unnamedSpellLabel = 'Magia sconosciuta';
+
 const String _unknownTitle = 'Sconosciuto';
 const String _fallbackParticipantName = 'Personaggio';
 
@@ -34,9 +36,9 @@ List<String> _changesOf(ParticipantDraft draft) => [
     'PV ${draft.currentLifePoints} → ${draft.hpAfter}',
   for (final injury in draft.addedInjuries) injury.label,
   for (final line in draft.consumables)
-    if (line.used > 0) '${line.name ?? _unnamedItem} ×${line.used}',
+    if (line.used > 0) '${line.name ?? unnamedItemLabel} ×${line.used}',
   for (final line in draft.spells)
-    if (line.used > 0) '${line.name ?? _unnamedSpell} ×${line.used}',
+    if (line.used > 0) '${line.name ?? unnamedSpellLabel} ×${line.used}',
 ];
 
 /// Righe dell'esito di un personaggio per il riepilogo del GM (10-CONTEXT
@@ -53,7 +55,7 @@ List<String> resultRecapLinesOf(QuestResult result) => [
     'Titolo: ${result.titleBefore?.label ?? _unknownTitle} → '
         '${result.titleAfter?.label ?? _unknownTitle}',
   if (result.spellLearned case final spell?)
-    'Magia appresa: ${spell.name ?? _unnamedSpell}',
+    'Magia appresa: ${spell.name ?? unnamedSpellLabel}',
 ];
 
 /// Nome del partecipante dell'esito, dalla carta completata.

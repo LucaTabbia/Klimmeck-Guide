@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/request/participant_draft.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/injury_chips.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -19,9 +20,6 @@ class ParticipantOverrideSection extends StatelessWidget {
 
   static Key hpSliderKey(String characterId) =>
       ValueKey('completion.hp.$characterId');
-
-  static const String _unnamedItem = 'Oggetto';
-  static const String _unnamedSpell = 'Magia sconosciuta';
 
   final ParticipantDraft draft;
   final ValueChanged<int> onHpChanged;
@@ -65,7 +63,7 @@ class ParticipantOverrideSection extends StatelessWidget {
             key: ValueKey(
               'completion.consumable.${draft.characterId}.${line.itemId}',
             ),
-            label: line.name ?? _unnamedItem,
+            label: line.name ?? unnamedItemLabel,
             value: line.used,
             max: line.owned,
             onChanged: (quantity) => onConsumableChanged(line.itemId, quantity),
@@ -78,7 +76,7 @@ class ParticipantOverrideSection extends StatelessWidget {
             key: ValueKey(
               'completion.spell.${draft.characterId}.${line.spellId}',
             ),
-            label: line.name ?? _unnamedSpell,
+            label: line.name ?? unnamedSpellLabel,
             value: line.used,
             max: line.remaining,
             onChanged: (usages) => onSpellChanged(line.spellId, usages),
