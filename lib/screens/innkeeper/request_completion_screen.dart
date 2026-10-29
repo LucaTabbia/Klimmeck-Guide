@@ -26,8 +26,19 @@ class RequestCompletionScreen extends StatelessWidget {
 
   final RequestCard card;
 
+  /// Durante l'invio l'uscita è bloccata: la risposta deve arrivare al
+  /// pannello (WR-03).
   @override
   Widget build(BuildContext context) {
+    return BlocSelector<RequestCompletionCubit, RequestCompletionState, bool>(
+      selector: (state) =>
+          state is RequestCompletionEditing && state.isSubmitting,
+      builder: (context, isSubmitting) =>
+          PopScope(canPop: !isSubmitting, child: _buildScaffold()),
+    );
+  }
+
+  Widget _buildScaffold() {
     return Scaffold(
       appBar: AppBar(title: const Text(title)),
       body: DecoratedBox(
