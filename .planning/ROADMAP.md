@@ -1,7 +1,7 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10). _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
+**Last updated:** 2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites. _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
 **Granularity:** Standard (12 phases)
 **Coverage:** 79/79 v1 requirements mapped
@@ -52,6 +52,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 - **TRAVEL-01** — `status.activeTravel { road, startTime, endTime, duration }` on `Character`. Blocks Phase 7 (Travel).
 - **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
 - **COMBAT-09 / COMBAT-10** — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` (additive) and the seats of a started quest kept by the archive (BE Phase 9.2, added 2026-10-27). Blocks only the schema-gated plans and the device E2E of Phase 9 (Combat Result Sheet); the BE Phase 9 contract (`questResultReceived`, `questResult`, push `questEnd`) is already on BE `develop`.
+- **ADMIN-02 / ADMIN-03 (BE-HARD-08)** — `PendingRequestCharacter.pendingQuest` (additive) and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied (BE Phase 10, added 2026-10-29). Blocks only the schema-gated plan and the device E2E of Phase 10 (Admin Panel); the queue, the completion and the teleport are already on BE `develop`.
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -66,7 +67,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
 - [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
-- [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated admin surface: pending story/worldMission queue (filtered by `activeTravel`), teleport, monster/grade/reward selection, injury application.
+- [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
@@ -320,23 +321,24 @@ Plans:
 **UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
 
 ### Phase 10: Admin Panel (innkeeper)
-**Goal**: When `User.role == innkeeper`, the streamer has a dedicated admin surface to review and approve/reject pending story/worldMission requests, teleport characters, and assign monsters/grade/rewards/injuries as combat outcomes — with every mutation enforced server-side and audit-logged.
-**Depends on**: Phase 1 (auth, stub o reale), Phase 3 (`role` and real-time pending request data), Phase 6 (real quest data flowing), Phase 7 (`activeTravel` filtering)
+**Goal**: When `User.role == innkeeper`, the streamer opens from Settings a dedicated admin surface («Locanda») with the live queue of the pending story/worldMission requests, completes each request after the live session through a form that tells what happened to every participant (HP, injuries, consumables, spells) with an explicit confirmation, and teleports a queued character by dragging its pawn on the Map — with every mutation enforced server-side and audit-logged (BE Phases 3, 8, 9). _(Amended 2026-10-29 in the discuss: no reject and no grade/monster/reward selection exist on the BE — BE Phase 9 user decision.)_
+**Depends on**: Phase 1 (auth, stub o reale), Phase 3 (`role` and real-time pending request data), Phase 6 (real quest data flowing), Phase 7 (`activeTravel` filtering, pawn drag reused by the teleport mode), Phase 9 (`QuestType.label`, `MapAvailabilityCubit`, result parsing); BE Phase 10 BE-HARD-08 for the gated plan
 **Scope**: L
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
 **Success Criteria** (what must be TRUE):
-  1. An admin tab/menu is visible only when `role == innkeeper` and is hidden to all other roles.
-  2. The innkeeper sees a live queue of pending `story` and `worldMission` requests, filtered to exclude characters whose `activeTravel` is populated (they must be at a POI to be acted on).
-  3. The innkeeper can approve or reject each pending request with an explicit confirmation step.
-  4. The innkeeper can teleport any character to any POI; the backend atomically overrides `location` and clears any `activeTravel` as part of the same operation, and the frontend reacts via subscription only.
-  5. The innkeeper can select enemies/monsters for a POI combat quest, set grade, assign rewards, and apply `InjuryType` values; every admin mutation is confirmed to be rejected server-side when called without `innkeeper` role and every action is audit-logged on the backend.
-**Decisions to make during discuss step**:
-  - Admin tab placement (7th tab vs menu).
-  - Admin is a utility surface (UI chrome allowed).
+  1. A «Locanda» section in Settings is visible only when `role == innkeeper` (live with `userUpdated`) and opens the admin panel as a full-screen utility route; nothing changes in the satchel. _(amended 2026-10-29)_
+  2. The innkeeper sees the live queue of the pending `story` and `worldMission` requests as one card per quest with its participants and seats; a participant whose standard lane is occupied is not shown (BE-HARD-08 field), a participant on a free travel is greyed with the remaining time and the card cannot be completed until everyone has arrived; the empty state reads «Nessuna richiesta in attesa». _(amended 2026-10-29)_
+  3. The innkeeper completes a request through the completion form (HP slider, injury chips, consumables and spells with quantities, defaults = no change) and an explicit confirmation dialog; only the changed participants are sent as overrides; the returned results are recapped per character; `NOT_FOUND`, `QUEST_IN_PROGRESS`, `OUTCOME_*` and `FORBIDDEN` are mapped inline. There is no reject. _(amended 2026-10-29)_
+  4. From a queue row the innkeeper teleports the character by dragging its pawn on the Map (own pawn hidden) onto a city marker, with no confirmation; the backend atomically overrides `location` and clears any `activeTravel`, the panel reopens on success and the frontend reacts via subscription/refetch only. _(amended 2026-10-29)_
+  5. Every admin mutation is rejected server-side without the `innkeeper` role and audit-logged on the backend (BE Phases 3, 8, 9): the FE pins the hidden section for a non-innkeeper and the device UAT verifies `FORBIDDEN` on `pendingRequests` as an adventurer. _(amended 2026-10-29)_
+**Decisions made in the discuss step (2026-10-29)**:
+  - Placement: Settings → full-screen route on the root Navigator (no eighth satchel entry); the panel is only the queue («Solo la coda»); the innkeeper always has a character.
+  - Admin is a utility surface (UI chrome allowed); the Map in teleport mode stays a gameplay screen.
 **Backend prerequisite**:
-  - Server-side `@Roles(innkeeper)` guard + audit logging must land in lockstep with the frontend admin panel; this is not deferred to hardening.
+  - `@Roles(innkeeper)` guard + audit logging (BE Phase 3), `completePendingRequest` and the queue (BE Phase 9), `teleportCharacter` (BE Phase 8): already on BE `develop`.
+  - **BE-HARD-08 (BE Phase 10, added 2026-10-29):** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied. Blocks only the schema-gated plan and the device E2E (gate pattern of 08-12/09-12).
 **Plans**: TBD
-**UI hint**: yes
+**UI hint**: yes (no UI phase, Phases 4–9 precedent)
 
 ### Phase 11: Auth & Session Bootstrap
 **Goal**: Affiancare al `DevAuthTokenService` di Phase 1 un'implementazione reale basata sulla sessione del backend: login Twitch via system browser mediato dal BE, secure token storage, refresh mutex, logout atomico, detection della revoca di sessione. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia. Lo stub resta selezionabile (`DEV_AUTH_ENABLED=true`) finché le chiavi Twitch non sono disponibili. _(Emendato 2026-10-06: Twitch non supporta PKCE; vedi 11-CONTEXT.md.)_
