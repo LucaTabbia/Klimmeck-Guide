@@ -384,10 +384,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   /// C13: la modalità ferma i fogli esiti e chiude il foglio quest aperto.
+  /// All'uscita la pedina scelta sparisce: Flutter non chiama onDragEnd su un
+  /// Draggable smontato, il trascinamento si chiude qui.
   void _syncTeleportMode(TeleportModeState state) {
     final isActive = state is TeleportActive;
     _availability.teleportModeChanged(isActive);
-    if (!isActive) return;
+    if (!isActive) return _endPawnDrag();
     _closeQuestSheet();
     _centreOnTeleportTarget(state);
   }
