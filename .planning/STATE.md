@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-10-29T15:10:15.000Z"
-last_activity: "2026-10-29 -- Phase 10 (Admin Panel) context gathered on feat/10-admin-panel (D-01..D-25, ADMIN-01..08 amended, BE-HARD-08 companion added to the BE Phase 10); ready to plan"
+status: executing
+last_updated: "2026-10-29T16:14:26.000Z"
+last_activity: "2026-10-29 -- Phase 10 (Admin Panel) planned: 11 plans in 11 sequential waves on feat/10-admin-panel, plan-checker passed after one revision; 10-01..10-10 executable now, 10-11 gated on the BE Phase 10 PR (BE-HARD-08)"
 progress:
   total_phases: 12
   completed_phases: 10
-  total_plans: 100
+  total_plans: 111
   completed_plans: 100
-  percent: 100
+  percent: 90
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 10 (Admin Panel (innkeeper)) — CONTEXT GATHERED 2026-10-29 on `feat/10-admin-panel` (off `develop` a335771 with the Phase 9 merge): Settings → full-screen «Locanda» route, queue only, cards per quest, completion form with overrides, teleport by dragging the pawn on the Map; BE companion BE-HARD-08 in the BE Phase 10
-Plan: 0 of TBD
+Phase: 10 (Admin Panel (innkeeper)) — PLANNED 2026-10-29 on `feat/10-admin-panel`: 11 plans / 11 sequential waves (models → transport → queue cubit → teleport state → panel + Settings section → completion cubit → completion UI → Map pieces → WorldMap swap → landing → ⛔ 10-11 gated on the BE Phase 10 PR, BE-HARD-08)
+Plan: 0 of 11
 Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
-Next Phase: `/gsd-plan-phase 10` on the FE (research → plan → check); the schema-gated plan and the device E2E wait for the BE Phase 10 PR (BE-HARD-08)
-Status: Phase 10 context gathered — ready to plan
-Last activity: 2026-10-29 -- Phase 10 discuss (interactive): CONTEXT, DISCUSSION-LOG, BACKEND-NOTES written; REQUIREMENTS ADMIN-01..08 and ROADMAP Phase 10 amended; BE-HARD-08 routed to the BE Phase 10
+Next Phase: `/gsd-execute-phase 10` on the FE (10-01..10-10 now against BE develop 8f30d1d; 10-11 after the BE Phase 10 PR merges); BE Phase 10 planning in the same session
+Status: Phase 10 planned — 11 plans passed the plan-checker (one revision: repo-wide analyzer gate, harness fixes), ready to execute
+Last activity: 2026-10-29 -- Phase 10 research (C1–C17), context amended, validation strategy, 11 plans written and checked; ROADMAP plan list and Progress row 0/11 written
 
 ## Current Milestone
 
