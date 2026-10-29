@@ -135,11 +135,11 @@ void main() {
 
   group('override', () {
     test('an untouched draft has no override', () {
-      expect(draftOf().override, isNull);
+      expect(draftOf().asOverride, isNull);
     });
 
     test('an HP equal to the current one is no change', () {
-      expect(draftOf().withHp(18).override, isNull);
+      expect(draftOf().withHp(18).asOverride, isNull);
     });
 
     test('a used quantity back at 0 is no change', () {
@@ -147,7 +147,7 @@ void main() {
         draftOf()
             .withConsumableUsed(potionItemId, 2)
             .withConsumableUsed(potionItemId, 0)
-            .override,
+            .asOverride,
         isNull,
       );
     });
@@ -158,7 +158,7 @@ void main() {
           .withInjuryToggled(InjuryType.brokenLeftArm)
           .withConsumableUsed(potionItemId, 2)
           .withSpellUsed(fireballSpellId, 1)
-          .override!;
+          .asOverride!;
 
       expect(override.toJson(), {
         'characterId': 'char-aldo',
@@ -176,7 +176,7 @@ void main() {
     test('an injury-only override has only characterId and injuries', () {
       final json = draftOf()
           .withInjuryToggled(InjuryType.brokenLeftArm)
-          .override!
+          .asOverride!
           .toJson();
 
       expect(json.keys, unorderedEquals(['characterId', 'injuries']));
@@ -186,6 +186,6 @@ void main() {
   test('overridesOf keeps only the changed drafts', () {
     final changed = draftOf().withHp(10);
 
-    expect(overridesOf([draftOf(), changed]), [changed.override]);
+    expect(overridesOf([draftOf(), changed]), [changed.asOverride]);
   });
 }
