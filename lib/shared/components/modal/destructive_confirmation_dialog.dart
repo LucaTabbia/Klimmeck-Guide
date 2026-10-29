@@ -9,11 +9,15 @@ class DestructiveConfirmationDialog extends StatelessWidget {
     required this.title,
     required this.body,
     required this.confirmLabel,
+    this.confirmButtonStyle,
   });
 
   final String title;
   final String body;
   final String confirmLabel;
+
+  /// Default: rosso distruttivo; la Locanda conferma con lo stile neutro (10-CONTEXT D-11).
+  final ButtonStyle? confirmButtonStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,8 @@ class DestructiveConfirmationDialog extends StatelessWidget {
           ),
         ),
         ElevatedButton(
-          style: KlimmeckGuideTheme.destructiveButtonStyle,
+          style:
+              confirmButtonStyle ?? KlimmeckGuideTheme.destructiveButtonStyle,
           onPressed: () => Navigator.of(context).pop(true),
           child: Text(
             confirmLabel,
@@ -51,6 +56,7 @@ Future<bool> showDestructiveConfirmation(
   required String title,
   required String body,
   required String confirmLabel,
+  ButtonStyle? confirmButtonStyle,
 }) async =>
     await showDialog<bool>(
       context: context,
@@ -59,6 +65,7 @@ Future<bool> showDestructiveConfirmation(
         title: title,
         body: body,
         confirmLabel: confirmLabel,
+        confirmButtonStyle: confirmButtonStyle,
       ),
     ) ??
     false;

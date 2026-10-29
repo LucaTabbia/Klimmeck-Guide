@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/participant_draft.dart';
 import 'package:klimmeck_guide/models/request/participant_override.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
@@ -59,6 +60,31 @@ class RequestCompletionCubit extends Cubit<RequestCompletionState>
 
   void setSpellUsed(String characterId, String spellId, int usages) =>
       _edit(characterId, (draft) => draft.withSpellUsed(spellId, usages));
+
+  /// Una sola chiamata con l'id della prima voce: chiude la richiesta per
+  /// tutti i partecipanti (D-05, BE 09 §9). Un fallimento lascia il form com'è.
+  Future<void> submit() async {
+    final current = state;
+    if (current is! RequestCompletionEditing || current.isSubmitting) return;
+    emit(current.copyWith(isSubmitting: true));
+    try {
+      final results = await _repository.complete(
+        CompletePendingRequestInput(
+          pendingQuestId: _card.pendingQuestId,
+          outcomes: current.overrides,
+        ),
+      );
+      emit(RequestCompletionSucceeded(results: results));
+    } on InnkeeperException catch (error) {
+      emit(
+        current.copyWith(
+          isSubmitting: false,
+          failure: error.failure,
+          failureSerial: current.failureSerial + 1,
+        ),
+      );
+    }
+  }
 
   Future<List<ParticipantDraft>> _readDrafts() async {
     final participants = _card.participants;
