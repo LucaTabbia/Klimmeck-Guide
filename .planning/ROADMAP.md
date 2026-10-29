@@ -337,7 +337,18 @@ Plans:
 **Backend prerequisite**:
   - `@Roles(innkeeper)` guard + audit logging (BE Phase 3), `completePendingRequest` and the queue (BE Phase 9), `teleportCharacter` (BE Phase 8): already on BE `develop`.
   - **BE-HARD-08 (BE Phase 10, added 2026-10-29):** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied. Blocks only the schema-gated plan and the device E2E (gate pattern of 08-12/09-12).
-**Plans**: TBD
+**Plans**: 11 plans (11 sequential waves; 10-11 gated on the BE Phase 10 PR)
+- [ ] 10-01-PLAN.md — Pure models: queue entry, presence on the server clock, cards (grouping, seats, hiding, can-complete), participant draft, override diff, completion input, fixtures
+- [ ] 10-02-PLAN.md — Queue fragment + GetPendingRequests/OnPendingRequestsUpdated/CompletePendingRequest/TeleportCharacter (registry 42, schema check 42/42), service methods, InnkeeperFailure, InnkeeperRepository
+- [ ] 10-03-PLAN.md — Route-scoped PendingRequestsCubit: snapshot replace, silent resubscribe, terminal FORBIDDEN, tick, endTime+5/+65 s rereads, resume refetch, optimistic hide
+- [ ] 10-04-PLAN.md — TeleportTarget + TeleportModeCubit state machine (read first, same-city no-op, cancel guard) and the isTeleportMode availability flag
+- [ ] 10-05-PLAN.md — Panel screen (loader, empty state, cards, greyed rows), openInnkeeperPanel root route, shell InnkeeperRepository, FORBIDDEN/lost-role close, role-gated «Locanda» section in Settings
+- [ ] 10-06-PLAN.md — RequestCompletionCubit (parallel reads, clamped edits, single submit with only changed participants, typed failures) and the neutral confirm style on the dialog
+- [ ] 10-07-PLAN.md — Completion UI: «Completa» on the card, form route (HP slider, injury chips, steppers), confirmation recap, per-code outcomes, results recap
+- [ ] 10-08-PLAN.md — Map pieces: shared drop rule and PawnDragging mixin (Phase 7 unchanged), PawnLabel, TeleportPawnLayer, in-style «Annulla» control
+- [ ] 10-09-PLAN.md — Shell TeleportModeCubit, optional city lore tap, WorldMap layer swap in teleport mode with drop/cancel wiring and availability sync
+- [ ] 10-10-PLAN.md — TeleportModeLanding (jump to the Map, cancel off-Map or on lost role, panel re-push on success) and «Teletrasporta» on queue rows
+- [ ] 10-11-PLAN.md — ⛔ GATED on the BE Phase 10 PR (BE-HARD-08): pendingQuest selected, full gates 42/42, VALIDATION, device E2E checkpoint, traceability and BACKEND-NOTES §6
 **UI hint**: yes (no UI phase, Phases 4–9 precedent)
 
 ### Phase 11: Auth & Session Bootstrap
@@ -398,7 +409,7 @@ Plans:
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 0/0 | Not started | - |
+| 10. Admin Panel (innkeeper) | 0/11 | Not started | - |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started | - |
 
