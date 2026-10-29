@@ -75,9 +75,13 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
   );
 
   /// Rimozione ottimistica dopo il completamento (D-13): la carta resta
-  /// nascosta finché uno snapshot non la toglie.
-  void markCompleted(String questId) =>
-      emit(state.copyWith(hiddenQuestIds: {...state.hiddenQuestIds, questId}));
+  /// nascosta finché uno snapshot non la toglie. Se lo snapshot l'ha già
+  /// tolta non c'è nulla da nascondere: una futura richiesta sulla stessa
+  /// quest deve restare visibile.
+  void markCompleted(String questId) {
+    if (!state.requests.any((request) => request.quest.id == questId)) return;
+    emit(state.copyWith(hiddenQuestIds: {...state.hiddenQuestIds, questId}));
+  }
 
   /// Un fallimento non FORBIDDEN resta muto: ritenta il prossimo innesco,
   /// mai un ciclo.
