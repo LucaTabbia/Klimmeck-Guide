@@ -205,6 +205,15 @@ void main() {
       expect(result.acknowledgedAt!.isUtc, isTrue);
     });
 
+    test('the BE 9.2 handoff payload parses with acknowledgedAt null', () {
+      final json = deathResultJson()..['acknowledgedAt'] = null;
+
+      final result = questResult(json);
+
+      expect(result.isDeath, isTrue);
+      expect(result.acknowledgedAt, isNull);
+    });
+
     test('an enemy with locations never reaches Enemy.fromJson', () {
       final json = questResultJson();
       json['enemy'] = <String, dynamic>{

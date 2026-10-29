@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/fragments.dart';
+import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
 
@@ -55,9 +56,12 @@ void main() {
       expect(sharedSelection, contains('rescuedCharacters'));
     });
 
-    test('never selects enemy locations nor acknowledgedAt', () {
+    test('never selects enemy locations', () {
       expect(sharedSelection, isNot(contains('locations')));
-      expect(sharedSelection, isNot(contains('acknowledgedAt')));
+    });
+
+    test('selects the BE 9.2 acknowledgedAt right after resolvedAt', () {
+      expect(sharedSelection, contains('resolvedAt acknowledgedAt'));
     });
   });
 
@@ -108,6 +112,58 @@ void main() {
       expect(
         schemaCheckDocuments['GetQuestResult'],
         QuestResultQueries.getQuestResult,
+      );
+    });
+  });
+
+  group('ListUnacknowledgedQuestResults', () {
+    final operation = _operationOf(
+      QuestResultQueries.listUnacknowledgedQuestResults,
+    );
+    final document = _collapsed(
+      QuestResultQueries.listUnacknowledgedQuestResults,
+    );
+
+    test('is a query without variables', () {
+      expect(operation.type, OperationType.query);
+      expect(operation.name?.value, 'ListUnacknowledgedQuestResults');
+      expect(operation.variableDefinitions, isEmpty);
+    });
+
+    test('reads unacknowledgedQuestResults with the shared fragment', () {
+      expect(document, contains('unacknowledgedQuestResults {'));
+      expect(document, contains(sharedSelection));
+    });
+
+    test('is registered in the schema check', () {
+      expect(
+        schemaCheckDocuments['ListUnacknowledgedQuestResults'],
+        QuestResultQueries.listUnacknowledgedQuestResults,
+      );
+    });
+  });
+
+  group('AcknowledgeQuestResult', () {
+    final operation = _operationOf(QuestResultMutations.acknowledgeQuestResult);
+    final document = _collapsed(QuestResultMutations.acknowledgeQuestResult);
+
+    test('is a mutation with a typed id', () {
+      expect(operation.type, OperationType.mutation);
+      expect(operation.name?.value, 'AcknowledgeQuestResult');
+      _expectSingleNonNullString(operation, 'id');
+    });
+
+    test('selects the CommonResponse of acknowledgeQuestResult', () {
+      expect(
+        document,
+        contains(r'acknowledgeQuestResult(id: $id) { successful response }'),
+      );
+    });
+
+    test('is registered in the schema check', () {
+      expect(
+        schemaCheckDocuments['AcknowledgeQuestResult'],
+        QuestResultMutations.acknowledgeQuestResult,
       );
     });
   });

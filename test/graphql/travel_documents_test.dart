@@ -107,7 +107,7 @@ void main() {
     });
   });
 
-  test('the schema check registers 36 documents', () {
-    expect(schemaCheckDocuments.length, 36);
+  test('the schema check registers 38 documents', () {
+    expect(schemaCheckDocuments.length, 38);
   });
 }
