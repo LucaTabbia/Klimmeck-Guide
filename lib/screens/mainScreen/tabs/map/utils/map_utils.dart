@@ -72,6 +72,11 @@ class MapUtils {
     return null;
   }
 
+  /// Regola di rilascio della pedina (Phase 7 D-01): la città che contiene il
+  /// punto, altrimenti la più vicina. Condivisa da viaggio e teletrasporto.
+  static City? dropTargetCity(LatLng point, List<City> cities) =>
+      findCityContainingPoint(point, cities) ?? findNearestCity(point, cities);
+
   static LatLng clampToBounds(LatLng point, LatLngBounds bounds) {
     return LatLng(
       point.latitude.clamp(bounds.south, bounds.north),

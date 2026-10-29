@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,12 +8,12 @@ import 'package:latlong2/latlong.dart';
 import '../../../../../models/city.dart';
 import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
-import '../../../../../theme/kg_theme.dart';
 import '../../../characterCubit/character_cubit.dart';
 import '../../../travelCubit/travel_cubit.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
 import '../utils/map_constants.dart';
-import '../utils/map_utils.dart';
+import 'pawn_dragging.dart';
+import 'pawn_visuals.dart';
 
 class CharacterMarkerLayer extends StatefulWidget {
   const CharacterMarkerLayer({
@@ -45,12 +44,23 @@ class CharacterMarkerLayer extends StatefulWidget {
   State<CharacterMarkerLayer> createState() => _CharacterMarkerLayerState();
 }
 
-class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
+class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
+    with PawnDragging<CharacterMarkerLayer> {
   static const double _labelWidth = 160;
   static const double _labelHeight = 72;
 
-  /// Punto sotto il dito, valorizzato solo durante il trascinamento.
-  LatLng? _dragPoint;
+  @override
+  MapController get pawnMapController => widget.mapController;
+
+  @override
+  List<City> get dropCities => widget.cities;
+
+  @override
+  void onPawnDragUpdate(LatLng point) => widget.onDragUpdate(point);
+
+  @override
+  void onPawnDragEnd(LatLng? finalLocation, City? targetCity) =>
+      widget.onDragEnd(finalLocation, targetCity);
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +81,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
 
   Widget _buildIdlePawn(CharacterLoaded state, TravelState travel) {
     final location = state.character.status!.location!.location!;
-    final point = _dragPoint ?? _confirmingDestination(travel) ?? location;
+    final point = dragPoint ?? _confirmingDestination(travel) ?? location;
     final pawnPath = state.character.infos!.sex!.pawnPath;
     return MarkerLayer(
       markers: [
@@ -92,7 +102,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
             alignment: Alignment.topCenter,
             child: const Align(
               alignment: Alignment.topCenter,
-              child: _TravelLabel(
+              child: PawnLabel(
                 key: CharacterMarkerLayer.awaitingAidLabelKey,
                 text: CharacterMarkerLayer.awaitingAidLabel,
               ),
@@ -125,7 +135,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
           alignment: Alignment.topCenter,
           child: Align(
             alignment: Alignment.topCenter,
-            child: _TravelLabel(
+            child: PawnLabel(
               key: CharacterMarkerLayer.travelLabelKey,
               text: _labelOf(progress),
             ),
@@ -163,16 +173,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
       valueListenable: widget.zoomNotifier,
       builder: (_, zoom, child) {
         return Transform.scale(
-          scale: _calculateCharacterScale(zoom),
+          scale: pawnScaleForZoom(zoom),
           child: child!,
         );
       },
       child: pawn,
     );
-  }
-
-  double _calculateCharacterScale(double zoom) {
-    return (zoom * 0.05 + 0.4) * 0.08 * MapConstants.characterMarkerSize;
   }
 
   Widget _buildDraggablePawn(String pawnPath, {required bool canDrag}) {
@@ -187,8 +193,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
         opacity: 0,
         child: CachedSvg(url: pawnPath),
       ),
-      onDragUpdate: _handleDragUpdate,
-      onDragEnd: (_) => _handleDragEnd(),
+      onDragUpdate: handlePawnDragUpdate,
+      onDragEnd: (_) => handlePawnDragEnd(),
       child: _pawn(pawnPath),
     );
   }
@@ -200,69 +206,6 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer> {
         height: MapConstants.characterMarkerSize,
         width: MapConstants.characterMarkerSize,
         url: pawnPath,
-      ),
-    );
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    final renderObject = context.findRenderObject();
-    if (!mounted || renderObject == null) return;
-
-    if (renderObject is RenderBox && renderObject.hasSize && renderObject.attached) {
-      final localOffset = renderObject.globalToLocal(details.globalPosition);
-      final newLatLng = widget.mapController.camera.screenOffsetToLatLng(localOffset);
-
-      setState(() {
-        _dragPoint = newLatLng;
-      });
-
-      widget.onDragUpdate(newLatLng);
-    }
-  }
-
-  /// Regola D-01: città che contiene il punto, altrimenti la più vicina.
-  void _handleDragEnd() {
-    final releasePoint = _dragPoint;
-    setState(() => _dragPoint = null);
-    if (releasePoint == null) {
-      widget.onDragEnd(null, null);
-      return;
-    }
-
-    final targetCity =
-        MapUtils.findCityContainingPoint(releasePoint, widget.cities) ??
-        MapUtils.findNearestCity(releasePoint, widget.cities);
-    widget.onDragEnd(targetCity?.markerLocation?.location, targetCity);
-  }
-}
-
-/// Etichetta di viaggio: solo testo, non intercetta i gesti della mappa.
-class _TravelLabel extends StatelessWidget {
-  const _TravelLabel({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: KlimmeckGuideTheme.parchment,
-          borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: KlimmeckGuideTheme.spacingSm,
-            vertical: KlimmeckGuideTheme.spacingXs,
-          ),
-          child: AutoSizeText(
-            text,
-            maxLines: 1,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: KlimmeckGuideTheme.darkWood,
-            ),
-          ),
-        ),
       ),
     );
   }
