@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-10-29T18:47:34.000Z"
+last_updated: "2026-10-30T15:50:02.000Z"
 last_activity: "2026-10-29 -- Phase 10 plans 10-01..10-10 executed, review fixed, verified (human_needed), audited; parked at 10/11 waiting for the BE Phase 10 PR (BE-HARD-08)"
 progress:
   total_phases: 17
@@ -21,7 +21,7 @@ Phase: 10 (Admin Panel (innkeeper)) — PARKED at 10/11 on `feat/10-admin-panel`
 Plan: 10 of 11
 Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
 Next Phase: `/gsd-execute-phase 10` resumes at plan 10-11 after the BE Phase 10 PR merges on BE `develop` (gate: `pendingQuest` inside `type PendingRequestCharacter` of `origin/develop:src/schema.gql`); then the Android device E2E (10 steps in 10-11 Task 2), traceability, BACKEND-NOTES §6, PR `feat/10-admin-panel` → `develop` AFTER the BE PR
-Status: Phase 10 paused at 10/11 — gate plan 10-11 blocked on the BE Phase 10 PR (branch pushed as backup, no PR yet)
+Status: Phase 10 paused at 10/11 — gate plan 10-11 blocked on the BE Phase 10 PR #16 (draft since 2026-10-30; the user marks it ready after the production ref migration, then merge)
 Last activity: 2026-10-29 -- Phase 10 plans 10-01..10-10 executed (70 commits), code review fixed (9/9 in TDD, suite 2830, analyzer 51 info), verification human_needed, security audit written; phase parked waiting for the BE Phase 10 PR
 
 ## Current Milestone
@@ -61,7 +61,7 @@ Last activity: 2026-10-29 -- Phase 10 plans 10-01..10-10 executed (70 commits), 
 - ~~**BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21). — **BE PR #15 open (2026-10-28, `feat/09.2-quest-result-delivery-contract` → `develop`, 7/7 plans, handoff `BACKEND-NOTES.md` of the BE phase)**: the gated FE plans 09-12/09-13 run after its merge. **Note for 09-12 (review fix IN-04, 2026-10-28):** the real `PendingQuestResults` adapter must parse the unacknowledged list item by item (`QuestResult.tryFromJson` per element, skip malformed entries and orphan items), mapping only a list-level shape error to `malformed`, because `malformed` is no longer retried by the cubit; RED adapter test: one malformed + one valid item → the valid one. Also stub `getUnacknowledgedQuestResults` in `authenticated_shell_test.dart` (the cubit refetches at `start()`).~~ — **resolved 2026-10-29:** merged on BE `develop` (PR #15, `8f30d1d`), consumed by plan 09-12 and proven by the device E2E (outcome in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5).
 - **F2 — BE rule change from the Phase 9 UAT (2026-10-29):** a started quest whose participant is archived should be fought as if the seat were still occupied (user: «Per quello lasciamo il posto pieno»); today the BE fights with the remaining members (BE 9.2 D-07). Routed in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5.2; BE Phase 10 or a 9.3 companion — decision pending.
 - **F1 / F3 — FE items from the Phase 9 UAT:** F1 party counter / torn state of the own quest not live during the own travel (fix on `feat/09-combat-result-sheet` before the PR); F3 «In attesa del gruppo» on a due solo quest (minor, to check).
-- **BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).
+- **BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed
