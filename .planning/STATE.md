@@ -21,7 +21,7 @@ Phase: 10 (Admin Panel (innkeeper)) — PARKED at 10/11 on `feat/10-admin-panel`
 Plan: 10 of 11
 Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
 Next Phase: `/gsd-execute-phase 10` resumes at plan 10-11 after the BE Phase 10 PR merges on BE `develop` (gate: `pendingQuest` inside `type PendingRequestCharacter` of `origin/develop:src/schema.gql`); then the Android device E2E (10 steps in 10-11 Task 2), traceability, BACKEND-NOTES §6, PR `feat/10-admin-panel` → `develop` AFTER the BE PR
-Status: Phase 10 paused at 10/11 — gate plan 10-11 blocked on the BE Phase 10 PR #16 (draft since 2026-10-30; the user marks it ready after the production ref migration, then merge)
+Status: Phase 10 paused at 10/11 — gate plan 10-11 blocked on the merge of the BE Phase 10 PR #16 into `develop` (the user merges when ready; the production deploy and the ref migration are deferred by decision of 2026-10-30, the runbook stays a release prerequisite)
 Last activity: 2026-10-29 -- Phase 10 plans 10-01..10-10 executed (70 commits), code review fixed (9/9 in TDD, suite 2830, analyzer 51 info), verification human_needed, security audit written; phase parked waiting for the BE Phase 10 PR
 
 ## Current Milestone
