@@ -1,7 +1,7 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
+**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-11-01 — Phase 10 complete (11/11 plans, Android device E2E 10/10, ADMIN-01..08).)_ _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
 **Granularity:** Standard (17 phases)
 **Coverage:** 95/95 v1 requirements mapped (79 + 16 added 2026-10-29)
@@ -75,7 +75,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
 - [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
 - [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
-- [ ] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_
+- [x] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_ (completed 2026-11-01)
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
@@ -364,7 +364,7 @@ Plans:
 - [x] 10-08-PLAN.md — Map pieces: shared drop rule and PawnDragging mixin (Phase 7 unchanged), PawnLabel, TeleportPawnLayer, in-style «Annulla» control
 - [x] 10-09-PLAN.md — Shell TeleportModeCubit, optional city lore tap, WorldMap layer swap in teleport mode with drop/cancel wiring and availability sync
 - [x] 10-10-PLAN.md — TeleportModeLanding (jump to the Map, cancel off-Map or on lost role, panel re-push on success) and «Teletrasporta» on queue rows
-- [ ] 10-11-PLAN.md — ⛔ GATED on the BE Phase 10 PR (BE-HARD-08): pendingQuest selected, full gates 42/42, VALIDATION, device E2E checkpoint, traceability and BACKEND-NOTES §6
+- [x] 10-11-PLAN.md — ⛔ GATED on the BE Phase 10 PR (BE-HARD-08): pendingQuest selected, full gates 42/42, VALIDATION, device E2E checkpoint, traceability and BACKEND-NOTES §6
 **UI hint**: yes (no UI phase, Phases 4–9 precedent)
 
 ### Phase 11: Auth & Session Bootstrap
@@ -493,7 +493,7 @@ Plans:
 | 7. Travel | 11/11 | Complete | 2026-10-26 |
 | 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 10/11 | In Progress | - |
+| 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 0/0 | Not started | - |
@@ -573,14 +573,14 @@ Plans:
 | COMBAT-08 | Phase 9 | Complete |
 | COMBAT-09 | Phase 9 | Complete |
 | COMBAT-10 | Phase 9 | Complete |
-| ADMIN-01 | Phase 10 | Pending |
-| ADMIN-02 | Phase 10 | Pending |
-| ADMIN-03 | Phase 10 | Pending |
-| ADMIN-04 | Phase 10 | Pending |
-| ADMIN-05 | Phase 10 | Pending |
-| ADMIN-06 | Phase 10 | Pending |
-| ADMIN-07 | Phase 10 | Pending |
-| ADMIN-08 | Phase 10 | Pending |
+| ADMIN-01 | Phase 10 | Complete |
+| ADMIN-02 | Phase 10 | Complete |
+| ADMIN-03 | Phase 10 | Complete |
+| ADMIN-04 | Phase 10 | Complete |
+| ADMIN-05 | Phase 10 | Complete |
+| ADMIN-06 | Phase 10 | Complete |
+| ADMIN-07 | Phase 10 | Complete |
+| ADMIN-08 | Phase 10 | Complete |
 | AUTH-01 | Phase 11 | Pending |
 | AUTH-02 | Phase 11 | Pending |
 | AUTH-03 | Phase 11 | Pending |
