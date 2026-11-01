@@ -42,6 +42,18 @@ Map<String, dynamic> pendingRequestJson({
   },
 };
 
+/// Voce come la emette la BE dopo BE-HARD-08 (`4dc7e89`): `pendingQuest` sempre presente, `null` se la corsia è libera.
+Map<String, dynamic> mergedPendingRequestJson({String? pendingQuest}) {
+  final json = pendingRequestJson();
+  return {
+    ...json,
+    'character': {
+      ...json['character'] as Map<String, dynamic>,
+      'pendingQuest': pendingQuest,
+    },
+  };
+}
+
 Map<String, dynamic> queuedTravelJson({
   required DateTime endTime,
   String to = 'poi-borgo-marker',

@@ -27,14 +27,17 @@ void main() {
       expect(sharedSelection, contains('startDate'));
     });
 
-    test('never selects the gated or private fields', () {
-      for (final field in [
-        'pendingQuest',
-        'user',
-        'twitchId',
-        'pointsSpent',
-        'road',
-      ]) {
+    test('selects the busy standard lane under character (BE-HARD-08)', () {
+      final characterSelection = sharedSelection.substring(
+        sharedSelection.indexOf('character {'),
+      );
+
+      expect(characterSelection, contains('pendingQuest'));
+      expect('pendingQuest'.allMatches(sharedSelection), hasLength(1));
+    });
+
+    test('never selects the private fields', () {
+      for (final field in ['user', 'twitchId', 'pointsSpent', 'road']) {
         expect(sharedSelection, isNot(contains(field)), reason: field);
       }
     });

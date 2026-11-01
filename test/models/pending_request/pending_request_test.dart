@@ -46,6 +46,26 @@ void main() {
       expect(request.character.isBusy, isTrue);
     });
 
+    test('the merged BE shape with a busy lane makes the character busy', () {
+      final request = PendingRequest.fromJson(
+        mergedPendingRequestJson(pendingQuest: 'pq-hunt-7'),
+      );
+
+      expect(request.character.pendingQuestId, 'pq-hunt-7');
+      expect(request.character.isBusy, isTrue);
+    });
+
+    test('the merged BE shape with an explicit null lane is not busy', () {
+      final json = mergedPendingRequestJson();
+      expect((json['character'] as Map)['pendingQuest'], isNull);
+      expect((json['character'] as Map).containsKey('pendingQuest'), isTrue);
+
+      final request = PendingRequest.fromJson(json);
+
+      expect(request.character.pendingQuestId, isNull);
+      expect(request.character.isBusy, isFalse);
+    });
+
     test('a free travel is read with a UTC endTime and its destination', () {
       final endTime = DateTime.utc(2026, 10, 29, 12, 12);
       final request = PendingRequest.fromJson(
