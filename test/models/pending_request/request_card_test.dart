@@ -180,9 +180,7 @@ void main() {
     });
 
     test('a full worldMission with everyone present is actionable', () {
-      final card = requestCardsOf(
-        requestsOf(worldMissionEntriesJson()),
-      ).single;
+      final card = requestCardsOf(requestsOf(worldMissionEntriesJson())).single;
 
       expect(card.hasAllSeats, isTrue);
       expect(card.isActionable(serverNow), isTrue);
