@@ -68,7 +68,7 @@ void main() {
 
   test('a lone target is labelled with its name', () {
     final target = TeleportTarget.fromCharacter(
-      beaCharacter(),
+      beaWith(),
       fallbackName: 'Bea',
     )!;
 
@@ -78,7 +78,7 @@ void main() {
 
   test('a group keeps its companions and is labelled «Gruppo · N»', () {
     final target = TeleportTarget.fromCharacter(
-      beaCharacter(),
+      beaWith(),
       fallbackName: 'Bea',
       companionIds: const ['char-cosimo', 'char-dora'],
     )!;

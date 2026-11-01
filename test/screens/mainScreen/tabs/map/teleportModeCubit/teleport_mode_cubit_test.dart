@@ -81,6 +81,20 @@ void main() {
 
   group('prepare', () {
     blocTest<TeleportModeCubit, TeleportModeState>(
+      'keeps the companions on the target (UAT 2026-11-01)',
+      build: build,
+      act: (cubit) => cubit.prepare(
+        characterId: beaId,
+        name: 'Bea',
+        companionIds: const [cosimoId],
+      ),
+      expect: () => [
+        const TeleportPreparing(characterId: beaId),
+        TeleportActive(target: beaGroup),
+      ],
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
       'reads the character once and enters teleport mode (D-15/C3)',
       build: build,
       act: (cubit) => cubit.prepare(characterId: beaId, name: 'Bea'),
@@ -203,8 +217,7 @@ void main() {
       ],
       verify: (_) => verifyInOrder([
         () => repository.teleport(characterId: beaId, poiId: borgoMarkerId),
-        () =>
-            repository.teleport(characterId: cosimoId, poiId: borgoMarkerId),
+        () => repository.teleport(characterId: cosimoId, poiId: borgoMarkerId),
       ]),
     );
 

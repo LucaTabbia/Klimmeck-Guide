@@ -62,11 +62,11 @@ ElevatedButton _completeButton(WidgetTester tester, String questId) =>
       find.byKey(RequestCardView.completeKeyFor(questId)),
     );
 
-Finder _teleportAction(String characterId) =>
-    find.byKey(ValueKey('innkeeper.teleport.$characterId'));
+Finder _teleportAction(String cardKey) =>
+    find.byKey(RequestCardView.teleportKeyFor(cardKey));
 
-TextButton _teleportButton(WidgetTester tester, String characterId) =>
-    tester.widget<TextButton>(_teleportAction(characterId));
+TextButton _teleportButton(WidgetTester tester, String cardKey) =>
+    tester.widget<TextButton>(_teleportAction(cardKey));
 
 void main() {
   late MockPendingRequestsCubit cubit;
@@ -544,7 +544,7 @@ void main() {
   });
 
   group('«Teletrasporta» (10-CONTEXT D-15/D-19)', () {
-    testWidgets('every listed row has the action', (tester) async {
+    testWidgets('a listed card has one action, never its rows', (tester) async {
       await pumpQueue(
         tester,
         worldMissionEntriesJson(
@@ -560,35 +560,38 @@ void main() {
         ),
       );
 
-      for (final id in ['char-bea', 'char-cosimo', 'char-dario']) {
-        expect(_teleportAction(id), findsOneWidget, reason: id);
-        expect(_teleportButton(tester, id).onPressed, isNotNull, reason: id);
-      }
-      expect(find.text(ParticipantRow.teleportLabel), findsNWidgets(3));
+      expect(_teleportAction(worldMissionQuestId), findsOneWidget);
+      expect(_teleportButton(tester, worldMissionQuestId).onPressed, isNotNull);
+      expect(find.text(RequestCardView.teleportLabel), findsOneWidget);
+      expect(find.byType(TextButton), findsOneWidget);
     });
 
-    testWidgets('an awaiting-aid row has the action too', (tester) async {
+    testWidgets('an awaiting-aid participant keeps the action', (tester) async {
       await pumpQueue(tester, [
         pendingRequestJson(awaitingAid: awaitingAidJson()),
       ]);
 
-      expect(_teleportButton(tester, 'char-aldo').onPressed, isNotNull);
+      expect(_teleportButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
-    testWidgets('tapping it reads the character for the teleport', (
+    testWidgets('tapping it reads the first participant with the companions', (
       tester,
     ) async {
       await pumpQueue(tester, worldMissionEntriesJson());
 
-      await tester.tap(_teleportAction('char-bea'));
+      await tester.tap(_teleportAction(worldMissionQuestId));
       await tester.pump();
 
       verify(
-        () => teleportCubit.prepare(characterId: 'char-bea', name: 'Bea'),
+        () => teleportCubit.prepare(
+          characterId: 'char-bea',
+          name: 'Bea',
+          companionIds: ['char-cosimo'],
+        ),
       ).called(1);
     });
 
-    testWidgets('the read shows a progress on its row and locks the others', (
+    testWidgets('the read shows a progress on its card and locks the others', (
       tester,
     ) async {
       whenListen(
@@ -596,17 +599,20 @@ void main() {
         teleportStates.stream,
         initialState: const TeleportPreparing(characterId: 'char-bea'),
       );
-      await pumpQueue(tester, worldMissionEntriesJson());
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+        ...worldMissionEntriesJson(),
+      ]);
 
       expect(
         find.descendant(
-          of: find.byKey(ParticipantRow.keyFor('char-bea')),
+          of: find.byKey(RequestCardView.keyFor(worldMissionQuestId)),
           matching: find.byType(CircularProgressIndicator),
         ),
         findsOneWidget,
       );
-      expect(_teleportAction('char-bea'), findsNothing);
-      expect(_teleportButton(tester, 'char-cosimo').onPressed, isNull);
+      expect(_teleportAction(worldMissionQuestId), findsNothing);
+      expect(_teleportButton(tester, _storyCardKey).onPressed, isNull);
     });
 
     // il progresso della lettura gira per sempre: niente pumpAndSettle
