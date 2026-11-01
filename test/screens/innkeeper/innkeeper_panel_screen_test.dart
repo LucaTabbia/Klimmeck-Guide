@@ -24,7 +24,6 @@ import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
-import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
@@ -68,15 +67,6 @@ Finder _teleportAction(String characterId) =>
 
 TextButton _teleportButton(WidgetTester tester, String characterId) =>
     tester.widget<TextButton>(_teleportAction(characterId));
-
-Finder _greyedAncestorOf(Finder finder) => find.ancestor(
-  of: finder,
-  matching: find.byWidgetPredicate(
-    (widget) =>
-        widget is Opacity &&
-        widget.opacity == KlimmeckGuideTheme.pendingInkOpacity,
-  ),
-);
 
 void main() {
   late MockPendingRequestsCubit cubit;
@@ -229,31 +219,45 @@ void main() {
     await pumpQueue(tester, worldMissionEntriesJson());
 
     expect(find.text('Missione mondiale'), findsOneWidget);
-    expect(find.text('2/3 posti'), findsOneWidget);
+    expect(find.text('2/2 posti'), findsOneWidget);
     expect(find.text('Bea'), findsOneWidget);
     expect(find.text('Cosimo'), findsOneWidget);
     expect(find.textContaining('registrati'), findsNothing);
   });
 
-  testWidgets('a hidden busy participant leaves the caption', (tester) async {
+  testWidgets('a worldMission with a busy participant is not listed', (
+    tester,
+  ) async {
     await pumpQueue(
       tester,
       worldMissionEntriesJson(
         names: ['Bea', 'Cosimo', 'Dario'],
+        requiredAdventurers: const [
+          {'title': null, 'count': 3},
+        ],
         busyLanes: {'Dario': 'quest-standard-1'},
       ),
     );
 
-    expect(find.text('Dario'), findsNothing);
-    expect(find.text('3/3 posti'), findsOneWidget);
-    expect(find.text('2 presenti su 3 registrati'), findsOneWidget);
-    expect(
-      find.text('Un partecipante è impegnato in una missione'),
-      findsOneWidget,
-    );
+    expect(find.text('Missione mondiale'), findsNothing);
+    expect(find.textContaining('registrati'), findsNothing);
   });
 
-  testWidgets('a traveller row is greyed with the remaining time', (
+  testWidgets('a worldMission with free seats is not listed', (tester) async {
+    await pumpQueue(
+      tester,
+      worldMissionEntriesJson(
+        requiredAdventurers: const [
+          {'title': null, 'count': 3},
+        ],
+      ),
+    );
+
+    expect(find.text('Missione mondiale'), findsNothing);
+    expect(find.textContaining('posti'), findsNothing);
+  });
+
+  testWidgets('a travelling participant hides its card until arrival', (
     tester,
   ) async {
     await pumpQueue(tester, [
@@ -264,17 +268,11 @@ void main() {
       ),
     ]);
 
-    expect(find.text('In viaggio · 12 min'), findsOneWidget);
-    expect(_greyedAncestorOf(find.text('In viaggio · 12 min')), findsOneWidget);
+    expect(find.byKey(RequestCardView.keyFor(_storyCardKey)), findsNothing);
+    expect(find.textContaining('In viaggio'), findsNothing);
   });
 
-  testWidgets('a present row is not greyed', (tester) async {
-    await pumpQueue(tester, [pendingRequestJson()]);
-
-    expect(_greyedAncestorOf(find.text('Presente')), findsNothing);
-  });
-
-  testWidgets('after endTime the traveller reads «Arrivato», not greyed', (
+  testWidgets('after endTime the traveller reads «Arrivato» and is listed', (
     tester,
   ) async {
     await pumpQueue(tester, [
@@ -285,8 +283,8 @@ void main() {
       ),
     ]);
 
+    expect(find.byKey(RequestCardView.keyFor(_storyCardKey)), findsOneWidget);
     expect(find.text('Arrivato'), findsOneWidget);
-    expect(_greyedAncestorOf(find.text('Arrivato')), findsNothing);
   });
 
   group('«Completa»', () {
@@ -313,10 +311,10 @@ void main() {
       expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
-    testWidgets('a traveller before endTime disables it', (tester) async {
+    testWidgets('a traveller before endTime hides the card', (tester) async {
       await pumpQueue(tester, [pendingRequestJson(activeTravel: travel)]);
 
-      expect(_completeButton(tester, _storyCardKey).onPressed, isNull);
+      expect(completeStory, findsNothing);
     });
 
     testWidgets('the same traveller after endTime enables it', (tester) async {
@@ -327,16 +325,22 @@ void main() {
       expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
-    testWidgets('a hidden busy participant disables it', (tester) async {
+    testWidgets('a hidden busy participant hides the card', (tester) async {
       await pumpQueue(
         tester,
         worldMissionEntriesJson(
           names: ['Bea', 'Cosimo', 'Dario'],
+          requiredAdventurers: const [
+            {'title': null, 'count': 3},
+          ],
           busyLanes: {'Dario': 'quest-standard-1'},
         ),
       );
 
-      expect(_completeButton(tester, worldMissionQuestId).onPressed, isNull);
+      expect(
+        find.byKey(RequestCardView.completeKeyFor(worldMissionQuestId)),
+        findsNothing,
+      );
     });
 
     testWidgets('tapping it opens the completion form', (tester) async {
@@ -569,20 +573,6 @@ void main() {
       ]);
 
       expect(_teleportButton(tester, 'char-aldo').onPressed, isNotNull);
-    });
-
-    testWidgets('a traveller keeps the action outside the greyed ink', (
-      tester,
-    ) async {
-      await pumpQueue(tester, [
-        pendingRequestJson(
-          activeTravel: queuedTravelJson(
-            endTime: _now.add(const Duration(minutes: 12)),
-          ),
-        ),
-      ]);
-
-      expect(_greyedAncestorOf(_teleportAction('char-aldo')), findsNothing);
     });
 
     testWidgets('tapping it reads the character for the teleport', (

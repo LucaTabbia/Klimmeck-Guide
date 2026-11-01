@@ -394,6 +394,39 @@ void main() {
     });
   });
 
+  group('PendingRequestsCubit actionable cards (UAT 2026-11-01)', () {
+    const noRereads = <Duration>[];
+
+    test('a travelling participant hides its card until the server clock '
+        'passes its end time', () {
+      _runQueue((h, async) {
+        h.cubit.start();
+        h.push(async, _travellerQueue(_start.add(const Duration(seconds: 3))));
+        expect(h.state.requests, hasLength(1));
+        expect(h.state.cards, isEmpty);
+
+        h.pass(async, const Duration(seconds: 3));
+        expect(h.state.cards.map((card) => card.cardKey), ['pq-story-1']);
+      }, rereadDelays: noRereads);
+    });
+
+    test('a worldMission with free seats is not a card', () {
+      final state = PendingRequestsState(
+        serverNow: _start,
+        requests: _queue(
+          worldMissionEntriesJson(
+            requiredAdventurers: const [
+              {'title': null, 'count': 3},
+            ],
+          ),
+        ),
+        isLoaded: true,
+      );
+
+      expect(state.cards, isEmpty);
+    });
+  });
+
   group('PendingRequestsCubit arrival rereads (D-18, C5)', () {
     test('rereads once at endTime + 5 s and once at endTime + 65 s', () {
       _runQueue((h, async) {

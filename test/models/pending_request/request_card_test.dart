@@ -144,6 +144,67 @@ void main() {
     });
   });
 
+  group('RequestCard.isActionable (UAT 2026-11-01)', () {
+    test('a present story is actionable', () {
+      final card = requestCardsOf(requestsOf([pendingRequestJson()])).single;
+
+      expect(card.hasAllSeats, isTrue);
+      expect(card.isActionable(serverNow), isTrue);
+    });
+
+    test('a travelling participant blocks the card until its end time', () {
+      final endTime = serverNow.add(const Duration(minutes: 12));
+      final card = requestCardsOf(
+        requestsOf([
+          pendingRequestJson(activeTravel: queuedTravelJson(endTime: endTime)),
+        ]),
+      ).single;
+
+      expect(card.isActionable(serverNow), isFalse);
+      expect(card.isActionable(endTime), isTrue);
+    });
+
+    test('a worldMission with free seats is not actionable', () {
+      final card = requestCardsOf(
+        requestsOf(
+          worldMissionEntriesJson(
+            requiredAdventurers: const [
+              {'title': null, 'count': 3},
+            ],
+          ),
+        ),
+      ).single;
+
+      expect(card.hasAllSeats, isFalse);
+      expect(card.isActionable(serverNow), isFalse);
+    });
+
+    test('a full worldMission with everyone present is actionable', () {
+      final card = requestCardsOf(
+        requestsOf(worldMissionEntriesJson()),
+      ).single;
+
+      expect(card.hasAllSeats, isTrue);
+      expect(card.isActionable(serverNow), isTrue);
+    });
+
+    test('a hidden busy participant makes the card not actionable', () {
+      final card = requestCardsOf(
+        requestsOf(
+          worldMissionEntriesJson(
+            names: const ['Bea', 'Cosimo', 'Dora'],
+            requiredAdventurers: const [
+              {'title': null, 'count': 3},
+            ],
+            busyLanes: const {'Cosimo': 'pq-hunt-1'},
+          ),
+        ),
+      ).single;
+
+      expect(card.isActionable(serverNow), isFalse);
+    });
+  });
+
   group('RequestCard.canComplete', () {
     RequestCard storyCardWith({
       Map<String, dynamic>? activeTravel,

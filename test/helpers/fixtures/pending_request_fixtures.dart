@@ -63,7 +63,7 @@ Map<String, dynamic> queuedTravelJson({
 List<Map<String, dynamic>> worldMissionEntriesJson({
   List<String> names = const ['Bea', 'Cosimo'],
   List<Map<String, dynamic>> requiredAdventurers = const [
-    {'title': null, 'count': 3},
+    {'title': null, 'count': 2},
   ],
   Map<String, String> busyLanes = const {},
   Map<String, Map<String, dynamic>> travels = const {},
