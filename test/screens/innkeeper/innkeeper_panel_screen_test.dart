@@ -568,12 +568,13 @@ void main() {
       expect(find.byType(TextButton), findsOneWidget);
     });
 
-    testWidgets('an awaiting-aid participant keeps the action', (tester) async {
+    testWidgets('an awaiting-aid participant hides the card', (tester) async {
       await pumpQueue(tester, [
         pendingRequestJson(awaitingAid: awaitingAidJson()),
       ]);
 
-      expect(_teleportButton(tester, _storyCardKey).onPressed, isNotNull);
+      expect(_teleportAction(_storyCardKey), findsNothing);
+      expect(find.text('In attesa di soccorso'), findsNothing);
     });
 
     testWidgets('tapping it reads the first participant with the companions', (

@@ -78,16 +78,19 @@ void main() {
     });
   });
 
-  test('only a travel in progress or unreadable blocks the completion', () {
-    expect(const ParticipantPresent().blocksCompletion, isFalse);
-    expect(const ParticipantArrived().blocksCompletion, isFalse);
-    expect(const ParticipantAwaitingAid().blocksCompletion, isTrue);
-    expect(
-      const ParticipantTravelling(
-        remaining: Duration(minutes: 1),
-      ).blocksCompletion,
-      isTrue,
-    );
-    expect(const ParticipantTravellingUnknown().blocksCompletion, isTrue);
-  });
+  test(
+    'a travel in progress, unreadable or an awaited aid blocks the completion',
+    () {
+      expect(const ParticipantPresent().blocksCompletion, isFalse);
+      expect(const ParticipantArrived().blocksCompletion, isFalse);
+      expect(const ParticipantAwaitingAid().blocksCompletion, isTrue);
+      expect(
+        const ParticipantTravelling(
+          remaining: Duration(minutes: 1),
+        ).blocksCompletion,
+        isTrue,
+      );
+      expect(const ParticipantTravellingUnknown().blocksCompletion, isTrue);
+    },
+  );
 }
