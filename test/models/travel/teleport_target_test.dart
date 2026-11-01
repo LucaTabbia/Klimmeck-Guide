@@ -66,6 +66,27 @@ void main() {
     );
   });
 
+  test('a lone target is labelled with its name', () {
+    final target = TeleportTarget.fromCharacter(
+      beaCharacter(),
+      fallbackName: 'Bea',
+    )!;
+
+    expect(target.companionIds, isEmpty);
+    expect(target.label, 'Bea');
+  });
+
+  test('a group keeps its companions and is labelled «Gruppo · N»', () {
+    final target = TeleportTarget.fromCharacter(
+      beaCharacter(),
+      fallbackName: 'Bea',
+      companionIds: const ['char-cosimo', 'char-dora'],
+    )!;
+
+    expect(target.companionIds, ['char-cosimo', 'char-dora']);
+    expect(target.label, 'Gruppo · 3');
+  });
+
   test('two targets with the same fields are equal', () {
     expect(
       TeleportTarget.fromCharacter(beaWith(), fallbackName: 'Bea'),

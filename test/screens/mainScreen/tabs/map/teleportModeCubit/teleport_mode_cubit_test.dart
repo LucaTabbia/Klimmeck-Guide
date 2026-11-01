@@ -13,6 +13,7 @@ import '../../../../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../../../../helpers/mocks.dart';
 
 const beaId = 'char-bea';
+const cosimoId = 'char-cosimo';
 const valantarMarkerId = 'poi-valantar-marker';
 const borgoMarkerId = 'poi-borgo-marker';
 
@@ -43,6 +44,11 @@ void main() {
   final valantar = cityWithMarker('city-valantar', valantarMarkerId);
   final borgo = cityWithMarker('city-borgo', borgoMarkerId);
   final activeBea = TeleportActive(target: bea);
+  final beaGroup = TeleportTarget.fromCharacter(
+    beaCharacter(),
+    fallbackName: 'Bea',
+    companionIds: const [cosimoId],
+  )!;
 
   setUp(() {
     repository = MockInnkeeperRepository();
@@ -184,6 +190,39 @@ void main() {
       verify: (_) => verify(
         () => repository.teleport(characterId: beaId, poiId: borgoMarkerId),
       ).called(1),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'a group drop moves the target and then every companion (UAT 2026-11-01)',
+      build: build,
+      seed: () => TeleportActive(target: beaGroup),
+      act: (cubit) => cubit.teleportTo(borgo),
+      expect: () => [
+        TeleportActive(target: beaGroup, isTeleporting: true),
+        TeleportSucceeded(target: beaGroup),
+      ],
+      verify: (_) => verifyInOrder([
+        () => repository.teleport(characterId: beaId, poiId: borgoMarkerId),
+        () =>
+            repository.teleport(characterId: cosimoId, poiId: borgoMarkerId),
+      ]),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'a companion refusal keeps the mode with the failure',
+      build: build,
+      setUp: () => when(
+        () => repository.teleport(characterId: cosimoId, poiId: borgoMarkerId),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.questInProgress)),
+      seed: () => TeleportActive(target: beaGroup),
+      act: (cubit) => cubit.teleportTo(borgo),
+      expect: () => [
+        TeleportActive(target: beaGroup, isTeleporting: true),
+        TeleportActive(
+          target: beaGroup,
+          failure: InnkeeperFailure.questInProgress,
+        ),
+      ],
     );
 
     blocTest<TeleportModeCubit, TeleportModeState>(
