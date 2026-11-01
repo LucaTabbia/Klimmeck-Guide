@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-10-29T09:42:54.000Z"
-last_activity: "2026-10-29 -- Phase 9 closed 13/13 with the device UAT 12/12; F1/F3 fixed on the branch (suite 2487); FE PR opened to develop; F2 and the F3 BE side routed to BE Phase 10 as BE-HARD-07"
+status: phase-complete
+last_updated: "2026-11-01T21:00:00.000Z"
+last_activity: "2026-11-01 -- Phase 10 complete: plan 10-11 gate on BE 4dc7e89, Android device E2E 10/10 approved, ADMIN-01..08 ticked"
 progress:
-  total_phases: 12
-  completed_phases: 10
-  total_plans: 100
-  completed_plans: 100
-  percent: 100
+  total_phases: 17
+  completed_phases: 11
+  total_plans: 111
+  completed_plans: 101
+  percent: 91
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 9 (Combat Result Sheet) — COMPLETE 2026-10-29: 13/13 plans on `feat/09-combat-result-sheet`, Android device UAT 12/12 (`09-HUMAN-UAT.md`), COMBAT-01..10 ticked; findings F1 (FE, fix before the PR), F2 (BE rule change), F3 (FE, minor)
-Plan: 13 of 13
-Completed phases: 10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 11)
-Next Phase: merge the FE PR (`feat/09-combat-result-sheet` → `develop`); then `/gsd-discuss-phase 10` (Admin Panel) on the FE and `/gsd-plan-phase 10` on the BE (`feat/10-hardening`, rebased on develop, now carrying BE-HARD-07 from this UAT)
-Status: Phase 9 complete — device UAT 12/12 (2026-10-29, BE develop 8f30d1d), F1/F3 fixed on the branch, FE PR open to develop
-Last activity: 2026-10-29 -- F1/F3 fixed in TDD after the UAT (8 commits, suite 2487 green, analyzer 52/0); FE PR opened; F2 + F3 BE side recorded as BE-HARD-07 in the BE Phase 10 context
+Phase: 10 (Admin Panel (innkeeper)) — COMPLETE 11/11 on `feat/10-admin-panel` (2026-11-01): 10-11 selected `pendingQuest` (BE Phase 10 merged, `4dc7e89`, schema check 42/42), Android device E2E 10/10 pass («approved»), six rule fixes from the UAT in TDD (suite 2852, analyzer 51/0/0), ADMIN-01..08 complete
+Plan: 11 of 11
+Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+Next Phase: FE PR `feat/10-admin-panel` → `develop` (orchestrator; `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`); then the roadmap order decided on 2026-10-29: BE 11 (World Content) → FE 13 → FE 14 → FE 15 → FE 16 → FE 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 10 complete — awaiting the FE PR to `develop`
+Last activity: 2026-11-01 -- Phase 10 plan 10-11 complete: device E2E recorded (10-HUMAN-UAT.md), VALIDATION approved, CONTEXT amended with the UAT rules, BACKEND-NOTES §6 for the BE
 
 ## Current Milestone
 
@@ -37,6 +37,10 @@ Last activity: 2026-10-29 -- F1/F3 fixed in TDD after the UAT (8 commits, suite 
 - Progressione livelli, apprendimento magie, sblocco slot magie: gestiti lato backend (frontend reattivo)
 - Shop e sezione lore già esistenti e funzionanti
 - Lista quest nel tab board quasi definitiva; mancano layout info sheet per tipo
+
+### Roadmap Evolution
+
+- Phases 13–17 added 2026-10-29 (user request, before closing v1.0): 13 City Shops ↔ BE 12, 14 Quest Generation companion ↔ BE 13 (`infos.enemies` replaces `infos.enemy`), 15 Travel Food ↔ BE 14, 16 Travel Ambushes ↔ BE 15, 17 Unlockable Lore ↔ BE 16; BE Phase 11 World Content (data-only, from `World building.docx`) is the data prerequisite of every device UAT. Execution order 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Each FE phase waits for the BE companion merge on BE `develop` (gate pattern 08-12/09-12). Contracts decided in the discuss of 2026-10-29 are recorded in the ROADMAP phase details; the BE roadmap carries the server rules.
 
 ## Open Questions / Blockers
 
@@ -57,6 +61,8 @@ Last activity: 2026-10-29 -- F1/F3 fixed in TDD after the UAT (8 commits, suite 
 - ~~**BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21). — **BE PR #15 open (2026-10-28, `feat/09.2-quest-result-delivery-contract` → `develop`, 7/7 plans, handoff `BACKEND-NOTES.md` of the BE phase)**: the gated FE plans 09-12/09-13 run after its merge. **Note for 09-12 (review fix IN-04, 2026-10-28):** the real `PendingQuestResults` adapter must parse the unacknowledged list item by item (`QuestResult.tryFromJson` per element, skip malformed entries and orphan items), mapping only a list-level shape error to `malformed`, because `malformed` is no longer retried by the cubit; RED adapter test: one malformed + one valid item → the valid one. Also stub `getUnacknowledgedQuestResults` in `authenticated_shell_test.dart` (the cubit refetches at `start()`).~~ — **resolved 2026-10-29:** merged on BE `develop` (PR #15, `8f30d1d`), consumed by plan 09-12 and proven by the device E2E (outcome in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5).
 - **F2 — BE rule change from the Phase 9 UAT (2026-10-29):** a started quest whose participant is archived should be fought as if the seat were still occupied (user: «Per quello lasciamo il posto pieno»); today the BE fights with the remaining members (BE 9.2 D-07). Routed in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5.2; BE Phase 10 or a 9.3 companion — decision pending.
 - **F1 / F3 — FE items from the Phase 9 UAT:** F1 party counter / torn state of the own quest not live during the own travel (fix on `feat/09-combat-result-sheet` before the PR); F3 «In attesa del gruppo» on a due solo quest (minor, to check).
+- ~~**BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).~~ — **resolved 2026-11-01:** merged on BE `develop` (`4dc7e89`), consumed by plan 10-11 and proven by the device E2E (outcome in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6).
+- **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 
 ### Quick Tasks Completed

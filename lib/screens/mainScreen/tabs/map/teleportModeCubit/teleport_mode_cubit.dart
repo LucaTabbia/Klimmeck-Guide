@@ -1,0 +1,131 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/travel/teleport_target.dart';
+import 'package:klimmeck_guide/models/travel/travel_destination.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
+import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+
+part 'teleport_mode_state.dart';
+
+/// Modalità teletrasporto del GM (10-CONTEXT D-15..D-20), a livello di shell:
+/// il pannello chiama `prepare`, la Mappa `teleportTo`/`cancelToPanel`, la
+/// shell `cancel` (altro tab, ruolo perso), l'atterraggio del MainScreen
+/// `acknowledgeExit`. Nessuna conferma (D-16); il BE resta
+/// giudice (ADMIN-04/07). Un Cubit non chiama Cubit: il resto lo orchestra la UI.
+class TeleportModeCubit extends Cubit<TeleportModeState>
+    with SafeEmit<TeleportModeState> {
+  TeleportModeCubit({required InnkeeperRepository repository})
+    : _repository = repository,
+      super(const TeleportIdle());
+
+  final InnkeeperRepository _repository;
+
+  /// Cresce a ogni cancel/prepare: una risposta arrivata dopo non tocca lo stato.
+  int _generation = 0;
+
+  /// [companionIds]: gli altri partecipanti della carta, spostati insieme al
+  /// primo (UAT 2026-11-01).
+  Future<void> prepare({
+    required String characterId,
+    required String name,
+    List<String> companionIds = const [],
+  }) async {
+    if (state is TeleportPreparing || state is TeleportActive) return;
+    final generation = ++_generation;
+    emit(TeleportPreparing(characterId: characterId));
+    final TeleportModeState next;
+    try {
+      final character = await _repository.readCharacter(characterId);
+      final target = TeleportTarget.fromCharacter(
+        character,
+        fallbackName: name,
+        companionIds: companionIds,
+      );
+      next = target == null
+          ? TeleportPreparationFailed(
+              characterId: characterId,
+              failure: InnkeeperFailure.malformed,
+            )
+          : TeleportActive(target: target);
+    } on InnkeeperException catch (error) {
+      if (generation != _generation) return;
+      emit(
+        TeleportPreparationFailed(
+          characterId: characterId,
+          failure: error.failure,
+        ),
+      );
+      return;
+    }
+    if (generation != _generation) return;
+    emit(next);
+  }
+
+  Future<void> teleportTo(City city) async {
+    final active = state;
+    if (active is! TeleportActive || active.isTeleporting) return;
+    final destination = travelDestinationFor(
+      target: city,
+      location: active.target.location,
+    );
+    if (destination == null) return;
+    final generation = _generation;
+    emit(active.copyWith(isTeleporting: true, failure: () => null));
+    try {
+      // il primo e poi i compagni, uno alla volta: il BE giudica ciascuno
+      for (final characterId in [
+        active.target.characterId,
+        ...active.target.companionIds,
+      ]) {
+        await _repository.teleport(
+          characterId: characterId,
+          poiId: destination.markerLocation!.id,
+        );
+      }
+    } on InnkeeperException catch (error) {
+      if (generation != _generation) return;
+      _handleTeleportFailure(active, error.failure);
+      return;
+    }
+    if (generation != _generation) return;
+    emit(TeleportSucceeded(target: active.target));
+  }
+
+  /// Ignorato mentre il teletrasporto è in volo: la mutation è già partita e
+  /// il suo esito deve arrivare (anche col ruolo perso: FORBIDDEN → idle).
+  void cancel() {
+    if (state case TeleportActive(isTeleporting: true)) return;
+    _leave();
+  }
+
+  /// «Annulla» dalla Mappa (UAT 2026-11-01): si torna al pannello, non alla
+  /// propria Mappa. Ignorato in volo come `cancel`.
+  void cancelToPanel() {
+    if (state case TeleportActive(isTeleporting: false)) {
+      _generation++;
+      emit(const TeleportCancelled());
+    }
+  }
+
+  /// Il pannello è stato riaperto: la modalità torna a riposo.
+  void acknowledgeExit() {
+    if (state is TeleportSucceeded || state is TeleportCancelled) {
+      emit(const TeleportIdle());
+    }
+  }
+
+  void _handleTeleportFailure(TeleportActive active, InnkeeperFailure failure) {
+    if (failure == InnkeeperFailure.forbidden) {
+      _leave();
+      return;
+    }
+    emit(TeleportActive(target: active.target, failure: failure));
+  }
+
+  void _leave() {
+    _generation++;
+    emit(const TeleportIdle());
+  }
+}

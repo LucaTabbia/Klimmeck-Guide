@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/account_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/innkeeper_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/notification_preferences_section.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -49,6 +50,7 @@ class Settings extends StatelessWidget {
                   const SizedBox(height: KlimmeckGuideTheme.spacingLg),
                   const NotificationPreferencesSection(),
                   const SizedBox(height: KlimmeckGuideTheme.spacingXl),
+                  const InnkeeperSection(),
                   AccountSection(characterName: name),
                   const SizedBox(height: _satchelClearance),
                 ],

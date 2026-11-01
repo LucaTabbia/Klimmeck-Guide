@@ -204,4 +204,52 @@ void main() {
       );
     });
   });
+  group('teleportCharacter', () {
+    const teleport = TravelRequest(id: 'char-bea', poiId: 'poi-borgo-marker');
+
+    Response teleported({required bool successful}) => dataResponse({
+      'teleportCharacter': {'response': 'x', 'successful': successful},
+    });
+
+    test('sends TeleportCharacter with the request variable', () async {
+      handler = (_) => Stream.value(teleported(successful: true));
+
+      await buildGraphQl().teleportCharacter(teleport);
+
+      expect(operationNameOf(requests.single), 'TeleportCharacter');
+      expect(requests.single.variables, {
+        'request': {'id': 'char-bea', 'poiId': 'poi-borgo-marker'},
+      });
+    });
+
+    test('returns successful as answered by the backend', () async {
+      handler = (_) => Stream.value(teleported(successful: true));
+      expect(await buildGraphQl().teleportCharacter(teleport), isTrue);
+
+      handler = (_) => Stream.value(teleported(successful: false));
+      expect(await buildGraphQl().teleportCharacter(teleport), isFalse);
+    });
+
+    test('throws FormatException when successful is missing', () async {
+      handler = (_) => Stream.value(
+        dataResponse({
+          'teleportCharacter': {'response': 'x'},
+        }),
+      );
+
+      await expectLater(
+        buildGraphQl().teleportCharacter(teleport),
+        throwsFormatException,
+      );
+    });
+
+    test('throws the raw OperationException keeping the error code', () async {
+      handler = (_) => Stream.value(errorCodeResponse('QUEST_IN_PROGRESS'));
+
+      await expectLater(
+        buildGraphQl().teleportCharacter(teleport),
+        throwsOperationCoded('QUEST_IN_PROGRESS'),
+      );
+    });
+  });
 }

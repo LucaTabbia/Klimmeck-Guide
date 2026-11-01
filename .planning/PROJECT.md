@@ -22,7 +22,12 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
 - UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite, premi, XP
 - Admin panel completo: pendingRequest, teleport, gestione mostri/grado/premi/ferite
-- Fase finale di hardening: bug fixing, security audit, gestione concurrency
+- Negozi per città: pool di oggetti proprio di ogni città secondo la taglia (villaggio / città / capitale), leggendari mai in vendita _(aggiunto 2026-10-29)_
+- Generazione server-side delle quest consumabili (enemy, boss) con il contratto multi-nemico `infos.enemies`; «Genera missioni» nella Locanda _(aggiunto 2026-10-29)_
+- Viaggio e cibo: il viaggio consuma oggetti `hunger` in base al tempo di marcia, i km scoperti costano vita, partenza rifiutata senza cibo sufficiente _(aggiunto 2026-10-29)_
+- Imboscate in viaggio: probabilità per km e notte, nemico della zona, deviazione verso la città più vicina in caso di sconfitta, report sul foglio esito _(aggiunto 2026-10-29)_
+- Lore sbloccabili per personaggio: città visitate, nemici sconfitti, study; Biblioteca filtrata e nemici sconosciuti oscurati _(aggiunto 2026-10-29)_
+- Fase finale di hardening: bug fixing, security audit, gestione concurrency (eseguita per ultima)
 
 ## Requirements
 
@@ -61,7 +66,12 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - [ ] Admin panel: lista pendingRequest story/worldMission
 - [ ] Admin panel: spostamento istantaneo personaggio su qualsiasi POI
 - [ ] Admin panel: selezione mostri/grado quest, scelta premi, applicazione ferite
-- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency
+- [ ] Negozi per città con pool per taglia (Phase 13 ↔ BE Phase 12) _(aggiunto 2026-10-29)_
+- [ ] Companion della generazione quest: multi-nemico, «Genera missioni», crime/guard/dungeon fisse (Phase 14 ↔ BE Phase 13) _(aggiunto 2026-10-29)_
+- [ ] Viaggio e cibo: anteprima di cibo e vita, rifiuto per fame (Phase 15 ↔ BE Phase 14) _(aggiunto 2026-10-29)_
+- [ ] Imboscate in viaggio: rotta deviata live, report sul foglio esito (Phase 16 ↔ BE Phase 15) _(aggiunto 2026-10-29)_
+- [ ] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_
+- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, eseguita per ultima)
 
 **Future (post v1.0):**
 
@@ -72,9 +82,9 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 
 - Gilde e arena — v2, richiede sistema sociale complesso
 - Blog gilde — v2, dipende da sistema gilde
-- Negozi contestuali per tipo — v2, v1 ha shop generico
+- Negozi per categoria (fabbro, alchimista…) — v2; i pool per città e taglia sono la Phase 13 (2026-10-29)
 - Villaggio visuale con case cliccabili — v2, refactor UI significativo
-- Generazione quest tramite LLM — v2, richiede integrazione AI
+- Descrizioni delle quest tramite LLM — v2; la generazione e il posizionamento server-side delle quest enemy/boss è BE Phase 13 con la companion FE Phase 14 (2026-10-29)
 - Upload e playback audio quest story/worldMission — v2, richiede storage media
 - Speech-to-text per quest audio — v2, dipende da upload audio
 - Sistema allineamento buono/cattivo (crime/guard) — v2, meccanica complessa
@@ -137,6 +147,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 | Niente filtro NSFW e niente set curato di ritratti in v1 Phase 2 | Scelta esplicita dell'utente (2026-10-08): velocità del layout provvisorio; CHAR-06 rinviato all'hardening (Cloudinary AI moderation lato BE) | — Pending (debito tracciato in REQUIREMENTS e BE-HARD) |
 | Impostazioni come utility screen: preferenze notifiche solo sul device, cancellazione personaggio come soft delete BE | I toggle sono non sensibili e per utente (`shared_preferences`, nessun contratto BE: la Phase 5 filtra lato client); l'eliminazione resta identity-bound e archiviata dal BE (Phase 03.1) così nome e storico restano consultabili e riutilizzabili | ✓ Good — Phase 4 + BE Phase 03.1 (2026-10-18) |
 | Usi e recuperi delle magie appartengono alla magia conosciuta, non allo slot (BE 9.1); filtri di Diario e negozio solo sui tipi presenti | Regola dell'utente «il timer di recupero non si interrompe mai»; equip/disequip neutri; chip senza risultati vuoti, base per una fase futura | ✓ Good — Phase 8 (2026-10-27) |
+| Estensione v1.0 del 2026-10-29: sei fasi di contenuto e regole (popolamento BE, negozi per città, generazione quest, cibo, imboscate, lore) prima della chiusura; FE 13–17 companion dei contratti BE 12–16, hardening FE eseguito per ultimo | L'utente vuole un mondo che si sostiene da solo con molti giocatori (quest generate, lore e negozi da dati reali) prima dell'audit finale; ogni regola di gioco resta server-side e il FE resta reattivo | — Pending |
 | Esiti mai persi: ack esplicito alla chiusura e `currentCharacter` sul morto fino all'ack (BE 9.2); foglio solo sulla Mappa | Push persi, notifiche disattivate e force-stop non devono far perdere un esito; il foglio di morte deve precedere la creazione anche a cold start senza hold lato FE; la Mappa è il solo luogo sicuro per un foglio a schermo intero | ✓ Good — Phase 9 (2026-10-29): device UAT 12/12; banner sulla Mappa occupata confermato dall'utente |
 
 ## Evolution

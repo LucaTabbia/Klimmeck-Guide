@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
+import 'package:klimmeck_guide/models/quest/quest_lane.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
@@ -24,7 +25,8 @@ class Board extends StatefulWidget {
   /// Città caricate dal MainScreen: dicono se il personaggio è su un marker (D-11).
   final List<City> cities;
 
-  /// Chiamata solo su QuestAccepted (D-03): il MainScreen passa alla mappa.
+  /// Chiamata su QuestAccepted di una quest con viaggio (D-03): il MainScreen
+  /// passa alla mappa. Story e worldMission restano sulla Board (UAT 2026-11-01).
   final VoidCallback? onQuestAccepted;
 
   @override
@@ -192,10 +194,23 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   /// QuestAcceptanceOutcomeListener (MainScreen).
   void _onAcceptanceOutcome(BuildContext context, QuestAcceptanceState state) {
     if (state is QuestAccepted) {
-      widget.onQuestAccepted?.call();
+      if (_needsTravel(context, state.questId)) widget.onQuestAccepted?.call();
     } else if (state is QuestAcceptanceFailed) {
       _tearKey.currentState?.recompose();
     }
+  }
+
+  /// Solo la corsia standard viaggia verso il marker; una quest ignota mantiene
+  /// il comportamento di prima.
+  bool _needsTravel(BuildContext context, String questId) {
+    final quests = context.read<QuestCubit>().state;
+    if (quests is! QuestLoaded) return true;
+    for (final quest in quests.quests) {
+      if (quest.id != questId) continue;
+      final type = quest.infos?.type;
+      return type == null || laneOf(type) == QuestLane.standard;
+    }
+    return true;
   }
 
   Widget _papers(QuestViewer? viewer, List<Quest> listed) {

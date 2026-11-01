@@ -230,6 +230,14 @@ class KlimmeckGuideTheme {
         ),
       );
 
+  /// Azioni neutre delle superfici di servizio (Locanda, 10-CONTEXT D-11): pieno, bronzo.
+  static final ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
+    backgroundColor: darkBronze,
+    foregroundColor: parchment,
+    disabledBackgroundColor: paleSilver,
+    disabledForegroundColor: darkWood,
+  );
+
   static OutlineInputBorder _sheetBorder(Color color, {double width = 1}) =>
       OutlineInputBorder(
         borderRadius: const BorderRadius.all(Radius.circular(spacingSm)),

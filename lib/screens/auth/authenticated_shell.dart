@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
@@ -38,6 +39,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
@@ -91,6 +93,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// `showDialog`/`showModalBottomSheet`/`Navigator.push` montano route sul
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
+/// La Locanda (Phase 10) legge `InnkeeperRepository` e `ServerClockService` da qui con `openInnkeeperPanel`.
+///
+/// Modalità teletrasporto del GM (Phase 10): a livello di shell perché il pannello (route radice) la avvia e la Mappa la mostra.
 class AuthenticatedShell extends StatelessWidget {
   const AuthenticatedShell({
     super.key,
@@ -213,6 +218,14 @@ class AuthenticatedShell extends StatelessWidget {
         ),
         RepositoryProvider<ArrivalRereadLedger>(
           create: (_) => ArrivalRereadLedger(),
+        ),
+        RepositoryProvider<InnkeeperRepository>(
+          create: (_) => InnkeeperRepository(graphQl: graphQl),
+        ),
+        BlocProvider<TeleportModeCubit>(
+          create: (context) => TeleportModeCubit(
+            repository: context.read<InnkeeperRepository>(),
+          ),
         ),
         BlocProvider<TravelCubit>(
           create: (context) => TravelCubit(

@@ -8,7 +8,10 @@ import '../../../helpers/test_app.dart';
 void main() {
   bool? result;
 
-  Future<void> openDialog(WidgetTester tester) async {
+  Future<void> openDialog(
+    WidgetTester tester, {
+    ButtonStyle? confirmButtonStyle,
+  }) async {
     result = null;
     await tester.pumpWidget(
       buildTestApp(
@@ -19,6 +22,7 @@ void main() {
               title: 'T',
               body: 'B',
               confirmLabel: 'Conferma',
+              confirmButtonStyle: confirmButtonStyle,
             ),
             child: const Text('open'),
           ),
@@ -81,5 +85,44 @@ void main() {
     final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
 
     expect(button.style, KlimmeckGuideTheme.destructiveButtonStyle);
+  });
+
+  testWidgets('a neutral confirm style replaces the destructive one', (
+    tester,
+  ) async {
+    await openDialog(
+      tester,
+      confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
+    );
+
+    final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+
+    expect(button.style, KlimmeckGuideTheme.primaryButtonStyle);
+  });
+
+  testWidgets('the neutral confirm still completes with true', (tester) async {
+    await openDialog(
+      tester,
+      confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
+    );
+
+    await tester.tap(find.text('Conferma'));
+    await tester.pumpAndSettle();
+
+    expect(result, isTrue);
+  });
+
+  testWidgets('the neutral confirm still completes Annulla with false', (
+    tester,
+  ) async {
+    await openDialog(
+      tester,
+      confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
+    );
+
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+
+    expect(result, isFalse);
   });
 }

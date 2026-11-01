@@ -77,6 +77,35 @@ void main() {
     });
   });
 
+  group('TeleportCharacter', () {
+    final operation = _operationOf(TravelMutations.teleportCharacter);
+
+    test('is a single mutation named TeleportCharacter', () {
+      expect(operation.type, OperationType.mutation);
+      expect(operation.name?.value, 'TeleportCharacter');
+    });
+
+    test('declares the request variable as TravelRequest!', () {
+      _expectTravelRequestVariable(operation);
+    });
+
+    test('selects response and successful of teleportCharacter', () {
+      expect(
+        _collapsed(TravelMutations.teleportCharacter),
+        contains(
+          'teleportCharacter(request: \$request) { response successful }',
+        ),
+      );
+    });
+
+    test('is registered in the schema check', () {
+      expect(
+        schemaCheckDocuments['TeleportCharacter'],
+        TravelMutations.teleportCharacter,
+      );
+    });
+  });
+
   group('GetServerTime', () {
     final operation = _operationOf(ServerTimeQueries.getServerTime);
 
@@ -107,7 +136,7 @@ void main() {
     });
   });
 
-  test('the schema check registers 38 documents', () {
-    expect(schemaCheckDocuments.length, 38);
+  test('the schema check registers 42 documents', () {
+    expect(schemaCheckDocuments.length, 42);
   });
 }

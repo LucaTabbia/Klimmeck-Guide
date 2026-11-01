@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
@@ -11,11 +12,13 @@ import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
+import 'package:klimmeck_guide/graphql/subscriptions/pending_request_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
@@ -27,10 +30,12 @@ import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
+import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
+import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
@@ -186,6 +191,60 @@ class KlimmeckGraphQl {
     if (result is! Map<String, dynamic> || result['successful'] != true) {
       throw const FormatException('acknowledgeQuestResult not successful');
     }
+  }
+
+  /// Coda del GM (BE 09 §9): snapshot alla sottoscrizione, poi la lista intera
+  /// a ogni insert/delete di PendingQuest. Una voce malformata è scartata, le
+  /// altre restano (Phase 9 IN-04); solo se manca la lista l'evento è un errore.
+  Stream<List<PendingRequest>> subscribeToPendingRequests() =>
+      performSubscription(
+        PendingRequestSubscriptions.pendingRequestsUpdated,
+      ).map((result) {
+        _throwIfStreamFailed(result, operation: 'pendingRequestsUpdated');
+        return _pendingRequestsFrom(result.data?['pendingRequestsUpdated']);
+      });
+
+  /// Rilettura della coda (D-18). Lancia [OperationException] o
+  /// [FormatException].
+  Future<List<PendingRequest>> getPendingRequests() async {
+    final data = _dataOrThrow(
+      await performQuery(PendingRequestQueries.getPendingRequests),
+    );
+    return _pendingRequestsFrom(data['pendingRequests']);
+  }
+
+  /// Completa una richiesta per tutti i partecipanti (BE 09 §9): restituisce i
+  /// risultati creati, voce per voce. Lancia [OperationException] o
+  /// [FormatException].
+  Future<List<QuestResult>> completePendingRequest(
+    CompletePendingRequestInput input,
+  ) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: PendingRequestMutations.completePendingRequest,
+        variables: {'input': input.toJson()},
+      ),
+    );
+    final entries = data['completePendingRequest'];
+    if (entries is! List) {
+      throw const FormatException('completePendingRequest missing');
+    }
+    return List.unmodifiable(
+      entries.map(QuestResult.tryFromJson).whereType<QuestResult>(),
+    );
+  }
+
+  List<PendingRequest> _pendingRequestsFrom(Object? json) {
+    if (json is! List) throw const FormatException('pendingRequests missing');
+    final parsed = json
+        .map(PendingRequest.tryFromJson)
+        .whereType<PendingRequest>()
+        .toList();
+    final skipped = json.length - parsed.length;
+    if (skipped > 0) {
+      debugPrint('[Innkeeper] skipped $skipped malformed queue entries');
+    }
+    return List.unmodifiable(parsed);
   }
 
   void _throwIfStreamFailed(QueryResult result, {required String operation}) {
@@ -604,20 +663,34 @@ class KlimmeckGraphQl {
   /// Avvia il viaggio (D-05): il viaggio arriva su `characterUpdated`, mai da
   /// questa risposta; restituisce solo `successful`. Lancia [OperationException]
   /// o [FormatException] per una risposta malformata.
-  Future<bool> startTravel(TravelRequest request) async {
+  Future<bool> startTravel(TravelRequest request) =>
+      _travelMutation(TravelMutations.startTravel, 'startTravel', request);
+
+  /// Teletrasporto del GM (BE 08 §7): solo `successful`, la posizione arriva
+  /// dalla coda/`characterUpdated`. Lancia [OperationException] o
+  /// [FormatException].
+  Future<bool> teleportCharacter(TravelRequest request) => _travelMutation(
+    TravelMutations.teleportCharacter,
+    'teleportCharacter',
+    request,
+  );
+
+  Future<bool> _travelMutation(
+    String document,
+    String field,
+    TravelRequest request,
+  ) async {
     final data = _dataOrThrow(
       await performMutation(
-        query: TravelMutations.startTravel,
+        query: document,
         variables: {'request': request.toJson()},
       ),
     );
-    final result = data['startTravel'];
+    final result = data[field];
     final successful = result is Map<String, dynamic>
         ? result['successful']
         : null;
-    if (successful is! bool) {
-      throw const FormatException('startTravel malformed');
-    }
+    if (successful is! bool) throw FormatException('$field malformed');
     return successful;
   }
 

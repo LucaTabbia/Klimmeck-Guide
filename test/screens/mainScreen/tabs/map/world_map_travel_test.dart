@@ -26,6 +26,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -76,6 +77,8 @@ late MockQuestAbandonCubit abandonCubit;
 late StreamController<QuestAbandonState> abandonStates;
 late MapFocusCubit mapFocusCubit;
 late MapAvailabilityCubit mapAvailability;
+late MockTeleportModeCubit teleportCubit;
+late StreamController<TeleportModeState> teleportStates;
 late StreamController<CharacterState> characterStates;
 late StreamController<TravelState> travelStates;
 late StreamController<QuestState> questStates;
@@ -105,6 +108,7 @@ Future<void> pumpWorldMap(
   TravelState travelState = const TravelIdle(),
   DateTime? serverNow,
   List<Quest> quests = const [],
+  TeleportModeState teleportState = const TeleportIdle(),
 }) async {
   useLandscapePhone(tester);
   serverClock = FakeServerClockService(serverNow ?? travelStart);
@@ -121,6 +125,7 @@ Future<void> pumpWorldMap(
     const Stream<WorldMapState>.empty(),
     initialState: WorldMapInitial(),
   );
+  whenListen(teleportCubit, teleportStates.stream, initialState: teleportState);
   await tester.pumpWidget(
     buildTestApp(
       home: MultiRepositoryProvider(
@@ -137,6 +142,7 @@ Future<void> pumpWorldMap(
             BlocProvider<MapFocusCubit>.value(value: mapFocusCubit),
             BlocProvider<QuestAbandonCubit>.value(value: abandonCubit),
             BlocProvider<MapAvailabilityCubit>.value(value: mapAvailability),
+            BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
           ],
           child: Scaffold(body: WorldMap(cities: [cityA, cityB])),
         ),
@@ -229,6 +235,10 @@ void setUpWorldMapHarness() {
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
     questStates = StreamController<QuestState>.broadcast();
+    teleportCubit = MockTeleportModeCubit();
+    teleportStates = StreamController<TeleportModeState>.broadcast();
+    when(() => teleportCubit.teleportTo(any())).thenAnswer((_) async {});
+    when(() => teleportCubit.cancel()).thenReturn(null);
     when(() => characterCubit.refreshCharacter()).thenAnswer((_) async {});
     when(
       () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
@@ -252,6 +262,7 @@ void setUpWorldMapHarness() {
     await travelStates.close();
     await questStates.close();
     await abandonStates.close();
+    await teleportStates.close();
     await mapFocusCubit.close();
     await mapAvailability.close();
   });

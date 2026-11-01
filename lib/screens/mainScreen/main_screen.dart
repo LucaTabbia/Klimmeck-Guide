@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availabilit
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/teleport_mode_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
@@ -20,6 +21,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/profile.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
@@ -157,12 +159,15 @@ class _MainScreenState extends State<MainScreen>
         children: [
           NotificationIntentLanding(
             pageController: pageController,
-            child: PageView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: pageController,
-              onPageChanged: onPageChanged,
-              children:
-                  widget.pagesBuilder?.call(cities) ?? _buildPages(cities),
+            child: TeleportModeLanding(
+              pageController: pageController,
+              child: PageView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: pageController,
+                onPageChanged: onPageChanged,
+                children:
+                    widget.pagesBuilder?.call(cities) ?? _buildPages(cities),
+              ),
             ),
           ),
           MenuBackground(
@@ -210,6 +215,10 @@ class _MainScreenState extends State<MainScreen>
       currentPage = page;
     });
     _reportMapPage(page);
+    // 10-CONTEXT D-17: un altro tab chiude il teletrasporto; il salto alla Mappa no (P3).
+    if (page != NotificationIntentLanding.worldMapPageIndex) {
+      context.read<TeleportModeCubit>().cancel();
+    }
   }
 
   /// Phase 9 D-23 (F1): la pagina iniziale non passa da `onPageChanged`, il

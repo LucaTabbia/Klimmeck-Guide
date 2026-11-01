@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -13,6 +15,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../helpers/auth_fixtures.dart';
 import '../../../../helpers/fixtures/sync_event_fixtures.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/mocks.dart';
@@ -24,6 +27,15 @@ void main() {
   late MockCharacterDeletionCubit deletionCubit;
   late MockAuthCubit authCubit;
   late MockNotificationPermissionCubit permissionCubit;
+
+  void givenSessionRole(RoleType role) => whenListen(
+    authCubit,
+    const Stream<AuthState>.empty(),
+    initialState: AuthAuthenticated(
+      user: buildTestUser(role: role),
+      accessToken: testAccessToken,
+    ),
+  );
 
   void givenPermission(NotificationPermissionStatus status) => whenListen(
     permissionCubit,
@@ -49,6 +61,7 @@ void main() {
       const Stream<CharacterDeletionState>.empty(),
       initialState: const CharacterDeletionState(),
     );
+    givenSessionRole(RoleType.adventurer);
     when(() => authCubit.logout()).thenAnswer((_) async {});
   });
 
@@ -115,6 +128,31 @@ void main() {
     expect(find.text('Streamer in live'), findsOneWidget);
     expect(find.text('Fine quest'), findsOneWidget);
     expect(find.text('Missione annullata'), findsOneWidget);
+  });
+
+  testWidgets('an innkeeper sees «Locanda» between Notifiche and Account', (
+    tester,
+  ) async {
+    givenSessionRole(RoleType.innkeeper);
+    await pumpSettings(tester, loadedAldo());
+
+    final ordered = [
+      'Notifiche',
+      'Fine viaggio',
+      'Locanda',
+      'Apri la Locanda',
+      'Account',
+      'Elimina personaggio',
+      'Esci',
+    ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
+    expect(ordered, [...ordered]..sort());
+    expect(ordered.toSet(), hasLength(ordered.length));
+  });
+
+  testWidgets('an adventurer sees no «Locanda» section', (tester) async {
+    await pumpSettings(tester, loadedAldo());
+
+    expect(find.text('Locanda'), findsNothing);
   });
 
   testWidgets('a denied system permission shows the hint in the tab', (

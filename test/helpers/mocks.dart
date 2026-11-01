@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
@@ -22,6 +23,8 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
@@ -30,6 +33,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
@@ -95,6 +99,8 @@ class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
+class MockInnkeeperRepository extends Mock implements InnkeeperRepository {}
+
 class MockPushSessionCleanup extends Mock implements PushSessionCleanup {}
 
 class MockSplashCubit extends MockCubit<SplashState> implements SplashCubit {}
@@ -147,3 +153,12 @@ class MockTravelProgressCubit extends MockCubit<TravelProgressState>
 
 class MockWorldMapCubit extends MockCubit<WorldMapState>
     implements WorldMapCubit {}
+
+class MockPendingRequestsCubit extends MockCubit<PendingRequestsState>
+    implements PendingRequestsCubit {}
+
+class MockRequestCompletionCubit extends MockCubit<RequestCompletionState>
+    implements RequestCompletionCubit {}
+
+class MockTeleportModeCubit extends MockCubit<TeleportModeState>
+    implements TeleportModeCubit {}

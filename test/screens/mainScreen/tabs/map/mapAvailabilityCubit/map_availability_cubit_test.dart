@@ -13,6 +13,7 @@ void main() {
     expect(cubit.state.isRouteCovered, isFalse);
     expect(cubit.state.isQuestSheetOpen, isFalse);
     expect(cubit.state.isPawnDragging, isFalse);
+    expect(cubit.state.isTeleportMode, isFalse);
     expect(cubit.state.isFree, isFalse);
     cubit.close();
   });
@@ -93,4 +94,31 @@ void main() {
     expect: () => [const MapAvailabilityState()],
     verify: (cubit) => expect(cubit.state.isFree, isFalse),
   );
+
+  blocTest<MapAvailabilityCubit, MapAvailabilityState>(
+    'teleport mode keeps the result sheets off the map until it ends (C13)',
+    build: MapAvailabilityCubit.new,
+    seed: () => onMap,
+    act: (cubit) {
+      cubit.teleportModeChanged(true);
+      expect(cubit.state.isFreeBeneathRoutes, isFalse);
+      expect(cubit.state.isFree, isFalse);
+      cubit.teleportModeChanged(false);
+    },
+    expect: () => [
+      const MapAvailabilityState(isMapPage: true, isTeleportMode: true),
+      onMap,
+    ],
+    verify: (cubit) {
+      expect(cubit.state.isFreeBeneathRoutes, isTrue);
+      expect(cubit.state.isFree, isTrue);
+    },
+  );
+
+  test('two states differing only in teleport mode are not equal', () {
+    expect(
+      const MapAvailabilityState(isMapPage: true, isTeleportMode: true),
+      isNot(onMap),
+    );
+  });
 }

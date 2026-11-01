@@ -7,7 +7,9 @@ class CityMarker extends StatefulWidget {
   const CityMarker({super.key, required this.city, required this.onTap});
 
   final City city;
-  final VoidCallback onTap;
+
+  /// Null in modalità teletrasporto: il tap non apre nulla (10-CONTEXT C14).
+  final VoidCallback? onTap;
 
   @override
   State<CityMarker> createState() => _CityMarkerState();
@@ -17,7 +19,7 @@ class _CityMarkerState extends State<CityMarker> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => widget.onTap(),
+      onTap: widget.onTap,
       child: Align(
         alignment: Alignment.center,
         child: CachedSvg(
