@@ -34,6 +34,14 @@ class RequestCard extends Equatable {
 
   bool get showsSeats => questType == QuestType.worldMission;
 
+  /// Una quest condivisa aspetta tutti i suoi iscritti prima di comparire.
+  bool get hasAllSeats => entryCount >= totalSeats;
+
+  /// UAT 2026-11-01: la coda elenca solo le carte su cui il GM può agire ora
+  /// (tutti i posti coperti, nessuno nascosto, nessuno in viaggio).
+  bool isActionable(DateTime serverNow) =>
+      hasAllSeats && canComplete(serverNow);
+
   /// C6: completabile quando nessuno è nascosto e ogni partecipante visibile è presente, arrivato per l'ora del server o in attesa di soccorso.
   bool canComplete(DateTime serverNow) =>
       !hasHiddenParticipants &&

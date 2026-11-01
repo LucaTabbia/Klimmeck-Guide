@@ -24,8 +24,15 @@ final class PendingRequestsState extends Equatable {
   /// ottimistica).
   final Set<String> hiddenCardKeys;
 
-  List<RequestCard> get cards =>
-      requestCardsOf(requests, hiddenCardKeys: hiddenCardKeys);
+  /// Solo le carte azionabili sull'ora del server (UAT 2026-11-01): una
+  /// richiesta in viaggio o una worldMission incompleta resta fuori finché
+  /// non cambia.
+  List<RequestCard> get cards => List.unmodifiable(
+    requestCardsOf(
+      requests,
+      hiddenCardKeys: hiddenCardKeys,
+    ).where((card) => card.isActionable(serverNow)),
+  );
 
   PendingRequestsState copyWith({
     List<PendingRequest>? requests,

@@ -5,7 +5,7 @@ import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Una carta della coda (10-CONTEXT D-05/D-08): titolo, tipo, posti per una
-/// worldMission e le righe dei partecipanti visibili.
+/// worldMission e le righe dei partecipanti, tutti presenti (UAT 2026-11-01).
 class RequestCardView extends StatelessWidget {
   const RequestCardView({
     super.key,
@@ -22,8 +22,6 @@ class RequestCardView extends StatelessWidget {
       ValueKey('innkeeper.complete.$cardKey');
 
   static const String _fallbackTypeLabel = 'Richiesta';
-  static const String busyParticipantNote =
-      'Un partecipante è impegnato in una missione';
 
   final RequestCard card;
   final DateTime serverNow;
@@ -71,18 +69,9 @@ class RequestCardView extends StatelessWidget {
                     ? () => onTeleport(participant)
                     : null,
               ),
-            // default per veto (10-CONTEXT D-07): il partecipante impegnato
-            // resta nascosto e la carta lo dice.
-            if (card.hasHiddenParticipants) ...[
-              const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-              Text(
-                '${card.participants.length} presenti su ${card.entryCount} registrati',
-                style: theme.bodyMedium,
-              ),
-              Text(busyParticipantNote, style: theme.bodyMedium),
-            ],
             const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-            // D-06/C6: abilitato solo con tutti presenti e nessuno in viaggio.
+            // La coda elenca solo carte azionabili (UAT 2026-11-01): la guardia
+            // C6 resta per sicurezza.
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(

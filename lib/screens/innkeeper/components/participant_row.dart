@@ -5,7 +5,7 @@ import 'package:klimmeck_guide/screens/innkeeper/components/presence_label.dart'
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Riga «nome · stato · Teletrasporta» di un partecipante (10-CONTEXT D-08,
-/// D-19); chi viaggia è sbiadito (D-06) ma resta teletrasportabile.
+/// D-19); dalla UAT del 2026-11-01 una carta elencata non ha viaggiatori.
 class ParticipantRow extends StatelessWidget {
   const ParticipantRow({
     super.key,
@@ -61,14 +61,7 @@ class ParticipantRow extends StatelessWidget {
     );
     return Row(
       children: [
-        Expanded(
-          child: presence.blocksCompletion
-              ? Opacity(
-                  opacity: KlimmeckGuideTheme.pendingInkOpacity,
-                  child: details,
-                )
-              : details,
-        ),
+        Expanded(child: details),
         const SizedBox(width: KlimmeckGuideTheme.spacingSm),
         _buildTeleportAction(),
       ],

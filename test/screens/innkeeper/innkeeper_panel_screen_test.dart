@@ -549,10 +549,10 @@ void main() {
         tester,
         worldMissionEntriesJson(
           names: ['Bea', 'Cosimo', 'Dario'],
+          requiredAdventurers: const [
+            {'title': null, 'count': 3},
+          ],
           travels: {
-            'Cosimo': queuedTravelJson(
-              endTime: _now.add(const Duration(minutes: 12)),
-            ),
             'Dario': queuedTravelJson(
               endTime: _now.subtract(const Duration(seconds: 1)),
             ),
