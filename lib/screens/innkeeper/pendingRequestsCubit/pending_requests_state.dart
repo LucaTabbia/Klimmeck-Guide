@@ -9,7 +9,7 @@ final class PendingRequestsState extends Equatable {
     this.requests = const [],
     this.isLoaded = false,
     this.isForbidden = false,
-    this.hiddenQuestIds = const {},
+    this.hiddenCardKeys = const {},
   });
 
   final List<PendingRequest> requests;
@@ -22,23 +22,23 @@ final class PendingRequestsState extends Equatable {
 
   /// Carte completate in attesa dello snapshot che le toglie (D-13, rimozione
   /// ottimistica).
-  final Set<String> hiddenQuestIds;
+  final Set<String> hiddenCardKeys;
 
   List<RequestCard> get cards =>
-      requestCardsOf(requests, hiddenQuestIds: hiddenQuestIds);
+      requestCardsOf(requests, hiddenCardKeys: hiddenCardKeys);
 
   PendingRequestsState copyWith({
     List<PendingRequest>? requests,
     bool? isLoaded,
     bool? isForbidden,
     DateTime? serverNow,
-    Set<String>? hiddenQuestIds,
+    Set<String>? hiddenCardKeys,
   }) => PendingRequestsState(
     requests: requests ?? this.requests,
     isLoaded: isLoaded ?? this.isLoaded,
     isForbidden: isForbidden ?? this.isForbidden,
     serverNow: serverNow ?? this.serverNow,
-    hiddenQuestIds: hiddenQuestIds ?? this.hiddenQuestIds,
+    hiddenCardKeys: hiddenCardKeys ?? this.hiddenCardKeys,
   );
 
   @override
@@ -47,6 +47,6 @@ final class PendingRequestsState extends Equatable {
     isLoaded,
     isForbidden,
     serverNow,
-    hiddenQuestIds,
+    hiddenCardKeys,
   ];
 }

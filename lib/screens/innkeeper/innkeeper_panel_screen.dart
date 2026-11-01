@@ -95,10 +95,10 @@ class InnkeeperPanelScreen extends StatelessWidget {
     if (!context.mounted) return;
     switch (exit) {
       case CompletionCompleted(:final results):
-        queue.markCompleted(card.questId);
+        queue.markCompleted(card.cardKey);
         await showResultsRecap(context, card: card, results: results);
       case CompletionGone():
-        queue.markCompleted(card.questId);
+        queue.markCompleted(card.cardKey);
         unawaited(queue.refetch());
         messenger.showSnackBar(const SnackBar(content: Text(goneMessage)));
       case CompletionBusy():
@@ -140,7 +140,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
         separatorBuilder: (_, _) =>
             const SizedBox(height: KlimmeckGuideTheme.spacingMd),
         itemBuilder: (_, index) => RequestCardView(
-          key: RequestCardView.keyFor(cards[index].questId),
+          key: RequestCardView.keyFor(cards[index].cardKey),
           card: cards[index],
           serverNow: state.serverNow,
           onComplete: (card) => _complete(panelContext, card),

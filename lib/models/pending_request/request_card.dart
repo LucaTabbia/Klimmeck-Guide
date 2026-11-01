@@ -3,9 +3,10 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/pending_request/participant_presence.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 
-/// Una carta per quest (10-CONTEXT D-05): i partecipanti visibili nell'ordine del BE.
+/// Una carta per richiesta; una quest condivisa (worldMission) raggruppa i suoi partecipanti nell'ordine del BE (10-CONTEXT D-05, emendata nella UAT del 2026-11-01: le story di due personaggi non sono collegate).
 class RequestCard extends Equatable {
   const RequestCard({
+    required this.cardKey,
     required this.questId,
     required this.questTitle,
     required this.questType,
@@ -15,11 +16,13 @@ class RequestCard extends Equatable {
     required this.totalSeats,
   });
 
+  /// Chiave della carta (vedi [cardKeyOf]): la quest per una worldMission, la richiesta altrimenti.
+  final String cardKey;
   final String questId;
   final String questTitle;
   final QuestType? questType;
 
-  /// Id della prima voce: una chiamata chiude la richiesta per tutti (BE 09 §9).
+  /// Id della prima voce: per una quest condivisa una chiamata chiude la richiesta per tutti (BE 09 §9).
   final String pendingQuestId;
   final List<PendingRequestCharacter> participants;
 
@@ -40,6 +43,7 @@ class RequestCard extends Equatable {
 
   @override
   List<Object?> get props => [
+    cardKey,
     questId,
     questTitle,
     questType,
@@ -50,18 +54,25 @@ class RequestCard extends Equatable {
   ];
 }
 
-/// D-05/D-07/D-09: raggruppa per quest nell'ordine del BE (LinkedHashMap), nasconde la corsia standard occupata; una carta senza partecipanti visibili non c'è (story impegnata; worldMission tutta impegnata: default per veto, 10-CONTEXT D-07 «Amended (C15)»).
+/// Solo una worldMission è condivisa fra i suoi partecipanti: ogni altra
+/// richiesta (story compresa) è una carta a sé e si completa da sola.
+String cardKeyOf(PendingRequest request) =>
+    request.quest.type == QuestType.worldMission
+    ? request.quest.id
+    : request.id;
+
+/// D-05/D-07/D-09: raggruppa per [cardKeyOf] nell'ordine del BE (LinkedHashMap), nasconde la corsia standard occupata; una carta senza partecipanti visibili non c'è (story impegnata; worldMission tutta impegnata: default per veto, 10-CONTEXT D-07 «Amended (C15)»).
 List<RequestCard> requestCardsOf(
   List<PendingRequest> requests, {
-  Set<String> hiddenQuestIds = const {},
+  Set<String> hiddenCardKeys = const {},
 }) {
-  final entriesByQuest = <String, List<PendingRequest>>{};
+  final entriesByCard = <String, List<PendingRequest>>{};
   for (final request in requests) {
-    entriesByQuest.putIfAbsent(request.quest.id, () => []).add(request);
+    entriesByCard.putIfAbsent(cardKeyOf(request), () => []).add(request);
   }
   return List.unmodifiable([
-    for (final MapEntry(key: questId, value: entries) in entriesByQuest.entries)
-      if (!hiddenQuestIds.contains(questId))
+    for (final MapEntry(key: cardKey, value: entries) in entriesByCard.entries)
+      if (!hiddenCardKeys.contains(cardKey))
         if (_cardOf(entries) case final card?) card,
   ]);
 }
@@ -74,6 +85,7 @@ RequestCard? _cardOf(List<PendingRequest> entries) {
   if (visible.isEmpty) return null;
   final first = entries.first;
   return RequestCard(
+    cardKey: cardKeyOf(first),
     questId: first.quest.id,
     questTitle: first.quest.title,
     questType: first.quest.type,

@@ -310,13 +310,13 @@ void main() {
       await pumpQueue(tester, [pendingRequestJson()]);
 
       expect(completeStory, findsOneWidget);
-      expect(_completeButton(tester, storyQuestId).onPressed, isNotNull);
+      expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
     testWidgets('a traveller before endTime disables it', (tester) async {
       await pumpQueue(tester, [pendingRequestJson(activeTravel: travel)]);
 
-      expect(_completeButton(tester, storyQuestId).onPressed, isNull);
+      expect(_completeButton(tester, _storyCardKey).onPressed, isNull);
     });
 
     testWidgets('the same traveller after endTime enables it', (tester) async {
@@ -324,7 +324,7 @@ void main() {
         pendingRequestJson(activeTravel: travel),
       ], serverNow: _now.add(const Duration(minutes: 13)));
 
-      expect(_completeButton(tester, storyQuestId).onPressed, isNotNull);
+      expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
     testWidgets('a hidden busy participant disables it', (tester) async {

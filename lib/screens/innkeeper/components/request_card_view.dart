@@ -4,8 +4,8 @@ import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Una carta per quest della coda (10-CONTEXT D-05/D-08): titolo, tipo, posti
-/// per una worldMission e le righe dei partecipanti visibili.
+/// Una carta della coda (10-CONTEXT D-05/D-08): titolo, tipo, posti per una
+/// worldMission e le righe dei partecipanti visibili.
 class RequestCardView extends StatelessWidget {
   const RequestCardView({
     super.key,
@@ -16,10 +16,10 @@ class RequestCardView extends StatelessWidget {
     required this.preparingCharacterId,
   });
 
-  static Key keyFor(String questId) => ValueKey('innkeeper.card.$questId');
+  static Key keyFor(String cardKey) => ValueKey('innkeeper.card.$cardKey');
 
-  static Key completeKeyFor(String questId) =>
-      ValueKey('innkeeper.complete.$questId');
+  static Key completeKeyFor(String cardKey) =>
+      ValueKey('innkeeper.complete.$cardKey');
 
   static const String _fallbackTypeLabel = 'Richiesta';
   static const String busyParticipantNote =
@@ -86,7 +86,7 @@ class RequestCardView extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(
-                key: completeKeyFor(card.questId),
+                key: completeKeyFor(card.cardKey),
                 style: KlimmeckGuideTheme.primaryButtonStyle,
                 onPressed: card.canComplete(serverNow)
                     ? () => onComplete(card)

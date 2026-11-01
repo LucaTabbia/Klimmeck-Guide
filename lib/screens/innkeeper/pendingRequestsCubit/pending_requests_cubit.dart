@@ -81,9 +81,9 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
   /// nascosta finché uno snapshot non la toglie. Se lo snapshot l'ha già
   /// tolta non c'è nulla da nascondere: una futura richiesta sulla stessa
   /// quest deve restare visibile.
-  void markCompleted(String questId) {
-    if (!state.requests.any((request) => request.quest.id == questId)) return;
-    emit(state.copyWith(hiddenQuestIds: {...state.hiddenQuestIds, questId}));
+  void markCompleted(String cardKey) {
+    if (!state.requests.any((request) => cardKeyOf(request) == cardKey)) return;
+    emit(state.copyWith(hiddenCardKeys: {...state.hiddenCardKeys, cardKey}));
   }
 
   /// Un fallimento non FORBIDDEN resta muto: ritenta il prossimo innesco,
@@ -121,9 +121,10 @@ class PendingRequestsCubit extends Cubit<PendingRequestsState>
         requests: List.unmodifiable(requests),
         isLoaded: true,
         serverNow: _clock.now(),
-        hiddenQuestIds: {
-          for (final questId in state.hiddenQuestIds)
-            if (requests.any((request) => request.quest.id == questId)) questId,
+        hiddenCardKeys: {
+          for (final cardKey in state.hiddenCardKeys)
+            if (requests.any((request) => cardKeyOf(request) == cardKey))
+              cardKey,
         },
       ),
     );
