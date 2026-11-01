@@ -24,6 +24,7 @@ import '../../questCubit/quest_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
 import 'components/abandon_party_sheet.dart';
 import 'components/city_modal.dart';
+import 'components/teleport_mode_badge.dart';
 import 'components/teleport_mode_chip.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'cubit/world_map_cubit.dart';
@@ -251,7 +252,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
                     : _gameLayers(),
               ),
             ),
-            if (teleport is TeleportActive) _buildTeleportChip(teleport),
+            if (teleport is TeleportActive) ...[
+              _buildTeleportBadge(),
+              _buildTeleportChip(teleport),
+            ],
           ],
         ),
       ),
@@ -302,6 +306,19 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     ];
   }
 
+  /// UAT 2026-11-01: il GM deve sapere di essere sulla Mappa della Locanda.
+  Widget _buildTeleportBadge() {
+    return const Align(
+      alignment: Alignment.topCenter,
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
+          child: TeleportModeBadge(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTeleportChip(TeleportActive state) {
     return Align(
       alignment: Alignment.bottomCenter,
@@ -312,7 +329,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
             characterName: state.target.name,
             failure: state.failure,
             isTeleporting: state.isTeleporting,
-            onCancel: context.read<TeleportModeCubit>().cancel,
+            onCancel: context.read<TeleportModeCubit>().cancelToPanel,
           ),
         ),
       ),

@@ -36,6 +36,12 @@ class TeleportModeLanding extends StatelessWidget {
             previous is! TeleportSucceeded && current is TeleportSucceeded,
         listener: (context, _) => _reopenPanel(context),
       ),
+      // UAT 2026-11-01: anche «Annulla» riporta alla Locanda.
+      BlocListener<TeleportModeCubit, TeleportModeState>(
+        listenWhen: (previous, current) =>
+            previous is! TeleportCancelled && current is TeleportCancelled,
+        listener: (context, _) => _reopenPanel(context),
+      ),
       BlocListener<AuthCubit, AuthState>(
         listenWhen: (previous, current) =>
             isInnkeeperSession(previous) && !isInnkeeperSession(current),
@@ -54,9 +60,9 @@ class TeleportModeLanding extends StatelessWidget {
     pageController.jumpToPage(NotificationIntentLanding.worldMapPageIndex);
   }
 
-  /// Prima il riconoscimento, poi la route: un solo pannello per successo.
+  /// Prima il riconoscimento, poi la route: un solo pannello per uscita.
   void _reopenPanel(BuildContext context) {
-    context.read<TeleportModeCubit>().acknowledgeSuccess();
+    context.read<TeleportModeCubit>().acknowledgeExit();
     unawaited(openInnkeeperPanel(context));
   }
 }

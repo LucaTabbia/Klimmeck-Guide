@@ -10,8 +10,9 @@ import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 part 'teleport_mode_state.dart';
 
 /// Modalità teletrasporto del GM (10-CONTEXT D-15..D-20), a livello di shell:
-/// il pannello chiama `prepare`, la Mappa `teleportTo`/`cancel`, l'atterraggio
-/// del MainScreen `acknowledgeSuccess`. Nessuna conferma (D-16); il BE resta
+/// il pannello chiama `prepare`, la Mappa `teleportTo`/`cancelToPanel`, la
+/// shell `cancel` (altro tab, ruolo perso), l'atterraggio del MainScreen
+/// `acknowledgeExit`. Nessuna conferma (D-16); il BE resta
 /// giudice (ADMIN-04/07). Un Cubit non chiama Cubit: il resto lo orchestra la UI.
 class TeleportModeCubit extends Cubit<TeleportModeState>
     with SafeEmit<TeleportModeState> {
@@ -99,8 +100,20 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
     _leave();
   }
 
-  void acknowledgeSuccess() {
-    if (state is TeleportSucceeded) emit(const TeleportIdle());
+  /// «Annulla» dalla Mappa (UAT 2026-11-01): si torna al pannello, non alla
+  /// propria Mappa. Ignorato in volo come `cancel`.
+  void cancelToPanel() {
+    if (state case TeleportActive(isTeleporting: false)) {
+      _generation++;
+      emit(const TeleportCancelled());
+    }
+  }
+
+  /// Il pannello è stato riaperto: la modalità torna a riposo.
+  void acknowledgeExit() {
+    if (state is TeleportSucceeded || state is TeleportCancelled) {
+      emit(const TeleportIdle());
+    }
   }
 
   void _handleTeleportFailure(TeleportActive active, InnkeeperFailure failure) {

@@ -62,7 +62,7 @@ final class TeleportActive extends TeleportModeState {
 }
 
 /// Teletrasporto riuscito: il MainScreen riapre il pannello e chiama
-/// `acknowledgeSuccess` (D-17).
+/// `acknowledgeExit` (D-17).
 final class TeleportSucceeded extends TeleportModeState {
   const TeleportSucceeded({required this.target});
 
@@ -70,4 +70,13 @@ final class TeleportSucceeded extends TeleportModeState {
 
   @override
   List<Object?> get props => [target];
+}
+
+/// «Annulla» dalla Mappa (UAT 2026-11-01): come il successo, il MainScreen
+/// riapre il pannello e chiama `acknowledgeExit`.
+final class TeleportCancelled extends TeleportModeState {
+  const TeleportCancelled();
+
+  @override
+  List<Object?> get props => [];
 }
