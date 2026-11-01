@@ -335,6 +335,25 @@ void main() {
       expect(accepted, 1);
     });
 
+    testWidgets('a story or worldMission acceptance stays on the board', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [
+          buildQuest(id: 's-1', type: 'story'),
+          buildQuest(id: 'w-1', type: 'worldMission'),
+        ],
+      );
+
+      acceptanceStates.add(const QuestAccepted('s-1'));
+      await tester.pump();
+      acceptanceStates.add(const QuestAccepted('w-1'));
+      await tester.pump();
+
+      expect(accepted, 0);
+    });
+
     testWidgets('a rejection recomposes the paper and leaves the rest alone', (
       tester,
     ) async {
