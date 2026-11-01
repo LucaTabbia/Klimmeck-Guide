@@ -5,7 +5,8 @@ import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 sealed class ParticipantPresence extends Equatable {
   const ParticipantPresence();
 
-  /// Un viaggio in corso (o illeggibile, C4) tiene «Completa» disabilitato.
+  /// Un viaggio in corso (o illeggibile, C4) o un soccorso in attesa (UAT
+  /// 2026-11-01) tengono la carta fuori dalla coda.
   bool get blocksCompletion => false;
 
   @override
@@ -39,8 +40,12 @@ final class ParticipantArrived extends ParticipantPresence {
   const ParticipantArrived();
 }
 
+/// Chi aspetta soccorso non può chiudere nulla (UAT 2026-11-01).
 final class ParticipantAwaitingAid extends ParticipantPresence {
   const ParticipantAwaitingAid();
+
+  @override
+  bool get blocksCompletion => true;
 }
 
 ParticipantPresence presenceOf(
