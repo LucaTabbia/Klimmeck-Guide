@@ -49,6 +49,9 @@ const TeleportTarget _beaTarget = TeleportTarget(
   sex: SexType.female,
 );
 
+/// Chiave della carta di una story: la sua richiesta, non la quest.
+const String _storyCardKey = 'pq-story-1';
+
 List<PendingRequest> _queue(List<Map<String, dynamic>> entries) =>
     List.unmodifiable(entries.map(PendingRequest.fromJson));
 
@@ -190,7 +193,7 @@ void main() {
   ) async {
     await pumpQueue(tester, [pendingRequestJson()]);
 
-    expect(find.byKey(RequestCardView.keyFor(storyQuestId)), findsOneWidget);
+    expect(find.byKey(RequestCardView.keyFor(_storyCardKey)), findsOneWidget);
     expect(find.text('La cripta di Valantar'), findsOneWidget);
     expect(find.text('Storia'), findsOneWidget);
     expect(find.text('Aldo'), findsOneWidget);
@@ -206,7 +209,7 @@ void main() {
     final texts = tester
         .widgetList<Text>(
           find.descendant(
-            of: find.byKey(RequestCardView.keyFor(storyQuestId)),
+            of: find.byKey(RequestCardView.keyFor(_storyCardKey)),
             matching: find.byType(Text),
           ),
         )
@@ -288,7 +291,7 @@ void main() {
 
   group('«Completa»', () {
     final completeStory = find.byKey(
-      RequestCardView.completeKeyFor(storyQuestId),
+      RequestCardView.completeKeyFor(_storyCardKey),
     );
     final travel = queuedTravelJson(
       endTime: _now.add(const Duration(minutes: 12)),
@@ -371,7 +374,7 @@ void main() {
       await tester.tap(completeStory);
       await tester.pumpAndSettle();
 
-      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      verify(() => cubit.markCompleted(_storyCardKey)).called(1);
       final dialog = find.byType(AlertDialog);
       expect(
         find.descendant(
@@ -420,7 +423,7 @@ void main() {
       exit.complete(CompletionCompleted(results));
       await tester.pumpAndSettle();
 
-      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      verify(() => cubit.markCompleted(_storyCardKey)).called(1);
       expect(
         find.descendant(
           of: find.byType(AlertDialog),
@@ -440,7 +443,7 @@ void main() {
       await tester.tap(completeStory);
       await tester.pumpAndSettle();
 
-      verify(() => cubit.markCompleted(storyQuestId)).called(1);
+      verify(() => cubit.markCompleted(_storyCardKey)).called(1);
       verify(() => cubit.refetch()).called(1);
       expect(find.text('Richiesta non più disponibile'), findsOneWidget);
     });

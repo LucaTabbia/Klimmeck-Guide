@@ -23,11 +23,36 @@ void main() {
       expect(card.questTitle, 'La cripta di Valantar');
       expect(card.questType, QuestType.story);
       expect(card.pendingQuestId, 'pq-story-1');
+      expect(card.cardKey, 'pq-story-1');
       expect(namesOf(card), ['Aldo']);
       expect(card.entryCount, 1);
       expect(card.totalSeats, 1);
       expect(card.showsSeats, isFalse);
       expect(card.hasHiddenParticipants, isFalse);
+    });
+
+    test('two story entries of different characters are two cards', () {
+      final cards = requestCardsOf(
+        requestsOf([
+          pendingRequestJson(),
+          pendingRequestJson(
+            id: 'pq-story-2',
+            characterId: 'char-bea',
+            characterName: 'Bea',
+          ),
+        ]),
+      );
+
+      expect(cards.map((card) => card.cardKey), ['pq-story-1', 'pq-story-2']);
+      expect(cards.map((card) => card.pendingQuestId), [
+        'pq-story-1',
+        'pq-story-2',
+      ]);
+      expect(cards.map(namesOf), [
+        ['Aldo'],
+        ['Bea'],
+      ]);
+      expect(cards.every((card) => card.questId == storyQuestId), isTrue);
     });
 
     test('a worldMission is one card with its participants in entry order', () {
@@ -46,6 +71,7 @@ void main() {
       final card = cards.single;
       expect(card.questId, worldMissionQuestId);
       expect(card.pendingQuestId, 'pq-world-1');
+      expect(card.cardKey, worldMissionQuestId);
       expect(namesOf(card), ['Bea', 'Cosimo', 'Dora']);
       expect(card.entryCount, 3);
       expect(card.totalSeats, 4);
@@ -105,7 +131,7 @@ void main() {
     test('hidden quest ids drop their card and keep the others', () {
       final cards = requestCardsOf(
         requestsOf([...worldMissionEntriesJson(), pendingRequestJson()]),
-        hiddenQuestIds: const {worldMissionQuestId},
+        hiddenCardKeys: const {worldMissionQuestId},
       );
 
       expect(cards.map((card) => card.questId), [storyQuestId]);

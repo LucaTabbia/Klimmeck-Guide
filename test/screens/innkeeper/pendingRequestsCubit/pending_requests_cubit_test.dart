@@ -131,7 +131,7 @@ void main() {
         expect(h.state.requests, isEmpty);
         expect(h.state.isLoaded, isFalse);
         expect(h.state.isForbidden, isFalse);
-        expect(h.state.hiddenQuestIds, isEmpty);
+        expect(h.state.hiddenCardKeys, isEmpty);
         expect(h.state.serverNow, _start);
       });
     });
@@ -182,14 +182,14 @@ void main() {
         serverNow: _start,
         requests: _storyAndWorldQueue(),
         isLoaded: true,
-        hiddenQuestIds: const {worldMissionQuestId},
+        hiddenCardKeys: const {worldMissionQuestId},
       );
 
       expect(
         state.cards,
         requestCardsOf(
           _storyAndWorldQueue(),
-          hiddenQuestIds: const {worldMissionQuestId},
+          hiddenCardKeys: const {worldMissionQuestId},
         ),
       );
       expect(state.cards.map((card) => card.questId), [storyQuestId]);
@@ -541,15 +541,15 @@ void main() {
         h.push(async, _storyAndWorldQueue());
 
         h.cubit.markCompleted(worldMissionQuestId);
-        expect(h.state.hiddenQuestIds, {worldMissionQuestId});
+        expect(h.state.hiddenCardKeys, {worldMissionQuestId});
         expect(h.state.cards.map((card) => card.questId), [storyQuestId]);
 
         h.push(async, _storyAndWorldQueue());
-        expect(h.state.hiddenQuestIds, {worldMissionQuestId});
+        expect(h.state.hiddenCardKeys, {worldMissionQuestId});
         expect(h.state.cards.map((card) => card.questId), [storyQuestId]);
 
         h.push(async, _storyQueue());
-        expect(h.state.hiddenQuestIds, isEmpty);
+        expect(h.state.hiddenCardKeys, isEmpty);
       });
     });
 
@@ -560,7 +560,7 @@ void main() {
         h.push(async, _storyQueue());
 
         h.cubit.markCompleted(worldMissionQuestId);
-        expect(h.state.hiddenQuestIds, isEmpty);
+        expect(h.state.hiddenCardKeys, isEmpty);
 
         h.push(async, _storyAndWorldQueue());
         expect(h.state.cards.map((card) => card.questId), [
