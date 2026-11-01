@@ -81,7 +81,7 @@ void main() {
   test('only a travel in progress or unreadable blocks the completion', () {
     expect(const ParticipantPresent().blocksCompletion, isFalse);
     expect(const ParticipantArrived().blocksCompletion, isFalse);
-    expect(const ParticipantAwaitingAid().blocksCompletion, isFalse);
+    expect(const ParticipantAwaitingAid().blocksCompletion, isTrue);
     expect(
       const ParticipantTravelling(
         remaining: Duration(minutes: 1),

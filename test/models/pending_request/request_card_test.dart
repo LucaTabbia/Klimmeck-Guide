@@ -240,10 +240,11 @@ void main() {
       expect(card.canComplete(serverNow), isFalse);
     });
 
-    test('a participant awaiting aid can complete', () {
+    test('a participant awaiting aid blocks the card (UAT 2026-11-01)', () {
       final card = storyCardWith(awaitingAid: awaitingAidJson());
 
-      expect(card.canComplete(serverNow), isTrue);
+      expect(card.canComplete(serverNow), isFalse);
+      expect(card.isActionable(serverNow), isFalse);
     });
   });
 }
