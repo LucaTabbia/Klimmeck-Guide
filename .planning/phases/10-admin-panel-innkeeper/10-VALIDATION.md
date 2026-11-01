@@ -1,8 +1,8 @@
 ---
 phase: 10
 slug: admin-panel-innkeeper
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-10-29
 updated: 2026-11-01
@@ -67,8 +67,8 @@ be_ref: 4dc7e89
 | 10-10-01 | 10 | 10 | ADMIN-04 | T-10-36 / T-10-37 | mode cancelled off the Map tab; single panel re-push | widget | `flutter test test/screens/mainScreen` | ✅ | ✅ green |
 | 10-10-02 | 10 | 10 | ADMIN-04 | T-10-38 | «Teletrasporta» reads the row before the mode | widget | `flutter test test/screens/innkeeper test/screens/mainScreen` + analyzer gate | ✅ | ✅ green |
 | 10-11-01 | 11 | 11 | ADMIN-02, ADMIN-03 | T-10-39 | `pendingQuest` selected only after the block-level BE gate; schema check 42/42 OK on `4dc7e89` | unit + cross-repo | `flutter test` + schema check of the plan `<interfaces>` | ✅ | ✅ green |
-| 10-11-02 | 11 | 11 | ADMIN-01..08 | T-10-40 / T-10-41 / T-10-42 | device E2E on Android against BE `develop` | manual | `test -f .planning/phases/10-admin-panel-innkeeper/10-HUMAN-UAT.md` | ✅ | ⬜ pending (human E2E) |
-| 10-11-03 | 11 | 11 | ADMIN-01..08 | T-10-42 / T-10-43 | requirements ticked only for passed steps | manual (record) | grep on `10-HUMAN-UAT.md`, `REQUIREMENTS.md`, `BACKEND-NOTES.md` (plan Task 3) | ⬜ | ⬜ pending (human E2E) |
+| 10-11-02 | 11 | 11 | ADMIN-01..08 | T-10-40 / T-10-41 / T-10-42 | device E2E on Android against BE `develop` | manual | `test -f .planning/phases/10-admin-panel-innkeeper/10-HUMAN-UAT.md` | ✅ | ✅ green (device E2E 2026-11-01, approved) |
+| 10-11-03 | 11 | 11 | ADMIN-01..08 | T-10-42 / T-10-43 | requirements ticked only for passed steps | manual (record) | grep on `10-HUMAN-UAT.md`, `REQUIREMENTS.md`, `BACKEND-NOTES.md` (plan Task 3) | ✅ | ✅ green (device E2E 2026-11-01, approved) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -103,6 +103,6 @@ Gate outputs of 10-11 Task 1 (2026-11-01, BE `origin/develop` = `4dc7e89`): `pen
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [ ] Feedback latency < 10s (quick runs yes; the full suite takes ~70 s)
-- [ ] `nyquist_compliant: true` set in frontmatter (after the device E2E, plan 10-11 Task 3)
+- [x] `nyquist_compliant: true` set in frontmatter (after the device E2E, plan 10-11 Task 3)
 
-**Approval:** pending (device E2E, 10-11 Task 2)
+**Approval:** approved 2026-11-01 (device E2E 10/10 pass, `10-HUMAN-UAT.md`; after the UAT fixes `flutter test` 2852 passed, analyzer 51 issues / 0 errors / 0 warnings)

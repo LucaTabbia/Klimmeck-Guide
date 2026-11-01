@@ -108,3 +108,38 @@ Data per BE Phase 9 §12 (g), §13 items 8–10. **Identities (amended 2026-10-2
 4. Teleport from a row: Map opens with the character's pawn, drop on a city marker → moved, panel back with the row updated; `adventurer` calling `pendingRequests` → `FORBIDDEN`.
 5. Completion of the story without changes → card gone, player receives `gmCompleted` with intact HP, title advances if it was the exact-title story; completion of the worldMission with different overrides per participant → results recap on the panel, two different `questEnd` on the players' devices.
 6. Override errors: `hpAfter` 0 (slider cannot) → not reproducible; a participant deleted between form open and confirm → `OUTCOME_NOT_PARTICIPANT` inline.
+
+---
+
+## 6. Esito (FE Phase 10, 2026-11-01)
+
+Device E2E on Android (USB, `adb reverse tcp:3000 tcp:3000`) against the BE run locally from `develop` at `4dc7e89` (BE Phase 10 merged, BE-HARD-08 in), Redis local. Verdict of the user: «approved», 10/10 steps pass (`10-HUMAN-UAT.md`). Schema check of the FE documents: 42/42 OK on `4dc7e89`; `pendingQuest: ID` is inside `type PendingRequestCharacter`.
+
+### 6.1 Step outcomes relevant to the BE
+
+- **`pendingQuest` liveness at acceptance:** after a hunt accept the queue entry of that character carries `pendingQuest` set; the FE hides his cards.
+- **`pendingQuest` liveness at resolution:** the hunt (travel shortened in the DB, arrival closed by the sweep, pending expired) resolved `failure` and the lane freed; after the character was healed in the DB his cards came back (row «Presente»).
+- **`QUEST_IN_PROGRESS`:** `completePendingRequest` from a stale client on the story of the busy character → `QUEST_IN_PROGRESS` with the message «Il personaggio è impegnato in una missione in corso»; audit row written.
+- **Completions:** story without overrides → `gmCompleted`, HP intact, title rookie → adventurer; worldMission with overrides on one participant (HP, one injury, one consumable, one spell) and the other untouched → `gmCompleted` for both, the untouched one with HP intact.
+- **Group teleport:** the FE now moves every participant of a card together with **N sequential `teleportCharacter` calls** (one per character); both characters landed in the target city. Teleport clearing a free travel was not observed (the travel had already ended).
+- **`FORBIDDEN`:** with the BE restarted as adventurer, `pendingRequests` → `FORBIDDEN` «Operazione riservata al locandiere».
+- **Audit:** `admin_audit_logs` holds the two `completePendingRequest` (story, worldMission), the refused one with `QUEST_IN_PROGRESS` and 7 `teleportCharacter` of the day.
+
+### 6.2 UAT data actually used
+
+Two fresh characters (one per account, the second account driven by the dev bypass and curl), both teleported to the same city; channel points seeded on both accounts; the worldMission seats lowered to 2 in the DB for the session and restored afterwards; a free travel shortened and a hunt expired in the DB; the character who lost the hunt healed in the DB (`awaitingAid` cleared, HP restored, the generated aid quest removed); the second character raised to mage with one active spell and two consumables in the DB for the overrides step. An older character was unlinked from the account at the user's request and stayed out of the UAT. No ids of real users, no secrets recorded here.
+
+### 6.3 Answers observed to §2.3 and §4
+
+1. §2.3 / §4.1 — emission on location/travel change: not proven by the E2E. The panel reopened after a teleport opens a new subscription (snapshot), and the arrival of a free travel was seen after the sweep through the FE rereads; the FE does not depend on it. Still open for the BE.
+2. §4.2 — `QUEST_IN_PROGRESS` on `completePendingRequest` carries «Il personaggio è impegnato in una missione in corso» (the FE maps the code, not the text).
+3. §4.3 — `startDate == null` on a story/worldMission entry: not observed.
+
+### 6.4 Observations for the BE side
+
+- The audit target of `teleportCharacter` is the `CommonResponse` (`{ type: CommonResponse, id: null }`), not the character: the character id is only in the args.
+- A stale pending of a character without owner on the same worldMission is excluded from the completion with a WARN (expected behaviour, worth a check of the cleanup of unlinked characters).
+- An unarmed rookie loses the hunt against a 100 HP enemy (100 blunt): observation for the combat engine balance (BE Phase 9).
+- The list queries `characters` / `cities` / `quests` fail on nested unpopulated ids (pre-existing, not introduced by Phase 10).
+
+Da riportare nella UAT della BE Phase 10 a cura del lato BE (questo repo non modifica il BE).
