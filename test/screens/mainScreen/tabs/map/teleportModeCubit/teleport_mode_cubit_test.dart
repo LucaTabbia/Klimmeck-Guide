@@ -304,6 +304,38 @@ void main() {
     );
   });
 
+  group('cancelToPanel (UAT 2026-11-01)', () {
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      '«Annulla» from the map leaves towards the panel',
+      build: build,
+      seed: () => activeBea,
+      act: (cubit) => cubit.cancelToPanel(),
+      expect: () => [const TeleportCancelled()],
+      verify: (_) => verifyNever(
+        () => repository.teleport(
+          characterId: any(named: 'characterId'),
+          poiId: any(named: 'poiId'),
+        ),
+      ),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'is ignored while the teleport is in flight',
+      build: build,
+      seed: () => TeleportActive(target: bea, isTeleporting: true),
+      act: (cubit) => cubit.cancelToPanel(),
+      expect: () => <TeleportModeState>[],
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'the panel acknowledges the cancel and the mode is idle again',
+      build: build,
+      seed: () => const TeleportCancelled(),
+      act: (cubit) => cubit.acknowledgeExit(),
+      expect: () => [const TeleportIdle()],
+    );
+  });
+
   group('cancel', () {
     blocTest<TeleportModeCubit, TeleportModeState>(
       'leaves the mode without calling',
@@ -348,12 +380,12 @@ void main() {
     );
   });
 
-  group('acknowledgeSuccess', () {
+  group('acknowledgeExit', () {
     blocTest<TeleportModeCubit, TeleportModeState>(
       'ends the mode after a success',
       build: build,
       seed: () => TeleportSucceeded(target: bea),
-      act: (cubit) => cubit.acknowledgeSuccess(),
+      act: (cubit) => cubit.acknowledgeExit(),
       expect: () => [const TeleportIdle()],
     );
 
@@ -361,7 +393,7 @@ void main() {
       'does nothing in any other state',
       build: build,
       seed: () => activeBea,
-      act: (cubit) => cubit.acknowledgeSuccess(),
+      act: (cubit) => cubit.acknowledgeExit(),
       expect: () => <TeleportModeState>[],
     );
   });

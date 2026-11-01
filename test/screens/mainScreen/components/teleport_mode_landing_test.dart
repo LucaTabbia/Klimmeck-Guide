@@ -63,7 +63,7 @@ void main() {
       initialState: const TeleportIdle(),
     );
     when(() => teleportCubit.cancel()).thenReturn(null);
-    when(() => teleportCubit.acknowledgeSuccess()).thenReturn(null);
+    when(() => teleportCubit.acknowledgeExit()).thenReturn(null);
     authCubit = MockAuthCubit();
     authStates = StreamController<AuthState>.broadcast();
     whenListen(
@@ -184,7 +184,20 @@ void main() {
 
     await emit(tester, const TeleportSucceeded(target: _bea));
 
-    verify(() => teleportCubit.acknowledgeSuccess()).called(1);
+    verify(() => teleportCubit.acknowledgeExit()).called(1);
+    expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('«Annulla» from the map reopens the panel (UAT 2026-11-01)', (
+    tester,
+  ) async {
+    await pumpLanding(tester);
+    await emit(tester, const TeleportActive(target: _bea));
+
+    await emit(tester, const TeleportCancelled());
+
+    verify(() => teleportCubit.acknowledgeExit()).called(1);
     expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/teleport_mode_badge.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/teleport_mode_chip.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/city_markers_layer.dart';
@@ -182,6 +183,21 @@ void main() {
       expect(find.byType(TeleportModeChip), findsOneWidget);
     });
 
+    testWidgets('the Locanda badge marks the map in teleport mode', (
+      tester,
+    ) async {
+      await pumpTeleportMap(tester);
+
+      expect(find.byKey(TeleportModeBadge.badgeKey), findsOneWidget);
+      expect(find.text(TeleportModeBadge.label), findsOneWidget);
+    });
+
+    testWidgets('outside teleport mode there is no badge', (tester) async {
+      await pumpTeleportMap(tester, teleportState: const TeleportIdle());
+
+      expect(find.byKey(TeleportModeBadge.badgeKey), findsNothing);
+    });
+
     testWidgets('a city in teleport mode opens no lore', (tester) async {
       await pumpTeleportMap(tester);
 
@@ -213,7 +229,7 @@ void main() {
       await tester.tap(find.byKey(TeleportModeChip.cancelKey));
       await tester.pump();
 
-      verify(() => teleportCubit.cancel()).called(1);
+      verify(() => teleportCubit.cancelToPanel()).called(1);
     });
 
     testWidgets('releasing the pawn on a city teleports there', (tester) async {
