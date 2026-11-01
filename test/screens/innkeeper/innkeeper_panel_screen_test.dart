@@ -16,7 +16,6 @@ import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
-import 'package:klimmeck_guide/screens/innkeeper/components/participant_row.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
@@ -69,6 +68,8 @@ TextButton _teleportButton(WidgetTester tester, String cardKey) =>
     tester.widget<TextButton>(_teleportAction(cardKey));
 
 void main() {
+  setUpAll(() => registerFallbackValue(<String>[]));
+
   late MockPendingRequestsCubit cubit;
   late MockAuthCubit authCubit;
   late MockTeleportModeCubit teleportCubit;
@@ -88,6 +89,7 @@ void main() {
       () => teleportCubit.prepare(
         characterId: any(named: 'characterId'),
         name: any(named: 'name'),
+        companionIds: any(named: 'companionIds'),
       ),
     ).thenAnswer((_) async {});
     authCubit = MockAuthCubit();
@@ -582,13 +584,16 @@ void main() {
       await tester.tap(_teleportAction(worldMissionQuestId));
       await tester.pump();
 
-      verify(
+      final companions = verify(
         () => teleportCubit.prepare(
           characterId: 'char-bea',
           name: 'Bea',
-          companionIds: ['char-cosimo'],
+          companionIds: captureAny(named: 'companionIds'),
         ),
-      ).called(1);
+      ).captured;
+      expect(companions, [
+        ['char-cosimo'],
+      ]);
     });
 
     testWidgets('the read shows a progress on its card and locks the others', (
