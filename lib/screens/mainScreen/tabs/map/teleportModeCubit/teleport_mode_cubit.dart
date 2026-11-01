@@ -24,9 +24,12 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
   /// Cresce a ogni cancel/prepare: una risposta arrivata dopo non tocca lo stato.
   int _generation = 0;
 
+  /// [companionIds]: gli altri partecipanti della carta, spostati insieme al
+  /// primo (UAT 2026-11-01).
   Future<void> prepare({
     required String characterId,
     required String name,
+    List<String> companionIds = const [],
   }) async {
     if (state is TeleportPreparing || state is TeleportActive) return;
     final generation = ++_generation;
@@ -37,6 +40,7 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
       final target = TeleportTarget.fromCharacter(
         character,
         fallbackName: name,
+        companionIds: companionIds,
       );
       next = target == null
           ? TeleportPreparationFailed(
@@ -69,10 +73,16 @@ class TeleportModeCubit extends Cubit<TeleportModeState>
     final generation = _generation;
     emit(active.copyWith(isTeleporting: true, failure: () => null));
     try {
-      await _repository.teleport(
-        characterId: active.target.characterId,
-        poiId: destination.markerLocation!.id,
-      );
+      // il primo e poi i compagni, uno alla volta: il BE giudica ciascuno
+      for (final characterId in [
+        active.target.characterId,
+        ...active.target.companionIds,
+      ]) {
+        await _repository.teleport(
+          characterId: characterId,
+          poiId: destination.markerLocation!.id,
+        );
+      }
     } on InnkeeperException catch (error) {
       if (generation != _generation) return;
       _handleTeleportFailure(active, error.failure);

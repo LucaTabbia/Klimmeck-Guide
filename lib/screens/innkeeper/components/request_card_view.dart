@@ -21,6 +21,11 @@ class RequestCardView extends StatelessWidget {
   static Key completeKeyFor(String cardKey) =>
       ValueKey('innkeeper.complete.$cardKey');
 
+  static Key teleportKeyFor(String cardKey) =>
+      ValueKey('innkeeper.teleport.$cardKey');
+
+  static const String teleportLabel = 'Teletrasporta';
+
   static const String _fallbackTypeLabel = 'Richiesta';
 
   final RequestCard card;
@@ -29,11 +34,15 @@ class RequestCardView extends StatelessWidget {
   /// Apre il form: unico ingresso al completamento, mai senza conferma (D-11).
   final ValueChanged<RequestCard> onComplete;
 
-  /// Prepara il teletrasporto del partecipante (D-15).
-  final void Function(PendingRequestCharacter participant) onTeleport;
+  /// Un solo teletrasporto per carta: tutti i partecipanti nello stesso luogo
+  /// (D-15, UAT 2026-11-01).
+  final ValueChanged<RequestCard> onTeleport;
 
-  /// Il personaggio letto per il teletrasporto: blocca le altre righe.
+  /// Il primo partecipante della carta letta per il teletrasporto: blocca le
+  /// altre carte.
   final String? preparingCharacterId;
+
+  bool get _isPreparing => preparingCharacterId == card.participants.first.id;
 
   @override
   Widget build(BuildContext context) {
@@ -64,28 +73,42 @@ class RequestCardView extends StatelessWidget {
                 key: ParticipantRow.keyFor(participant.id),
                 participant: participant,
                 serverNow: serverNow,
-                isPreparingTeleport: preparingCharacterId == participant.id,
-                onTeleport: preparingCharacterId == null
-                    ? () => onTeleport(participant)
-                    : null,
               ),
             const SizedBox(height: KlimmeckGuideTheme.spacingSm),
             // La coda elenca solo carte azionabili (UAT 2026-11-01): la guardia
             // C6 resta per sicurezza.
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                key: completeKeyFor(card.cardKey),
-                style: KlimmeckGuideTheme.primaryButtonStyle,
-                onPressed: card.canComplete(serverNow)
-                    ? () => onComplete(card)
-                    : null,
-                child: const Text('Completa'),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildTeleportAction(),
+                const SizedBox(width: KlimmeckGuideTheme.spacingSm),
+                ElevatedButton(
+                  key: completeKeyFor(card.cardKey),
+                  style: KlimmeckGuideTheme.primaryButtonStyle,
+                  onPressed: card.canComplete(serverNow)
+                      ? () => onComplete(card)
+                      : null,
+                  child: const Text('Completa'),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTeleportAction() {
+    if (_isPreparing) {
+      return const SizedBox.square(
+        dimension: KlimmeckGuideTheme.spacingMd,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+    return TextButton(
+      key: teleportKeyFor(card.cardKey),
+      onPressed: preparingCharacterId == null ? () => onTeleport(card) : null,
+      child: const Text(teleportLabel),
     );
   }
 }

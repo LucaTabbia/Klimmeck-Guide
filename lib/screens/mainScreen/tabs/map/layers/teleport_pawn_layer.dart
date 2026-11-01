@@ -81,7 +81,7 @@ class _TeleportPawnLayerState extends State<TeleportPawnLayer>
             alignment: Alignment.topCenter,
             child: PawnLabel(
               key: TeleportPawnLayer.nameLabelKey,
-              text: widget.target.name,
+              text: widget.target.label,
             ),
           ),
         ),

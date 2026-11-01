@@ -87,6 +87,16 @@ class InnkeeperPanelScreen extends StatelessWidget {
     messenger.showSnackBar(const SnackBar(content: Text(unavailableMessage)));
   }
 
+  /// Legge il primo partecipante e porta con sé gli altri (UAT 2026-11-01).
+  void _teleport(BuildContext context, RequestCard card) {
+    final [first, ...companions] = card.participants;
+    context.read<TeleportModeCubit>().prepare(
+      characterId: first.id,
+      name: first.name,
+      companionIds: [for (final companion in companions) companion.id],
+    );
+  }
+
   /// Traduce l'esito del form (10-CONTEXT D-13/D-14).
   Future<void> _complete(BuildContext context, RequestCard card) async {
     final queue = context.read<PendingRequestsCubit>();
@@ -145,9 +155,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
           serverNow: state.serverNow,
           onComplete: (card) => _complete(panelContext, card),
           preparingCharacterId: preparingCharacterId,
-          onTeleport: (participant) => panelContext
-              .read<TeleportModeCubit>()
-              .prepare(characterId: participant.id, name: participant.name),
+          onTeleport: (card) => _teleport(panelContext, card),
         ),
       ),
     );
