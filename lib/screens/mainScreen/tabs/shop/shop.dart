@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
+import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/city_shop.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_pool_loader.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
@@ -22,16 +26,15 @@ import 'components/shop_modal.dart';
 import 'components/transaction_message_bubble.dart';
 
 class Shop extends StatefulWidget {
-  const Shop({super.key});
+  const Shop({super.key, required this.cities});
+
+  final List<City> cities;
 
   @override
   State<Shop> createState() => _ShopState();
 }
 
 class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
-  List<AssetQuantity> _allEquipments = [];
-  List<AssetQuantity> _allItems = [];
-
   List<AssetQuantity> _itemsToSell = [];
   List<AssetQuantity> _itemsToBuy = [];
 
@@ -249,15 +252,24 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   }
 
   void _showRefusal(TransactionFailure failure) {
-    if (transactionNoticeFor(failure) != null) {
-      _showTransactionMessage = false;
-      return;
-    }
-    _transactionMessage = "Hmmm... Qualcosa non mi torna. Riproviamo?";
+    final line = shopkeeperRefusalLine(failure);
+    _showTransactionMessage = line != null;
+    _transactionMessage = line ?? '';
+  }
+
+  /// Solo il pool della città del marker (D-03): uno stato di un'altra città
+  /// (cubit a livello di shell) o un caricamento in corso mostrano liste vuote.
+  CityShop? _poolOf(ShopState state, Character character) {
+    final cityId = currentCityOf(widget.cities, character.status?.location)?.id;
+    return state is ShopLoadData && state.cityId == cityId ? state.pool : null;
   }
 
   @override
   Widget build(BuildContext context) {
+    return ShopPoolLoader(cities: widget.cities, child: _buildPage());
+  }
+
+  Widget _buildPage() {
     return BlocListener<TransactionCubit, TransactionState>(
       listener: (context, state) {
         if (state is TransactionInitial) {
@@ -281,15 +293,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
           setState(() => _showRefusal(state.failure));
         }
       },
-      child: BlocConsumer<ShopCubit, ShopState>(
-        listener: (context, state) {
-          if (state is ShopLoadData) {
-            setState(() {
-              _allEquipments = state.pool.equipment;
-              _allItems = state.pool.loot;
-            });
-          }
-        },
+      child: BlocBuilder<ShopCubit, ShopState>(
         builder: (context, state) {
           return BlocBuilder<CharacterCubit, CharacterState>(
             builder: (context, characterState) {
@@ -300,6 +304,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
               if (character == null) {
                 return const Center(child: CircularProgressIndicator());
               }
+              final pool = _poolOf(state, character);
 
               return Stack(
                 alignment: Alignment.bottomCenter,
@@ -329,8 +334,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                             const Spacer(flex: 2),
                             GestureDetector(
                               onTap: () => _showModalShop(
-                                _allEquipments,
-                                _allItems,
+                                pool?.equipment ?? const [],
+                                pool?.loot ?? const [],
                                 true,
                                 character,
                               ),

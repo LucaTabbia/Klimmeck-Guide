@@ -34,8 +34,9 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// (dopo la BE 9.2) aggiunge `ListUnacknowledgedQuestResults` e
 /// `AcknowledgeQuestResult`; la Phase 10 aggiunge `GetPendingRequests`,
 /// `OnPendingRequestsUpdated`, `CompletePendingRequest` e `TeleportCharacter`;
-/// la Phase 13 aggiunge `GetCityShop`, `EquipPet` e `UnequipPet` e toglie i
-/// due cataloghi globali (13-05); ogni documento futuro va aggiunto qui
+/// la Phase 13 aggiunge `GetCityShop`, `EquipPet` e `UnequipPet` e ha tolto
+/// i due cataloghi globali di equipaggiamento e loot (BE D-20: deprecati,
+/// nessun consumer); ogni documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
@@ -43,7 +44,6 @@ final Map<String, String> schemaCheckDocuments = {
   'GetCityShop': ShopQueries.getCityShop,
   'GetTravelPreview': TravelQueries.getTravelPreview,
   'lootItems': LootItemQueries.getAllLootItems,
-  'lootAssetsQuantity': LootItemQueries.getAllLootAssetsQuantity,
   'lootItemsByIds': LootItemQueries.getLootItemsByIds,
   'GetMe': AuthQueries.getMe,
   'GetServerTime': ServerTimeQueries.getServerTime,
@@ -51,7 +51,6 @@ final Map<String, String> schemaCheckDocuments = {
   'character': CharacterQueries.getCharacter,
   'equipment': CharacterQueries.getEquipment,
   'equipmentItems': EquipmentItemQueries.getAllEquipmentItems,
-  'equipmentAssetsQuantity': EquipmentItemQueries.getAllEquipmentAssetsQuantity,
   'equipmentItemsByIds': EquipmentItemQueries.getEquipmentItemsByIds,
   'quests': QuestQueries.getAllQuests,
   'GetQuestResult': QuestResultQueries.getQuestResult,

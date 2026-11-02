@@ -23,7 +23,6 @@ import 'package:klimmeck_guide/graphql/subscriptions/pending_request_subscriptio
 import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
-import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/race_traits.dart';
 import 'package:klimmeck_guide/models/city.dart';
@@ -402,33 +401,6 @@ class KlimmeckGraphQl {
         .toList();
   }
 
-  Future<List<AssetQuantity>> getAllEquipmentAssetsQuantity({
-    bool? sellable,
-  }) async {
-    final Map<String, dynamic> variables = sellable != null
-        ? {"sellable": sellable}
-        : {};
-
-    final result = await performQuery(
-      EquipmentItemQueries.getAllEquipmentAssetsQuantity,
-      variables: variables,
-    );
-    if (result.hasException) {
-      final errorMessage = getGenericErrorMessage(result.exception);
-      throw Exception(errorMessage);
-    }
-
-    final List<dynamic>? equipmentAssetsQuantityData =
-        result.data?['equipmentAssetsQuantity'];
-    if (equipmentAssetsQuantityData == null) {
-      throw Exception('No equipmentItem found');
-    }
-
-    return equipmentAssetsQuantityData
-        .map((json) => AssetQuantity.fromJson(json))
-        .toList();
-  }
-
   Future<List<LootItem>> getLootItems(List<String> ids) async {
     final result = await performQuery(
       LootItemQueries.getLootItemsByIds,
@@ -460,24 +432,6 @@ class KlimmeckGraphQl {
     }
 
     return lootItemsData.map((json) => LootItem.fromJson(json)).toList();
-  }
-
-  Future<List<AssetQuantity>> getAllLootAssetsQuantity() async {
-    final result = await performQuery(LootItemQueries.getAllLootAssetsQuantity);
-    if (result.hasException) {
-      final errorMessage = getGenericErrorMessage(result.exception);
-      throw Exception(errorMessage);
-    }
-
-    final List<dynamic>? lootAssetsQuantityData =
-        result.data?['lootAssetsQuantity'];
-    if (lootAssetsQuantityData == null) {
-      throw Exception('No lootItem found');
-    }
-
-    return lootAssetsQuantityData
-        .map((json) => AssetQuantity.fromJson(json))
-        .toList();
   }
 
   Future<Character> getCharacter(String id) async {

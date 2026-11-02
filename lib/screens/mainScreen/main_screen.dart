@@ -194,7 +194,7 @@ class _MainScreenState extends State<MainScreen>
       Journal(),
       Library(),
       Board(cities: cities, onQuestAccepted: _showMap),
-      Shop(),
+      Shop(cities: cities),
       const Settings(),
     ];
     assert(
