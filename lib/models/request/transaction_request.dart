@@ -11,11 +11,11 @@ class TransactionRequest {
     required this.total,
   });
 
-  String id;
-  TransactionItems boughtItems;
-  TransactionItems soldItems;
-  bool isTotalPositive;
-  Coins total;
+  final String id;
+  final TransactionItems boughtItems;
+  final TransactionItems soldItems;
+  final bool isTotalPositive;
+  final Coins total;
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -27,13 +27,21 @@ class TransactionRequest {
 }
 
 class TransactionItems {
-  TransactionItems({required this.equipAssets, required this.lootAssets});
+  TransactionItems({
+    required this.equipAssets,
+    required this.lootAssets,
+    this.petAssets = const [],
+  });
 
-  List<AssetQuantityInput> lootAssets;
-  List<AssetQuantityInput> equipAssets;
+  final List<AssetQuantityInput> equipAssets;
+  final List<AssetQuantityInput> lootAssets;
+
+  /// Compagni scambiati: quantità sempre 1 (BE D-17, D-07).
+  final List<AssetQuantityInput> petAssets;
 
   Map<String, dynamic> toJson() => {
-    "lootAssets": lootAssets,
-    "equipAssets": equipAssets,
+    'equipAssets': equipAssets.map((a) => a.toJson()).toList(),
+    'lootAssets': lootAssets.map((a) => a.toJson()).toList(),
+    'petAssets': petAssets.map((a) => a.toJson()).toList(),
   };
 }
