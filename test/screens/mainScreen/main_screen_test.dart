@@ -26,15 +26,18 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -293,6 +296,7 @@ void main() {
     late StreamController<TravelState> travelStates;
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
+    late MockCompanionCubit companionCubit;
     late MockTransactionCubit transactionCubit;
     late StreamController<TransactionState> transactionStates;
     late MapAvailabilityCubit availability;
@@ -325,6 +329,12 @@ void main() {
         spellsCubit,
         spellsStates.stream,
         initialState: const SpellsState(),
+      );
+      companionCubit = MockCompanionCubit();
+      whenListen(
+        companionCubit,
+        const Stream<CompanionState>.empty(),
+        initialState: const CompanionState(),
       );
       transactionCubit = MockTransactionCubit();
       transactionStates = StreamController<TransactionState>.broadcast();
@@ -390,6 +400,7 @@ void main() {
               BlocProvider<InAppNotificationsCubit>.value(value: noticesCubit),
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
+              BlocProvider<CompanionCubit>.value(value: companionCubit),
               BlocProvider<TransactionCubit>.value(value: transactionCubit),
               BlocProvider<MapAvailabilityCubit>.value(value: availability),
               BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
@@ -445,6 +456,20 @@ void main() {
       );
       await tester.pumpAndSettle();
     }
+
+    testWidgets('mounts the companion outcome listener with the pages '
+        '(D-06)', (tester) async {
+      await pumpMainScreen(tester, 'city-marker-1');
+
+      expect(find.byType(CompanionOutcomeListener), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SpellOutcomeListener),
+          matching: find.byType(CompanionOutcomeListener),
+        ),
+        findsOneWidget,
+      );
+    });
 
     group('map availability', () {
       late StreamController<MainScreenState> screenStates;
