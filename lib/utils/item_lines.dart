@@ -1,4 +1,5 @@
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/pet.dart';
 
 // Copy provvisoria (D-19): ogni stringa delle righe oggetto vive qui (D-28).
 
@@ -10,4 +11,18 @@ String? itemEffectLabel(LootItem item) {
   final power = item.power;
   if (power == null || power == 0) return effect.label;
   return '${effect.label}: $power';
+}
+
+/// Marcatore del compagno equipaggiato nelle liste (D-07, D-10).
+const String companionEquippedMark = 'Al tuo fianco';
+
+/// Riga della velocità solo per un compagno da sella (D-07): il FE stampa il
+/// moltiplicatore servito, non calcola mai la velocità (D-11).
+String? companionSpeedLabel(Pet pet) {
+  final modifier = pet.speedModifier;
+  if (modifier == null) return null;
+  final digits = modifier == modifier.truncateToDouble()
+      ? modifier.toInt().toString()
+      : modifier.toString().replaceAll('.', ',');
+  return 'Velocità ×$digits';
 }

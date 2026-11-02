@@ -10,6 +10,8 @@ import '../../helpers/fixtures/shop_fixtures.dart';
 import '../../helpers/svg_cache_seed.dart';
 import '../../helpers/test_app.dart';
 
+const double _rowSize = 120;
+
 final _horse = Pet.fromJson(petJson());
 final _cat = Pet.fromJson(catPetJson());
 
@@ -35,37 +37,46 @@ void main() {
   );
 
   testWidgets('shows the name and the buy price (D-07)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40));
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
     expect(find.text('Cavallo da viaggio'), findsOneWidget);
     expect(_coinsDisplay(tester).coins, _horse.buyPrice);
   });
 
   testWidgets('shows the sell price on the sell side (D-07)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40, isBuy: false));
+    await _pump(
+      tester,
+      CompanionRow(pet: _horse, size: _rowSize, isBuy: false),
+    );
 
     expect(_coinsDisplay(tester).coins, _horse.sellPrice);
   });
 
   testWidgets('shows the speed line only for a mount (D-07)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40));
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
     expect(find.text('Velocità ×2'), findsOneWidget);
 
-    await _pump(tester, CompanionRow(pet: _cat, size: 40));
+    await _pump(tester, CompanionRow(pet: _cat, size: _rowSize));
     expect(find.textContaining('Velocità'), findsNothing);
   });
 
   testWidgets('hides the coins in the Journal (D-10)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40, showCoins: false));
+    await _pump(
+      tester,
+      CompanionRow(pet: _horse, size: _rowSize, showCoins: false),
+    );
 
     expect(find.byType(CoinsDisplay), findsNothing);
   });
 
   testWidgets('marks the equipped companion (D-10)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40, isEquipped: true));
+    await _pump(
+      tester,
+      CompanionRow(pet: _horse, size: _rowSize, isEquipped: true),
+    );
     expect(find.text(companionEquippedMark), findsOneWidget);
 
-    await _pump(tester, CompanionRow(pet: _horse, size: 40));
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
     expect(find.text(companionEquippedMark), findsNothing);
   });
 
@@ -73,7 +84,7 @@ void main() {
     var taps = 0;
     await _pump(
       tester,
-      CompanionRow(pet: _horse, size: 40, onTap: () => taps++),
+      CompanionRow(pet: _horse, size: _rowSize, onTap: () => taps++),
     );
 
     await tester.tap(find.text('Cavallo da viaggio'));
@@ -82,7 +93,7 @@ void main() {
   });
 
   testWidgets('is text-only: no image (D-13)', (tester) async {
-    await _pump(tester, CompanionRow(pet: _horse, size: 40));
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
     expect(find.byType(Image), findsNothing);
   });
