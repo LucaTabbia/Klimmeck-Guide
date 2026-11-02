@@ -56,6 +56,8 @@ created: 2026-11-02
 | 13-08-01 | 08 | 5 | SHOP-04 | T-13-26, T-13-28 | overlay settled only by the subscription, timer cleanup | bloc | `flutter test test/screens/mainScreen/tabs/journal/companionCubit/companion_cubit_test.dart` | ✅ | ✅ green |
 | 13-08-02 | 08 | 5 | SHOP-04 | T-13-25, T-13-27 | fixed copy, stale views re-read silently | widget | `flutter test test/screens/mainScreen/tabs/journal/companionCubit test/screens/mainScreen/components/companion_outcome_listener_test.dart` | ✅ | ✅ green |
 | 13-08-03 | 08 | 5 | SHOP-04 | T-13-28 | provider closed with the shell | widget | `flutter test test/screens/auth test/screens/mainScreen` | ✅ | ✅ green |
+| 13-09-01 | 09 | 6 | SHOP-04 | T-13-29, T-13-30 | owned ids only, one tap per sheet, no travel gate | widget | `flutter test test/screens/mainScreen/tabs/journal/sections/companion_section_test.dart` | ✅ | ✅ green |
+| 13-09-02 | 09 | 6 | SHOP-04 | T-13-31 | slot after Armatura, no price | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
