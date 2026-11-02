@@ -4,7 +4,10 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
+import 'package:klimmeck_guide/shared/components/companion_row.dart';
 
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/landscape.dart';
@@ -28,6 +31,12 @@ AssetQuantity _swordSoldFor(Map<String, dynamic> sellPrice) {
 }
 
 final _sword = AssetQuantity.fromJson(equipmentAssetJson());
+final _horse = Pet.fromJson(petJson());
+
+Finder _companionIn(String dropdownKey) => find.descendant(
+  of: find.byKey(ValueKey(dropdownKey)),
+  matching: find.byType(CompanionRow),
+);
 
 Finder get _signatureLine => find.byWidgetPredicate(
   (widget) => widget is GestureDetector && widget.child is Stack,
@@ -41,6 +50,8 @@ Finder get _redCross => find.byWidgetPredicate(
 
 typedef _Confirmation = ({Coins total, bool isTotalPositive});
 
+typedef _Change = ({TradeSelection selection, bool isBuy});
+
 void main() {
   setUp(
     () => seedSvgCache([
@@ -53,13 +64,17 @@ void main() {
     ]),
   );
 
+  final changes = <_Change>[];
+
   Future<List<_Confirmation>> pumpTransaction(
     WidgetTester tester, {
     required Character character,
-    List<AssetQuantity> toBuy = const [],
-    List<AssetQuantity> toSell = const [],
+    TradeSelection toBuy = const TradeSelection(),
+    TradeSelection toSell = const TradeSelection(),
+    bool? isAdd,
   }) async {
     final confirmations = <_Confirmation>[];
+    changes.clear();
     useLandscapePhone(tester);
     await tester.pumpWidget(
       buildTestApp(
@@ -68,14 +83,16 @@ void main() {
             child: SizedBox(
               height: _sheetHeight,
               child: TransactionModal(
-                itemsToBuy: toBuy,
-                itemsToSell: toSell,
+                toBuy: toBuy,
+                toSell: toSell,
                 onConfirm: (total, isTotalPositive) => confirmations.add((
                   total: total,
                   isTotalPositive: isTotalPositive,
                 )),
-                onChangedList: (_, _) {},
+                onChanged: (selection, isBuy) =>
+                    changes.add((selection: selection, isBuy: isBuy)),
                 character: character,
+                isAdd: isAdd,
                 onEquipmentInfo: (_) {},
               ),
             ),
@@ -85,6 +102,11 @@ void main() {
     );
     await tester.pumpAndSettle();
     return confirmations;
+  }
+
+  Future<void> open(WidgetTester tester, String section) async {
+    await tester.tap(find.text(section));
+    await tester.pumpAndSettle();
   }
 
   Future<void> sign(WidgetTester tester) async {
@@ -101,7 +123,7 @@ void main() {
       final confirmations = await pumpTransaction(
         tester,
         character: _characterWith(coinsJson(silver: 10)),
-        toSell: [_swordSoldFor(coinsJson(silver: 50))],
+        toSell: TradeSelection(assets: [_swordSoldFor(coinsJson(silver: 50))]),
       );
 
       expect(_redCross, findsNothing);
@@ -119,12 +141,90 @@ void main() {
     final confirmations = await pumpTransaction(
       tester,
       character: _characterWith(coinsJson(silver: 10)),
-      toBuy: [_sword],
+      toBuy: TradeSelection(assets: [_sword]),
     );
 
     expect(_redCross, findsOneWidget);
     await sign(tester);
 
     expect(confirmations, isEmpty);
+  });
+
+  testWidgets('lists the companions to buy under Acquisto (D-07)', (
+    tester,
+  ) async {
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(pets: [_horse]),
+    );
+    await open(tester, 'Acquisto');
+
+    expect(_companionIn('buy_dropdown'), findsOneWidget);
+    expect(_companionIn('sell_dropdown'), findsNothing);
+    expect(find.text('Cavallo da viaggio'), findsOneWidget);
+  });
+
+  testWidgets('lists the companions to sell under Vendita (D-07)', (
+    tester,
+  ) async {
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toSell: TradeSelection(pets: [_horse]),
+    );
+    await open(tester, 'Vendita');
+
+    expect(_companionIn('sell_dropdown'), findsOneWidget);
+    expect(_companionIn('buy_dropdown'), findsNothing);
+  });
+
+  testWidgets('includes companion prices in the total (D-07)', (tester) async {
+    final confirmations = await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(assets: [_sword], pets: [_horse]),
+    );
+    await sign(tester);
+
+    expect(confirmations, [
+      (total: const Coins(gold: 1, silver: 30), isTotalPositive: false),
+    ]);
+  });
+
+  testWidgets('the rubber removes a companion from the selection (D-07)', (
+    tester,
+  ) async {
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(assets: [_sword], pets: [_horse]),
+      isAdd: false,
+    );
+    await open(tester, 'Acquisto');
+    await tester.tap(find.byKey(const ValueKey('trade-pet-pet-travel-horse')));
+    await tester.pumpAndSettle();
+
+    expect(changes, [
+      (selection: TradeSelection(assets: [_sword]), isBuy: true),
+    ]);
+    expect(_companionIn('buy_dropdown'), findsNothing);
+  });
+
+  testWidgets('the pencil leaves a companion selected once (D-07)', (
+    tester,
+  ) async {
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(pets: [_horse]),
+      isAdd: true,
+    );
+    await open(tester, 'Acquisto');
+    await tester.tap(find.byKey(const ValueKey('trade-pet-pet-travel-horse')));
+    await tester.pumpAndSettle();
+
+    expect(changes, isEmpty);
+    expect(_companionIn('buy_dropdown'), findsOneWidget);
   });
 }
