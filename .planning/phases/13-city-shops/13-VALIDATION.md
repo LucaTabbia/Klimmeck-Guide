@@ -40,6 +40,8 @@ created: 2026-11-02
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 13-01-01 | 01 | 1 | SHOP-02, SHOP-04 | T-13-01 | unknown size → null, absent hasShop → true | unit | `flutter test test/models/pet_test.dart test/models/character/character_assets_test.dart test/models/city_test.dart` | ✅ | ✅ green |
 | 13-01-02 | 01 | 1 | SHOP-02, SHOP-04 | T-13-02, T-13-03 | malformed pool → FormatException; pets quantity 1 | unit | `flutter test test/models/city_shop_test.dart test/models/request/transaction_request_test.dart test/models/request/equip_pet_request_test.dart` | ✅ | ✅ green |
+| 13-02-01 | 02 | 2 | SHOP-02, SHOP-04 | T-13-04 | contract-only selections, no city name, no imagePath | unit (document) | `flutter test test/graphql test/tool` | ✅ | ✅ green |
+| 13-02-02 | 02 | 2 | SHOP-02, SHOP-04 | T-13-05, T-13-06 | malformed payload → FormatException, coded errors rethrown | unit | `flutter test test/repository/services/graphql/graphql_shop_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

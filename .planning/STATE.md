@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 13 (City Shops) — EXECUTING (started 2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16, `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); executed together with the BE Phase 12 (`feat/12-negozi-per-citta`, 19 plans)
-Plan: 1 of 11
+Plan: 2 of 11
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
 Next Phase: `/gsd-execute-phase 13` — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10 (schema gate) and 13-11 (device E2E + handoff) run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
 Status: Executing Phase 13 — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10/13-11 wait for the BE Phase 12 merge on BE `develop`
@@ -64,6 +64,7 @@ Last activity: 2026-11-02 -- Phase 13 execution started (13-01..13-09 on mocks; 
 - ~~**BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).~~ — **resolved 2026-11-01:** merged on BE `develop` (`4dc7e89`), consumed by plan 10-11 and proven by the device E2E (outcome in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6).
 - **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
+- FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).
 
 ### Quick Tasks Completed
 
