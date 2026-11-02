@@ -430,7 +430,7 @@ Plans:
 **Plans**: 11 plans (planned 2026-11-02; 13-01..13-09 run before the BE Phase 12 merge on mocks, 13-10 and 13-11 are gated by it)
 - [x] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
 - [x] 13-02-PLAN.md — Documents + service: `PetFragment`, character fragment `pet`/`ownedPets`, `cities` with `size hasShop`, `GetCityShop`, `EquipPet`/`UnequipPet`, registry, `KlimmeckGraphQl.getCityShop`/`equipPet`/`unequipPet`
-- [ ] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
+- [x] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
 - [x] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
 - [ ] 13-05-PLAN.md — Shop call: `ShopCubit.getData(cityId)` last-request-wins, `ShopPoolLoader`, `Shop(cities:)`, bubble lines, catalogue queries removed
 - [x] 13-06-PLAN.md — `TradeSelection` (assets + pets, totals, `purchasablePets`, `retainPurchasable`), `companionSpeedLabel`, text-only `CompanionRow`
@@ -510,7 +510,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 4/11 | In Progress | - |
+| 13. City Shops | 5/11 | In Progress | - |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |

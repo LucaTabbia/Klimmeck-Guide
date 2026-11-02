@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 13 (City Shops) — EXECUTING (started 2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16, `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); executed together with the BE Phase 12 (`feat/12-negozi-per-citta`, 19 plans)
-Plan: 4 of 11
+Plan: 5 of 11
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
 Next Phase: `/gsd-execute-phase 13` — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10 (schema gate) and 13-11 (device E2E + handoff) run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
 Status: Executing Phase 13 — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10/13-11 wait for the BE Phase 12 merge on BE `develop`
