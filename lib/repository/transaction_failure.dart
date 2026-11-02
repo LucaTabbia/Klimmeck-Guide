@@ -11,9 +11,13 @@ const String invalidQuantityCode = 'INVALID_QUANTITY';
 const String itemNotFoundCode = 'ITEM_NOT_FOUND';
 const String itemNotTradableCode = 'ITEM_NOT_TRADABLE';
 const String transactionTotalMismatchCode = 'TRANSACTION_TOTAL_MISMATCH';
+const String itemNotInShopCode = 'ITEM_NOT_IN_SHOP';
+const String petAlreadyOwnedCode = 'PET_ALREADY_OWNED';
+const String petNotOwnedCode = 'PET_NOT_OWNED';
 
 /// Esiti di dominio del rifiuto di `doTransaction` (BE Phase 9 §2, 09-CONTEXT
-/// C8); solo `extensions.code`, mai il messaggio.
+/// C8; codici del pool e dei compagni da BE Phase 12 D-19); solo
+/// `extensions.code`, mai il testo del server.
 enum TransactionFailure {
   shopNotInCity,
   insufficientFunds,
@@ -23,6 +27,16 @@ enum TransactionFailure {
   itemNotFound,
   itemNotTradable,
   totalMismatch,
+
+  /// Fuori dal pool della città, legendary o non vendibile (BE D-19): il pool
+  /// va riletto (D-05).
+  itemNotInShop,
+
+  /// Compagno già posseduto (BE D-14).
+  petAlreadyOwned,
+
+  /// Vendita di un compagno non più posseduto (BE D-14).
+  petNotOwned,
   notFound,
   forbidden,
   unauthenticated,
@@ -44,6 +58,9 @@ TransactionFailure transactionFailureFrom(OperationException exception) {
     itemNotFoundCode => TransactionFailure.itemNotFound,
     itemNotTradableCode => TransactionFailure.itemNotTradable,
     transactionTotalMismatchCode => TransactionFailure.totalMismatch,
+    itemNotInShopCode => TransactionFailure.itemNotInShop,
+    petAlreadyOwnedCode => TransactionFailure.petAlreadyOwned,
+    petNotOwnedCode => TransactionFailure.petNotOwned,
     notFoundCode => TransactionFailure.notFound,
     forbiddenCode => TransactionFailure.forbidden,
     unauthenticatedCode => TransactionFailure.unauthenticated,
