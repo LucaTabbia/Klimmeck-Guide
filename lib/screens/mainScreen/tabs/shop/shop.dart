@@ -122,12 +122,68 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     Navigator.pop(context);
   }
 
+  /// Il foglio d'acquisto legge il pool dal vivo (D-03): aperto durante il
+  /// caricamento si riempie all'arrivo; un pool fallito si richiede al tocco
+  /// (azione esplicita, regola 2). Il foglio vive sopra i provider della shell:
+  /// i cubit si catturano prima di aprirlo.
+  void _openBuySheet(Character character) {
+    final shopCubit = context.read<ShopCubit>();
+    final characterCubit = context.read<CharacterCubit>();
+    _retryFailedPool(shopCubit, character);
+    _showModalShop(
+      isBuy: true,
+      stockOf: (buildModal) => BlocBuilder<ShopCubit, ShopState>(
+        bloc: shopCubit,
+        builder: (_, state) => BlocBuilder<CharacterCubit, CharacterState>(
+          bloc: characterCubit,
+          builder: (_, characterState) =>
+              buildModal(_buyStock(state, characterState)),
+        ),
+      ),
+    );
+  }
+
+  void _openSellSheet(Character character) {
+    _showModalShop(
+      isBuy: false,
+      stockOf: (buildModal) => buildModal(_sellStock(character)),
+    );
+  }
+
+  void _retryFailedPool(ShopCubit shopCubit, Character character) {
+    final cityId = _cityIdOf(character);
+    final state = shopCubit.state;
+    if (cityId == null || state is! ShopError || state.cityId != cityId) {
+      return;
+    }
+    shopCubit.getData(cityId);
+  }
+
+  _SheetStock _buyStock(ShopState state, CharacterState characterState) {
+    if (characterState is! CharacterLoaded) return const _SheetStock();
+    final character = characterState.character;
+    final pool = _poolOf(state, character);
+    return _SheetStock(
+      equipments: pool?.equipment ?? const [],
+      items: pool?.loot ?? const [],
+      pets: purchasablePets(
+        pool?.pets ?? const [],
+        character.assets?.ownedPets ?? const [],
+      ),
+    );
+  }
+
+  _SheetStock _sellStock(Character character) => _SheetStock(
+    equipments: character.assets?.ownedEquipments ?? const [],
+    items: character.assets?.ownedItems ?? const [],
+    pets: character.assets?.ownedPets ?? const [],
+    equippedPetId: character.assets?.pet?.id,
+  );
+
   void _showModalShop({
-    required List<AssetQuantity> equipments,
-    required List<AssetQuantity> items,
-    required List<Pet> pets,
     required bool isBuy,
-    String? equippedPetId,
+    required Widget Function(Widget Function(_SheetStock stock) buildModal)
+    stockOf,
   }) {
     showModalBottomSheet(
       useSafeArea: false,
@@ -144,21 +200,23 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
             return Stack(
               children: [
                 PaperSheetModal(
-                  child: ShopModal(
-                    equipments: equipments,
-                    items: items,
-                    pets: pets,
-                    equippedPetId: equippedPetId,
-                    selection: isBuy ? _toBuy : _toSell,
-                    isBuy: isBuy,
-                    onSelect: (selection) => _onSelect(selection, isBuy),
-                    onEquipmentInfo: (selectedEquip) {
-                      setModalState(
-                        () => selectedEquipmentLocal = selectedEquip,
-                      );
-                      _animationController.forward();
-                    },
-                    isAdd: isAddLocal,
+                  child: stockOf(
+                    (stock) => ShopModal(
+                      equipments: stock.equipments,
+                      items: stock.items,
+                      pets: stock.pets,
+                      equippedPetId: stock.equippedPetId,
+                      selection: isBuy ? _toBuy : _toSell,
+                      isBuy: isBuy,
+                      onSelect: (selection) => _onSelect(selection, isBuy),
+                      onEquipmentInfo: (selectedEquip) {
+                        setModalState(
+                          () => selectedEquipmentLocal = selectedEquip,
+                        );
+                        _animationController.forward();
+                      },
+                      isAdd: isAddLocal,
+                    ),
                   ),
                 ),
                 EditPencilRubber(
@@ -246,9 +304,12 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   /// Solo il pool della città del marker (D-03): uno stato di un'altra città
   /// (cubit a livello di shell) o un caricamento in corso mostrano liste vuote.
   CityShop? _poolOf(ShopState state, Character character) {
-    final cityId = currentCityOf(widget.cities, character.status?.location)?.id;
+    final cityId = _cityIdOf(character);
     return state is ShopLoadData && state.cityId == cityId ? state.pool : null;
   }
+
+  String? _cityIdOf(Character character) =>
+      currentCityOf(widget.cities, character.status?.location)?.id;
 
   @override
   Widget build(BuildContext context) {
@@ -298,109 +359,99 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildShop() {
-    return BlocBuilder<ShopCubit, ShopState>(
-      builder: (context, state) {
-        return BlocBuilder<CharacterCubit, CharacterState>(
-          builder: (context, characterState) {
-            final Character? character = (characterState is CharacterLoaded)
-                ? characterState.character
-                : null;
+    return BlocBuilder<CharacterCubit, CharacterState>(
+      builder: (context, characterState) {
+        final Character? character = (characterState is CharacterLoaded)
+            ? characterState.character
+            : null;
 
-            if (character == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final pool = _poolOf(state, character);
+        if (character == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: Image.asset(
+                'assets/images/shopBackground.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            if (_showTransactionMessage)
+              TransactionMessageBubble(message: _transactionMessage),
 
-            return Stack(
-              alignment: Alignment.bottomCenter,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: Image.asset(
-                    'assets/images/shopBackground.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                if (_showTransactionMessage)
-                  TransactionMessageBubble(message: _transactionMessage),
+            _buildCoinsDisplay(),
 
-                _buildCoinsDisplay(),
-
-                Positioned(
-                  bottom: -10,
-                  child: Center(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      width: MediaQuery.of(context).size.width / 1.2,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Spacer(flex: 2),
-                          GestureDetector(
-                            onTap: () => _showModalShop(
-                              equipments: pool?.equipment ?? const [],
-                              items: pool?.loot ?? const [],
-                              pets: purchasablePets(
-                                pool?.pets ?? const [],
-                                character.assets?.ownedPets ?? const [],
-                              ),
-                              isBuy: true,
-                            ),
-                            child: CachedSvg(
-                              width: MediaQuery.of(context).size.width / 3.3,
-                              height: MediaQuery.of(context).size.height / 1.7,
-                              url:
-                                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
-                            ),
-                          ),
-                          const Spacer(),
-                          if (!_toBuy.isEmpty || !_toSell.isEmpty)
-                            GestureDetector(
-                              onTap: () => _showModalTransaction(character),
-                              child: CachedSvg(
-                                height:
-                                    MediaQuery.of(context).size.height / 3.2,
-                                width: MediaQuery.of(context).size.width / 6,
-                                url:
-                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
-                              ),
-                            )
-                          else
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 6,
-                            ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () => _showModalShop(
-                              equipments:
-                                  character.assets?.ownedEquipments ?? const [],
-                              items: character.assets?.ownedItems ?? const [],
-                              pets: character.assets?.ownedPets ?? const [],
-                              isBuy: false,
-                              equippedPetId: character.assets?.pet?.id,
-                            ),
-                            child: SizedBox(
-                              child: CachedSvg(
-                                width: MediaQuery.of(context).size.width / 3,
-                                height:
-                                    MediaQuery.of(context).size.height / 2.3,
-                                url:
-                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
-                              ),
-                            ),
-                          ),
-                          const Spacer(flex: 4),
-                        ],
+            Positioned(
+              bottom: -10,
+              child: Center(
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height / 1.5,
+                  width: MediaQuery.of(context).size.width / 1.2,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Spacer(flex: 2),
+                      GestureDetector(
+                        onTap: () => _openBuySheet(character),
+                        child: CachedSvg(
+                          width: MediaQuery.of(context).size.width / 3.3,
+                          height: MediaQuery.of(context).size.height / 1.7,
+                          url:
+                              "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
+                        ),
                       ),
-                    ),
+                      const Spacer(),
+                      if (!_toBuy.isEmpty || !_toSell.isEmpty)
+                        GestureDetector(
+                          onTap: () => _showModalTransaction(character),
+                          child: CachedSvg(
+                            height: MediaQuery.of(context).size.height / 3.2,
+                            width: MediaQuery.of(context).size.width / 6,
+                            url:
+                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
+                          ),
+                        )
+                      else
+                        SizedBox(width: MediaQuery.of(context).size.width / 6),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => _openSellSheet(character),
+                        child: SizedBox(
+                          child: CachedSvg(
+                            width: MediaQuery.of(context).size.width / 3,
+                            height: MediaQuery.of(context).size.height / 2.3,
+                            url:
+                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
+                          ),
+                        ),
+                      ),
+                      const Spacer(flex: 4),
+                    ],
                   ),
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         );
       },
     );
   }
+}
+
+/// Merce mostrata da un foglio del negozio.
+class _SheetStock {
+  const _SheetStock({
+    this.equipments = const [],
+    this.items = const [],
+    this.pets = const [],
+    this.equippedPetId,
+  });
+
+  final List<AssetQuantity> equipments;
+  final List<AssetQuantity> items;
+  final List<Pet> pets;
+  final String? equippedPetId;
 }

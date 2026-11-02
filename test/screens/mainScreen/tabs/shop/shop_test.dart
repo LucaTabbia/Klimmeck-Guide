@@ -89,6 +89,7 @@ void main() {
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
+      CloudinaryAssets.weaponType,
     ]);
     _seedShopCells();
     graphQl = MockKlimmeckGraphQl();
