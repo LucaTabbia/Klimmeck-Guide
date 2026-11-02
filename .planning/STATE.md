@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase-complete
-last_updated: "2026-11-01T21:00:00.000Z"
-last_activity: "2026-11-01 -- Phase 10 complete: plan 10-11 gate on BE 4dc7e89, Android device E2E 10/10 approved, ADMIN-01..08 ticked"
+status: planning
+last_updated: "2026-11-02T18:00:00.000Z"
+last_activity: "2026-11-02 -- Phase 13 discuss (joint with BE Phase 12): 13-CONTEXT.md D-01..D-13 on feat/13-city-shops from develop b6eb4d4; pure adaptation of the shop call plus companions (Compagni list, Compagno slot in the Journal)"
 progress:
   total_phases: 17
   completed_phases: 11
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 10 (Admin Panel (innkeeper)) — COMPLETE 11/11 on `feat/10-admin-panel` (2026-11-01): 10-11 selected `pendingQuest` (BE Phase 10 merged, `4dc7e89`, schema check 42/42), Android device E2E 10/10 pass («approved»), six rule fixes from the UAT in TDD (suite 2852, analyzer 51/0/0), ADMIN-01..08 complete
-Plan: 11 of 11
+Phase: 13 (City Shops) — CONTEXT GATHERED (2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-13, `13-DISCUSSION-LOG.md`; joint discuss with the BE Phase 12 (`../Klimmeck-Guide-BE/.planning/phases/12-negozi-per-citta/12-CONTEXT.md`, branch `feat/12-negozi-per-citta`)
+Plan: 0 of TBD
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-Next Phase: FE PR `feat/10-admin-panel` → `develop` (orchestrator; `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`); then the roadmap order decided on 2026-10-29: BE 11 (World Content) → FE 13 → FE 14 → FE 15 → FE 16 → FE 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 10 complete — awaiting the FE PR to `develop`
-Last activity: 2026-11-01 -- Phase 10 plan 10-11 complete: device E2E recorded (10-HUMAN-UAT.md), VALIDATION approved, CONTEXT amended with the UAT rules, BACKEND-NOTES §6 for the BE
+Next Phase: `/gsd-plan-phase 13` (researcher → planner → checker); the schema-gated plans (`cityShop`, `City.size` / `City.hasShop`, `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet`) and the device E2E run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 13 context gathered — ready to plan; the FE plans not gated by the BE schema (models, classifiers, satchel gate, widgets on stubs) can start before the BE merge
+Last activity: 2026-11-02 -- Phase 13 discuss: user «bisogna solo chiamare la chiamata al BE per adattarla alla nuova forma» (no city name, `ITEM_NOT_IN_SHOP` in the bubble, Shop cell disabled where `hasShop` is false), companions added by the BE Phase 12 decisions (third list «Compagni», «Compagno» slot in the Journal, owned vs equipped pet, buying never equips, legendary items sellable); PR #36 merged earlier the same day, BE PR #17 merged
 
 ## Current Milestone
 
