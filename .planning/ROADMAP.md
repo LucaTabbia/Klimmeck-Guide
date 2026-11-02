@@ -56,7 +56,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 - **COMBAT-09 / COMBAT-10** — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` (additive) and the seats of a started quest kept by the archive (BE Phase 9.2, added 2026-10-27). Blocks only the schema-gated plans and the device E2E of Phase 9 (Combat Result Sheet); the BE Phase 9 contract (`questResultReceived`, `questResult`, push `questEnd`) is already on BE `develop`.
 - **ADMIN-02 / ADMIN-03 (BE-HARD-08)** — `PendingRequestCharacter.pendingQuest` (additive) and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied (BE Phase 10, added 2026-10-29). Blocks only the schema-gated plan and the device E2E of Phase 10 (Admin Panel); the queue, the completion and the teleport are already on BE `develop`.
 
-- **SHOP-02 / SHOP-03 (BE Phase 12, added 2026-10-29)** — `City.size`, the city pool (`City.shopItems` or a dedicated query) and the refusal code for an item outside the pool. Blocks Phase 13 (City Shops); BE Phase 11 seeds the pools.
+- **SHOP-02 / SHOP-03 / SHOP-04 (BE Phase 12, added 2026-10-29, amended 2026-11-02)** — `City.size` / `City.hasShop`, the city pool through `cityShop(cityId)` (equipment, loot, pets), `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet` and the refusal codes `ITEM_NOT_IN_SHOP` / `PET_ALREADY_OWNED` / `PET_NOT_OWNED`; originally: `City.size`, the city pool (`City.shopItems` or a dedicated query) and the refusal code for an item outside the pool. Blocks Phase 13 (City Shops); BE Phase 11 seeds the pools.
 - **QGEN-01..04 (BE Phase 13, added 2026-10-29)** — `QuestInfos.enemies: [{ enemy, quantity }]` **replaces** `infos.enemy` (declared non-additive change), `generateQuests` innkeeper mutation. Blocks Phase 14 (Quest Generation companion): the gated FE plans align the documents before the BE merge.
 - **FOOD-01..04 (BE Phase 14, added 2026-10-29)** — additive food/HP fields on `travelPreview`, an acceptance preview for the quest automatic travel, the starvation refusal code. Blocks Phase 15 (Travel Food).
 - **AMBUSH-01..03 (BE Phase 15, added 2026-10-29)** — `activeTravel` rewritten on a lost ambush, ambush outcome on `QuestResult`. Blocks Phase 16 (Travel Ambushes).
@@ -427,7 +427,18 @@ Plans:
 **Decisions made (2026-10-29)**: explicit `size` on `City` (BE), hand-curated pools, sell anywhere, infinite stock, legendary never sold, catalogue prices everywhere.
 **Decisions made (2026-11-02, `13-CONTEXT.md` D-01..D-13)**: pure adaptation of the shop call; no city name; `ITEM_NOT_IN_SHOP` in the bubble; Shop cell disabled where `hasShop` is false; companions as a third list in the same sheets; «Compagno» slot in the Journal; buying never equips; legendary items sellable.
 **Backend prerequisite**: BE Phase 12 merged on BE `develop` (schema-gated plans and device E2E); BE Phase 11 data for the UAT.
-**Plans**: TBD
+**Plans**: 11 plans (planned 2026-11-02; 13-01..13-09 run before the BE Phase 12 merge on mocks, 13-10 and 13-11 are gated by it)
+- [ ] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
+- [ ] 13-02-PLAN.md — Documents + service: `PetFragment`, character fragment `pet`/`ownedPets`, `cities` with `size hasShop`, `GetCityShop`, `EquipPet`/`UnequipPet`, registry, `KlimmeckGraphQl.getCityShop`/`equipPet`/`unequipPet`
+- [ ] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
+- [ ] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
+- [ ] 13-05-PLAN.md — Shop call: `ShopCubit.getData(cityId)` last-request-wins, `ShopPoolLoader`, `Shop(cities:)`, bubble lines, catalogue queries removed
+- [ ] 13-06-PLAN.md — `TradeSelection` (assets + pets, totals, `purchasablePets`, `retainPurchasable`), `companionSpeedLabel`, text-only `CompanionRow`
+- [ ] 13-07-PLAN.md — Shop sheets with «Compagni» (buy: pool minus owned; sell: owned, equipped marked), pets in the totals, `canAfford` fix (D-14), legendary sellable
+- [ ] 13-08-PLAN.md — `CompanionCubit` (single slot, optimistic, rollback, timeout), `CompanionOutcomeListener`, shell provider, harness updates
+- [ ] 13-09-PLAN.md — Journal «Compagno» slot: `CompanionSection` after «Armatura», owned-pets sheet, equip/unequip, interactive during a travel
+- [ ] 13-10-PLAN.md — Schema gate (after the BE Phase 12 merge): contract names proved on `origin/develop:src/schema.gql`, 43/43 documents OK, full suite, analyzer, VALIDATION filled
+- [ ] 13-11-PLAN.md — Device E2E (`13-HUMAN-UAT.md`, 11 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 14: Quest Generation (frontend companion)
 **Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
@@ -499,7 +510,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 0/0 | Not started | - |
+| 13. City Shops | 0/11 | Planned | - |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
@@ -599,6 +610,7 @@ Plans:
 | HARDEN-06 | Phase 12 | Pending |
 | SHOP-02 | Phase 13 | Pending |
 | SHOP-03 | Phase 13 | Pending |
+| SHOP-04 | Phase 13 | Pending (added 2026-11-02) |
 | QGEN-01 | Phase 14 | Pending |
 | QGEN-02 | Phase 14 | Pending |
 | QGEN-03 | Phase 14 | Pending |
