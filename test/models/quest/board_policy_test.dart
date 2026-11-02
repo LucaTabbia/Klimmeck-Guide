@@ -21,17 +21,15 @@ City city(String id, String markerId) => City.fromJson({
 });
 
 void main() {
-  group('currentCityOf / isOnCityMarker', () {
+  group('currentCityOf', () {
     final cities = [city('city-1', 'marker-1'), city('city-2', 'marker-2')];
 
     test('returns the city whose marker is the location', () {
       expect(currentCityOf(cities, poi('marker-2'))?.id, 'city-2');
-      expect(isOnCityMarker(cities, poi('marker-2')), isTrue);
     });
 
     test('a quest POI that is not a marker gives null', () {
       expect(currentCityOf(cities, poi('poi-1')), isNull);
-      expect(isOnCityMarker(cities, poi('poi-1')), isFalse);
     });
 
     test('null location gives null', () {
