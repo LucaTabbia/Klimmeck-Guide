@@ -53,6 +53,9 @@ created: 2026-11-02
 | 13-05-03 | 05 | 4 | SHOP-02, SHOP-03 | T-13-16 | matching pool only, bubble copy from typed failures, 43 documents | unit (registry) | `flutter test test/graphql test/tool` | ✅ | ✅ green |
 | 13-07-01 | 07 | 5 | SHOP-03, SHOP-04 | T-13-21, T-13-23 | net-positive signable, net-negative above wallet refused, one-shot signature | widget | `flutter test test/screens/mainScreen/tabs/shop/components/transaction_modal_test.dart` | ✅ | ✅ green |
 | 13-07-02 | 07 | 5 | SHOP-03, SHOP-04 | T-13-22, T-13-24 | owned pets hidden, legendary sellable, no equip on purchase | widget | `flutter test test/screens/mainScreen/tabs/shop/components/shop_modal_test.dart` | ✅ | ✅ green |
+| 13-08-01 | 08 | 5 | SHOP-04 | T-13-26, T-13-28 | overlay settled only by the subscription, timer cleanup | bloc | `flutter test test/screens/mainScreen/tabs/journal/companionCubit/companion_cubit_test.dart` | ✅ | ✅ green |
+| 13-08-02 | 08 | 5 | SHOP-04 | T-13-25, T-13-27 | fixed copy, stale views re-read silently | widget | `flutter test test/screens/mainScreen/tabs/journal/companionCubit test/screens/mainScreen/components/companion_outcome_listener_test.dart` | ✅ | ✅ green |
+| 13-08-03 | 08 | 5 | SHOP-04 | T-13-28 | provider closed with the shell | widget | `flutter test test/screens/auth test/screens/mainScreen` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

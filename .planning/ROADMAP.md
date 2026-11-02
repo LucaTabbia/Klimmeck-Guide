@@ -435,7 +435,7 @@ Plans:
 - [x] 13-05-PLAN.md — Shop call: `ShopCubit.getData(cityId)` last-request-wins, `ShopPoolLoader`, `Shop(cities:)`, bubble lines, catalogue queries removed
 - [x] 13-06-PLAN.md — `TradeSelection` (assets + pets, totals, `purchasablePets`, `retainPurchasable`), `companionSpeedLabel`, text-only `CompanionRow`
 - [x] 13-07-PLAN.md — Shop sheets with «Compagni» (buy: pool minus owned; sell: owned, equipped marked), pets in the totals, `canAfford` fix (D-14), legendary sellable
-- [ ] 13-08-PLAN.md — `CompanionCubit` (single slot, optimistic, rollback, timeout), `CompanionOutcomeListener`, shell provider, harness updates
+- [x] 13-08-PLAN.md — `CompanionCubit` (single slot, optimistic, rollback, timeout), `CompanionOutcomeListener`, shell provider, harness updates
 - [ ] 13-09-PLAN.md — Journal «Compagno» slot: `CompanionSection` after «Armatura», owned-pets sheet, equip/unequip, interactive during a travel
 - [ ] 13-10-PLAN.md — Schema gate (after the BE Phase 12 merge): contract names proved on `origin/develop:src/schema.gql`, 43/43 documents OK, full suite, analyzer, VALIDATION filled
 - [ ] 13-11-PLAN.md — Device E2E (`13-HUMAN-UAT.md`, 11 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
@@ -510,7 +510,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 7/11 | In Progress | - |
+| 13. City Shops | 8/11 | In Progress | - |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
