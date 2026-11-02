@@ -9,8 +9,11 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
+import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
@@ -48,8 +51,19 @@ final _swordPool = CityShop.fromJson(
 
 const _swordRow = 'Equipaggiamento e-sword';
 
-CharacterLoaded _characterInCity() => CharacterLoaded(
-  Character.fromJson(travellingCharacterJson(locationId: 'city-marker-1')),
+final _horse = Pet.fromJson(petJson());
+
+final _horsePool = CityShop.fromJson(
+  cityShopJson(cityId: 'city-1', equipment: [], loot: [], pets: [petJson()]),
+);
+
+CharacterLoaded _characterInCity({
+  List<Map<String, dynamic>> ownedPets = const [],
+}) => CharacterLoaded(
+  Character.fromJson({
+    ...travellingCharacterJson(locationId: 'city-marker-1'),
+    'assets': {'ownedPets': ownedPets},
+  }),
 );
 
 Finder _cell(String asset) => find.byWidgetPredicate(
@@ -172,6 +186,63 @@ void main() {
 
         verify(() => graphQl.getCityShop('city-1')).called(2);
         expect(find.text(_swordRow), findsOneWidget);
+      },
+    );
+  });
+
+  group('selection against the owned pets (WR-02)', () {
+    Finder completeCell() => _cell(CloudinaryAssets.completeTransaction);
+
+    Future<void> selectPet(WidgetTester tester, {required String cell}) async {
+      await tapAndSettle(tester, _cell(cell));
+      tester
+          .widget<ShopModal>(find.byType(ShopModal))
+          .onSelect(const TradeSelection().addPet(_horse));
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+      expect(completeCell(), findsOneWidget);
+    }
+
+    Future<void> emitCharacter(
+      WidgetTester tester,
+      CharacterState state,
+    ) async {
+      when(() => characterCubit.state).thenReturn(state);
+      characterStates.add(state);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a pet bought meanwhile leaves the purchase selection (D-08)', (
+      tester,
+    ) async {
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _horsePool);
+      await pumpShop(tester);
+      await tester.pumpAndSettle();
+      await selectPet(tester, cell: CloudinaryAssets.buy);
+
+      await emitCharacter(tester, _characterInCity(ownedPets: [petJson()]));
+
+      expect(completeCell(), findsNothing);
+    });
+
+    testWidgets(
+      'a pet that left the inventory leaves the sale selection (D-07)',
+      (tester) async {
+        when(
+          () => graphQl.getCityShop('city-1'),
+        ).thenAnswer((_) async => _horsePool);
+        when(
+          () => characterCubit.state,
+        ).thenReturn(_characterInCity(ownedPets: [petJson()]));
+        await pumpShop(tester);
+        await tester.pumpAndSettle();
+        await selectPet(tester, cell: CloudinaryAssets.sell);
+
+        await emitCharacter(tester, _characterInCity());
+
+        expect(completeCell(), findsNothing);
       },
     );
   });

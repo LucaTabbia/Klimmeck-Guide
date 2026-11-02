@@ -113,11 +113,46 @@ void main() {
             .withAssets([_sword, _potion])
             .addPet(_horse);
 
-        final retained = selection.retainPurchasable(_poolWithSwordOnly);
+        final retained = selection.retainPurchasable(
+          _poolWithSwordOnly,
+          owned: const [],
+        );
 
         expect(retained, const TradeSelection().withAssets([_sword]));
       },
     );
+
+    test(
+      'retainPurchasable drops a pet the character now owns (WR-02, D-08)',
+      () {
+        final pool = CityShop.fromJson(cityShopJson(pets: [petJson()]));
+        final selection = const TradeSelection()
+            .withAssets([_sword])
+            .addPet(_horse);
+
+        final retained = selection.retainPurchasable(pool, owned: [_horse]);
+
+        expect(retained.pets, isEmpty);
+        expect(retained.assets, [_sword]);
+      },
+    );
+
+    test('retainOwned drops a sold pet that left the inventory (WR-02)', () {
+      final selection = const TradeSelection()
+          .withAssets([_potion])
+          .addPet(_horse);
+
+      final retained = selection.retainOwned(const []);
+
+      expect(retained.pets, isEmpty);
+      expect(retained.assets, [_potion]);
+    });
+
+    test('retainOwned keeps a pet still owned (WR-02)', () {
+      final selection = const TradeSelection().addPet(_horse);
+
+      expect(selection.retainOwned([_horse]).pets, [_horse]);
+    });
 
     test('purchasablePets hides the pets already owned (D-08)', () {
       expect(purchasablePets([_horse, _cat], [_horse]), [_cat]);
@@ -203,7 +238,10 @@ void main() {
             .addPet(_horse);
 
         final json = requestJson(
-          bought: selection.retainPurchasable(_poolWithSwordOnly),
+          bought: selection.retainPurchasable(
+            _poolWithSwordOnly,
+            owned: const [],
+          ),
           sold: const TradeSelection(),
         );
 
