@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/shop_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/pending_request_subscriptions.dart';
@@ -26,6 +27,7 @@ import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/race_traits.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/city_shop.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
@@ -38,6 +40,7 @@ import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
+import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
 import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
@@ -341,6 +344,22 @@ class KlimmeckGraphQl {
           in (city['pointsOfInterest'] as List<dynamic>? ?? const []))
         if (poi case {'id': final String poiId}) poiId,
     });
+  }
+
+  /// Pool della città del marker (D-01). Lancia [OperationException] o
+  /// [FormatException].
+  Future<CityShop> getCityShop(String cityId) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        ShopQueries.getCityShop,
+        variables: {'cityId': cityId},
+      ),
+    );
+    final pool = data['cityShop'];
+    if (pool is! Map<String, dynamic>) {
+      throw const FormatException('cityShop malformed');
+    }
+    return CityShop.fromJson(pool);
   }
 
   Future<List<EquipmentItem>> getEquipmentItems(List<String> ids) async {
@@ -697,26 +716,41 @@ class KlimmeckGraphQl {
   /// Equipaggia una magia (D-06): lo stato arriva su `characterUpdated`, mai da
   /// questa risposta (D-16). Restituisce solo `successful`; lancia
   /// [OperationException] o [FormatException] per una risposta malformata.
-  Future<bool> equipSpell(EquipSpellRequest request) =>
-      _spellSlotMutation(CharacterMutations.equipSpell, 'equipSpell', request);
-
-  /// Disequipaggia una magia (D-06), stesso contratto di [equipSpell].
-  Future<bool> unequipSpell(EquipSpellRequest request) => _spellSlotMutation(
-    CharacterMutations.unequipSpell,
-    'unequipSpell',
-    request,
+  Future<bool> equipSpell(EquipSpellRequest request) => _successfulMutation(
+    CharacterMutations.equipSpell,
+    'equipSpell',
+    request.toJson(),
   );
 
-  Future<bool> _spellSlotMutation(
+  /// Disequipaggia una magia (D-06), stesso contratto di [equipSpell].
+  Future<bool> unequipSpell(EquipSpellRequest request) => _successfulMutation(
+    CharacterMutations.unequipSpell,
+    'unequipSpell',
+    request.toJson(),
+  );
+
+  /// Equipaggia un compagno posseduto (D-10); lo stato arriva solo da
+  /// `characterUpdated`. Lancia [OperationException] o [FormatException].
+  Future<bool> equipPet(EquipPetRequest request) => _successfulMutation(
+    CharacterMutations.equipPet,
+    'equipPet',
+    request.toJson(),
+  );
+
+  /// Svuota lo slot del compagno (D-10), stesso contratto di [equipPet].
+  Future<bool> unequipPet(UnequipPetRequest request) => _successfulMutation(
+    CharacterMutations.unequipPet,
+    'unequipPet',
+    request.toJson(),
+  );
+
+  Future<bool> _successfulMutation(
     String document,
     String field,
-    EquipSpellRequest request,
+    Map<String, dynamic> request,
   ) async {
     final data = _dataOrThrow(
-      await performMutation(
-        query: document,
-        variables: {'request': request.toJson()},
-      ),
+      await performMutation(query: document, variables: {'request': request}),
     );
     final result = data[field];
     final successful = result is Map<String, dynamic>
