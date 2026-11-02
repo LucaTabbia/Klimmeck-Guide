@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
+
+import '../helpers/fixtures/shop_fixtures.dart';
 
 LootItem _loot({EffectType? effect, int? power}) => LootItem(
   id: 'l-1',
@@ -50,5 +53,31 @@ void main() {
     test('no effect, no line', () {
       expect(itemEffectLabel(_loot(power: 12)), isNull);
     });
+  });
+
+  group('companionSpeedLabel', () {
+    test(
+      'companionSpeedLabel prints «Velocità ×2» for a modifier of 2 (D-11)',
+      () {
+        expect(companionSpeedLabel(Pet.fromJson(petJson())), 'Velocità ×2');
+      },
+    );
+
+    test(
+      'companionSpeedLabel prints «Velocità ×2,5» with the Italian decimal comma (D-11)',
+      () {
+        expect(
+          companionSpeedLabel(Pet.fromJson(petJson(speedModifier: 2.5))),
+          'Velocità ×2,5',
+        );
+      },
+    );
+
+    test(
+      'companionSpeedLabel is null for a companion that is not a mount (D-07)',
+      () {
+        expect(companionSpeedLabel(Pet.fromJson(catPetJson())), isNull);
+      },
+    );
   });
 }
