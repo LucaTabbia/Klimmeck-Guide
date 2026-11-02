@@ -428,7 +428,7 @@ Plans:
 **Decisions made (2026-11-02, `13-CONTEXT.md` D-01..D-13)**: pure adaptation of the shop call; no city name; `ITEM_NOT_IN_SHOP` in the bubble; Shop cell disabled where `hasShop` is false; companions as a third list in the same sheets; «Compagno» slot in the Journal; buying never equips; legendary items sellable.
 **Backend prerequisite**: BE Phase 12 merged on BE `develop` (schema-gated plans and device E2E); BE Phase 11 data for the UAT.
 **Plans**: 11 plans (planned 2026-11-02; 13-01..13-09 run before the BE Phase 12 merge on mocks, 13-10 and 13-11 are gated by it)
-- [ ] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
+- [x] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
 - [ ] 13-02-PLAN.md — Documents + service: `PetFragment`, character fragment `pet`/`ownedPets`, `cities` with `size hasShop`, `GetCityShop`, `EquipPet`/`UnequipPet`, registry, `KlimmeckGraphQl.getCityShop`/`equipPet`/`unequipPet`
 - [ ] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
 - [ ] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
@@ -510,7 +510,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 0/11 | Planned | - |
+| 13. City Shops | 1/11 | In Progress | - |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |

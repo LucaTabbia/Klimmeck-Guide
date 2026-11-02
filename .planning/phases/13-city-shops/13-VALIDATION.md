@@ -17,20 +17,20 @@ created: 2026-11-02
 
 | Property | Value |
 |----------|-------|
-| **Framework** | {pytest 7.x / jest 29.x / vitest / go test / other} |
-| **Config file** | {path or "none — Wave 0 installs"} |
-| **Quick run command** | `{quick command}` |
-| **Full suite command** | `{full command}` |
-| **Estimated runtime** | ~13 seconds |
+| **Framework** | flutter_test + bloc_test + mocktail + fake_async (pubspec.lock) |
+| **Config file** | none (shared helpers in test/helpers/) |
+| **Quick run command** | `flutter test <touched test paths>` |
+| **Full suite command** | `flutter test` |
+| **Estimated runtime** | ~70 s |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `{quick run command}`
-- **After every plan wave:** Run `{full suite command}`
+- **After every task commit:** Run `flutter test <touched paths>`
+- **After every plan wave:** Run `flutter test test/screens/mainScreen test/models test/repository test/graphql test/tool`
 - **Before `/gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** 13 seconds
+- **Max feedback latency:** `flutter test <touched paths>` per task
 
 ---
 
@@ -38,7 +38,8 @@ created: 2026-11-02
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 13-01-01 | 01 | 1 | REQ-{XX} | T-13-01 / — | {expected secure behavior or "N/A"} | unit | `{command}` | ✅ / ❌ W0 | ⬜ pending |
+| 13-01-01 | 01 | 1 | SHOP-02, SHOP-04 | T-13-01 | unknown size → null, absent hasShop → true | unit | `flutter test test/models/pet_test.dart test/models/character/character_assets_test.dart test/models/city_test.dart` | ✅ | ✅ green |
+| 13-01-02 | 01 | 1 | SHOP-02, SHOP-04 | T-13-02, T-13-03 | malformed pool → FormatException; pets quantity 1 | unit | `flutter test test/models/city_shop_test.dart test/models/request/transaction_request_test.dart test/models/request/equip_pet_request_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
