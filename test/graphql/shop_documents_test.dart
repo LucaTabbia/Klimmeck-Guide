@@ -117,4 +117,10 @@ void main() {
     expect(schemaCheckDocuments['EquipPet'], CharacterMutations.equipPet);
     expect(schemaCheckDocuments['UnequipPet'], CharacterMutations.unequipPet);
   });
+
+  test('the global catalogue queries left the registry (D-01)', () {
+    expect(schemaCheckDocuments, isNot(contains('equipmentAssetsQuantity')));
+    expect(schemaCheckDocuments, isNot(contains('lootAssetsQuantity')));
+    expect(schemaCheckDocuments.length, 43);
+  });
 }
