@@ -15,6 +15,7 @@ import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/shop_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/pending_request_subscriptions.dart';
@@ -33,11 +34,13 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// (dopo la BE 9.2) aggiunge `ListUnacknowledgedQuestResults` e
 /// `AcknowledgeQuestResult`; la Phase 10 aggiunge `GetPendingRequests`,
 /// `OnPendingRequestsUpdated`, `CompletePendingRequest` e `TeleportCharacter`;
-/// ogni documento futuro va aggiunto qui
+/// la Phase 13 aggiunge `GetCityShop`, `EquipPet` e `UnequipPet` e toglie i
+/// due cataloghi globali (13-05); ogni documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
   'GetCity': CityQueries.getCity,
+  'GetCityShop': ShopQueries.getCityShop,
   'GetTravelPreview': TravelQueries.getTravelPreview,
   'lootItems': LootItemQueries.getAllLootItems,
   'lootAssetsQuantity': LootItemQueries.getAllLootAssetsQuantity,
@@ -63,6 +66,8 @@ final Map<String, String> schemaCheckDocuments = {
   'equipItem': CharacterMutations.equipItem,
   'EquipSpell': CharacterMutations.equipSpell,
   'UnequipSpell': CharacterMutations.unequipSpell,
+  'EquipPet': CharacterMutations.equipPet,
+  'UnequipPet': CharacterMutations.unequipPet,
   'AcceptQuest': QuestMutations.acceptQuest,
   'AbandonQuest': QuestMutations.abandonQuest,
   'AcknowledgeQuestResult': QuestResultMutations.acknowledgeQuestResult,

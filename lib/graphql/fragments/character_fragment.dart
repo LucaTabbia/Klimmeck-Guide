@@ -2,6 +2,7 @@ import 'coins_fragment.dart';
 import 'equipment_fragment.dart';
 import 'location_fragment.dart';
 import 'loot_fragment.dart';
+import 'pet_fragment.dart';
 import 'spell_fragment.dart';
 
 class CharacterFragment {
@@ -91,6 +92,12 @@ class CharacterFragment {
             ${LootFragment.fields}
           }
         }
+      }
+      pet {
+        ${PetFragment.fields}
+      }
+      ownedPets {
+        ${PetFragment.fields}
       }
     }
   ''';

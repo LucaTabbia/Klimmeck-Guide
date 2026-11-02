@@ -53,4 +53,20 @@ class CharacterMutations {
         successful
       }
     }''';
+
+  static const String equipPet = r'''
+    mutation EquipPet($request: EquipPetRequest!) {
+      equipPet(request: $request) {
+        response
+        successful
+      }
+    }''';
+
+  static const String unequipPet = r'''
+    mutation UnequipPet($request: UnequipPetRequest!) {
+      unequipPet(request: $request) {
+        response
+        successful
+      }
+    }''';
 }
