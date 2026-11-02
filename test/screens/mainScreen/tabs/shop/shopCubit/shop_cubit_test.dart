@@ -65,6 +65,7 @@ void main() {
         await loadB;
         poolA.complete(_poolOf('city-a'));
         await loadA;
+        await pumpEventQueue();
         await subscription.cancel();
         await cubit.close();
 
@@ -87,6 +88,7 @@ void main() {
       await cubit.getData('city-b');
       poolA.completeError(Exception('late failure'));
       await loadA;
+      await pumpEventQueue();
       await subscription.cancel();
       await cubit.close();
 

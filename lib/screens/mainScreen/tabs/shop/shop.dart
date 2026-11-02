@@ -48,7 +48,6 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    context.read<ShopCubit>().getData();
     super.initState();
   }
 
@@ -286,8 +285,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
         listener: (context, state) {
           if (state is ShopLoadData) {
             setState(() {
-              _allEquipments = state.equipmentItems;
-              _allItems = state.lootItems;
+              _allEquipments = state.pool.equipment;
+              _allItems = state.pool.loot;
             });
           }
         },
