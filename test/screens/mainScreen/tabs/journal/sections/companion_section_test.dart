@@ -15,6 +15,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/fixtures/travel_fixtures.dart';
+import '../../../../../helpers/haptic_recorder.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
 import '../../../../../helpers/svg_cache_seed.dart';
@@ -183,6 +184,24 @@ void main() {
     verify(() => companionCubit.toggle(character, _horse)).called(1);
     expect(find.byType(PaperSheetModal), findsNothing);
   });
+
+  testWidgets(
+    'a tap while an operation is pending keeps the sheet open, no haptic '
+    '(IN-04)',
+    (tester) async {
+      when(
+        () => companionCubit.toggle(any(), any()),
+      ).thenReturn(CompanionToggleIntent.ignoredPending);
+      final haptics = recordHaptics(tester);
+      final character = await pump(tester);
+      await openSheet(tester);
+      await tapOwned(tester, _cat);
+
+      verify(() => companionCubit.toggle(character, _cat)).called(1);
+      expect(find.byType(PaperSheetModal), findsOneWidget);
+      expect(haptics, isEmpty);
+    },
+  );
 
   testWidgets('the slot shows the pending companion at once (D-10)', (
     tester,
