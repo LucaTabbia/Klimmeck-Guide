@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-02T20:55:32.948Z"
-last_activity: 2026-11-02 -- Phase 13 execution started (13-01..13-09 on mocks)
+last_updated: "2026-11-02T22:16:44.000Z"
+last_activity: 2026-11-02 -- Phase 13 parked at 9/11 awaiting the BE Phase 12 merge
 progress:
   total_phases: 17
   completed_phases: 11
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 13 (City Shops) — EXECUTING (started 2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16, `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); executed together with the BE Phase 12 (`feat/12-negozi-per-citta`, 19 plans)
+Phase: 13 (City Shops) — PARKED at 9/11 (2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): plans 13-01..13-09 executed, reviewed, fixed, verified and audited; 13-10 (schema gate) and 13-11 (device E2E + handoff) wait for the BE Phase 12 PR merge on BE `develop` (CONTEXT D-12)
 Plan: 9 of 11
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-Next Phase: `/gsd-execute-phase 13` — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10 (schema gate) and 13-11 (device E2E + handoff) run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Executing Phase 13 — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10/13-11 wait for the BE Phase 12 merge on BE `develop`
-Last activity: 2026-11-02 -- Phase 13 execution started (13-01..13-09 on mocks; BE Phase 12 executing in parallel)
+Next Phase: after the BE Phase 12 PR merges on BE `develop` → `/gsd-execute-phase 13` resumes with 13-10 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c cityShop` ≥ 1, contract proof A1/A2/A3, schema check 43/43, full suite) then 13-11 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements SHOP-02..04); then FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 13 parked at 9/11 — executing resumes with 13-10/13-11 after the BE Phase 12 merge (BE `feat/12-negozi-per-citta`, 19 plans, PR to open). Review-fix notes for the device UAT (13-11), from 13-REVIEW-FIX.md (2026-11-02): (WR-01) the buy sheet reads the pool live and a tap on «Acquisto» while the pool load failed retries `getData`: with the tunnel down the sheet opens empty and fills when the response arrives; (WR-02, verify by hand) a pet bought or sold while still in a selection (lost response, second device) must leave the selection at the next `characterUpdated`, the complete cell disappears when nothing is left and «Hai già questo compagno» must not repeat on every signature; (IN-04) in the Journal «Compagno» sheet a tap during a pending operation does nothing (no haptic, sheet stays open) and the user retries after the outcome.
+Last activity: 2026-11-02 -- Phase 13 plans 13-01..13-09 executed; review → fix → verification → security audit done; branch pushed without PR; waiting for the BE Phase 12 merge
 
 ## Current Milestone
 
