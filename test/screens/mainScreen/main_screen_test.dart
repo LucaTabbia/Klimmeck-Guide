@@ -276,6 +276,14 @@ void main() {
           'location': [1.0, 2.0],
         },
       }),
+      City.fromJson({
+        'id': 'city-no-shop',
+        'hasShop': false,
+        'markerLocation': {
+          'id': 'city-marker-no-shop',
+          'location': [3.0, 4.0],
+        },
+      }),
     ];
 
     late MockQuestAcceptanceCubit acceptanceCubit;
@@ -666,6 +674,47 @@ void main() {
         boardAndShop,
       );
     });
+
+    testWidgets(
+      'on a city without a shop the Negozio item does nothing (D-04)',
+      (tester) async {
+        final controller = await pumpOpenSatchel(tester, 'city-marker-no-shop');
+
+        await tapItem(tester, SatchelLayout.shopPageIndex);
+
+        expect(controller.page!.round(), 0);
+      },
+    );
+
+    testWidgets(
+      'on a city without a shop the Bacheca item still opens the board (D-04)',
+      (tester) async {
+        final controller = await pumpOpenSatchel(tester, 'city-marker-no-shop');
+
+        await tapItem(tester, SatchelLayout.boardPageIndex);
+
+        expect(controller.page!.round(), SatchelLayout.boardPageIndex);
+      },
+    );
+
+    testWidgets(
+      'on a city without a shop only the shop cell looks disabled (D-04)',
+      (tester) async {
+        await pumpOpenSatchel(tester, 'city-marker-no-shop');
+
+        const shopOnly = {SatchelLayout.shopPageIndex};
+        expect(
+          tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
+          shopOnly,
+        );
+        expect(
+          tester
+              .widget<MenuBackground>(find.byType(MenuBackground))
+              .disabledPages,
+          shopOnly,
+        );
+      },
+    );
 
     testWidgets('awaiting aid the Profilo item still navigates', (
       tester,
