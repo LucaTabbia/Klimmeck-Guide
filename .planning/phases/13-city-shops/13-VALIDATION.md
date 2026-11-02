@@ -48,6 +48,9 @@ created: 2026-11-02
 | 13-06-02 | 06 | 2 | SHOP-04 | T-13-20 | speed printed as served, text-only row | widget | `flutter test test/utils/item_lines_test.dart test/shared/components/companion_row_test.dart` | ✅ | ✅ green |
 | 13-03-01 | 03 | 3 | SHOP-03 | T-13-08 | codes only, new refusals in the bubble, banner only off-city | unit | `flutter test test/repository/transaction_failure_test.dart test/screens/mainScreen/tabs/shop/transactionCubit/transaction_notice_test.dart` | ✅ | ✅ green |
 | 13-03-02 | 03 | 3 | SHOP-04 | T-13-09, T-13-10, T-13-11 | typed failures, 15 s timeout, no payload in toString | unit | `flutter test test/repository/pet_equip_failure_test.dart test/repository/companion_repository_test.dart` | ✅ | ✅ green |
+| 13-05-01 | 05 | 4 | SHOP-02 | T-13-14, T-13-15 | last-request-wins, no raw text, no print | bloc | `flutter test test/screens/mainScreen/tabs/shop/shopCubit/shop_cubit_test.dart` | ✅ | ✅ green |
+| 13-05-02 | 05 | 4 | SHOP-02, SHOP-03 | T-13-14, T-13-17 | load on open / city change / ITEM_NOT_IN_SHOP only | widget | `flutter test test/screens/mainScreen/tabs/shop/components/shop_pool_loader_test.dart` | ✅ | ✅ green |
+| 13-05-03 | 05 | 4 | SHOP-02, SHOP-03 | T-13-16 | matching pool only, bubble copy from typed failures, 43 documents | unit (registry) | `flutter test test/graphql test/tool` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
