@@ -9,7 +9,6 @@ class Lore extends Equatable {
     required this.name,
     required this.description,
     required this.relatedLore,
-    required this.unlocked,
   });
 
   final String id;
@@ -18,7 +17,6 @@ class Lore extends Equatable {
   final String? name;
   final String? description;
   final List<Lore>? relatedLore;
-  final bool? unlocked;
 
   factory Lore.fromJson(Map<String, dynamic> json) => Lore(
     id: json["id"],
@@ -28,7 +26,6 @@ class Lore extends Equatable {
     relatedLore: json['relatedLore'] != null
         ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
         : [],
-    unlocked: json["unlocked"] ?? false,
     image: json["image"],
   );
 
@@ -38,7 +35,6 @@ class Lore extends Equatable {
     "name": name,
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "description": description,
-    "unlocked": unlocked,
     "image": image,
   };
 
@@ -49,7 +45,6 @@ class Lore extends Equatable {
     String? name,
     String? description,
     List<Lore>? relatedLore,
-    bool? unlocked,
   }) {
     return Lore(
       image: image ?? this.image,
@@ -58,18 +53,9 @@ class Lore extends Equatable {
       name: name ?? this.name,
       description: description ?? this.description,
       relatedLore: relatedLore ?? this.relatedLore,
-      unlocked: unlocked ?? this.unlocked,
     );
   }
 
   @override
-  List<Object?> get props => [
-    id,
-    type,
-    image,
-    name,
-    description,
-    relatedLore,
-    unlocked,
-  ];
+  List<Object?> get props => [id, type, image, name, description, relatedLore];
 }
