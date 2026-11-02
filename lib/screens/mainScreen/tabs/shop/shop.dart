@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
+import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_pool_loader.dart';
@@ -212,12 +213,12 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
               children: [
                 PaperSheetModal(
                   child: TransactionModal(
-                    itemsToSell: _itemsToSell,
-                    itemsToBuy: _itemsToBuy,
+                    toBuy: TradeSelection(assets: _itemsToBuy),
+                    toSell: TradeSelection(assets: _itemsToSell),
                     onConfirm: (total, isTotalPositive) =>
                         _onConfirm(total, isTotalPositive, character),
-                    onChangedList: (items, isBuy) {
-                      _onSelect(items, isBuy);
+                    onChanged: (selection, isBuy) {
+                      _onSelect(selection.assets, isBuy);
                       if (_itemsToBuy.isEmpty && _itemsToSell.isEmpty) {
                         Navigator.of(context).pop();
                       }
