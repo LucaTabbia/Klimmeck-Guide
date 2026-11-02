@@ -44,6 +44,8 @@ created: 2026-11-02
 | 13-02-02 | 02 | 2 | SHOP-02, SHOP-04 | T-13-05, T-13-06 | malformed payload → FormatException, coded errors rethrown | unit | `flutter test test/repository/services/graphql/graphql_shop_test.dart` | ✅ | ✅ green |
 | 13-04-01 | 04 | 2 | SHOP-02 | T-13-12, T-13-13 | shop gate from the BE flag only | unit | `flutter test test/screens/mainScreen/components/satchel_availability_test.dart` | ✅ | ✅ green |
 | 13-04-02 | 04 | 2 | SHOP-02 | T-13-12 | Shop disabled, Board open on a shopless marker | widget | `flutter test test/screens/mainScreen/main_screen_test.dart` | ✅ | ✅ green |
+| 13-06-01 | 06 | 2 | SHOP-04 | T-13-18, T-13-19 | pets quantity 1, owned pets hidden, no sellable filter | unit | `flutter test test/models/shop/trade_selection_test.dart` | ✅ | ✅ green |
+| 13-06-02 | 06 | 2 | SHOP-04 | T-13-20 | speed printed as served, text-only row | widget | `flutter test test/utils/item_lines_test.dart test/shared/components/companion_row_test.dart` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
