@@ -106,10 +106,7 @@ class CompanionSection extends StatelessWidget {
                       size: size,
                       showCoins: false,
                       isEquipped: pet.id == displayedId,
-                      onTap: () {
-                        _toggleWithFeedback(cubit, character, pet);
-                        Navigator.of(sheetContext).pop();
-                      },
+                      onTap: () => _toggle(cubit, character, pet, sheetContext),
                     ),
                 ],
         ),
@@ -117,10 +114,17 @@ class CompanionSection extends StatelessWidget {
     );
   }
 
-  void _toggleWithFeedback(CompanionCubit cubit, Character character, Pet pet) {
+  /// Con un'operazione in corso il tocco non fa nulla e il foglio resta
+  /// aperto per riprovare dopo l'esito (IN-04).
+  void _toggle(
+    CompanionCubit cubit,
+    Character character,
+    Pet pet,
+    BuildContext sheetContext,
+  ) {
     final intent = cubit.toggle(character, pet.id);
-    if (intent != CompanionToggleIntent.ignoredPending) {
-      HapticFeedback.lightImpact();
-    }
+    if (intent == CompanionToggleIntent.ignoredPending) return;
+    HapticFeedback.lightImpact();
+    Navigator.of(sheetContext).pop();
   }
 }
