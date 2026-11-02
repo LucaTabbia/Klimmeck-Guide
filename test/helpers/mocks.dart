@@ -32,6 +32,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -153,6 +154,9 @@ class MockTransactionCubit extends MockCubit<TransactionState>
 class MockShopCubit extends MockCubit<ShopState> implements ShopCubit {}
 
 class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
+
+class MockCompanionCubit extends MockCubit<CompanionState>
+    implements CompanionCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
     implements TravelProgressCubit {}
