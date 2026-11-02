@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-11-02T18:00:00.000Z"
-last_activity: "2026-11-02 -- Phase 13 discuss (joint with BE Phase 12): 13-CONTEXT.md D-01..D-13 on feat/13-city-shops from develop b6eb4d4; pure adaptation of the shop call plus companions (Compagni list, Compagno slot in the Journal)"
+status: executing
+last_updated: "2026-11-02T19:50:32.053Z"
+last_activity: 2026-11-02 -- Phase 13 planning complete
 progress:
   total_phases: 17
   completed_phases: 11
-  total_plans: 111
-  completed_plans: 101
+  total_plans: 122
+  completed_plans: 111
   percent: 91
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 13 (City Shops) — CONTEXT GATHERED (2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-13, `13-DISCUSSION-LOG.md`; joint discuss with the BE Phase 12 (`../Klimmeck-Guide-BE/.planning/phases/12-negozi-per-citta/12-CONTEXT.md`, branch `feat/12-negozi-per-citta`)
-Plan: 0 of TBD
+Phase: 13 (City Shops) — PLANNED (2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16 (amended after the research), `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); joint discuss and planning with the BE Phase 12 (`feat/12-negozi-per-citta`)
+Plan: 0 of 11
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-Next Phase: `/gsd-plan-phase 13` (researcher → planner → checker); the schema-gated plans (`cityShop`, `City.size` / `City.hasShop`, `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet`) and the device E2E run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 13 context gathered — ready to plan; the FE plans not gated by the BE schema (models, classifiers, satchel gate, widgets on stubs) can start before the BE merge
-Last activity: 2026-11-02 -- Phase 13 discuss: user «bisogna solo chiamare la chiamata al BE per adattarla alla nuova forma» (no city name, `ITEM_NOT_IN_SHOP` in the bubble, Shop cell disabled where `hasShop` is false), companions added by the BE Phase 12 decisions (third list «Compagni», «Compagno» slot in the Journal, owned vs equipped pet, buying never equips, legendary items sellable); PR #36 merged earlier the same day, BE PR #17 merged
+Next Phase: `/gsd-execute-phase 13` — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10 (schema gate) and 13-11 (device E2E + handoff) run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 13 planned — ready to execute (13-01..13-09 now; 13-10/13-11 after the BE Phase 12 merge). Note: from plan 13-02 on the branch needs the BE Phase 12 to run on a device (cold start selects City.size/hasShop, the fragment selects ownedPets)
+Last activity: 2026-11-02 -- Phase 13 planned: research (C1 PageView disposes the shop tab, C2 the fragment never selected assets.pet, C3 Journal refusals via the Phase 8 banner; canAfford bug in scope), CONTEXT amended (D-14..D-16), 11 plans by the planner, checker 0 blockers after one revision round (buildTransactionRequest pure function, single VALIDATION writer, deterministic D-02 guards)
 
 ## Current Milestone
 
