@@ -5,8 +5,8 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
-import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
@@ -36,8 +36,8 @@ class Shop extends StatefulWidget {
 }
 
 class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
-  List<AssetQuantity> _itemsToSell = [];
-  List<AssetQuantity> _itemsToBuy = [];
+  TradeSelection _toBuy = const TradeSelection();
+  TradeSelection _toSell = const TradeSelection();
 
   bool? _isAdd;
   bool _showTransactionMessage = false;
@@ -97,55 +97,38 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     );
   }
 
-  void _onSelect(List<AssetQuantity> items, bool isBuy) {
-    if (isBuy) {
-      setState(() => _itemsToBuy = items);
-    } else {
-      setState(() => _itemsToSell = items);
-    }
+  void _onSelect(TradeSelection selection, bool isBuy) {
+    setState(() {
+      if (isBuy) {
+        _toBuy = selection;
+      } else {
+        _toSell = selection;
+      }
+    });
   }
 
+  /// Comprare non equipaggia mai (D-08): i compagni viaggiano solo in
+  /// `petAssets` del lato giusto.
   void _onConfirm(Coins total, bool isTotalPositive, Character character) {
-    TransactionItems splitAssets(List<AssetQuantity> items) {
-      final equipAssets = <AssetQuantityInput>[];
-      final lootAssets = <AssetQuantityInput>[];
-      for (final asset in items) {
-        final itemId = asset.item?.id;
-        if (itemId == null) continue;
-        final input = AssetQuantityInput(
-          item: itemId,
-          quantity: asset.quantity ?? 0,
-        );
-        if (asset.item is EquipmentItem) {
-          equipAssets.add(input);
-        } else {
-          lootAssets.add(input);
-        }
-      }
-      return TransactionItems(equipAssets: equipAssets, lootAssets: lootAssets);
-    }
-
-    final soldItems = splitAssets(_itemsToSell);
-    final boughtItems = splitAssets(_itemsToBuy);
-
-    final request = TransactionRequest(
-      id: character.id,
-      boughtItems: boughtItems,
-      soldItems: soldItems,
-      isTotalPositive: isTotalPositive,
-      total: total,
+    context.read<TransactionCubit>().doTransaction(
+      buildTransactionRequest(
+        characterId: character.id,
+        bought: _toBuy,
+        sold: _toSell,
+        total: total,
+        isTotalPositive: isTotalPositive,
+      ),
     );
-
-    context.read<TransactionCubit>().doTransaction(request);
     Navigator.pop(context);
   }
 
-  void _showModalShop(
-    List<AssetQuantity> equipments,
-    List<AssetQuantity> items,
-    bool isBuy,
-    Character? character,
-  ) {
+  void _showModalShop({
+    required List<AssetQuantity> equipments,
+    required List<AssetQuantity> items,
+    required List<Pet> pets,
+    required bool isBuy,
+    String? equippedPetId,
+  }) {
     showModalBottomSheet(
       useSafeArea: false,
       isScrollControlled: true,
@@ -164,9 +147,11 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                   child: ShopModal(
                     equipments: equipments,
                     items: items,
-                    selectedItems: isBuy ? _itemsToBuy : _itemsToSell,
+                    pets: pets,
+                    equippedPetId: equippedPetId,
+                    selection: isBuy ? _toBuy : _toSell,
                     isBuy: isBuy,
-                    onSelect: (items) => _onSelect(items, isBuy),
+                    onSelect: (selection) => _onSelect(selection, isBuy),
                     onEquipmentInfo: (selectedEquip) {
                       setModalState(
                         () => selectedEquipmentLocal = selectedEquip,
@@ -213,13 +198,13 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
               children: [
                 PaperSheetModal(
                   child: TransactionModal(
-                    toBuy: TradeSelection(assets: _itemsToBuy),
-                    toSell: TradeSelection(assets: _itemsToSell),
+                    toBuy: _toBuy,
+                    toSell: _toSell,
                     onConfirm: (total, isTotalPositive) =>
                         _onConfirm(total, isTotalPositive, character),
                     onChanged: (selection, isBuy) {
-                      _onSelect(selection.assets, isBuy);
-                      if (_itemsToBuy.isEmpty && _itemsToSell.isEmpty) {
+                      _onSelect(selection, isBuy);
+                      if (_toBuy.isEmpty && _toSell.isEmpty) {
                         Navigator.of(context).pop();
                       }
                     },
@@ -284,8 +269,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
         }
         if (state is TransactionDone) {
           setState(() {
-            _itemsToSell = [];
-            _itemsToBuy = [];
+            _toBuy = const TradeSelection();
+            _toSell = const TradeSelection();
             _transactionMessage =
                 "Sempre felice di fare affari! Posso esserle ancora utile?";
           });
@@ -294,107 +279,128 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
           setState(() => _showRefusal(state.failure));
         }
       },
-      child: BlocBuilder<ShopCubit, ShopState>(
-        builder: (context, state) {
-          return BlocBuilder<CharacterCubit, CharacterState>(
-            builder: (context, characterState) {
-              final Character? character = (characterState is CharacterLoaded)
-                  ? characterState.character
-                  : null;
+      child: BlocListener<ShopCubit, ShopState>(
+        listenWhen: (_, current) => current is ShopLoadData,
+        listener: (context, state) => _pruneBuySelection(state),
+        child: _buildShop(),
+      ),
+    );
+  }
 
-              if (character == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final pool = _poolOf(state, character);
+  /// Un nuovo pool della città del marker tiene nell'acquisto solo ciò che
+  /// la città vende ancora (D-03).
+  void _pruneBuySelection(ShopState state) {
+    final characterState = context.read<CharacterCubit>().state;
+    if (characterState is! CharacterLoaded) return;
+    final pool = _poolOf(state, characterState.character);
+    if (pool == null) return;
+    setState(() => _toBuy = _toBuy.retainPurchasable(pool));
+  }
 
-              return Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: Image.asset(
-                      'assets/images/shopBackground.png',
-                      fit: BoxFit.cover,
-                    ),
+  Widget _buildShop() {
+    return BlocBuilder<ShopCubit, ShopState>(
+      builder: (context, state) {
+        return BlocBuilder<CharacterCubit, CharacterState>(
+          builder: (context, characterState) {
+            final Character? character = (characterState is CharacterLoaded)
+                ? characterState.character
+                : null;
+
+            if (character == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final pool = _poolOf(state, character);
+
+            return Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: Image.asset(
+                    'assets/images/shopBackground.png',
+                    fit: BoxFit.cover,
                   ),
-                  if (_showTransactionMessage)
-                    TransactionMessageBubble(message: _transactionMessage),
+                ),
+                if (_showTransactionMessage)
+                  TransactionMessageBubble(message: _transactionMessage),
 
-                  _buildCoinsDisplay(),
+                _buildCoinsDisplay(),
 
-                  Positioned(
-                    bottom: -10,
-                    child: Center(
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height / 1.5,
-                        width: MediaQuery.of(context).size.width / 1.2,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Spacer(flex: 2),
-                            GestureDetector(
-                              onTap: () => _showModalShop(
-                                pool?.equipment ?? const [],
-                                pool?.loot ?? const [],
-                                true,
-                                character,
+                Positioned(
+                  bottom: -10,
+                  child: Center(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height / 1.5,
+                      width: MediaQuery.of(context).size.width / 1.2,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Spacer(flex: 2),
+                          GestureDetector(
+                            onTap: () => _showModalShop(
+                              equipments: pool?.equipment ?? const [],
+                              items: pool?.loot ?? const [],
+                              pets: purchasablePets(
+                                pool?.pets ?? const [],
+                                character.assets?.ownedPets ?? const [],
                               ),
+                              isBuy: true,
+                            ),
+                            child: CachedSvg(
+                              width: MediaQuery.of(context).size.width / 3.3,
+                              height: MediaQuery.of(context).size.height / 1.7,
+                              url:
+                                  "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!_toBuy.isEmpty || !_toSell.isEmpty)
+                            GestureDetector(
+                              onTap: () => _showModalTransaction(character),
                               child: CachedSvg(
-                                width: MediaQuery.of(context).size.width / 3.3,
                                 height:
-                                    MediaQuery.of(context).size.height / 1.7,
-                                url:
-                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
-                              ),
-                            ),
-                            const Spacer(),
-                            if (_itemsToBuy.isNotEmpty ||
-                                _itemsToSell.isNotEmpty)
-                              GestureDetector(
-                                onTap: () => _showModalTransaction(character),
-                                child: CachedSvg(
-                                  height:
-                                      MediaQuery.of(context).size.height / 3.2,
-                                  width: MediaQuery.of(context).size.width / 6,
-                                  url:
-                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
-                                ),
-                              )
-                            else
-                              SizedBox(
+                                    MediaQuery.of(context).size.height / 3.2,
                                 width: MediaQuery.of(context).size.width / 6,
+                                url:
+                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
                               ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () => _showModalShop(
-                                character.assets!.ownedEquipments!,
-                                character.assets!.ownedItems!,
-                                false,
-                                character,
-                              ),
-                              child: SizedBox(
-                                child: CachedSvg(
-                                  width: MediaQuery.of(context).size.width / 3,
-                                  height:
-                                      MediaQuery.of(context).size.height / 2.3,
-                                  url:
-                                      "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
-                                ),
+                            )
+                          else
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 6,
+                            ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => _showModalShop(
+                              equipments:
+                                  character.assets?.ownedEquipments ?? const [],
+                              items: character.assets?.ownedItems ?? const [],
+                              pets: character.assets?.ownedPets ?? const [],
+                              isBuy: false,
+                              equippedPetId: character.assets?.pet?.id,
+                            ),
+                            child: SizedBox(
+                              child: CachedSvg(
+                                width: MediaQuery.of(context).size.width / 3,
+                                height:
+                                    MediaQuery.of(context).size.height / 2.3,
+                                url:
+                                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
                               ),
                             ),
-                            const Spacer(flex: 4),
-                          ],
-                        ),
+                          ),
+                          const Spacer(flex: 4),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

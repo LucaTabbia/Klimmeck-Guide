@@ -121,6 +121,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// La riga del compagno è più alta del menu aperto sul telefono in
+  /// landscape: si tocca la sua parte alta, quella che `ensureVisible` mostra.
+  Future<void> tapPet(WidgetTester tester, Pet pet) async {
+    await tester.ensureVisible(_companionRow(pet));
+    await tester.pumpAndSettle();
+    await tester.tapAt(
+      tester.getTopLeft(_companionRow(pet)) + const Offset(20, 10),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('a vanished effect falls back to «Tutti» for good (WR-02)', (
     tester,
   ) async {
@@ -222,8 +233,8 @@ void main() {
         onSelect: selections.add,
       );
       await tapAndSettle(tester, find.text('Compagni'));
-      await tapAndSettle(tester, _companionRow(_horse));
-      await tapAndSettle(tester, _companionRow(_horse));
+      await tapPet(tester, _horse);
+      await tapPet(tester, _horse);
 
       expect(selections.last.pets, [_horse]);
       expect(
@@ -237,13 +248,13 @@ void main() {
         isAdd: false,
         onSelect: selections.add,
       );
-      await tapAndSettle(tester, _companionRow(_horse));
+      await tapPet(tester, _horse);
 
       expect(selections.last.pets, isEmpty);
 
       final count = selections.length;
       await pumpShop(tester, pets: [_horse], onSelect: selections.add);
-      await tapAndSettle(tester, _companionRow(_horse));
+      await tapPet(tester, _horse);
 
       expect(selections, hasLength(count));
     },
