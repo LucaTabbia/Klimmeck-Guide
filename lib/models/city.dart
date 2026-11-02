@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'enums/city_size_type.dart';
 import 'enums/city_type.dart';
 import 'lore.dart';
 
@@ -13,6 +14,8 @@ class City extends Equatable {
     required this.name,
     required this.markerLocation,
     required this.relatedLore,
+    this.size,
+    this.hasShop = true,
   });
 
   final String id;
@@ -21,6 +24,10 @@ class City extends Equatable {
   final String? name;
   final PointOfInterest? markerLocation;
   final Lore? relatedLore;
+  final CitySizeType? size;
+
+  /// Pool non vuoto secondo il BE (D-04); assente solo nelle fixture → negozio aperto (D-15).
+  final bool hasShop;
 
   factory City.fromJson(Map<String, dynamic> json) {
     return City(
@@ -43,6 +50,8 @@ class City extends Equatable {
       relatedLore: json["relatedLore"] != null
           ? Lore.fromJson(json["relatedLore"])
           : null,
+      size: CitySizeType.values.asNameMap()[json["size"]],
+      hasShop: json["hasShop"] as bool? ?? true,
     );
   }
 
@@ -53,6 +62,8 @@ class City extends Equatable {
     "markerLocation": markerLocation?.toJson(),
     "area": area?.map((p) => [p.latitude, p.longitude]).toList(),
     "relatedLore": relatedLore?.toJson(),
+    "size": size?.name,
+    "hasShop": hasShop,
   };
 
   City copyWith({
@@ -62,6 +73,8 @@ class City extends Equatable {
     String? name,
     PointOfInterest? markerLocation,
     Lore? relatedLore,
+    CitySizeType? size,
+    bool? hasShop,
   }) {
     return City(
       id: id ?? this.id,
@@ -70,6 +83,8 @@ class City extends Equatable {
       name: name ?? this.name,
       markerLocation: markerLocation ?? this.markerLocation,
       relatedLore: relatedLore ?? this.relatedLore,
+      size: size ?? this.size,
+      hasShop: hasShop ?? this.hasShop,
     );
   }
 
@@ -81,5 +96,7 @@ class City extends Equatable {
     name,
     markerLocation,
     relatedLore,
+    size,
+    hasShop,
   ];
 }
