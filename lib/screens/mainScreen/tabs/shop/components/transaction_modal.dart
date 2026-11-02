@@ -68,7 +68,10 @@ class _TransactionModalState extends State<TransactionModal> {
     final int diffCopper = (totalSell.toCopper() - totalBuy.toCopper()).abs();
     final Coins total = Coins.fromCopper(diffCopper);
     final String sign = isPositive ? "+" : "-";
-    final canAfford = widget.character.status!.coins!.canAfford(total);
+
+    /// Un saldo positivo non chiede monete: si firma sempre (D-14).
+    final canAfford =
+        isPositive || widget.character.status!.coins!.canAfford(total);
 
     return LayoutBuilder(
       builder: (context, constraints) {
