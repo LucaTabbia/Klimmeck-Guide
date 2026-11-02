@@ -431,7 +431,7 @@ Plans:
 - [x] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
 - [x] 13-02-PLAN.md — Documents + service: `PetFragment`, character fragment `pet`/`ownedPets`, `cities` with `size hasShop`, `GetCityShop`, `EquipPet`/`UnequipPet`, registry, `KlimmeckGraphQl.getCityShop`/`equipPet`/`unequipPet`
 - [ ] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
-- [ ] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
+- [x] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
 - [ ] 13-05-PLAN.md — Shop call: `ShopCubit.getData(cityId)` last-request-wins, `ShopPoolLoader`, `Shop(cities:)`, bubble lines, catalogue queries removed
 - [ ] 13-06-PLAN.md — `TradeSelection` (assets + pets, totals, `purchasablePets`, `retainPurchasable`), `companionSpeedLabel`, text-only `CompanionRow`
 - [ ] 13-07-PLAN.md — Shop sheets with «Compagni» (buy: pool minus owned; sell: owned, equipped marked), pets in the totals, `canAfford` fix (D-14), legendary sellable
@@ -510,7 +510,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 2/11 | In Progress | - |
+| 13. City Shops | 3/11 | In Progress | - |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
