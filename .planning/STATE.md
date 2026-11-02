@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-02T19:50:32.053Z"
-last_activity: 2026-11-02 -- Phase 13 planning complete
+last_updated: "2026-11-02T20:55:32.948Z"
+last_activity: 2026-11-02 -- Phase 13 execution started (13-01..13-09 on mocks)
 progress:
   total_phases: 17
   completed_phases: 11
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 13 (City Shops) — PLANNED (2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16 (amended after the research), `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); joint discuss and planning with the BE Phase 12 (`feat/12-negozi-per-citta`)
+Phase: 13 (City Shops) — EXECUTING (started 2026-11-02) on `feat/13-city-shops` (from `develop` `b6eb4d4`): `13-CONTEXT.md` D-01..D-16, `13-RESEARCH.md`, `13-REPO-RULES.md`, `13-VALIDATION.md`, 11 plans in 8 waves (`13-01`..`13-11`; 13-10/13-11 gated by the BE Phase 12 merge); executed together with the BE Phase 12 (`feat/12-negozi-per-citta`, 19 plans)
 Plan: 0 of 11
 Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
 Next Phase: `/gsd-execute-phase 13` — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10 (schema gate) and 13-11 (device E2E + handoff) run after the BE Phase 12 PR merges on BE `develop` (gate pattern 08-12 / 09-12 / 10-11); then the roadmap order decided on 2026-10-29: FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 13 planned — ready to execute (13-01..13-09 now; 13-10/13-11 after the BE Phase 12 merge). Note: from plan 13-02 on the branch needs the BE Phase 12 to run on a device (cold start selects City.size/hasShop, the fragment selects ownedPets)
-Last activity: 2026-11-02 -- Phase 13 planned: research (C1 PageView disposes the shop tab, C2 the fragment never selected assets.pet, C3 Journal refusals via the Phase 8 banner; canAfford bug in scope), CONTEXT amended (D-14..D-16), 11 plans by the planner, checker 0 blockers after one revision round (buildTransactionRequest pure function, single VALIDATION writer, deterministic D-02 guards)
+Status: Executing Phase 13 — plans 13-01..13-09 run now on mocks (sequential executors on the main tree); 13-10/13-11 wait for the BE Phase 12 merge on BE `develop`
+Last activity: 2026-11-02 -- Phase 13 execution started (13-01..13-09 on mocks; BE Phase 12 executing in parallel)
 
 ## Current Milestone
 
