@@ -37,8 +37,9 @@ class TradeSelection extends Equatable {
     pets: List.unmodifiable(pets.where((pet) => pet.id != petId)),
   );
 
-  /// Dopo un nuovo pool l'acquisto tiene solo ciò che la città vende ancora (D-03).
-  TradeSelection retainPurchasable(CityShop pool) {
+  /// Dopo un nuovo pool l'acquisto tiene solo ciò che la città vende ancora
+  /// (D-03) e nessun compagno già posseduto (D-08).
+  TradeSelection retainPurchasable(CityShop pool, {required List<Pet> owned}) {
     final soldIds = {
       for (final asset in [...pool.equipment, ...pool.loot])
         if (asset.item?.id case final id?) id,
@@ -49,8 +50,28 @@ class TradeSelection extends Equatable {
         assets.where((asset) => soldIds.contains(asset.item?.id)),
       ),
       pets: List.unmodifiable(pets.where((pet) => petIds.contains(pet.id))),
+    ).withoutOwned(owned);
+  }
+
+  /// L'acquisto non propone un compagno già posseduto (D-08).
+  TradeSelection withoutOwned(List<Pet> owned) {
+    final ownedIds = _idsOf(owned);
+    return TradeSelection(
+      assets: assets,
+      pets: List.unmodifiable(pets.where((pet) => !ownedIds.contains(pet.id))),
     );
   }
+
+  /// La vendita tiene solo i compagni ancora posseduti (D-07).
+  TradeSelection retainOwned(List<Pet> owned) {
+    final ownedIds = _idsOf(owned);
+    return TradeSelection(
+      assets: assets,
+      pets: List.unmodifiable(pets.where((pet) => ownedIds.contains(pet.id))),
+    );
+  }
+
+  static Set<String> _idsOf(List<Pet> pets) => {for (final pet in pets) pet.id};
 
   TransactionItems toTransactionItems() {
     final equipAssets = <AssetQuantityInput>[];

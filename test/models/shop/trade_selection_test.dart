@@ -137,6 +137,18 @@ void main() {
       },
     );
 
+    test('withoutOwned drops an owned pet and keeps the assets (WR-02)', () {
+      final selection = const TradeSelection()
+          .withAssets([_sword])
+          .addPet(_horse)
+          .addPet(_cat);
+
+      final retained = selection.withoutOwned([_horse]);
+
+      expect(retained.pets, [_cat]);
+      expect(retained.assets, [_sword]);
+    });
+
     test('retainOwned drops a sold pet that left the inventory (WR-02)', () {
       final selection = const TradeSelection()
           .withAssets([_potion])

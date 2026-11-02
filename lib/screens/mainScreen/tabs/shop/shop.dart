@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
@@ -166,17 +167,14 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     return _SheetStock(
       equipments: pool?.equipment ?? const [],
       items: pool?.loot ?? const [],
-      pets: purchasablePets(
-        pool?.pets ?? const [],
-        character.assets?.ownedPets ?? const [],
-      ),
+      pets: purchasablePets(pool?.pets ?? const [], _ownedPetsOf(character)),
     );
   }
 
   _SheetStock _sellStock(Character character) => _SheetStock(
     equipments: character.assets?.ownedEquipments ?? const [],
     items: character.assets?.ownedItems ?? const [],
-    pets: character.assets?.ownedPets ?? const [],
+    pets: _ownedPetsOf(character),
     equippedPetId: character.assets?.pet?.id,
   );
 
@@ -340,23 +338,66 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
           setState(() => _showRefusal(state.failure));
         }
       },
-      child: BlocListener<ShopCubit, ShopState>(
-        listenWhen: (_, current) => current is ShopLoadData,
-        listener: (context, state) => _pruneBuySelection(state),
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<ShopCubit, ShopState>(
+            listenWhen: (_, current) => current is ShopLoadData,
+            listener: (context, state) => _pruneBuySelection(state),
+          ),
+          BlocListener<CharacterCubit, CharacterState>(
+            listenWhen: _ownedPetsChanged,
+            listener: (context, state) =>
+                _pruneOnOwnedPets((state as CharacterLoaded).character),
+          ),
+        ],
         child: _buildShop(),
       ),
     );
   }
 
   /// Un nuovo pool della città del marker tiene nell'acquisto solo ciò che
-  /// la città vende ancora (D-03).
+  /// la città vende ancora (D-03) e nessun compagno già posseduto (D-08).
   void _pruneBuySelection(ShopState state) {
     final characterState = context.read<CharacterCubit>().state;
     if (characterState is! CharacterLoaded) return;
-    final pool = _poolOf(state, characterState.character);
+    final character = characterState.character;
+    final pool = _poolOf(state, character);
     if (pool == null) return;
-    setState(() => _toBuy = _toBuy.retainPurchasable(pool));
+    setState(
+      () => _toBuy = _toBuy.retainPurchasable(
+        pool,
+        owned: _ownedPetsOf(character),
+      ),
+    );
   }
+
+  /// Un compagno comprato o venduto altrove (risposta persa, altro device)
+  /// esce dalle selezioni: il BE lo rifiuterebbe a ogni firma (D-07, D-08).
+  void _pruneOnOwnedPets(Character character) {
+    final owned = _ownedPetsOf(character);
+    final pool = _poolOf(context.read<ShopCubit>().state, character);
+    setState(() {
+      _toBuy = pool == null
+          ? _toBuy.withoutOwned(owned)
+          : _toBuy.retainPurchasable(pool, owned: owned);
+      _toSell = _toSell.retainOwned(owned);
+    });
+  }
+
+  bool _ownedPetsChanged(CharacterState previous, CharacterState current) =>
+      previous is CharacterLoaded &&
+      current is CharacterLoaded &&
+      !setEquals(
+        _ownedPetIdsOf(previous.character),
+        _ownedPetIdsOf(current.character),
+      );
+
+  List<Pet> _ownedPetsOf(Character character) =>
+      character.assets?.ownedPets ?? const [];
+
+  Set<String> _ownedPetIdsOf(Character character) => {
+    for (final pet in _ownedPetsOf(character)) pet.id,
+  };
 
   Widget _buildShop() {
     return BlocBuilder<CharacterCubit, CharacterState>(
