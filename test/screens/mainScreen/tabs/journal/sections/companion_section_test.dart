@@ -6,10 +6,12 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/owned_companion_row.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
-import 'package:klimmeck_guide/shared/components/companion_row.dart';
-import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -23,6 +25,7 @@ import '../../../../../helpers/test_app.dart';
 
 const _horse = 'pet-travel-horse';
 const _cat = 'pet-cat';
+const _lightImpact = 'HapticFeedbackType.lightImpact';
 
 Character _character({
   String? equipped = _horse,
@@ -40,15 +43,22 @@ Character _character({
   },
 });
 
-Finder _slot() => find.byKey(const ValueKey('companion_slot'));
+Finder _slotBox() => find.byKey(const ValueKey('companion-slot-box'));
+
+Finder _slotCard(String petId) => find.byKey(ValueKey('companion-slot-$petId'));
 
 Finder _ownedPet(String petId) => find.byKey(ValueKey('owned-pet-$petId'));
 
 Finder _inSlot(Finder matching) =>
-    find.descendant(of: _slot(), matching: matching);
+    find.descendant(of: _slotBox(), matching: matching);
 
-Finder _inSheet(Finder matching) =>
-    find.descendant(of: find.byType(PaperSheetModal), matching: matching);
+Finder _inRow(String petId, Finder matching) =>
+    find.descendant(of: _ownedPet(petId), matching: matching);
+
+CompanionCard _cardOf(WidgetTester tester, Finder scope) =>
+    tester.widget<CompanionCard>(
+      find.descendant(of: scope, matching: find.byType(CompanionCard)),
+    );
 
 void main() {
   late MockCharacterCubit characterCubit;
@@ -56,17 +66,17 @@ void main() {
 
   setUpAll(() => registerFallbackValue(_character()));
 
+  void stubToggle(CompanionToggleIntent intent) =>
+      when(() => companionCubit.toggle(any(), any())).thenReturn(intent);
+
   setUp(() {
     characterCubit = MockCharacterCubit();
     companionCubit = MockCompanionCubit();
-    when(
-      () => companionCubit.toggle(any(), any()),
-    ).thenReturn(CompanionToggleIntent.equip);
+    stubToggle(CompanionToggleIntent.equip);
     seedSvgCache([
-      CloudinaryAssets.goldCoin,
-      CloudinaryAssets.silverCoin,
-      CloudinaryAssets.copperCoin,
-      CloudinaryAssets.bottomEmptySheet,
+      CloudinaryAssets.emptyCardSheet,
+      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.arrowDown,
     ]);
   });
 
@@ -74,6 +84,7 @@ void main() {
     WidgetTester tester, {
     Character? character,
     CompanionState companion = const CompanionState(),
+    bool open = true,
   }) async {
     final shown = character ?? _character();
     useLandscapePhone(tester);
@@ -101,109 +112,117 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    if (open) {
+      await tester.tap(find.text('Compagno'));
+      await tester.pumpAndSettle();
+    }
     return shown;
   }
 
-  Future<void> openSheet(WidgetTester tester) async {
-    await tester.tap(_slot());
+  Future<void> tapCard(WidgetTester tester, Finder target) async {
+    await tester.ensureVisible(target);
+    await tester.pumpAndSettle();
+    await tester.tap(target);
     await tester.pumpAndSettle();
   }
 
-  Future<void> tapOwned(WidgetTester tester, String petId) async {
-    await tester.tapAt(
-      tester.getTopLeft(_ownedPet(petId)) + const Offset(20, 10),
-    );
-    await tester.pumpAndSettle();
-  }
+  testWidgets('is a dropdown titled «Compagno» like the spells (D-17)', (
+    tester,
+  ) async {
+    await pump(tester, open: false);
 
-  testWidgets('shows the equipped companion with its speed (D-10)', (
+    expect(find.byType(Dropdown), findsOneWidget);
+    expect(find.text('Compagno'), findsOneWidget);
+    expect(find.textContaining('Cavalcatura'), findsNothing);
+    expect(_ownedPet(_cat).hitTestable(), findsNothing);
+
+    await tester.tap(find.text('Compagno'));
+    await tester.pumpAndSettle();
+
+    expect(_ownedPet(_cat).hitTestable(), findsOneWidget);
+  });
+
+  testWidgets('the slot holds the equipped companion with its speed (D-10)', (
     tester,
   ) async {
     await pump(tester);
 
-    final row = tester.widget<CompanionRow>(_inSlot(find.byType(CompanionRow)));
-    expect(row.pet.id, _horse);
-    expect(find.text('Velocità ×2'), findsOneWidget);
+    expect(_cardOf(tester, _slotBox()).pet.id, _horse);
+    expect(_inSlot(find.text('Velocità ×2')), findsOneWidget);
     expect(find.byType(CoinsDisplay), findsNothing);
   });
 
-  testWidgets('shows «$emptyCompanionSlotLine» when none is equipped (D-10)', (
+  testWidgets('the slot is an empty box when none is equipped (D-10)', (
     tester,
   ) async {
     await pump(tester, character: _character(equipped: null));
 
-    expect(_inSlot(find.text(emptyCompanionSlotLine)), findsOneWidget);
-    expect(_inSlot(find.byType(CompanionRow)), findsNothing);
-  });
-
-  testWidgets('the section is titled «Compagno», never «Cavalcatura» (D-10)', (
-    tester,
-  ) async {
-    await pump(tester);
-
-    expect(find.text('Compagno'), findsOneWidget);
-    expect(find.textContaining('Cavalcatura'), findsNothing);
+    expect(_slotBox(), findsOneWidget);
+    expect(_inSlot(find.byType(CompanionCard)), findsNothing);
   });
 
   testWidgets(
-    'a tap opens the owned companions with the equipped one marked (D-10)',
+    'lists the owned companions on cards, the equipped one bookmarked (D-17)',
     (tester) async {
       await pump(tester);
-      await openSheet(tester);
 
       expect(_ownedPet(_horse), findsOneWidget);
       expect(_ownedPet(_cat), findsOneWidget);
-      expect(_inSheet(find.text(companionEquippedMark)), findsOneWidget);
-      expect(tester.widget<CompanionRow>(_ownedPet(_horse)).isEquipped, isTrue);
-      expect(_inSheet(find.byType(CoinsDisplay)), findsNothing);
+      expect(_cardOf(tester, _ownedPet(_horse)).isMarked, isTrue);
+      expect(_cardOf(tester, _ownedPet(_cat)).isMarked, isFalse);
+      expect(_inRow(_horse, find.text(companionEquippedMark)), findsOneWidget);
+      expect(_inRow(_cat, find.text(companionEquippedMark)), findsNothing);
     },
   );
 
-  testWidgets(
-    'tapping another owned companion equips it and closes the sheet (D-10)',
-    (tester) async {
-      final character = await pump(tester);
-      await openSheet(tester);
-      await tapOwned(tester, _cat);
-
-      verify(() => companionCubit.toggle(character, _cat)).called(1);
-      expect(find.byType(PaperSheetModal), findsNothing);
-    },
-  );
-
-  testWidgets('tapping the equipped companion unequips it (D-10)', (
+  testWidgets('tapping an owned card equips it with a light impact (D-17)', (
     tester,
   ) async {
-    when(
-      () => companionCubit.toggle(any(), any()),
-    ).thenReturn(CompanionToggleIntent.unequip);
+    final haptics = recordHaptics(tester);
     final character = await pump(tester);
-    await openSheet(tester);
-    await tapOwned(tester, _horse);
 
-    verify(() => companionCubit.toggle(character, _horse)).called(1);
-    expect(find.byType(PaperSheetModal), findsNothing);
+    await tapCard(tester, _ownedPet(_cat));
+
+    verify(() => companionCubit.toggle(character, _cat)).called(1);
+    expect(haptics, [_lightImpact]);
   });
 
-  testWidgets(
-    'a tap while an operation is pending keeps the sheet open, no haptic '
-    '(IN-04)',
-    (tester) async {
-      when(
-        () => companionCubit.toggle(any(), any()),
-      ).thenReturn(CompanionToggleIntent.ignoredPending);
-      final haptics = recordHaptics(tester);
-      final character = await pump(tester);
-      await openSheet(tester);
-      await tapOwned(tester, _cat);
+  testWidgets('tapping the companion in the slot unequips it (D-17)', (
+    tester,
+  ) async {
+    stubToggle(CompanionToggleIntent.unequip);
+    final haptics = recordHaptics(tester);
+    final character = await pump(tester);
 
-      verify(() => companionCubit.toggle(character, _cat)).called(1);
-      expect(find.byType(PaperSheetModal), findsOneWidget);
-      expect(haptics, isEmpty);
-    },
-  );
+    await tapCard(tester, _slotCard(_horse));
 
-  testWidgets('the slot shows the pending companion at once (D-10)', (
+    verify(() => companionCubit.toggle(character, _horse)).called(1);
+    expect(haptics, [_lightImpact]);
+  });
+
+  testWidgets('tapping the bookmarked row unequips it (D-10)', (tester) async {
+    stubToggle(CompanionToggleIntent.unequip);
+    final character = await pump(tester);
+
+    await tapCard(tester, _ownedPet(_horse));
+
+    verify(() => companionCubit.toggle(character, _horse)).called(1);
+  });
+
+  testWidgets('a tap while an operation is pending gives no haptic (IN-04)', (
+    tester,
+  ) async {
+    stubToggle(CompanionToggleIntent.ignoredPending);
+    final haptics = recordHaptics(tester);
+    final character = await pump(tester);
+
+    await tapCard(tester, _ownedPet(_cat));
+
+    verify(() => companionCubit.toggle(character, _cat)).called(1);
+    expect(haptics, isEmpty);
+  });
+
+  testWidgets('the slot shows the pending companion at once, dimmed (D-10)', (
     tester,
   ) async {
     await pump(
@@ -216,11 +235,16 @@ void main() {
       ),
     );
 
-    expect(_inSlot(find.text('Gatto di bottega')), findsOneWidget);
+    expect(_cardOf(tester, _slotBox()).pet.id, _cat);
     expect(_inSlot(find.text('Cavallo da viaggio')), findsNothing);
+    final dim = tester.widget<AnimatedOpacity>(
+      _inSlot(find.byType(AnimatedOpacity)),
+    );
+    expect(dim.opacity, KlimmeckGuideTheme.pendingInkOpacity);
+    expect(_cardOf(tester, _ownedPet(_cat)).isMarked, isTrue);
   });
 
-  testWidgets('a pending unequip shows the empty slot at once (D-10)', (
+  testWidgets('a pending unequip empties the slot at once (D-10)', (
     tester,
   ) async {
     await pump(
@@ -233,20 +257,19 @@ void main() {
       ),
     );
 
-    expect(_inSlot(find.text(emptyCompanionSlotLine)), findsOneWidget);
-    expect(_inSlot(find.byType(CompanionRow)), findsNothing);
+    expect(_inSlot(find.byType(CompanionCard)), findsNothing);
+    expect(_cardOf(tester, _ownedPet(_horse)).isMarked, isFalse);
   });
 
-  testWidgets(
-    'the owned list reads «$noOwnedCompanionsLine» when empty (D-15)',
-    (tester) async {
-      await pump(tester, character: _character(equipped: null, owning: false));
-      await openSheet(tester);
+  testWidgets('reads «$noOwnedCompanionsLine» when nothing is owned (D-15)', (
+    tester,
+  ) async {
+    await pump(tester, character: _character(equipped: null, owning: false));
 
-      expect(_inSheet(find.text(noOwnedCompanionsLine)), findsOneWidget);
-      expect(_inSheet(find.byType(CompanionRow)), findsNothing);
-    },
-  );
+    expect(find.text(noOwnedCompanionsLine), findsOneWidget);
+    expect(find.byType(OwnedCompanionRow), findsNothing);
+    expect(_slotBox(), findsOneWidget);
+  });
 
   testWidgets('stays interactive during a travel (D-10)', (tester) async {
     final character = await pump(
@@ -255,8 +278,8 @@ void main() {
     );
     expect(character.status?.activeTravel, isNotNull);
 
-    await openSheet(tester);
+    await tapCard(tester, _ownedPet(_cat));
 
-    expect(_ownedPet(_cat), findsOneWidget);
+    verify(() => companionCubit.toggle(character, _cat)).called(1);
   });
 }
