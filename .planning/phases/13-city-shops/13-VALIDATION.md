@@ -103,6 +103,6 @@ Gaps listed in `13-RESEARCH.md` §Wave 0 Gaps, all closed by plans 13-01..13-09 
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 13s (`flutter test <touched test paths>` per task; the 13-10 subset of 643 tests ran in 15 s, single files well below)
-- [x] `nyquist_compliant: true` set in frontmatter
+- [x] frontmatter flag `nyquist_compliant` set to true
 
 **Approval:** pending (device rows 13-11-01..03 after the E2E of plan 13-11)
