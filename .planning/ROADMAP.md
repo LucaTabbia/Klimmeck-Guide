@@ -79,7 +79,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
-- [ ] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_
+- [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
 - [ ] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_
 - [ ] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
@@ -426,6 +426,7 @@ Plans:
   6. Selling works in every city as today; the device UAT visits a village, a city and a capital and sees three different pools with the expected rarities and no legendary item, buys a companion where it is sold, equips it, sells it elsewhere, and finds the Shop cell disabled on Necrorian.
 **Decisions made (2026-10-29)**: explicit `size` on `City` (BE), hand-curated pools, sell anywhere, infinite stock, legendary never sold, catalogue prices everywhere.
 **Decisions made (2026-11-02, `13-CONTEXT.md` D-01..D-13)**: pure adaptation of the shop call; no city name; `ITEM_NOT_IN_SHOP` in the bubble; Shop cell disabled where `hasShop` is false; companions as a third list in the same sheets; «Compagno» slot in the Journal; buying never equips; legendary items sellable.
+**Decisions made (2026-11-03, `13-CONTEXT.md` D-17, device UAT)**: the «Compagno» section is a dropdown like «Magie imparate» (equipped companion in a slot on top, owned companions as parchment cards; a tap equips, a tap on the one in the slot unequips) — supersedes the «tapping it lists the owned pets» interaction of criterion 5; user decision during the device E2E, fixed in TDD on the branch.
 **Backend prerequisite**: BE Phase 12 merged on BE `develop` (schema-gated plans and device E2E); BE Phase 11 data for the UAT.
 **Plans**: 11 plans (planned 2026-11-02; 13-01..13-09 run before the BE Phase 12 merge on mocks, 13-10 and 13-11 are gated by it)
 - [x] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
@@ -438,7 +439,7 @@ Plans:
 - [x] 13-08-PLAN.md — `CompanionCubit` (single slot, optimistic, rollback, timeout), `CompanionOutcomeListener`, shell provider, harness updates
 - [x] 13-09-PLAN.md — Journal «Compagno» slot: `CompanionSection` after «Armatura», owned-pets sheet, equip/unequip, interactive during a travel
 - [x] 13-10-PLAN.md — Schema gate (after the BE Phase 12 merge): contract names proved on `origin/develop:src/schema.gql`, 43/43 documents OK, full suite, analyzer, VALIDATION filled
-- [ ] 13-11-PLAN.md — Device E2E (`13-HUMAN-UAT.md`, 11 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
+- [x] 13-11-PLAN.md — Device E2E (`13-HUMAN-UAT.md`, 11 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 14: Quest Generation (frontend companion)
 **Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
@@ -510,7 +511,7 @@ Plans:
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 10/11 | In Progress | - |
+| 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 0/0 | Not started | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
@@ -608,9 +609,9 @@ Plans:
 | HARDEN-04 | Phase 12 | Pending |
 | HARDEN-05 | Phase 12 | Pending |
 | HARDEN-06 | Phase 12 | Pending |
-| SHOP-02 | Phase 13 | Pending |
-| SHOP-03 | Phase 13 | Pending |
-| SHOP-04 | Phase 13 | Pending (added 2026-11-02) |
+| SHOP-02 | Phase 13 | Complete |
+| SHOP-03 | Phase 13 | Complete |
+| SHOP-04 | Phase 13 | Complete |
 | QGEN-01 | Phase 14 | Pending |
 | QGEN-02 | Phase 14 | Pending |
 | QGEN-03 | Phase 14 | Pending |

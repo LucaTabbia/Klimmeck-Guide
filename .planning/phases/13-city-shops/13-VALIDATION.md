@@ -1,7 +1,7 @@
 ---
 phase: 13
 slug: city-shops
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-02
@@ -21,7 +21,7 @@ created: 2026-11-02
 | **Config file** | none (shared helpers in test/helpers/) |
 | **Quick run command** | `flutter test <touched test paths>` |
 | **Full suite command** | `flutter test` |
-| **Estimated runtime** | ~77 s (3027 tests, measured in 13-10) |
+| **Estimated runtime** | ~72 s (3031 tests, measured in 13-11 after D-17) |
 
 ---
 
@@ -60,13 +60,16 @@ created: 2026-11-02
 | 13-09-02 | 09 | 6 | SHOP-04 | T-13-31 | slot after Armatura, no price | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ | ✅ green |
 | 13-10-01 | 10 | 7 | SHOP-02, SHOP-03, SHOP-04 | T-13-32, T-13-34 | names proven on the merged SDL, 43 OK | cross-repo | schema check of 13-10 | ✅ | ✅ green |
 | 13-10-02 | 10 | 7 | SHOP-02, SHOP-03, SHOP-04 | T-13-35 | full suite, analyzer, format, trailers | full suite | `flutter test` | ✅ | ✅ green |
-| 13-11-01 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | gate re-check, UAT file | manual prep | `test -f .planning/phases/13-city-shops/13-HUMAN-UAT.md` | ❌ W8 | ⬜ pending |
-| 13-11-02 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | device E2E: three pools, companion bought/equipped/sold, Shop cell disabled on Necrorian | manual (device) | `13-HUMAN-UAT.md` (11 steps) | ❌ W8 | ⬜ pending (human E2E) |
-| 13-11-03 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | records: handoff `BACKEND-NOTES.md`, requirements, ROADMAP/STATE closure | manual (records) | `test -f .planning/phases/13-city-shops/BACKEND-NOTES.md` | ❌ W8 | ⬜ pending |
+| 13-11-01 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | gate re-check, UAT file | manual prep | `test -f .planning/phases/13-city-shops/13-HUMAN-UAT.md` | ✅ | ✅ green |
+| 13-11-02 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | device E2E: three pools, companion bought/equipped/sold, Shop cell disabled on Necrorian | manual (device) | `13-HUMAN-UAT.md` (11 steps) | ✅ | ✅ green (steps 1–10 pass, 11 skipped; step 4 after D-17) |
+| 13-11-03 | 11 | 8 | SHOP-02, SHOP-03, SHOP-04 | — | records: handoff `BACKEND-NOTES.md`, requirements, ROADMAP/STATE closure | manual (records) | `test -f .planning/phases/13-city-shops/BACKEND-NOTES.md` | ✅ | ✅ green |
+| 13-11-04 | 11 | 8 | SHOP-04 | — | D-17: companion dropdown fix during the UAT (12 section + 3 card widget tests) | widget | `flutter test test/screens/mainScreen/tabs/journal test/shared/components/cards` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 Schema gate of 13-10 (2026-11-03, BE `origin/develop` `0585b2e`, merge of PR #18 `feat/12-negozi-per-citta`): `grep -c cityShop` = 3; `CityShop { city equipment loot pets }`, `CitySize { capital city village }`, `City.size: CitySize!` / `City.hasShop: Boolean!`, `CharacterAssets.ownedPets: [Pet!]!`, `TransactionItems.petAssets: [AssetQuantityInput!]`, `Pet.sellable: Boolean` / `Pet.speedModifier: Float`, `equipPet(request: EquipPetRequest!)` / `unequipPet(request: UnequipPetRequest!)`, `cityShop(cityId: ID!): CityShop!`, codes `ITEM_NOT_IN_SHOP` / `PET_ALREADY_OWNED` / `PET_NOT_OWNED` (A1/A2/A3 confirmed, no alignment needed); `dumped 43 documents`, 43 × OK, 0 failures.
+
+Device E2E of 13-11 (2026-11-03, same BE ref, Android phone, `13-HUMAN-UAT.md`): steps 1–9 pass, optional step 10 (`ITEM_NOT_IN_SHOP` after a live DB curation) pass, optional step 11 (equip during a travel) skipped (no Redis locally). Step 4 failed on the first build; the user's rule became D-17 (companion section as a dropdown like «Magie imparate») and was fixed in TDD on the branch during the UAT (`8ac0ede`, `e26c72a`, `6cda912`, row 13-11-04). Gates re-run after the fix by 13-11: full `flutter test` 3031 passed in 72 s, `flutter analyze` 50 issues / 0 error / 0 warning (`ANALYZE_GATE_OK`), trailers 0 over 79 commits. SHOP-02, SHOP-03, SHOP-04 marked complete.
 
 ---
 
@@ -94,6 +97,8 @@ Gaps listed in `13-RESEARCH.md` §Wave 0 Gaps, all closed by plans 13-01..13-09 
 | `ITEM_NOT_IN_SHOP` refusal in the shopkeeper bubble («Questa merce non la tratto») and the stale row gone after the pool reload | SHOP-03 | needs a DB curation of the city pool while the shop page is open (optional step 10) | with the shop open, remove a listed item from that city's pool in the DB (field name from the BE Phase 12 handoff), buy it → bubble line, row disappears after the reload |
 | Equip / unequip a companion during a travel (slot interactive, no effect on the current travel) | SHOP-04 | needs a live travel and the real `equipPet` / `unequipPet` round trip (optional step 11, BE D-15) | start a travel, open the Journal «Compagno» slot, equip then unequip an owned pet → slot follows, travel unchanged |
 
+Outcome 2026-11-03: the device E2E passed (steps 1–10), the `ITEM_NOT_IN_SHOP` curation was run (pass), the travel case was skipped (Redis not running locally). The Journal interaction verified on the device is the D-17 one (dropdown with the slot on top and the owned companions as parchment cards; a tap equips, a tap on the one in the slot unequips), which supersedes the «owned-pets sheet» wording of rows 13-09-01/02 — their tests were rewritten in `8ac0ede` and stay green.
+
 ---
 
 ## Validation Sign-Off
@@ -105,4 +110,4 @@ Gaps listed in `13-RESEARCH.md` §Wave 0 Gaps, all closed by plans 13-01..13-09 
 - [x] Feedback latency < 13s (`flutter test <touched test paths>` per task; the 13-10 subset of 643 tests ran in 15 s, single files well below)
 - [x] frontmatter flag `nyquist_compliant` set to true
 
-**Approval:** pending (device rows 13-11-01..03 after the E2E of plan 13-11)
+**Approval:** approved 2026-11-03 (device E2E of plan 13-11: steps 1–10 pass, step 11 skipped; D-17 fixed in TDD during the UAT, row 13-11-04 green)
