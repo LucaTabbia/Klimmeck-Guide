@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,12 +10,14 @@ import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 
 import 'fakes/fake_server_clock_service.dart';
 import 'fixtures/spell_fixtures.dart';
 import 'landscape.dart';
+import 'mocks.dart';
 import 'spells_harness.dart';
 import 'svg_cache_seed.dart';
 import 'test_app.dart';
@@ -71,11 +74,23 @@ void seedJournalSvgs() {
   SvgCache().add(SexType.male.mannequinPath, svg);
 }
 
+/// Slot «Compagno» a riposo: nessuna operazione in attesa.
+CompanionCubit idleCompanionCubit() {
+  final cubit = MockCompanionCubit();
+  whenListen(
+    cubit,
+    const Stream<CompanionState>.empty(),
+    initialState: const CompanionState(),
+  );
+  return cubit;
+}
+
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
 Future<void> pumpJournalPage(
   WidgetTester tester, {
   required CharacterCubit characterCubit,
   required SpellsCubit spellsCubit,
+  CompanionCubit? companionCubit,
 }) async {
   useLandscapePhone(tester);
   seedJournalSvgs();
@@ -87,6 +102,9 @@ Future<void> pumpJournalPage(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<SpellsCubit>.value(value: spellsCubit),
+            BlocProvider<CompanionCubit>.value(
+              value: companionCubit ?? idleCompanionCubit(),
+            ),
           ],
           child: const Scaffold(body: Journal()),
         ),

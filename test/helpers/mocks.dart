@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
+import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
@@ -31,6 +32,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -38,6 +40,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/t
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
@@ -97,6 +100,8 @@ class MockQuestResultRepository extends Mock implements QuestResultRepository {}
 
 class MockSpellsRepository extends Mock implements SpellsRepository {}
 
+class MockCompanionRepository extends Mock implements CompanionRepository {}
+
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
 class MockInnkeeperRepository extends Mock implements InnkeeperRepository {}
@@ -146,7 +151,12 @@ class MockTravelCubit extends MockCubit<TravelState> implements TravelCubit {}
 class MockTransactionCubit extends MockCubit<TransactionState>
     implements TransactionCubit {}
 
+class MockShopCubit extends MockCubit<ShopState> implements ShopCubit {}
+
 class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
+
+class MockCompanionCubit extends MockCubit<CompanionState>
+    implements CompanionCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
     implements TravelProgressCubit {}

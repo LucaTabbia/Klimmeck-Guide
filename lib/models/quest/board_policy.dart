@@ -15,9 +15,6 @@ City? currentCityOf(List<City> cities, PointOfInterest? location) {
   return null;
 }
 
-bool isOnCityMarker(List<City> cities, PointOfInterest? location) =>
-    currentCityOf(cities, location) != null;
-
 /// Quest mostrate sulla board (D-11/D-12): quelle della città, worldMission incluse,
 /// la sola story del titolo esatto da ogni città, la propria story/worldMission attiva
 /// (strappata).

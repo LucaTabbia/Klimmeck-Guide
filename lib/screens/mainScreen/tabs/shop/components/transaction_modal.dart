@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
+import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
-import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../../../models/coins.dart';
 import '../../../../../models/enums/column_layout_type.dart';
@@ -16,126 +18,83 @@ import '../../../../../shared/components/dropdown.dart';
 class TransactionModal extends StatefulWidget {
   const TransactionModal({
     super.key,
-    required this.itemsToSell,
-    required this.itemsToBuy,
+    required this.toBuy,
+    required this.toSell,
     required this.onConfirm,
-    required this.onChangedList,
+    required this.onChanged,
     required this.character,
     this.isAdd,
     required this.onEquipmentInfo,
   });
 
-  final List<AssetQuantity> itemsToSell;
-  final List<AssetQuantity> itemsToBuy;
-  final Function(Coins, bool) onConfirm;
+  final TradeSelection toBuy;
+  final TradeSelection toSell;
+  final void Function(Coins total, bool isTotalPositive) onConfirm;
+  final void Function(TradeSelection selection, bool isBuy) onChanged;
   final Character character;
   final bool? isAdd;
-  final Function(List<AssetQuantity>, bool) onChangedList;
-  final Function(EquipmentItem) onEquipmentInfo;
+  final void Function(EquipmentItem) onEquipmentInfo;
 
   @override
   State<TransactionModal> createState() => _TransactionModalState();
 }
 
 class _TransactionModalState extends State<TransactionModal> {
+  static const double _reservedHeight = 180 + 110 + 43;
+
   bool isBuyOpen = false;
   bool isSellOpen = false;
   bool _showSignature = false;
 
-  late List<AssetQuantity> _finalItemsToSell;
-  late List<AssetQuantity> _finalItemsToBuy;
-  late Coins totalBuy;
-  late Coins totalSell;
+  late TradeSelection _toBuy;
+  late TradeSelection _toSell;
 
   @override
   void initState() {
-    setState(() {
-      _finalItemsToBuy = widget.itemsToBuy;
-      _finalItemsToSell = widget.itemsToSell;
-    });
-
-    setState(() {
-      totalBuy = getTotalAmount(_finalItemsToBuy, true);
-      totalSell = getTotalAmount(_finalItemsToSell, false);
-    });
     super.initState();
+    _toBuy = widget.toBuy;
+    _toSell = widget.toSell;
   }
 
   @override
   Widget build(BuildContext context) {
     final itemSize = (MediaQuery.of(context).size.width - 200) / 5;
+    final totalBuy = _toBuy.total(isBuy: true);
+    final totalSell = _toSell.total(isBuy: false);
     final bool isPositive = totalSell > totalBuy;
     final int diffCopper = (totalSell.toCopper() - totalBuy.toCopper()).abs();
     final Coins total = Coins.fromCopper(diffCopper);
     final String sign = isPositive ? "+" : "-";
-    final canAfford = widget.character.status!.coins!.canAfford(total);
+
+    /// Un saldo positivo non chiede monete: si firma sempre (D-14).
+    final canAfford =
+        isPositive || widget.character.status!.coins!.canAfford(total);
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final dropdownHeight = isBuyOpen && isSellOpen
+            ? (constraints.maxHeight - _reservedHeight) / 2
+            : constraints.maxHeight - _reservedHeight;
         return Column(
           children: [
             const SizedBox(height: 40),
             Dropdown(
               key: const ValueKey('buy_dropdown'),
               sectionName: "Acquisto",
-              maxHeight: isBuyOpen && isSellOpen
-                  ? (constraints.maxHeight - (180 + 110 + 43)) / 2
-                  : constraints.maxHeight - (180 + 110 + 43),
+              maxHeight: dropdownHeight,
               onToggle: () => setState(() {
                 isBuyOpen = !isBuyOpen;
               }),
-              data: Column(
-                children: [
-                  ...List.generate(
-                    _finalItemsToBuy.length,
-                    (index) => ItemRow(
-                      key: ValueKey(_finalItemsToBuy[index].item!.id),
-                      assetItem: _finalItemsToBuy[index].item!,
-                      size: itemSize,
-                      isBuy: true,
-                      onLongTap: (equipItem) =>
-                          widget.onEquipmentInfo(equipItem),
-                      quantity: _finalItemsToBuy[index].quantity,
-                      onSelect: (item) => _onSelect(
-                        _finalItemsToBuy[index],
-                        widget.isAdd,
-                        true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              data: _buildSelectionRows(_toBuy, itemSize, isBuy: true),
             ),
             Dropdown(
               key: const ValueKey('sell_dropdown'),
               sectionName: "Vendita",
-              maxHeight: isBuyOpen && isSellOpen
-                  ? (constraints.maxHeight - (180 + 110 + 43)) / 2
-                  : constraints.maxHeight - (180 + 110 + 43),
+              maxHeight: dropdownHeight,
               onToggle: () => setState(() {
                 isSellOpen = !isSellOpen;
               }),
-              data: Column(
-                children: [
-                  ...List.generate(
-                    _finalItemsToSell.length,
-                    (index) => ItemRow(
-                      key: ValueKey(_finalItemsToSell[index].item!.id),
-                      assetItem: _finalItemsToSell[index].item!,
-                      onLongTap: (equipItem) =>
-                          widget.onEquipmentInfo(equipItem),
-                      size: itemSize,
-                      quantity: _finalItemsToSell[index].quantity,
-                      isBuy: false,
-                      onSelect: (item) => _onSelect(
-                        _finalItemsToSell[index],
-                        widget.isAdd,
-                        false,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              data: _buildSelectionRows(_toSell, itemSize, isBuy: false),
             ),
             Spacer(),
             Padding(
@@ -260,50 +219,68 @@ class _TransactionModalState extends State<TransactionModal> {
     );
   }
 
+  Widget _buildSelectionRows(
+    TradeSelection selection,
+    double itemSize, {
+    required bool isBuy,
+  }) {
+    return Column(
+      children: [
+        for (final asset in selection.assets)
+          ItemRow(
+            key: ValueKey(asset.item!.id),
+            assetItem: asset.item!,
+            size: itemSize,
+            isBuy: isBuy,
+            onLongTap: (equipItem) => widget.onEquipmentInfo(equipItem),
+            quantity: asset.quantity,
+            onSelect: (item) => _onSelect(asset, widget.isAdd, isBuy),
+          ),
+        for (final pet in selection.pets)
+          CompanionRow(
+            key: ValueKey('trade-pet-${pet.id}'),
+            pet: pet,
+            size: itemSize,
+            isBuy: isBuy,
+            onTap: () => _onTapPet(pet, isBuy),
+          ),
+      ],
+    );
+  }
+
   void _onSelect(AssetQuantity assetQuantity, bool? isAdd, bool isBuy) {
     if (isAdd == null) return;
-    List<AssetQuantity> currentList = isBuy
-        ? _finalItemsToBuy
-        : _finalItemsToSell;
-    List<AssetQuantity> updatedList = List.from(currentList);
-    final price = isBuy
-        ? assetQuantity.item!.buyPrice!
-        : assetQuantity.item!.sellPrice!;
-
-    if (isAdd) {
-      if (isBuy) {
-        totalBuy = totalBuy + price;
-      } else {
-        totalSell = totalSell + price;
-      }
-    } else {
-      if (isBuy) {
-        totalBuy = totalBuy - price;
-      } else {
-        totalSell = totalSell - price;
-      }
-    }
-
-    final int index = updatedList.indexWhere(
+    final selection = isBuy ? _toBuy : _toSell;
+    final updated = List<AssetQuantity>.from(selection.assets);
+    final index = updated.indexWhere(
       (q) => q.item?.id == assetQuantity.item!.id,
     );
-
     final newQty = (assetQuantity.quantity ?? 0) + (isAdd ? 1 : -1);
 
     if (newQty > 0) {
-      final newAssetQuantity = assetQuantity.copyWith(quantity: newQty);
-      updatedList[index] = newAssetQuantity;
+      updated[index] = assetQuantity.copyWith(quantity: newQty);
     } else if (index != -1) {
-      updatedList.removeAt(index);
+      updated.removeAt(index);
     }
+    _update(selection.withAssets(updated), isBuy);
+  }
 
-    if (isBuy) {
-      _finalItemsToBuy = updatedList;
-    } else {
-      _finalItemsToSell = updatedList;
-    }
-    setState(() {});
-    widget.onChangedList(isBuy ? _finalItemsToBuy : _finalItemsToSell, isBuy);
+  /// Un compagno vale sempre uno: la matita non fa nulla, la gomma lo toglie.
+  void _onTapPet(Pet pet, bool isBuy) {
+    if (widget.isAdd != false) return;
+    final selection = isBuy ? _toBuy : _toSell;
+    _update(selection.removePet(pet.id), isBuy);
+  }
+
+  void _update(TradeSelection selection, bool isBuy) {
+    setState(() {
+      if (isBuy) {
+        _toBuy = selection;
+      } else {
+        _toSell = selection;
+      }
+    });
+    widget.onChanged(selection, isBuy);
   }
 }
 

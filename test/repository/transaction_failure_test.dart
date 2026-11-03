@@ -21,6 +21,9 @@ void main() {
       'ITEM_NOT_FOUND': TransactionFailure.itemNotFound,
       'ITEM_NOT_TRADABLE': TransactionFailure.itemNotTradable,
       'TRANSACTION_TOTAL_MISMATCH': TransactionFailure.totalMismatch,
+      'ITEM_NOT_IN_SHOP': TransactionFailure.itemNotInShop,
+      'PET_ALREADY_OWNED': TransactionFailure.petAlreadyOwned,
+      'PET_NOT_OWNED': TransactionFailure.petNotOwned,
       'NOT_FOUND': TransactionFailure.notFound,
       'FORBIDDEN': TransactionFailure.forbidden,
       'UNAUTHENTICATED': TransactionFailure.unauthenticated,
@@ -31,6 +34,24 @@ void main() {
         expect(transactionFailureFrom(_withCode(code)), failure);
       });
     });
+
+    test(
+      'the Phase 12 shop codes are domain failures, never unknown (D-06)',
+      () {
+        expect(
+          [
+            'ITEM_NOT_IN_SHOP',
+            'PET_ALREADY_OWNED',
+            'PET_NOT_OWNED',
+          ].map((code) => transactionFailureFrom(_withCode(code))),
+          [
+            TransactionFailure.itemNotInShop,
+            TransactionFailure.petAlreadyOwned,
+            TransactionFailure.petNotOwned,
+          ],
+        );
+      },
+    );
 
     test('maps a link error without code to connection', () {
       final exception = OperationException(

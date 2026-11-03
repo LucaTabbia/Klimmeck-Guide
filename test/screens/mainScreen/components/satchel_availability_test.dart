@@ -17,6 +17,15 @@ City city(String markerId) => City.fromJson({
   },
 });
 
+City shoplessCity(String markerId) => City.fromJson({
+  'id': 'city-necrorian',
+  'hasShop': false,
+  'markerLocation': {
+    'id': markerId,
+    'location': [1.0, 2.0],
+  },
+});
+
 void main() {
   final cities = [city('city-marker-1')];
   const boardAndShop = {
@@ -94,6 +103,80 @@ void main() {
       ),
       {4, 5},
     );
+  });
+
+  group('city shop flag', () {
+    final shopless = [shoplessCity('necrorian-marker')];
+
+    test('a city without a shop disables only the Shop page (D-04)', () {
+      expect(
+        disabledSatchelPages(
+          location: poi('necrorian-marker'),
+          cities: shopless,
+          isTravelling: false,
+        ),
+        {SatchelLayout.shopPageIndex},
+      );
+    });
+
+    test('a city without a shop keeps the Board page open (D-04)', () {
+      expect(
+        disabledSatchelPages(
+          location: poi('necrorian-marker'),
+          cities: shopless,
+          isTravelling: false,
+        ),
+        isNot(contains(SatchelLayout.boardPageIndex)),
+      );
+    });
+
+    test(
+      'a city without a shop while travelling disables Board and Shop (Phase 7 D-12)',
+      () {
+        expect(
+          disabledSatchelPages(
+            location: poi('necrorian-marker'),
+            cities: shopless,
+            isTravelling: true,
+          ),
+          boardAndShop,
+        );
+      },
+    );
+
+    test(
+      'a city without a shop while awaiting aid disables Board and Shop (Phase 9 D-16)',
+      () {
+        expect(
+          disabledSatchelPages(
+            location: poi('necrorian-marker'),
+            cities: shopless,
+            isTravelling: false,
+            isAwaitingAid: true,
+          ),
+          boardAndShop,
+        );
+      },
+    );
+
+    test('a city with hasShop true keeps every page open (D-04)', () {
+      final withShop = City.fromJson({
+        'id': 'city-talmvere',
+        'hasShop': true,
+        'markerLocation': {
+          'id': 'talmvere-marker',
+          'location': [1.0, 2.0],
+        },
+      });
+      expect(
+        disabledSatchelPages(
+          location: poi('talmvere-marker'),
+          cities: [withShop],
+          isTravelling: false,
+        ),
+        isEmpty,
+      );
+    });
   });
 
   test('boardPageIndex is the page of the Bacheca entry', () {

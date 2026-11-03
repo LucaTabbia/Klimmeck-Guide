@@ -15,6 +15,8 @@ class Pet extends Equatable {
     required this.imagePath,
     required this.currentLifePoints,
     required this.maxLifePoints,
+    this.speedModifier,
+    this.sellable,
   });
 
   final String? imagePath;
@@ -27,6 +29,10 @@ class Pet extends Equatable {
   final int? xp;
   final int? currentLifePoints;
   final int? maxLifePoints;
+
+  /// Moltiplicatore servito dal BE: null per un compagno non da sella (D-07); il FE non calcola mai la velocità (D-11).
+  final double? speedModifier;
+  final bool? sellable;
 
   factory Pet.fromJson(Map<String, dynamic> json) => Pet(
     id: json["id"],
@@ -43,6 +49,8 @@ class Pet extends Equatable {
     imagePath: json["imagePath"],
     currentLifePoints: json["currentLifePoints"]?.toInt(),
     maxLifePoints: json["maxLifePoints"]?.toInt(),
+    speedModifier: (json['speedModifier'] as num?)?.toDouble(),
+    sellable: json['sellable'] as bool?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +64,8 @@ class Pet extends Equatable {
     "currentLifePoints": currentLifePoints,
     "maxLifePoints": maxLifePoints,
     "imagePath": imagePath,
+    "speedModifier": speedModifier,
+    "sellable": sellable,
   };
 
   Pet copyWith({
@@ -69,6 +79,8 @@ class Pet extends Equatable {
     int? xp,
     int? currentLifePoints,
     int? maxLifePoints,
+    double? speedModifier,
+    bool? sellable,
   }) {
     return Pet(
       imagePath: imagePath ?? this.imagePath,
@@ -81,6 +93,8 @@ class Pet extends Equatable {
       xp: xp ?? this.xp,
       currentLifePoints: currentLifePoints ?? this.currentLifePoints,
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
+      speedModifier: speedModifier ?? this.speedModifier,
+      sellable: sellable ?? this.sellable,
     );
   }
 
@@ -96,5 +110,7 @@ class Pet extends Equatable {
     xp,
     currentLifePoints,
     maxLifePoints,
+    speedModifier,
+    sellable,
   ];
 }

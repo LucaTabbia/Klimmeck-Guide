@@ -26,6 +26,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -306,6 +307,27 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(spellsCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides the companion cubit and closes it on removal (D-10)', (
+    tester,
+  ) async {
+    late CompanionCubit companionCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        companionCubit = context.read<CompanionCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(companionCubit.state, const CompanionState());
+    expect(companionCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(companionCubit.isClosed, isTrue);
   });
 
   testWidgets('provides an idle teleport mode cubit and closes it on removal', (

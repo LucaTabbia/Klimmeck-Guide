@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
@@ -105,9 +106,19 @@ void main() {
     expect(character.status!.awaitingAid!.since.isUtc, isTrue);
   });
 
-  test('fullFields never selects the pet (BE handoff 11 b)', () {
-    expect(RegExp(r'\bpet\b').hasMatch(CharacterFragment.fullFields), isFalse);
-  });
+  test(
+    'selects the equipped pet and the owned pets with PetFragment (D-11)',
+    () {
+      final assets = CharacterFragment.assetsFields.replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      );
+      final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+      expect(assets, contains('pet { $pet }'));
+      expect(assets, contains('ownedPets { $pet }'));
+    },
+  );
 
   test('characterUpdated still parses as a single operation', () {
     final document = parseString(CharacterSubscriptions.characterUpdated);

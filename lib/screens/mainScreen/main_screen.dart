@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
@@ -129,9 +130,11 @@ class _MainScreenState extends State<MainScreen>
                     child: TravelOutcomeListener(
                       child: TransactionOutcomeListener(
                         child: SpellOutcomeListener(
-                          child: _buildPagesWithSatchel(
-                            state.cities,
-                            disabledPages,
+                          child: CompanionOutcomeListener(
+                            child: _buildPagesWithSatchel(
+                              state.cities,
+                              disabledPages,
+                            ),
                           ),
                         ),
                       ),
@@ -194,7 +197,7 @@ class _MainScreenState extends State<MainScreen>
       Journal(),
       Library(),
       Board(cities: cities, onQuestAccepted: _showMap),
-      Shop(),
+      Shop(cities: cities),
       const Settings(),
     ];
     assert(

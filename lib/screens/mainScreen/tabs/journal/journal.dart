@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
@@ -475,6 +476,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                 screenWidth,
                                 lootSize,
                               ),
+                              CompanionSection(size: lootSize),
                               _buildOwnedItemsSection(character, lootSize),
                               const SizedBox(height: 120),
                             ],

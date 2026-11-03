@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase-complete
-last_updated: "2026-11-01T21:00:00.000Z"
-last_activity: "2026-11-01 -- Phase 10 complete: plan 10-11 gate on BE 4dc7e89, Android device E2E 10/10 approved, ADMIN-01..08 ticked"
+status: executing
+last_updated: "2026-11-03T18:41:46.000Z"
+last_activity: 2026-11-03 -- Phase 13 complete (11/11): device E2E approved against BE develop 0585b2e, SHOP-02/03/04 ticked, D-17 fixed during the UAT; FE PR #37 feat/13-city-shops -> develop open
 progress:
   total_phases: 17
-  completed_phases: 11
-  total_plans: 111
-  completed_plans: 101
-  percent: 91
+  completed_phases: 12
+  total_plans: 122
+  completed_plans: 112
+  percent: 92
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 10 (Admin Panel (innkeeper)) — COMPLETE 11/11 on `feat/10-admin-panel` (2026-11-01): 10-11 selected `pendingQuest` (BE Phase 10 merged, `4dc7e89`, schema check 42/42), Android device E2E 10/10 pass («approved»), six rule fixes from the UAT in TDD (suite 2852, analyzer 51/0/0), ADMIN-01..08 complete
+Phase: 13 (City Shops) — complete, 11/11 (2026-11-03) on `feat/13-city-shops` (from `develop` `b6eb4d4`): plans 13-01..13-09 executed, reviewed, fixed, verified and audited; 13-10 (schema gate) green against the merged BE Phase 12 (`origin/develop` `0585b2e`, PR #18; A1/A2/A3 confirmed, 43/43 documents OK); 13-11 device E2E run on the Android phone (`13-HUMAN-UAT.md`: steps 1–10 pass, 11 skipped; D-17 companion dropdown fixed in TDD during the UAT), SHOP-02/03/04 ticked, handoff `phases/13-city-shops/BACKEND-NOTES.md` written; FE PR not yet opened
 Plan: 11 of 11
-Completed phases: 11 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-Next Phase: FE PR `feat/10-admin-panel` → `develop` (orchestrator; `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`); then the roadmap order decided on 2026-10-29: BE 11 (World Content) → FE 13 → FE 14 → FE 15 → FE 16 → FE 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 10 complete — awaiting the FE PR to `develop`
-Last activity: 2026-11-01 -- Phase 10 plan 10-11 complete: device E2E recorded (10-HUMAN-UAT.md), VALIDATION approved, CONTEXT amended with the UAT rules, BACKEND-NOTES §6 for the BE
+Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
+Next Phase: merge the FE PR #37 `feat/13-city-shops` → `develop` (opened 2026-11-03; the BE Phase 12 PR #18 is already merged); then FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 13 complete (2026-11-03) — BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18 `feat/12-negozi-per-citta`); 13-10 schema gate green (A1/A2/A3 confirmed, 43/43 OK); 13-11 device E2E approved by the user (steps 1–9 pass, optional 10 pass with a live `ITEM_NOT_IN_SHOP` curation, optional 11 skipped: Redis not running locally). Step 4 failed on the first build and the user's rule became D-17 (companion section as a dropdown like «Magie imparate»), fixed in TDD on the branch during the UAT (`8ac0ede`, `e26c72a`, `6cda912`); gates after the fix: full suite 3031 green in 72 s, analyzer 50 info / 0 error / 0 warning, trailers 0 over 79 commits. Of the review-fix notes for the UAT (13-REVIEW-FIX.md WR-01, WR-02, IN-04) only IN-04 is covered by the D-17 tests; WR-02 (a pet bought or sold while still in a selection) was not reported in the run. Latent BE defect (nested refs not populated under `me.currentCharacter`, no app impact) routed in `phases/13-city-shops/BACKEND-NOTES.md` §5.1. Awaiting the FE PR by the user.
+Last activity: 2026-11-03 -- Phase 13 plan 13-11 (device E2E + handoff) executed: UAT recorded, SHOP-02/03/04 complete, BACKEND-NOTES.md written; phase closed, FE PR #37 → develop opened
 
 ## Current Milestone
 
@@ -64,6 +64,7 @@ Last activity: 2026-11-01 -- Phase 10 plan 10-11 complete: device E2E recorded (
 - ~~**BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).~~ — **resolved 2026-11-01:** merged on BE `develop` (`4dc7e89`), consumed by plan 10-11 and proven by the device E2E (outcome in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6).
 - **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
+- ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
 
 ### Quick Tasks Completed
 

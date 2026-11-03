@@ -1,9 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/shop/trade_selection.dart';
+import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
@@ -17,41 +22,48 @@ class ShopModal extends StatefulWidget {
     super.key,
     required this.equipments,
     required this.items,
+    this.pets = const [],
+    required this.selection,
     required this.onSelect,
-    required this.selectedItems,
     required this.isBuy,
     required this.isAdd,
     required this.onEquipmentInfo,
+    this.equippedPetId,
   });
 
   final List<AssetQuantity> equipments;
   final List<AssetQuantity> items;
-  final List<AssetQuantity> selectedItems;
+  final List<Pet> pets;
+  final TradeSelection selection;
   final bool isBuy;
   final bool? isAdd;
-  final Function(List<AssetQuantity>) onSelect;
+  final void Function(TradeSelection) onSelect;
   final Function(EquipmentItem) onEquipmentInfo;
+
+  /// Solo sul lato vendita: il compagno al fianco del personaggio (D-07).
+  final String? equippedPetId;
 
   @override
   State<ShopModal> createState() => _ShopModalState();
 }
 
 class _ShopModalState extends State<ShopModal> {
-  late List<AssetQuantity> selectedItems;
+  static const double _fixedHeight = 180;
+  static const double _headerHeight = 43;
+
+  late TradeSelection _selection;
 
   EquipType? selectedEquipFilter;
   EffectType? selectedEffectFilter;
 
   bool isEquipOpen = false;
   bool isItemOpen = false;
+  bool isPetOpen = false;
 
   @override
   void initState() {
-    setState(() {
-      selectedItems = widget.selectedItems;
-    });
-
     super.initState();
+    _selection = widget.selection;
   }
 
   /// Un tipo sparito dalle liste riporta i chip a «Tutti» per sempre (D-23).
@@ -105,9 +117,7 @@ class _ShopModalState extends State<ShopModal> {
                 Dropdown(
                   key: const ValueKey('armor_dropdown'),
                   sectionName: "Armatura",
-                  maxHeight: isEquipOpen && isItemOpen
-                      ? (constraints.maxHeight - (180 + 43)) / 2
-                      : constraints.maxHeight - (180 + 43),
+                  maxHeight: _dropdownHeight(constraints),
                   onToggle: () => setState(() {
                     isEquipOpen = !isEquipOpen;
                   }),
@@ -123,10 +133,12 @@ class _ShopModalState extends State<ShopModal> {
                           getImage: (value) => value.imagePath,
                         ),
                       ...List.generate(filteredEquipments.length, (index) {
-                        final selectedAsset = selectedItems.firstWhereOrNull(
-                          (q) =>
-                              q.item?.id == filteredEquipments[index].item!.id,
-                        );
+                        final selectedAsset = _selection.assets
+                            .firstWhereOrNull(
+                              (q) =>
+                                  q.item?.id ==
+                                  filteredEquipments[index].item!.id,
+                            );
 
                         return ItemRow(
                           key: ValueKey(filteredEquipments[index].item!.id),
@@ -149,9 +161,7 @@ class _ShopModalState extends State<ShopModal> {
                 Dropdown(
                   key: const ValueKey('items_dropdown'),
                   sectionName: "Oggetti",
-                  maxHeight: isEquipOpen && isItemOpen
-                      ? (constraints.maxHeight - (180 + 43)) / 2
-                      : constraints.maxHeight - (180 + 43),
+                  maxHeight: _dropdownHeight(constraints),
                   onToggle: () => setState(() {
                     isItemOpen = !isItemOpen;
                   }),
@@ -167,9 +177,11 @@ class _ShopModalState extends State<ShopModal> {
                           getImage: (value) => value.imagePath,
                         ),
                       ...List.generate(filteredItems.length, (index) {
-                        final selectedAsset = selectedItems.firstWhereOrNull(
-                          (q) => q.item?.id == filteredItems[index].item!.id,
-                        );
+                        final selectedAsset = _selection.assets
+                            .firstWhereOrNull(
+                              (q) =>
+                                  q.item?.id == filteredItems[index].item!.id,
+                            );
 
                         return ItemRow(
                           key: ValueKey(filteredItems[index].item!.id),
@@ -187,6 +199,27 @@ class _ShopModalState extends State<ShopModal> {
                     ],
                   ),
                 ),
+                if (widget.pets.isNotEmpty)
+                  Dropdown(
+                    key: const ValueKey('companions_dropdown'),
+                    sectionName: 'Compagni',
+                    maxHeight: _dropdownHeight(constraints),
+                    onToggle: () => setState(() => isPetOpen = !isPetOpen),
+                    data: Column(
+                      children: [
+                        for (final pet in widget.pets)
+                          CompanionRow(
+                            key: ValueKey('shop-pet-${pet.id}'),
+                            pet: pet,
+                            size: itemSize,
+                            isBuy: widget.isBuy,
+                            isEquipped: pet.id == widget.equippedPetId,
+                            isSelected: _selection.containsPet(pet.id),
+                            onTap: () => _onTapPet(pet),
+                          ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 140),
               ],
             ),
@@ -196,9 +229,25 @@ class _ShopModalState extends State<ShopModal> {
     );
   }
 
+  /// Altezza divisa fra i menu aperti, al netto delle testate dei menu
+  /// chiusi (Pitfall 5): con tre menu nessuna combinazione sborda.
+  double _dropdownHeight(BoxConstraints constraints) {
+    final openStates = [
+      isEquipOpen,
+      isItemOpen,
+      if (widget.pets.isNotEmpty) isPetOpen,
+    ];
+    final openCount = openStates.where((isOpen) => isOpen).length;
+    final closedCount = openStates.length - openCount;
+    final reserved = _fixedHeight + _headerHeight * math.max(1, closedCount);
+    return (constraints.maxHeight - reserved) / math.max(1, openCount);
+  }
+
   void _onSelect(AssetItem item, bool? isAdd, List<AssetQuantity> ownedItems) {
     if (isAdd == null) return;
-    final List<AssetQuantity> updatedSelectedItems = List.from(selectedItems);
+    final List<AssetQuantity> updatedSelectedItems = List.from(
+      _selection.assets,
+    );
     final index = updatedSelectedItems.indexWhere((q) => q.item?.id == item.id);
 
     final owned = !widget.isBuy
@@ -225,9 +274,17 @@ class _ShopModalState extends State<ShopModal> {
     } else if (isAdd) {
       updatedSelectedItems.add(AssetQuantity(item: item, quantity: 1));
     }
-    selectedItems = updatedSelectedItems;
+    _update(_selection.withAssets(updatedSelectedItems));
+  }
 
-    setState(() {});
-    widget.onSelect(selectedItems);
+  void _onTapPet(Pet pet) {
+    final isAdd = widget.isAdd;
+    if (isAdd == null) return;
+    _update(isAdd ? _selection.addPet(pet) : _selection.removePet(pet.id));
+  }
+
+  void _update(TradeSelection selection) {
+    setState(() => _selection = selection);
+    widget.onSelect(_selection);
   }
 }

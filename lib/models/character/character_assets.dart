@@ -11,13 +11,17 @@ class CharacterAssets extends Equatable {
     required this.ownedEquipments,
     required this.activeSpells,
     required this.pet,
+    this.ownedPets = const [],
   });
 
   final List<AssetQuantity>? ownedEquipments;
   final List<AssetQuantity>? ownedItems;
   final Equipment? wearedEquipment;
   final List<ActiveSpell>? activeSpells;
+
+  /// Compagno equipaggiato (quello del viaggio); i posseduti sono [ownedPets] (D-10).
   final Pet? pet;
+  final List<Pet> ownedPets;
 
   factory CharacterAssets.fromJson(Map<String, dynamic> json) =>
       CharacterAssets(
@@ -40,6 +44,13 @@ class CharacterAssets extends Equatable {
             ? Equipment.fromJson(json['wearedEquipment'])
             : null,
         pet: json['pet'] != null ? Pet.fromJson(json['pet']) : null,
+        ownedPets: json['ownedPets'] != null
+            ? List<Pet>.unmodifiable(
+                (json['ownedPets'] as List).map(
+                  (x) => Pet.fromJson(x as Map<String, dynamic>),
+                ),
+              )
+            : const [],
       );
 
   Map<String, dynamic> toJson() => {
@@ -48,6 +59,7 @@ class CharacterAssets extends Equatable {
     "activeSpells": activeSpells?.map((e) => e.toJson()).toList(),
     "wearedEquipment": wearedEquipment?.toJson(),
     "pet": pet?.id,
+    "ownedPets": ownedPets.map((p) => p.id).toList(),
   };
 
   @override
@@ -57,5 +69,6 @@ class CharacterAssets extends Equatable {
     wearedEquipment,
     activeSpells,
     pet,
+    ownedPets,
   ];
 }
