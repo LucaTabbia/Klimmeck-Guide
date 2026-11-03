@@ -67,7 +67,7 @@ Out of scope: any pool curation UI (the user curates the pools in the database),
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Backend contract (BE Phase 12)
-- `../Klimmeck-Guide-BE/.planning/phases/12-negozi-per-citta/12-CONTEXT.md` — D-01..D-21: `City.size` derived from `CityType`, `City.hasShop`, pool seeded at boot and curated in the DB, `cityShop(cityId)` shape, `ITEM_NOT_IN_SHOP`, pets (owned vs equipped, `equipPet` / `unequipPet`, `petAssets`, `PET_ALREADY_OWNED` / `PET_NOT_OWNED`), deprecations.
+- `../Klimmeck-Guide-BE/.planning/phases/12-negozi-per-citta/12-CONTEXT.md` — D-01..D-25: `City.size` derived from `CityType`, `City.hasShop`, pool seeded once on the real DB (2026-11-03, seeder then removed, D-25) and curated in the DB, `cityShop(cityId)` shape, `ITEM_NOT_IN_SHOP`, pets (owned vs equipped, `equipPet` / `unequipPet`, `petAssets`, `PET_ALREADY_OWNED` / `PET_NOT_OWNED`), deprecations.
 - `../Klimmeck-Guide-BE/.planning/phases/12-negozi-per-citta/BACKEND-NOTES.md` — the handoff the BE phase will write (SDL, codes, UAT data); until it exists, `git -C ../Klimmeck-Guide-BE show origin/develop:src/schema.gql` is the gate.
 - `../Klimmeck-Guide-BE/.planning/phases/11-popolamento-del-mondo/BACKEND-NOTES.md` §2, §5 — inventory (167 cities, 13 pets with prices and `speedModifier`), Phase 12 notes.
 
