@@ -16,6 +16,9 @@ String? itemEffectLabel(LootItem item) {
 /// Marcatore del compagno equipaggiato nelle liste (D-07, D-10).
 const String companionEquippedMark = 'Al tuo fianco';
 
+/// Riga della sezione «Compagno» senza compagni posseduti (D-15, D-17).
+const String noOwnedCompanionsLine = 'Non possiedi compagni';
+
 /// Riga della velocità solo per un compagno da sella (D-07): il FE stampa il
 /// moltiplicatore servito, non calcola mai la velocità (D-11).
 String? companionSpeedLabel(Pet pet) {

@@ -1,15 +1,15 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
 import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
-import '../../../theme/kg_theme.dart';
-
 class SpellCard extends StatelessWidget {
-  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
+  static final _cardBackgroundUrl = CloudinaryAssets.url(
+    CloudinaryAssets.emptyCardSheet,
+  );
 
   final Spell spell;
   final double size;
@@ -61,9 +61,9 @@ class SpellCard extends StatelessWidget {
                         ),
                     ],
                   ),
-                  _buildTextSection(text: spell.name ?? ""),
+                  CardLabel(text: spell.name ?? "", cardSize: size),
                   if (power != null && power != 0)
-                    _buildTextSection(text: power.toString()),
+                    CardLabel(text: power.toString(), cardSize: size),
                 ],
               ),
             ),
@@ -75,29 +75,6 @@ class SpellCard extends StatelessWidget {
               ),
             if (isMarked != null)
               CardBookmark(isMarked: isMarked!, cardSize: size),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextSection({required String text}) {
-    return SizedBox(
-      height: size / 6,
-      child: AutoSizeText(
-        text,
-        maxFontSize: 24,
-        minFontSize: 4,
-        maxLines: 1,
-        textAlign: TextAlign.center,
-        style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-          fontWeight: FontWeight.w800,
-          shadows: [
-            Shadow(
-              offset: Offset.zero,
-              blurRadius: 0.7,
-              color: KlimmeckGuideTheme.deepNight.withAlpha(150),
-            ),
           ],
         ),
       ),
