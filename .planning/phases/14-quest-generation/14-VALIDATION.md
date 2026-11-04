@@ -45,8 +45,8 @@ created: 2026-11-04
 | 14-02-02 | 02 | 2 | QGEN-02 | T-14-05 | pet without id ignored; pet-only reward not empty | unit | `flutter test test/models/quest_result test/shared/components/popup/quest_result_sheet_test.dart` | ✅ | ✅ green |
 | 14-03-01 | 03 | 3 | QGEN-01, QGEN-05 | T-14-06, T-14-07 | no `relatedLore`/`locations` under an enemy; no old single-enemy selection | unit | `flutter test test/graphql test/tool test/models/quest` | ✅ | ✅ green |
 | 14-03-02 | 03 | 3 | QGEN-02 | T-14-06, T-14-07 | same, for the result fragment | unit | `flutter test test/graphql test/tool test/models/quest_result test/repository/services/graphql` | ✅ | ✅ green |
-| 14-04-01 | 04 | 4 | QGEN-01, QGEN-02 | T-14-08 | only `https` with host or Cloudinary `v<n>/…`; http/file/data → null | unit | `flutter test test/utils/enemy_portrait_url_test.dart` | ❌ W0 | ⬜ pending |
-| 14-04-02 | 04 | 4 | QGEN-01, QGEN-02 | T-14-09 | failed/unresolvable portrait → empty box, no spinner, offline tests | widget | `flutter test test/shared/components/enemy_portrait_test.dart test/utils/enemy_portrait_url_test.dart` | ❌ W0 | ⬜ pending |
+| 14-04-01 | 04 | 4 | QGEN-01, QGEN-02 | T-14-08 | only `https` with host or Cloudinary `v<n>/…`; http/file/data → null | unit | `flutter test test/utils/enemy_portrait_url_test.dart` | ✅ | ✅ green |
+| 14-04-02 | 04 | 4 | QGEN-01, QGEN-02 | T-14-09 | failed/unresolvable portrait → empty box, no spinner, offline tests | widget | `flutter test test/shared/components/enemy_portrait_test.dart test/utils/enemy_portrait_url_test.dart` | ✅ | ✅ green |
 | 14-05-01 | 05 | 5 | QGEN-01 | T-14-10, T-14-11 | no overflow with many lines; no `Image.asset` | widget | `flutter test test/shared/components/popup/quest_info_sheet_test.dart test/screens/mainScreen/tabs/board test/screens/mainScreen/tabs/map` | ✅ | ⬜ pending |
 | 14-05-02 | 05 | 5 | QGEN-05 | T-14-10 | long announcement scrolls, plain `Text` | widget | `flutter test test/shared/components/popup/quest_info_sheet_test.dart` | ✅ | ⬜ pending |
 | 14-05-03 | 05 | 5 | QGEN-01 | — | N/A | widget | `flutter test test/shared/components/popup/quest_info_sheet_test.dart test/models/quest` | ✅ | ⬜ pending |

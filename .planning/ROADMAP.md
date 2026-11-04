@@ -460,7 +460,7 @@ Plans:
 - [x] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
 - [x] 14-02-PLAN.md — Result-side models: `QuestResult.enemies` (bad entries dropped), `stagesCleared`/`stagesTotal`, `QuestRewards.pet` counted by `isEmpty`, dungeon result fixture
 - [x] 14-03-PLAN.md — Fragments: `QuestFragment` (`description`, `enemies { quantity enemy { id name imagePath xp } }`, `prizes.pet`) and `QuestResultFragment` (`enemies`, stage counters, `rewards.pet`); the old `enemy` selection removed in the same commit
-- [ ] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
+- [x] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
 - [ ] 14-05-PLAN.md — Quest sheet: strongest portrait + «Nx nome» lines + «Consigliati» in the combat body, announcement under the title in all families, «Compagno in premio», QGEN-04 proof (tests only)
 - [ ] 14-06-PLAN.md — Result sheet: enemies fought list (`enemyKey` kept), «Esplorazione: tappa k di N», «Compagno ottenuto», dungeon-as-combat proof
 - [ ] 14-07-PLAN.md — `GenerateQuests` document + registry (44), `KlimmeckGraphQl.generateQuests`, `InnkeeperRepository.generateQuests`, `QuestGenerationCubit` (sealed states, failure serial), mocks
@@ -526,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 3/11 | In Progress | - |
+| 14. Quest Generation (companion) | 4/11 | In Progress | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
