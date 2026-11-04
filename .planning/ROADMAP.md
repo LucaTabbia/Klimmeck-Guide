@@ -456,7 +456,18 @@ Plans:
 **Decisions made (2026-10-29)**: hard replacement of `enemy` (gated plans align before the BE merge, pattern 08-12/09-12); `hunt` and `dungeon` are fixed quests, never generated.
 **Decisions made (2026-11-04, `14-CONTEXT.md` D-01..D-13, joint discuss with the BE Phase 13)**: one portrait of the strongest enemy + «Nx nome» lines per type; portrait loaded from the network and hidden when missing; «Consigliati» in the combat body; announcement `infos.description` under the title in every family; result sheet with the enemies fought and «Esplorazione: tappa k di N» for a dungeon; «Genera missioni» button at the top of the Locanda list with the shared confirmation dialog, outcome in SnackBar and `FORBIDDEN` closing the panel (Phase 10 D-04); rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` (user rule of 2026-11-04); companion prize/reward lines (technical default). The BE contract also replaces `QuestResult.enemy` with `enemies` + `stagesCleared`/`stagesTotal` and adds `prizes.pet`, `rewards.pet`, `accessoryUseTypes`.
 **Backend prerequisite**: BE Phase 13 merged on BE `develop`.
-**Plans**: TBD
+**Plans**: 11 plans (planned 2026-11-04; 14-01..14-09 run before the BE Phase 13 merge on fixtures and mocks with the contract names of `14-REPO-RULES.md`, 14-10 and 14-11 are gated by it)
+- [ ] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
+- [ ] 14-02-PLAN.md — Result-side models: `QuestResult.enemies` (bad entries dropped), `stagesCleared`/`stagesTotal`, `QuestRewards.pet` counted by `isEmpty`, dungeon result fixture
+- [ ] 14-03-PLAN.md — Fragments: `QuestFragment` (`description`, `enemies { quantity enemy { id name imagePath xp } }`, `prizes.pet`) and `QuestResultFragment` (`enemies`, stage counters, `rewards.pet`); the old `enemy` selection removed in the same commit
+- [ ] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
+- [ ] 14-05-PLAN.md — Quest sheet: strongest portrait + «Nx nome» lines + «Consigliati» in the combat body, announcement under the title in all families, «Compagno in premio», QGEN-04 proof (tests only)
+- [ ] 14-06-PLAN.md — Result sheet: enemies fought list (`enemyKey` kept), «Esplorazione: tappa k di N», «Compagno ottenuto», dungeon-as-combat proof
+- [ ] 14-07-PLAN.md — `GenerateQuests` document + registry (44), `KlimmeckGraphQl.generateQuests`, `InnkeeperRepository.generateQuests`, `QuestGenerationCubit` (sealed states, failure serial), mocks
+- [ ] 14-08-PLAN.md — Locanda: `GenerateQuestsButton` outside the queue `BlocBuilder`, neutral confirmation dialog, SnackBar outcomes, `FORBIDDEN` closes the panel, disabled in flight
+- [ ] 14-09-PLAN.md — Jewels: `AccessoryUseType`, `EquipmentItem.accessoryUseTypes`, equipment fragments, «Uso: attacco / difesa / attacco e difesa» on `EquipmentInfoSheet`
+- [ ] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
+- [ ] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 15: Travel Food
 **Goal**: Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
@@ -515,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 0/0 | Not started | - |
+| 14. Quest Generation (companion) | 0/11 | Planned | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
