@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 14 (Quest Generation, frontend companion) — EXECUTING (started 2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): 11 plans in a linear chain (`14-01`..`14-11`), executors one at a time on the main tree; 14-10/14-11 gated by the BE Phase 13 merge
-Plan: 1 of 11
+Plan: 2 of 11
 Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
 Next Phase: execute FE 14 (plans 01–09 now, 10–11 after the BE Phase 13 merge) in parallel with BE 13; then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
 Status: Executing Phase 14 — plans 14-01..14-09 on mocks and fixtures while the BE Phase 13 executes; 14-10 (schema gate) and 14-11 (device E2E) wait for the BE PR merge on BE `develop` (`grep -c QuestEnemy` on `origin/develop:src/schema.gql`)

@@ -41,8 +41,8 @@ created: 2026-11-04
 | 14-01-01 | 01 | 1 | QGEN-01 | T-14-01, T-14-02 | malformed entry → FormatException; enemy whitelist id/name/imagePath/xp | unit | `flutter test test/models/quest/quest_enemy_test.dart` | ✅ | ✅ green |
 | 14-01-02 | 01 | 1 | QGEN-01, QGEN-05 | T-14-01, T-14-03 | bad `enemies` entry skips only that quest; pet without id ignored | unit | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart test/screens/mainScreen/tabs/board` | ✅ | ✅ green |
 | 14-01-03 | 01 | 1 | QGEN-01 | — | N/A | unit | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart` | ✅ | ✅ green |
-| 14-02-01 | 02 | 2 | QGEN-02 | T-14-04, T-14-05 | malformed result entry dropped, result kept; non-numeric stage → null | unit | `flutter test test/models/quest_result test/shared/components/popup/quest_result_sheet_test.dart test/repository test/screens/mainScreen/components test/screens/mainScreen/questResultsCubit test/screens/innkeeper` | ✅ | ⬜ pending |
-| 14-02-02 | 02 | 2 | QGEN-02 | T-14-05 | pet without id ignored; pet-only reward not empty | unit | `flutter test test/models/quest_result test/shared/components/popup/quest_result_sheet_test.dart` | ✅ | ⬜ pending |
+| 14-02-01 | 02 | 2 | QGEN-02 | T-14-04, T-14-05 | malformed result entry dropped, result kept; non-numeric stage → null | unit | `flutter test test/models/quest_result test/shared/components/popup/quest_result_sheet_test.dart test/repository test/screens/mainScreen/components test/screens/mainScreen/questResultsCubit test/screens/innkeeper` | ✅ | ✅ green |
+| 14-02-02 | 02 | 2 | QGEN-02 | T-14-05 | pet without id ignored; pet-only reward not empty | unit | `flutter test test/models/quest_result test/shared/components/popup/quest_result_sheet_test.dart` | ✅ | ✅ green |
 | 14-03-01 | 03 | 3 | QGEN-01, QGEN-05 | T-14-06, T-14-07 | no `relatedLore`/`locations` under an enemy; no old single-enemy selection | unit | `flutter test test/graphql test/tool test/models/quest` | ✅ | ⬜ pending |
 | 14-03-02 | 03 | 3 | QGEN-02 | T-14-06, T-14-07 | same, for the result fragment | unit | `flutter test test/graphql test/tool test/models/quest_result test/repository/services/graphql` | ✅ | ⬜ pending |
 | 14-04-01 | 04 | 4 | QGEN-01, QGEN-02 | T-14-08 | only `https` with host or Cloudinary `v<n>/…`; http/file/data → null | unit | `flutter test test/utils/enemy_portrait_url_test.dart` | ❌ W0 | ⬜ pending |
@@ -78,7 +78,7 @@ Each «❌ W0» file is created by the RED step of its own task (TDD, tests befo
 
 - [x] `test/models/quest/quest_enemy_test.dart` — QGEN-01 (14-01-01)
 - [x] `test/helpers/fixtures/quest_fixtures.dart` → `questEnemyJson`, `enemies` / `description` / `prizes` params — QGEN-01, QGEN-05 (14-01-02)
-- [ ] `test/helpers/fixtures/quest_result_fixtures.dart` → `enemies`, stages, `rewardPet`, `dungeonResultJson` — QGEN-02 (14-02)
+- [x] `test/helpers/fixtures/quest_result_fixtures.dart` → `enemies`, stages, `rewardPet`, `dungeonResultJson` — QGEN-02 (14-02)
 - [ ] `test/utils/enemy_portrait_url_test.dart`, `test/shared/components/enemy_portrait_test.dart` (mocktail `BaseCacheManager`) — QGEN-01, QGEN-02 (14-04)
 - [ ] `test/repository/services/graphql/graphql_generate_quests_test.dart` — QGEN-03 (14-07-01)
 - [ ] `test/screens/innkeeper/questGenerationCubit/quest_generation_cubit_test.dart` + `MockQuestGenerationCubit` in `test/helpers/mocks.dart` — QGEN-03 (14-07-03)
