@@ -16,4 +16,15 @@ class QuestMutations {
         successful
       }
     }''';
+
+  /// Forza una corsa del generatore (BE Phase 13 D-16, solo locandiere):
+  /// stesso target e stesso tetto della corsa periodica, risponde con quante
+  /// quest ha creato (0 a mondo pieno). Le nuove quest arrivano alla prossima
+  /// apertura della board (BE D-18).
+  static const String generateQuests = r'''
+    mutation GenerateQuests {
+      generateQuests {
+        created
+      }
+    }''';
 }

@@ -121,6 +121,6 @@ void main() {
   test('the global catalogue queries left the registry (D-01)', () {
     expect(schemaCheckDocuments, isNot(contains('equipmentAssetsQuantity')));
     expect(schemaCheckDocuments, isNot(contains('lootAssetsQuantity')));
-    expect(schemaCheckDocuments.length, 43);
+    expect(schemaCheckDocuments.length, 44);
   });
 }
