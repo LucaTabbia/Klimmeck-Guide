@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
+import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
@@ -16,6 +19,20 @@ LootItem _loot({EffectType? effect, int? power}) => LootItem(
   effect: effect,
   power: power,
 );
+
+EquipmentItem _jewel(EquipType equipType, List<AccessoryUseType>? uses) =>
+    EquipmentItem(
+      id: 'eq-1',
+      name: 'Gioiello',
+      description: '',
+      rarity: null,
+      sellPrice: null,
+      buyPrice: null,
+      equipType: equipType,
+      addedSpell: null,
+      damages: null,
+      accessoryUseTypes: uses,
+    );
 
 void main() {
   group('itemEffectLabel', () {
@@ -79,5 +96,62 @@ void main() {
         expect(companionSpeedLabel(Pet.fromJson(catPetJson())), isNull);
       },
     );
+  });
+
+  group('accessoryUsageLine', () {
+    test('a ring for attack reads «Uso: attacco» (D-12)', () {
+      expect(
+        accessoryUsageLine(_jewel(EquipType.ring, [AccessoryUseType.attack])),
+        'Uso: attacco',
+      );
+    });
+
+    test('a necklace for defense reads «Uso: difesa» (D-12)', () {
+      expect(
+        accessoryUsageLine(
+          _jewel(EquipType.necklace, [AccessoryUseType.defense]),
+        ),
+        'Uso: difesa',
+      );
+    });
+
+    test(
+      'both uses read «Uso: attacco e difesa» in canonical order (D-12)',
+      () {
+        expect(
+          accessoryUsageLine(
+            _jewel(EquipType.ring, [
+              AccessoryUseType.defense,
+              AccessoryUseType.attack,
+            ]),
+          ),
+          'Uso: attacco e difesa',
+        );
+      },
+    );
+
+    test('duplicates read once (D-12)', () {
+      expect(
+        accessoryUsageLine(
+          _jewel(EquipType.ring, [
+            AccessoryUseType.attack,
+            AccessoryUseType.attack,
+          ]),
+        ),
+        'Uso: attacco',
+      );
+    });
+
+    test('a helm never has a use line (D-12)', () {
+      expect(
+        accessoryUsageLine(_jewel(EquipType.helm, [AccessoryUseType.attack])),
+        isNull,
+      );
+    });
+
+    test('a ring without use types has no line (D-12)', () {
+      expect(accessoryUsageLine(_jewel(EquipType.ring, null)), isNull);
+      expect(accessoryUsageLine(_jewel(EquipType.ring, const [])), isNull);
+    });
   });
 }
