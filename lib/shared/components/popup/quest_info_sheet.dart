@@ -42,11 +42,13 @@ class QuestInfoSheet extends StatelessWidget {
   static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
   static const Key abandonKey = ValueKey('questSheet.abandon');
   static const Key descriptionKey = ValueKey('questSheet.description');
+  static const Key petPrizeKey = ValueKey('questSheet.petPrize');
   static const Key enemyPortraitKey = ValueKey('questSheet.enemyPortrait');
   static const Key recommendedLootKey = ValueKey('questSheet.recommendedLoot');
   static const String recommendedLootTitle = 'Consigliati';
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
+  static const int _petPrizeMaxLines = 3;
 
   static const double _aspectRatio = 315 / 375;
   static const double _heightMultiplier = 1.5;
@@ -77,6 +79,7 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   Widget _buildContent(double sheetWidth, double sheetHeight) {
+    final details = QuestSheetDetails.of(quest!, viewer: viewer);
     return SizedBox(
       width: sheetWidth,
       height: sheetHeight,
@@ -89,17 +92,16 @@ class QuestInfoSheet extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Expanded(flex: 3, child: _buildQuestInfo()),
+            Expanded(flex: 3, child: _buildQuestInfo(details)),
             if (quest!.prizes != null)
-              Expanded(flex: 2, child: _buildRewards()),
+              Expanded(flex: 2, child: _buildRewards(details)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuestInfo() {
-    final details = QuestSheetDetails.of(quest!, viewer: viewer);
+  Widget _buildQuestInfo(QuestSheetDetails details) {
     final theme = KlimmeckGuideTheme.instance;
     return Column(
       children: [
@@ -324,52 +326,66 @@ class QuestInfoSheet extends StatelessWidget {
       ),
   ];
 
-  Widget _buildRewards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 30,
-              child: AutoSizeText(
-                "Ricompense:",
-                maxFontSize: 20,
-                minFontSize: 10,
-                textAlign: TextAlign.left,
-                style: KlimmeckGuideTheme.instance.specialText,
-              ),
+  Widget _buildRewards(QuestSheetDetails details) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 30,
+          child: AutoSizeText(
+            "Ricompense:",
+            maxFontSize: 20,
+            minFontSize: 10,
+            textAlign: TextAlign.left,
+            style: KlimmeckGuideTheme.instance.specialText,
+          ),
+        ),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) => _prizeRow(details, constraints),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Il compagno sta nella riga dei premi: sotto, le monete non ci stanno (D-06).
+  Widget _prizeRow(QuestSheetDetails details, BoxConstraints constraints) {
+    final prizes = quest!.prizes!;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (prizes.prizeCoins != null)
+          CoinsDisplay(
+            coins: prizes.prizeCoins!,
+            height: constraints.maxHeight,
+            width: constraints.maxWidth * 0.5,
+          ),
+        if (prizes.prizeItem != null)
+          Flexible(
+            child: prizes.prizeItem!.isEquipment
+                ? EquipmentItemCard(
+                    isSelected: false,
+                    size: constraints.maxHeight,
+                    equipmentItem: prizes.prizeItem!.asEquipment!,
+                  )
+                : LootItemCard(
+                    lootItem: prizes.prizeItem!.asLoot!,
+                    size: constraints.maxHeight,
+                  ),
+          ),
+        if (details.petPrizeLine != null)
+          Flexible(
+            child: Text(
+              details.petPrizeLine!,
+              key: petPrizeKey,
+              maxLines: _petPrizeMaxLines,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: KlimmeckGuideTheme.instance.bodyLarge,
             ),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (quest!.prizes?.prizeCoins != null)
-                    CoinsDisplay(
-                      coins: quest!.prizes!.prizeCoins!,
-                      height: constraints.maxHeight - 30,
-                      width: constraints.maxWidth * 0.5,
-                    ),
-                  if (quest!.prizes!.prizeItem != null)
-                    Flexible(
-                      child: quest!.prizes!.prizeItem!.isEquipment
-                          ? EquipmentItemCard(
-                              isSelected: false,
-                              size: constraints.maxHeight - 30,
-                              equipmentItem:
-                                  quest!.prizes!.prizeItem!.asEquipment!,
-                            )
-                          : LootItemCard(
-                              lootItem: quest!.prizes!.prizeItem!.asLoot!,
-                              size: constraints.maxHeight - 30,
-                            ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+      ],
     );
   }
 }
