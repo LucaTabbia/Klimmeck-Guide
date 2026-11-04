@@ -109,7 +109,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
-  testWidgets('the portrait carries a semantic label (D-03)', (tester) async {
+  testWidgets('a shown SVG portrait carries a semantic label (D-03)', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     seedSvgCache(['v1/goblin_test.svg']);
 
@@ -117,6 +119,17 @@ void main() {
 
     expect(find.bySemanticsLabel(EnemyPortrait.semanticLabel), findsOneWidget);
     expect(EnemyPortrait.semanticLabel, 'Ritratto del nemico');
+    semantics.dispose();
+  });
+
+  testWidgets('a raster portrait still loading announces no image (D-03)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+
+    await pumpPortrait(tester, _rasterUrl);
+
+    expect(find.bySemanticsLabel(EnemyPortrait.semanticLabel), findsNothing);
     semantics.dispose();
   });
 }
