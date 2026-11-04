@@ -53,9 +53,9 @@ created: 2026-11-04
 | 14-05-04 | 05 | 5 | QGEN-04 | — | N/A (proof, no production change) | widget/unit | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart` | ✅ | ✅ green |
 | 14-06-01 | 06 | 6 | QGEN-02 | T-14-13 | portrait only through `EnemyPortrait`; no `Image.asset` | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen/components` | ✅ | ✅ green |
 | 14-06-02 | 06 | 6 | QGEN-02, QGEN-04 | T-14-12 | counters printed, never computed | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen test/screens/innkeeper` | ✅ | ✅ green |
-| 14-07-01 | 07 | 7 | QGEN-03 | T-14-16 | only `extensions.code`; `created` missing → FormatException | unit | `flutter test test/graphql test/tool test/repository/services/graphql/graphql_generate_quests_test.dart` | ❌ W0 | ⬜ pending |
-| 14-07-02 | 07 | 7 | QGEN-03 | T-14-14, T-14-16 | FORBIDDEN → forbidden; 15 s timeout; classifier unchanged | unit | `flutter test test/repository/innkeeper_repository_test.dart` | ✅ | ⬜ pending |
-| 14-07-03 | 07 | 7 | QGEN-03 | T-14-15 | second call ignored while submitting; distinct failure serials | bloc | `flutter test test/screens/innkeeper test/repository/innkeeper_repository_test.dart` | ❌ W0 | ⬜ pending |
+| 14-07-01 | 07 | 7 | QGEN-03 | T-14-16 | only `extensions.code`; `created` missing → FormatException | unit | `flutter test test/graphql test/tool test/repository/services/graphql/graphql_generate_quests_test.dart` | ✅ | ✅ green |
+| 14-07-02 | 07 | 7 | QGEN-03 | T-14-14, T-14-16 | FORBIDDEN → forbidden; 15 s timeout; classifier unchanged | unit | `flutter test test/repository/innkeeper_repository_test.dart` | ✅ | ✅ green |
+| 14-07-03 | 07 | 7 | QGEN-03 | T-14-15 | second call ignored while submitting; distinct failure serials | bloc | `flutter test test/screens/innkeeper test/repository/innkeeper_repository_test.dart` | ✅ | ✅ green |
 | 14-08-01 | 08 | 8 | QGEN-03 | T-14-17 | button disabled while submitting; cubit provided by the route | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components/teleport_mode_landing_test.dart test/screens/mainScreen/tabs/settings/components/innkeeper_section_test.dart` | ❌ W0 | ⬜ pending |
 | 14-08-02 | 08 | 8 | QGEN-03 | T-14-17 | confirmation before the call; «Annulla» sends nothing | widget | `flutter test test/screens/innkeeper` | ✅ | ⬜ pending |
 | 14-08-03 | 08 | 8 | QGEN-03 | T-14-18, T-14-19 | FORBIDDEN closes the panel; fixed copy, never the server message | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components/teleport_mode_landing_test.dart test/screens/mainScreen/tabs/settings/components/innkeeper_section_test.dart` | ✅ | ⬜ pending |
@@ -80,8 +80,8 @@ Each «❌ W0» file is created by the RED step of its own task (TDD, tests befo
 - [x] `test/helpers/fixtures/quest_fixtures.dart` → `questEnemyJson`, `enemies` / `description` / `prizes` params — QGEN-01, QGEN-05 (14-01-02)
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` → `enemies`, stages, `rewardPet`, `dungeonResultJson` — QGEN-02 (14-02)
 - [ ] `test/utils/enemy_portrait_url_test.dart`, `test/shared/components/enemy_portrait_test.dart` (mocktail `BaseCacheManager`) — QGEN-01, QGEN-02 (14-04)
-- [ ] `test/repository/services/graphql/graphql_generate_quests_test.dart` — QGEN-03 (14-07-01)
-- [ ] `test/screens/innkeeper/questGenerationCubit/quest_generation_cubit_test.dart` + `MockQuestGenerationCubit` in `test/helpers/mocks.dart` — QGEN-03 (14-07-03)
+- [x] `test/repository/services/graphql/graphql_generate_quests_test.dart` — QGEN-03 (14-07-01)
+- [x] `test/screens/innkeeper/questGenerationCubit/quest_generation_cubit_test.dart` + `MockQuestGenerationCubit` in `test/helpers/mocks.dart` — QGEN-03 (14-07-03)
 - [ ] `test/screens/innkeeper/components/generate_quests_button_test.dart` + `QuestGenerationCubit` provider in the panel harness — QGEN-03 (14-08)
 - [ ] `test/models/enums/accessory_use_type_test.dart`, `test/models/equipment_item_test.dart` — QGEN-06 (14-09-01)
 
