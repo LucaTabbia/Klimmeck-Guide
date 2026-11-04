@@ -1,5 +1,7 @@
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 
+import 'quest_fixtures.dart';
+
 /// Istante di risoluzione di default dei risultati di test (UTC).
 final DateTime questResultResolvedAt = DateTime.utc(2026, 10, 27, 12);
 
@@ -71,7 +73,9 @@ Map<String, dynamic> questResultJson({
   String titleBefore = 'rookie',
   String titleAfter = 'rookie',
   Map<String, dynamic>? spellLearned,
-  bool hasEnemy = true,
+  List<Object?>? enemies,
+  Object? stagesCleared,
+  Object? stagesTotal,
   List<String> rescuedCharacters = const [],
   String? acknowledgedAt,
 }) => {
@@ -106,16 +110,40 @@ Map<String, dynamic> questResultJson({
   'titleBefore': titleBefore,
   'titleAfter': titleAfter,
   'spellLearned': spellLearned,
-  'enemy': hasEnemy
-      ? {
-          'id': 'enemy-1',
-          'name': 'Lupo grigio',
-          'imagePath': 'enemies/wolf.png',
-        }
-      : null,
+  'enemies': enemies ?? [questEnemyJson(imagePath: 'enemies/wolf.png')],
+  'stagesCleared': stagesCleared,
+  'stagesTotal': stagesTotal,
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
 };
+
+/// Dungeon a tappe (BE Phase 13 D-12): una voce per tappa, nell'ordine; di
+/// default fermata alla seconda tappa di tre.
+Map<String, dynamic> dungeonResultJson({
+  String id = 'result-dungeon',
+  String outcome = 'failure',
+  int stagesCleared = 1,
+  int stagesTotal = 3,
+}) => questResultJson(
+  id: id,
+  outcome: outcome,
+  questType: 'dungeon',
+  questTitle: 'Le grotte di Bosa',
+  enemies: [
+    questEnemyJson(id: 'goblin', name: 'Goblin', quantity: 3, xp: 7),
+    questEnemyJson(id: 'goblin-chief', name: 'Capo goblin', xp: 21),
+    questEnemyJson(
+      id: 'troll',
+      name: 'Troll',
+      xp: 126,
+      imagePath: 'v1/troll_test.svg',
+    ),
+  ],
+  stagesCleared: stagesCleared,
+  stagesTotal: stagesTotal,
+  coins: outcome == 'success' ? null : _zeroCoins,
+  rewardItems: outcome == 'success' ? null : const [],
+);
 
 Map<String, dynamic> successResultJson({
   String id = 'result-1',
@@ -166,7 +194,7 @@ Map<String, dynamic> gmCompletedResultJson({
   outcome: 'gmCompleted',
   questType: 'story',
   questTitle: 'La corona perduta',
-  hasEnemy: false,
+  enemies: const [],
   hpAfter: 900,
   injuriesAdded: const [],
   consumablesUsed: const [],

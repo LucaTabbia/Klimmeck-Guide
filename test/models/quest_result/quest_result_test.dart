@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 
+import '../../helpers/fixtures/quest_fixtures.dart';
 import '../../helpers/fixtures/quest_result_fixtures.dart';
 
 void main() {
@@ -42,8 +43,7 @@ void main() {
       expect(result.levelAfter, 2);
       expect(result.titleBefore, TitleType.rookie);
       expect(result.titleAfter, TitleType.rookie);
-      expect(result.enemy!.name, 'Lupo grigio');
-      expect(result.enemy!.imagePath, 'enemies/wolf.png');
+      expect(result.enemies, hasLength(1));
       expect(result.spellLearned, isNull);
       expect(result.rescuedCharacters, isEmpty);
       expect(result.acknowledgedAt, isNull);
@@ -75,11 +75,11 @@ void main() {
       expect(result.hpBefore, result.hpAfter);
     });
 
-    test('a GM completion has no enemy', () {
+    test('a GM completion has no enemies', () {
       final result = questResult(gmCompletedResultJson());
 
       expect(result.outcome, QuestOutcome.gmCompleted);
-      expect(result.enemy, isNull);
+      expect(result.enemies, isEmpty);
       expect(result.quest.type, QuestType.story);
       expect(result.titleAfter, TitleType.adventurer);
     });
@@ -89,6 +89,42 @@ void main() {
 
       expect(result.rescuedCharacters, ['c-2', 'c-3']);
       expect(result.rescuedCharacters.length, 2);
+    });
+
+    test('parses the enemies fought in BE order (D-07)', () {
+      final result = questResult(questResultJson());
+
+      expect(result.enemies.single.enemy.name, 'Lupo grigio');
+      expect(result.enemies.single.enemy.imagePath, 'enemies/wolf.png');
+      expect(result.enemies.single.quantity, 1);
+    });
+
+    test('keeps xp of the enemies fought for the portrait (D-01)', () {
+      final result = questResult(
+        questResultJson(enemies: [questEnemyJson(xp: 21)]),
+      );
+
+      expect(result.enemies.single.enemy.xp, 21);
+    });
+
+    test('a dungeon carries stagesCleared and stagesTotal (D-07)', () {
+      final result = questResult(dungeonResultJson());
+
+      expect(result.stagesCleared, 1);
+      expect(result.stagesTotal, 3);
+      expect(result.enemies.length, 3);
+      expect(result.enemies.map((entry) => entry.enemy.id), [
+        'goblin',
+        'goblin-chief',
+        'troll',
+      ]);
+    });
+
+    test('stages are null outside a dungeon (D-07)', () {
+      final result = questResult(questResultJson());
+
+      expect(result.stagesCleared, isNull);
+      expect(result.stagesTotal, isNull);
     });
 
     test('parses the learned spell', () {
@@ -215,13 +251,49 @@ void main() {
     });
 
     test('an enemy with locations never reaches Enemy.fromJson', () {
-      final json = questResultJson();
-      json['enemy'] = <String, dynamic>{
-        ...json['enemy'] as Map<String, dynamic>,
+      final entry = questEnemyJson(imagePath: 'enemies/wolf.png');
+      entry['enemy'] = <String, dynamic>{
+        ...entry['enemy'] as Map<String, dynamic>,
         'locations': ['forest'],
       };
 
-      expect(questResult(json).enemy!.name, 'Lupo grigio');
+      final result = questResult(questResultJson(enemies: [entry]));
+
+      expect(result.enemies.single.enemy.name, 'Lupo grigio');
+    });
+
+    test('drops a malformed enemies entry and keeps the result (D-01)', () {
+      final result = QuestResult.tryFromJson(
+        questResultJson(
+          enemies: [
+            questEnemyJson(),
+            {'quantity': 1},
+            'x',
+          ],
+        ),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.enemies, hasLength(1));
+    });
+
+    test('a missing enemies key gives an empty list (D-01)', () {
+      final result = QuestResult.tryFromJson(
+        questResultJson()..remove('enemies'),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.enemies, isEmpty);
+    });
+
+    test('a non-numeric stage counter is null, the result is kept (D-07)', () {
+      final result = QuestResult.tryFromJson(
+        questResultJson(stagesCleared: 1, stagesTotal: 'tre'),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.stagesTotal, isNull);
+      expect(result.stagesCleared, 1);
     });
   });
 
@@ -263,6 +335,11 @@ void main() {
       'acknowledged': questResultJson(
         acknowledgedAt: '2026-10-27T12:05:00.000Z',
         spellLearned: {'id': 'spell-9', 'name': 'Scudo'},
+      ),
+      'dungeon': dungeonResultJson(),
+      'dungeon victory': dungeonResultJson(
+        outcome: 'success',
+        stagesCleared: 3,
       ),
     };
 
