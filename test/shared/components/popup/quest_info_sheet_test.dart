@@ -6,10 +6,13 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -452,6 +455,47 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byKey(QuestInfoSheet.petPrizeKey), findsOneWidget);
     });
+
+    final itemVariants = <String, (Map<String, dynamic>, Type)>{
+      'equipment': (equipmentAssetJson(), EquipmentItemCard),
+      'loot': (lootAssetJson(), LootItemCard),
+    };
+    for (final MapEntry(key: variant, value: (prizeItem, cardType))
+        in itemVariants.entries) {
+      testWidgets(
+        'coins, a prize item ($variant) and a pet keep the card square (D-06)',
+        (tester) async {
+          seedSvgCache([
+            CloudinaryAssets.goldCoin,
+            CloudinaryAssets.silverCoin,
+            CloudinaryAssets.copperCoin,
+            CloudinaryAssets.emptyCardSheet,
+            CloudinaryAssets.weaponType,
+            CloudinaryAssets.healEffect,
+          ]);
+          await _pump(
+            tester,
+            buildQuest(
+              prizes: {
+                'prizeCoins': {'gold': 1, 'silver': 0, 'copper': 0},
+                'prizeItem': prizeItem,
+                'pet': owl,
+              },
+            ),
+          );
+
+          expect(tester.takeException(), isNull);
+          final card = find.byType(cardType);
+          final requested = switch (tester.widget(card)) {
+            EquipmentItemCard(:final size) => size,
+            LootItemCard(:final size) => size,
+            _ => fail('unexpected card'),
+          };
+          expect(tester.getSize(card), Size(requested, requested));
+          expect(find.byKey(QuestInfoSheet.petPrizeKey), findsOneWidget);
+        },
+      );
+    }
   });
 
   group('fixed types (QGEN-04)', () {
