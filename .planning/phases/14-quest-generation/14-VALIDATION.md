@@ -59,9 +59,9 @@ created: 2026-11-04
 | 14-08-01 | 08 | 8 | QGEN-03 | T-14-17 | button disabled while submitting; cubit provided by the route | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components/teleport_mode_landing_test.dart test/screens/mainScreen/tabs/settings/components/innkeeper_section_test.dart` | ✅ | ✅ green |
 | 14-08-02 | 08 | 8 | QGEN-03 | T-14-17 | confirmation before the call; «Annulla» sends nothing | widget | `flutter test test/screens/innkeeper` | ✅ | ✅ green |
 | 14-08-03 | 08 | 8 | QGEN-03 | T-14-18, T-14-19 | FORBIDDEN closes the panel; fixed copy, never the server message | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components/teleport_mode_landing_test.dart test/screens/mainScreen/tabs/settings/components/innkeeper_section_test.dart` | ✅ | ✅ green |
-| 14-09-01 | 09 | 9 | QGEN-06 | T-14-20 | unknown use name dropped (`asNameMap`), never a throw | unit | `flutter test test/models/enums/accessory_use_type_test.dart test/models/equipment_item_test.dart test/utils/item_lines_test.dart test/utils/filter_values_test.dart` | ❌ W0 | ⬜ pending |
-| 14-09-02 | 09 | 9 | QGEN-06 | — | N/A | unit | `flutter test test/graphql test/tool` | ✅ | ⬜ pending |
-| 14-09-03 | 09 | 9 | QGEN-06 | T-14-21 | no filter, no equip constraint, no list icon | widget | `flutter test test/shared/components/popup/equipment_info_sheet_test.dart test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ | ⬜ pending |
+| 14-09-01 | 09 | 9 | QGEN-06 | T-14-20 | unknown use name dropped (`asNameMap`), never a throw | unit | `flutter test test/models/enums/accessory_use_type_test.dart test/models/equipment_item_test.dart test/utils/item_lines_test.dart test/utils/filter_values_test.dart` | ✅ | ✅ green |
+| 14-09-02 | 09 | 9 | QGEN-06 | — | N/A | unit | `flutter test test/graphql test/tool` | ✅ | ✅ green |
+| 14-09-03 | 09 | 9 | QGEN-06 | T-14-21 | no filter, no equip constraint, no list icon | widget | `flutter test test/shared/components/popup/equipment_info_sheet_test.dart test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ | ✅ green |
 | 14-10-01 | 10 | 10 | QGEN-01, QGEN-02, QGEN-03, QGEN-05, QGEN-06 | T-14-22, T-14-23, T-14-24 | names proven on the merged SDL, 44/44 OK; BE read-only | cross-repo | gate `git -C <BE> show origin/develop:src/schema.gql \| grep -c QuestEnemy` ≥ 1, then `flutter test test/graphql test/tool test/models` + `validate_documents.js` | ✅ | ⬜ pending (gated: BE Phase 13 merge) |
 | 14-10-02 | 10 | 10 | QGEN-01..06 | T-14-25 | full suite, analyzer, format, trailers, sanity greps | full suite | `flutter test` | ✅ | ⬜ pending (gated) |
 | 14-11-01 | 11 | 11 | QGEN-01..06 | — | gate re-check, UAT file without secrets | manual prep | `test -f .planning/phases/14-quest-generation/14-HUMAN-UAT.md` | ❌ W11 | ⬜ pending (gated) |
@@ -83,7 +83,7 @@ Each «❌ W0» file is created by the RED step of its own task (TDD, tests befo
 - [x] `test/repository/services/graphql/graphql_generate_quests_test.dart` — QGEN-03 (14-07-01)
 - [x] `test/screens/innkeeper/questGenerationCubit/quest_generation_cubit_test.dart` + `MockQuestGenerationCubit` in `test/helpers/mocks.dart` — QGEN-03 (14-07-03)
 - [x] `test/screens/innkeeper/components/generate_quests_button_test.dart` + `QuestGenerationCubit` provider in the panel harness — QGEN-03 (14-08)
-- [ ] `test/models/enums/accessory_use_type_test.dart`, `test/models/equipment_item_test.dart` — QGEN-06 (14-09-01)
+- [x] `test/models/enums/accessory_use_type_test.dart`, `test/models/equipment_item_test.dart` — QGEN-06 (14-09-01)
 
 ---
 
