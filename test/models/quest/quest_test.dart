@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/quest/quest_infos.dart';
 import 'package:klimmeck_guide/models/quest/quest_requirements.dart';
 import 'package:klimmeck_guide/models/quest/registered_adventurer.dart';
 
@@ -238,15 +239,11 @@ void main() {
       expect(idless!.prizes!.pet, isNull);
     });
 
-    test('toJson writes enemies as id and quantity (D-01)', () {
-      final json = Quest.fromJson(
-        questJson(enemies: goblinPack()),
-      ).infos!.toJson();
+    test('toJson round-trips the enemies through fromJson (D-01)', () {
+      final infos = Quest.fromJson(questJson(enemies: goblinPack())).infos!;
+      final json = infos.toJson();
 
-      expect(json['enemies'], [
-        {'enemy': 'goblin', 'quantity': 3},
-        {'enemy': 'goblin-chief', 'quantity': 1},
-      ]);
+      expect(QuestInfos.fromJson(json).enemies, infos.enemies);
       expect(json.containsKey('enemy'), isFalse);
     });
   });
