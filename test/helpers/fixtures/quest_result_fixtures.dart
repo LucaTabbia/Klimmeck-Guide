@@ -65,6 +65,7 @@ Map<String, dynamic> questResultJson({
   List<Map<String, dynamic>>? spellsUsed,
   Map<String, dynamic>? coins,
   List<Map<String, dynamic>>? rewardItems,
+  Map<String, dynamic>? rewardPet,
   int xpBefore = 200,
   int xpGained = 60,
   int xpAfter = 260,
@@ -101,6 +102,7 @@ Map<String, dynamic> questResultJson({
   'rewards': {
     'coins': coins ?? {'gold': 0, 'silver': 3, 'copper': 20},
     'items': rewardItems ?? [equipmentRewardJson()],
+    if (rewardPet != null) 'pet': rewardPet,
   },
   'xpBefore': xpBefore,
   'xpGained': xpGained,

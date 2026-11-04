@@ -170,6 +170,49 @@ void main() {
     });
   });
 
+  group('companion reward', () {
+    test('parses rewards.pet as the companion obtained (D-07)', () {
+      final result = questResult(
+        questResultJson(rewardPet: {'id': 'pet-owl', 'name': 'Gufo reale'}),
+      );
+
+      expect(result.rewards.pet!.name, 'Gufo reale');
+    });
+
+    test('a pet-only reward is not empty (D-01)', () {
+      final result = questResult(
+        questResultJson(
+          coins: const {'gold': 0, 'silver': 0, 'copper': 0},
+          rewardItems: const [],
+          rewardPet: {'id': 'pet-owl', 'name': 'Gufo reale'},
+        ),
+      );
+
+      expect(result.rewards.isEmpty, isFalse);
+      expect(result.hasRewards, isTrue);
+    });
+
+    test('no pet keeps the old emptiness rule (D-01)', () {
+      final result = questResult(
+        questResultJson(
+          coins: const {'gold': 0, 'silver': 0, 'copper': 0},
+          rewardItems: const [],
+        ),
+      );
+
+      expect(result.rewards.isEmpty, isTrue);
+    });
+
+    test('a pet without id is ignored and the result kept (D-07)', () {
+      final result = QuestResult.tryFromJson(
+        questResultJson(rewardPet: {'name': 'x'}),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.rewards.pet, isNull);
+    });
+  });
+
   group('tolerance', () {
     test('an unknown quest type keeps the title', () {
       final result = questResult(questResultJson(questType: 'raid'));
@@ -337,6 +380,9 @@ void main() {
         spellLearned: {'id': 'spell-9', 'name': 'Scudo'},
       ),
       'dungeon': dungeonResultJson(),
+      'pet reward': questResultJson(
+        rewardPet: {'id': 'pet-owl', 'name': 'Gufo reale'},
+      ),
       'dungeon victory': dungeonResultJson(
         outcome: 'success',
         stagesCleared: 3,
