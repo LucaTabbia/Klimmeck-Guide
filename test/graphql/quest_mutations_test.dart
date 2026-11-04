@@ -3,6 +3,8 @@ import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
 
+import '../../tool/schema_check/schema_check_documents.dart';
+
 void main() {
   group('AcceptQuest', () {
     final operation = parseString(
@@ -36,5 +38,36 @@ void main() {
         expect(selected, ['response', 'successful']);
       },
     );
+  });
+
+  group('GenerateQuests', () {
+    OperationDefinitionNode operation() => parseString(
+      QuestMutations.generateQuests,
+    ).definitions.whereType<OperationDefinitionNode>().single;
+
+    test(
+      'is a single mutation named GenerateQuests without variables (D-10)',
+      () {
+        expect(operation().type, OperationType.mutation);
+        expect(operation().name?.value, 'GenerateQuests');
+        expect(operation().variableDefinitions, isEmpty);
+      },
+    );
+
+    test('selects created of generateQuests (D-10)', () {
+      final collapsed = QuestMutations.generateQuests.replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      );
+
+      expect(collapsed, contains('generateQuests { created }'));
+    });
+
+    test('is registered in the schema check (D-14)', () {
+      expect(
+        schemaCheckDocuments['GenerateQuests'],
+        QuestMutations.generateQuests,
+      );
+    });
   });
 }
