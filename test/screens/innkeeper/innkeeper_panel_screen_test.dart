@@ -853,5 +853,164 @@ void main() {
 
       expect(tester.widget<ElevatedButton>(generateButton).onPressed, isNull);
     });
+
+    Future<void> emitGeneration(
+      WidgetTester tester,
+      List<QuestGenerationState> states,
+    ) async {
+      for (final state in states) {
+        generationStates.add(state);
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+    }
+
+    Finder snackText(String message) => find.descendant(
+      of: find.byType(SnackBar),
+      matching: find.text(message),
+    );
+
+    testWidgets('a success shows «Generate N missioni» (D-09)', (tester) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 3),
+      ]);
+
+      expect(snackText('Generate 3 missioni'), findsOneWidget);
+    });
+
+    testWidgets('one created quest reads «Generata 1 missione» (D-09)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 1),
+      ]);
+
+      expect(snackText('Generata 1 missione'), findsOneWidget);
+    });
+
+    testWidgets('zero created shows «Nessuna missione da generare» (D-09)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 0),
+      ]);
+
+      expect(snackText('Nessuna missione da generare'), findsOneWidget);
+    });
+
+    for (final failure in [
+      InnkeeperFailure.connection,
+      InnkeeperFailure.timedOut,
+      InnkeeperFailure.unknown,
+      InnkeeperFailure.malformed,
+    ]) {
+      testWidgets(
+        'a ${failure.name} failure shows the retry SnackBar and keeps the panel (D-09)',
+        (tester) async {
+          await pumpQueue(tester, []);
+
+          await emitGeneration(tester, [
+            const QuestGenerationSubmitting(),
+            QuestGenerationFailed(failure: failure, serial: 1),
+          ]);
+
+          expect(
+            snackText('Non è stato possibile generare le missioni. Riprova.'),
+            findsOneWidget,
+          );
+          expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
+        },
+      );
+    }
+
+    testWidgets('the same failure twice shows the SnackBar twice (D-10)', (
+      tester,
+    ) async {
+      const retry = 'Non è stato possibile generare le missioni. Riprova.';
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationFailed(failure: InnkeeperFailure.connection, serial: 1),
+      ]);
+      expect(snackText(retry), findsOneWidget);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationFailed(failure: InnkeeperFailure.connection, serial: 2),
+      ]);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      expect(snackText(retry), findsOneWidget);
+    });
+
+    testWidgets(
+      'FORBIDDEN closes the panel with «La Locanda non è disponibile» (D-09, D-14)',
+      (tester) async {
+        useLandscapePhone(tester);
+        whenListen(
+          cubit,
+          const Stream<PendingRequestsState>.empty(),
+          initialState: PendingRequestsState(
+            serverNow: _now,
+            requests: const [],
+            isLoaded: true,
+          ),
+        );
+        await tester.pumpWidget(
+          buildTestApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider<AuthCubit>.value(value: authCubit),
+                          BlocProvider<PendingRequestsCubit>.value(
+                            value: cubit,
+                          ),
+                          BlocProvider<TeleportModeCubit>.value(
+                            value: teleportCubit,
+                          ),
+                          BlocProvider<QuestGenerationCubit>.value(
+                            value: generationCubit,
+                          ),
+                        ],
+                        child: const InnkeeperPanelScreen(),
+                      ),
+                    ),
+                  ),
+                  child: const Text('apri'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('apri'));
+        await tester.pumpAndSettle();
+
+        await emitGeneration(tester, const [
+          QuestGenerationSubmitting(),
+          QuestGenerationFailed(failure: InnkeeperFailure.forbidden, serial: 1),
+        ]);
+
+        expect(find.byType(InnkeeperPanelScreen), findsNothing);
+        expect(
+          find.text(InnkeeperPanelScreen.unavailableMessage),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
