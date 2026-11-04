@@ -91,6 +91,7 @@ void main() {
       initialState: const QuestGenerationIdle(),
     );
     when(() => generationCubit.generate()).thenAnswer((_) async {});
+    when(() => generationCubit.isClosed).thenReturn(false);
     cubit = MockPendingRequestsCubit();
     teleportCubit = MockTeleportModeCubit();
     teleportStates = StreamController<TeleportModeState>.broadcast();
