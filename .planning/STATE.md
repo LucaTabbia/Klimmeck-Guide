@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-04T17:31:12.174Z"
-last_activity: 2026-11-04 -- Phase 14 planned: 11 plans (14-01..14-09 on mocks before the BE Phase 13 merge, 14-10 schema gate and 14-11 device E2E gated), research + CONTEXT amendments C1-C5, checker passed after 3 one-line fixes; BE Phase 13 planned in the same session
+last_updated: "2026-11-04T18:17:19.721Z"
+last_activity: 2026-11-04 -- Phase 14 execution started
 progress:
   total_phases: 17
   completed_phases: 12
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 14 (Quest Generation, frontend companion) — PLANNED (2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): 11 plans in a linear chain (`14-01`..`14-11`), `14-RESEARCH.md` + CONTEXT amended (C1–C5), `14-REPO-RULES.md`, `14-VALIDATION.md` (29 rows); 14-10/14-11 gated by the BE Phase 13 merge on BE `develop`
+Phase: 14 (Quest Generation, frontend companion) — EXECUTING (started 2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): 11 plans in a linear chain (`14-01`..`14-11`), executors one at a time on the main tree; 14-10/14-11 gated by the BE Phase 13 merge
 Plan: 0 of 11
 Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
 Next Phase: execute FE 14 (plans 01–09 now, 10–11 after the BE Phase 13 merge) in parallel with BE 13; then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14 planned (2026-11-04) — ready to execute: `/gsd-execute-phase 14` runs 14-01..14-09 on mocks while the BE Phase 13 executes; 14-10 and 14-11 wait for the BE PR merge (`grep -c QuestEnemy` on `origin/develop:src/schema.gql`); branch not pushed yet (SSH agent unavailable in the session)
-Last activity: 2026-11-04 -- Phase 14 planned: 11 plans (14-01..14-09 on mocks before the BE Phase 13 merge, 14-10 schema gate and 14-11 device E2E gated), research + CONTEXT amendments C1-C5, checker passed after 3 one-line fixes; BE Phase 13 planned in the same session
+Status: Executing Phase 14 — plans 14-01..14-09 on mocks and fixtures while the BE Phase 13 executes; 14-10 (schema gate) and 14-11 (device E2E) wait for the BE PR merge on BE `develop` (`grep -c QuestEnemy` on `origin/develop:src/schema.gql`)
+Last activity: 2026-11-04 -- Phase 14 execution started
 
 ## Current Milestone
 
