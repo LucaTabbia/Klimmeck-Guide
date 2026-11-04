@@ -90,7 +90,15 @@ void main() {
     testWidgets('shows the enemy image, name and required time', (
       tester,
     ) async {
-      await _pump(tester, buildQuest(type: 'enemy', enemy: _enemy));
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: [
+            {'quantity': 1, 'enemy': _enemy},
+          ],
+        ),
+      );
 
       expect(find.text('Arbusto maligno'), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
@@ -103,7 +111,7 @@ void main() {
         buildQuest(
           type: 'aid',
           requiredPoints: null,
-          enemy: {'id': 'enemy-1', 'name': 'Lupo grigio', 'imagePath': null},
+          enemies: [questEnemyJson(xp: null)],
         ),
         viewer: buildViewer(twitchPoints: 1200),
       );
@@ -307,7 +315,15 @@ void main() {
   });
 
   testWidgets('has no horizontal drag gesture of its own', (tester) async {
-    await _pump(tester, buildQuest(type: 'enemy', enemy: _enemy));
+    await _pump(
+      tester,
+      buildQuest(
+        type: 'enemy',
+        enemies: [
+          {'quantity': 1, 'enemy': _enemy},
+        ],
+      ),
+    );
 
     final detectors = tester.widgetList<GestureDetector>(
       find.descendant(
