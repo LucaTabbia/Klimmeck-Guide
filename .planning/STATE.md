@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-04T18:17:19.721Z"
-last_activity: 2026-11-04 -- Phase 14 execution started
+last_updated: "2026-11-04T19:35:40.000Z"
+last_activity: 2026-11-04 -- Phase 14 parked at 9/11 awaiting the BE Phase 13 merge
 progress:
   total_phases: 17
   completed_phases: 12
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 14 (Quest Generation, frontend companion) — EXECUTING (started 2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): 11 plans in a linear chain (`14-01`..`14-11`), executors one at a time on the main tree; 14-10/14-11 gated by the BE Phase 13 merge
+Phase: 14 (Quest Generation, frontend companion) — PARKED at 9/11 (2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): plans 14-01..14-09 executed, reviewed, fixed, verified and audited; 14-10 (schema gate) and 14-11 (device E2E + handoff) wait for the BE Phase 13 PR merge on BE `develop` (CONTEXT D-13)
 Plan: 9 of 11
 Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
-Next Phase: execute FE 14 (plans 01–09 now, 10–11 after the BE Phase 13 merge) in parallel with BE 13; then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14: plans 01–09 done on mocks; 14-10 and 14-11 parked until the BE Phase 13 merge on BE develop (`grep -c QuestEnemy` on `origin/develop:src/schema.gql` ≥ 1)
-Last activity: 2026-11-04 -- Phase 14 execution started
+Next Phase: after the BE Phase 13 PR merges on BE `develop` → `/gsd-execute-phase 14` resumes with 14-10 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c QuestEnemy` ≥ 1, contract names proved on the merged SDL, schema check 44/44, full suite) then 14-11 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements QGEN-01..06); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 14 parked at 9/11 — executing resumes with 14-10/14-11 after the BE Phase 13 merge (BE `feat/13-generazione-quest`, 20 plans, PR to open). Notes for the 14-11 device UAT (from the review fixes and the executors' deviations): (1) boss sheet with coins + prize item + companion: the card stays square, the coins column narrows to 35% of the row and the «Compagno in premio» line takes the rest (max 3 lines, ellipsis) — WR-01; rows without both an item and a companion look as before; (2) a named enemy next to an unnamed DB entry shows «1x <nome>» instead of the bare name (IN-04); (3) with TalkBack the «Ritratto del nemico» label is announced only once a raster portrait is shown (IN-01); (4) `CachedSvg` (pre-existing widget) shows a 14 px spinner while an unseeded SVG portrait loads — no enemy has an .svg path today; (5) `EquipmentFragment.definition` was removed as dead code (IN-03), registry still 44 documents.
+Last activity: 2026-11-04 -- Phase 14 plans 14-01..14-09 executed; review → fix → verification → security audit done; waiting for the BE Phase 13 merge (push pending: SSH agent unavailable)
 
 ## Current Milestone
 
