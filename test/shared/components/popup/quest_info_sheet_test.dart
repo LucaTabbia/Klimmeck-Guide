@@ -328,6 +328,86 @@ void main() {
     });
   });
 
+  group('announcement', () {
+    const announcement = 'Il mugnaio di Bosa cerca aiuto contro i lupi.';
+    final families = {
+      'enemy': QuestInfoSheet.combatFamilyKey,
+      'job': QuestInfoSheet.serviceFamilyKey,
+      'story': QuestInfoSheet.narrativeFamilyKey,
+    };
+    final familyNames = {
+      'enemy': 'combat',
+      'job': 'service',
+      'story': 'narrative',
+    };
+
+    for (final entry in families.entries) {
+      testWidgets(
+        'shows the announcement under the title in the ${familyNames[entry.key]} family (D-05)',
+        (tester) async {
+          await _pump(
+            tester,
+            buildQuest(
+              type: entry.key,
+              requiredPoints: 3000,
+              description: announcement,
+            ),
+          );
+
+          final description = find.byKey(QuestInfoSheet.descriptionKey);
+          expect(description, findsOneWidget);
+          final text = tester.widget<Text>(description);
+          expect(text.data, announcement);
+          expect(text.style?.fontStyle, FontStyle.italic);
+          final titleY = tester.getTopLeft(find.text('Il lupo del bosco')).dy;
+          final descriptionY = tester.getTopLeft(description).dy;
+          expect(titleY, lessThan(descriptionY));
+          expect(
+            descriptionY,
+            lessThan(tester.getTopLeft(find.byKey(entry.value)).dy),
+          );
+        },
+      );
+    }
+
+    testWidgets('omits the announcement when null or empty (D-05)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy'));
+      expect(find.byKey(QuestInfoSheet.descriptionKey), findsNothing);
+
+      await _pump(tester, buildQuest(type: 'enemy', description: ''));
+      expect(find.byKey(QuestInfoSheet.descriptionKey), findsNothing);
+    });
+
+    testWidgets('a long announcement scrolls without overflow (D-05)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: _goblinPack(),
+          description: List.filled(40, announcement).join(' '),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final description = find.byKey(QuestInfoSheet.descriptionKey);
+      expect(description, findsOneWidget);
+      expect(
+        find.ancestor(
+          of: description,
+          matching: find.descendant(
+            of: find.byType(QuestInfoSheet),
+            matching: find.byType(SingleChildScrollView),
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
   group('cost and title', () {
     testWidgets('an enemy never shows the cost line', (tester) async {
       await _pump(
