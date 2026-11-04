@@ -79,8 +79,8 @@ class QuestEnemy extends Equatable {
 }
 
 /// Righe «Nx nome» (formato dei «Consigliati», D-02): un tipo per riga,
-/// voci dello stesso nemico sommate al primo posto, ordine del BE; un solo
-/// nemico ×1 è il nome nudo.
+/// voci dello stesso nemico sommate al primo posto, ordine del BE; il nome
+/// nudo solo se la quest ha un solo nemico in tutto (anche contando i senza nome).
 List<String> enemyLinesOf(List<QuestEnemy> enemies) {
   final names = <String, String>{};
   final quantities = <String, int>{};
@@ -91,7 +91,8 @@ List<String> enemyLinesOf(List<QuestEnemy> enemies) {
     names.putIfAbsent(id, () => name);
     quantities[id] = (quantities[id] ?? 0) + entry.quantity;
   }
-  if (names.length == 1 && quantities.values.single == 1) {
+  final total = enemies.fold<int>(0, (sum, entry) => sum + entry.quantity);
+  if (names.length == 1 && total == 1) {
     return List.unmodifiable(names.values);
   }
   return List.unmodifiable([
