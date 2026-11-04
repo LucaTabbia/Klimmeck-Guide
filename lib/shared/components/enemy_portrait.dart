@@ -7,7 +7,8 @@ import 'cached_svg.dart';
 
 /// Ritratto di un nemico dal suo `imagePath` (D-03): SVG da [CachedSvg],
 /// raster da [CachedNetworkImage]; percorso non risolvibile o download
-/// fallito → nessun riquadro (mai un segnaposto nel bundle, mai uno spinner).
+/// fallito → nessun riquadro (mai un segnaposto nel bundle). Raster: nessuno
+/// spinner; SVG: lo spinner di [CachedSvg] mentre carica.
 /// Unico widget per il foglio quest e il foglio esiti; la Phase 17 lo scurirà.
 class EnemyPortrait extends StatelessWidget {
   const EnemyPortrait({
@@ -32,20 +33,21 @@ class EnemyPortrait extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = enemyPortraitUrl(imagePath);
     if (url == null) return const SizedBox.shrink();
-    return Semantics(label: semanticLabel, image: true, child: _image(url));
-  }
-
-  Widget _image(String url) {
     if (Uri.parse(url).path.toLowerCase().endsWith('.svg')) {
-      return CachedSvg(url: url, height: height);
+      return _announced(CachedSvg(url: url, height: height));
     }
     return CachedNetworkImage(
       imageUrl: url,
       height: height,
       fit: BoxFit.contain,
       cacheManager: cacheManager,
+      imageBuilder: (_, image) =>
+          _announced(Image(image: image, height: height, fit: BoxFit.contain)),
       placeholder: (_, _) => const SizedBox.shrink(),
       errorWidget: (_, _, _) => const SizedBox.shrink(),
     );
   }
+
+  Widget _announced(Widget picture) =>
+      Semantics(label: semanticLabel, image: true, child: picture);
 }
