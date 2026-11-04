@@ -454,6 +454,65 @@ void main() {
     });
   });
 
+  group('fixed types (QGEN-04)', () {
+    testWidgets(
+      'dungeon shows its stage enemies and Consigliati in the combat family (D-11)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'dungeon',
+            enemies: [
+              questEnemyJson(id: 'goblin', name: 'Goblin', quantity: 3, xp: 7),
+              questEnemyJson(id: 'goblin-chief', name: 'Capo goblin', xp: 21),
+              questEnemyJson(id: 'troll', name: 'Troll', xp: 126),
+            ],
+            recommendedLoot: [_potion],
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+        final lines = ['3x Goblin', '1x Capo goblin', '1x Troll'];
+        final tops = [
+          for (final line in lines) tester.getTopLeft(_inCombat(line)).dy,
+        ];
+        expect(tops[0], lessThan(tops[1]));
+        expect(tops[1], lessThan(tops[2]));
+        expect(_inCombat('Consigliati'), findsOneWidget);
+        expect(find.textContaining('Qualsiasi rango'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'crime and guard show the service family with the announcement and no portrait (D-11, D-16)',
+      (tester) async {
+        for (final type in ['crime', 'guard']) {
+          await _pump(
+            tester,
+            buildQuest(type: type, description: 'Serve una mano discreta.'),
+          );
+
+          expect(tester.takeException(), isNull, reason: type);
+          expect(
+            find.byKey(QuestInfoSheet.serviceFamilyKey),
+            findsOneWidget,
+            reason: type,
+          );
+          expect(
+            find.byKey(QuestInfoSheet.descriptionKey),
+            findsOneWidget,
+            reason: type,
+          );
+          expect(
+            find.byKey(QuestInfoSheet.enemyPortraitKey),
+            findsNothing,
+            reason: type,
+          );
+        }
+      },
+    );
+  });
+
   group('cost and title', () {
     testWidgets('an enemy never shows the cost line', (tester) async {
       await _pump(

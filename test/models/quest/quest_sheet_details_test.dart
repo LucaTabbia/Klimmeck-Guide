@@ -42,6 +42,19 @@ void main() {
         expect(questSheetFamilyOf(type), QuestSheetFamily.service);
       }
     });
+
+    test(
+      'crime and guard stay in the service family, dungeon in combat, without alignment (D-11)',
+      () {
+        expect(questSheetFamilyOf(QuestType.crime), QuestSheetFamily.service);
+        expect(questSheetFamilyOf(QuestType.guard), QuestSheetFamily.service);
+        expect(questSheetFamilyOf(QuestType.dungeon), QuestSheetFamily.combat);
+
+        final crime = QuestSheetDetails.of(buildQuest(type: 'crime'));
+        expect(crime.enemyLines, isEmpty);
+        expect(crime.slotLines, isEmpty);
+      },
+    );
   });
 
   group('required title', () {
