@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-11-04T16:05:57.000Z"
-last_activity: 2026-11-04 -- Phase 14 discuss (joint with BE Phase 13): 14-CONTEXT D-01..D-13 + DISCUSSION-LOG written, REQUIREMENTS/ROADMAP amended (QGEN-01/02/03, QGEN-05/06 added), branch feat/14-quest-generation from develop 9993a3c
+status: executing
+last_updated: "2026-11-04T17:31:12.174Z"
+last_activity: 2026-11-04 -- Phase 14 planned: 11 plans (14-01..14-09 on mocks before the BE Phase 13 merge, 14-10 schema gate and 14-11 device E2E gated), research + CONTEXT amendments C1-C5, checker passed after 3 one-line fixes; BE Phase 13 planned in the same session
 progress:
   total_phases: 17
   completed_phases: 12
-  total_plans: 122
-  completed_plans: 112
+  total_plans: 133
+  completed_plans: 122
   percent: 92
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 14 (Quest Generation, frontend companion) — CONTEXT GATHERED (2026-11-04, joint discuss with the BE Phase 13 from this repo) on `feat/14-quest-generation` (from `develop` `9993a3c`, the merge of PR #37): `14-CONTEXT.md` D-01..D-13 and `14-DISCUSSION-LOG.md` written, QGEN-01/02/03 amended, QGEN-05/06 added (announcement on the sheet, jewels' `accessoryUseTypes`); not planned yet
-Plan: 0 of ? (not planned yet)
+Phase: 14 (Quest Generation, frontend companion) — PLANNED (2026-11-04) on `feat/14-quest-generation` (from `develop` `9993a3c`): 11 plans in a linear chain (`14-01`..`14-11`), `14-RESEARCH.md` + CONTEXT amended (C1–C5), `14-REPO-RULES.md`, `14-VALIDATION.md` (29 rows); 14-10/14-11 gated by the BE Phase 13 merge on BE `develop`
+Plan: 0 of 11
 Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
-Next Phase: plan FE 14 and BE 13 in parallel (`/gsd-plan-phase 14` here, `/gsd-plan-phase 13` in the BE repo); the FE plans before the BE merge run on mocks with the BE CONTEXT names, the schema gate and the device E2E run after the BE Phase 13 PR merges on BE `develop`; then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14 context gathered (2026-11-04) — ready to plan; BE Phase 13 context gathered in the same session (`../Klimmeck-Guide-BE/.planning/phases/13-generazione-quest/13-CONTEXT.md`, D-01..D-26); branch `feat/14-quest-generation` created locally, push pending (SSH agent unavailable in the session)
-Last activity: 2026-11-04 -- Phase 14 discuss (joint with BE Phase 13): 14-CONTEXT D-01..D-13 + DISCUSSION-LOG written, REQUIREMENTS/ROADMAP amended (QGEN-01/02/03, QGEN-05/06 added), branch feat/14-quest-generation from develop 9993a3c
+Next Phase: execute FE 14 (plans 01–09 now, 10–11 after the BE Phase 13 merge) in parallel with BE 13; then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 14 planned (2026-11-04) — ready to execute: `/gsd-execute-phase 14` runs 14-01..14-09 on mocks while the BE Phase 13 executes; 14-10 and 14-11 wait for the BE PR merge (`grep -c QuestEnemy` on `origin/develop:src/schema.gql`); branch not pushed yet (SSH agent unavailable in the session)
+Last activity: 2026-11-04 -- Phase 14 planned: 11 plans (14-01..14-09 on mocks before the BE Phase 13 merge, 14-10 schema gate and 14-11 device E2E gated), research + CONTEXT amendments C1-C5, checker passed after 3 one-line fixes; BE Phase 13 planned in the same session
 
 ## Current Milestone
 
