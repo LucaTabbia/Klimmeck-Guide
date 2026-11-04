@@ -49,6 +49,8 @@ class QuestInfoSheet extends StatelessWidget {
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
   static const int _petPrizeMaxLines = 3;
+  static const double _coinsShare = 0.5;
+  static const double _coinsShareBesideItemAndCompanion = 0.35;
 
   static const double _aspectRatio = 315 / 375;
   static const double _heightMultiplier = 1.5;
@@ -350,8 +352,14 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   /// Il compagno sta nella riga dei premi: sotto, le monete non ci stanno (D-06).
+  /// La carta resta quadrata; con oggetto e compagno le monete cedono spazio.
   Widget _prizeRow(QuestSheetDetails details, BoxConstraints constraints) {
     final prizes = quest!.prizes!;
+    final hasItemAndCompanion =
+        prizes.prizeItem != null && details.petPrizeLine != null;
+    final coinsShare = hasItemAndCompanion
+        ? _coinsShareBesideItemAndCompanion
+        : _coinsShare;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -359,10 +367,11 @@ class QuestInfoSheet extends StatelessWidget {
           CoinsDisplay(
             coins: prizes.prizeCoins!,
             height: constraints.maxHeight,
-            width: constraints.maxWidth * 0.5,
+            width: constraints.maxWidth * coinsShare,
           ),
         if (prizes.prizeItem != null)
-          Flexible(
+          SizedBox(
+            width: constraints.maxHeight,
             child: prizes.prizeItem!.isEquipment
                 ? EquipmentItemCard(
                     isSelected: false,
