@@ -445,13 +445,16 @@ Plans:
 **Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
 **Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 10 (Locanda panel), BE Phase 13
 **Scope**: M
-**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04
+**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04, QGEN-05, QGEN-06
 **Success Criteria** (what must be TRUE):
   1. Combat quest sheets list every enemy with its quantity («3 × Goblin, 1 × Hobgoblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
   2. The result sheet shows the enemies fought, for standard-lane and ambush outcomes.
   3. From the Locanda the innkeeper triggers «Genera missioni» (BE `generateQuests`) with explicit confirmation and sees the outcome (how many quests, or none); `FORBIDDEN` mapped inline.
   4. Fixed `crime` and `guard` quests (BE Phase 11) render with the service family layout without any alignment mechanic; `dungeon` renders as combat.
+  5. Every quest sheet shows the announcement (`infos.description`) under the title when present; combat sheets show «Consigliati» under the enemies; the enemy portrait loads from the network and stays hidden when missing (IN-03 closed).
+  6. Rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` on the item sheet; the companion prize and reward appear as a line.
 **Decisions made (2026-10-29)**: hard replacement of `enemy` (gated plans align before the BE merge, pattern 08-12/09-12); `hunt` and `dungeon` are fixed quests, never generated.
+**Decisions made (2026-11-04, `14-CONTEXT.md` D-01..D-13, joint discuss with the BE Phase 13)**: one portrait of the strongest enemy + «Nx nome» lines per type; portrait loaded from the network and hidden when missing; «Consigliati» in the combat body; announcement `infos.description` under the title in every family; result sheet with the enemies fought and «Esplorazione: tappa k di N» for a dungeon; «Genera missioni» button at the top of the Locanda list with the shared confirmation dialog, outcome in SnackBar and `FORBIDDEN` closing the panel (Phase 10 D-04); rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` (user rule of 2026-11-04); companion prize/reward lines (technical default). The BE contract also replaces `QuestResult.enemy` with `enemies` + `stagesCleared`/`stagesTotal` and adds `prizes.pet`, `rewards.pet`, `accessoryUseTypes`.
 **Backend prerequisite**: BE Phase 13 merged on BE `develop`.
 **Plans**: TBD
 
