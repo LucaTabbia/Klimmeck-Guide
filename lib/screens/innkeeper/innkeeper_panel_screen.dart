@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/results_recap_dialog.dart';
@@ -43,6 +44,16 @@ class InnkeeperPanelScreen extends StatelessWidget {
   static const String generateTitle = 'Genera missioni';
   static const String generateBody = 'Generare nuove missioni nel mondo?';
   static const String generateConfirmLabel = 'Genera';
+  static const String noQuestsGeneratedMessage = 'Nessuna missione da generare';
+  static const String generateFailedMessage =
+      'Non è stato possibile generare le missioni. Riprova.';
+
+  /// Copy provvisoria dell'esito (D-09).
+  static String generatedMessage(int created) => switch (created) {
+    0 => noQuestsGeneratedMessage,
+    1 => 'Generata 1 missione',
+    _ => 'Generate $created missioni',
+  };
 
   /// Apre il form di completamento; iniettabile per guidare gli esiti nei test.
   final Future<CompletionExit?> Function(BuildContext, RequestCard)
@@ -65,9 +76,14 @@ class InnkeeperPanelScreen extends StatelessWidget {
         BlocListener<TeleportModeCubit, TeleportModeState>(
           listenWhen: (previous, current) =>
               current is TeleportPreparationFailed && previous != current,
-          listener: (context, _) => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(teleportUnavailableMessage)),
-          ),
+          listener: (context, _) =>
+              _showSnackBar(context, teleportUnavailableMessage),
+        ),
+        BlocListener<QuestGenerationCubit, QuestGenerationState>(
+          listenWhen: (_, current) =>
+              current is QuestGenerationSucceeded ||
+              current is QuestGenerationFailed,
+          listener: _onGenerationOutcome,
         ),
       ],
       child: PopScope(
@@ -93,6 +109,29 @@ class InnkeeperPanelScreen extends StatelessWidget {
     closeInnkeeperPanel(context);
     messenger.showSnackBar(const SnackBar(content: Text(unavailableMessage)));
   }
+
+  /// Esito in SnackBar come le altre azioni del pannello; `FORBIDDEN` chiude
+  /// la Locanda come Phase 10 D-04 (D-09, D-14).
+  static void _onGenerationOutcome(
+    BuildContext context,
+    QuestGenerationState state,
+  ) {
+    switch (state) {
+      case QuestGenerationSucceeded(:final created):
+        _showSnackBar(context, generatedMessage(created));
+      case QuestGenerationFailed(failure: InnkeeperFailure.forbidden):
+        _closeUnavailable(context);
+      case QuestGenerationFailed():
+        _showSnackBar(context, generateFailedMessage);
+      case QuestGenerationIdle() || QuestGenerationSubmitting():
+        return;
+    }
+  }
+
+  static void _showSnackBar(BuildContext context, String message) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
 
   /// Conferma esplicita (D-09): il GM forza una corsa normale del generatore.
   static Future<void> _confirmGeneration(BuildContext context) async {
