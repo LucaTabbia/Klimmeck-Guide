@@ -457,7 +457,7 @@ Plans:
 **Decisions made (2026-11-04, `14-CONTEXT.md` D-01..D-13, joint discuss with the BE Phase 13)**: one portrait of the strongest enemy + «Nx nome» lines per type; portrait loaded from the network and hidden when missing; «Consigliati» in the combat body; announcement `infos.description` under the title in every family; result sheet with the enemies fought and «Esplorazione: tappa k di N» for a dungeon; «Genera missioni» button at the top of the Locanda list with the shared confirmation dialog, outcome in SnackBar and `FORBIDDEN` closing the panel (Phase 10 D-04); rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` (user rule of 2026-11-04); companion prize/reward lines (technical default). The BE contract also replaces `QuestResult.enemy` with `enemies` + `stagesCleared`/`stagesTotal` and adds `prizes.pet`, `rewards.pet`, `accessoryUseTypes`.
 **Backend prerequisite**: BE Phase 13 merged on BE `develop`.
 **Plans**: 11 plans (planned 2026-11-04; 14-01..14-09 run before the BE Phase 13 merge on fixtures and mocks with the contract names of `14-REPO-RULES.md`, 14-10 and 14-11 are gated by it)
-- [ ] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
+- [x] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
 - [ ] 14-02-PLAN.md — Result-side models: `QuestResult.enemies` (bad entries dropped), `stagesCleared`/`stagesTotal`, `QuestRewards.pet` counted by `isEmpty`, dungeon result fixture
 - [ ] 14-03-PLAN.md — Fragments: `QuestFragment` (`description`, `enemies { quantity enemy { id name imagePath xp } }`, `prizes.pet`) and `QuestResultFragment` (`enemies`, stage counters, `rewards.pet`); the old `enemy` selection removed in the same commit
 - [ ] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
@@ -526,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 0/11 | Planned | - |
+| 14. Quest Generation (companion) | 1/11 | In Progress | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
