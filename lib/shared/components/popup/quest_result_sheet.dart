@@ -36,11 +36,13 @@ class QuestResultSheet extends StatefulWidget {
   static const Key deadNameKey = ValueKey('questResult.deadName');
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
+  static const Key stagesKey = ValueKey('questResult.stages');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
   static const Key rewardsKey = ValueKey('questResult.rewards');
+  static const Key petRewardKey = ValueKey('questResult.petReward');
   static const Key xpKey = ValueKey('questResult.xp');
   static const Key levelKey = ValueKey('questResult.level');
   static const Key titleKey = ValueKey('questResult.title');
@@ -151,6 +153,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._header(),
         ..._deathIdentity(),
         ..._enemies(),
+        ..._line(_stagesText(), QuestResultSheet.stagesKey),
         ..._hp(),
         ..._injuries(),
         ..._consumables(),
@@ -325,6 +328,12 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
             layout: CoinLayoutType.row,
           ),
         ..._itemRows(_result.rewards.items),
+        if (_petRewardText() case final text?)
+          Text(
+            text,
+            key: QuestResultSheet.petRewardKey,
+            style: _theme.bodyMedium,
+          ),
       ],
     );
   }
@@ -369,6 +378,20 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         child: Text(text, key: key, style: _theme.bodyMedium),
       ),
     ];
+  }
+
+  /// Contatori del BE per una dungeon (BE D-12): il FE li stampa, non li calcola.
+  String? _stagesText() {
+    final total = _result.stagesTotal;
+    if (total == null) return null;
+    return 'Esplorazione: tappa ${_result.stagesCleared ?? 0} di $total';
+  }
+
+  /// Compagno vinto (D-07), copy provvisoria.
+  String? _petRewardText() {
+    final name = _result.rewards.pet?.name;
+    if (name == null || name.isEmpty) return null;
+    return 'Compagno ottenuto: $name';
   }
 
   String? _xpText() {
