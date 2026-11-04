@@ -4,7 +4,8 @@ import 'location_fragment.dart';
 import 'loot_fragment.dart';
 
 /// Selezione di una quest condivisa dalla lista e dalla subscription
-/// `questUpdated`: una sola forma, un solo parser.
+/// `questUpdated`: una sola forma, un solo parser. Nemici con quantità e xp
+/// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06).
 class QuestFragment {
   static const String fields =
       '''
@@ -16,10 +17,15 @@ class QuestFragment {
       timeToComplete
       title
       type
-      enemy {
-        id
-        name
-        imagePath
+      description
+      enemies {
+        quantity
+        enemy {
+          id
+          name
+          imagePath
+          xp
+        }
       }
       relatedLore {
         id
@@ -79,6 +85,10 @@ class QuestFragment {
             power
           }
         }
+      }
+      pet {
+        id
+        name
       }
     }
   ''';
