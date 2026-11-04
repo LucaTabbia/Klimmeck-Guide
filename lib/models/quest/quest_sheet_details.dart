@@ -2,6 +2,7 @@ import 'dart:math' show max, min;
 
 import 'package:equatable/equatable.dart';
 
+import '../enemy.dart';
 import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
 import 'adventurer_slot.dart';
@@ -9,6 +10,7 @@ import 'quest.dart';
 import 'quest_availability.dart';
 import 'quest_blocked_reason.dart';
 import 'quest_cost_line.dart';
+import 'quest_enemy.dart';
 import 'quest_lane.dart';
 import 'quest_viewer.dart';
 import 'registered_adventurer.dart';
@@ -57,11 +59,15 @@ class QuestSheetDetails extends Equatable {
     required this.blockedReason,
     required this.recommendedLootLines,
     required this.loreParagraphs,
+    required this.enemyLines,
+    required this.strongestEnemy,
+    required this.petPrizeLine,
   });
 
   factory QuestSheetDetails.of(Quest quest, {QuestViewer? viewer}) {
     final type = quest.infos?.type;
     final minTitle = quest.requirements?.minTitle;
+    final enemies = quest.infos?.enemies ?? const <QuestEnemy>[];
     return QuestSheetDetails(
       family: questSheetFamilyOf(type),
       requiredTitleText: _requiredTitleText(type, minTitle),
@@ -95,6 +101,9 @@ class QuestSheetDetails extends Equatable {
         for (final lore in quest.infos?.relatedLore ?? const [])
           if (lore.description?.isNotEmpty ?? false) lore.description!,
       ]),
+      enemyLines: enemyLinesOf(enemies),
+      strongestEnemy: strongestEnemyOf(enemies),
+      petPrizeLine: _petPrizeLine(quest.prizes?.pet?.name),
     );
   }
 
@@ -107,6 +116,11 @@ class QuestSheetDetails extends Equatable {
   final List<String> recommendedLootLines;
   final List<String> loreParagraphs;
 
+  /// Righe «Nx nome» nell'ordine del BE (D-02); il ritratto usa [strongestEnemy].
+  final List<String> enemyLines;
+  final Enemy? strongestEnemy;
+  final String? petPrizeLine;
+
   @override
   List<Object?> get props => [
     family,
@@ -117,8 +131,15 @@ class QuestSheetDetails extends Equatable {
     blockedReason,
     recommendedLootLines,
     loreParagraphs,
+    enemyLines,
+    strongestEnemy,
+    petPrizeLine,
   ];
 }
+
+/// Copy provvisoria (D-06): solo testo, nessuna immagine.
+String? _petPrizeLine(String? name) =>
+    name == null || name.isEmpty ? null : 'Compagno in premio: $name';
 
 String? _requiredTitleText(QuestType? type, TitleType? minTitle) {
   if (minTitle == null) return null;

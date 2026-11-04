@@ -8,7 +8,6 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../models/quest/quest.dart';
-import '../../../models/quest/quest_enemy.dart';
 import '../../../models/quest/quest_sheet_details.dart';
 import '../../../models/quest/quest_viewer.dart';
 import '../cards/equipment_item_card.dart';
@@ -146,7 +145,7 @@ class QuestInfoSheet extends StatelessWidget {
   );
 
   Widget _combatBody(QuestSheetDetails details) {
-    final enemy = strongestEnemyOf(quest!.infos?.enemies ?? const []);
+    final enemy = details.strongestEnemy;
     return Row(
       key: combatFamilyKey,
       children: [
