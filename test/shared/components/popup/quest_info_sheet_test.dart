@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -18,6 +19,35 @@ const _enemy = {
   'name': 'Arbusto maligno',
   'imagePath': 'assets/images/arbustoMaligno.png',
 };
+
+const _goblinPortrait = 'v1/goblin_test.svg';
+const _goblinChiefPortrait = 'v1/goblin-chief_test.svg';
+
+const _potion = {
+  'quantity': 2,
+  'item': {'id': 'l-1', 'name': 'Pozione', 'description': 'd'},
+};
+
+List<Map<String, dynamic>> _goblinPack() => [
+  questEnemyJson(
+    id: 'goblin',
+    name: 'Goblin',
+    imagePath: _goblinPortrait,
+    xp: 7,
+    quantity: 3,
+  ),
+  questEnemyJson(
+    id: 'goblin-chief',
+    name: 'Capo goblin',
+    imagePath: _goblinChiefPortrait,
+    xp: 21,
+  ),
+];
+
+Finder _inCombat(String text) => find.descendant(
+  of: find.byKey(QuestInfoSheet.combatFamilyKey),
+  matching: find.text(text),
+);
 
 Future<void> _pump(
   WidgetTester tester,
@@ -48,7 +78,13 @@ Color? _colorOf(WidgetTester tester, Finder finder) =>
     tester.widget<Text>(finder).style?.color;
 
 void main() {
-  setUp(() => seedSvgCache([CloudinaryAssets.emptySheet]));
+  setUp(
+    () => seedSvgCache([
+      CloudinaryAssets.emptySheet,
+      _goblinPortrait,
+      _goblinChiefPortrait,
+    ]),
+  );
 
   group('families', () {
     const expected = {
@@ -87,7 +123,36 @@ void main() {
   });
 
   group('combat', () {
-    testWidgets('shows the enemy image, name and required time', (
+    testWidgets('shows the portrait of the strongest enemy (D-02, D-03)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
+
+      final portrait = find.byKey(QuestInfoSheet.enemyPortraitKey);
+      expect(portrait, findsOneWidget);
+      final svg = tester.widget<CachedSvg>(
+        find.descendant(of: portrait, matching: find.byType(CachedSvg)),
+      );
+      expect(svg.url, CloudinaryAssets.url(_goblinChiefPortrait));
+      expect(find.textContaining('Tempo richiesto: '), findsOneWidget);
+    });
+
+    testWidgets('lists one line per enemy type in BE order (D-02)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
+
+      final goblins = _inCombat('3x Goblin');
+      final chief = _inCombat('1x Capo goblin');
+      expect(goblins, findsOneWidget);
+      expect(chief, findsOneWidget);
+      expect(
+        tester.getTopLeft(goblins).dy,
+        lessThan(tester.getTopLeft(chief).dy),
+      );
+    });
+
+    testWidgets('a single enemy with quantity 1 reads the bare name (D-02)', (
       tester,
     ) async {
       await _pump(
@@ -101,9 +166,85 @@ void main() {
       );
 
       expect(find.text('Arbusto maligno'), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget);
-      expect(find.textContaining('Tempo richiesto: '), findsOneWidget);
+      expect(find.text('1x Arbusto maligno'), findsNothing);
     });
+
+    testWidgets(
+      'hides the portrait of an unresolvable imagePath and keeps the name (D-03)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'enemy',
+            enemies: [
+              {'quantity': 1, 'enemy': _enemy},
+            ],
+          ),
+        );
+
+        expect(find.byKey(QuestInfoSheet.enemyPortraitKey), findsNothing);
+        expect(find.byType(Image), findsNothing);
+        expect(find.text('Arbusto maligno'), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows «Consigliati» under the enemy lines (D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: _goblinPack(),
+          recommendedLoot: [_potion],
+        ),
+      );
+
+      final title = _inCombat('Consigliati');
+      expect(title, findsOneWidget);
+      expect(_inCombat('2x Pozione'), findsOneWidget);
+      expect(
+        tester.getTopLeft(title).dy,
+        greaterThan(tester.getTopLeft(_inCombat('1x Capo goblin')).dy),
+      );
+    });
+
+    testWidgets('omits «Consigliati» in combat when the list is empty (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
+
+      expect(find.text('Consigliati'), findsNothing);
+    });
+
+    testWidgets(
+      'many enemies and Consigliati do not overflow in landscape (D-02, D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'enemy',
+            enemies: [
+              for (var i = 0; i < 6; i++)
+                questEnemyJson(id: 'e-$i', name: 'Nemico $i', quantity: 3),
+            ],
+            recommendedLoot: [
+              for (var i = 0; i < 4; i++)
+                {
+                  'quantity': 1,
+                  'item': {
+                    'id': 'l-$i',
+                    'name': 'Oggetto $i',
+                    'description': 'd',
+                  },
+                },
+            ],
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('aid shows the enemy name and no cost line', (tester) async {
       await _pump(
