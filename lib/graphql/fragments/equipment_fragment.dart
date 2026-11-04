@@ -1,33 +1,6 @@
-import 'coins_fragment.dart';
-import 'damage_fragment.dart';
 import 'spell_fragment.dart';
 
 class EquipmentFragment {
-  static const String name = 'EquipmentItemFields';
-
-  static String get definition =>
-      '''
-    fragment $name on EquipmentItem {
-      id
-      name
-      description
-      rarity
-      equipType
-      buyPrice {
-        ${CoinsFragment.fields}
-      }
-      sellPrice {
-        ${CoinsFragment.fields}
-      }
-      damages {
-        ${DamagesFragment.fields}
-      }
-      addedSpell {
-        ${SpellFragment.simpleFields}
-      }
-    }
-  ''';
-
   static const String fields = '''
     id
     name
