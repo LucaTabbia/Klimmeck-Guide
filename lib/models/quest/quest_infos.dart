@@ -50,9 +50,7 @@ class QuestInfos with EquatableMixin {
     "markerLocation": markerLocation?.toJson(),
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "timeToComplete": timeToComplete,
-    "enemies": [
-      for (final e in enemies) {"enemy": e.enemy.id, "quantity": e.quantity},
-    ],
+    "enemies": enemies.map((e) => e.toJson()).toList(),
     "description": description,
   };
 
