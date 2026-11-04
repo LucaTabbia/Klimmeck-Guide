@@ -70,6 +70,10 @@ void main() {
     expect(cityShop, contains('... on LootItem'));
   });
 
+  test('GetCityShop equipment selects accessoryUseTypes (D-15)', () {
+    expect(cityShop, contains('equipType accessoryUseTypes'));
+  });
+
   test('GetCityShop selects pets through PetFragment without imagePath '
       '(D-13)', () {
     expect(cityShop, contains('pets { $petFields }'));
