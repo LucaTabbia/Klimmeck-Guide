@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -34,6 +35,7 @@ class QuestResultSheet extends StatefulWidget {
   static const Key questTypeKey = ValueKey('questResult.questType');
   static const Key deadNameKey = ValueKey('questResult.deadName');
   static const Key enemyKey = ValueKey('questResult.enemy');
+  static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
   static const Key consumablesKey = ValueKey('questResult.consumables');
@@ -148,7 +150,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
       children: [
         ..._header(),
         ..._deathIdentity(),
-        ..._enemy(),
+        ..._enemies(),
         ..._hp(),
         ..._injuries(),
         ..._consumables(),
@@ -221,27 +223,28 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     ];
   }
 
-  List<Widget> _enemy() {
-    final enemy = strongestEnemyOf(_result.enemies);
-    if (enemy == null) return const [];
+  /// Nemici affrontati (D-07): ritratto del più forte se risolvibile (D-03),
+  /// righe «Nx nome» nell'ordine del BE (D-02). Stesso blocco per le imboscate
+  /// (Phase 16).
+  List<Widget> _enemies() {
+    final lines = enemyLinesOf(_result.enemies);
+    if (lines.isEmpty) return const [];
+    final portraitPath = strongestEnemyOf(_result.enemies)?.imagePath;
     return [
       Column(
         key: QuestResultSheet.enemyKey,
         children: [
-          if (enemy.imagePath != null)
+          if (EnemyPortrait.canShow(portraitPath))
             SizedBox(
               height: _enemyImageHeight,
-              child: Image.asset(
-                enemy.imagePath!,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              child: EnemyPortrait(
+                key: QuestResultSheet.enemyPortraitKey,
+                imagePath: portraitPath,
+                height: _enemyImageHeight,
               ),
             ),
-          Text(
-            enemy.name ?? '',
-            textAlign: TextAlign.center,
-            style: _theme.bodyMedium,
-          ),
+          for (final line in lines)
+            Text(line, textAlign: TextAlign.center, style: _theme.bodyMedium),
         ],
       ),
     ];
