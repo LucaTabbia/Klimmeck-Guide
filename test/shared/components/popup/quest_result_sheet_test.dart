@@ -52,6 +52,8 @@ TextButton _button(WidgetTester tester) =>
 Finder _inSection(Key key, Finder matching) =>
     find.descendant(of: find.byKey(key), matching: matching);
 
+const String _trollPortrait = 'v1/troll_test.svg';
+
 void main() {
   setUp(
     () => seedSvgCache([
@@ -62,6 +64,7 @@ void main() {
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
+      _trollPortrait,
     ]),
   );
 
@@ -137,6 +140,76 @@ void main() {
             .style
             ?.color,
         KlimmeckGuideTheme.darkBronze,
+      );
+    });
+  });
+
+  group('enemies fought', () {
+    testWidgets('lists the enemies fought with quantities in BE order (D-07)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      final lines = ['3x Goblin', '1x Capo goblin', '1x Troll'];
+      for (final line in lines) {
+        expect(
+          _inSection(QuestResultSheet.enemyKey, find.text(line)),
+          findsOneWidget,
+        );
+      }
+      final tops = [
+        for (final line in lines) tester.getTopLeft(find.text(line)).dy,
+      ];
+      expect(tops[0], lessThan(tops[1]));
+      expect(tops[1], lessThan(tops[2]));
+    });
+
+    testWidgets('a single enemy fought reads the bare name (D-07, D-02)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Lupo grigio')),
+        findsOneWidget,
+      );
+      expect(find.text('1x Lupo grigio'), findsNothing);
+    });
+
+    testWidgets('shows the portrait of the strongest enemy fought (D-07, '
+        'D-03)', (tester) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        _inSection(
+          QuestResultSheet.enemyKey,
+          find.byKey(QuestResultSheet.enemyPortraitKey),
+        ),
+        findsOneWidget,
+      );
+      final portrait = tester.widget<CachedSvg>(
+        _inSection(QuestResultSheet.enemyPortraitKey, find.byType(CachedSvg)),
+      );
+      expect(portrait.url, CloudinaryAssets.url(_trollPortrait));
+    });
+
+    testWidgets('hides an unresolvable portrait and keeps the lines (D-03)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsNothing);
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.byType(Image)),
+        findsNothing,
+      );
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Lupo grigio')),
+        findsOneWidget,
       );
     });
   });
