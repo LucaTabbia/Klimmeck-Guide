@@ -41,6 +41,7 @@ class QuestInfoSheet extends StatelessWidget {
   static const Key blockedReasonKey = ValueKey('questSheet.blockedReason');
   static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
   static const Key abandonKey = ValueKey('questSheet.abandon');
+  static const Key descriptionKey = ValueKey('questSheet.description');
   static const Key enemyPortraitKey = ValueKey('questSheet.enemyPortrait');
   static const Key recommendedLootKey = ValueKey('questSheet.recommendedLoot');
   static const String recommendedLootTitle = 'Consigliati';
@@ -112,6 +113,7 @@ class QuestInfoSheet extends StatelessWidget {
             style: theme.headlineLarge,
           ),
         ),
+        ..._description(theme),
         Expanded(
           flex: 4,
           child: switch (details.family) {
@@ -131,6 +133,24 @@ class QuestInfoSheet extends StatelessWidget {
         if (onAbandon != null) _abandonAction(theme),
       ],
     );
+  }
+
+  /// Annuncio del committente sotto il titolo, in ogni famiglia (D-05).
+  List<Widget> _description(KlimmeckGuideTheme theme) {
+    final text = quest!.infos?.description;
+    if (text == null || text.isEmpty) return const [];
+    return [
+      Flexible(
+        child: SingleChildScrollView(
+          child: Text(
+            text,
+            key: descriptionKey,
+            textAlign: TextAlign.center,
+            style: theme.bodyLarge.copyWith(fontStyle: FontStyle.italic),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _abandonAction(KlimmeckGuideTheme theme) => Semantics(
