@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/column_layout_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
@@ -221,7 +222,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
   }
 
   List<Widget> _enemy() {
-    final enemy = _result.enemy;
+    final enemy = strongestEnemyOf(_result.enemies);
     if (enemy == null) return const [];
     return [
       Column(
