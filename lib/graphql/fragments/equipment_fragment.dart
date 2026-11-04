@@ -5,7 +5,8 @@ import 'spell_fragment.dart';
 class EquipmentFragment {
   static const String name = 'EquipmentItemFields';
 
-  static String get definition => '''
+  static String get definition =>
+      '''
     fragment $name on EquipmentItem {
       id
       name
@@ -33,6 +34,7 @@ class EquipmentFragment {
     description
     rarity
     equipType
+    accessoryUseTypes
     buyPrice {
       gold
       silver
@@ -72,12 +74,14 @@ class EquipmentFragment {
     rarity
   ''';
 
-  static String get fieldsWithFullSpell => '''
+  static String get fieldsWithFullSpell =>
+      '''
     id
     name
     description
     rarity
     equipType
+    accessoryUseTypes
     buyPrice {
       gold
       silver
@@ -127,4 +131,3 @@ class WearedEquipmentFragment {
     return slots.map((slot) => '$slot { $fields }').join('\n        ');
   }
 }
-
