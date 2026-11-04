@@ -143,6 +143,16 @@ void main() {
       expect(enemyLinesOf(enemies), ['2x Lupo']);
       expect(enemyLinesOf(_enemies([_entry('nameless', null)])), isEmpty);
     });
+
+    test('a named enemy beside unnamed ones keeps its count (D-02)', () {
+      final enemies = _enemies([
+        _entry('goblin', 'Goblin'),
+        _entry('nameless', null, quantity: 2),
+      ]);
+
+      expect(enemyLinesOf(enemies), ['1x Goblin']);
+      expect(enemyLinesOf(_enemies([_entry('goblin', 'Goblin')])), ['Goblin']);
+    });
   });
 
   group('strongestEnemyOf', () {
