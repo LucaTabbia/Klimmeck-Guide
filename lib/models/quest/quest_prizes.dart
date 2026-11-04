@@ -33,7 +33,7 @@ class QuestPrizes extends Equatable {
             json['randomLoot'].map((x) => AssetQuantity.fromJson(x)),
           )
         : null,
-    pet: _petFrom(json['pet']),
+    pet: Pet.tryFromJson(json['pet']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -72,8 +72,3 @@ AssetItem? _prizeItemFrom(Object? json) {
   if (item is! Map<String, dynamic>) return null;
   return AssetItem.fromJson(item);
 }
-
-Pet? _petFrom(Object? json) =>
-    json is Map<String, dynamic> && json['id'] is String
-    ? Pet.fromJson(json)
-    : null;

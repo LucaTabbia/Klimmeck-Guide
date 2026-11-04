@@ -19,13 +19,8 @@ class QuestRewards extends Equatable {
   factory QuestRewards.fromJson(Map<String, dynamic> json) => QuestRewards(
     coins: Coins.fromJson(json['coins'] as Map<String, dynamic>),
     items: QuestResult.assetQuantitiesFrom(json['items']),
-    pet: _petFrom(json['pet']),
+    pet: Pet.tryFromJson(json['pet']),
   );
-
-  static Pet? _petFrom(Object? json) =>
-      json is Map<String, dynamic> && json['id'] is String
-      ? Pet.fromJson(json)
-      : null;
 
   Map<String, dynamic> toJson() => {
     'coins': coins.toJson(),
