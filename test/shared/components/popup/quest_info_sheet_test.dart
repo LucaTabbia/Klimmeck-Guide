@@ -408,6 +408,52 @@ void main() {
     });
   });
 
+  group('companion prize', () {
+    const owl = {'id': 'pet-owl', 'name': 'Gufo reale'};
+
+    testWidgets(
+      'shows «Compagno in premio» when the prize carries a pet (D-06)',
+      (tester) async {
+        await _pump(tester, buildQuest(prizes: {'pet': owl}));
+
+        final line = find.byKey(QuestInfoSheet.petPrizeKey);
+        expect(line, findsOneWidget);
+        expect(
+          tester.widget<Text>(line).data,
+          'Compagno in premio: Gufo reale',
+        );
+      },
+    );
+
+    testWidgets('no companion line without a pet (D-06)', (tester) async {
+      await _pump(tester, buildQuest(prizes: {'xpPrize': 10}));
+
+      expect(find.byKey(QuestInfoSheet.petPrizeKey), findsNothing);
+    });
+
+    testWidgets('a pet prize with coins does not overflow (D-06)', (
+      tester,
+    ) async {
+      seedSvgCache([
+        CloudinaryAssets.goldCoin,
+        CloudinaryAssets.silverCoin,
+        CloudinaryAssets.copperCoin,
+      ]);
+      await _pump(
+        tester,
+        buildQuest(
+          prizes: {
+            'prizeCoins': {'gold': 1, 'silver': 0, 'copper': 0},
+            'pet': owl,
+          },
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(QuestInfoSheet.petPrizeKey), findsOneWidget);
+    });
+  });
+
   group('cost and title', () {
     testWidgets('an enemy never shows the cost line', (tester) async {
       await _pump(
