@@ -51,8 +51,8 @@ created: 2026-11-04
 | 14-05-02 | 05 | 5 | QGEN-05 | T-14-10 | long announcement scrolls, plain `Text` | widget | `flutter test test/shared/components/popup/quest_info_sheet_test.dart` | ✅ | ✅ green |
 | 14-05-03 | 05 | 5 | QGEN-01 | — | N/A | widget | `flutter test test/shared/components/popup/quest_info_sheet_test.dart test/models/quest` | ✅ | ✅ green |
 | 14-05-04 | 05 | 5 | QGEN-04 | — | N/A (proof, no production change) | widget/unit | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart` | ✅ | ✅ green |
-| 14-06-01 | 06 | 6 | QGEN-02 | T-14-13 | portrait only through `EnemyPortrait`; no `Image.asset` | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen/components` | ✅ | ⬜ pending |
-| 14-06-02 | 06 | 6 | QGEN-02, QGEN-04 | T-14-12 | counters printed, never computed | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen test/screens/innkeeper` | ✅ | ⬜ pending |
+| 14-06-01 | 06 | 6 | QGEN-02 | T-14-13 | portrait only through `EnemyPortrait`; no `Image.asset` | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen/components` | ✅ | ✅ green |
+| 14-06-02 | 06 | 6 | QGEN-02, QGEN-04 | T-14-12 | counters printed, never computed | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen test/screens/innkeeper` | ✅ | ✅ green |
 | 14-07-01 | 07 | 7 | QGEN-03 | T-14-16 | only `extensions.code`; `created` missing → FormatException | unit | `flutter test test/graphql test/tool test/repository/services/graphql/graphql_generate_quests_test.dart` | ❌ W0 | ⬜ pending |
 | 14-07-02 | 07 | 7 | QGEN-03 | T-14-14, T-14-16 | FORBIDDEN → forbidden; 15 s timeout; classifier unchanged | unit | `flutter test test/repository/innkeeper_repository_test.dart` | ✅ | ⬜ pending |
 | 14-07-03 | 07 | 7 | QGEN-03 | T-14-15 | second call ignored while submitting; distinct failure serials | bloc | `flutter test test/screens/innkeeper test/repository/innkeeper_repository_test.dart` | ❌ W0 | ⬜ pending |
