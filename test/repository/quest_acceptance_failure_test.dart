@@ -24,6 +24,7 @@ void main() {
       'FORBIDDEN': QuestAcceptanceFailure.forbidden,
       'TRAVEL_IN_PROGRESS': QuestAcceptanceFailure.travelInProgress,
       'AWAITING_AID': QuestAcceptanceFailure.awaitingAid,
+      'TRAVEL_STARVING': QuestAcceptanceFailure.starving,
       'UNAUTHENTICATED': QuestAcceptanceFailure.unauthenticated,
       'SOMETHING_ELSE': QuestAcceptanceFailure.unknown,
     };
@@ -31,6 +32,13 @@ void main() {
       test('maps $code to ${failure.name}', () {
         expect(questAcceptanceFailureFrom(_withCode(code)), failure);
       });
+    });
+
+    test('maps TRAVEL_STARVING to starving (D-06)', () {
+      expect(
+        questAcceptanceFailureFrom(_withCode('TRAVEL_STARVING')),
+        QuestAcceptanceFailure.starving,
+      );
     });
 
     test('maps a link error without code to connection', () {
