@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -44,6 +45,7 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockAuthCubit authCubit;
   late MockQuestAcceptanceCubit acceptance;
+  late MockTravelRepository travelRepository;
   late MockInAppNotificationsCubit notices;
   late StreamController<QuestAcceptanceState> acceptanceStates;
   late int accepted;
@@ -71,6 +73,13 @@ void main() {
     authCubit = MockAuthCubit();
     acceptance = MockQuestAcceptanceCubit();
     notices = MockInAppNotificationsCubit();
+    travelRepository = MockTravelRepository();
+    when(
+      () => travelRepository.previewQuest(
+        characterId: any(named: 'characterId'),
+        questId: any(named: 'questId'),
+      ),
+    ).thenAnswer((_) async => null);
     accepted = 0;
     acceptanceStates = StreamController<QuestAcceptanceState>.broadcast();
     addTearDown(acceptanceStates.close);
@@ -136,6 +145,7 @@ void main() {
       buildTestApp(
         home: MultiBlocProvider(
           providers: [
+            RepositoryProvider<TravelRepository>.value(value: travelRepository),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<AuthCubit>.value(value: authCubit),

@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/repository/services/sync/connection_restored_even
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/authenticated_shell.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -242,6 +243,25 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(travelCubit.isClosed, isTrue);
+  });
+
+  testWidgets('provides one travel repository for the travel flows (D-08)', (
+    tester,
+  ) async {
+    late TravelRepository repository;
+    late TravelCubit travelCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        repository = context.read<TravelRepository>();
+        travelCubit = context.read<TravelCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(repository, isA<TravelRepository>());
+    expect(travelCubit.state, const TravelIdle());
   });
 
   testWidgets('provides the map availability cubit and closes it on removal', (
