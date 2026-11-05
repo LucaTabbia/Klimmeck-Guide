@@ -229,12 +229,15 @@ class AuthenticatedShell extends StatelessWidget {
             repository: context.read<InnkeeperRepository>(),
           ),
         ),
+        RepositoryProvider<TravelRepository>(
+          create: (context) => TravelRepository(
+            graphQl: graphQl,
+            permissionGate: context.read<NotificationPermissionGate>(),
+          ),
+        ),
         BlocProvider<TravelCubit>(
           create: (context) => TravelCubit(
-            TravelRepository(
-              graphQl: graphQl,
-              permissionGate: context.read<NotificationPermissionGate>(),
-            ),
+            context.read<TravelRepository>(),
             clock: context.read<ServerClockService>(),
           ),
         ),
