@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-04T19:35:40.000Z"
-last_activity: 2026-11-05 -- Phase 14 complete (14-11 device E2E)
+status: planning
+last_updated: "2026-11-05T19:10:00.000Z"
+last_activity: 2026-11-05 -- Phase 15 context gathered (joint discuss with the BE Phase 14)
 progress:
   total_phases: 17
   completed_phases: 13
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 14 (Quest Generation, frontend companion) — COMPLETE 2026-11-05 on `feat/14-quest-generation` (from `develop` `9993a3c`): plans 14-01..14-11 executed; schema gate on BE `develop` `162c1f5` (BE PR #19 merged), Android device E2E complete (`14-HUMAN-UAT.md`: steps 1–8 pass, step 8 Cloudinary half skipped by the user's decision, optional step 9 and the step 3 companion prize pass); QGEN-01..06 complete; FE handoff `phases/14-quest-generation/BACKEND-NOTES.md`
-Plan: 11 of 11
+Phase: 15 (Travel Food) — CONTEXT GATHERED (2026-11-05, joint discuss with the BE Phase 14 from this repo) on `feat/15-travel-food` (from `develop` `08bd1a1`, the merge of PR #40): `15-CONTEXT.md` + `15-DISCUSSION-LOG.md` written (D-01..D-09); next `/gsd-plan-phase 15` (the plans that select the new names and the device E2E are gated by the BE Phase 14 merge)
+Plan: 0 of ? (not planned yet)
 Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
-Next Phase: FE PR `feat/14-quest-generation` → `develop` (never `main`; BE Phase 13 PR #19 already merged); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14 complete — FE PR #38 `feat/14-quest-generation` → `develop` open since 2026-11-05 (88 commits, ready for review). BE questions from the device E2E (placeholder dungeon resolver ignoring the character's strength, awaiting-aid blocking the board after a dungeon defeat, live refresh of generated quests) routed in `phases/14-quest-generation/BACKEND-NOTES.md` §5.
-Last activity: 2026-11-05 -- Phase 14 device E2E complete (14-11), QGEN-01..06 ticked, deferred threats closed, FE PR #38 opened
+Next Phase: plan FE 15 (with the BE 14 plan in the same session); FE 15 gated plans + device E2E after the BE Phase 14 merge on BE `develop`; then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 15 discussing → ready to plan — context gathered with the user (two rows on the confirmation sheet, «Viaggio» line on the quest sheets, starvation phrase everywhere, «Parti»/swipe disabled on `arrivesAlive: false`, sheet kept open on the starvation refusal, no feedback after the departure); FE PR #38 (Phase 14), #39 (heal) and #40 (quests per area follow-ups) merged on develop; BE Phase 13.1 PR #21 merged, BE PR #22 (docs, UAT outcome) open
+Last activity: 2026-11-05 -- Phase 15 context gathered (joint discuss with the BE Phase 14), branch feat/15-travel-food created from develop 08bd1a1
 
 ## Current Milestone
 
