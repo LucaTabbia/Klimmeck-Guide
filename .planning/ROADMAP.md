@@ -483,7 +483,7 @@ Plans:
 **Decisions made (2026-11-05, joint discuss with the BE Phase 14)**: two rows «Cibo»/«Vita» under «Arrivo» on the confirmation sheet; one compact «Viaggio:» line in the costs block of the combat/service sheets; the phrase «Non hai cibo a sufficienza per il viaggio» everywhere (red rows, both banners); «Parti» and the swipe disabled on `arrivesAlive: false`; the confirmation sheet stays open with a refreshed preview only on the starvation refusal; no feedback after the departure; the quest preview is a dedicated owner-only query returning a nullable `TravelPreview`. Details in `15-CONTEXT.md` (D-01..D-09).
 **Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
 **Plans**: 9 plans
-- [ ] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
+- [x] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
 - [ ] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
 - [ ] 15-03-PLAN.md — `TravelFailure.starving` / `QuestAcceptanceFailure.starving` ← `TRAVEL_STARVING`, both banners with the user phrase, no board reread, `TravelRepository.previewQuest`
 - [ ] 15-04-PLAN.md — `TravelRequoting` state machine (Starting → Requoting → Confirming), one banner without `reset()`, route and pawn kept, camera refit narrowed
@@ -537,7 +537,7 @@ Plans:
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 0/9 | Planned | - |
+| 15. Travel Food | 1/9 | In Progress | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
