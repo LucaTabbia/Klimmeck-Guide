@@ -609,6 +609,60 @@ void main() {
       expect(bounds.contains(const LatLng(10, 120)), isTrue);
     });
 
+    testWidgets(
+      'a requote keeps the camera when the new quote arrives (D-03)',
+      (tester) async {
+        await pumpWorldMap(tester, character: characterLoaded());
+        final quote = confirmingAlong(const [
+          departureWire,
+          [10.0, 30.0],
+        ]);
+        travelStates.add(quote);
+        await tester.pump();
+        await tester.pump();
+        final center = mapCamera(tester).center;
+        final zoom = mapCamera(tester).zoom;
+
+        final starting = TravelStarting.from(quote);
+        travelStates.add(starting);
+        travelStates.add(TravelRequoting.from(starting));
+        await tester.pump();
+        travelStates.add(
+          confirmingAlong(const [
+            departureWire,
+            [10.0, 70.0],
+            [10.0, 120.0],
+          ]),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(mapCamera(tester).center, center);
+        expect(mapCamera(tester).zoom, zoom);
+      },
+    );
+
+    testWidgets('a fresh quote after idle still fits the camera (D-03)', (
+      tester,
+    ) async {
+      await pumpWorldMap(tester, character: characterLoaded());
+
+      travelStates.add(const TravelIdle());
+      await tester.pump();
+      travelStates.add(
+        confirmingAlong(const [
+          departureWire,
+          [10.0, 70.0],
+          [10.0, 120.0],
+        ]),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final bounds = mapCamera(tester).visibleBounds;
+      expect(bounds.contains(const LatLng(10, 120)), isTrue);
+    });
+
     testWidgets('a route with fewer than two points leaves the camera', (
       tester,
     ) async {
