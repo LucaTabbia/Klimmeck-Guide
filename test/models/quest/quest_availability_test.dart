@@ -174,6 +174,29 @@ void main() {
       );
     });
 
+    test('a legend takes the hero seat of a boss (BE 13.1 D-08)', () {
+      const heroSeat = [
+        {'title': 'hero', 'count': 1},
+      ];
+      final open = buildQuest(type: 'boss', minTitle: 'hero', slots: heroSeat);
+      expect(
+        availabilityOf(open, buildViewer(title: TitleType.legend)),
+        QuestAvailability.available,
+      );
+      final taken = buildQuest(
+        type: 'boss',
+        minTitle: 'hero',
+        slots: heroSeat,
+        registered: [
+          {'character': 'c-2', 'title': 'legend'},
+        ],
+      );
+      expect(
+        availabilityOf(taken, buildViewer(title: TitleType.hero)),
+        QuestAvailability.full,
+      );
+    });
+
     test('full worldMission with a busy lane is laneBusy and still torn', () {
       final quest = buildQuest(
         type: 'worldMission',

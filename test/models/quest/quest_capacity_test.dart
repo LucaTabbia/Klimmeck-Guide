@@ -90,4 +90,97 @@ void main() {
       expect(isFullFor(const [], registered, TitleType.hero), isFalse);
     });
   });
+
+  group('legend on hero seats (BE 13.1 D-08)', () {
+    const heroSeat = [AdventurerSlot(title: TitleType.hero, count: 1)];
+
+    test('lets a legend take a hero seat', () {
+      expect(
+        canRegisterWithTitle(heroSeat, const [], TitleType.legend),
+        isTrue,
+      );
+      expect(
+        canRegisterWithTitle(
+          const [AdventurerSlot(title: TitleType.hero, count: 2)],
+          regs([TitleType.legend]),
+          TitleType.hero,
+        ),
+        isTrue,
+      );
+      expect(
+        canRegisterWithTitle(
+          heroSeat,
+          regs([TitleType.legend]),
+          TitleType.hero,
+        ),
+        isFalse,
+      );
+      expect(
+        canRegisterWithTitle(
+          heroSeat,
+          regs([TitleType.hero]),
+          TitleType.legend,
+        ),
+        isFalse,
+      );
+      expect(
+        isFullFor(heroSeat, regs([TitleType.legend]), TitleType.legend),
+        isTrue,
+      );
+    });
+
+    test('fills the legend seats before the hero seats', () {
+      const slots = [
+        AdventurerSlot(title: TitleType.legend, count: 1),
+        AdventurerSlot(title: TitleType.hero, count: 1),
+      ];
+      final oneLegend = regs([TitleType.legend]);
+      final twoLegends = regs([TitleType.legend, TitleType.legend]);
+      expect(canRegisterWithTitle(slots, oneLegend, TitleType.legend), isTrue);
+      expect(canRegisterWithTitle(slots, oneLegend, TitleType.hero), isTrue);
+      expect(canRegisterWithTitle(slots, twoLegends, TitleType.hero), isFalse);
+      expect(
+        canRegisterWithTitle(slots, twoLegends, TitleType.legend),
+        isFalse,
+      );
+    });
+
+    test('counts a legend on a hero seat before the wildcards', () {
+      const slots = [
+        AdventurerSlot(title: TitleType.hero, count: 1),
+        AdventurerSlot(title: null, count: 1),
+      ];
+      expect(
+        canRegisterWithTitle(
+          slots,
+          regs([TitleType.legend]),
+          TitleType.paladin,
+        ),
+        isTrue,
+      );
+      expect(
+        canRegisterWithTitle(
+          slots,
+          regs([TitleType.legend, TitleType.legend]),
+          TitleType.paladin,
+        ),
+        isFalse,
+      );
+    });
+
+    test('scales no other title', () {
+      final admitted = <String>[];
+      for (final title in TitleType.values) {
+        for (final rank in TitleType.values) {
+          if (rank == title) continue;
+          if (title == TitleType.legend && rank == TitleType.hero) continue;
+          final seat = [AdventurerSlot(title: rank, count: 1)];
+          if (canRegisterWithTitle(seat, const [], title)) {
+            admitted.add('${title.name} on ${rank.name}');
+          }
+        }
+      }
+      expect(admitted, isEmpty);
+    });
+  });
 }
