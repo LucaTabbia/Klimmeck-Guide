@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import '../enemy.dart';
 import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
+import '../quantity_line.dart';
 import 'adventurer_slot.dart';
 import 'quest.dart';
 import 'quest_availability.dart';
@@ -95,7 +96,7 @@ class QuestSheetDetails extends Equatable {
       recommendedLootLines: List.unmodifiable([
         for (final entry in quest.requirements?.recommendedLoot ?? const [])
           if (entry.item?.name?.isNotEmpty ?? false)
-            '${entry.quantity ?? 1}x ${entry.item!.name}',
+            quantityLine(entry.quantity ?? 1, entry.item!.name!),
       ]),
       loreParagraphs: List.unmodifiable([
         for (final lore in quest.infos?.relatedLore ?? const [])
