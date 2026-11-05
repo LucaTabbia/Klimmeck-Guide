@@ -126,6 +126,25 @@ void main() {
       expect(isDashed(polylines.single), isTrue);
     });
 
+    testWidgets('keeps the dashed preview while requoting (D-03)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        travel: TravelRequoting(
+          destination: valdoria,
+          preview: preview,
+          eta: eta,
+          previewedAt: previewedAt,
+        ),
+      );
+
+      final polylines = renderedPolylines(tester);
+      expect(polylines, hasLength(1));
+      expect(polylines.single.points, preview.road.points);
+      expect(isDashed(polylines.single), isTrue);
+    });
+
     testWidgets('keeps the dashed preview until activeTravel arrives', (
       tester,
     ) async {
