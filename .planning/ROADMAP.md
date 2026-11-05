@@ -482,7 +482,16 @@ Plans:
 **Decisions made (2026-10-29)**: 1 power = 3 minutes of march (500 m at base speed on a standard road), terrain + pet + injuries count through the duration; minimum-waste selection by the BE; uncovered km n costs n HP; applied at departure; applies to the quest automatic travel too.
 **Decisions made (2026-11-05, joint discuss with the BE Phase 14)**: two rows «Cibo»/«Vita» under «Arrivo» on the confirmation sheet; one compact «Viaggio:» line in the costs block of the combat/service sheets; the phrase «Non hai cibo a sufficienza per il viaggio» everywhere (red rows, both banners); «Parti» and the swipe disabled on `arrivesAlive: false`; the confirmation sheet stays open with a refreshed preview only on the starvation refusal; no feedback after the departure; the quest preview is a dedicated owner-only query returning a nullable `TravelPreview`. Details in `15-CONTEXT.md` (D-01..D-09).
 **Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
-**Plans**: TBD
+**Plans**: 9 plans
+- [ ] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
+- [ ] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
+- [ ] 15-03-PLAN.md — `TravelFailure.starving` / `QuestAcceptanceFailure.starving` ← `TRAVEL_STARVING`, both banners with the user phrase, no board reread, `TravelRepository.previewQuest`
+- [ ] 15-04-PLAN.md — `TravelRequoting` state machine (Starting → Requoting → Confirming), one banner without `reset()`, route and pawn kept, camera refit narrowed
+- [ ] 15-05-PLAN.md — «Cibo»/«Vita» rows on the confirmation sheet, red phrase and «Parti» disabled on `arrivesAlive: false`, sheet kept open through the requote, «nessun costo» notes fixed (D-13)
+- [ ] 15-06-PLAN.md — pure `QuestTravelLine` and `QuestSheetDetails.travelLine`, the «Viaggio» line in the combat and service bodies of `QuestInfoSheet`
+- [ ] 15-07-PLAN.md — `QuestTravelPreviewCubit` + `needsTravelPreview`, shell `RepositoryProvider<TravelRepository>` (with the Board harness for Wave 0), Board wiring (request on open, `canTear: false` when starving, refresh after a starving refusal)
+- [ ] 15-08-PLAN.md — ⛔ GATED on the BE Phase 14 merge: schema gate (`TravelFoodItem` on `origin/develop`), `TRAVEL_STARVING` checked in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off
+- [ ] 15-09-PLAN.md — ⛔ GATED: device E2E `15-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff, `mark-complete` FOOD-01..04, ROADMAP/STATE/REQUIREMENTS closure
 
 ### Phase 16: Travel Ambushes
 **Goal**: A journey can be ambushed: the frontend renders the server's decision — the pawn keeps going after a victory, or turns back towards the nearest city after a defeat — and at arrival shows the ambush report on the result sheet, never lost (unacknowledged pipeline).
@@ -528,7 +537,7 @@ Plans:
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 0/0 | Not started | - |
+| 15. Travel Food | 0/9 | Planned | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
