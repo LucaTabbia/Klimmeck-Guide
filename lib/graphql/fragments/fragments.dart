@@ -12,4 +12,5 @@ export 'pet_fragment.dart';
 export 'quest_fragment.dart';
 export 'quest_result_fragment.dart';
 export 'spell_fragment.dart';
+export 'travel_preview_fragment.dart';
 export 'user_fragment.dart';
