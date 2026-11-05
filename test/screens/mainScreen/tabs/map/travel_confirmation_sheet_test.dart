@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/travel/travel_cost_text.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_time_format.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
@@ -471,5 +472,71 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('Parti')), findsWidgets);
     expect(find.bySemanticsLabel(RegExp('Resta')), findsWidgets);
     semantics.dispose();
+  });
+
+  group('starving requote', () {
+    TravelPreview starvingPreview() =>
+        previewWith(food: const [], hpLost: 20910, arrivesAlive: false);
+
+    testWidgets(
+      'stays open on a starving refusal with the last numbers and Parti '
+      'disabled (D-03)',
+      (tester) async {
+        await openSheet(tester, starting());
+
+        states.add(TravelRequoting.from(starting()));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+        expect(find.text(TravelConfirmationSheet.pendingValue), findsNothing);
+        expect(find.text('15,8 km'), findsOneWidget);
+        expect(departButton(tester).onPressed, isNull);
+        expect(stayButton(tester).onPressed, isNotNull);
+      },
+    );
+
+    testWidgets('shows the refreshed numbers once the requote answers (D-03)', (
+      tester,
+    ) async {
+      await openSheet(tester, starting());
+      states.add(TravelRequoting.from(starting()));
+      await tester.pumpAndSettle();
+
+      states.add(confirmingAbout(starvingPreview()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TravelConfirmationSheet), findsOneWidget);
+      expect(find.text(starvingPhrase), findsOneWidget);
+      expect(departButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('Resta during a requote cancels and closes the sheet (D-03)', (
+      tester,
+    ) async {
+      await openSheet(tester, TravelRequoting.from(starting()));
+
+      stayButton(tester).onPressed!();
+      await tester.pumpAndSettle();
+
+      verify(() => cubit.cancel()).called(1);
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+    });
+
+    testWidgets('every other start refusal still closes the sheet (D-03)', (
+      tester,
+    ) async {
+      await openSheet(tester, starting());
+
+      states.add(
+        TravelFailed(
+          destination: valdoria,
+          failure: TravelFailure.connection,
+          stage: TravelStage.start,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TravelConfirmationSheet), findsNothing);
+    });
   });
 }
