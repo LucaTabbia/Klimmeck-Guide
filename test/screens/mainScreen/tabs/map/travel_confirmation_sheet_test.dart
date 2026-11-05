@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +16,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/travel_con
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fixtures/travel_fixtures.dart';
@@ -130,16 +132,148 @@ void main() {
   TextButton stayButton(WidgetTester tester) =>
       tester.widget<TextButton>(find.byKey(TravelConfirmationSheet.stayKey));
 
-  testWidgets('shows the destination at once with subtle placeholders', (
+  TravelConfirming confirmingAbout(TravelPreview quote) => TravelConfirming(
+    destination: valdoria,
+    preview: quote,
+    eta: eta,
+    previewedAt: previewedAt,
+  );
+
+  TravelPreview previewWith({
+    List<Map<String, dynamic>>? food,
+    int? hpLost,
+    bool? arrivesAlive,
+  }) => TravelPreview.fromJson(
+    travelPreviewJson(food: food, hpLost: hpLost, arrivesAlive: arrivesAlive),
+  );
+
+  AutoSizeText valueText(WidgetTester tester, String value) =>
+      tester.widget<AutoSizeText>(
+        find.ancestor(
+          of: find.text(value),
+          matching: find.byType(AutoSizeText),
+        ),
+      );
+
+  testWidgets(
+    'shows the destination at once with five subtle placeholders (D-02)',
+    (tester) async {
+      await pumpSheet(tester, TravelPreviewing(valdoria));
+
+      expect(find.text('Valdoria'), findsOneWidget);
+      expect(find.text(TravelConfirmationSheet.pendingValue), findsNWidgets(5));
+      expect(departButton(tester).onPressed, isNull);
+      expect(stayButton(tester).onPressed, isNotNull);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    },
+  );
+
+  testWidgets('labels the food and life rows under «Arrivo» (D-02)', (
     tester,
   ) async {
-    await pumpSheet(tester, TravelPreviewing(valdoria));
+    await pumpSheet(tester, confirming());
 
-    expect(find.text('Valdoria'), findsOneWidget);
-    expect(find.text(TravelConfirmationSheet.pendingValue), findsNWidgets(3));
-    expect(departButton(tester).onPressed, isNull);
-    expect(stayButton(tester).onPressed, isNotNull);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    final arrival = tester.getTopLeft(find.text('Arrivo')).dy;
+    final food = tester.getTopLeft(find.text('Cibo')).dy;
+    final life = tester.getTopLeft(find.text('Vita')).dy;
+    expect(arrival, lessThan(food));
+    expect(food, lessThan(life));
+  });
+
+  testWidgets('lists the food the backend will eat in backend order (D-02)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      confirmingAbout(
+        previewWith(
+          food: [
+            travelFoodItemJson(),
+            travelFoodItemJson(id: 'loot-apple', name: 'Mela selvatica'),
+          ],
+          hpLost: 0,
+          arrivesAlive: true,
+        ),
+      ),
+    );
+
+    expect(
+      find.text('1x Razione da viaggio, 1x Mela selvatica'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('reads «nessuno» when no food is eaten (D-02)', (tester) async {
+    await pumpSheet(tester, confirming());
+
+    expect(find.text('nessuno'), findsOneWidget);
+  });
+
+  testWidgets('shows the life lost with a minus sign (D-02, D-11)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      confirmingAbout(previewWith(food: const [], hpLost: 136)),
+    );
+
+    expect(find.text('−136 HP'), findsOneWidget);
+  });
+
+  testWidgets('reads «nessuna perdita» when the trip is covered (D-02)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      confirmingAbout(previewWith(food: [travelFoodItemJson()], hpLost: 0)),
+    );
+
+    expect(find.text('nessuna perdita'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a character who would not arrive alive sees the red phrase and Parti '
+    'disabled (D-02, D-10)',
+    (tester) async {
+      await pumpSheet(
+        tester,
+        confirmingAbout(
+          previewWith(food: const [], hpLost: 20910, arrivesAlive: false),
+        ),
+      );
+
+      const phrase = 'Non hai cibo a sufficienza per il viaggio';
+      expect(find.text(phrase), findsOneWidget);
+      expect(
+        valueText(tester, phrase).style?.color,
+        KlimmeckGuideTheme.bloodRed,
+      );
+      expect(find.textContaining('HP'), findsNothing);
+      expect(departButton(tester).onPressed, isNull);
+      expect(stayButton(tester).onPressed, isNotNull);
+    },
+  );
+
+  testWidgets('wraps a long food list on up to three lines (D-10)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      confirmingAbout(
+        previewWith(
+          food: [
+            travelFoodItemJson(quantity: 3),
+            travelFoodItemJson(id: 'loot-apple', name: 'Mela selvatica'),
+          ],
+          hpLost: 0,
+        ),
+      ),
+    );
+
+    expect(
+      valueText(tester, '3x Razione da viaggio, 1x Mela selvatica').maxLines,
+      3,
+    );
   });
 
   testWidgets('shows the backend distance, duration and arrival', (
