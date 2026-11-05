@@ -1,7 +1,7 @@
 ---
 phase: 15
 slug: travel-food
-audited: 2026-11-05T21:55Z
+audited: 2026-11-05T21:52:00Z
 status: secured
 asvs_level: 1
 block_on: high
