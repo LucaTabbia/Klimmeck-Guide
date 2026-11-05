@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
 
@@ -151,6 +152,43 @@ void main() {
         buildQuest(id: 'c', type: 'heal'),
       ];
       expect(ids(boardQuestsFor(quests, buildViewer())), ['b', 'a', 'c']);
+    });
+  });
+
+  group('needsTravelPreview', () {
+    test('asks for an acceptable standard quest (D-04)', () {
+      expect(
+        needsTravelPreview(buildQuest(type: 'hunt'), buildViewer()),
+        isTrue,
+      );
+    });
+
+    test('skips an acceptable story or worldMission (D-04)', () {
+      final story = buildQuest(type: 'story', requiredPoints: 100);
+      final worldMission = buildQuest(
+        type: 'worldMission',
+        requiredPoints: 100,
+      );
+      final viewer = buildViewer();
+      expect(standingOf(story, viewer).canAccept, isTrue);
+      expect(standingOf(worldMission, viewer).canAccept, isTrue);
+      expect(needsTravelPreview(story, viewer), isFalse);
+      expect(needsTravelPreview(worldMission, viewer), isFalse);
+    });
+
+    test('skips a quest the viewer cannot accept (D-04)', () {
+      final busy = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+      final mismatch = buildViewer(title: TitleType.rookie);
+      expect(needsTravelPreview(buildQuest(type: 'hunt'), busy), isFalse);
+      expect(
+        needsTravelPreview(
+          buildQuest(type: 'hunt', minTitle: 'hero'),
+          mismatch,
+        ),
+        isFalse,
+      );
     });
   });
 }
