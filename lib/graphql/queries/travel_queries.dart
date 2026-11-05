@@ -11,4 +11,15 @@ class TravelQueries {
         ${TravelPreviewFragment.fields}
       }
     }''';
+
+  /// Anteprima del viaggio automatico di un'accettazione (15-CONTEXT D-01,
+  /// BE Phase 14 D-08): owner-only, `null` quando l'accettazione non comporta
+  /// un viaggio (marker uguale alla posizione o salto istantaneo).
+  static const String getQuestTravelPreview =
+      '''
+    query GetQuestTravelPreview(\$request: AcceptQuestRequest!) {
+      questTravelPreview(request: \$request) {
+        ${TravelPreviewFragment.fields}
+      }
+    }''';
 }
