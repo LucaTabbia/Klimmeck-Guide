@@ -212,9 +212,10 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         listenWhen: (_, current) => current.isCharacterFocusPending,
         listener: (_, _) => _consumeCharacterFocus(),
       ),
+      // D-03: il preventivo rinnovato non riposiziona la camera.
       BlocListener<TravelCubit, TravelState>(
         listenWhen: (previous, current) =>
-            previous is! TravelConfirming && current is TravelConfirming,
+            previous is! TravelQuote && current is TravelConfirming,
         listener: (_, state) => _fitPreviewRoute(state as TravelConfirming),
       ),
       BlocListener<QuestAbandonCubit, QuestAbandonState>(

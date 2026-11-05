@@ -124,10 +124,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     final pawnPath = state.character.infos!.sex!.pawnPath;
     return MarkerLayer(
       markers: [
-        Marker(
-          point: point,
-          child: _scaled(_pawn(pawnPath)),
-        ),
+        Marker(point: point, child: _scaled(_pawn(pawnPath))),
         Marker(
           point: point,
           width: _labelWidth,
@@ -145,10 +142,9 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     );
   }
 
-  static String _labelOf(TravelProgressActive progress) =>
-      progress.isArriving
-          ? travelArrivingLabel
-          : formatGameDuration(progress.remainingTime);
+  static String _labelOf(TravelProgressActive progress) => progress.isArriving
+      ? travelArrivingLabel
+      : formatGameDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
   /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta).
@@ -159,11 +155,13 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       state.character.status?.awaitingAid == null &&
       travel is TravelIdle;
 
-  /// D-04: col foglio aperto la pedina sta sulla meta; altrimenti sulla
-  /// posizione reale.
+  /// D-04: col foglio aperto (anche durante il preventivo rinnovato,
+  /// 15-CONTEXT D-03) la pedina sta sulla meta; altrimenti sulla posizione
+  /// reale.
   static LatLng? _confirmingDestination(TravelState travel) => switch (travel) {
     TravelPreviewing(:final destination) ||
     TravelConfirming(:final destination) ||
+    TravelRequoting(:final destination) ||
     TravelStarting(:final destination) => destination.markerLocation?.location,
     _ => null,
   };
@@ -172,10 +170,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     return ValueListenableBuilder<double>(
       valueListenable: widget.zoomNotifier,
       builder: (_, zoom, child) {
-        return Transform.scale(
-          scale: pawnScaleForZoom(zoom),
-          child: child!,
-        );
+        return Transform.scale(scale: pawnScaleForZoom(zoom), child: child!);
       },
       child: pawn,
     );
@@ -189,10 +184,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
         height: MapConstants.characterMarkerSize,
         child: CachedSvg(url: pawnPath),
       ),
-      childWhenDragging: Opacity(
-        opacity: 0,
-        child: CachedSvg(url: pawnPath),
-      ),
+      childWhenDragging: Opacity(opacity: 0, child: CachedSvg(url: pawnPath)),
       onDragUpdate: handlePawnDragUpdate,
       onDragEnd: (_) => handlePawnDragEnd(),
       child: _pawn(pawnPath),
