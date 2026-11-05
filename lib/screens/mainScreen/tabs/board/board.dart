@@ -276,30 +276,28 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   /// il rifiuto per fame dell'accettazione rinnova l'anteprima (D-05).
   Widget _travelPreviewSheet(QuestViewer viewer, Quest selected) =>
       BlocProvider<QuestTravelPreviewCubit>(
-        create: (context) {
-          final cubit = QuestTravelPreviewCubit(
-            context.read<TravelRepository>(),
-          );
-          if (needsTravelPreview(selected, viewer)) {
-            cubit.load(characterId: viewer.characterId, questId: selected.id);
-          }
-          return cubit;
-        },
-        child: BlocListener<QuestAcceptanceCubit, QuestAcceptanceState>(
-          listenWhen: (_, current) =>
-              current is QuestAcceptanceFailed &&
-              current.failure == QuestAcceptanceFailure.starving &&
-              current.questId == selected.id,
-          listener: (context, _) =>
-              context.read<QuestTravelPreviewCubit>().refresh(),
-          child: BlocBuilder<QuestTravelPreviewCubit, QuestTravelPreviewState>(
-            builder: (context, previewState) => _tearableSheet(
-              viewer,
-              selected,
-              travelPreview: previewState is QuestTravelPreviewLoaded
-                  ? previewState.preview
-                  : null,
-            ),
+        create: (context) =>
+            QuestTravelPreviewCubit(context.read<TravelRepository>()),
+        child: _QuestTravelPreviewLoader(
+          viewer: viewer,
+          selected: selected,
+          child: BlocListener<QuestAcceptanceCubit, QuestAcceptanceState>(
+            listenWhen: (_, current) =>
+                current is QuestAcceptanceFailed &&
+                current.failure == QuestAcceptanceFailure.starving &&
+                current.questId == selected.id,
+            listener: (context, _) =>
+                context.read<QuestTravelPreviewCubit>().refresh(),
+            child:
+                BlocBuilder<QuestTravelPreviewCubit, QuestTravelPreviewState>(
+                  builder: (context, previewState) => _tearableSheet(
+                    viewer,
+                    selected,
+                    travelPreview: previewState is QuestTravelPreviewLoaded
+                        ? previewState.preview
+                        : null,
+                  ),
+                ),
           ),
         ),
       );
@@ -340,4 +338,49 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     });
     _animationController.forward();
   }
+}
+
+/// Chiede l'anteprima del viaggio appena lo swipe diventa disponibile, anche
+/// a foglio già aperto (D-04): una sola volta, finché il cubit è inattivo.
+class _QuestTravelPreviewLoader extends StatefulWidget {
+  const _QuestTravelPreviewLoader({
+    required this.viewer,
+    required this.selected,
+    required this.child,
+  });
+
+  final QuestViewer viewer;
+  final Quest selected;
+  final Widget child;
+
+  @override
+  State<_QuestTravelPreviewLoader> createState() =>
+      _QuestTravelPreviewLoaderState();
+}
+
+class _QuestTravelPreviewLoaderState extends State<_QuestTravelPreviewLoader> {
+  @override
+  void initState() {
+    super.initState();
+    _loadWhenAcceptable();
+  }
+
+  @override
+  void didUpdateWidget(_QuestTravelPreviewLoader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadWhenAcceptable();
+  }
+
+  void _loadWhenAcceptable() {
+    final cubit = context.read<QuestTravelPreviewCubit>();
+    if (cubit.state is! QuestTravelPreviewIdle) return;
+    if (!needsTravelPreview(widget.selected, widget.viewer)) return;
+    cubit.load(
+      characterId: widget.viewer.characterId,
+      questId: widget.selected.id,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
