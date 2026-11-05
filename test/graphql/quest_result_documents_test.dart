@@ -47,13 +47,42 @@ void main() {
       );
     });
 
-    test('selects the enemy, the spells used and the rescued', () {
-      expect(sharedSelection, contains('enemy { id name imagePath }'));
+    test(
+      'selects the enemies fought, the spells used and the rescued (D-07)',
+      () {
+        expect(
+          sharedSelection,
+          contains(
+            'enemies { quantity enemy { id name imagePath xp } } '
+            'stagesCleared stagesTotal',
+          ),
+        );
+        expect(
+          sharedSelection,
+          contains('spellsUsed { usages spell { id name } }'),
+        );
+        expect(sharedSelection, contains('rescuedCharacters'));
+      },
+    );
+
+    test('carries no single enemy selection besides the nested one (D-01)', () {
+      final enemyBlocks = RegExp(
+        r'\benemy \{',
+      ).allMatches(sharedSelection).length;
+      final enemiesBlocks = RegExp(
+        r'\benemies \{',
+      ).allMatches(sharedSelection).length;
+      expect(enemyBlocks, enemiesBlocks);
+      expect(enemiesBlocks, 1);
+    });
+
+    test('selects the companion reward inside rewards (D-07)', () {
       expect(
-        sharedSelection,
-        contains('spellsUsed { usages spell { id name } }'),
+        RegExp(
+          r'rewards \{[\s\S]*?pet \{ id name \} \}',
+        ).hasMatch(sharedSelection),
+        isTrue,
       );
-      expect(sharedSelection, contains('rescuedCharacters'));
     });
 
     test('never selects enemy locations', () {

@@ -80,7 +80,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
-- [ ] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_
+- [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
 - [ ] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
 - [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
@@ -445,15 +445,29 @@ Plans:
 **Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
 **Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 10 (Locanda panel), BE Phase 13
 **Scope**: M
-**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04
+**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04, QGEN-05, QGEN-06
 **Success Criteria** (what must be TRUE):
-  1. Combat quest sheets list every enemy with its quantity («3 × Goblin, 1 × Hobgoblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
+  1. Combat quest sheets list every enemy with its quantity («3x Goblin, 1x Capo goblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
   2. The result sheet shows the enemies fought, for standard-lane and ambush outcomes.
   3. From the Locanda the innkeeper triggers «Genera missioni» (BE `generateQuests`) with explicit confirmation and sees the outcome (how many quests, or none); `FORBIDDEN` mapped inline.
   4. Fixed `crime` and `guard` quests (BE Phase 11) render with the service family layout without any alignment mechanic; `dungeon` renders as combat.
+  5. Every quest sheet shows the announcement (`infos.description`) under the title when present; combat sheets show «Consigliati» under the enemies; the enemy portrait loads from the network and stays hidden when missing (IN-03 closed).
+  6. Rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` on the item sheet; the companion prize and reward appear as a line.
 **Decisions made (2026-10-29)**: hard replacement of `enemy` (gated plans align before the BE merge, pattern 08-12/09-12); `hunt` and `dungeon` are fixed quests, never generated.
+**Decisions made (2026-11-04, `14-CONTEXT.md` D-01..D-13, joint discuss with the BE Phase 13)**: one portrait of the strongest enemy + «Nx nome» lines per type; portrait loaded from the network and hidden when missing; «Consigliati» in the combat body; announcement `infos.description` under the title in every family; result sheet with the enemies fought and «Esplorazione: tappa k di N» for a dungeon; «Genera missioni» button at the top of the Locanda list with the shared confirmation dialog, outcome in SnackBar and `FORBIDDEN` closing the panel (Phase 10 D-04); rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` (user rule of 2026-11-04); companion prize/reward lines (technical default). The BE contract also replaces `QuestResult.enemy` with `enemies` + `stagesCleared`/`stagesTotal` and adds `prizes.pet`, `rewards.pet`, `accessoryUseTypes`.
 **Backend prerequisite**: BE Phase 13 merged on BE `develop`.
-**Plans**: TBD
+**Plans**: 11 plans (planned 2026-11-04; 14-01..14-09 run before the BE Phase 13 merge on fixtures and mocks with the contract names of `14-REPO-RULES.md`, 14-10 and 14-11 are gated by it)
+- [x] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
+- [x] 14-02-PLAN.md — Result-side models: `QuestResult.enemies` (bad entries dropped), `stagesCleared`/`stagesTotal`, `QuestRewards.pet` counted by `isEmpty`, dungeon result fixture
+- [x] 14-03-PLAN.md — Fragments: `QuestFragment` (`description`, `enemies { quantity enemy { id name imagePath xp } }`, `prizes.pet`) and `QuestResultFragment` (`enemies`, stage counters, `rewards.pet`); the old `enemy` selection removed in the same commit
+- [x] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
+- [x] 14-05-PLAN.md — Quest sheet: strongest portrait + «Nx nome» lines + «Consigliati» in the combat body, announcement under the title in all families, «Compagno in premio», QGEN-04 proof (tests only)
+- [x] 14-06-PLAN.md — Result sheet: enemies fought list (`enemyKey` kept), «Esplorazione: tappa k di N», «Compagno ottenuto», dungeon-as-combat proof
+- [x] 14-07-PLAN.md — `GenerateQuests` document + registry (44), `KlimmeckGraphQl.generateQuests`, `InnkeeperRepository.generateQuests`, `QuestGenerationCubit` (sealed states, failure serial), mocks
+- [x] 14-08-PLAN.md — Locanda: `GenerateQuestsButton` outside the queue `BlocBuilder`, neutral confirmation dialog, SnackBar outcomes, `FORBIDDEN` closes the panel, disabled in flight
+- [x] 14-09-PLAN.md — Jewels: `AccessoryUseType`, `EquipmentItem.accessoryUseTypes`, equipment fragments, «Uso: attacco / difesa / attacco e difesa» on `EquipmentInfoSheet`
+- [x] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
+- [x] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 15: Travel Food
 **Goal**: Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
@@ -512,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 0/0 | Not started | - |
+| 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
@@ -612,10 +626,12 @@ Plans:
 | SHOP-02 | Phase 13 | Complete |
 | SHOP-03 | Phase 13 | Complete |
 | SHOP-04 | Phase 13 | Complete |
-| QGEN-01 | Phase 14 | Pending |
-| QGEN-02 | Phase 14 | Pending |
-| QGEN-03 | Phase 14 | Pending |
-| QGEN-04 | Phase 14 | Pending |
+| QGEN-01 | Phase 14 | Complete |
+| QGEN-02 | Phase 14 | Complete |
+| QGEN-03 | Phase 14 | Complete |
+| QGEN-04 | Phase 14 | Complete |
+| QGEN-05 | Phase 14 | Complete |
+| QGEN-06 | Phase 14 | Complete |
 | FOOD-01 | Phase 15 | Pending |
 | FOOD-02 | Phase 15 | Pending |
 | FOOD-03 | Phase 15 | Pending |

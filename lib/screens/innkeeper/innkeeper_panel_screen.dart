@@ -5,22 +5,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/results_recap_dialog.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pannello della Locanda (10-CONTEXT D-01/D-05..D-09): utility screen con la
 /// coda viva del GM; il loader solo fino al primo snapshot (apertura
 /// esplicita). Si chiude da solo su `FORBIDDEN` o sul ruolo perso (D-04).
 /// «Teletrasporta» prepara la modalità della shell: il salto alla Mappa lo fa
-/// `TeleportModeLanding` (D-15). Richiede [PendingRequestsCubit], [AuthCubit]
-/// e [TeleportModeCubit] sopra di sé.
+/// `TeleportModeLanding` (D-15). «Genera missioni» sta in cima, fuori dalla
+/// coda (14-CONTEXT D-08). Richiede [PendingRequestsCubit], [AuthCubit],
+/// [TeleportModeCubit] e [QuestGenerationCubit] sopra di sé.
 class InnkeeperPanelScreen extends StatelessWidget {
   const InnkeeperPanelScreen({
     super.key,
@@ -36,6 +41,19 @@ class InnkeeperPanelScreen extends StatelessWidget {
       'Un partecipante è impegnato in una missione';
   static const String teleportUnavailableMessage =
       'Impossibile aprire la mappa per il teletrasporto';
+  static const String generateTitle = 'Genera missioni';
+  static const String generateBody = 'Generare nuove missioni nel mondo?';
+  static const String generateConfirmLabel = 'Genera';
+  static const String noQuestsGeneratedMessage = 'Nessuna missione da generare';
+  static const String generateFailedMessage =
+      'Non è stato possibile generare le missioni. Riprova.';
+
+  /// Copy provvisoria dell'esito (D-09).
+  static String generatedMessage(int created) => switch (created) {
+    0 => noQuestsGeneratedMessage,
+    1 => 'Generata 1 missione',
+    _ => 'Generate $created missioni',
+  };
 
   /// Apre il form di completamento; iniettabile per guidare gli esiti nei test.
   final Future<CompletionExit?> Function(BuildContext, RequestCard)
@@ -58,9 +76,14 @@ class InnkeeperPanelScreen extends StatelessWidget {
         BlocListener<TeleportModeCubit, TeleportModeState>(
           listenWhen: (previous, current) =>
               current is TeleportPreparationFailed && previous != current,
-          listener: (context, _) => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(teleportUnavailableMessage)),
-          ),
+          listener: (context, _) =>
+              _showSnackBar(context, teleportUnavailableMessage),
+        ),
+        BlocListener<QuestGenerationCubit, QuestGenerationState>(
+          listenWhen: (_, current) =>
+              current is QuestGenerationSucceeded ||
+              current is QuestGenerationFailed,
+          listener: _onGenerationOutcome,
         ),
       ],
       child: PopScope(
@@ -85,6 +108,42 @@ class InnkeeperPanelScreen extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     closeInnkeeperPanel(context);
     messenger.showSnackBar(const SnackBar(content: Text(unavailableMessage)));
+  }
+
+  /// Esito in SnackBar come le altre azioni del pannello; `FORBIDDEN` chiude
+  /// la Locanda come Phase 10 D-04 (D-09, D-14).
+  static void _onGenerationOutcome(
+    BuildContext context,
+    QuestGenerationState state,
+  ) {
+    switch (state) {
+      case QuestGenerationSucceeded(:final created):
+        _showSnackBar(context, generatedMessage(created));
+      case QuestGenerationFailed(failure: InnkeeperFailure.forbidden):
+        _closeUnavailable(context);
+      case QuestGenerationFailed():
+        _showSnackBar(context, generateFailedMessage);
+      case QuestGenerationIdle() || QuestGenerationSubmitting():
+        return;
+    }
+  }
+
+  static void _showSnackBar(BuildContext context, String message) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+
+  /// Conferma esplicita (D-09): il GM forza una corsa normale del generatore.
+  static Future<void> _confirmGeneration(BuildContext context) async {
+    final generation = context.read<QuestGenerationCubit>();
+    final confirmed = await showDestructiveConfirmation(
+      context,
+      title: generateTitle,
+      body: generateBody,
+      confirmLabel: generateConfirmLabel,
+      confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
+    );
+    if (confirmed && !generation.isClosed) await generation.generate();
   }
 
   /// Legge il primo partecipante e porta con sé gli altri (UAT 2026-11-01).
@@ -129,8 +188,34 @@ class InnkeeperPanelScreen extends StatelessWidget {
       body: DecoratedBox(
         decoration: KlimmeckGuideTheme.getParchmentBackground(),
         child: SafeArea(
-          child: BlocBuilder<PendingRequestsCubit, PendingRequestsState>(
-            builder: (_, state) => _buildQueue(panelContext, state),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  KlimmeckGuideTheme.spacingLg,
+                  KlimmeckGuideTheme.spacingLg,
+                  KlimmeckGuideTheme.spacingLg,
+                  0,
+                ),
+                child:
+                    BlocSelector<
+                      QuestGenerationCubit,
+                      QuestGenerationState,
+                      bool
+                    >(
+                      selector: (state) => state is QuestGenerationSubmitting,
+                      builder: (_, isSubmitting) => GenerateQuestsButton(
+                        isSubmitting: isSubmitting,
+                        onPressed: () => _confirmGeneration(panelContext),
+                      ),
+                    ),
+              ),
+              Expanded(
+                child: BlocBuilder<PendingRequestsCubit, PendingRequestsState>(
+                  builder: (_, state) => _buildQueue(panelContext, state),
+                ),
+              ),
+            ],
           ),
         ),
       ),

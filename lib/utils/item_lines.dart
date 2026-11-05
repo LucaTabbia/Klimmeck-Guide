@@ -1,3 +1,6 @@
+import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
+import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 
@@ -28,4 +31,20 @@ String? companionSpeedLabel(Pet pet) {
       ? modifier.toInt().toString()
       : modifier.toString().replaceAll('.', ',');
   return 'Velocità ×$digits';
+}
+
+/// Riga «Uso» dei gioielli (D-12): solo anelli e collane con usi serviti dal
+/// BE, in ordine canonico attacco → difesa; nessun filtro, nessun vincolo.
+String? accessoryUsageLine(EquipmentItem item) {
+  if (item.equipType != EquipType.ring &&
+      item.equipType != EquipType.necklace) {
+    return null;
+  }
+  final uses = item.accessoryUseTypes ?? const [];
+  final labels = [
+    for (final type in AccessoryUseType.values)
+      if (uses.contains(type)) type.label.toLowerCase(),
+  ];
+  if (labels.isEmpty) return null;
+  return 'Uso: ${labels.join(' e ')}';
 }

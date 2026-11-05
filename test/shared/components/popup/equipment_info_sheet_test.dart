@@ -18,8 +18,25 @@ final _helm = EquipmentItem.fromJson(const {
   'damages': {'base': [], 'energy': []},
 });
 
+EquipmentItem _jewel(String equipType, String name, List<String>? uses) =>
+    EquipmentItem.fromJson({
+      'id': 'item-$equipType',
+      'name': name,
+      'equipType': equipType,
+      'rarity': 'rare',
+      'damages': {'base': [], 'energy': []},
+      if (uses != null) 'accessoryUseTypes': uses,
+    });
+
+EquipmentItem _ring(List<String>? uses) =>
+    _jewel('ring', 'Anello di rubino', uses);
+
+EquipmentItem _necklace(List<String>? uses) =>
+    _jewel('necklace', "Collana d'ambra", uses);
+
 Future<void> _pump(
   WidgetTester tester, {
+  EquipmentItem? item,
   bool? isEquipped,
   VoidCallback? onEquip,
 }) async {
@@ -29,7 +46,7 @@ Future<void> _pump(
       home: Scaffold(
         body: SingleChildScrollView(
           child: EquipmentInfoSheet(
-            equipmentItem: _helm,
+            equipmentItem: item ?? _helm,
             isEquipped: isEquipped,
             onEquip: onEquip,
           ),
@@ -60,6 +77,8 @@ void main() {
       CloudinaryAssets.emptySheet,
       CloudinaryAssets.bookmarkRed,
       CloudinaryAssets.helmetType,
+      CloudinaryAssets.ringType,
+      CloudinaryAssets.necklaceType,
     ]),
   );
 
@@ -106,6 +125,54 @@ void main() {
       await _pump(tester);
 
       expect(find.byType(BookmarkRibbon), findsNothing);
+    });
+  });
+
+  group('«Uso» line', () {
+    Text usageText(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(EquipmentInfoSheet.usageKey));
+
+    testWidgets('a ring for attack shows «Uso: attacco» (D-12)', (
+      tester,
+    ) async {
+      await _pump(tester, item: _ring(['attack']));
+
+      expect(usageText(tester).data, 'Uso: attacco');
+      expect(
+        tester.getTopLeft(find.byKey(EquipmentInfoSheet.usageKey)).dy,
+        greaterThan(tester.getTopLeft(find.text('Anello di rubino')).dy),
+      );
+    });
+
+    testWidgets('a necklace for both shows «Uso: attacco e difesa» (D-12)', (
+      tester,
+    ) async {
+      await _pump(tester, item: _necklace(['attack', 'defense']));
+
+      expect(usageText(tester).data, 'Uso: attacco e difesa');
+    });
+
+    testWidgets('a helm shows no use line (D-12)', (tester) async {
+      await _pump(tester);
+
+      expect(find.byKey(EquipmentInfoSheet.usageKey), findsNothing);
+    });
+
+    testWidgets('a ring without use types shows no use line (D-12)', (
+      tester,
+    ) async {
+      await _pump(tester, item: _ring(null));
+
+      expect(find.byKey(EquipmentInfoSheet.usageKey), findsNothing);
+    });
+
+    testWidgets('the use line does not overflow in landscape (D-12)', (
+      tester,
+    ) async {
+      await _pump(tester, item: _necklace(['attack', 'defense']));
+
+      expect(find.byKey(EquipmentInfoSheet.usageKey), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

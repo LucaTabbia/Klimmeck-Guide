@@ -219,4 +219,82 @@ void main() {
       );
     });
   });
+
+  group('generateQuests', () {
+    test('passes the created count through (D-10)', () async {
+      when(() => graphQl.generateQuests()).thenAnswer((_) async => 4);
+
+      expect(await repository.generateQuests(), 4);
+    });
+
+    test('maps FORBIDDEN to forbidden (D-09)', () async {
+      when(() => graphQl.generateQuests()).thenThrow(_coded('FORBIDDEN'));
+
+      await expectLater(
+        repository.generateQuests(),
+        _failsWith(InnkeeperFailure.forbidden),
+      );
+    });
+
+    test('maps UNAUTHENTICATED to unauthenticated (D-10)', () async {
+      when(() => graphQl.generateQuests()).thenThrow(_coded('UNAUTHENTICATED'));
+
+      await expectLater(
+        repository.generateQuests(),
+        _failsWith(InnkeeperFailure.unauthenticated),
+      );
+    });
+
+    test('maps a link error without code to connection (D-09)', () async {
+      when(() => graphQl.generateQuests()).thenThrow(
+        OperationException(
+          linkException: ServerException(
+            originalException: Exception('offline'),
+          ),
+        ),
+      );
+
+      await expectLater(
+        repository.generateQuests(),
+        _failsWith(InnkeeperFailure.connection),
+      );
+    });
+
+    test('maps a FormatException to malformed (D-10)', () async {
+      when(
+        () => graphQl.generateQuests(),
+      ).thenThrow(const FormatException('generateQuests.created missing'));
+
+      await expectLater(
+        repository.generateQuests(),
+        _failsWith(InnkeeperFailure.malformed),
+      );
+    });
+
+    test('fails as timedOut after 15 seconds without an answer (D-10)', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.generateQuests(),
+        ).thenAnswer((_) => Completer<int>().future);
+        Object? failure;
+
+        repository.generateQuests().then<void>(
+          (_) {},
+          onError: (Object error) => failure = error,
+        );
+        async.elapse(const Duration(seconds: 14));
+        expect(failure, isNull);
+        async.elapse(const Duration(seconds: 1));
+
+        expect(
+          failure,
+          isA<InnkeeperException>().having(
+            (e) => e.failure,
+            'failure',
+            InnkeeperFailure.timedOut,
+          ),
+        );
+      });
+    });
+  });
 }

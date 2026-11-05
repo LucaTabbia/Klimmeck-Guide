@@ -16,13 +16,17 @@ import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/request_completion_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
@@ -74,8 +78,20 @@ void main() {
   late MockAuthCubit authCubit;
   late MockTeleportModeCubit teleportCubit;
   late StreamController<TeleportModeState> teleportStates;
+  late MockQuestGenerationCubit generationCubit;
+  late StreamController<QuestGenerationState> generationStates;
 
   setUp(() {
+    generationCubit = MockQuestGenerationCubit();
+    generationStates = StreamController<QuestGenerationState>.broadcast();
+    addTearDown(generationStates.close);
+    whenListen(
+      generationCubit,
+      generationStates.stream,
+      initialState: const QuestGenerationIdle(),
+    );
+    when(() => generationCubit.generate()).thenAnswer((_) async {});
+    when(() => generationCubit.isClosed).thenReturn(false);
     cubit = MockPendingRequestsCubit();
     teleportCubit = MockTeleportModeCubit();
     teleportStates = StreamController<TeleportModeState>.broadcast();
@@ -109,14 +125,23 @@ void main() {
     _CompletionOpener openCompletion = openRequestCompletion,
     InnkeeperRepository? repository,
     Stream<PendingRequestsState> states = const Stream.empty(),
+    QuestGenerationState generationState = const QuestGenerationIdle(),
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, states, initialState: state);
+    if (generationState != const QuestGenerationIdle()) {
+      whenListen(
+        generationCubit,
+        generationStates.stream,
+        initialState: generationState,
+      );
+    }
     final panel = MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: authCubit),
         BlocProvider<PendingRequestsCubit>.value(value: cubit),
         BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
+        BlocProvider<QuestGenerationCubit>.value(value: generationCubit),
       ],
       child: InnkeeperPanelScreen(openCompletion: openCompletion),
     );
@@ -502,6 +527,9 @@ void main() {
                         BlocProvider<TeleportModeCubit>.value(
                           value: teleportCubit,
                         ),
+                        BlocProvider<QuestGenerationCubit>.value(
+                          value: generationCubit,
+                        ),
                       ],
                       child: InnkeeperPanelScreen(
                         openCompletion: exitWith(const CompletionForbidden()),
@@ -660,6 +688,9 @@ void main() {
                         BlocProvider<TeleportModeCubit>.value(
                           value: teleportCubit,
                         ),
+                        BlocProvider<QuestGenerationCubit>.value(
+                          value: generationCubit,
+                        ),
                       ],
                       child: const InnkeeperPanelScreen(),
                     ),
@@ -723,5 +754,263 @@ void main() {
       );
       expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
     });
+  });
+
+  group('«Genera missioni» (D-08..D-10, D-14)', () {
+    final generateButton = find.byKey(GenerateQuestsButton.buttonKey);
+
+    DestructiveConfirmationDialog confirmation(WidgetTester tester) =>
+        tester.widget<DestructiveConfirmationDialog>(
+          find.byType(DestructiveConfirmationDialog),
+        );
+
+    testWidgets('shows the button while the queue loads (D-08, D-14)', (
+      tester,
+    ) async {
+      await pumpPanel(tester, PendingRequestsState(serverNow: _now));
+
+      expect(generateButton, findsOneWidget);
+      expect(find.byType(KGLoader), findsOneWidget);
+    });
+
+    testWidgets('shows the button above the empty queue (D-08)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      expect(generateButton, findsOneWidget);
+      expect(find.text(InnkeeperPanelScreen.emptyTitle), findsOneWidget);
+      expect(
+        tester.getTopLeft(generateButton).dy,
+        lessThan(
+          tester.getTopLeft(find.text(InnkeeperPanelScreen.emptyTitle)).dy,
+        ),
+      );
+    });
+
+    testWidgets('sits above the first request card (D-08)', (tester) async {
+      await pumpQueue(tester, [pendingRequestJson()]);
+
+      expect(
+        tester.getTopLeft(generateButton).dy,
+        lessThan(tester.getTopLeft(find.byType(RequestCardView).first).dy),
+      );
+    });
+
+    testWidgets('asks for confirmation in the neutral style (D-09)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      await tester.tap(generateButton);
+      await tester.pumpAndSettle();
+
+      final dialog = confirmation(tester);
+      expect(dialog.title, 'Genera missioni');
+      expect(dialog.body, 'Generare nuove missioni nel mondo?');
+      expect(dialog.confirmLabel, 'Genera');
+      expect(
+        dialog.confirmButtonStyle,
+        same(KlimmeckGuideTheme.primaryButtonStyle),
+      );
+    });
+
+    testWidgets('«Annulla» sends nothing (D-09)', (tester) async {
+      await pumpQueue(tester, []);
+
+      await tester.tap(generateButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => generationCubit.generate());
+      expect(find.byType(DestructiveConfirmationDialog), findsNothing);
+    });
+
+    testWidgets('«Genera» runs one generation (D-09)', (tester) async {
+      await pumpQueue(tester, []);
+
+      await tester.tap(generateButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Genera'));
+      await tester.pumpAndSettle();
+
+      verify(() => generationCubit.generate()).called(1);
+    });
+
+    testWidgets('the button is disabled while generating (D-09)', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        PendingRequestsState(
+          serverNow: _now,
+          requests: const [],
+          isLoaded: true,
+        ),
+        generationState: const QuestGenerationSubmitting(),
+      );
+
+      expect(tester.widget<ElevatedButton>(generateButton).onPressed, isNull);
+    });
+
+    Future<void> emitGeneration(
+      WidgetTester tester,
+      List<QuestGenerationState> states,
+    ) async {
+      for (final state in states) {
+        generationStates.add(state);
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+    }
+
+    Finder snackText(String message) => find.descendant(
+      of: find.byType(SnackBar),
+      matching: find.text(message),
+    );
+
+    testWidgets('a success shows «Generate N missioni» (D-09)', (tester) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 3),
+      ]);
+
+      expect(snackText('Generate 3 missioni'), findsOneWidget);
+    });
+
+    testWidgets('one created quest reads «Generata 1 missione» (D-09)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 1),
+      ]);
+
+      expect(snackText('Generata 1 missione'), findsOneWidget);
+    });
+
+    testWidgets('zero created shows «Nessuna missione da generare» (D-09)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationSucceeded(created: 0),
+      ]);
+
+      expect(snackText('Nessuna missione da generare'), findsOneWidget);
+    });
+
+    for (final failure in [
+      InnkeeperFailure.connection,
+      InnkeeperFailure.timedOut,
+      InnkeeperFailure.unknown,
+      InnkeeperFailure.malformed,
+    ]) {
+      testWidgets(
+        'a ${failure.name} failure shows the retry SnackBar and keeps the panel (D-09)',
+        (tester) async {
+          await pumpQueue(tester, []);
+
+          await emitGeneration(tester, [
+            const QuestGenerationSubmitting(),
+            QuestGenerationFailed(failure: failure, serial: 1),
+          ]);
+
+          expect(
+            snackText('Non è stato possibile generare le missioni. Riprova.'),
+            findsOneWidget,
+          );
+          expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
+        },
+      );
+    }
+
+    testWidgets('the same failure twice shows the SnackBar twice (D-10)', (
+      tester,
+    ) async {
+      const retry = 'Non è stato possibile generare le missioni. Riprova.';
+      await pumpQueue(tester, []);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationFailed(failure: InnkeeperFailure.connection, serial: 1),
+      ]);
+      expect(snackText(retry), findsOneWidget);
+
+      await emitGeneration(tester, const [
+        QuestGenerationSubmitting(),
+        QuestGenerationFailed(failure: InnkeeperFailure.connection, serial: 2),
+      ]);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      expect(snackText(retry), findsOneWidget);
+    });
+
+    testWidgets(
+      'FORBIDDEN closes the panel with «La Locanda non è disponibile» (D-09, D-14)',
+      (tester) async {
+        useLandscapePhone(tester);
+        whenListen(
+          cubit,
+          const Stream<PendingRequestsState>.empty(),
+          initialState: PendingRequestsState(
+            serverNow: _now,
+            requests: const [],
+            isLoaded: true,
+          ),
+        );
+        await tester.pumpWidget(
+          buildTestApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider<AuthCubit>.value(value: authCubit),
+                          BlocProvider<PendingRequestsCubit>.value(
+                            value: cubit,
+                          ),
+                          BlocProvider<TeleportModeCubit>.value(
+                            value: teleportCubit,
+                          ),
+                          BlocProvider<QuestGenerationCubit>.value(
+                            value: generationCubit,
+                          ),
+                        ],
+                        child: const InnkeeperPanelScreen(),
+                      ),
+                    ),
+                  ),
+                  child: const Text('apri'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('apri'));
+        await tester.pumpAndSettle();
+
+        await emitGeneration(tester, const [
+          QuestGenerationSubmitting(),
+          QuestGenerationFailed(failure: InnkeeperFailure.forbidden, serial: 1),
+        ]);
+
+        expect(find.byType(InnkeeperPanelScreen), findsNothing);
+        expect(
+          find.text(InnkeeperPanelScreen.unavailableMessage),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

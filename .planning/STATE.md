@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-03T18:41:46.000Z"
-last_activity: 2026-11-03 -- Phase 13 complete (11/11): device E2E approved against BE develop 0585b2e, SHOP-02/03/04 ticked, D-17 fixed during the UAT; FE PR #37 feat/13-city-shops -> develop open
+last_updated: "2026-11-04T19:35:40.000Z"
+last_activity: 2026-11-05 -- Phase 14 complete (14-11 device E2E)
 progress:
   total_phases: 17
-  completed_phases: 12
-  total_plans: 122
-  completed_plans: 112
+  completed_phases: 13
+  total_plans: 133
+  completed_plans: 123
   percent: 92
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 13 (City Shops) — complete, 11/11 (2026-11-03) on `feat/13-city-shops` (from `develop` `b6eb4d4`): plans 13-01..13-09 executed, reviewed, fixed, verified and audited; 13-10 (schema gate) green against the merged BE Phase 12 (`origin/develop` `0585b2e`, PR #18; A1/A2/A3 confirmed, 43/43 documents OK); 13-11 device E2E run on the Android phone (`13-HUMAN-UAT.md`: steps 1–10 pass, 11 skipped; D-17 companion dropdown fixed in TDD during the UAT), SHOP-02/03/04 ticked, handoff `phases/13-city-shops/BACKEND-NOTES.md` written; FE PR not yet opened
+Phase: 14 (Quest Generation, frontend companion) — COMPLETE 2026-11-05 on `feat/14-quest-generation` (from `develop` `9993a3c`): plans 14-01..14-11 executed; schema gate on BE `develop` `162c1f5` (BE PR #19 merged), Android device E2E complete (`14-HUMAN-UAT.md`: steps 1–8 pass, step 8 Cloudinary half skipped by the user's decision, optional step 9 and the step 3 companion prize pass); QGEN-01..06 complete; FE handoff `phases/14-quest-generation/BACKEND-NOTES.md`
 Plan: 11 of 11
-Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
-Next Phase: merge the FE PR #37 `feat/13-city-shops` → `develop` (opened 2026-11-03; the BE Phase 12 PR #18 is already merged); then FE 14 → 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 13 complete (2026-11-03) — BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18 `feat/12-negozi-per-citta`); 13-10 schema gate green (A1/A2/A3 confirmed, 43/43 OK); 13-11 device E2E approved by the user (steps 1–9 pass, optional 10 pass with a live `ITEM_NOT_IN_SHOP` curation, optional 11 skipped: Redis not running locally). Step 4 failed on the first build and the user's rule became D-17 (companion section as a dropdown like «Magie imparate»), fixed in TDD on the branch during the UAT (`8ac0ede`, `e26c72a`, `6cda912`); gates after the fix: full suite 3031 green in 72 s, analyzer 50 info / 0 error / 0 warning, trailers 0 over 79 commits. Of the review-fix notes for the UAT (13-REVIEW-FIX.md WR-01, WR-02, IN-04) only IN-04 is covered by the D-17 tests; WR-02 (a pet bought or sold while still in a selection) was not reported in the run. Latent BE defect (nested refs not populated under `me.currentCharacter`, no app impact) routed in `phases/13-city-shops/BACKEND-NOTES.md` §5.1. Awaiting the FE PR by the user.
-Last activity: 2026-11-03 -- Phase 13 plan 13-11 (device E2E + handoff) executed: UAT recorded, SHOP-02/03/04 complete, BACKEND-NOTES.md written; phase closed, FE PR #37 → develop opened
+Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
+Next Phase: FE PR `feat/14-quest-generation` → `develop` (never `main`; BE Phase 13 PR #19 already merged); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 14 complete — FE PR #38 `feat/14-quest-generation` → `develop` open since 2026-11-05 (88 commits, ready for review). BE questions from the device E2E (placeholder dungeon resolver ignoring the character's strength, awaiting-aid blocking the board after a dungeon defeat, live refresh of generated quests) routed in `phases/14-quest-generation/BACKEND-NOTES.md` §5.
+Last activity: 2026-11-05 -- Phase 14 device E2E complete (14-11), QGEN-01..06 ticked, deferred threats closed, FE PR #38 opened
 
 ## Current Milestone
 

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
@@ -117,6 +118,24 @@ void main() {
 
       expect(assets, contains('pet { $pet }'));
       expect(assets, contains('ownedPets { $pet }'));
+    },
+  );
+
+  test('the Journal assets select accessoryUseTypes on equipment (D-15)', () {
+    expect(
+      EquipmentFragment.fieldsWithFullSpell.replaceAll(RegExp(r'\s+'), ' '),
+      contains('equipType accessoryUseTypes'),
+    );
+    expect(CharacterQueries.getCharacter, contains('accessoryUseTypes'));
+  });
+
+  test(
+    'quest and result items keep the simple fields without use types (D-15)',
+    () {
+      expect(
+        EquipmentFragment.simpleFields,
+        isNot(contains('accessoryUseTypes')),
+      );
     },
   );
 

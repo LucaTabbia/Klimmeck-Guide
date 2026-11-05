@@ -4,8 +4,10 @@ import 'loot_fragment.dart';
 
 /// Riepilogo di un esito (BE Phase 9 §1, 09-CONTEXT D-03/C5): le varianti di
 /// ItemUnion selezionano equipType, senza il quale AssetItem.fromJson legge un
-/// equipaggiamento come loot. Mai `enemy.locations` (BE §14). `acknowledgedAt`
-/// è il campo della BE 9.2 (null finché il foglio non è confermato).
+/// equipaggiamento come loot. Mai `locations` né campi di lore sotto un nemico
+/// (BE §14, BE Phase 13 populate a profondità 1). `acknowledgedAt` è il campo
+/// della BE 9.2 (null finché il foglio non è confermato). `enemies`,
+/// `stagesCleared`, `stagesTotal` e `rewards.pet` sono della BE Phase 13 (D-07).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -65,6 +67,10 @@ class QuestResultFragment {
           }
         }
       }
+      pet {
+        id
+        name
+      }
     }
     xpBefore
     xpGained
@@ -77,11 +83,17 @@ class QuestResultFragment {
       id
       name
     }
-    enemy {
-      id
-      name
-      imagePath
+    enemies {
+      quantity
+      enemy {
+        id
+        name
+        imagePath
+        xp
+      }
     }
+    stagesCleared
+    stagesTotal
     rescuedCharacters
   ''';
 }

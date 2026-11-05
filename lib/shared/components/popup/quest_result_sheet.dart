@@ -6,10 +6,12 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/column_layout_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -33,11 +35,14 @@ class QuestResultSheet extends StatefulWidget {
   static const Key questTypeKey = ValueKey('questResult.questType');
   static const Key deadNameKey = ValueKey('questResult.deadName');
   static const Key enemyKey = ValueKey('questResult.enemy');
+  static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
+  static const Key stagesKey = ValueKey('questResult.stages');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
   static const Key rewardsKey = ValueKey('questResult.rewards');
+  static const Key petRewardKey = ValueKey('questResult.petReward');
   static const Key xpKey = ValueKey('questResult.xp');
   static const Key levelKey = ValueKey('questResult.level');
   static const Key titleKey = ValueKey('questResult.title');
@@ -147,7 +152,8 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
       children: [
         ..._header(),
         ..._deathIdentity(),
-        ..._enemy(),
+        ..._enemies(),
+        ..._line(_stagesText(), QuestResultSheet.stagesKey),
         ..._hp(),
         ..._injuries(),
         ..._consumables(),
@@ -220,27 +226,28 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     ];
   }
 
-  List<Widget> _enemy() {
-    final enemy = _result.enemy;
-    if (enemy == null) return const [];
+  /// Nemici affrontati (D-07): ritratto del più forte se risolvibile (D-03),
+  /// righe «Nx nome» nell'ordine del BE (D-02). Stesso blocco per le imboscate
+  /// (Phase 16).
+  List<Widget> _enemies() {
+    final lines = enemyLinesOf(_result.enemies);
+    if (lines.isEmpty) return const [];
+    final portraitPath = strongestEnemyOf(_result.enemies)?.imagePath;
     return [
       Column(
         key: QuestResultSheet.enemyKey,
         children: [
-          if (enemy.imagePath != null)
+          if (EnemyPortrait.canShow(portraitPath))
             SizedBox(
               height: _enemyImageHeight,
-              child: Image.asset(
-                enemy.imagePath!,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              child: EnemyPortrait(
+                key: QuestResultSheet.enemyPortraitKey,
+                imagePath: portraitPath,
+                height: _enemyImageHeight,
               ),
             ),
-          Text(
-            enemy.name ?? '',
-            textAlign: TextAlign.center,
-            style: _theme.bodyMedium,
-          ),
+          for (final line in lines)
+            Text(line, textAlign: TextAlign.center, style: _theme.bodyMedium),
         ],
       ),
     ];
@@ -321,6 +328,12 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
             layout: CoinLayoutType.row,
           ),
         ..._itemRows(_result.rewards.items),
+        if (_petRewardText() case final text?)
+          Text(
+            text,
+            key: QuestResultSheet.petRewardKey,
+            style: _theme.bodyMedium,
+          ),
       ],
     );
   }
@@ -365,6 +378,20 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         child: Text(text, key: key, style: _theme.bodyMedium),
       ),
     ];
+  }
+
+  /// Contatori del BE per una dungeon (BE D-12): il FE li stampa, non li calcola.
+  String? _stagesText() {
+    final total = _result.stagesTotal;
+    if (total == null) return null;
+    return 'Esplorazione: tappa ${_result.stagesCleared ?? 0} di $total';
+  }
+
+  /// Compagno vinto (D-07), copy provvisoria.
+  String? _petRewardText() {
+    final name = _result.rewards.pet?.name;
+    if (name == null || name.isEmpty) return null;
+    return 'Compagno ottenuto: $name';
   }
 
   String? _xpText() {

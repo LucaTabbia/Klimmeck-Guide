@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/quest/quest_infos.dart';
 import 'package:klimmeck_guide/models/quest/quest_requirements.dart';
 import 'package:klimmeck_guide/models/quest/registered_adventurer.dart';
 
@@ -172,6 +173,78 @@ void main() {
 
     test('returns the quest when valid', () {
       expect(Quest.tryFromJson(questJson())?.id, 'q-1');
+    });
+  });
+
+  group('Quest enemies, announcement and pet prize', () {
+    List<Map<String, dynamic>> goblinPack() => [
+      questEnemyJson(id: 'goblin', name: 'Goblin', quantity: 3, xp: 7),
+      questEnemyJson(id: 'goblin-chief', name: 'Capo goblin', xp: 21),
+    ];
+
+    test('parses infos.enemies in BE order (D-01)', () {
+      final quest = Quest.fromJson(questJson(enemies: goblinPack()));
+
+      final enemies = quest.infos!.enemies;
+      expect(enemies.map((e) => e.enemy.id), ['goblin', 'goblin-chief']);
+      expect(enemies.map((e) => e.quantity), [3, 1]);
+    });
+
+    test('a quest without enemies has an empty list (D-01)', () {
+      expect(Quest.fromJson(questJson()).infos!.enemies, isEmpty);
+    });
+
+    test('tryFromJson skips a quest with a malformed enemies entry (D-01)', () {
+      expect(
+        Quest.tryFromJson(
+          questJson(
+            enemies: [
+              {'quantity': 1},
+            ],
+          ),
+        ),
+        isNull,
+      );
+    });
+
+    test('parses the announcement infos.description (D-05)', () {
+      final announced = Quest.fromJson(
+        questJson(description: 'Il fattore chiede aiuto…'),
+      );
+      expect(announced.infos!.description, 'Il fattore chiede aiuto…');
+      expect(Quest.fromJson(questJson()).infos!.description, isNull);
+    });
+
+    test('parses prizes.pet as a companion prize (D-06)', () {
+      final withPet = Quest.fromJson(
+        questJson(
+          prizes: {
+            'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+          },
+        ),
+      );
+      expect(withPet.prizes!.pet!.name, 'Gufo reale');
+
+      final noPet = Quest.fromJson(questJson(prizes: {}));
+      expect(noPet.prizes!.pet, isNull);
+
+      final idless = Quest.tryFromJson(
+        questJson(
+          prizes: {
+            'pet': {'name': 'x'},
+          },
+        ),
+      );
+      expect(idless, isNotNull);
+      expect(idless!.prizes!.pet, isNull);
+    });
+
+    test('toJson round-trips the enemies through fromJson (D-01)', () {
+      final infos = Quest.fromJson(questJson(enemies: goblinPack())).infos!;
+      final json = infos.toJson();
+
+      expect(QuestInfos.fromJson(json).enemies, infos.enemies);
+      expect(json.containsKey('enemy'), isFalse);
     });
   });
 }

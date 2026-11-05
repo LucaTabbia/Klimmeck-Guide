@@ -3,6 +3,18 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 
+/// Voce `QuestEnemy` sul filo (BE Phase 13 D-01): selezione `enemies { quantity enemy { id name imagePath xp } }`.
+Map<String, dynamic> questEnemyJson({
+  String id = 'enemy-1',
+  String? name = 'Lupo grigio',
+  String? imagePath,
+  int? xp = 10,
+  int quantity = 1,
+}) => {
+  'quantity': quantity,
+  'enemy': {'id': id, 'name': name, 'imagePath': imagePath, 'xp': xp},
+};
+
 /// Quest JSON nella forma proposta dal BE Phase 8 (D-28): slot per rango e
 /// registrazioni con titolo.
 Map<String, dynamic> questJson({
@@ -15,7 +27,9 @@ Map<String, dynamic> questJson({
   List<Object> registered = const [],
   String markerId = 'poi-1',
   int? timeToComplete = 60000,
-  Map<String, dynamic>? enemy,
+  List<Map<String, dynamic>>? enemies,
+  String? description,
+  Map<String, dynamic>? prizes,
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
 }) => {
@@ -28,7 +42,8 @@ Map<String, dynamic> questJson({
       'id': markerId,
       'location': [1.0, 2.0],
     },
-    if (enemy != null) 'enemy': enemy,
+    if (enemies != null) 'enemies': enemies,
+    if (description != null) 'description': description,
     if (lore != null) 'relatedLore': lore,
   },
   'requirements': {
@@ -41,6 +56,7 @@ Map<String, dynamic> questJson({
         ],
     if (recommendedLoot != null) 'recommendedLoot': recommendedLoot,
   },
+  if (prizes != null) 'prizes': prizes,
   'registeredAdventurers': registered,
 };
 
@@ -112,7 +128,9 @@ Quest buildQuest({
   List<Object> registered = const [],
   String markerId = 'poi-1',
   int? timeToComplete = 60000,
-  Map<String, dynamic>? enemy,
+  List<Map<String, dynamic>>? enemies,
+  String? description,
+  Map<String, dynamic>? prizes,
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
 }) => Quest.fromJson(
@@ -126,7 +144,9 @@ Quest buildQuest({
     registered: registered,
     markerId: markerId,
     timeToComplete: timeToComplete,
-    enemy: enemy,
+    enemies: enemies,
+    description: description,
+    prizes: prizes,
     lore: lore,
     recommendedLoot: recommendedLoot,
   ),

@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -141,6 +142,20 @@ void main() {
       expect(tester.takeException(), isNull);
       verify(() => repository.watchQueue()).called(1);
     });
+
+    testWidgets(
+      'the panel route provides the quest generation cubit (D-10, D-14)',
+      (tester) async {
+        await pumpAndOpen(tester);
+
+        final generation = tester
+            .element(find.byType(InnkeeperPanelScreen))
+            .read<QuestGenerationCubit>();
+
+        expect(generation.state, isA<QuestGenerationIdle>());
+        verifyNever(() => repository.generateQuests());
+      },
+    );
 
     testWidgets('a row «Teletrasporta» reaches the shell teleport mode', (
       tester,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
@@ -52,6 +54,10 @@ TextButton _button(WidgetTester tester) =>
 Finder _inSection(Key key, Finder matching) =>
     find.descendant(of: find.byKey(key), matching: matching);
 
+const String _trollPortrait = 'v1/troll_test.svg';
+
+const Map<String, dynamic> _owl = {'id': 'pet-owl', 'name': 'Gufo reale'};
+
 void main() {
   setUp(
     () => seedSvgCache([
@@ -62,6 +68,7 @@ void main() {
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
+      _trollPortrait,
     ]),
   );
 
@@ -138,6 +145,183 @@ void main() {
             ?.color,
         KlimmeckGuideTheme.darkBronze,
       );
+    });
+  });
+
+  group('enemies fought', () {
+    testWidgets('lists the enemies fought with quantities in BE order (D-07)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      final lines = ['3x Goblin', '1x Capo goblin', '1x Troll'];
+      for (final line in lines) {
+        expect(
+          _inSection(QuestResultSheet.enemyKey, find.text(line)),
+          findsOneWidget,
+        );
+      }
+      final tops = [
+        for (final line in lines) tester.getTopLeft(find.text(line)).dy,
+      ];
+      expect(tops[0], lessThan(tops[1]));
+      expect(tops[1], lessThan(tops[2]));
+    });
+
+    testWidgets('a single enemy fought reads the bare name (D-07, D-02)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Lupo grigio')),
+        findsOneWidget,
+      );
+      expect(find.text('1x Lupo grigio'), findsNothing);
+    });
+
+    testWidgets('shows the portrait of the strongest enemy fought (D-07, '
+        'D-03)', (tester) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        _inSection(
+          QuestResultSheet.enemyKey,
+          find.byKey(QuestResultSheet.enemyPortraitKey),
+        ),
+        findsOneWidget,
+      );
+      final portrait = tester.widget<CachedSvg>(
+        _inSection(QuestResultSheet.enemyPortraitKey, find.byType(CachedSvg)),
+      );
+      expect(portrait.url, CloudinaryAssets.url(_trollPortrait));
+    });
+
+    testWidgets('hides an unresolvable portrait and keeps the lines (D-03)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsNothing);
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.byType(Image)),
+        findsNothing,
+      );
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Lupo grigio')),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('dungeon and companion', () {
+    testWidgets('a dungeon shows «Esplorazione: tappa k di N» (D-07)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.stagesKey)).data,
+        'Esplorazione: tappa 1 di 3',
+      );
+      expect(
+        tester.getTopLeft(find.byKey(QuestResultSheet.stagesKey)).dy,
+        greaterThanOrEqualTo(
+          tester.getBottomLeft(find.byKey(QuestResultSheet.enemyKey)).dy,
+        ),
+      );
+    });
+
+    testWidgets('a dungeon victory shows all the stages (D-07)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(dungeonResultJson(outcome: 'success', stagesCleared: 3)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.stagesKey)).data,
+        'Esplorazione: tappa 3 di 3',
+      );
+    });
+
+    testWidgets('no stage line outside a dungeon (D-07)', (tester) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.stagesKey), findsNothing);
+    });
+
+    testWidgets('a dungeon result renders like any combat result (D-11)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.headerKey)).data,
+        QuestOutcome.failure.label,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.questTypeKey)).data,
+        QuestType.dungeon.label,
+      );
+    });
+
+    testWidgets('shows «Compagno ottenuto» for a companion reward (D-07)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(questResultJson(rewardPet: _owl)));
+      await tester.pumpAndSettle();
+
+      final petLine = _inSection(
+        QuestResultSheet.rewardsKey,
+        find.byKey(QuestResultSheet.petRewardKey),
+      );
+      expect(petLine, findsOneWidget);
+      expect(
+        tester.widget<Text>(petLine).data,
+        'Compagno ottenuto: Gufo reale',
+      );
+    });
+
+    testWidgets('a companion-only reward still shows the rewards section '
+        '(D-01, D-07)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            coins: const {'gold': 0, 'silver': 0, 'copper': 0},
+            rewardItems: const [],
+            rewardPet: _owl,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.rewardsKey), findsOneWidget);
+      expect(
+        _inSection(
+          QuestResultSheet.rewardsKey,
+          find.text('Compagno ottenuto: Gufo reale'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('no companion line without a pet (D-07)', (tester) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.petRewardKey), findsNothing);
     });
   });
 

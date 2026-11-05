@@ -70,6 +70,10 @@ void main() {
     expect(cityShop, contains('... on LootItem'));
   });
 
+  test('GetCityShop equipment selects accessoryUseTypes (D-15)', () {
+    expect(cityShop, contains('equipType accessoryUseTypes'));
+  });
+
   test('GetCityShop selects pets through PetFragment without imagePath '
       '(D-13)', () {
     expect(cityShop, contains('pets { $petFields }'));
@@ -121,6 +125,6 @@ void main() {
   test('the global catalogue queries left the registry (D-01)', () {
     expect(schemaCheckDocuments, isNot(contains('equipmentAssetsQuantity')));
     expect(schemaCheckDocuments, isNot(contains('lootAssetsQuantity')));
-    expect(schemaCheckDocuments.length, 43);
+    expect(schemaCheckDocuments.length, 44);
   });
 }

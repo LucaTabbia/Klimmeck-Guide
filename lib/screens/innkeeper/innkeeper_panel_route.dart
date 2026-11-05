@@ -5,13 +5,15 @@ import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dar
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 
 /// Unico ingresso del pannello (10-CONTEXT D-04/C11): la route vive sul
 /// Navigator radice, fuori dai provider della shell, quindi repository,
 /// orologio del server e la modalità teletrasporto della shell (D-15) si
 /// leggono qui dal chiamante e passano con `.value`. `AppLifecycleEvents` e
-/// `AuthCubit` stanno sopra MaterialApp.
+/// `AuthCubit` stanno sopra MaterialApp. `QuestGenerationCubit` vive con la
+/// route (14-CONTEXT D-10).
 Future<void> openInnkeeperPanel(BuildContext context) {
   final repository = context.read<InnkeeperRepository>();
   final clock = context.read<ServerClockService>();
@@ -22,12 +24,19 @@ Future<void> openInnkeeperPanel(BuildContext context) {
         value: repository,
         child: BlocProvider<TeleportModeCubit>.value(
           value: teleport,
-          child: BlocProvider<PendingRequestsCubit>(
-            create: (routeContext) => PendingRequestsCubit(
-              repository: repository,
-              clock: clock,
-              lifecycle: routeContext.read<AppLifecycleEvents>(),
-            )..start(),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<PendingRequestsCubit>(
+                create: (routeContext) => PendingRequestsCubit(
+                  repository: repository,
+                  clock: clock,
+                  lifecycle: routeContext.read<AppLifecycleEvents>(),
+                )..start(),
+              ),
+              BlocProvider<QuestGenerationCubit>(
+                create: (_) => QuestGenerationCubit(repository: repository),
+              ),
+            ],
             child: const InnkeeperPanelScreen(),
           ),
         ),

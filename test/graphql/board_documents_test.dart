@@ -47,8 +47,11 @@ void main() {
       expect(document, contains('recommendedLoot { quantity item {'));
     });
 
-    test('selects the populated enemy and lore references', () {
-      expect(document, contains('enemy { id name imagePath }'));
+    test('selects the enemies with quantity and xp (D-01, D-02)', () {
+      expect(
+        document,
+        contains('enemies { quantity enemy { id name imagePath xp } }'),
+      );
       expect(document, contains('relatedLore { id name description }'));
       // il premio loot viene reso con LootItemCard: servono effect e power
       expect(
@@ -65,6 +68,29 @@ void main() {
         isTrue,
         reason: 'prizeItem loot must select power',
       );
+    });
+
+    test('carries no single enemy selection besides the nested one (D-01)', () {
+      final enemyBlocks = RegExp(r'\benemy \{').allMatches(document).length;
+      final enemiesBlocks = RegExp(r'\benemies \{').allMatches(document).length;
+      expect(enemyBlocks, enemiesBlocks);
+      expect(enemiesBlocks, 1);
+    });
+
+    test('selects the announcement under infos (D-05)', () {
+      expect(document, contains('title type description enemies {'));
+    });
+
+    test('selects the companion prize (D-06)', () {
+      expect(document, contains('pet { id name }'));
+    });
+
+    test('never selects lore or locations under an enemy (D-01)', () {
+      expect(
+        document,
+        isNot(contains('enemy { id name imagePath xp relatedLore')),
+      );
+      expect(document, isNot(contains('locations')));
     });
 
     test('leaves the removed and unsafe fields out', () {

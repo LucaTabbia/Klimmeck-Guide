@@ -55,6 +55,10 @@ class InnkeeperRepository {
     if (!teleported) throw const InnkeeperException(InnkeeperFailure.declined);
   }
 
+  /// Una corsa del generatore (QGEN-03): quante quest ha creato. `FORBIDDEN`
+  /// chiude il pannello come le altre azioni del GM (D-09, Phase 10 D-04).
+  Future<int> generateQuests() => _guard(_graphQl.generateQuests);
+
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
       return await call().timeout(timeout);

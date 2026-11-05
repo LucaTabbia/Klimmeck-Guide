@@ -42,6 +42,19 @@ void main() {
         expect(questSheetFamilyOf(type), QuestSheetFamily.service);
       }
     });
+
+    test(
+      'crime and guard stay in the service family, dungeon in combat, without alignment (D-11)',
+      () {
+        expect(questSheetFamilyOf(QuestType.crime), QuestSheetFamily.service);
+        expect(questSheetFamilyOf(QuestType.guard), QuestSheetFamily.service);
+        expect(questSheetFamilyOf(QuestType.dungeon), QuestSheetFamily.combat);
+
+        final crime = QuestSheetDetails.of(buildQuest(type: 'crime'));
+        expect(crime.enemyLines, isEmpty);
+        expect(crime.slotLines, isEmpty);
+      },
+    );
   });
 
   group('required title', () {
@@ -207,6 +220,54 @@ void main() {
 
     test('missing lore gives no paragraphs', () {
       expect(QuestSheetDetails.of(buildQuest()).loreParagraphs, isEmpty);
+    });
+  });
+
+  group('enemies and companion prize', () {
+    List<Map<String, dynamic>> goblinPack() => [
+      questEnemyJson(id: 'goblin', name: 'Goblin', quantity: 3, xp: 7),
+      questEnemyJson(id: 'goblin-chief', name: 'Capo goblin', xp: 21),
+    ];
+
+    test('enemyLines lists the quest enemies as «Nx nome» in BE order '
+        '(D-02)', () {
+      final details = QuestSheetDetails.of(buildQuest(enemies: goblinPack()));
+
+      expect(details.enemyLines, ['3x Goblin', '1x Capo goblin']);
+    });
+
+    test('enemyLines is empty for a quest without enemies (D-02)', () {
+      expect(QuestSheetDetails.of(buildQuest()).enemyLines, isEmpty);
+    });
+
+    test('strongestEnemy is the enemy with the highest xp (D-02)', () {
+      final details = QuestSheetDetails.of(buildQuest(enemies: goblinPack()));
+
+      expect(details.strongestEnemy?.name, 'Capo goblin');
+    });
+
+    test('petPrizeLine reads «Compagno in premio: <nome>» (D-06)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          prizes: {
+            'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+          },
+        ),
+      );
+
+      expect(details.petPrizeLine, 'Compagno in premio: Gufo reale');
+    });
+
+    test('petPrizeLine is null without a pet or a pet name (D-06)', () {
+      expect(QuestSheetDetails.of(buildQuest()).petPrizeLine, isNull);
+      final nameless = QuestSheetDetails.of(
+        buildQuest(
+          prizes: {
+            'pet': {'id': 'pet-owl'},
+          },
+        ),
+      );
+      expect(nameless.petPrizeLine, isNull);
     });
   });
 }

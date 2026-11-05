@@ -5,10 +5,14 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -18,6 +22,35 @@ const _enemy = {
   'name': 'Arbusto maligno',
   'imagePath': 'assets/images/arbustoMaligno.png',
 };
+
+const _goblinPortrait = 'v1/goblin_test.svg';
+const _goblinChiefPortrait = 'v1/goblin-chief_test.svg';
+
+const _potion = {
+  'quantity': 2,
+  'item': {'id': 'l-1', 'name': 'Pozione', 'description': 'd'},
+};
+
+List<Map<String, dynamic>> _goblinPack() => [
+  questEnemyJson(
+    id: 'goblin',
+    name: 'Goblin',
+    imagePath: _goblinPortrait,
+    xp: 7,
+    quantity: 3,
+  ),
+  questEnemyJson(
+    id: 'goblin-chief',
+    name: 'Capo goblin',
+    imagePath: _goblinChiefPortrait,
+    xp: 21,
+  ),
+];
+
+Finder _inCombat(String text) => find.descendant(
+  of: find.byKey(QuestInfoSheet.combatFamilyKey),
+  matching: find.text(text),
+);
 
 Future<void> _pump(
   WidgetTester tester,
@@ -48,7 +81,13 @@ Color? _colorOf(WidgetTester tester, Finder finder) =>
     tester.widget<Text>(finder).style?.color;
 
 void main() {
-  setUp(() => seedSvgCache([CloudinaryAssets.emptySheet]));
+  setUp(
+    () => seedSvgCache([
+      CloudinaryAssets.emptySheet,
+      _goblinPortrait,
+      _goblinChiefPortrait,
+    ]),
+  );
 
   group('families', () {
     const expected = {
@@ -87,15 +126,128 @@ void main() {
   });
 
   group('combat', () {
-    testWidgets('shows the enemy image, name and required time', (
+    testWidgets('shows the portrait of the strongest enemy (D-02, D-03)', (
       tester,
     ) async {
-      await _pump(tester, buildQuest(type: 'enemy', enemy: _enemy));
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
 
-      expect(find.text('Arbusto maligno'), findsOneWidget);
-      expect(find.byType(Image), findsOneWidget);
+      final portrait = find.byKey(QuestInfoSheet.enemyPortraitKey);
+      expect(portrait, findsOneWidget);
+      final svg = tester.widget<CachedSvg>(
+        find.descendant(of: portrait, matching: find.byType(CachedSvg)),
+      );
+      expect(svg.url, CloudinaryAssets.url(_goblinChiefPortrait));
       expect(find.textContaining('Tempo richiesto: '), findsOneWidget);
     });
+
+    testWidgets('lists one line per enemy type in BE order (D-02)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
+
+      final goblins = _inCombat('3x Goblin');
+      final chief = _inCombat('1x Capo goblin');
+      expect(goblins, findsOneWidget);
+      expect(chief, findsOneWidget);
+      expect(
+        tester.getTopLeft(goblins).dy,
+        lessThan(tester.getTopLeft(chief).dy),
+      );
+    });
+
+    testWidgets('a single enemy with quantity 1 reads the bare name (D-02)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: [
+            {'quantity': 1, 'enemy': _enemy},
+          ],
+        ),
+      );
+
+      expect(find.text('Arbusto maligno'), findsOneWidget);
+      expect(find.text('1x Arbusto maligno'), findsNothing);
+    });
+
+    testWidgets(
+      'hides the portrait of an unresolvable imagePath and keeps the name (D-03)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'enemy',
+            enemies: [
+              {'quantity': 1, 'enemy': _enemy},
+            ],
+          ),
+        );
+
+        expect(find.byKey(QuestInfoSheet.enemyPortraitKey), findsNothing);
+        expect(find.byType(Image), findsNothing);
+        expect(find.text('Arbusto maligno'), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows «Consigliati» under the enemy lines (D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: _goblinPack(),
+          recommendedLoot: [_potion],
+        ),
+      );
+
+      final title = _inCombat('Consigliati');
+      expect(title, findsOneWidget);
+      expect(_inCombat('2x Pozione'), findsOneWidget);
+      expect(
+        tester.getTopLeft(title).dy,
+        greaterThan(tester.getTopLeft(_inCombat('1x Capo goblin')).dy),
+      );
+    });
+
+    testWidgets('omits «Consigliati» in combat when the list is empty (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy', enemies: _goblinPack()));
+
+      expect(find.text('Consigliati'), findsNothing);
+    });
+
+    testWidgets(
+      'many enemies and Consigliati do not overflow in landscape (D-02, D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'enemy',
+            enemies: [
+              for (var i = 0; i < 6; i++)
+                questEnemyJson(id: 'e-$i', name: 'Nemico $i', quantity: 3),
+            ],
+            recommendedLoot: [
+              for (var i = 0; i < 4; i++)
+                {
+                  'quantity': 1,
+                  'item': {
+                    'id': 'l-$i',
+                    'name': 'Oggetto $i',
+                    'description': 'd',
+                  },
+                },
+            ],
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('aid shows the enemy name and no cost line', (tester) async {
       await _pump(
@@ -103,7 +255,7 @@ void main() {
         buildQuest(
           type: 'aid',
           requiredPoints: null,
-          enemy: {'id': 'enemy-1', 'name': 'Lupo grigio', 'imagePath': null},
+          enemies: [questEnemyJson(xp: null)],
         ),
         viewer: buildViewer(twitchPoints: 1200),
       );
@@ -177,6 +329,232 @@ void main() {
       expect(find.text('Eroe: 0 / 5'), findsOneWidget);
       expect(find.text('Paladino: 0 / 4'), findsOneWidget);
     });
+  });
+
+  group('announcement', () {
+    const announcement = 'Il mugnaio di Bosa cerca aiuto contro i lupi.';
+    final families = {
+      'enemy': QuestInfoSheet.combatFamilyKey,
+      'job': QuestInfoSheet.serviceFamilyKey,
+      'story': QuestInfoSheet.narrativeFamilyKey,
+    };
+    final familyNames = {
+      'enemy': 'combat',
+      'job': 'service',
+      'story': 'narrative',
+    };
+
+    for (final entry in families.entries) {
+      testWidgets(
+        'shows the announcement under the title in the ${familyNames[entry.key]} family (D-05)',
+        (tester) async {
+          await _pump(
+            tester,
+            buildQuest(
+              type: entry.key,
+              requiredPoints: 3000,
+              description: announcement,
+            ),
+          );
+
+          final description = find.byKey(QuestInfoSheet.descriptionKey);
+          expect(description, findsOneWidget);
+          final text = tester.widget<Text>(description);
+          expect(text.data, announcement);
+          expect(text.style?.fontStyle, FontStyle.italic);
+          final titleY = tester.getTopLeft(find.text('Il lupo del bosco')).dy;
+          final descriptionY = tester.getTopLeft(description).dy;
+          expect(titleY, lessThan(descriptionY));
+          expect(
+            descriptionY,
+            lessThan(tester.getTopLeft(find.byKey(entry.value)).dy),
+          );
+        },
+      );
+    }
+
+    testWidgets('omits the announcement when null or empty (D-05)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'enemy'));
+      expect(find.byKey(QuestInfoSheet.descriptionKey), findsNothing);
+
+      await _pump(tester, buildQuest(type: 'enemy', description: ''));
+      expect(find.byKey(QuestInfoSheet.descriptionKey), findsNothing);
+    });
+
+    testWidgets('a long announcement scrolls without overflow (D-05)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'enemy',
+          enemies: _goblinPack(),
+          description: List.filled(40, announcement).join(' '),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final description = find.byKey(QuestInfoSheet.descriptionKey);
+      expect(description, findsOneWidget);
+      expect(
+        find.ancestor(
+          of: description,
+          matching: find.descendant(
+            of: find.byType(QuestInfoSheet),
+            matching: find.byType(SingleChildScrollView),
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('companion prize', () {
+    const owl = {'id': 'pet-owl', 'name': 'Gufo reale'};
+
+    testWidgets(
+      'shows «Compagno in premio» when the prize carries a pet (D-06)',
+      (tester) async {
+        await _pump(tester, buildQuest(prizes: {'pet': owl}));
+
+        final line = find.byKey(QuestInfoSheet.petPrizeKey);
+        expect(line, findsOneWidget);
+        expect(
+          tester.widget<Text>(line).data,
+          'Compagno in premio: Gufo reale',
+        );
+      },
+    );
+
+    testWidgets('no companion line without a pet (D-06)', (tester) async {
+      await _pump(tester, buildQuest(prizes: {'xpPrize': 10}));
+
+      expect(find.byKey(QuestInfoSheet.petPrizeKey), findsNothing);
+    });
+
+    testWidgets('a pet prize with coins does not overflow (D-06)', (
+      tester,
+    ) async {
+      seedSvgCache([
+        CloudinaryAssets.goldCoin,
+        CloudinaryAssets.silverCoin,
+        CloudinaryAssets.copperCoin,
+      ]);
+      await _pump(
+        tester,
+        buildQuest(
+          prizes: {
+            'prizeCoins': {'gold': 1, 'silver': 0, 'copper': 0},
+            'pet': owl,
+          },
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(QuestInfoSheet.petPrizeKey), findsOneWidget);
+    });
+
+    final itemVariants = <String, (Map<String, dynamic>, Type)>{
+      'equipment': (equipmentAssetJson(), EquipmentItemCard),
+      'loot': (lootAssetJson(), LootItemCard),
+    };
+    for (final MapEntry(key: variant, value: (prizeItem, cardType))
+        in itemVariants.entries) {
+      testWidgets(
+        'coins, a prize item ($variant) and a pet keep the card square (D-06)',
+        (tester) async {
+          seedSvgCache([
+            CloudinaryAssets.goldCoin,
+            CloudinaryAssets.silverCoin,
+            CloudinaryAssets.copperCoin,
+            CloudinaryAssets.emptyCardSheet,
+            CloudinaryAssets.weaponType,
+            CloudinaryAssets.healEffect,
+          ]);
+          await _pump(
+            tester,
+            buildQuest(
+              prizes: {
+                'prizeCoins': {'gold': 1, 'silver': 0, 'copper': 0},
+                'prizeItem': prizeItem,
+                'pet': owl,
+              },
+            ),
+          );
+
+          expect(tester.takeException(), isNull);
+          final card = find.byType(cardType);
+          final requested = switch (tester.widget(card)) {
+            EquipmentItemCard(:final size) => size,
+            LootItemCard(:final size) => size,
+            _ => fail('unexpected card'),
+          };
+          expect(tester.getSize(card), Size(requested, requested));
+          expect(find.byKey(QuestInfoSheet.petPrizeKey), findsOneWidget);
+        },
+      );
+    }
+  });
+
+  group('fixed types (QGEN-04)', () {
+    testWidgets(
+      'dungeon shows its stage enemies and Consigliati in the combat family (D-11)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'dungeon',
+            enemies: [
+              questEnemyJson(id: 'goblin', name: 'Goblin', quantity: 3, xp: 7),
+              questEnemyJson(id: 'goblin-chief', name: 'Capo goblin', xp: 21),
+              questEnemyJson(id: 'troll', name: 'Troll', xp: 126),
+            ],
+            recommendedLoot: [_potion],
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+        final lines = ['3x Goblin', '1x Capo goblin', '1x Troll'];
+        final tops = [
+          for (final line in lines) tester.getTopLeft(_inCombat(line)).dy,
+        ];
+        expect(tops[0], lessThan(tops[1]));
+        expect(tops[1], lessThan(tops[2]));
+        expect(_inCombat('Consigliati'), findsOneWidget);
+        expect(find.textContaining('Qualsiasi rango'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'crime and guard show the service family with the announcement and no portrait (D-11, D-16)',
+      (tester) async {
+        for (final type in ['crime', 'guard']) {
+          await _pump(
+            tester,
+            buildQuest(type: type, description: 'Serve una mano discreta.'),
+          );
+
+          expect(tester.takeException(), isNull, reason: type);
+          expect(
+            find.byKey(QuestInfoSheet.serviceFamilyKey),
+            findsOneWidget,
+            reason: type,
+          );
+          expect(
+            find.byKey(QuestInfoSheet.descriptionKey),
+            findsOneWidget,
+            reason: type,
+          );
+          expect(
+            find.byKey(QuestInfoSheet.enemyPortraitKey),
+            findsNothing,
+            reason: type,
+          );
+        }
+      },
+    );
   });
 
   group('cost and title', () {
@@ -307,7 +685,15 @@ void main() {
   });
 
   testWidgets('has no horizontal drag gesture of its own', (tester) async {
-    await _pump(tester, buildQuest(type: 'enemy', enemy: _enemy));
+    await _pump(
+      tester,
+      buildQuest(
+        type: 'enemy',
+        enemies: [
+          {'quantity': 1, 'enemy': _enemy},
+        ],
+      ),
+    );
 
     final detectors = tester.widgetList<GestureDetector>(
       find.descendant(

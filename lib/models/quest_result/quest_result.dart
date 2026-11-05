@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
-import 'package:klimmeck_guide/models/enemy.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_quest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_rewards.dart';
@@ -34,7 +34,9 @@ class QuestResult extends Equatable {
     required this.titleBefore,
     required this.titleAfter,
     required this.spellLearned,
-    required this.enemy,
+    required this.enemies,
+    required this.stagesCleared,
+    required this.stagesTotal,
     required this.rescuedCharacters,
     this.acknowledgedAt,
   });
@@ -66,7 +68,13 @@ class QuestResult extends Equatable {
   final TitleType? titleBefore;
   final TitleType? titleAfter;
   final Spell? spellLearned;
-  final Enemy? enemy;
+
+  /// Nemici affrontati, nell'ordine del BE (D-07); una voce malformata è scartata.
+  final List<QuestEnemy> enemies;
+
+  /// Solo per una dungeon (BE D-12): tappe superate e totali.
+  final int? stagesCleared;
+  final int? stagesTotal;
   final List<String> rescuedCharacters;
 
   /// BE 9.2: istante della presa visione; assente prima del fragment del piano 09-12.
@@ -108,7 +116,9 @@ class QuestResult extends Equatable {
     titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
     titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
     spellLearned: _spellFrom(json['spellLearned']),
-    enemy: _enemyFrom(json['enemy']),
+    enemies: QuestEnemy.lenientListFrom(json['enemies']),
+    stagesCleared: _countFrom(json['stagesCleared']),
+    stagesTotal: _countFrom(json['stagesTotal']),
     rescuedCharacters: List.unmodifiable(
       (json['rescuedCharacters'] as List).cast<String>(),
     ),
@@ -146,16 +156,7 @@ class QuestResult extends Equatable {
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
 
-  // Solo id, nome e immagine: altri campi del nemico farebbero fallire
-  // `Enemy.fromJson` (BE §14).
-  static Enemy? _enemyFrom(Object? json) {
-    if (json is! Map<String, dynamic>) return null;
-    return Enemy.fromJson({
-      'id': json['id'],
-      'name': json['name'],
-      'imagePath': json['imagePath'],
-    });
-  }
+  static int? _countFrom(Object? json) => json is num ? json.toInt() : null;
 
   static DateTime? _instantFrom(Object? json) =>
       json is String ? DateTime.parse(json).toUtc() : null;
@@ -184,9 +185,9 @@ class QuestResult extends Equatable {
     'spellLearned': spellLearned == null
         ? null
         : {'id': spellLearned!.id, 'name': spellLearned!.name},
-    'enemy': enemy == null
-        ? null
-        : {'id': enemy!.id, 'name': enemy!.name, 'imagePath': enemy!.imagePath},
+    'enemies': enemies.map((entry) => entry.toJson()).toList(),
+    'stagesCleared': stagesCleared,
+    'stagesTotal': stagesTotal,
     'rescuedCharacters': rescuedCharacters,
     if (acknowledgedAt != null)
       'acknowledgedAt': acknowledgedAt!.toUtc().toIso8601String(),
@@ -215,7 +216,9 @@ class QuestResult extends Equatable {
     titleBefore,
     titleAfter,
     spellLearned,
-    enemy,
+    enemies,
+    stagesCleared,
+    stagesTotal,
     rescuedCharacters,
     acknowledgedAt,
   ];

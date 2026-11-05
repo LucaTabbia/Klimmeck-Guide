@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/spell.dart';
 
 import 'coins.dart';
 import 'damages.dart';
+import 'enums/accessory_use_type.dart';
 import 'enums/equip_type.dart';
 import 'enums/rarity_type.dart';
 
@@ -18,11 +19,15 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     required this.equipType,
     required this.addedSpell,
     required this.damages,
+    this.accessoryUseTypes,
   });
 
   final EquipType? equipType;
   final Spell? addedSpell;
   final Damages? damages;
+
+  /// Solo anelli e collane (BE D-24); null sugli altri pezzi.
+  final List<AccessoryUseType>? accessoryUseTypes;
 
   factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
     id: json['id'],
@@ -45,6 +50,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
         ? RarityType.values.byName(json['rarity'])
         : null,
     damages: json["damages"] != null ? Damages.fromJson(json["damages"]) : null,
+    accessoryUseTypes: _accessoryUseTypesFrom(json['accessoryUseTypes']),
   );
 
   @override
@@ -58,6 +64,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     'buyPrice': buyPrice?.toJson(),
     'rarity': rarity?.name,
     'damages': damages?.toJson(),
+    'accessoryUseTypes': accessoryUseTypes?.map((type) => type.name).toList(),
   };
 
   EquipmentItem copyWith({
@@ -70,6 +77,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     EquipType? equipType,
     Spell? addedSpell,
     Damages? damages,
+    List<AccessoryUseType>? accessoryUseTypes,
   }) {
     return EquipmentItem(
       id: id ?? this.id,
@@ -81,6 +89,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
       equipType: equipType ?? this.equipType,
       addedSpell: addedSpell ?? this.addedSpell,
       damages: damages ?? this.damages,
+      accessoryUseTypes: accessoryUseTypes ?? this.accessoryUseTypes,
     );
   }
 
@@ -90,5 +99,14 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     equipType,
     addedSpell,
     damages,
+    accessoryUseTypes,
   ];
+}
+
+List<AccessoryUseType>? _accessoryUseTypesFrom(Object? json) {
+  if (json is! List) return null;
+  final byName = AccessoryUseType.values.asNameMap();
+  return List.unmodifiable(
+    json.map((name) => byName[name]).whereType<AccessoryUseType>(),
+  );
 }

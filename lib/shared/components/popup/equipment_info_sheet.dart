@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
 
 import '../../../theme/kg_theme.dart';
 
@@ -16,6 +17,8 @@ class EquipmentInfoSheet extends StatefulWidget {
     this.onEquip,
     this.isEquipped,
   });
+
+  static const Key usageKey = ValueKey('equipmentInfo.usage');
 
   final EquipmentItem equipmentItem;
   final VoidCallback? onEquip;
@@ -30,6 +33,7 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
   Widget build(BuildContext context) {
     final svgWidth = MediaQuery.of(context).size.height * 1.3 * (315 / 375);
     final svgHeight = MediaQuery.of(context).size.height * 1.3;
+    final usage = accessoryUsageLine(widget.equipmentItem);
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -85,7 +89,13 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                   ),
                             ),
                           ),
-
+                          if (usage != null)
+                            Text(
+                              usage,
+                              key: EquipmentInfoSheet.usageKey,
+                              textAlign: TextAlign.center,
+                              style: KlimmeckGuideTheme.instance.bodyMedium,
+                            ),
                           Expanded(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,

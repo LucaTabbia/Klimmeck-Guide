@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
@@ -40,8 +41,16 @@ class QuestInfoSheet extends StatelessWidget {
   static const Key blockedReasonKey = ValueKey('questSheet.blockedReason');
   static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
   static const Key abandonKey = ValueKey('questSheet.abandon');
+  static const Key descriptionKey = ValueKey('questSheet.description');
+  static const Key petPrizeKey = ValueKey('questSheet.petPrize');
+  static const Key enemyPortraitKey = ValueKey('questSheet.enemyPortrait');
+  static const Key recommendedLootKey = ValueKey('questSheet.recommendedLoot');
+  static const String recommendedLootTitle = 'Consigliati';
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
+  static const int _petPrizeMaxLines = 3;
+  static const double _coinsShare = 0.5;
+  static const double _coinsShareBesideItemAndCompanion = 0.35;
 
   static const double _aspectRatio = 315 / 375;
   static const double _heightMultiplier = 1.5;
@@ -72,6 +81,7 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   Widget _buildContent(double sheetWidth, double sheetHeight) {
+    final details = QuestSheetDetails.of(quest!, viewer: viewer);
     return SizedBox(
       width: sheetWidth,
       height: sheetHeight,
@@ -84,17 +94,16 @@ class QuestInfoSheet extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Expanded(flex: 3, child: _buildQuestInfo()),
+            Expanded(flex: 3, child: _buildQuestInfo(details)),
             if (quest!.prizes != null)
-              Expanded(flex: 2, child: _buildRewards()),
+              Expanded(flex: 2, child: _buildRewards(details)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuestInfo() {
-    final details = QuestSheetDetails.of(quest!, viewer: viewer);
+  Widget _buildQuestInfo(QuestSheetDetails details) {
     final theme = KlimmeckGuideTheme.instance;
     return Column(
       children: [
@@ -108,6 +117,7 @@ class QuestInfoSheet extends StatelessWidget {
             style: theme.headlineLarge,
           ),
         ),
+        ..._description(theme),
         Expanded(
           flex: 4,
           child: switch (details.family) {
@@ -129,6 +139,24 @@ class QuestInfoSheet extends StatelessWidget {
     );
   }
 
+  /// Annuncio del committente sotto il titolo, in ogni famiglia (D-05).
+  List<Widget> _description(KlimmeckGuideTheme theme) {
+    final text = quest!.infos?.description;
+    if (text == null || text.isEmpty) return const [];
+    return [
+      Flexible(
+        child: SingleChildScrollView(
+          child: Text(
+            text,
+            key: descriptionKey,
+            textAlign: TextAlign.center,
+            style: theme.bodyLarge.copyWith(fontStyle: FontStyle.italic),
+          ),
+        ),
+      ),
+    ];
+  }
+
   Widget _abandonAction(KlimmeckGuideTheme theme) => Semantics(
     label: abandonLabel,
     button: true,
@@ -145,32 +173,13 @@ class QuestInfoSheet extends StatelessWidget {
   );
 
   Widget _combatBody(QuestSheetDetails details) {
-    final enemy = quest!.infos?.enemy;
+    final hasLeftColumn =
+        details.enemyLines.isNotEmpty ||
+        details.recommendedLootLines.isNotEmpty;
     return Row(
       key: combatFamilyKey,
       children: [
-        if (enemy != null)
-          Expanded(
-            child: Column(
-              children: [
-                if (enemy.imagePath != null)
-                  Expanded(
-                    child: Image.asset(
-                      enemy.imagePath!,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    ),
-                  ),
-                AutoSizeText(
-                  enemy.name ?? '',
-                  maxFontSize: 12,
-                  minFontSize: 8,
-                  textAlign: TextAlign.center,
-                  style: KlimmeckGuideTheme.instance.bodyLarge,
-                ),
-              ],
-            ),
-          ),
+        if (hasLeftColumn) Expanded(child: _enemyColumn(details)),
         Expanded(
           child: SingleChildScrollView(
             child: Column(
@@ -179,6 +188,40 @@ class QuestInfoSheet extends StatelessWidget {
                 ..._timeLine(),
                 ..._titleLine(details),
                 ..._slotLines(details),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Ritratto del più forte solo se risolvibile (D-03), righe nell'ordine del
+  /// BE (D-02), «Consigliati» sotto (D-04).
+  Widget _enemyColumn(QuestSheetDetails details) {
+    final portraitPath = details.strongestEnemy?.imagePath;
+    return Column(
+      children: [
+        if (EnemyPortrait.canShow(portraitPath))
+          Expanded(
+            child: EnemyPortrait(
+              key: enemyPortraitKey,
+              imagePath: portraitPath,
+            ),
+          ),
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                for (final line in details.enemyLines)
+                  AutoSizeText(
+                    line,
+                    maxFontSize: 12,
+                    minFontSize: 8,
+                    textAlign: TextAlign.center,
+                    style: KlimmeckGuideTheme.instance.bodyLarge,
+                  ),
+                ..._recommendedLoot(details),
               ],
             ),
           ),
@@ -209,7 +252,6 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   Widget _serviceBody(QuestSheetDetails details) {
-    final theme = KlimmeckGuideTheme.instance;
     return SingleChildScrollView(
       key: serviceFamilyKey,
       child: Column(
@@ -217,15 +259,25 @@ class QuestInfoSheet extends StatelessWidget {
         children: [
           ..._timeLine(),
           ..._titleLine(details),
-          if (details.recommendedLootLines.isNotEmpty) ...[
-            Text('Consigliati', style: theme.specialText),
-            for (final line in details.recommendedLootLines)
-              Text(line, style: theme.bodyLarge),
-          ],
+          ..._recommendedLoot(details),
           ..._slotLines(details),
         ],
       ),
     );
+  }
+
+  List<Widget> _recommendedLoot(QuestSheetDetails details) {
+    if (details.recommendedLootLines.isEmpty) return const [];
+    final theme = KlimmeckGuideTheme.instance;
+    return [
+      Text(
+        recommendedLootTitle,
+        key: recommendedLootKey,
+        style: theme.specialText,
+      ),
+      for (final line in details.recommendedLootLines)
+        Text(line, style: theme.bodyLarge),
+    ];
   }
 
   List<Widget> _timeLine() {
@@ -276,52 +328,73 @@ class QuestInfoSheet extends StatelessWidget {
       ),
   ];
 
-  Widget _buildRewards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 30,
-              child: AutoSizeText(
-                "Ricompense:",
-                maxFontSize: 20,
-                minFontSize: 10,
-                textAlign: TextAlign.left,
-                style: KlimmeckGuideTheme.instance.specialText,
-              ),
+  Widget _buildRewards(QuestSheetDetails details) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 30,
+          child: AutoSizeText(
+            "Ricompense:",
+            maxFontSize: 20,
+            minFontSize: 10,
+            textAlign: TextAlign.left,
+            style: KlimmeckGuideTheme.instance.specialText,
+          ),
+        ),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) => _prizeRow(details, constraints),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Il compagno sta nella riga dei premi: sotto, le monete non ci stanno (D-06).
+  /// La carta resta quadrata; con oggetto e compagno le monete cedono spazio.
+  Widget _prizeRow(QuestSheetDetails details, BoxConstraints constraints) {
+    final prizes = quest!.prizes!;
+    final hasItemAndCompanion =
+        prizes.prizeItem != null && details.petPrizeLine != null;
+    final coinsShare = hasItemAndCompanion
+        ? _coinsShareBesideItemAndCompanion
+        : _coinsShare;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (prizes.prizeCoins != null)
+          CoinsDisplay(
+            coins: prizes.prizeCoins!,
+            height: constraints.maxHeight,
+            width: constraints.maxWidth * coinsShare,
+          ),
+        if (prizes.prizeItem != null)
+          SizedBox(
+            width: constraints.maxHeight,
+            child: prizes.prizeItem!.isEquipment
+                ? EquipmentItemCard(
+                    isSelected: false,
+                    size: constraints.maxHeight,
+                    equipmentItem: prizes.prizeItem!.asEquipment!,
+                  )
+                : LootItemCard(
+                    lootItem: prizes.prizeItem!.asLoot!,
+                    size: constraints.maxHeight,
+                  ),
+          ),
+        if (details.petPrizeLine != null)
+          Flexible(
+            child: Text(
+              details.petPrizeLine!,
+              key: petPrizeKey,
+              maxLines: _petPrizeMaxLines,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: KlimmeckGuideTheme.instance.bodyLarge,
             ),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (quest!.prizes?.prizeCoins != null)
-                    CoinsDisplay(
-                      coins: quest!.prizes!.prizeCoins!,
-                      height: constraints.maxHeight - 30,
-                      width: constraints.maxWidth * 0.5,
-                    ),
-                  if (quest!.prizes!.prizeItem != null)
-                    Flexible(
-                      child: quest!.prizes!.prizeItem!.isEquipment
-                          ? EquipmentItemCard(
-                              isSelected: false,
-                              size: constraints.maxHeight - 30,
-                              equipmentItem:
-                                  quest!.prizes!.prizeItem!.asEquipment!,
-                            )
-                          : LootItemCard(
-                              lootItem: quest!.prizes!.prizeItem!.asLoot!,
-                              size: constraints.maxHeight - 30,
-                            ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+      ],
     );
   }
 }

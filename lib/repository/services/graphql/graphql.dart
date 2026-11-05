@@ -236,6 +236,20 @@ class KlimmeckGraphQl {
     );
   }
 
+  /// Corsa del generatore di quest (BE Phase 13 D-16): restituisce quante
+  /// quest ha creato. Lancia [OperationException] o [FormatException].
+  Future<int> generateQuests() async {
+    final data = _dataOrThrow(
+      await performMutation(query: QuestMutations.generateQuests),
+    );
+    final payload = data['generateQuests'];
+    final created = payload is Map<String, dynamic> ? payload['created'] : null;
+    if (created is! int) {
+      throw const FormatException('generateQuests.created missing');
+    }
+    return created;
+  }
+
   List<PendingRequest> _pendingRequestsFrom(Object? json) {
     if (json is! List) throw const FormatException('pendingRequests missing');
     final parsed = json

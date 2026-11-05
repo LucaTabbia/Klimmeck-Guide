@@ -34,4 +34,20 @@ void main() {
       );
     });
   });
+
+  group('Pet.tryFromJson', () {
+    test('parses a map that carries a string id (D-06, D-07)', () {
+      expect(Pet.tryFromJson(petJson()), Pet.fromJson(petJson()));
+    });
+
+    test('returns null for a value that is not a map (D-06, D-07)', () {
+      expect(Pet.tryFromJson(null), isNull);
+      expect(Pet.tryFromJson('pet-travel-horse'), isNull);
+    });
+
+    test('returns null for a map without a string id (D-06, D-07)', () {
+      expect(Pet.tryFromJson(petJson()..remove('id')), isNull);
+      expect(Pet.tryFromJson(petJson()..['id'] = 7), isNull);
+    });
+  });
 }

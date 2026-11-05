@@ -53,6 +53,13 @@ class Pet extends Equatable {
     sellable: json['sellable'] as bool?,
   );
 
+  /// Compagno da un riferimento tollerante (premio o ricompensa, D-06/D-07):
+  /// null se non è una mappa con un `id` stringa.
+  static Pet? tryFromJson(Object? json) =>
+      json is Map<String, dynamic> && json['id'] is String
+      ? Pet.fromJson(json)
+      : null;
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
