@@ -1,5 +1,6 @@
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/notification.dart';
+import 'package:klimmeck_guide/models/travel/travel_cost_text.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 
 const String questAcceptanceNoticeTitle = 'Missione non accettata';
@@ -33,6 +34,7 @@ KGNotification? questAcceptanceNoticeFor(
       "Sei in viaggio: riprova all'arrivo",
     QuestAcceptanceFailure.awaitingAid =>
       'Sei in attesa di soccorso: non puoi accettare missioni',
+    QuestAcceptanceFailure.starving => starvingPhrase,
     QuestAcceptanceFailure.connection => 'Connessione assente, riprova',
     QuestAcceptanceFailure.timedOut =>
       'Il server non ha risposto in tempo: '
