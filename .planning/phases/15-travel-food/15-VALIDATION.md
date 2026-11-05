@@ -53,9 +53,9 @@ created: 2026-11-05
 | 15-05-02 | 05 | 5 | FOOD-03 | T-15-13 | sheet open through the requote; other refusals close it | widget | `flutter test test/screens/mainScreen/tabs/map test/screens/mainScreen/components` | ✅ (extend) | ✅ green |
 | 15-06-01 | 06 | 6 | FOOD-02 | T-15-16, T-15-17 | line from BE values only; narrative always null | unit | `flutter test test/models/quest test/shared/components/popup/quest_info_sheet_test.dart` | ❌ W0 (`quest_travel_line_test.dart`) | ✅ green |
 | 15-06-02 | 06 | 6 | FOOD-02, FOOD-03 | T-15-17 | no line without a preview (read-only path) | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/board test/screens/mainScreen/tabs/map test/models/quest` | ✅ (extend) | ✅ green |
-| 15-07-01 | 07 | 7 | FOOD-02 | T-15-19 | request only when acceptable + standard lane; token + SafeEmit | bloc/unit | `flutter test test/screens/mainScreen/tabs/board/questTravelPreviewCubit test/models/quest` | ❌ W0 (`quest_travel_preview_cubit_test.dart`) | ⬜ pending |
-| 15-07-02 | 07 | 7 | FOOD-02 | — | N/A (one shared repository) | widget | `flutter test test/screens/auth test/screens/mainScreen/tabs/board test/screens/mainScreen/main_screen_test.dart` | ✅ (Board harness W0) | ⬜ pending |
-| 15-07-03 | 07 | 7 | FOOD-02, FOOD-03 | T-15-18, T-15-20, T-15-21 | session character only; starving paper resists; refresh on starving refusal | widget | `flutter test test/screens/mainScreen/tabs/board test/screens/mainScreen test/shared/components/popup` | ✅ (extend) | ⬜ pending |
+| 15-07-01 | 07 | 7 | FOOD-02 | T-15-19 | request only when acceptable + standard lane; token + SafeEmit | bloc/unit | `flutter test test/screens/mainScreen/tabs/board/questTravelPreviewCubit test/models/quest` | ❌ W0 (`quest_travel_preview_cubit_test.dart`) | ✅ green |
+| 15-07-02 | 07 | 7 | FOOD-02 | — | N/A (one shared repository) | widget | `flutter test test/screens/auth test/screens/mainScreen/tabs/board test/screens/mainScreen/main_screen_test.dart` | ✅ (Board harness W0) | ✅ green |
+| 15-07-03 | 07 | 7 | FOOD-02, FOOD-03 | T-15-18, T-15-20, T-15-21 | session character only; starving paper resists; refresh on starving refusal | widget | `flutter test test/screens/mainScreen/tabs/board test/screens/mainScreen test/shared/components/popup` | ✅ (extend) | ✅ green |
 | 15-08-01 | 08 | 8 | FOOD-01..04 | T-15-22, T-15-23, T-15-24 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c TravelFoodItem` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ⬜ pending |
 | 15-08-02 | 08 | 8 | FOOD-01..04 | T-15-25 | sanity greps: no client arithmetic, no stale swipe gate | gate | `flutter test` (full) | ✅ | ⬜ pending |
 | 15-09-01 | 09 | 9 | FOOD-01..04 | T-15-26 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/15-travel-food/15-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
@@ -68,13 +68,13 @@ created: 2026-11-05
 
 ## Wave 0 Requirements
 
-- [ ] `test/models/travel/travel_food_item_test.dart` — FOOD-01 (15-01 Task 1)
-- [ ] `test/helpers/fixtures/travel_fixtures.dart` — `travelFoodItemJson` + `food`/`hpLost`/`arrivesAlive` params of `travelPreviewJson`, emitted only when given (15-01 Task 1)
-- [ ] `test/models/quantity_line_test.dart`, `test/models/travel/travel_cost_text_test.dart` — FOOD-01/02/04 (15-01 Task 3)
-- [ ] pinned tests updated RED first (D-12): `test/graphql/travel_documents_test.dart` selection (15-01 Task 2), registry count 44 → 45 in `travel_documents_test.dart` and `test/tool/schema_check_documents_test.dart` (15-02 Task 1), placeholders 3 → 5 in `travel_confirmation_sheet_test.dart` (15-05 Task 1)
-- [ ] `test/models/quest/quest_travel_line_test.dart` — FOOD-02 (15-06 Task 1)
-- [ ] `test/screens/mainScreen/tabs/board/questTravelPreviewCubit/quest_travel_preview_cubit_test.dart` — FOOD-02 (15-07 Task 1)
-- [ ] Board harness: `RepositoryProvider<TravelRepository>.value` + default `previewQuest → null` stub in `board_test.dart` and `board_acceptance_test.dart` (15-07 Task 2)
+- [x] `test/models/travel/travel_food_item_test.dart` — FOOD-01 (15-01 Task 1)
+- [x] `test/helpers/fixtures/travel_fixtures.dart` — `travelFoodItemJson` + `food`/`hpLost`/`arrivesAlive` params of `travelPreviewJson`, emitted only when given (15-01 Task 1)
+- [x] `test/models/quantity_line_test.dart`, `test/models/travel/travel_cost_text_test.dart` — FOOD-01/02/04 (15-01 Task 3)
+- [x] pinned tests updated RED first (D-12): `test/graphql/travel_documents_test.dart` selection (15-01 Task 2), registry count 44 → 45 in `travel_documents_test.dart` and `test/tool/schema_check_documents_test.dart` (15-02 Task 1), placeholders 3 → 5 in `travel_confirmation_sheet_test.dart` (15-05 Task 1)
+- [x] `test/models/quest/quest_travel_line_test.dart` — FOOD-02 (15-06 Task 1)
+- [x] `test/screens/mainScreen/tabs/board/questTravelPreviewCubit/quest_travel_preview_cubit_test.dart` — FOOD-02 (15-07 Task 1)
+- [x] Board harness: `RepositoryProvider<TravelRepository>.value` + default `previewQuest → null` stub in `board_test.dart` and `board_acceptance_test.dart` (15-07 Task 2)
 
 ---
 
