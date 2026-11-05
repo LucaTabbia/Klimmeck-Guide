@@ -3,8 +3,11 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_sheet_details.dart';
+import 'package:klimmeck_guide/models/quest/quest_travel_line.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
+import '../../helpers/fixtures/travel_fixtures.dart';
 
 Map<String, dynamic> slot(String? title, int count) => {
   'title': title,
@@ -268,6 +271,51 @@ void main() {
         ),
       );
       expect(nameless.petPrizeLine, isNull);
+    });
+  });
+
+  group('travel line', () {
+    final preview = TravelPreview.fromJson(
+      travelPreviewJson(
+        food: [travelFoodItemJson()],
+        hpLost: 0,
+        arrivesAlive: true,
+      ),
+    );
+
+    test('travelLine comes from the preview on a combat sheet (D-04)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(type: 'hunt'),
+        travelPreview: preview,
+      );
+      expect(details.travelLine, QuestTravelLine.of(preview));
+      expect(details.travelLine, isNotNull);
+    });
+
+    test('travelLine comes from the preview on a service sheet (D-04)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(type: 'crime'),
+        travelPreview: preview,
+      );
+      expect(details.travelLine, QuestTravelLine.of(preview));
+      expect(details.travelLine, isNotNull);
+    });
+
+    test(
+      'travelLine is null on a narrative sheet even with a preview (D-04)',
+      () {
+        for (final type in ['story', 'worldMission']) {
+          final details = QuestSheetDetails.of(
+            buildQuest(type: type),
+            travelPreview: preview,
+          );
+          expect(details.travelLine, isNull, reason: type);
+        }
+      },
+    );
+
+    test('travelLine is null without a preview (D-04)', () {
+      expect(QuestSheetDetails.of(buildQuest(type: 'hunt')).travelLine, isNull);
     });
   });
 }
