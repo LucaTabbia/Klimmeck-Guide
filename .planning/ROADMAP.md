@@ -466,7 +466,7 @@ Plans:
 - [x] 14-07-PLAN.md — `GenerateQuests` document + registry (44), `KlimmeckGraphQl.generateQuests`, `InnkeeperRepository.generateQuests`, `QuestGenerationCubit` (sealed states, failure serial), mocks
 - [x] 14-08-PLAN.md — Locanda: `GenerateQuestsButton` outside the queue `BlocBuilder`, neutral confirmation dialog, SnackBar outcomes, `FORBIDDEN` closes the panel, disabled in flight
 - [x] 14-09-PLAN.md — Jewels: `AccessoryUseType`, `EquipmentItem.accessoryUseTypes`, equipment fragments, «Uso: attacco / difesa / attacco e difesa» on `EquipmentInfoSheet`
-- [ ] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
+- [x] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
 - [ ] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 15: Travel Food
@@ -526,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 9/11 | In Progress | - |
+| 14. Quest Generation (companion) | 10/11 | In Progress | - |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
