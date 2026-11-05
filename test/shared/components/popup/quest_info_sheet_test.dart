@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
@@ -13,6 +14,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/fixtures/shop_fixtures.dart';
+import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -58,6 +60,7 @@ Future<void> _pump(
   QuestViewer? viewer,
   String? stateLabel,
   VoidCallback? onAbandon,
+  TravelPreview? travelPreview,
 }) async {
   useLandscapePhone(tester);
   await tester.pumpWidget(
@@ -69,6 +72,7 @@ Future<void> _pump(
             viewer: viewer,
             stateLabel: stateLabel,
             onAbandon: onAbandon,
+            travelPreview: travelPreview,
           ),
         ),
       ),
@@ -79,6 +83,20 @@ Future<void> _pump(
 
 Color? _colorOf(WidgetTester tester, Finder finder) =>
     tester.widget<Text>(finder).style?.color;
+
+TravelPreview _travelPreview({bool arrivesAlive = true}) =>
+    TravelPreview.fromJson(
+      travelPreviewJson(
+        food: [travelFoodItemJson()],
+        hpLost: arrivesAlive ? 0 : 20910,
+        arrivesAlive: arrivesAlive,
+      ),
+    );
+
+Finder _travelLineIn(Key familyKey) => find.descendant(
+  of: find.byKey(familyKey),
+  matching: find.byKey(QuestInfoSheet.travelLineKey),
+);
 
 void main() {
   setUp(
@@ -709,5 +727,111 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byKey(QuestInfoSheet.combatFamilyKey), findsNothing);
+  });
+
+  group('travel line', () {
+    const coveredText = 'Viaggio: 1x Razione da viaggio · nessuna perdita';
+    const starvingText = 'Viaggio: Non hai cibo a sufficienza per il viaggio';
+
+    testWidgets(
+      'a combat sheet shows the travel line in its costs block (D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(type: 'hunt'),
+          travelPreview: _travelPreview(),
+        );
+
+        final line = _travelLineIn(QuestInfoSheet.combatFamilyKey);
+        expect(line, findsOneWidget);
+        expect(tester.widget<Text>(line).data, coveredText);
+      },
+    );
+
+    testWidgets(
+      'a service sheet shows the travel line in its costs block (D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(type: 'crime'),
+          travelPreview: _travelPreview(),
+        );
+
+        final line = _travelLineIn(QuestInfoSheet.serviceFamilyKey);
+        expect(line, findsOneWidget);
+        expect(tester.widget<Text>(line).data, coveredText);
+      },
+    );
+
+    testWidgets(
+      'a starving travel line is red with the user phrase (D-04, D-06)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(type: 'hunt'),
+          travelPreview: _travelPreview(arrivesAlive: false),
+        );
+
+        final line = find.byKey(QuestInfoSheet.travelLineKey);
+        expect(tester.widget<Text>(line).data, starvingText);
+        expect(_colorOf(tester, line), KlimmeckGuideTheme.bloodRed);
+      },
+    );
+
+    testWidgets('a covered travel line keeps the body colour (D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'hunt'),
+        travelPreview: _travelPreview(),
+      );
+
+      final line = find.byKey(QuestInfoSheet.travelLineKey);
+      expect(_colorOf(tester, line), isNot(KlimmeckGuideTheme.bloodRed));
+    });
+
+    testWidgets(
+      'the travel line sits between the time line and the title line (D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          buildQuest(type: 'hunt', timeToComplete: 60000, minTitle: 'hero'),
+          travelPreview: _travelPreview(),
+        );
+
+        final timeY = tester
+            .getTopLeft(find.textContaining('Tempo richiesto'))
+            .dy;
+        final travelY = tester
+            .getTopLeft(find.byKey(QuestInfoSheet.travelLineKey))
+            .dy;
+        final titleY = tester.getTopLeft(find.text('Titolo minimo: Eroe')).dy;
+        expect(timeY, lessThan(travelY));
+        expect(travelY, lessThan(titleY));
+      },
+    );
+
+    testWidgets('a narrative sheet never shows the travel line (D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'story', requiredPoints: 3000),
+        travelPreview: _travelPreview(),
+      );
+
+      expect(find.byKey(QuestInfoSheet.narrativeFamilyKey), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.travelLineKey), findsNothing);
+    });
+
+    testWidgets('a sheet without a preview shows no travel line (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'hunt'));
+
+      expect(find.byKey(QuestInfoSheet.combatFamilyKey), findsOneWidget);
+      expect(find.byKey(QuestInfoSheet.travelLineKey), findsNothing);
+    });
   });
 }
