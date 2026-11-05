@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/utils/utils.dart';
 import '../../../models/quest/quest.dart';
 import '../../../models/quest/quest_sheet_details.dart';
 import '../../../models/quest/quest_viewer.dart';
+import '../../../models/travel/travel_preview.dart';
 import '../cards/equipment_item_card.dart';
 
 class QuestInfoSheet extends StatelessWidget {
@@ -20,6 +21,7 @@ class QuestInfoSheet extends StatelessWidget {
     this.viewer,
     this.stateLabel,
     this.onAbandon,
+    this.travelPreview,
   });
 
   final Quest? quest;
@@ -34,10 +36,15 @@ class QuestInfoSheet extends StatelessWidget {
   /// Solo dalla mappa, mentre la corsia aspetta il gruppo (BE 09-19).
   final VoidCallback? onAbandon;
 
+  /// Anteprima del viaggio automatico (solo Bacheca, swipe disponibile, D-04).
+  /// Null = nessuna riga «Viaggio» (mappa, in attesa, fallita, nessun viaggio).
+  final TravelPreview? travelPreview;
+
   static const Key combatFamilyKey = ValueKey('questSheet.family.combat');
   static const Key narrativeFamilyKey = ValueKey('questSheet.family.narrative');
   static const Key serviceFamilyKey = ValueKey('questSheet.family.service');
   static const Key costLineKey = ValueKey('questSheet.costLine');
+  static const Key travelLineKey = ValueKey('questSheet.travelLine');
   static const Key blockedReasonKey = ValueKey('questSheet.blockedReason');
   static const Key stateLabelKey = ValueKey('questSheet.stateLabel');
   static const Key abandonKey = ValueKey('questSheet.abandon');
@@ -81,7 +88,11 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   Widget _buildContent(double sheetWidth, double sheetHeight) {
-    final details = QuestSheetDetails.of(quest!, viewer: viewer);
+    final details = QuestSheetDetails.of(
+      quest!,
+      viewer: viewer,
+      travelPreview: travelPreview,
+    );
     return SizedBox(
       width: sheetWidth,
       height: sheetHeight,
@@ -186,6 +197,7 @@ class QuestInfoSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ..._timeLine(),
+                ..._travelLine(details),
                 ..._titleLine(details),
                 ..._slotLines(details),
               ],
@@ -258,6 +270,7 @@ class QuestInfoSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ..._timeLine(),
+          ..._travelLine(details),
           ..._titleLine(details),
           ..._recommendedLoot(details),
           ..._slotLines(details),
@@ -313,6 +326,22 @@ class QuestInfoSheet extends StatelessWidget {
         key: costLineKey,
         style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
           color: cost.isInsufficient ? KlimmeckGuideTheme.bloodRed : null,
+        ),
+      ),
+    ];
+  }
+
+  /// Riga «Viaggio» nella posizione dei costi (D-04): rossa con la frase
+  /// dell'utente quando il personaggio non arriverebbe vivo.
+  List<Widget> _travelLine(QuestSheetDetails details) {
+    final line = details.travelLine;
+    if (line == null) return const [];
+    return [
+      Text(
+        line.text,
+        key: travelLineKey,
+        style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
+          color: line.isStarving ? KlimmeckGuideTheme.bloodRed : null,
         ),
       ),
     ];
