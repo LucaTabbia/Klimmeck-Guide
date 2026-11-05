@@ -35,15 +35,19 @@ void main() {
       _expectTravelRequestVariable(operation);
     });
 
-    test('selects distance, duration and the road of travelPreview', () {
-      expect(
-        _collapsed(TravelQueries.getTravelPreview),
-        contains(
-          'travelPreview(request: \$request) '
-          '{ distance duration road { coordinates distance } }',
-        ),
-      );
-    });
+    test(
+      'selects the road, the food, the life lost and arrivesAlive of travelPreview (D-01)',
+      () {
+        expect(
+          _collapsed(TravelQueries.getTravelPreview),
+          contains(
+            'travelPreview(request: \$request) '
+            '{ distance duration road { coordinates distance } '
+            'food { quantity item { id name } } hpLost arrivesAlive }',
+          ),
+        );
+      },
+    );
 
     test('is registered in the schema check', () {
       expect(
