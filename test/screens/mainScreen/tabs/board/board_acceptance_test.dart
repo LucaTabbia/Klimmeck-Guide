@@ -116,6 +116,7 @@ void main() {
     WidgetTester tester, {
     required List<Quest> quests,
     Map<String, dynamic>? character,
+    Stream<CharacterState> characterStates = const Stream.empty(),
     QuestAcceptanceState initialAcceptance = const QuestAcceptanceIdle(),
   }) async {
     useLandscapePhone(tester);
@@ -126,7 +127,7 @@ void main() {
     );
     whenListen(
       characterCubit,
-      const Stream<CharacterState>.empty(),
+      characterStates,
       initialState: CharacterLoaded(
         Character.fromJson(
           character ??
@@ -471,6 +472,98 @@ void main() {
         verifyNoTravelPreview();
       },
     );
+
+    group('a sheet opened before the quest is acceptable', () {
+      late StreamController<CharacterState> characterStates;
+
+      setUp(() {
+        characterStates = StreamController<CharacterState>.broadcast();
+        addTearDown(characterStates.close);
+      });
+
+      CharacterLoaded characterWith({Map<String, dynamic>? pendingQuest}) =>
+          CharacterLoaded(
+            Character.fromJson(
+              characterWithLanesJson(
+                title: 'paladin',
+                locationId: 'city-marker-1',
+                pendingQuest: pendingQuest,
+              ),
+            ),
+          );
+
+      Future<void> openBusySheet(WidgetTester tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-2', type: 'hunt')],
+          character: characterWithLanesJson(
+            title: 'paladin',
+            locationId: 'city-marker-1',
+            pendingQuest: laneJson(id: 'pq-x', questId: 'h-other'),
+          ),
+          characterStates: characterStates.stream,
+        );
+        await openSheet(tester, 'h-2');
+      }
+
+      Future<void> emitCharacter(
+        WidgetTester tester,
+        CharacterLoaded state,
+      ) async {
+        characterStates.add(state);
+        await tester.pump();
+        await tester.pump();
+      }
+
+      testWidgets(
+        'asks the travel preview once the quest becomes acceptable (D-04)',
+        (tester) async {
+          stubTravelPreview(
+            TravelPreview.fromJson(
+              travelPreviewJson(food: [travelFoodItemJson()], hpLost: 0),
+            ),
+          );
+          await openBusySheet(tester);
+          verifyNoTravelPreview();
+
+          await emitCharacter(tester, characterWith());
+
+          verify(
+            () => travelRepository.previewQuest(
+              characterId: 'c-1',
+              questId: 'h-2',
+            ),
+          ).called(1);
+          expect(
+            travelLine(tester).data,
+            'Viaggio: 1x Razione da viaggio · nessuna perdita',
+          );
+        },
+      );
+
+      testWidgets(
+        'a loaded preview is not asked again when the viewer changes (D-04)',
+        (tester) async {
+          await openBusySheet(tester);
+
+          await emitCharacter(tester, characterWith());
+          await emitCharacter(
+            tester,
+            characterWith(
+              pendingQuest: laneJson(id: 'pq-x', questId: 'h-other'),
+            ),
+          );
+          await emitCharacter(tester, characterWith());
+
+          verify(
+            () => travelRepository.previewQuest(
+              characterId: 'c-1',
+              questId: 'h-2',
+            ),
+          ).called(1);
+        },
+      );
+    });
 
     testWidgets('the travel line appears once the preview answers (D-04)', (
       tester,
