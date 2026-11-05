@@ -80,7 +80,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
 
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
-- [ ] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_
+- [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
 - [ ] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
 - [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
@@ -447,7 +447,7 @@ Plans:
 **Scope**: M
 **Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04, QGEN-05, QGEN-06
 **Success Criteria** (what must be TRUE):
-  1. Combat quest sheets list every enemy with its quantity («3 × Goblin, 1 × Hobgoblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
+  1. Combat quest sheets list every enemy with its quantity («3x Goblin, 1x Capo goblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
   2. The result sheet shows the enemies fought, for standard-lane and ambush outcomes.
   3. From the Locanda the innkeeper triggers «Genera missioni» (BE `generateQuests`) with explicit confirmation and sees the outcome (how many quests, or none); `FORBIDDEN` mapped inline.
   4. Fixed `crime` and `guard` quests (BE Phase 11) render with the service family layout without any alignment mechanic; `dungeon` renders as combat.
@@ -467,7 +467,7 @@ Plans:
 - [x] 14-08-PLAN.md — Locanda: `GenerateQuestsButton` outside the queue `BlocBuilder`, neutral confirmation dialog, SnackBar outcomes, `FORBIDDEN` closes the panel, disabled in flight
 - [x] 14-09-PLAN.md — Jewels: `AccessoryUseType`, `EquipmentItem.accessoryUseTypes`, equipment fragments, «Uso: attacco / difesa / attacco e difesa» on `EquipmentInfoSheet`
 - [x] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
-- [ ] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
+- [x] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
 
 ### Phase 15: Travel Food
 **Goal**: Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
@@ -526,7 +526,7 @@ Plans:
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 10/11 | In Progress | - |
+| 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 0/0 | Not started | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
@@ -626,10 +626,12 @@ Plans:
 | SHOP-02 | Phase 13 | Complete |
 | SHOP-03 | Phase 13 | Complete |
 | SHOP-04 | Phase 13 | Complete |
-| QGEN-01 | Phase 14 | Pending |
-| QGEN-02 | Phase 14 | Pending |
-| QGEN-03 | Phase 14 | Pending |
-| QGEN-04 | Phase 14 | Pending |
+| QGEN-01 | Phase 14 | Complete |
+| QGEN-02 | Phase 14 | Complete |
+| QGEN-03 | Phase 14 | Complete |
+| QGEN-04 | Phase 14 | Complete |
+| QGEN-05 | Phase 14 | Complete |
+| QGEN-06 | Phase 14 | Complete |
 | FOOD-01 | Phase 15 | Pending |
 | FOOD-02 | Phase 15 | Pending |
 | FOOD-03 | Phase 15 | Pending |

@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-11-04T19:35:40.000Z"
-last_activity: 2026-11-05 -- Phase 14 resumed at 14-10 after the BE Phase 13 merge (162c1f5)
+last_activity: 2026-11-05 -- Phase 14 complete (14-11 device E2E)
 progress:
   total_phases: 17
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 133
-  completed_plans: 122
+  completed_plans: 123
   percent: 92
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 14 (Quest Generation, frontend companion) — EXECUTING, resumed 2026-11-05 on `feat/14-quest-generation` (from `develop` `9993a3c`): plans 14-01..14-09 executed, reviewed, fixed, verified and audited (parked 2026-11-04); the BE Phase 13 PR #19 merged on BE `develop` `162c1f5` on 2026-11-05 → 14-10 (schema gate) now, then 14-11 (device E2E + handoff) (CONTEXT D-13)
-Plan: 10 of 11
-Completed phases: 12 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13)
-Next Phase: after the BE Phase 13 PR merges on BE `develop` → `/gsd-execute-phase 14` resumes with 14-10 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c QuestEnemy` ≥ 1, contract names proved on the merged SDL, schema check 44/44, full suite) then 14-11 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements QGEN-01..06); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14 executing 14-10 (schema gate) — BE Phase 13 merged on BE `develop` `162c1f5` (PR #19, 2026-11-05; first real boot done on the real DB — 167 quests generated, 40 dungeons staged, 22 legendary enemies, 42 jewels — one-off migrators removed); 14-11 (device E2E) follows. Notes for the 14-11 device UAT (from the review fixes and the executors' deviations): (1) boss sheet with coins + prize item + companion: the card stays square, the coins column narrows to 35% of the row and the «Compagno in premio» line takes the rest (max 3 lines, ellipsis) — WR-01; rows without both an item and a companion look as before; (2) a named enemy next to an unnamed DB entry shows «1x <nome>» instead of the bare name (IN-04); (3) with TalkBack the «Ritratto del nemico» label is announced only once a raster portrait is shown (IN-01); (4) `CachedSvg` (pre-existing widget) shows a 14 px spinner while an unseeded SVG portrait loads — no enemy has an .svg path today; (5) `EquipmentFragment.definition` was removed as dead code (IN-03), registry still 44 documents.
-Last activity: 2026-11-05 -- BE Phase 13 merged on BE develop (162c1f5); phase resumed with 14-10
+Phase: 14 (Quest Generation, frontend companion) — COMPLETE 2026-11-05 on `feat/14-quest-generation` (from `develop` `9993a3c`): plans 14-01..14-11 executed; schema gate on BE `develop` `162c1f5` (BE PR #19 merged), Android device E2E complete (`14-HUMAN-UAT.md`: steps 1–8 pass, step 8 Cloudinary half skipped by the user's decision, optional step 9 and the step 3 companion prize pass); QGEN-01..06 complete; FE handoff `phases/14-quest-generation/BACKEND-NOTES.md`
+Plan: 11 of 11
+Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
+Next Phase: FE PR `feat/14-quest-generation` → `develop` (never `main`; BE Phase 13 PR #19 already merged); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 14 complete — awaiting the FE PR `feat/14-quest-generation` → `develop`. BE questions from the device E2E (placeholder dungeon resolver ignoring the character's strength, awaiting-aid blocking the board after a dungeon defeat, live refresh of generated quests) routed in `phases/14-quest-generation/BACKEND-NOTES.md` §5.
+Last activity: 2026-11-05 -- Phase 14 device E2E complete (14-11), QGEN-01..06 ticked
 
 ## Current Milestone
 
