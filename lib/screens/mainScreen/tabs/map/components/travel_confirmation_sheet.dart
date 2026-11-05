@@ -46,9 +46,6 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   static const int _foodMaxLines = 3;
   static const int _lifeMaxLines = 2;
 
-  /// Copy provvisoria (D-02).
-  static const String _noFoodText = 'nessuno';
-
   @override
   void initState() {
     super.initState();
@@ -130,7 +127,7 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
         Duration(milliseconds: preview.duration.round()),
       ),
       arrival: _arrivalOf(eta, previewedAt),
-      food: foodText(preview.food, empty: _noFoodText),
+      food: foodText(preview.food, empty: noFoodSheetText),
       life: lifeText(preview),
       isStarving: !preview.arrivesAlive,
     ),

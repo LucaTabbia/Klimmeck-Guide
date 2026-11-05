@@ -9,6 +9,12 @@ const String starvingPhrase = 'Non hai cibo a sufficienza per il viaggio';
 /// Copy provvisoria (D-02, Claude's discretion).
 const String noLifeLostText = 'nessuna perdita';
 
+/// Cibo vuoto nella riga «Cibo» del foglio di conferma (D-02, provvisoria).
+const String noFoodSheetText = 'nessuno';
+
+/// Cibo vuoto nella riga «Viaggio» del foglio quest (D-04, provvisoria).
+const String noFoodLineText = 'nessun cibo';
+
 /// Cibo nell'ordine del BE, «Nx nome» separati da virgola; [empty] quando il
 /// BE non mangia nulla (D-02, D-04). Nessun calcolo: solo stampa (FOOD-04).
 String foodText(List<TravelFoodItem> food, {required String empty}) =>

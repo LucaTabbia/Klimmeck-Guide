@@ -11,7 +11,6 @@ class QuestTravelLine extends Equatable {
 
   static const String _prefix = 'Viaggio: ';
   static const String _separator = ' · ';
-  static const String _noFoodText = 'nessun cibo';
 
   /// `null` = nessuna anteprima (in attesa, fallita, nessun viaggio, sola
   /// lettura): la riga non c'è.
@@ -23,7 +22,7 @@ class QuestTravelLine extends Equatable {
         isStarving: true,
       );
     }
-    final food = foodText(preview.food, empty: _noFoodText);
+    final food = foodText(preview.food, empty: noFoodLineText);
     return QuestTravelLine(
       text: '$_prefix$food$_separator${lifeText(preview)}',
       isStarving: false,
