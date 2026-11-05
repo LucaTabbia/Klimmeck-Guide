@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-05T20:23:57.350Z"
-last_activity: 2026-11-05 -- Phase 15 planning complete (9 plans + VALIDATION, checker pending)
+last_updated: "2026-11-05T20:58:16.116Z"
+last_activity: 2026-11-05 -- Phase 15 execution started (0/9, executors one at a time)
 progress:
   total_phases: 17
   completed_phases: 13
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 15 (Travel Food) — PLANNED (2026-11-05) on `feat/15-travel-food` (from `develop` `08bd1a1`): 9 plans in a linear chain (`15-01`..`15-07` on mocks and fixtures, `15-08`/`15-09` gated by the BE Phase 14 merge on BE `develop`); next `/gsd-execute-phase 15`
+Phase: 15 (Travel Food) — EXECUTING (started 2026-11-05) on `feat/15-travel-food` (from `develop` `08bd1a1`): 9 plans in a linear chain, executors one at a time on the main tree; `15-01`..`15-07` on mocks and fixtures, `15-08`/`15-09` gated by the BE Phase 14 merge on BE `develop` (BE Phase 14 executing in parallel on `feat/14-viaggio-e-cibo`)
 Plan: 0 of 9
 Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
 Next Phase: execute FE 15 (15-01..15-07 on mocks) in parallel with BE 14; FE 15 gated plans + device E2E after the BE Phase 14 merge on BE `develop`; then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 15 planned — 9 plans + `15-VALIDATION.md` (research → CONTEXT amended D-03/D-04/D-05/D-08 + D-10..D-13, three planner defaults confirmed by the user → `15-REPO-RULES.md` → planner → checker); ready to execute on `feat/15-travel-food` (park at 15-08 until the BE Phase 14 PR merges); FE PR #38/#39/#40 merged, BE PR #21 merged, BE PR #22 (docs) open
-Last activity: 2026-11-05 -- Phase 15 planning complete (9 plans + VALIDATION), plan list in the ROADMAP, checker pending
+Status: Executing Phase 15 — plans 15-01..15-07 on mocks (contract names from `15-REPO-RULES.md`), then park at 15-08 until the BE Phase 14 PR merges on BE `develop`; FE PR #38/#39/#40 merged, BE PR #21 merged, BE PR #22 (docs) open
+Last activity: 2026-11-05 -- Phase 15 execution started (0/9, executors one at a time)
 
 ## Current Milestone
 
