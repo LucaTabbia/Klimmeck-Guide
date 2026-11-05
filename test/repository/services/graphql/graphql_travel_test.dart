@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
@@ -136,6 +137,93 @@ void main() {
         buildGraphQl().previewTravel(request),
         throwsOperationCoded('TRAVEL_NO_PATH'),
       );
+    });
+  });
+
+  group('previewQuestTravel', () {
+    const acceptance = AcceptQuestRequest(id: 'c-1', questId: 'q-1');
+
+    Future<TravelPreview?> preview() =>
+        buildGraphQl().previewQuestTravel(acceptance);
+
+    test(
+      'sends GetQuestTravelPreview with the acceptance request (D-01)',
+      () async {
+        handler = (_) => Stream.value(
+          dataResponse({'questTravelPreview': travelPreviewJson()}),
+        );
+
+        await preview();
+
+        expect(operationNameOf(requests.single), 'GetQuestTravelPreview');
+        expect(requests.single.variables, {
+          'request': {'id': 'c-1', 'questId': 'q-1'},
+        });
+      },
+    );
+
+    test(
+      'parses the preview with food, life lost and arrivesAlive (D-01)',
+      () async {
+        final json = travelPreviewJson(
+          food: [travelFoodItemJson()],
+          hpLost: 136,
+          arrivesAlive: true,
+        );
+        handler = (_) =>
+            Stream.value(dataResponse({'questTravelPreview': json}));
+
+        expect(await preview(), TravelPreview.fromJson(json));
+      },
+    );
+
+    test(
+      'returns null when the acceptance involves no travel (D-01)',
+      () async {
+        handler = (_) =>
+            Stream.value(dataResponse({'questTravelPreview': null}));
+
+        expect(await preview(), isNull);
+      },
+    );
+
+    test(
+      'throws FormatException when questTravelPreview is missing (D-01)',
+      () async {
+        handler = (_) => Stream.value(dataResponse({}));
+
+        await expectLater(preview(), throwsFormatException);
+      },
+    );
+
+    test('throws FormatException for a malformed preview (D-01)', () async {
+      for (final malformed in <Object>[
+        {'distance': 'x'},
+        'x',
+      ]) {
+        handler = (_) =>
+            Stream.value(dataResponse({'questTravelPreview': malformed}));
+
+        await expectLater(preview(), throwsFormatException);
+      }
+    });
+
+    test('rethrows a coded refusal keeping the error code (D-08)', () async {
+      handler = (_) => Stream.value(errorCodeResponse('FORBIDDEN'));
+
+      await expectLater(preview(), throwsOperationCoded('FORBIDDEN'));
+    });
+
+    test('never reuses a cached answer (D-08)', () async {
+      handler = (_) => Stream.value(
+        dataResponse({'questTravelPreview': travelPreviewJson()}),
+      );
+      final graphQl = buildGraphQl();
+
+      await graphQl.previewQuestTravel(acceptance);
+      await graphQl.previewQuestTravel(acceptance);
+
+      expect(requests, hasLength(2));
     });
   });
 
