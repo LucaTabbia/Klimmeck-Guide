@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 15 (Travel Food) — EXECUTING (started 2026-11-05) on `feat/15-travel-food` (from `develop` `08bd1a1`): 9 plans in a linear chain, executors one at a time on the main tree; `15-01`..`15-07` on mocks and fixtures, `15-08`/`15-09` gated by the BE Phase 14 merge on BE `develop` (BE Phase 14 executing in parallel on `feat/14-viaggio-e-cibo`)
-Plan: 1 of 9
+Plan: 2 of 9
 Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
 Next Phase: execute FE 15 (15-01..15-07 on mocks) in parallel with BE 14; FE 15 gated plans + device E2E after the BE Phase 14 merge on BE `develop`; then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
 Status: Executing Phase 15 — plans 15-01..15-07 on mocks (contract names from `15-REPO-RULES.md`), then park at 15-08 until the BE Phase 14 PR merges on BE `develop`; FE PR #38/#39/#40 merged, BE PR #21 merged, BE PR #22 (docs) open

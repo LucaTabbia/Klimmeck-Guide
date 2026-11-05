@@ -484,7 +484,7 @@ Plans:
 **Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
 **Plans**: 9 plans
 - [x] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
-- [ ] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
+- [x] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
 - [ ] 15-03-PLAN.md — `TravelFailure.starving` / `QuestAcceptanceFailure.starving` ← `TRAVEL_STARVING`, both banners with the user phrase, no board reread, `TravelRepository.previewQuest`
 - [ ] 15-04-PLAN.md — `TravelRequoting` state machine (Starting → Requoting → Confirming), one banner without `reset()`, route and pawn kept, camera refit narrowed
 - [ ] 15-05-PLAN.md — «Cibo»/«Vita» rows on the confirmation sheet, red phrase and «Parti» disabled on `arrivesAlive: false`, sheet kept open through the requote, «nessun costo» notes fixed (D-13)
@@ -537,7 +537,7 @@ Plans:
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 1/9 | In Progress | - |
+| 15. Travel Food | 2/9 | In Progress | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
