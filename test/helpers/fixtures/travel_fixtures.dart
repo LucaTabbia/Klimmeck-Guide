@@ -28,14 +28,31 @@ Map<String, dynamic> activeTravelJson({
   'to': to,
 };
 
+/// Voce `TravelFoodItem` sul filo (BE Phase 14 D-09): selezione `food { quantity item { id name } }`.
+Map<String, dynamic> travelFoodItemJson({
+  String id = 'loot-ration',
+  String? name = 'Razione da viaggio',
+  int quantity = 1,
+}) => {
+  'quantity': quantity,
+  'item': {'id': id, 'name': name},
+};
+
+/// Senza `food`/`hpLost`/`arrivesAlive` è la forma di un BE più vecchio.
 Map<String, dynamic> travelPreviewJson({
   double distance = 15.8,
   double duration = 9600000,
   Map<String, dynamic>? road,
+  List<Map<String, dynamic>>? food,
+  int? hpLost,
+  bool? arrivesAlive,
 }) => {
   'distance': distance,
   'duration': duration,
   'road': road ?? travelPathJson(),
+  if (food != null) 'food': food,
+  if (hpLost != null) 'hpLost': hpLost,
+  if (arrivesAlive != null) 'arrivesAlive': arrivesAlive,
 };
 
 /// Ferito in attesa di soccorso dalle 11:00 UTC (09-CONTEXT D-16).
