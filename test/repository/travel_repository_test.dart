@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
@@ -59,6 +60,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const TravelRequest(id: 'c', poiId: 'p'));
+    registerFallbackValue(const AcceptQuestRequest(id: '', questId: ''));
   });
 
   setUp(() {
@@ -151,6 +153,106 @@ void main() {
       when(() => graphQl.previewTravel(any())).thenAnswer((_) async => preview);
 
       await repository.preview(characterId: 'c-1', poiId: 'city-marker-2');
+      await pumpEventQueue();
+
+      expect(port.statusCalls, 0);
+      expect(port.requestCalls, 0);
+    });
+  });
+
+  group('previewQuest', () {
+    const acceptRequest = AcceptQuestRequest(id: 'c-1', questId: 'q-1');
+
+    test(
+      'asks the acceptance preview for the character and the quest (D-08)',
+      () async {
+        when(
+          () => graphQl.previewQuestTravel(any()),
+        ).thenAnswer((_) async => preview);
+
+        final result = await repository.previewQuest(
+          characterId: 'c-1',
+          questId: 'q-1',
+        );
+
+        expect(result, preview);
+        verify(() => graphQl.previewQuestTravel(acceptRequest)).called(1);
+      },
+    );
+
+    test('passes a null preview through (D-04, D-08)', () async {
+      when(
+        () => graphQl.previewQuestTravel(any()),
+      ).thenAnswer((_) async => null);
+
+      final result = await repository.previewQuest(
+        characterId: 'c-1',
+        questId: 'q-1',
+      );
+
+      expect(result, isNull);
+    });
+
+    test('maps an OperationException by its code (D-08)', () async {
+      when(
+        () => graphQl.previewQuestTravel(any()),
+      ).thenThrow(_coded('FORBIDDEN'));
+      await expectLater(
+        repository.previewQuest(characterId: 'c-1', questId: 'q-1'),
+        _failsWith(TravelFailure.forbidden),
+      );
+
+      when(
+        () => graphQl.previewQuestTravel(any()),
+      ).thenThrow(_coded('TRAVEL_STARVING'));
+      await expectLater(
+        repository.previewQuest(characterId: 'c-1', questId: 'q-1'),
+        _failsWith(TravelFailure.starving),
+      );
+    });
+
+    test('maps a FormatException to unknown (D-08)', () async {
+      when(
+        () => graphQl.previewQuestTravel(any()),
+      ).thenThrow(const FormatException('questTravelPreview missing'));
+
+      await expectLater(
+        repository.previewQuest(characterId: 'c-1', questId: 'q-1'),
+        _failsWith(TravelFailure.unknown),
+      );
+    });
+
+    test('fails as timedOut after 15 seconds without an answer (D-08)', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.previewQuestTravel(any()),
+        ).thenAnswer((_) => Completer<TravelPreview?>().future);
+        Object? failure;
+
+        repository
+            .previewQuest(characterId: 'c-1', questId: 'q-1')
+            .then<void>((_) {}, onError: (Object error) => failure = error);
+        async.elapse(const Duration(seconds: 14));
+        expect(failure, isNull);
+        async.elapse(const Duration(seconds: 1));
+
+        expect(
+          failure,
+          isA<TravelException>().having(
+            (e) => e.failure,
+            'failure',
+            TravelFailure.timedOut,
+          ),
+        );
+      });
+    });
+
+    test('never asks the notification permission (D-08)', () async {
+      when(
+        () => graphQl.previewQuestTravel(any()),
+      ).thenAnswer((_) async => preview);
+
+      await repository.previewQuest(characterId: 'c-1', questId: 'q-1');
       await pumpEventQueue();
 
       expect(port.statusCalls, 0);
