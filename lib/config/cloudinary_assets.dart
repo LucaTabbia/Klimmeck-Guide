@@ -121,6 +121,8 @@ class CloudinaryAssets {
   static const String confuseUse = 'v1757660811/confuseUse_v9ciyh.svg';
   static const String enhanceUse = 'v1757660813/enhanceUse_sodazm.svg';
   static const String infuseUse = 'v1757660806/infuseUse_rvzfmm.svg';
+  // Provvisorio: stessa icona di Potenziare finché non esiste un asset healUse
+  static const String healUse = 'v1757660813/enhanceUse_sodazm.svg';
 
   // ============== Injury Effects ==============
   static const String movementInjury = 'v1757660619/movementInjury_p2afa1.svg';

@@ -30,9 +30,7 @@ class Spell extends Equatable {
     id: json['id'],
     name: json['name'],
     description: json['description'],
-    useType: json['useType'] != null
-        ? UseType.values.byName(json['useType'])
-        : null,
+    useType: UseType.values.asNameMap()[json['useType']],
     energyDamage: json['energyDamage'] != null
         ? EnergyDamage.fromJson(json['energyDamage'])
         : null,
