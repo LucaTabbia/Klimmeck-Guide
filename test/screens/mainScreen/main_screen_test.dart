@@ -30,6 +30,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_l
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
@@ -596,6 +597,14 @@ void main() {
       await pumpOpenSatchel(tester, 'city-marker-1');
 
       expect(find.byType(PartyWatchListener), findsOneWidget);
+    });
+
+    testWidgets('rereads the quests when the viewer scope changes', (
+      tester,
+    ) async {
+      await pumpOpenSatchel(tester, 'city-marker-1');
+
+      expect(find.byType(QuestScopeListener), findsOneWidget);
     });
 
     testWidgets('off a city marker the Bacheca item does nothing', (

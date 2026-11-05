@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dar
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_result_presenter.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
@@ -126,14 +127,17 @@ class _MainScreenState extends State<MainScreen>
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
-                  child: PartyWatchListener(
-                    child: TravelOutcomeListener(
-                      child: TransactionOutcomeListener(
-                        child: SpellOutcomeListener(
-                          child: CompanionOutcomeListener(
-                            child: _buildPagesWithSatchel(
-                              state.cities,
-                              disabledPages,
+                  child: QuestScopeListener(
+                    cities: state.cities,
+                    child: PartyWatchListener(
+                      child: TravelOutcomeListener(
+                        child: TransactionOutcomeListener(
+                          child: SpellOutcomeListener(
+                            child: CompanionOutcomeListener(
+                              child: _buildPagesWithSatchel(
+                                state.cities,
+                                disabledPages,
+                              ),
                             ),
                           ),
                         ),

@@ -50,6 +50,7 @@ Success: SnackBar «Generate N missioni» / «Generata 1 missione» / «Nessuna 
 - A pet-only reward shows the rewards section (also on a failure outcome).
 - The board sees generated quests only on the next tab open (no `questUpdated` on insert, BE D-18).
 - Generated quests carry no mark: they look like any other quest.
+- **Since BE 13.1 (D-05, merged 2026-11-05 as BE PR #21):** `quests` is scoped server-side to the viewer's current character (open quests on the POIs of its city, marker included, the `story` quests of its exact title, the quests of its three lanes; `[]` without a current character). The FE keeps `boardQuestsFor` and `QuestMarkersLayer` filters as a defence and rereads the list in silence when `characterUpdated` changes `status.location`, `status.title` or a lane's quest (`QuestScopeListener`, quick task 261105-scp); the legend-on-hero-seat rule (BE 13.1 D-08) is mirrored in `canRegisterWithTitle` (quick task 261105-lgd).
 - Rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from a non-null `accessoryUseTypes`; no filter, no equip constraint.
 
 ## 4. E2E outcome (FE Phase 14, 2026-11-05)
