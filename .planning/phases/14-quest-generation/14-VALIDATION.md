@@ -3,7 +3,7 @@ phase: 14
 slug: quest-generation
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-04
 ---
 
@@ -62,8 +62,8 @@ created: 2026-11-04
 | 14-09-01 | 09 | 9 | QGEN-06 | T-14-20 | unknown use name dropped (`asNameMap`), never a throw | unit | `flutter test test/models/enums/accessory_use_type_test.dart test/models/equipment_item_test.dart test/utils/item_lines_test.dart test/utils/filter_values_test.dart` | ✅ | ✅ green |
 | 14-09-02 | 09 | 9 | QGEN-06 | — | N/A | unit | `flutter test test/graphql test/tool` | ✅ | ✅ green |
 | 14-09-03 | 09 | 9 | QGEN-06 | T-14-21 | no filter, no equip constraint, no list icon | widget | `flutter test test/shared/components/popup/equipment_info_sheet_test.dart test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ | ✅ green |
-| 14-10-01 | 10 | 10 | QGEN-01, QGEN-02, QGEN-03, QGEN-05, QGEN-06 | T-14-22, T-14-23, T-14-24 | names proven on the merged SDL, 44/44 OK; BE read-only | cross-repo | gate `git -C <BE> show origin/develop:src/schema.gql \| grep -c QuestEnemy` ≥ 1, then `flutter test test/graphql test/tool test/models` + `validate_documents.js` | ✅ | ⬜ pending (gated: BE Phase 13 merge) |
-| 14-10-02 | 10 | 10 | QGEN-01..06 | T-14-25 | full suite, analyzer, format, trailers, sanity greps | full suite | `flutter test` | ✅ | ⬜ pending (gated) |
+| 14-10-01 | 10 | 10 | QGEN-01, QGEN-02, QGEN-03, QGEN-05, QGEN-06 | T-14-22, T-14-23, T-14-24 | names proven on the merged SDL, 44/44 OK; BE read-only | cross-repo | gate `git -C <BE> show origin/develop:src/schema.gql \| grep -c QuestEnemy` ≥ 1, then `flutter test test/graphql test/tool test/models` + `validate_documents.js` | ✅ | ✅ green |
+| 14-10-02 | 10 | 10 | QGEN-01..06 | T-14-25 | full suite, analyzer, format, trailers, sanity greps | full suite | `flutter test` | ✅ | ✅ green |
 | 14-11-01 | 11 | 11 | QGEN-01..06 | — | gate re-check, UAT file without secrets | manual prep | `test -f .planning/phases/14-quest-generation/14-HUMAN-UAT.md` | ❌ W11 | ⬜ pending (gated) |
 | 14-11-02 | 11 | 11 | QGEN-01..06 | T-14-29 | device E2E against the merged BE | manual (human E2E) | `test -f .planning/phases/14-quest-generation/14-HUMAN-UAT.md` | ❌ W11 | ⬜ pending (human E2E) |
 | 14-11-03 | 11 | 11 | QGEN-01..06 | T-14-26, T-14-27, T-14-28 | mark-complete only on passed steps; no ids/tokens/URIs in notes | records | `grep -q "## 4. E2E outcome" .planning/phases/14-quest-generation/BACKEND-NOTES.md` | ❌ W11 | ⬜ pending |
@@ -79,7 +79,7 @@ Each «❌ W0» file is created by the RED step of its own task (TDD, tests befo
 - [x] `test/models/quest/quest_enemy_test.dart` — QGEN-01 (14-01-01)
 - [x] `test/helpers/fixtures/quest_fixtures.dart` → `questEnemyJson`, `enemies` / `description` / `prizes` params — QGEN-01, QGEN-05 (14-01-02)
 - [x] `test/helpers/fixtures/quest_result_fixtures.dart` → `enemies`, stages, `rewardPet`, `dungeonResultJson` — QGEN-02 (14-02)
-- [ ] `test/utils/enemy_portrait_url_test.dart`, `test/shared/components/enemy_portrait_test.dart` (mocktail `BaseCacheManager`) — QGEN-01, QGEN-02 (14-04)
+- [x] `test/utils/enemy_portrait_url_test.dart`, `test/shared/components/enemy_portrait_test.dart` (mocktail `BaseCacheManager`) — QGEN-01, QGEN-02 (14-04)
 - [x] `test/repository/services/graphql/graphql_generate_quests_test.dart` — QGEN-03 (14-07-01)
 - [x] `test/screens/innkeeper/questGenerationCubit/quest_generation_cubit_test.dart` + `MockQuestGenerationCubit` in `test/helpers/mocks.dart` — QGEN-03 (14-07-03)
 - [x] `test/screens/innkeeper/components/generate_quests_button_test.dart` + `QuestGenerationCubit` provider in the panel harness — QGEN-03 (14-08)
@@ -110,3 +110,5 @@ Each «❌ W0» file is created by the RED step of its own task (TDD, tests befo
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-11-04 (planning; device rows close in 14-11)
+
+Gate passed on BE `162c1f5`: 44/44 OK, full suite 3180 green, analyzer 50 info (0 error, 0 warning) — 14-10, 2026-11-05.
