@@ -21,8 +21,8 @@ Phase: 14 (Quest Generation, frontend companion) — COMPLETE 2026-11-05 on `fea
 Plan: 11 of 11
 Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
 Next Phase: FE PR `feat/14-quest-generation` → `develop` (never `main`; BE Phase 13 PR #19 already merged); then FE 15 → 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 14 complete — awaiting the FE PR `feat/14-quest-generation` → `develop`. BE questions from the device E2E (placeholder dungeon resolver ignoring the character's strength, awaiting-aid blocking the board after a dungeon defeat, live refresh of generated quests) routed in `phases/14-quest-generation/BACKEND-NOTES.md` §5.
-Last activity: 2026-11-05 -- Phase 14 device E2E complete (14-11), QGEN-01..06 ticked
+Status: Phase 14 complete — FE PR #38 `feat/14-quest-generation` → `develop` open since 2026-11-05 (88 commits, ready for review). BE questions from the device E2E (placeholder dungeon resolver ignoring the character's strength, awaiting-aid blocking the board after a dungeon defeat, live refresh of generated quests) routed in `phases/14-quest-generation/BACKEND-NOTES.md` §5.
+Last activity: 2026-11-05 -- Phase 14 device E2E complete (14-11), QGEN-01..06 ticked, deferred threats closed, FE PR #38 opened
 
 ## Current Milestone
 
