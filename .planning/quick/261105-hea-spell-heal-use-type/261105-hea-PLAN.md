@@ -32,5 +32,5 @@ Regola dell'utente (2026-11-05, contenuto dei mostri): le magie di cura hanno un
 
 ## Task
 1. RED `test/models/enums/use_type_test.dart`: nomi sul filo con `heal` in coda, etichetta «Cura», parsing di una magia `heal`, etichetta «Cura: Radioso 600», un `useType` ignoto ⇒ `null`.
-2. GREEN: `UseType.heal(imageId: CloudinaryAssets.healUse, label: "Cura")`; `CloudinaryAssets.healUse` provvisorio sull'icona di Potenziare finché l'utente non carica l'asset; `Spell.fromJson` legge il tipo con `asNameMap()` (ignoto ⇒ `null`, Boy Scout di robustezza).
+2. GREEN: `UseType.heal(imageId: CloudinaryAssets.healUse, label: "Cura")`; `CloudinaryAssets.healUse` sull'asset dedicato (`v1793889299/heal_edhg35.svg`, caricato dall'utente); `Spell.fromJson` legge il tipo con `asNameMap()` (ignoto ⇒ `null`, Boy Scout di robustezza).
 3. Gate: test dei modelli e del diario, `flutter analyze` senza errori né warning, `dart format` sui soli file toccati.

@@ -17,11 +17,11 @@ commits:
 
 # Quick 261105-hea: `heal` fra i tipi d'uso delle magie
 
-`UseType` ha il nono valore `heal` («Cura»); `Spell.fromJson` non lancia più su un tipo d'uso ignoto (restituisce `null`), così una magia nuova sul server non rompe il diario né le schede. L'icona di `heal` è provvisoriamente quella di Potenziare (`CloudinaryAssets.healUse`): da sostituire quando l'utente carica l'asset.
+`UseType` ha il nono valore `heal` («Cura»); `Spell.fromJson` non lancia più su un tipo d'uso ignoto (restituisce `null`), così una magia nuova sul server non rompe il diario né le schede. L'icona di `heal` è l'asset dedicato caricato dall'utente (`CloudinaryAssets.healUse`, `v1793889299/heal_edhg35.svg`).
 
 ## Modifiche
 - `use_type.dart`: valore `heal` in coda (ordine del filo invariato per gli altri otto).
-- `cloudinary_assets.dart`: costante `healUse` (provvisoria).
+- `cloudinary_assets.dart`: costante `healUse` (asset dedicato, prima provvisoria sull'icona di Potenziare).
 - `spell.dart`: `useType: UseType.values.asNameMap()[json['useType']]`.
 - Test: `use_type_test.dart` (4 casi; RED confermato per compilazione: «Member not found: 'heal'»).
 
@@ -31,4 +31,4 @@ commits:
 - `dart format` sui 4 file toccati.
 
 ## Deviazioni
-Nessuna. Icona provvisoria dichiarata nel codice e qui.
+Nessuna. L'icona provvisoria del primo commit è stata sostituita dall'asset dedicato nello stesso quick task.
