@@ -7,12 +7,16 @@ import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 import 'package:klimmeck_guide/models/quest/quest_lane.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/board/questTravelPreviewCubit/quest_travel_preview_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/tear/tear_clipper.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
@@ -36,7 +40,8 @@ class Board extends StatefulWidget {
 class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   String? _selectedQuestId;
 
-  final GlobalKey<TearablePaperState> _tearKey = GlobalKey<TearablePaperState>();
+  final GlobalKey<TearablePaperState> _tearKey =
+      GlobalKey<TearablePaperState>();
 
   late AnimationController _animationController;
 
@@ -241,10 +246,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        final position = Tween<double>(
-          begin: screenHeight,
-          end: 0.0,
-        ).evaluate(
+        final position = Tween<double>(begin: screenHeight, end: 0.0).evaluate(
           CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
         );
 
@@ -260,28 +262,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
                   ? SingleChildScrollView(
                       key: ValueKey('board-sheet-${selected.id}'),
                       clipBehavior: Clip.none,
-                      child:
-                          BlocSelector<
-                            QuestAcceptanceCubit,
-                            QuestAcceptanceState,
-                            bool
-                          >(
-                            selector: (state) => state is! QuestAccepting,
-                            builder: (context, isIdle) => TearablePaper(
-                              key: _tearKey,
-                              tearSeed: TearClipper.seedOf(selected.id),
-                              canTear: standingOf(selected, viewer).canAccept,
-                              isEnabled: isIdle,
-                              onTorn: () => _accept(viewer, selected),
-                              child: ColoredBox(
-                                color: Colors.transparent,
-                                child: QuestInfoSheet(
-                                  quest: selected,
-                                  viewer: viewer,
-                                ),
-                              ),
-                            ),
-                          ),
+                      child: _travelPreviewSheet(viewer, selected),
                     )
                   : null,
             ),
@@ -291,11 +272,67 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     );
   }
 
-  void _accept(QuestViewer viewer, Quest quest) =>
-      context.read<QuestAcceptanceCubit>().accept(
-        characterId: viewer.characterId,
-        questId: quest.id,
+  /// Il cubit vive quanto il foglio aperto (sottoalbero con chiave per quest);
+  /// il rifiuto per fame dell'accettazione rinnova l'anteprima (D-05).
+  Widget _travelPreviewSheet(QuestViewer viewer, Quest selected) =>
+      BlocProvider<QuestTravelPreviewCubit>(
+        create: (context) {
+          final cubit = QuestTravelPreviewCubit(
+            context.read<TravelRepository>(),
+          );
+          if (needsTravelPreview(selected, viewer)) {
+            cubit.load(characterId: viewer.characterId, questId: selected.id);
+          }
+          return cubit;
+        },
+        child: BlocListener<QuestAcceptanceCubit, QuestAcceptanceState>(
+          listenWhen: (_, current) =>
+              current is QuestAcceptanceFailed &&
+              current.failure == QuestAcceptanceFailure.starving &&
+              current.questId == selected.id,
+          listener: (context, _) =>
+              context.read<QuestTravelPreviewCubit>().refresh(),
+          child: BlocBuilder<QuestTravelPreviewCubit, QuestTravelPreviewState>(
+            builder: (context, previewState) => _tearableSheet(
+              viewer,
+              selected,
+              travelPreview: previewState is QuestTravelPreviewLoaded
+                  ? previewState.preview
+                  : null,
+            ),
+          ),
+        ),
       );
+
+  Widget _tearableSheet(
+    QuestViewer viewer,
+    Quest selected, {
+    required TravelPreview? travelPreview,
+  }) => BlocSelector<QuestAcceptanceCubit, QuestAcceptanceState, bool>(
+    selector: (state) => state is! QuestAccepting,
+    builder: (context, isIdle) => TearablePaper(
+      key: _tearKey,
+      tearSeed: TearClipper.seedOf(selected.id),
+      // D-04: lo swipe resiste come per ogni quest non accettabile.
+      canTear:
+          standingOf(selected, viewer).canAccept &&
+          travelPreview?.arrivesAlive != false,
+      isEnabled: isIdle,
+      onTorn: () => _accept(viewer, selected),
+      child: ColoredBox(
+        color: Colors.transparent,
+        child: QuestInfoSheet(
+          quest: selected,
+          viewer: viewer,
+          travelPreview: travelPreview,
+        ),
+      ),
+    ),
+  );
+
+  void _accept(QuestViewer viewer, Quest quest) => context
+      .read<QuestAcceptanceCubit>()
+      .accept(characterId: viewer.characterId, questId: quest.id);
 
   void _selectQuest(Quest quest) {
     setState(() {
