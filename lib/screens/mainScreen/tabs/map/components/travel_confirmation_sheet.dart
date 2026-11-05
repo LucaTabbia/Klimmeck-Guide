@@ -19,11 +19,13 @@ typedef _TravelNumbers = ({
 });
 
 /// Conferma del viaggio su pergamena (07-CONTEXT D-03): meta subito, poi
-/// distanza, durata ed ETA del BE (ETA = ora server stimata + durata, C4).
-/// "Parti" è l'unica via a `startTravel`; "Resta" annulla. Mentre la partenza
-/// è in volo né "Resta" né indietro/barriera chiudono il foglio: si chiude da
-/// sé all'avvio o a un rifiuto (il banner lo pubblica TravelOutcomeListener).
-/// Nessun costo (BE Phase 8). Stile provvisorio (nessuna UI phase).
+/// distanza, durata, ETA, cibo e vita persa del BE (ETA = ora server stimata
+/// + durata, C4; cibo e vita, 15-CONTEXT D-02). "Parti" è l'unica via a
+/// `startTravel` ed è spento se il BE dice che il personaggio non arriverebbe
+/// vivo; "Resta" annulla. Mentre la partenza è in volo né "Resta" né
+/// indietro/barriera chiudono il foglio: si chiude da sé all'avvio o a un
+/// rifiuto; a un rifiuto per fame resta aperto sull'ultima anteprima finché
+/// il cubit la rinnova (D-03). Stile provvisorio (nessuna UI phase).
 class TravelConfirmationSheet extends StatefulWidget {
   const TravelConfirmationSheet({super.key, required this.destination});
 
@@ -44,7 +46,7 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   static const int _foodMaxLines = 3;
   static const int _lifeMaxLines = 2;
 
-  /// Copy provvisoria (15-CONTEXT D-02).
+  /// Copy provvisoria (D-02).
   static const String _noFoodText = 'nessuno';
 
   @override
