@@ -622,4 +622,106 @@ void main() {
       });
     });
   });
+
+  group('lost ambush reroute (Phase 16)', () {
+    final ambushPoint = routeOf(travel()).pointAt(0.5)!;
+    final ambushWire = [ambushPoint.latitude, ambushPoint.longitude];
+    final rerouted = travel(
+      startTime: '2026-10-24T11:20:10.000Z',
+      endTime: '2026-10-24T12:20:10.000Z',
+      duration: 3600000,
+      to: 'city-marker-9',
+      road: travelPathJson(
+        coordinates: [
+          ambushWire,
+          const [10.5, 21.5],
+          const [11.0, 22.5],
+        ],
+        distance: 9.0,
+      ),
+    );
+
+    void advanceBy(FakeAsync async, FakeServerClockService clock, Duration by) {
+      clock.advance(by);
+      async.elapse(const Duration(seconds: 1));
+    }
+
+    TravelProgressCubit followReroute(
+      FakeAsync async,
+      FakeServerClockService clock, {
+      ArrivalRereadLedger? rereads,
+    }) {
+      final cubit = TravelProgressCubit(clock: clock, rereads: rereads)
+        ..follow(travel());
+      async.flushMicrotasks();
+      clock.advance(const Duration(seconds: 10));
+      cubit.follow(rerouted);
+      async.flushMicrotasks();
+      return cubit;
+    }
+
+    test(
+      'a lost ambush reroute restarts the pawn from the ambush point (D-03)',
+      () {
+        fakeAsync((async) {
+          final clock = FakeServerClockService(halfway);
+          final cubit = followReroute(async, clock);
+
+          final state = activeState(cubit);
+          expect(state.travel, rerouted);
+          expect(state.position!.latitude, closeTo(ambushPoint.latitude, 1e-9));
+          expect(
+            state.position!.longitude,
+            closeTo(ambushPoint.longitude, 1e-9),
+          );
+          expect(state.remainingTime, const Duration(hours: 1));
+          cubit.close();
+        });
+      },
+    );
+
+    test('the remaining route is the whole new road from the pawn (D-03)', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(halfway);
+        final cubit = followReroute(async, clock);
+
+        expect(
+          activeState(cubit).remaining,
+          routeOf(rerouted).splitAt(0).remaining,
+        );
+        cubit.close();
+      });
+    });
+
+    test('the pawn then advances along the new road (D-03)', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(halfway);
+        final cubit = followReroute(async, clock);
+
+        advanceBy(async, clock, const Duration(minutes: 30));
+
+        final state = activeState(cubit);
+        expect(state.position, routeOf(rerouted).pointAt(1800 / 3600));
+        expect(state.remainingTime, const Duration(minutes: 30));
+        cubit.close();
+      });
+    });
+
+    test('the rerouted travel gets a fresh arrival budget (D-03)', () {
+      fakeAsync((async) {
+        final clock = FakeServerClockService(halfway);
+        final cubit = followReroute(
+          async,
+          clock,
+          rereads: ArrivalRereadLedger(),
+        );
+
+        clock.resync(rerouted.endTime.add(const Duration(seconds: 6)));
+        async.elapse(const Duration(seconds: 1));
+
+        expect(cubit.claimArrivalReread(), isTrue);
+        cubit.close();
+      });
+    });
+  });
 }
