@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-06T15:42:35.000Z"
-last_activity: 2026-11-06 -- Phase 15 complete: device E2E passed (steps 1-8), FOOD-01..04 ticked
+status: planning
+last_updated: "2026-11-06T16:37:32.000Z"
+last_activity: 2026-11-06 -- Phase 16 context gathered (joint discuss with the BE Phase 15); FE PR #41 merged
 progress:
   total_phases: 17
   completed_phases: 14
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 15 (Travel Food) — COMPLETE 2026-11-06 on `feat/15-travel-food` (from `develop` `08bd1a1`): plans 15-01..15-09 executed, reviewed, fixed, verified and audited; schema gate 45/45 on BE `develop` `b492a46` (15-08); Android device E2E steps 1–8 passed (15-09, `15-HUMAN-UAT.md`); FOOD-01..04 ticked
-Plan: 9 of 9
+Phase: 16 (Travel Ambushes) — CONTEXT GATHERED 2026-11-06 on `feat/16-travel-ambushes` (from `develop` `f560d1d`, the merge of PR #41); decisions in `16-CONTEXT.md` (D-01..D-09); BE companion Phase 15 context gathered in the same session (`../Klimmeck-Guide-BE/.planning/phases/15-imboscate-in-viaggio/15-CONTEXT.md`, branch `feat/15-imboscate-in-viaggio`)
+Plan: 0 of 0 (not planned yet)
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: merge of the FE PR #41 `feat/15-travel-food` → `develop` (opened by the orchestrator on 2026-11-06; the BE Phase 14 PR #23 is already merged), then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 15 complete — BE Phase 14 merged on BE `develop` (`b492a46`, PR #23); 15-08 proved the contract (45/45, full suite 3310 green, analyzer 0 error / 0 warning); 15-09 device E2E 2026-11-06 steps 1–8 pass (step 5 service-with-line and story halves skipped: not reproducible on this DB, covered by tests; step 7 teleport through the BE mutation because the Locanda path needs a story quest in the queue); handoff `phases/15-travel-food/BACKEND-NOTES.md` (questions §5); VALIDATION approved, VERIFICATION passed, SECURITY 0 deferred; ready for the FE PR
-Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 ticked, BACKEND-NOTES written
+Next Phase: `/gsd-plan-phase 16` (plans selecting the new contract — `QuestResult.kind`, nullable `quest`, `ambush`, the defeat push category — and the device E2E gated by the BE Phase 15 merge on BE `develop`), then FE 17 (after BE 16), FE 12 (Hardening) last
+Status: Phase 16 context gathered — ready to plan (`/gsd-plan-phase 16`); Phase 15 merged on `develop` (PR #41, `f560d1d`, 2026-11-06)
+Last activity: 2026-11-06 -- Phase 16 context gathered (joint discuss with the BE Phase 15 from this repo)
 
 ## Current Milestone
 
@@ -65,6 +65,8 @@ Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 t
 - **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 - ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
+
+- **FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel.
 
 ### Quick Tasks Completed
 
