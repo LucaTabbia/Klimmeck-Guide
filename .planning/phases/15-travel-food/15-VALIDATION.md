@@ -3,7 +3,7 @@ phase: 15
 slug: travel-food
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-05
 ---
 
@@ -56,8 +56,8 @@ created: 2026-11-05
 | 15-07-01 | 07 | 7 | FOOD-02 | T-15-19 | request only when acceptable + standard lane; token + SafeEmit | bloc/unit | `flutter test test/screens/mainScreen/tabs/board/questTravelPreviewCubit test/models/quest` | ❌ W0 (`quest_travel_preview_cubit_test.dart`) | ✅ green |
 | 15-07-02 | 07 | 7 | FOOD-02 | — | N/A (one shared repository) | widget | `flutter test test/screens/auth test/screens/mainScreen/tabs/board test/screens/mainScreen/main_screen_test.dart` | ✅ (Board harness W0) | ✅ green |
 | 15-07-03 | 07 | 7 | FOOD-02, FOOD-03 | T-15-18, T-15-20, T-15-21 | session character only; starving paper resists; refresh on starving refusal | widget | `flutter test test/screens/mainScreen/tabs/board test/screens/mainScreen test/shared/components/popup` | ✅ (extend) | ✅ green |
-| 15-08-01 | 08 | 8 | FOOD-01..04 | T-15-22, T-15-23, T-15-24 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c TravelFoodItem` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ⬜ pending |
-| 15-08-02 | 08 | 8 | FOOD-01..04 | T-15-25 | sanity greps: no client arithmetic, no stale swipe gate | gate | `flutter test` (full) | ✅ | ⬜ pending |
+| 15-08-01 | 08 | 8 | FOOD-01..04 | T-15-22, T-15-23, T-15-24 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c TravelFoodItem` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
+| 15-08-02 | 08 | 8 | FOOD-01..04 | T-15-25 | sanity greps: no client arithmetic, no stale swipe gate | gate | `flutter test` (full) | ✅ | ✅ green |
 | 15-09-01 | 09 | 9 | FOOD-01..04 | T-15-26 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/15-travel-food/15-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 15-09-02 | 09 | 9 | FOOD-01..04 | T-15-28, T-15-29 | human checkpoint; DB seeds outside the repo | manual | device E2E (`15-HUMAN-UAT.md`) | — | ⬜ pending |
 | 15-09-03 | 09 | 9 | FOOD-01..04 | T-15-26, T-15-27 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/15-travel-food/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
@@ -96,9 +96,11 @@ created: 2026-11-05
 
 - [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
+- [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 15s
 - [x] `nyquist_compliant: true` set in frontmatter
+
+Gate passed on BE `b492a46`: 45/45 OK, full suite 3310 green, analyzer 50 info (0 error, 0 warning).
 
 **Approval:** pending
