@@ -26,6 +26,14 @@ QuestResult _success(String id, {int minute = 0}) => questResult(
 
 QuestResult _death(String id) => questResult(deathResultJson(id: id));
 
+QuestResult _won(String id, int minute) => questResult(
+  ambushWonResultJson(id: id, resolvedAt: '2026-10-27T11:2$minute:00.000Z'),
+);
+
+QuestResult _lost(String id, int minute) => questResult(
+  ambushLostResultJson(id: id, resolvedAt: '2026-10-27T11:2$minute:00.000Z'),
+);
+
 SubscriptionStreamException _streamError(String code) =>
     SubscriptionStreamException(operation: 'questResultReceived', code: code);
 
@@ -546,6 +554,101 @@ void main() {
       a.elapse(const Duration(minutes: 5));
 
       expect(h.subscriptions, 1);
+    });
+  });
+
+  group('QuestResultsCubit ambush settling (D-12)', () {
+    withHarness(
+      'a live ambush marks the read in flight in the same emit (D-12)',
+      (h, a) {
+        _start(h, a);
+        final states = <QuestResultsState>[];
+        final recording = h.cubit.stream.listen(states.add);
+        h.pending.hold = Completer<void>();
+
+        h.latestStream.add(_won('a1', 0));
+        a.flushMicrotasks();
+
+        final arrived = states.firstWhere(
+          (state) => state.queue.any((result) => result.id == 'a1'),
+        );
+        expect(arrived.pendingRefetch, PendingRefetch.inFlight);
+        expect(h.state.isSettlingAmbushes, isTrue);
+        recording.cancel();
+      },
+    );
+
+    withHarness('the settling read brings the whole batch (D-12)', (h, a) {
+      _start(h, a);
+      final hold = h.pending.hold = Completer<void>();
+
+      h.latestStream.add(_won('a1', 0));
+      a.flushMicrotasks();
+      h.pending.results = [_won('a1', 0), _lost('a2', 5)];
+      hold.complete();
+      a.flushMicrotasks();
+
+      expect(h.queuedIds, ['a1', 'a2']);
+      expect(h.state.isSettlingAmbushes, isFalse);
+      expect(h.state.pendingRefetch, PendingRefetch.done);
+    });
+
+    withHarness(
+      'a live ambush during an in-flight read chains exactly one more read (D-12)',
+      (h, a) {
+        _start(h, a);
+        expect(h.pending.calls, 1);
+        final states = <QuestResultsState>[];
+        final recording = h.cubit.stream.listen(states.add);
+        final hold = h.pending.hold = Completer<void>();
+
+        h.latestStream.add(_won('a1', 0));
+        a.flushMicrotasks();
+        expect(h.pending.calls, 2);
+
+        h.latestStream.add(_lost('a2', 5));
+        a.flushMicrotasks();
+        expect(h.pending.calls, 2);
+
+        h.pending.results = [_won('a1', 0), _lost('a2', 5)];
+        hold.complete();
+        a.flushMicrotasks();
+
+        expect(h.pending.calls, 3);
+        final done = states.where(
+          (state) => state.pendingRefetch == PendingRefetch.done,
+        );
+        expect(done, [states.last]);
+        expect(h.queuedIds, ['a1', 'a2']);
+        recording.cancel();
+      },
+    );
+
+    withHarness('a live quest result triggers no settling read (D-12)', (h, a) {
+      _start(h, a);
+
+      h.latestStream.add(_success('q'));
+      a.flushMicrotasks();
+
+      expect(h.pending.calls, 1);
+      expect(h.state.isSettlingAmbushes, isFalse);
+    });
+
+    withHarness('a quest result at the head is never settling (D-12)', (h, a) {
+      _start(h, a);
+      h.pending.hold = Completer<void>();
+
+      h.latestStream
+        ..add(
+          questResult(
+            successResultJson(id: 'q0', resolvedAt: '2026-10-27T11:00:00.000Z'),
+          ),
+        )
+        ..add(_won('a1', 0));
+      a.flushMicrotasks();
+
+      expect(h.state.pendingRefetch, PendingRefetch.inFlight);
+      expect(h.state.isSettlingAmbushes, isFalse);
     });
   });
 }
