@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-11-06T16:37:32.000Z"
-last_activity: 2026-11-06 -- Phase 16 context gathered (joint discuss with the BE Phase 15); FE PR #41 merged
+status: executing
+last_updated: "2026-11-06T17:25:21.000Z"
+last_activity: 2026-11-06 -- Phase 16 planned (8 plans, plan-checker passed); BE Phase 15 planning in flight
 progress:
   total_phases: 17
   completed_phases: 14
-  total_plans: 142
-  completed_plans: 135
+  total_plans: 150
+  completed_plans: 142
   percent: 95
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 16 (Travel Ambushes) — CONTEXT GATHERED 2026-11-06 on `feat/16-travel-ambushes` (from `develop` `f560d1d`, the merge of PR #41); decisions in `16-CONTEXT.md` (D-01..D-09); BE companion Phase 15 context gathered in the same session (`../Klimmeck-Guide-BE/.planning/phases/15-imboscate-in-viaggio/15-CONTEXT.md`, branch `feat/15-imboscate-in-viaggio`)
-Plan: 0 of 0 (not planned yet)
+Phase: 16 (Travel Ambushes) — PLANNED 2026-11-06 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): 8 plans in 8 sequential waves (16-01..16-06 on fixtures and mocks; 16-07 schema gate and 16-08 device E2E + handoff gated by the BE Phase 15 merge on BE `develop`); CONTEXT D-01..D-18 (D-05 carries the user's veto: «Continua» closes and acknowledges all from any page), REPO-RULES with the contract names shared with the BE `15-REPO-RULES.md`, RESEARCH, VALIDATION (17 task rows); plan-checker passed (0 blockers, 0 warnings, 5 info)
+Plan: 0 of 8
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: `/gsd-plan-phase 16` (plans selecting the new contract — `QuestResult.kind`, nullable `quest`, `ambush`, the defeat push category — and the device E2E gated by the BE Phase 15 merge on BE `develop`), then FE 17 (after BE 16), FE 12 (Hardening) last
-Status: Phase 16 context gathered — ready to plan (`/gsd-plan-phase 16`); Phase 15 merged on `develop` (PR #41, `f560d1d`, 2026-11-06)
-Last activity: 2026-11-06 -- Phase 16 context gathered (joint discuss with the BE Phase 15 from this repo)
+Next Phase: `/gsd-execute-phase 16` (16-01..16-06 now; 16-07/16-08 after the BE Phase 15 PR merges on BE `develop`), then FE 17 (after BE 16), FE 12 (Hardening) last
+Status: Phase 16 planned — ready to execute (`/gsd-execute-phase 16`); 16-07/16-08 wait for the BE Phase 15 merge; Phase 15 merged on `develop` (PR #41, `f560d1d`, 2026-11-06)
+Last activity: 2026-11-06 -- Phase 16 planned: research, repo rules, 8 plans, checker passed
 
 ## Current Milestone
 
