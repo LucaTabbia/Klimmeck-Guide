@@ -49,6 +49,12 @@ class QuestResultsState extends Equatable {
     return List.unmodifiable(queue.takeWhile((result) => result.isAmbush));
   }
 
+  /// Un'imboscata in testa aspetta la rilettura del lotto (D-12): il BE
+  /// inserisce tutti i report dell'arrivo in una transazione, lo stream li
+  /// consegna uno alla volta.
+  bool get isSettlingAmbushes =>
+      head?.isAmbush == true && pendingRefetch == PendingRefetch.inFlight;
+
   /// Una morte in coda apre tutta la coda su qualunque tab (D-08).
   bool get isUnlockedByDeath => queue.any((result) => result.isDeath);
 

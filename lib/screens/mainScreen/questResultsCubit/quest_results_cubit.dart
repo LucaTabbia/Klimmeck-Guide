@@ -77,6 +77,7 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   int _attempt = 0;
   bool _isStreamTerminated = false;
   Future<void>? _refetchInFlight;
+  bool _isRefetchChained = false;
 
   /// Apre le tre sorgenti per la vita della shell (D-09): subscription,
   /// rilettura al cold start, al resume e alla riconnessione.
@@ -93,8 +94,25 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
 
   /// Rilegge i risultati non confermati (D-09 c), una lettura alla volta:
   /// prima ritenta le conferme fallite (D-10), poi la lettura in silenzio.
-  Future<void> refetchPending() => _refetchInFlight ??= _performRefetch()
-      .whenComplete(() => _refetchInFlight = null);
+  Future<void> refetchPending() =>
+      _refetchInFlight ??= _performRefetch().whenComplete(_onRefetchSettled);
+
+  void _onRefetchSettled() {
+    _refetchInFlight = null;
+    if (!_isRefetchChained || isClosed) return;
+    _isRefetchChained = false;
+    unawaited(refetchPending());
+  }
+
+  /// Un'imboscata live rilegge la lista (D-12): una lettura già in volo può
+  /// essere partita prima del commit, quindi se ne accoda una sola in più.
+  void _settleAmbushes() {
+    if (_refetchInFlight != null) {
+      _isRefetchChained = true;
+      return;
+    }
+    unawaited(refetchPending());
+  }
 
   /// Tap su `questEnd` (D-11): solo l'id del payload, filtrato, e il risultato
   /// sempre riletto dal BE. NOT_FOUND/FORBIDDEN diventano un avviso; gli
@@ -219,9 +237,9 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     emit(
       state.copyWith(
         queue: _merged(_unseen(results ?? const [])),
-        pendingRefetch: hasGivenUp
-            ? PendingRefetch.failed
-            : PendingRefetch.done,
+        pendingRefetch: _isRefetchChained
+            ? PendingRefetch.inFlight
+            : (hasGivenUp ? PendingRefetch.failed : PendingRefetch.done),
       ),
     );
   }
@@ -334,13 +352,16 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   /// (D-09, D-10). `isLive` segna l'arrivo per il banner del presenter.
   void _accept(QuestResult result, {required bool isLive}) {
     if (result.acknowledgedAt != null || _isKnown(result.id)) return;
+    final isSettling = isLive && result.isAmbush;
     emit(
       state.copyWith(
         queue: _merged([result]),
         arrival: isLive ? result : null,
         arrivalSerial: isLive ? state.arrivalSerial + 1 : null,
+        pendingRefetch: isSettling ? PendingRefetch.inFlight : null,
       ),
     );
+    if (isSettling) _settleAmbushes();
   }
 
   bool _isKnown(String id) =>
