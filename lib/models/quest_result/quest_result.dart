@@ -116,7 +116,7 @@ class QuestResult extends Equatable {
       characterId: json['character'] as String,
       userId: json['user'] as String,
       quest: isAmbush
-          ? _questOrNull(json['quest'])
+          ? null
           : QuestResultQuest.fromJson(json['quest'] as Map<String, dynamic>),
       hpBefore: (json['hpBefore'] as num).toInt(),
       hpAfter: (json['hpAfter'] as num).toInt(),
@@ -177,9 +177,6 @@ class QuestResult extends Equatable {
       names.map((name) => injuries[name]).whereType<InjuryType>(),
     );
   }
-
-  static QuestResultQuest? _questOrNull(Object? json) =>
-      json is Map<String, dynamic> ? QuestResultQuest.fromJson(json) : null;
 
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
