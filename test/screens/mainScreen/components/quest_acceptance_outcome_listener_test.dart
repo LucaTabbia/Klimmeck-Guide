@@ -156,6 +156,28 @@ void main() {
     });
   }
 
+  testWidgets(
+    'a starving refusal publishes the user phrase and rereads no board '
+    '(D-05, D-06)',
+    (tester) async {
+      await pumpListener(tester);
+
+      await emit(
+        tester,
+        const QuestAcceptanceFailed('h-1', QuestAcceptanceFailure.starving),
+      );
+
+      verify(
+        () => notices.publishNotice(
+          notice('Non hai cibo a sufficienza per il viaggio'),
+          dedupKey: 'quest-acceptance|starving|h-1',
+        ),
+      ).called(1);
+      verifyNever(() => questCubit.refreshQuests(cityId: any(named: 'cityId')));
+      verify(() => acceptance.reset()).called(1);
+    },
+  );
+
   testWidgets('insufficient points do not refresh the list', (tester) async {
     await pumpListener(tester);
 

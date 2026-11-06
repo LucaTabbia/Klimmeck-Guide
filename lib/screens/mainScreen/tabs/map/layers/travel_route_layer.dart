@@ -68,6 +68,7 @@ Polyline _dashedRemaining(List<LatLng> points) => Polyline(
 List<LatLng>? _previewPoints(TravelState travel) => switch (travel) {
   TravelConfirming(:final preview) ||
   TravelStarting(:final preview) ||
+  TravelRequoting(:final preview) ||
   TravelStarted(:final preview) => preview.road.points,
   TravelIdle() || TravelPreviewing() || TravelFailed() => null,
 };

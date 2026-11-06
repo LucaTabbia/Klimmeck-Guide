@@ -647,6 +647,23 @@ class KlimmeckGraphQl {
     return _travelPreviewFrom(data['travelPreview']);
   }
 
+  /// Anteprima del viaggio automatico di un'accettazione (15-CONTEXT D-01,
+  /// D-08): owner-only, nessuna scrittura; `null` quando l'accettazione non
+  /// comporta un viaggio. Lancia [OperationException] o [FormatException].
+  Future<TravelPreview?> previewQuestTravel(AcceptQuestRequest request) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        TravelQueries.getQuestTravelPreview,
+        variables: {'request': request.toJson()},
+      ),
+    );
+    if (!data.containsKey('questTravelPreview')) {
+      throw const FormatException('questTravelPreview missing');
+    }
+    final json = data['questTravelPreview'];
+    return json == null ? null : _travelPreviewFrom(json);
+  }
+
   /// Avvia il viaggio (D-05): il viaggio arriva su `characterUpdated`, mai da
   /// questa risposta; restituisce solo `successful`. Lancia [OperationException]
   /// o [FormatException] per una risposta malformata.

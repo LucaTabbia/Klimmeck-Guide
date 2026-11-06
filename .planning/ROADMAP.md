@@ -81,7 +81,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
-- [ ] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_
+- [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
 - [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
 
@@ -475,13 +475,23 @@ Plans:
 **Scope**: M
 **Requirements**: FOOD-01, FOOD-02, FOOD-03, FOOD-04
 **Success Criteria** (what must be TRUE):
-  1. The travel confirmation sheet shows, from `travelPreview`, the food that will be eaten (items and quantities) and the HP lost on the uncovered kilometres (0 when covered) before «Parti»; nothing is computed on the client.
-  2. Combat and service quest sheets show the food cost of the automatic travel to the marker next to the channel-points line, from a backend preview; the swipe is refused with the starvation code when the character would not arrive with at least 1 HP, mapped on the banner.
-  3. `startTravel` refused with the starvation code → banner, sheet recomposed; after a departure the journal shows the reduced food and the Map the reduced HP through `characterUpdated`.
+  1. The travel confirmation sheet shows, from `travelPreview`, the food that will be eaten (items and quantities) and the HP lost on the uncovered kilometres (0 when covered) before «Parti»; when the backend says the character would not arrive alive the «Vita» row turns red («Non hai cibo a sufficienza per il viaggio») and «Parti» is disabled; nothing is computed on the client.
+  2. Combat and service quest sheets show the food cost of the automatic travel to the marker as a «Viaggio» line in the costs block (where the narrative family shows the channel-points line; combat and service sheets have none), from a backend owner-only preview (absent without a travel); when the preview says the character would not arrive alive the line turns red and the swipe is disabled; the backend starvation code stays the defence, mapped on the banner.
+  3. `startTravel` refused with the starvation code → banner and the confirmation sheet stays open with a refreshed preview (every other refusal closes it as in Phase 7); `acceptQuest` refused → banner, quest sheet recomposed; after a departure the Journal shows the reduced food and HP («Punti vita») through `characterUpdated` (the Map renders no HP).
   4. Teleport and instant jump unaffected; device UAT: trip fully covered, trip partially covered (HP lost), trip refused.
 **Decisions made (2026-10-29)**: 1 power = 3 minutes of march (500 m at base speed on a standard road), terrain + pet + injuries count through the duration; minimum-waste selection by the BE; uncovered km n costs n HP; applied at departure; applies to the quest automatic travel too.
+**Decisions made (2026-11-05, joint discuss with the BE Phase 14)**: two rows «Cibo»/«Vita» under «Arrivo» on the confirmation sheet; one compact «Viaggio:» line in the costs block of the combat/service sheets; the phrase «Non hai cibo a sufficienza per il viaggio» everywhere (red rows, both banners); «Parti» and the swipe disabled on `arrivesAlive: false`; the confirmation sheet stays open with a refreshed preview only on the starvation refusal; no feedback after the departure; the quest preview is a dedicated owner-only query returning a nullable `TravelPreview`. Details in `15-CONTEXT.md` (D-01..D-09).
 **Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
-**Plans**: TBD
+**Plans**: 9 plans
+- [x] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
+- [x] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
+- [x] 15-03-PLAN.md — `TravelFailure.starving` / `QuestAcceptanceFailure.starving` ← `TRAVEL_STARVING`, both banners with the user phrase, no board reread, `TravelRepository.previewQuest`
+- [x] 15-04-PLAN.md — `TravelRequoting` state machine (Starting → Requoting → Confirming), one banner without `reset()`, route and pawn kept, camera refit narrowed
+- [x] 15-05-PLAN.md — «Cibo»/«Vita» rows on the confirmation sheet, red phrase and «Parti» disabled on `arrivesAlive: false`, sheet kept open through the requote, «nessun costo» notes fixed (D-13)
+- [x] 15-06-PLAN.md — pure `QuestTravelLine` and `QuestSheetDetails.travelLine`, the «Viaggio» line in the combat and service bodies of `QuestInfoSheet`
+- [x] 15-07-PLAN.md — `QuestTravelPreviewCubit` + `needsTravelPreview`, shell `RepositoryProvider<TravelRepository>` (with the Board harness for Wave 0), Board wiring (request on open, `canTear: false` when starving, refresh after a starving refusal)
+- [x] 15-08-PLAN.md — ⛔ GATED on the BE Phase 14 merge: schema gate (`TravelFoodItem` on `origin/develop`), `TRAVEL_STARVING` checked in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off
+- [x] 15-09-PLAN.md — ⛔ GATED: device E2E `15-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff, `mark-complete` FOOD-01..04, ROADMAP/STATE/REQUIREMENTS closure
 
 ### Phase 16: Travel Ambushes
 **Goal**: A journey can be ambushed: the frontend renders the server's decision — the pawn keeps going after a victory, or turns back towards the nearest city after a defeat — and at arrival shows the ambush report on the result sheet, never lost (unacknowledged pipeline).
@@ -527,7 +537,7 @@ Plans:
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 0/0 | Not started | - |
+| 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
@@ -632,10 +642,10 @@ Plans:
 | QGEN-04 | Phase 14 | Complete |
 | QGEN-05 | Phase 14 | Complete |
 | QGEN-06 | Phase 14 | Complete |
-| FOOD-01 | Phase 15 | Pending |
-| FOOD-02 | Phase 15 | Pending |
-| FOOD-03 | Phase 15 | Pending |
-| FOOD-04 | Phase 15 | Pending |
+| FOOD-01 | Phase 15 | Complete |
+| FOOD-02 | Phase 15 | Complete |
+| FOOD-03 | Phase 15 | Complete |
+| FOOD-04 | Phase 15 | Complete |
 | AMBUSH-01 | Phase 16 | Pending |
 | AMBUSH-02 | Phase 16 | Pending |
 | AMBUSH-03 | Phase 16 | Pending |

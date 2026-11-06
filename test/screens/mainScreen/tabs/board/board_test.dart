@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
@@ -55,6 +56,7 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockAuthCubit authCubit;
   late MockQuestAcceptanceCubit acceptanceCubit;
+  late MockTravelRepository travelRepository;
   late StreamController<QuestState> questStates;
 
   setUp(() {
@@ -75,6 +77,13 @@ void main() {
     characterCubit = MockCharacterCubit();
     authCubit = MockAuthCubit();
     acceptanceCubit = MockQuestAcceptanceCubit();
+    travelRepository = MockTravelRepository();
+    when(
+      () => travelRepository.previewQuest(
+        characterId: any(named: 'characterId'),
+        questId: any(named: 'questId'),
+      ),
+    ).thenAnswer((_) async => null);
     whenListen(
       acceptanceCubit,
       const Stream<QuestAcceptanceState>.empty(),
@@ -119,6 +128,7 @@ void main() {
       buildTestApp(
         home: MultiBlocProvider(
           providers: [
+            RepositoryProvider<TravelRepository>.value(value: travelRepository),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<AuthCubit>.value(value: authCubit),

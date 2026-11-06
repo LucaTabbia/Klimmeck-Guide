@@ -42,7 +42,7 @@
 ## Gesture e interazioni di dominio
 
 - **Accept quest:** swipe-left "strappa foglio" (regola di design chiave, non rimpiazzare con tap).
-- **Travel conferma:** foglio di pergamena (bottom sheet, mai `AlertDialog`) con distanza, durata ed ETA forniti dal backend (`travelPreview`), nessun costo, prima di spedire la mutation (Phase 7 D-03).
+- **Travel conferma:** foglio di pergamena (bottom sheet, mai `AlertDialog`) con distanza, durata, ETA, cibo consumato e vita persa forniti dal backend (`travelPreview`), prima di spedire la mutation (Phase 7 D-03, Phase 15 D-02); riga «Vita» rossa e «Parti» spento quando il backend dice che il personaggio non arriverebbe vivo; a un rifiuto per fame il foglio resta aperto con l'anteprima rinnovata (Phase 15 D-03).
 - **Tap accidentali da evitare:** azioni distruttive (annulla quest, logout) richiedono conferma o gesture esplicita.
 
 ## Navigazione

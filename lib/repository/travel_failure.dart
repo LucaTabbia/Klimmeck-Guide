@@ -9,6 +9,7 @@ const String travelDestinationNotAllowedCode = 'TRAVEL_DESTINATION_NOT_ALLOWED';
 const String travelNoPathCode = 'TRAVEL_NO_PATH';
 const String questInProgressCode = 'QUEST_IN_PROGRESS';
 const String awaitingAidCode = 'AWAITING_AID';
+const String travelStarvingCode = 'TRAVEL_STARVING';
 
 /// Esiti di dominio del rifiuto di `travelPreview`/`startTravel` (BE Phase 8 §2);
 /// la UI li traduce in copy (07-CONTEXT D-14).
@@ -25,6 +26,10 @@ enum TravelFailure {
 
   /// BE Phase 9 §2: il personaggio è ferito in attesa di soccorso (D-16).
   awaitingAid,
+
+  /// BE Phase 14 D-11: il personaggio non arriverebbe vivo (cibo
+  /// insufficiente); stesso codice su `startTravel` e `acceptQuest`.
+  starving,
   notFound,
   forbidden,
   unauthenticated,
@@ -62,6 +67,7 @@ TravelFailure travelFailureFrom(OperationException exception) {
     travelNoPathCode => TravelFailure.noPath,
     questInProgressCode => TravelFailure.questInProgress,
     awaitingAidCode => TravelFailure.awaitingAid,
+    travelStarvingCode => TravelFailure.starving,
     notFoundCode => TravelFailure.notFound,
     forbiddenCode => TravelFailure.forbidden,
     unauthenticatedCode => TravelFailure.unauthenticated,

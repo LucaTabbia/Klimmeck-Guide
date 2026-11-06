@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -8,7 +10,8 @@ import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_notice.dart
 /// Esiti del viaggio a livello di sessione (D-14, D-19): banner per codice e
 /// reset sopravvivono al cambio tab; dopo "Parti" il flusso si chiude quando
 /// `activeTravel` compare sul personaggio (lo stato arriva solo dalla
-/// subscription, D-05).
+/// subscription, D-05). A un rifiuto per fame (D-03) il banner esce
+/// all'ingresso in `TravelRequoting`, senza reset: il foglio resta aperto.
 class TravelOutcomeListener extends StatelessWidget {
   const TravelOutcomeListener({super.key, required this.child});
 
@@ -22,6 +25,15 @@ class TravelOutcomeListener extends StatelessWidget {
             current is TravelFailed || current is TravelStarted,
         listener: _onOutcome,
       ),
+      BlocListener<TravelCubit, TravelState>(
+        listenWhen: (previous, current) =>
+            previous is! TravelRequoting && current is TravelRequoting,
+        listener: (context, state) => _announce(
+          context,
+          failure: TravelFailure.starving,
+          destination: (state as TravelRequoting).destination,
+        ),
+      ),
       BlocListener<CharacterCubit, CharacterState>(
         listenWhen: (previous, current) =>
             !_isTravelling(previous) && _isTravelling(current),
@@ -33,7 +45,11 @@ class TravelOutcomeListener extends StatelessWidget {
 
   void _onOutcome(BuildContext context, TravelState state) {
     if (state is TravelFailed) {
-      _announce(context, state);
+      _announce(
+        context,
+        failure: state.failure,
+        destination: state.destination,
+      );
       context.read<TravelCubit>().reset();
       return;
     }
@@ -42,12 +58,16 @@ class TravelOutcomeListener extends StatelessWidget {
     }
   }
 
-  void _announce(BuildContext context, TravelFailed state) {
-    final notice = travelNoticeFor(state.failure);
+  void _announce(
+    BuildContext context, {
+    required TravelFailure failure,
+    required City destination,
+  }) {
+    final notice = travelNoticeFor(failure);
     if (notice == null) return;
     context.read<InAppNotificationsCubit>().publishNotice(
       notice,
-      dedupKey: 'travel|${state.failure.name}|${state.destination.id}',
+      dedupKey: 'travel|${failure.name}|${destination.id}',
     );
   }
 

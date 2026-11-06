@@ -9,8 +9,11 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
+import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
+import 'package:klimmeck_guide/repository/travel_failure.dart';
+import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -18,11 +21,14 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
+import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/auth_fixtures.dart';
 import '../../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../helpers/haptic_recorder.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/mocks.dart';
@@ -44,6 +50,7 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockAuthCubit authCubit;
   late MockQuestAcceptanceCubit acceptance;
+  late MockTravelRepository travelRepository;
   late MockInAppNotificationsCubit notices;
   late StreamController<QuestAcceptanceState> acceptanceStates;
   late int accepted;
@@ -71,6 +78,13 @@ void main() {
     authCubit = MockAuthCubit();
     acceptance = MockQuestAcceptanceCubit();
     notices = MockInAppNotificationsCubit();
+    travelRepository = MockTravelRepository();
+    when(
+      () => travelRepository.previewQuest(
+        characterId: any(named: 'characterId'),
+        questId: any(named: 'questId'),
+      ),
+    ).thenAnswer((_) async => null);
     accepted = 0;
     acceptanceStates = StreamController<QuestAcceptanceState>.broadcast();
     addTearDown(acceptanceStates.close);
@@ -102,6 +116,7 @@ void main() {
     WidgetTester tester, {
     required List<Quest> quests,
     Map<String, dynamic>? character,
+    Stream<CharacterState> characterStates = const Stream.empty(),
     QuestAcceptanceState initialAcceptance = const QuestAcceptanceIdle(),
   }) async {
     useLandscapePhone(tester);
@@ -112,7 +127,7 @@ void main() {
     );
     whenListen(
       characterCubit,
-      const Stream<CharacterState>.empty(),
+      characterStates,
       initialState: CharacterLoaded(
         Character.fromJson(
           character ??
@@ -136,6 +151,7 @@ void main() {
       buildTestApp(
         home: MultiBlocProvider(
           providers: [
+            RepositoryProvider<TravelRepository>.value(value: travelRepository),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<AuthCubit>.value(value: authCubit),
@@ -382,5 +398,320 @@ void main() {
       verifyNever(() => acceptance.reset());
       verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
     });
+  });
+
+  group('travel preview (FOOD-02)', () {
+    void stubTravelPreview(TravelPreview? preview) => when(
+      () => travelRepository.previewQuest(
+        characterId: any(named: 'characterId'),
+        questId: any(named: 'questId'),
+      ),
+    ).thenAnswer((_) async => preview);
+
+    void verifyNoTravelPreview() => verifyNever(
+      () => travelRepository.previewQuest(
+        characterId: any(named: 'characterId'),
+        questId: any(named: 'questId'),
+      ),
+    );
+
+    Text travelLine(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(QuestInfoSheet.travelLineKey));
+
+    testWidgets(
+      'opening an acceptable standard quest asks its travel preview once '
+      '(D-04, D-08)',
+      (tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-1', type: 'hunt')],
+        );
+        await openSheet(tester, 'h-1');
+
+        verify(
+          () =>
+              travelRepository.previewQuest(characterId: 'c-1', questId: 'h-1'),
+        ).called(1);
+      },
+    );
+
+    testWidgets('an acceptable story asks no travel preview (D-04)', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [
+          buildQuest(
+            id: 's-paladin',
+            type: 'story',
+            minTitle: 'paladin',
+            requiredPoints: 100,
+          ),
+        ],
+      );
+      await openSheet(tester, 's-paladin');
+
+      expect(find.byType(TearablePaper), findsOneWidget);
+      verifyNoTravelPreview();
+    });
+
+    testWidgets(
+      'a quest the viewer cannot accept asks no travel preview (D-04)',
+      (tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-2', type: 'hunt')],
+          character: characterWithLanesJson(
+            title: 'paladin',
+            pendingQuest: laneJson(id: 'pq-x', questId: 'h-other'),
+          ),
+        );
+        await openSheet(tester, 'h-2');
+
+        expect(find.byType(TearablePaper), findsOneWidget);
+        verifyNoTravelPreview();
+      },
+    );
+
+    group('a sheet opened before the quest is acceptable', () {
+      late StreamController<CharacterState> characterStates;
+
+      setUp(() {
+        characterStates = StreamController<CharacterState>.broadcast();
+        addTearDown(characterStates.close);
+      });
+
+      CharacterLoaded characterWith({Map<String, dynamic>? pendingQuest}) =>
+          CharacterLoaded(
+            Character.fromJson(
+              characterWithLanesJson(
+                title: 'paladin',
+                locationId: 'city-marker-1',
+                pendingQuest: pendingQuest,
+              ),
+            ),
+          );
+
+      Future<void> openBusySheet(WidgetTester tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-2', type: 'hunt')],
+          character: characterWithLanesJson(
+            title: 'paladin',
+            locationId: 'city-marker-1',
+            pendingQuest: laneJson(id: 'pq-x', questId: 'h-other'),
+          ),
+          characterStates: characterStates.stream,
+        );
+        await openSheet(tester, 'h-2');
+      }
+
+      Future<void> emitCharacter(
+        WidgetTester tester,
+        CharacterLoaded state,
+      ) async {
+        characterStates.add(state);
+        await tester.pump();
+        await tester.pump();
+      }
+
+      testWidgets(
+        'asks the travel preview once the quest becomes acceptable (D-04)',
+        (tester) async {
+          stubTravelPreview(
+            TravelPreview.fromJson(
+              travelPreviewJson(food: [travelFoodItemJson()], hpLost: 0),
+            ),
+          );
+          await openBusySheet(tester);
+          verifyNoTravelPreview();
+
+          await emitCharacter(tester, characterWith());
+
+          verify(
+            () => travelRepository.previewQuest(
+              characterId: 'c-1',
+              questId: 'h-2',
+            ),
+          ).called(1);
+          expect(
+            travelLine(tester).data,
+            'Viaggio: 1x Razione da viaggio · nessuna perdita',
+          );
+        },
+      );
+
+      testWidgets(
+        'a loaded preview is not asked again when the viewer changes (D-04)',
+        (tester) async {
+          await openBusySheet(tester);
+
+          await emitCharacter(tester, characterWith());
+          await emitCharacter(
+            tester,
+            characterWith(
+              pendingQuest: laneJson(id: 'pq-x', questId: 'h-other'),
+            ),
+          );
+          await emitCharacter(tester, characterWith());
+
+          verify(
+            () => travelRepository.previewQuest(
+              characterId: 'c-1',
+              questId: 'h-2',
+            ),
+          ).called(1);
+        },
+      );
+    });
+
+    testWidgets('the travel line appears once the preview answers (D-04)', (
+      tester,
+    ) async {
+      stubTravelPreview(
+        TravelPreview.fromJson(
+          travelPreviewJson(food: [travelFoodItemJson()], hpLost: 0),
+        ),
+      );
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+      await openSheet(tester, 'h-1');
+      await tester.pump();
+
+      expect(find.byKey(QuestInfoSheet.travelLineKey), findsOneWidget);
+      expect(
+        travelLine(tester).data,
+        'Viaggio: 1x Razione da viaggio · nessuna perdita',
+      );
+    });
+
+    testWidgets(
+      'a starving preview makes the paper resist and sends nothing (D-04)',
+      (tester) async {
+        final haptics = recordHaptics(tester);
+        stubTravelPreview(
+          TravelPreview.fromJson(
+            travelPreviewJson(
+              food: const [],
+              hpLost: 20910,
+              arrivesAlive: false,
+            ),
+          ),
+        );
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-1', type: 'hunt')],
+        );
+        await openSheet(tester, 'h-1');
+        await tester.pump();
+
+        expect(
+          travelLine(tester).data,
+          'Viaggio: Non hai cibo a sufficienza per il viaggio',
+        );
+        expect(travelLine(tester).style?.color, KlimmeckGuideTheme.bloodRed);
+
+        await dragSheetLeft(tester);
+
+        verifyNever(
+          () => acceptance.accept(
+            characterId: any(named: 'characterId'),
+            questId: any(named: 'questId'),
+          ),
+        );
+        expect(haptics, ['HapticFeedbackType.lightImpact']);
+        expect(
+          tester.state<TearablePaperState>(find.byType(TearablePaper)).isTorn,
+          isFalse,
+        );
+      },
+    );
+
+    testWidgets('a failed preview shows no line and keeps the swipe (D-04)', (
+      tester,
+    ) async {
+      when(
+        () => travelRepository.previewQuest(
+          characterId: any(named: 'characterId'),
+          questId: any(named: 'questId'),
+        ),
+      ).thenThrow(const TravelException(TravelFailure.forbidden));
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 'h-1', type: 'hunt')],
+      );
+      await openSheet(tester, 'h-1');
+      await tester.pump();
+
+      expect(find.byKey(QuestInfoSheet.travelLineKey), findsNothing);
+
+      await dragSheetLeft(tester);
+
+      verify(
+        () => acceptance.accept(characterId: 'c-1', questId: 'h-1'),
+      ).called(1);
+      verifyNever(
+        () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
+      );
+    });
+
+    testWidgets(
+      'a starving acceptance refusal recomposes the paper and refreshes the '
+      'preview (D-05)',
+      (tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-1', type: 'hunt')],
+        );
+        await openSheet(tester, 'h-1');
+        await dragSheetLeft(tester);
+        final paperState = tester.state<TearablePaperState>(
+          find.byType(TearablePaper),
+        );
+        expect(paperState.isTorn, isTrue);
+
+        acceptanceStates.add(
+          const QuestAcceptanceFailed('h-1', QuestAcceptanceFailure.starving),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(paperState.isTorn, isFalse);
+        verify(
+          () =>
+              travelRepository.previewQuest(characterId: 'c-1', questId: 'h-1'),
+        ).called(2);
+        verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      },
+    );
+
+    testWidgets(
+      'another refusal recomposes without refreshing the preview (D-05)',
+      (tester) async {
+        await pumpBoard(
+          tester,
+          quests: [buildQuest(id: 'h-1', type: 'hunt')],
+        );
+        await openSheet(tester, 'h-1');
+        await dragSheetLeft(tester);
+        final paperState = tester.state<TearablePaperState>(
+          find.byType(TearablePaper),
+        );
+
+        acceptanceStates.add(
+          const QuestAcceptanceFailed('h-1', QuestAcceptanceFailure.full),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(paperState.isTorn, isFalse);
+        verify(
+          () =>
+              travelRepository.previewQuest(characterId: 'c-1', questId: 'h-1'),
+        ).called(1);
+      },
+    );
   });
 }

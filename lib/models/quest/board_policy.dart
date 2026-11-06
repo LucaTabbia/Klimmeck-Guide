@@ -2,6 +2,7 @@ import '../city.dart';
 import '../enums/quest_type.dart';
 import '../point_of_interest.dart';
 import 'quest.dart';
+import 'quest_availability.dart';
 import 'quest_lane.dart';
 import 'quest_viewer.dart';
 
@@ -41,3 +42,13 @@ bool _isCompleted(Quest quest, QuestViewer viewer) =>
     (viewer.quests?.completedQuests ?? const []).any(
       (done) => done.id == quest.id,
     );
+
+/// Anteprima del viaggio automatico solo se lo swipe è disponibile e la quest
+/// è della corsia standard (15-CONTEXT D-04): story e worldMission, anche se
+/// accettabili, non viaggiano mai.
+bool needsTravelPreview(Quest quest, QuestViewer viewer) {
+  final type = quest.infos?.type;
+  return type != null &&
+      laneOf(type) == QuestLane.standard &&
+      standingOf(quest, viewer).canAccept;
+}

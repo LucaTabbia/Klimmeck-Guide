@@ -98,6 +98,37 @@ final class TravelStarting extends TravelQuote {
   );
 }
 
+/// `startTravel` rifiutato per fame (15-CONTEXT D-03): il foglio resta aperto
+/// sull'ultima anteprima mentre il cubit la richiede; "Parti" spento, rotta e
+/// pedina restano.
+final class TravelRequoting extends TravelQuote {
+  const TravelRequoting({
+    required super.destination,
+    required super.preview,
+    required super.eta,
+    required super.previewedAt,
+  });
+
+  TravelRequoting.from(TravelStarting starting)
+    : this(
+        destination: starting.destination,
+        preview: starting.preview,
+        eta: starting.eta,
+        previewedAt: starting.previewedAt,
+      );
+
+  @override
+  TravelRequoting withEta({
+    required DateTime eta,
+    required DateTime previewedAt,
+  }) => TravelRequoting(
+    destination: destination,
+    preview: preview,
+    eta: eta,
+    previewedAt: previewedAt,
+  );
+}
+
 /// `startTravel` riuscito: la rotta d'anteprima resta finché `activeTravel`
 /// arriva (Pitfall 4).
 final class TravelStarted extends TravelState {

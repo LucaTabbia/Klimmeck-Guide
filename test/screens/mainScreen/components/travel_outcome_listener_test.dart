@@ -27,9 +27,19 @@ void main() {
   late StreamController<CharacterState> characterStates;
 
   final valdoria = City.fromJson(travelCityJson());
-  final started = TravelStarted(
+  final preview = TravelPreview.fromJson(travelPreviewJson());
+  final started = TravelStarted(destination: valdoria, preview: preview);
+  final eta = DateTime.utc(2026, 10, 24, 12, 40);
+  final previewedAt = DateTime.utc(2026, 10, 24, 10);
+  final starting = TravelStarting(
     destination: valdoria,
-    preview: TravelPreview.fromJson(travelPreviewJson()),
+    preview: preview,
+    eta: eta,
+    previewedAt: previewedAt,
+  );
+  const starvingNotice = KGNotification(
+    title: 'Viaggio non partito',
+    description: 'Non hai cibo a sufficienza per il viaggio',
   );
   final resting = CharacterLoaded(
     Character.fromJson(travellingCharacterJson()),
@@ -166,5 +176,70 @@ void main() {
     await emitCharacter(tester, travelling);
 
     verifyNever(() => travel.reset());
+  });
+
+  group('starving requote', () {
+    void verifyStarvingNoticeOnce() => verify(
+      () => notices.publishNotice(
+        starvingNotice,
+        dedupKey: 'travel|starving|city-2',
+      ),
+    ).called(1);
+
+    testWidgets(
+      'a starving refusal publishes the user phrase once and keeps the flow '
+      '(D-03, D-06)',
+      (tester) async {
+        await pumpListener(tester, character: resting);
+
+        await emitTravel(tester, starting);
+        await emitTravel(tester, TravelRequoting.from(starting));
+
+        verifyStarvingNoticeOnce();
+        verifyNever(() => travel.reset());
+      },
+    );
+
+    testWidgets(
+      'the clock re-emit of a requote publishes nothing more (D-03)',
+      (tester) async {
+        await pumpListener(tester, character: resting);
+        final pending = TravelRequoting(
+          destination: valdoria,
+          preview: preview,
+          eta: null,
+          previewedAt: null,
+        );
+
+        await emitTravel(tester, pending);
+        await emitTravel(
+          tester,
+          pending.withEta(eta: eta, previewedAt: previewedAt),
+        );
+
+        verifyStarvingNoticeOnce();
+        verifyNever(() => travel.reset());
+      },
+    );
+
+    testWidgets('the new quote after a requote publishes nothing more (D-03)', (
+      tester,
+    ) async {
+      await pumpListener(tester, character: resting);
+
+      await emitTravel(tester, TravelRequoting.from(starting));
+      await emitTravel(
+        tester,
+        TravelConfirming(
+          destination: valdoria,
+          preview: preview,
+          eta: eta,
+          previewedAt: previewedAt,
+        ),
+      );
+
+      verifyStarvingNoticeOnce();
+      verifyNever(() => travel.reset());
+    });
   });
 }

@@ -405,6 +405,170 @@ void main() {
     );
   });
 
+  group('starving refusal', () {
+    final starvingPreview = TravelPreview.fromJson(
+      travelPreviewJson(food: const [], hpLost: 20910, arrivesAlive: false),
+    );
+    final requoting = TravelRequoting.from(starting);
+
+    void stubPreviews(List<Future<TravelPreview> Function()> answers) {
+      var call = 0;
+      stubPreview().thenAnswer((_) => answers[call++]());
+    }
+
+    blocTest<TravelCubit, TravelState>(
+      'a starving refusal keeps the quote and previews again (D-03)',
+      setUp: () {
+        stubPreviews([() async => preview, () async => starvingPreview]);
+        stubStart().thenThrow(const TravelException(TravelFailure.starving));
+      },
+      build: build,
+      act: (cubit) async {
+        await previewValdoria(cubit);
+        await cubit.start();
+      },
+      expect: () => [
+        TravelPreviewing(valdoria),
+        confirming,
+        starting,
+        requoting,
+        TravelConfirming(
+          destination: valdoria,
+          preview: starvingPreview,
+          eta: previewedAt.add(
+            Duration(milliseconds: starvingPreview.duration.round()),
+          ),
+          previewedAt: previewedAt,
+        ),
+      ],
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'the requote asks the backend again for the same destination (D-03)',
+      setUp: () {
+        stubPreviews([() async => preview, () async => starvingPreview]);
+        stubStart().thenThrow(const TravelException(TravelFailure.starving));
+      },
+      build: build,
+      act: (cubit) async {
+        await previewValdoria(cubit);
+        await cubit.start();
+      },
+      verify: (_) => verify(
+        () => repository.preview(characterId: 'c-1', poiId: 'city-marker-2'),
+      ).called(2),
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'every other start refusal still fails the start (D-03)',
+      setUp: () {
+        stubPreview().thenAnswer((_) async => preview);
+        stubStart().thenThrow(const TravelException(TravelFailure.noPath));
+      },
+      build: build,
+      act: (cubit) async {
+        await previewValdoria(cubit);
+        await cubit.start();
+      },
+      expect: () => [
+        TravelPreviewing(valdoria),
+        confirming,
+        starting,
+        TravelFailed(
+          destination: valdoria,
+          failure: TravelFailure.noPath,
+          stage: TravelStage.start,
+        ),
+      ],
+      verify: (_) => verify(
+        () => repository.preview(characterId: 'c-1', poiId: 'city-marker-2'),
+      ).called(1),
+    );
+
+    blocTest<TravelCubit, TravelState>(
+      'a failing requote fails the preview stage (D-03)',
+      setUp: () {
+        stubPreviews([
+          () async => preview,
+          () async => throw const TravelException(TravelFailure.connection),
+        ]);
+        stubStart().thenThrow(const TravelException(TravelFailure.starving));
+      },
+      build: build,
+      act: (cubit) async {
+        await previewValdoria(cubit);
+        await cubit.start();
+      },
+      skip: 2,
+      expect: () => [
+        starting,
+        requoting,
+        TravelFailed(
+          destination: valdoria,
+          failure: TravelFailure.connection,
+          stage: TravelStage.preview,
+        ),
+      ],
+    );
+
+    test('cancel during the requote goes idle and drops the late answer '
+        '(D-03)', () async {
+      final completer = Completer<TravelPreview>();
+      stubPreviews([() async => preview, () => completer.future]);
+      stubStart().thenThrow(const TravelException(TravelFailure.starving));
+      final cubit = build();
+      await previewValdoria(cubit);
+
+      final pending = cubit.start();
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state, requoting);
+      cubit.cancel();
+      expect(cubit.state, const TravelIdle());
+      final states = <TravelState>[];
+      final subscription = cubit.stream.listen(states.add);
+      completer.complete(starvingPreview);
+      await pending;
+      await Future<void>.delayed(Duration.zero);
+
+      expect(states, isEmpty);
+      expect(cubit.state, const TravelIdle());
+      await subscription.cancel();
+      await cubit.close();
+    });
+
+    test('withEta on a requote stays a requote (D-03)', () {
+      final pending = TravelRequoting(
+        destination: valdoria,
+        preview: preview,
+        eta: null,
+        previewedAt: null,
+      );
+
+      final filled = pending.withEta(eta: eta, previewedAt: previewedAt);
+
+      expect(filled, isA<TravelRequoting>());
+      expect(filled.eta, eta);
+      expect(filled.previewedAt, previewedAt);
+    });
+
+    test('drops a late requote answer after close (D-03)', () async {
+      final completer = Completer<TravelPreview>();
+      stubPreviews([() async => preview, () => completer.future]);
+      stubStart().thenThrow(const TravelException(TravelFailure.starving));
+      final cubit = build();
+      await previewValdoria(cubit);
+
+      final pending = cubit.start();
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state, requoting);
+      await cubit.close();
+      completer.complete(starvingPreview);
+      await expectLater(pending, completes);
+
+      expect(cubit.state, requoting);
+    });
+  });
+
   group('reset', () {
     blocTest<TravelCubit, TravelState>(
       'returns to idle after a failure',

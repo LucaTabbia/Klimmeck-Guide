@@ -278,6 +278,24 @@ void main() {
       expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
     });
 
+    testWidgets('requoting holds the pawn on the destination (D-03)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(),
+        travel: TravelRequoting(
+          destination: cityB,
+          preview: preview,
+          eta: null,
+          previewedAt: null,
+        ),
+      );
+
+      expect(pawnPoint(tester), destination);
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+    });
+
     testWidgets('started puts the pawn home until the travel arrives', (
       tester,
     ) async {

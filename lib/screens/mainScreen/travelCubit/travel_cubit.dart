@@ -70,7 +70,8 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   Future<void> start() async {
     final confirming = state;
     if (confirming is! TravelConfirming) return;
-    emit(TravelStarting.from(confirming));
+    final starting = TravelStarting.from(confirming);
+    emit(starting);
     final destination = confirming.destination;
     try {
       await _repository.start(
@@ -83,17 +84,43 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
       );
       _holdStarted();
     } on TravelException catch (error) {
+      if (error.failure == TravelFailure.starving) return _requote(starting);
       _failStart(destination, error.failure);
     } catch (_) {
       _failStart(destination, TravelFailure.unknown);
     }
   }
 
-  /// "Resta" o foglio chiuso: invalida l'anteprima ancora in volo.
+  /// "Resta" o foglio chiuso: invalida l'anteprima ancora in volo, anche
+  /// quella del preventivo rinnovato.
   void cancel() {
-    if (state is! TravelPreviewing && state is! TravelConfirming) return;
+    if (state is! TravelPreviewing &&
+        state is! TravelConfirming &&
+        state is! TravelRequoting) {
+      return;
+    }
     _previewToken++;
     emit(const TravelIdle());
+  }
+
+  /// D-03: a un rifiuto per fame il preventivo resta e il BE ne fa uno nuovo
+  /// (la partenza ricalcola sul cibo del momento, BE D-10).
+  Future<void> _requote(TravelStarting starting) async {
+    final destination = starting.destination;
+    final token = ++_previewToken;
+    emit(TravelRequoting.from(starting));
+    try {
+      final result = await _repository.preview(
+        characterId: _characterId!,
+        poiId: destination.markerLocation!.id,
+      );
+      if (_isStale(token)) return;
+      emit(_confirmingFrom(destination, result));
+    } on TravelException catch (error) {
+      _failPreview(token, destination, error.failure);
+    } catch (_) {
+      _failPreview(token, destination, TravelFailure.unknown);
+    }
   }
 
   /// Dopo che la sessione ha gestito l'esito: la prossima meta riparte pulita.
@@ -111,7 +138,8 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
   }
 
   bool _isStale(int token) =>
-      token != _previewToken || state is! TravelPreviewing;
+      token != _previewToken ||
+      (state is! TravelPreviewing && state is! TravelRequoting);
 
   /// WR-03: nessun ETA da un orologio non sincronizzato; il foglio tiene il
   /// segnaposto e [_fillPendingEta] lo completa al primo sync.

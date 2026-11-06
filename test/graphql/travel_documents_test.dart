@@ -35,20 +35,59 @@ void main() {
       _expectTravelRequestVariable(operation);
     });
 
-    test('selects distance, duration and the road of travelPreview', () {
-      expect(
-        _collapsed(TravelQueries.getTravelPreview),
-        contains(
-          'travelPreview(request: \$request) '
-          '{ distance duration road { coordinates distance } }',
-        ),
-      );
-    });
+    test(
+      'selects the road, the food, the life lost and arrivesAlive of travelPreview (D-01)',
+      () {
+        expect(
+          _collapsed(TravelQueries.getTravelPreview),
+          contains(
+            'travelPreview(request: \$request) '
+            '{ distance duration road { coordinates distance } '
+            'food { quantity item { id name } } hpLost arrivesAlive }',
+          ),
+        );
+      },
+    );
 
     test('is registered in the schema check', () {
       expect(
         schemaCheckDocuments['GetTravelPreview'],
         TravelQueries.getTravelPreview,
+      );
+    });
+  });
+
+  group('GetQuestTravelPreview', () {
+    final operation = _operationOf(TravelQueries.getQuestTravelPreview);
+
+    test('is a single query named GetQuestTravelPreview (D-01)', () {
+      expect(operation.type, OperationType.query);
+      expect(operation.name?.value, 'GetQuestTravelPreview');
+    });
+
+    test('declares the request variable as AcceptQuestRequest! (D-01)', () {
+      final variable = operation.variableDefinitions.single;
+      final type = variable.type as NamedTypeNode;
+      expect(variable.variable.name.value, 'request');
+      expect(type.name.value, 'AcceptQuestRequest');
+      expect(type.isNonNull, isTrue);
+    });
+
+    test('selects the shared preview fields of questTravelPreview (D-01)', () {
+      expect(
+        _collapsed(TravelQueries.getQuestTravelPreview),
+        contains(
+          'questTravelPreview(request: \$request) '
+          '{ distance duration road { coordinates distance } '
+          'food { quantity item { id name } } hpLost arrivesAlive }',
+        ),
+      );
+    });
+
+    test('is registered in the schema check (D-01)', () {
+      expect(
+        schemaCheckDocuments['GetQuestTravelPreview'],
+        TravelQueries.getQuestTravelPreview,
       );
     });
   });
@@ -136,7 +175,7 @@ void main() {
     });
   });
 
-  test('the schema check registers 44 documents', () {
-    expect(schemaCheckDocuments.length, 44);
+  test('the schema check registers 45 documents (D-12)', () {
+    expect(schemaCheckDocuments.length, 45);
   });
 }

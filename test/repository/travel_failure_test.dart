@@ -19,6 +19,7 @@ void main() {
       'TRAVEL_NO_PATH': TravelFailure.noPath,
       'QUEST_IN_PROGRESS': TravelFailure.questInProgress,
       'AWAITING_AID': TravelFailure.awaitingAid,
+      'TRAVEL_STARVING': TravelFailure.starving,
       'NOT_FOUND': TravelFailure.notFound,
       'FORBIDDEN': TravelFailure.forbidden,
       'UNAUTHENTICATED': TravelFailure.unauthenticated,
@@ -28,6 +29,13 @@ void main() {
       test('maps $code to ${failure.name}', () {
         expect(travelFailureFrom(_withCode(code)), failure);
       });
+    });
+
+    test('maps TRAVEL_STARVING to starving (D-06)', () {
+      expect(
+        travelFailureFrom(_withCode('TRAVEL_STARVING')),
+        TravelFailure.starving,
+      );
     });
 
     test('maps a link error without code to connection', () {

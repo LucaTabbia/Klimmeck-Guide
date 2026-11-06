@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
@@ -33,6 +34,18 @@ class TravelRepository {
     required String poiId,
   }) => _guard(
     () => _graphQl.previewTravel(TravelRequest(id: characterId, poiId: poiId)),
+  );
+
+  /// Anteprima del viaggio automatico di un'accettazione per il foglio della
+  /// Bacheca (15-CONTEXT D-04, D-08): `null` = nessun viaggio. Stesso timeout
+  /// e classificatore dell'anteprima libera; nessun prompt di permesso.
+  Future<TravelPreview?> previewQuest({
+    required String characterId,
+    required String questId,
+  }) => _guard(
+    () => _graphQl.previewQuestTravel(
+      AcceptQuestRequest(id: characterId, questId: questId),
+    ),
   );
 
   Future<void> start({

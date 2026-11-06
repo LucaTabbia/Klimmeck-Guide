@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_notice.dart';
 
@@ -23,6 +24,8 @@ void main() {
           "Sei in viaggio: riprova all'arrivo",
       QuestAcceptanceFailure.awaitingAid:
           'Sei in attesa di soccorso: non puoi accettare missioni',
+      QuestAcceptanceFailure.starving:
+          'Non hai cibo a sufficienza per il viaggio',
       QuestAcceptanceFailure.connection: 'Connessione assente, riprova',
       QuestAcceptanceFailure.timedOut:
           'Il server non ha risposto in tempo: '
@@ -36,6 +39,16 @@ void main() {
         expect(notice.title, 'Missione non accettata');
         expect(notice.description, description);
       });
+    });
+
+    test('starving explains the missing food with the user phrase (D-06)', () {
+      expect(
+        questAcceptanceNoticeFor(QuestAcceptanceFailure.starving),
+        const KGNotification(
+          title: 'Missione non accettata',
+          description: 'Non hai cibo a sufficienza per il viaggio',
+        ),
+      );
     });
 
     test('slotBusy depends on the quest type', () {

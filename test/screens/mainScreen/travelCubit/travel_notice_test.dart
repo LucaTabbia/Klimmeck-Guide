@@ -14,6 +14,7 @@ void main() {
       TravelFailure.questInProgress:
           'Non puoi partire durante una missione in corso',
       TravelFailure.awaitingAid: 'Sei in attesa di soccorso: non puoi partire',
+      TravelFailure.starving: 'Non hai cibo a sufficienza per il viaggio',
       TravelFailure.notFound: 'Questa meta non è più raggiungibile',
       TravelFailure.forbidden: 'Questo personaggio non può partire',
       TravelFailure.connection: 'Connessione assente, riprova',
@@ -33,6 +34,16 @@ void main() {
           ),
         );
       });
+    });
+
+    test('starving explains the missing food with the user phrase (D-06)', () {
+      expect(
+        travelNoticeFor(TravelFailure.starving),
+        const KGNotification(
+          title: 'Viaggio non partito',
+          description: 'Non hai cibo a sufficienza per il viaggio',
+        ),
+      );
     });
 
     test('unauthenticated shows no banner', () {

@@ -5,6 +5,8 @@ import 'package:equatable/equatable.dart';
 import '../enemy.dart';
 import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
+import '../quantity_line.dart';
+import '../travel/travel_preview.dart';
 import 'adventurer_slot.dart';
 import 'quest.dart';
 import 'quest_availability.dart';
@@ -12,6 +14,7 @@ import 'quest_blocked_reason.dart';
 import 'quest_cost_line.dart';
 import 'quest_enemy.dart';
 import 'quest_lane.dart';
+import 'quest_travel_line.dart';
 import 'quest_viewer.dart';
 import 'registered_adventurer.dart';
 
@@ -62,14 +65,20 @@ class QuestSheetDetails extends Equatable {
     required this.enemyLines,
     required this.strongestEnemy,
     required this.petPrizeLine,
+    required this.travelLine,
   });
 
-  factory QuestSheetDetails.of(Quest quest, {QuestViewer? viewer}) {
+  factory QuestSheetDetails.of(
+    Quest quest, {
+    QuestViewer? viewer,
+    TravelPreview? travelPreview,
+  }) {
     final type = quest.infos?.type;
+    final family = questSheetFamilyOf(type);
     final minTitle = quest.requirements?.minTitle;
     final enemies = quest.infos?.enemies ?? const <QuestEnemy>[];
     return QuestSheetDetails(
-      family: questSheetFamilyOf(type),
+      family: family,
       requiredTitleText: _requiredTitleText(type, minTitle),
       isTitleIneligible:
           viewer != null &&
@@ -95,7 +104,7 @@ class QuestSheetDetails extends Equatable {
       recommendedLootLines: List.unmodifiable([
         for (final entry in quest.requirements?.recommendedLoot ?? const [])
           if (entry.item?.name?.isNotEmpty ?? false)
-            '${entry.quantity ?? 1}x ${entry.item!.name}',
+            quantityLine(entry.quantity ?? 1, entry.item!.name!),
       ]),
       loreParagraphs: List.unmodifiable([
         for (final lore in quest.infos?.relatedLore ?? const [])
@@ -104,6 +113,9 @@ class QuestSheetDetails extends Equatable {
       enemyLines: enemyLinesOf(enemies),
       strongestEnemy: strongestEnemyOf(enemies),
       petPrizeLine: _petPrizeLine(quest.prizes?.pet?.name),
+      travelLine: family == QuestSheetFamily.narrative
+          ? null
+          : QuestTravelLine.of(travelPreview),
     );
   }
 
@@ -121,6 +133,10 @@ class QuestSheetDetails extends Equatable {
   final Enemy? strongestEnemy;
   final String? petPrizeLine;
 
+  /// Riga «Viaggio» (D-04): mai sulle narrative (story e worldMission non
+  /// viaggiano).
+  final QuestTravelLine? travelLine;
+
   @override
   List<Object?> get props => [
     family,
@@ -134,6 +150,7 @@ class QuestSheetDetails extends Equatable {
     enemyLines,
     strongestEnemy,
     petPrizeLine,
+    travelLine,
   ];
 }
 

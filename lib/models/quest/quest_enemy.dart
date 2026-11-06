@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../enemy.dart';
+import '../quantity_line.dart';
 
 /// Voce di `QuestInfos.enemies` / `QuestResult.enemies` (BE Phase 13 D-01):
 /// un tipo di nemico e quanti ne affronta la quest. L'ordine è quello del BE
@@ -96,7 +97,7 @@ List<String> enemyLinesOf(List<QuestEnemy> enemies) {
     return List.unmodifiable(names.values);
   }
   return List.unmodifiable([
-    for (final id in names.keys) '${quantities[id]}x ${names[id]}',
+    for (final id in names.keys) quantityLine(quantities[id]!, names[id]!),
   ]);
 }
 
