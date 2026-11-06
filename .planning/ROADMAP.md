@@ -506,7 +506,7 @@ Plans:
 **Decisions made (2026-11-06)**: soft calibration (0,2%/0,6% per km, 10 km threshold), several ambushes per travel with a redraw after every victory, nearest-POI zone with animals, [Facile, Medio] band per level, rewards as a generated enemy quest, HP applied at once, nearest city by road (destination included) with no extra cost, push on every defeat, reports held until arrival, `travelEnd` only, carousel of reports (FE CONTEXT D-01..D-09, BE CONTEXT D-01..D-16).
 **Backend prerequisite**: BE Phase 15 merged on BE `develop`.
 **Plans**: 8 plans (sequential waves; 16-07 and 16-08 gated by the BE Phase 15 merge)
-- [ ] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
+- [x] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
 - [ ] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
 - [ ] 16-03-PLAN.md — ambush result sheet: header «Imboscata presso <città>» + date, «Portato a <città>» after «Ferite», won/lost proofs with no client branch on rewards
 - [ ] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
@@ -546,7 +546,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 0/8 | Planned | - |
+| 16. Travel Ambushes | 1/8 | In Progress | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
