@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-06T17:25:21.000Z"
-last_activity: 2026-11-06 -- Phase 16 planned (8 plans, plan-checker passed); BE Phase 15 planning in flight
+last_updated: "2026-11-06T18:13:48.520Z"
+last_activity: 2026-11-06 -- Phase 16 execution started
 progress:
   total_phases: 17
   completed_phases: 14
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 16 (Travel Ambushes) — PLANNED 2026-11-06 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): 8 plans in 8 sequential waves (16-01..16-06 on fixtures and mocks; 16-07 schema gate and 16-08 device E2E + handoff gated by the BE Phase 15 merge on BE `develop`); CONTEXT D-01..D-18 (D-05 carries the user's veto: «Continua» closes and acknowledges all from any page), REPO-RULES with the contract names shared with the BE `15-REPO-RULES.md`, RESEARCH, VALIDATION (17 task rows); plan-checker passed (0 blockers, 0 warnings, 5 info)
+Phase: 16 (Travel Ambushes) — EXECUTING since 2026-11-06 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): 8 plans in 8 sequential waves, one executor at a time on the main tree; 16-01..16-06 on fixtures and mocks with the agreed names; 16-07 (schema gate) and 16-08 (device E2E + handoff) wait for the BE Phase 15 merge on BE `develop` (the BE Phase 15 is executed in parallel on `feat/15-imboscate-in-viaggio`); CONTEXT D-01..D-18, REPO-RULES shared with the BE `15-REPO-RULES.md`
 Plan: 0 of 8
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: `/gsd-execute-phase 16` (16-01..16-06 now; 16-07/16-08 after the BE Phase 15 PR merges on BE `develop`), then FE 17 (after BE 16), FE 12 (Hardening) last
-Status: Phase 16 planned — ready to execute (`/gsd-execute-phase 16`); 16-07/16-08 wait for the BE Phase 15 merge; Phase 15 merged on `develop` (PR #41, `f560d1d`, 2026-11-06)
-Last activity: 2026-11-06 -- Phase 16 planned: research, repo rules, 8 plans, checker passed
+Status: Executing Phase 16 — plan 16-01 in progress; 16-07/16-08 gated by the BE Phase 15 merge; Phase 15 merged on `develop` (PR #41, `f560d1d`, 2026-11-06)
+Last activity: 2026-11-06 -- Phase 16 execution started
 
 ## Current Milestone
 
