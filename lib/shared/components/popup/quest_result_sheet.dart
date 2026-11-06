@@ -16,9 +16,10 @@ import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14): un solo widget
-/// per i cinque esiti, sezioni senza dati non costruite. Puro: niente route,
-/// niente cubit; il presenter (piano 09-10) apre il dialog e conferma.
+/// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
+/// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
+/// senza dati non costruite. Puro: niente route, niente cubit; il presenter
+/// (piano 09-10) apre il dialog e conferma.
 class QuestResultSheet extends StatefulWidget {
   const QuestResultSheet({
     super.key,
@@ -33,6 +34,7 @@ class QuestResultSheet extends StatefulWidget {
 
   static const Key headerKey = ValueKey('questResult.header');
   static const Key questTypeKey = ValueKey('questResult.questType');
+  static const Key ambushPlaceKey = ValueKey('questResult.ambushPlace');
   static const Key deadNameKey = ValueKey('questResult.deadName');
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
@@ -175,13 +177,28 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
       textAlign: TextAlign.center,
       style: _theme.titleMedium.copyWith(color: _outcomeInk),
     ),
-    ..._questTitle(),
+    ..._placeLine(),
     Text(
       _resolvedAtFormat.format(_result.resolvedAt.toLocal()),
       textAlign: TextAlign.center,
       style: _theme.bodyMedium,
     ),
   ];
+
+  /// Al posto di titolo e tipo della quest: il luogo dell'imboscata scelto
+  /// dal BE (16-CONTEXT D-04, D-13).
+  List<Widget> _placeLine() {
+    final ambush = _result.ambush;
+    if (ambush == null) return _questTitle();
+    return [
+      Text(
+        'Imboscata presso ${ambush.nearCity.name}',
+        key: QuestResultSheet.ambushPlaceKey,
+        textAlign: TextAlign.center,
+        style: _theme.bodyMedium,
+      ),
+    ];
+  }
 
   List<Widget> _questTitle() {
     final quest = _result.quest;
