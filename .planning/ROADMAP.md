@@ -507,7 +507,7 @@ Plans:
 **Backend prerequisite**: BE Phase 15 merged on BE `develop`.
 **Plans**: 8 plans (sequential waves; 16-07 and 16-08 gated by the BE Phase 15 merge)
 - [x] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
-- [ ] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
+- [x] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
 - [ ] 16-03-PLAN.md — ambush result sheet: header «Imboscata presso <città>» + date, «Portato a <città>» after «Ferite», won/lost proofs with no client branch on rewards
 - [ ] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
 - [ ] 16-05-PLAN.md — `AmbushReportCarousel` (`PageView` of result sheets, «k di N», swipe only, «Continua» closes from any page) and the presenter branch (waits while settling, no «Missione conclusa» banner, external pop requeues the group)
@@ -546,7 +546,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 1/8 | In Progress | - |
+| 16. Travel Ambushes | 2/8 | In Progress | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
