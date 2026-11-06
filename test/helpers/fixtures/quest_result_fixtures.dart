@@ -9,6 +9,26 @@ const String _defaultResolvedAt = '2026-10-27T12:00:00.000Z';
 
 const Map<String, dynamic> _zeroCoins = {'gold': 0, 'silver': 0, 'copper': 0};
 
+const String _defaultAmbushAt = '2026-10-27T11:20:00.000Z';
+
+/// Città di un report d'imboscata sul filo (`AmbushCity`, BE Phase 15 D-14).
+Map<String, dynamic> ambushCityJson({
+  String id = 'city-andogan',
+  String name = 'Andogan',
+}) => {'id': id, 'name': name};
+
+/// Blocco `ambush` di un `QuestResult` (`AmbushReport`): `reachedCity` solo
+/// dopo una sconfitta.
+Map<String, dynamic> ambushReportJson({
+  String at = _defaultAmbushAt,
+  Map<String, dynamic>? nearCity,
+  Map<String, dynamic>? reachedCity,
+}) => {
+  'at': at,
+  'nearCity': nearCity ?? ambushCityJson(),
+  'reachedCity': reachedCity,
+};
+
 /// Consumabile o ricompensa `LootItem` (selezione `LootFragment.simpleFields`
 /// più `description effect power`).
 Map<String, dynamic> lootRewardJson({
