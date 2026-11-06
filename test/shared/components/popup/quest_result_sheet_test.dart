@@ -632,4 +632,62 @@ void main() {
       expect(parchment.contains(button.bottomRight), isTrue);
     });
   });
+  group('ambush report (Phase 16)', () {
+    testWidgets('an ambush reads «Imboscata presso <città>» in place of the '
+        'quest title (D-04, D-13)', (tester) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Imboscata presso Andogan'), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.ambushPlaceKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.questTypeKey), findsNothing);
+      expect(find.text('Lupi di Valantar'), findsNothing);
+    });
+
+    testWidgets('the ambush header keeps the outcome label and ink (D-04)', (
+      tester,
+    ) async {
+      Text header() =>
+          tester.widget<Text>(find.byKey(QuestResultSheet.headerKey));
+
+      await _pump(tester, questResult(ambushWonResultJson()));
+      expect(header().data, 'Vittoria');
+      expect(header().style?.color, KlimmeckGuideTheme.darkBronze);
+
+      await _pump(tester, questResult(ambushLostResultJson()));
+      expect(header().data, 'Sconfitta');
+      expect(header().style?.color, KlimmeckGuideTheme.royalCrimson);
+    });
+
+    testWidgets('the ambush header shows the local ambush instant (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+
+      final expected = DateFormat(
+        'dd/MM HH:mm',
+      ).format(DateTime.utc(2026, 10, 27, 11, 20).toLocal());
+      expect(find.text(expected), findsOneWidget);
+    });
+
+    testWidgets('the near city of a lost ambush is the one of the report '
+        '(D-04)', (tester) async {
+      await _pump(
+        tester,
+        questResult(ambushLostResultJson(nearCityName: 'Kliever')),
+      );
+
+      expect(find.text('Imboscata presso Kliever'), findsOneWidget);
+    });
+
+    testWidgets('a quest result keeps its title and type and no ambush line '
+        '(D-04)', (tester) async {
+      await _pump(tester, questResult(questResultJson()));
+
+      expect(find.text('Lupi di Valantar'), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.questTypeKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.ambushPlaceKey), findsNothing);
+    });
+  });
 }
