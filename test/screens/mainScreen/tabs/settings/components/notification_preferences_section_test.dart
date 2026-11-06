@@ -69,7 +69,7 @@ void main() {
   SwitchListTile tile(WidgetTester tester, String storageKey) =>
       tester.widget<SwitchListTile>(tileOf(storageKey));
 
-  testWidgets('shows title and four labelled switches in order', (
+  testWidgets('shows title and five labelled switches in order (D-02)', (
     tester,
   ) async {
     await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
@@ -79,12 +79,17 @@ void main() {
     final live = tester.getTopLeft(find.text('Streamer in live')).dy;
     final quest = tester.getTopLeft(find.text('Fine quest')).dy;
     final cancelled = tester.getTopLeft(find.text('Missione annullata')).dy;
-    expect(travel < live && live < quest && quest < cancelled, isTrue);
+    final ambush = tester.getTopLeft(find.text('Imboscate')).dy;
+    expect(
+      travel < live && live < quest && quest < cancelled && cancelled < ambush,
+      isTrue,
+    );
     for (final key in [
       'travel_end',
       'streamer_live',
       'quest_end',
       'quest_cancelled',
+      'ambush_defeat',
     ]) {
       expect(tile(tester, key).value, isTrue);
     }
@@ -98,6 +103,7 @@ void main() {
           NotificationCategory.travelEnd: true,
           NotificationCategory.streamerLive: false,
           NotificationCategory.questEnd: true,
+          NotificationCategory.ambushDefeat: true,
         },
         isLoaded: true,
       ),

@@ -2,12 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 
 void main() {
-  test('exposes the four categories in display order', () {
+  test('exposes the five categories in display order (D-02)', () {
     expect(NotificationCategory.values, [
       NotificationCategory.travelEnd,
       NotificationCategory.streamerLive,
       NotificationCategory.questEnd,
       NotificationCategory.questCancelled,
+      NotificationCategory.ambushDefeat,
     ]);
   });
 
@@ -18,6 +19,7 @@ void main() {
       expect(NotificationCategory.streamerLive.storageKey, 'streamer_live');
       expect(NotificationCategory.questEnd.storageKey, 'quest_end');
       expect(NotificationCategory.questCancelled.storageKey, 'quest_cancelled');
+      expect(NotificationCategory.ambushDefeat.storageKey, 'ambush_defeat');
     },
   );
 
@@ -28,6 +30,7 @@ void main() {
       expect(NotificationCategory.streamerLive.wireType, 'streamerLive');
       expect(NotificationCategory.questEnd.wireType, 'questEnd');
       expect(NotificationCategory.questCancelled.wireType, 'questCancelled');
+      expect(NotificationCategory.ambushDefeat.wireType, 'ambushDefeat');
     });
   });
 
@@ -48,6 +51,10 @@ void main() {
       expect(
         NotificationCategory.fromWireType('questCancelled'),
         NotificationCategory.questCancelled,
+      );
+      expect(
+        NotificationCategory.fromWireType('ambushDefeat'),
+        NotificationCategory.ambushDefeat,
       );
     });
 
@@ -70,6 +77,10 @@ void main() {
       expect(NotificationCategory.travelEnd.isPersonal, isTrue);
       expect(NotificationCategory.questEnd.isPersonal, isTrue);
       expect(NotificationCategory.questCancelled.isPersonal, isTrue);
+    });
+
+    test('an ambush defeat is a personal event (D-02)', () {
+      expect(NotificationCategory.ambushDefeat.isPersonal, isTrue);
     });
 
     test('is false for the streamer live broadcast', () {

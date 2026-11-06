@@ -59,6 +59,21 @@ void main() {
       expect(event?.id, 'q-1');
     });
 
+    test('keeps the character id of an ambush defeat with the backend copy '
+        '(D-02, D-10)', () {
+      final event = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'ambushDefeat',
+        'title': 'Imboscata!',
+        'body': 'Sei stato sconfitto: la via torna verso Bosa',
+      });
+
+      expect(event?.category, NotificationCategory.ambushDefeat);
+      expect(event?.id, characterId);
+      expect(event?.title, 'Imboscata!');
+      expect(event?.body, 'Sei stato sconfitto: la via torna verso Bosa');
+    });
+
     test('drops an id sent with a streamer live broadcast', () {
       final event = PushEvent.tryParse({...streamerLiveData(), 'id': 'x'});
 

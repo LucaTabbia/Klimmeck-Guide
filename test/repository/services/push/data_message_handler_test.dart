@@ -28,6 +28,13 @@ void main() {
     'body': 'Unisciti alla diretta.',
     'sentAt': '2026-10-18T12:00:42.123Z',
   };
+  const ambushDefeatData = <String, Object?>{
+    'type': 'ambushDefeat',
+    'title': 'Imboscata!',
+    'body': 'Sei stato sconfitto: la via torna verso Bosa',
+    'sentAt': '2026-10-18T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60718',
+  };
 
   late InMemoryActiveUserStore activeUser;
   late InMemoryNotificationPreferencesStore preferences;
@@ -54,13 +61,30 @@ void main() {
           false;
 
   group('handleDataMessage', () {
-    for (final data in [travelEndData, questEndData, streamerLiveData]) {
+    for (final data in [
+      travelEndData,
+      questEndData,
+      streamerLiveData,
+      ambushDefeatData,
+    ]) {
       test('shows one notification for ${data['type']} by default', () async {
         await handle(data);
 
         expect(notifier.shown, [PushEvent.tryParse(data)]);
       });
     }
+
+    test('shows the ambush defeat with the backend title and body '
+        '(D-02, D-10)', () async {
+      await handle(ambushDefeatData);
+
+      expect(notifier.shown, hasLength(1));
+      expect(notifier.shown.single.title, 'Imboscata!');
+      expect(
+        notifier.shown.single.body,
+        'Sei stato sconfitto: la via torna verso Bosa',
+      );
+    });
 
     test('shows nothing without an active user and reads no toggle', () async {
       activeUser.userId = null;
@@ -158,6 +182,21 @@ void main() {
       disable('u-1', NotificationCategory.travelEnd);
 
       expect(await accept(travelEndData, userId: 'u-1'), isNull);
+    });
+
+    test('drops an ambush defeat when its toggle is off (D-10)', () async {
+      disable('u-1', NotificationCategory.ambushDefeat);
+
+      expect(await accept(ambushDefeatData, userId: 'u-1'), isNull);
+    });
+
+    test('the ambush toggle off keeps the other categories (D-10)', () async {
+      disable('u-1', NotificationCategory.ambushDefeat);
+
+      expect(
+        await accept(travelEndData, userId: 'u-1'),
+        PushEvent.tryParse(travelEndData),
+      );
     });
 
     test('returns null without a user', () async {

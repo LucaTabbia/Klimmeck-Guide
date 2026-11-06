@@ -42,6 +42,7 @@ void main() {
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: true,
       NotificationCategory.questCancelled: true,
+      NotificationCategory.ambushDefeat: true,
     });
   });
 
@@ -63,6 +64,18 @@ void main() {
     });
   });
 
+  test('stores the ambush toggle under ambush_defeat (D-02)', () async {
+    await store.setEnabled(
+      testUserId,
+      NotificationCategory.ambushDefeat,
+      enabled: false,
+    );
+
+    expect(backing.values, {
+      'klimmeck.notifications.user-test-id.ambush_defeat': false,
+    });
+  });
+
   test('a new store over the same backing reads the saved value', () async {
     await store.setEnabled(
       testUserId,
@@ -79,6 +92,7 @@ void main() {
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: false,
       NotificationCategory.questCancelled: true,
+      NotificationCategory.ambushDefeat: true,
     });
   });
 
