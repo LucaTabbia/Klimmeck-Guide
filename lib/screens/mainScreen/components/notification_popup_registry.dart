@@ -12,9 +12,12 @@ typedef NotificationPopup =
 /// Un popup per tipo di notifica. `travelEnd` centra solo la camera sulla
 /// pedina, nessun foglio né popup (Phase 7 D-15); `questEnd` chiede il
 /// risultato alla coda dei risultati (Phase 9 D-06/D-11).
+/// `ambushDefeat` (Phase 16 D-02) come `travelEnd`: la mappa e la camera sulla
+/// pedina che riparte dal punto dell'imboscata.
 const Map<NotificationCategory, NotificationPopup> defaultNotificationPopups = {
   NotificationCategory.travelEnd: focusCharacterOnMap,
   NotificationCategory.questEnd: requestQuestResult,
+  NotificationCategory.ambushDefeat: focusCharacterOnMap,
 };
 
 /// D-15/D-16: vale per il tap sulla notifica di sistema e sul banner in-app.
