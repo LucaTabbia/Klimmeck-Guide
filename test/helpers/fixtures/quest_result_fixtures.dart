@@ -188,6 +188,73 @@ Map<String, dynamic> failureResultJson({
   levelAfter: 1,
 );
 
+/// Imboscata vinta (BE Phase 15 D-10): monete ed esperienza dei nemici,
+/// nessuna deviazione; `quest` null come sul filo.
+Map<String, dynamic> ambushWonResultJson({
+  String id = 'ambush-won',
+  String resolvedAt = _defaultAmbushAt,
+  String nearCityName = 'Andogan',
+}) =>
+    questResultJson(
+        id: id,
+        resolvedAt: resolvedAt,
+        hpBefore: 900,
+        hpAfter: 700,
+        injuriesAdded: const [],
+        consumablesUsed: const [],
+        spellsUsed: const [],
+        coins: const {'gold': 0, 'silver': 1, 'copper': 40},
+        rewardItems: const [],
+        xpBefore: 200,
+        xpGained: 35,
+        xpAfter: 235,
+        levelBefore: 1,
+        levelAfter: 1,
+        enemies: [
+          questEnemyJson(id: 'bandit', name: 'Bandito', quantity: 2, xp: 12),
+        ],
+      )
+      ..['kind'] = 'ambush'
+      ..['quest'] = null
+      ..['ambush'] = ambushReportJson(
+        at: resolvedAt,
+        nearCity: ambushCityJson(name: nearCityName),
+      );
+
+/// Imboscata persa (BE Phase 15 D-11): HP a 1, ferite, nessuna ricompensa,
+/// la città raggiunta dopo la sconfitta.
+Map<String, dynamic> ambushLostResultJson({
+  String id = 'ambush-lost',
+  String resolvedAt = '2026-10-27T11:40:00.000Z',
+  String nearCityName = 'Andogan',
+  String reachedCityName = 'Bosa',
+}) =>
+    questResultJson(
+        id: id,
+        resolvedAt: resolvedAt,
+        outcome: 'failure',
+        hpBefore: 700,
+        hpAfter: 1,
+        injuriesAdded: const ['deepCut'],
+        consumablesUsed: const [],
+        spellsUsed: const [],
+        coins: _zeroCoins,
+        rewardItems: const [],
+        xpBefore: 235,
+        xpGained: 0,
+        xpAfter: 235,
+        levelBefore: 1,
+        levelAfter: 1,
+        enemies: [questEnemyJson(id: 'orc', name: 'Orco', xp: 40)],
+      )
+      ..['kind'] = 'ambush'
+      ..['quest'] = null
+      ..['ambush'] = ambushReportJson(
+        at: resolvedAt,
+        nearCity: ambushCityJson(name: nearCityName),
+        reachedCity: ambushCityJson(id: 'city-bosa', name: reachedCityName),
+      );
+
 /// Salvato da un soccorso: la quest è l'aiuto, prima = dopo.
 Map<String, dynamic> rescuedResultJson({
   String id = 'result-rescued',
