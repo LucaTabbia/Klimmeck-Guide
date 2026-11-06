@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-05T21:53:39.000Z"
+last_updated: "2026-11-06T13:10:00.000Z"
 last_activity: 2026-11-05 -- Phase 15 parked at 7/9 awaiting the BE Phase 14 merge
 progress:
   total_phases: 17
@@ -21,7 +21,7 @@ Phase: 15 (Travel Food) — PARKED at 7/9 (2026-11-05) on `feat/15-travel-food` 
 Plan: 7 of 9
 Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
 Next Phase: after the BE Phase 14 PR merges on BE `develop` → `/gsd-execute-phase 15` resumes with 15-08 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c TravelFoodItem` ≥ 1, contract names proved on the merged SDL, `TRAVEL_STARVING` in the BE handoff, schema check 45/45, full suite) then 15-09 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements FOOD-01..04); then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 15 parked at 7/9 — executing resumes with 15-08/15-09 after the BE Phase 14 merge (BE `feat/14-viaggio-e-cibo`, 8 plans). Review 15-REVIEW.md: 0 critical, 1 warning, 2 info → 2 fixed (WR-01: a private `_QuestTravelPreviewLoader` in board.dart asks the preview when the sheet becomes acceptable while open, e.g. the standard lane frees; IN-01: no-food copy centralised in travel_cost_text.dart), 1 not needed (format reflow of formatter-dirty files); verification human_needed (0 gaps, 3 deferred to 15-08/15-09, 7 UAT steps); security secured (29 threats, 0 open, 7 deferred to the gated plans); full suite +3310, analyzer 0 error / 0 warning / 50 info. UAT note for 15-09: add a step «open a hunt sheet while the standard lane is busy, free the lane → the «Viaggio» line appears without reopening the sheet»; once shown, the line stays until the sheet closes even if the quest stops being acceptable (swipe still gated by canAccept).
+Status: Phase 15 parked at 7/9 — executing resumes with 15-08/15-09 after the BE Phase 14 merge (BE `feat/14-viaggio-e-cibo`, 8/8 plans, review/verification/security closed, **BE PR #23 open since 2026-11-06**; after the merge the user rebuilds and restarts the BE from `dist/`). Review 15-REVIEW.md: 0 critical, 1 warning, 2 info → 2 fixed (WR-01: a private `_QuestTravelPreviewLoader` in board.dart asks the preview when the sheet becomes acceptable while open, e.g. the standard lane frees; IN-01: no-food copy centralised in travel_cost_text.dart), 1 not needed (format reflow of formatter-dirty files); verification human_needed (0 gaps, 3 deferred to 15-08/15-09, 7 UAT steps); security secured (29 threats, 0 open, 7 deferred to the gated plans); full suite +3310, analyzer 0 error / 0 warning / 50 info. UAT note for 15-09: add a step «open a hunt sheet while the standard lane is busy, free the lane → the «Viaggio» line appears without reopening the sheet»; once shown, the line stays until the sheet closes even if the quest stops being acceptable (swipe still gated by canAccept).
 Last activity: 2026-11-05 -- Phase 15 plans 15-01..15-07 executed; review → fix → verification → security audit done; waiting for the BE Phase 14 merge
 
 ## Current Milestone
