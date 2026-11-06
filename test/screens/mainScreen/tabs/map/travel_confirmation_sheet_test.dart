@@ -539,4 +539,50 @@ void main() {
       expect(find.byType(TravelConfirmationSheet), findsNothing);
     });
   });
+
+  const phase15Labels = ['Distanza', 'Durata', 'Arrivo', 'Cibo', 'Vita'];
+
+  void expectThePhase15RowsInOrder(WidgetTester tester) {
+    final tops = [
+      for (final label in phase15Labels) tester.getTopLeft(find.text(label)).dy,
+    ];
+    for (final label in phase15Labels) {
+      expect(find.text(label), findsOneWidget);
+    }
+    for (var i = 1; i < tops.length; i++) {
+      expect(tops[i - 1], lessThan(tops[i]));
+    }
+  }
+
+  testWidgets(
+    'shows exactly the Phase 15 rows and never mentions an ambush (D-07, D-17)',
+    (tester) async {
+      await pumpSheet(tester, confirming());
+
+      expectThePhase15RowsInOrder(tester);
+      expect(find.textContaining('Imbosc'), findsNothing);
+      expect(find.textContaining('mboscat'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a starving preview still never mentions an ambush (D-07, D-17)',
+    (tester) async {
+      await pumpSheet(
+        tester,
+        confirmingAbout(
+          previewWith(
+            food: [travelFoodItemJson()],
+            hpLost: 20910,
+            arrivesAlive: false,
+          ),
+        ),
+      );
+
+      for (final label in phase15Labels) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.textContaining('Imbosc'), findsNothing);
+    },
+  );
 }
