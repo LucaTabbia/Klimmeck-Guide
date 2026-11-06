@@ -505,7 +505,15 @@ Plans:
 **Decisions made (2026-10-29)**: probability by km + night share (22–06 Europe/Rome), enemy by zone ≤ Medio band, resolution at ambush time (job), loss → HP ≥ 1 + injuries + reroute to the nearest city + standard-lane quest abandoned, food not refunded.
 **Decisions made (2026-11-06)**: soft calibration (0,2%/0,6% per km, 10 km threshold), several ambushes per travel with a redraw after every victory, nearest-POI zone with animals, [Facile, Medio] band per level, rewards as a generated enemy quest, HP applied at once, nearest city by road (destination included) with no extra cost, push on every defeat, reports held until arrival, `travelEnd` only, carousel of reports (FE CONTEXT D-01..D-09, BE CONTEXT D-01..D-16).
 **Backend prerequisite**: BE Phase 15 merged on BE `develop`.
-**Plans**: TBD
+**Plans**: 8 plans (sequential waves; 16-07 and 16-08 gated by the BE Phase 15 merge)
+- [ ] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
+- [ ] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
+- [ ] 16-03-PLAN.md — ambush result sheet: header «Imboscata presso <città>» + date, «Portato a <città>» after «Ferite», won/lost proofs with no client branch on rewards
+- [ ] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
+- [ ] 16-05-PLAN.md — `AmbushReportCarousel` (`PageView` of result sheets, «k di N», swipe only, «Continua» closes from any page) and the presenter branch (waits while settling, no «Missione conclusa» banner, external pop requeues the group)
+- [ ] 16-06-PLAN.md — reroute proof on `TravelProgressCubit` and the real `WorldMap`, D-07/D-17 pins on the confirmation sheet and the quest «Viaggio» line (tests only)
+- [ ] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
+- [ ] 16-08-PLAN.md — ⛔ gated by the BE Phase 15 merge: device E2E `16-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff (two-travel merge note), `mark-complete` AMBUSH-01..03, ROADMAP/STATE/REQUIREMENTS closure
 ### Phase 17: Unlockable Lore
 **Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
 **Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), BE Phase 11 (lore seeded), BE Phase 16
@@ -538,7 +546,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 0/0 | Not started | - |
+| 16. Travel Ambushes | 0/8 | Planned | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
