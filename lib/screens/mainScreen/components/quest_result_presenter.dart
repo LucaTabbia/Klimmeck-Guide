@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
+import 'package:klimmeck_guide/shared/components/popup/ambush_report_carousel.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -112,6 +113,9 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     final arrival = state.arrival;
     if (arrival == null || state.arrivalSerial == _handledArrival) return;
     _handledArrival = state.arrivalSerial;
+    // D-06: l'arrivo lo annuncia travelEnd, nessun banner «Missione conclusa»
+    // per i report.
+    if (arrival.isAmbush) return;
     final event = questEndEventOf(arrival);
     final notices = context.read<InAppNotificationsCubit>();
     if (_isSheetGround()) {
@@ -141,10 +145,15 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
 
   /// Mappa visibile e libera senza viaggi in corso di scelta (D-06, D-07);
   /// una morte in coda apre ovunque, purché nessuna route copra la shell
-  /// (D-08, D-13). Dopo la conferma della morte nessun altro foglio.
+  /// (D-08, D-13). Dopo la conferma della morte nessun altro foglio;
+  /// un'imboscata in testa aspetta la rilettura del lotto (16 D-12).
   bool _canPresent() {
     final state = _results.state;
-    if (_isShowingSheet || state.head == null) return false;
+    if (_isShowingSheet ||
+        state.presentable.isEmpty ||
+        state.isSettlingAmbushes) {
+      return false;
+    }
     return _isSheetGround();
   }
 
@@ -164,15 +173,18 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
 
   void _tryPresent() {
     if (!mounted || !_canPresent()) return;
-    unawaited(_present(_results.state.head!));
+    unawaited(_present(_results.state.presentable));
   }
 
+  /// Una presentazione = un gruppo (16-CONTEXT D-05, D-11): un foglio, o il
+  /// carosello delle imboscate con un solo `pop(true)` per tutto il gruppo.
   /// Chiude solo il bottone (`pop(true)`, D-05); un pop esterno restituisce
-  /// `null` e il risultato torna in coda senza conferma (D-10, D-23).
-  Future<void> _present(QuestResult result) async {
+  /// `null` e il gruppo torna in coda senza conferma (D-10, D-23).
+  Future<void> _present(List<QuestResult> group) async {
+    final head = group.first;
     _isPresenting = true;
-    _results.presented(result.id);
-    final characterName = _deadCharacterName(result);
+    _results.presented(head.id);
+    final characterName = _deadCharacterName(head);
     final isClosedByButton = await showGeneralDialog<bool>(
       context: context,
       useRootNavigator: true,
@@ -183,19 +195,18 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
         value: _results,
         child: PopScope(
           canPop: false,
-          child: _QuestResultRoute(
-            result: result,
-            characterName: characterName,
-          ),
+          child: head.isAmbush
+              ? _AmbushReportRoute(results: group)
+              : _QuestResultRoute(result: head, characterName: characterName),
         ),
       ),
     );
     _isPresenting = false;
     if (_results.isClosed) return;
     if (isClosedByButton == true) {
-      _results.closed(result.id);
+      _results.closed(head.id);
     } else {
-      _results.dismissedExternally(result.id);
+      _results.dismissedExternally(head.id);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryPresent());
   }
@@ -252,4 +263,21 @@ class _QuestResultRoute extends StatelessWidget {
     }
     unawaited(context.read<QuestResultsCubit>().acknowledgeDeath(result.id));
   }
+}
+
+/// Route del carosello (D-05): «Continua» su qualunque pagina chiude e il
+/// presenter conferma ogni report del gruppo.
+class _AmbushReportRoute extends StatelessWidget {
+  const _AmbushReportRoute({required this.results});
+
+  final List<QuestResult> results;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    type: MaterialType.transparency,
+    child: AmbushReportCarousel(
+      results: results,
+      onContinue: () => Navigator.of(context).pop(true),
+    ),
+  );
 }
