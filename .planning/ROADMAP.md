@@ -490,7 +490,7 @@ Plans:
 - [x] 15-05-PLAN.md — «Cibo»/«Vita» rows on the confirmation sheet, red phrase and «Parti» disabled on `arrivesAlive: false`, sheet kept open through the requote, «nessun costo» notes fixed (D-13)
 - [x] 15-06-PLAN.md — pure `QuestTravelLine` and `QuestSheetDetails.travelLine`, the «Viaggio» line in the combat and service bodies of `QuestInfoSheet`
 - [x] 15-07-PLAN.md — `QuestTravelPreviewCubit` + `needsTravelPreview`, shell `RepositoryProvider<TravelRepository>` (with the Board harness for Wave 0), Board wiring (request on open, `canTear: false` when starving, refresh after a starving refusal)
-- [ ] 15-08-PLAN.md — ⛔ GATED on the BE Phase 14 merge: schema gate (`TravelFoodItem` on `origin/develop`), `TRAVEL_STARVING` checked in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off
+- [x] 15-08-PLAN.md — ⛔ GATED on the BE Phase 14 merge: schema gate (`TravelFoodItem` on `origin/develop`), `TRAVEL_STARVING` checked in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off
 - [ ] 15-09-PLAN.md — ⛔ GATED: device E2E `15-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff, `mark-complete` FOOD-01..04, ROADMAP/STATE/REQUIREMENTS closure
 
 ### Phase 16: Travel Ambushes
@@ -537,7 +537,7 @@ Plans:
 | 12. Hardening | 0/0 | Not started (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 7/9 | In Progress | - |
+| 15. Travel Food | 8/9 | In Progress | - |
 | 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
