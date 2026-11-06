@@ -397,6 +397,15 @@ void main() {
       expect(result.xpGained, 35);
     });
 
+    test('an ambush ignores a malformed quest block (D-01)', () {
+      final result = questResult(
+        ambushWonResultJson()..['quest'] = {'id': 'q-1'},
+      );
+
+      expect(result.isAmbush, isTrue);
+      expect(result.quest, isNull);
+    });
+
     test('parses a lost ambush with the city reached (D-01)', () {
       final result = questResult(ambushLostResultJson());
 
