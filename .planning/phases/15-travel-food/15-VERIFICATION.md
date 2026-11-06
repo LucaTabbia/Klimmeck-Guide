@@ -1,45 +1,44 @@
 ---
 phase: 15-travel-food
 verified: 2026-11-05T21:44:20Z
-status: human_needed
-score: "4/4 success criteria verified in code and tests for plans 15-01..15-07; FOOD-01..04 accounted for; schema-gated plan 15-08 and device E2E plan 15-09 deferred"
+status: passed
+score: "4/4 success criteria verified in code, tests and the device E2E of 2026-11-06 (steps 1–8 passed)"
 overrides_applied: 0
 re_verification:
   previous_status: none
   note: "Initial verification. No previous VERIFICATION.md existed."
 gaps: []
-deferred:
-  - truth: "15-08: contract names (type TravelFoodItem, TravelPreview.food/hpLost/arrivesAlive, questTravelPreview(request: AcceptQuestRequest!): TravelPreview) proved on the merged BE `origin/develop:src/schema.gql`, and the 45 registry documents validated against it (45/45 OK)"
-    addressed_in: "Plan 15-08 (gated on the BE Phase 14 PR merge, CONTEXT D-09)"
-    evidence: "15-08-PLAN.md; the FE registry holds 45 documents and its test passes (`the registry lists 45 documents`), but the names come from 15-REPO-RULES / BE 14-CONTEXT, not yet proved on the merged SDL (RESEARCH §Schema gate procedure)."
-  - truth: "15-08: `TRAVEL_STARVING` checked in the BE Phase 14 handoff, full-suite and analyzer/format/trailer gates in the gate plan, 15-VALIDATION.md signed off"
-    addressed_in: "Plan 15-08"
-    evidence: "Sign-off of 15-VALIDATION.md is a 15-08 task; this verification ran the relevant directories and the analyzer, not the plan's final gate. The code is `travelStarvingCode = 'TRAVEL_STARVING'` in lib/repository/travel_failure.dart."
-  - truth: "15-09: `15-HUMAN-UAT.md`, `BACKEND-NOTES.md`, device E2E (7 steps), FOOD-01..04 ticked in REQUIREMENTS.md, ROADMAP/STATE closure (15-08 and 15-09 left `[ ]` by design)"
-    addressed_in: "Plan 15-09 (human checkpoint, gated on 15-08 and the device run)"
-    evidence: "15-09-PLAN.md; `ls .planning/phases/15-travel-food/` has no 15-HUMAN-UAT.md, no BACKEND-NOTES.md, no 15-08/15-09 SUMMARY; REQUIREMENTS.md keeps FOOD-01..04 as `[ ]` / Pending by design."
+deferred: []
+closed_note: "Closed on 2026-11-06: 15-08 proved the contract names on the merged BE SDL b492a46 and validated 45/45 documents; 15-08 ran the full suite, analyzer/format/trailer gates and signed 15-VALIDATION.md; 15-09 wrote 15-HUMAN-UAT.md and BACKEND-NOTES.md and closed FOOD-01..04 after the device E2E."
 human_verification:
   - test: "1. Trip fully covered: enough food, drag the pawn to a near city -> the sheet shows «Cibo: 1x <nome>» (BE order, «Nx nome») and «Vita: nessuna perdita»; «Parti» -> the pawn leaves; Journal «Oggetti» shows the food decreased and «Punti vita» unchanged; no banner after the departure (FOOD-01, FOOD-04; D-02, D-07)"
     expected: "Rows as described, food decreased and HP unchanged only via characterUpdated, no banner"
     why_human: "device E2E of the gated plan 15-09; needs BE Phase 14 live and food seeded at DB by the orchestrator"
+    outcome: "«pass» (2026-11-06): 2x Manzo Essiccato eaten Chargate → Voxhold, HP 38 700 unchanged"
   - test: "2. Trip partially covered: little food, a farther city -> «Vita: −N HP» (minus sign) and the food it will eat; «Parti» -> Journal: that food gone and «Punti vita» reduced by N; no banner (FOOD-01, FOOD-04; D-02, D-11)"
     expected: "Minus sign U+2212, food gone and HP reduced by N in the Journal"
     why_human: "needs real BE preview/departure numbers and the Journal updated by the live subscription"
+    outcome: "«pass» (2026-11-06): «Vita: −45 HP», Cosciotto di pollo eaten, HP 38 700 → 38 655"
   - test: "3. Trip refused at the preview: no food (or low HP), a far city -> the «Vita» row is red «Non hai cibo a sufficienza per il viaggio» (no number), «Cibo» still lists what would be eaten (or «nessuno»), «Parti» disabled; «Resta» closes the sheet (FOOD-01; D-02, D-10)"
     expected: "Red phrase, «Parti» disabled, «Resta» closes"
     why_human: "needs BE `arrivesAlive: false` on a real character and visual review of the red row"
+    outcome: "«pass» (2026-11-06): Murnborim, red phrase, «Cibo: nessuno», «Parti» disabled"
   - test: "4. Starving refusal at the departure: open the sheet with enough food, then (orchestrator) remove the food / lower the HP at DB, tap «Parti» -> banner «Viaggio non partito» / «Non hai cibo a sufficienza per il viaggio»; the sheet stays open, the dashed route stays, the rows refresh to the red phrase with «Parti» disabled; «Resta» closes it (FOOD-03; D-03, D-06)"
     expected: "Banner, sheet kept open through the requote, rows refreshed red, route kept"
     why_human: "needs the live `TRAVEL_STARVING` refusal produced by the BE after a DB change"
+    outcome: "«foglio aperto» then «pass» (2026-11-06): banner, sheet kept open with the route, rows red; nothing written at DB"
   - test: "5. Quest line: a combat quest and a service quest whose marker is not the character's position, opened from the Board with the swipe available -> one line «Viaggio: <cibo> · <vita>» in the costs block; a story sheet, a non-acceptable quest and the map overlay show no «Viaggio» line (FOOD-02; D-04)"
     expected: "One «Viaggio» line on combat/service sheets only"
     why_human: "needs the BE owner-only `questTravelPreview` live and visual review of the costs block"
+    outcome: "«Non è accettabile ( sono di rango troppo alto) e l'unico slot presente è da avventuriero», then «pass» (2026-11-06): combat line and the «no line» cases on the device; service-with-line and story halves skipped (not reproducible on this DB; covered by tests)"
   - test: "6. Quest starving: with no food (or low HP) the «Viaggio» line is red «Viaggio: Non hai cibo a sufficienza per il viaggio» and the paper resists the swipe; then with food at the sheet opening, remove it at DB and tear the sheet -> banner «Missione non accettata» / «Non hai cibo a sufficienza per il viaggio», the sheet recomposes and its line turns red (FOOD-02, FOOD-03; D-04, D-05, D-06)"
     expected: "Red line, swipe blocked; acceptance refusal banner, recomposed sheet with red line"
     why_human: "needs live `TRAVEL_STARVING` on acceptance and a physical swipe gesture"
+    outcome: "«resiste», «foglio aperto», then «pass» (2026-11-06): red line and swipe resisted; acceptance refusal banner, sheet recomposed, line red"
   - test: "7. Teleport unaffected: the innkeeper teleports the test character (Locanda -> queue -> Map) -> Journal «Oggetti» and «Punti vita» unchanged (FOOD-04, ROADMAP criterion 4; BE D-13)"
     expected: "Inventory and HP unchanged after the teleport"
     why_human: "needs an innkeeper account and the live BE"
+    outcome: "«Non posso sportarlo così. Avrei bisogno di una missione story da accettare. a quel punto sarei in coda e potrei spostarmi.», then «pass» (2026-11-06): teleport through the BE `teleportCharacter` mutation, Journal food and HP unchanged"
 ---
 
 # Phase 15: Travel Food (frontend companion) - Verification Report
@@ -47,9 +46,9 @@ human_verification:
 **Phase Goal:** Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
 **Branch:** feat/15-travel-food @ 9ae4281 (base develop 08bd1a1)
 **Verified:** 2026-11-05T21:44:20Z
-**Status:** human_needed
+**Status:** passed (updated 2026-11-06 after the device E2E)
 **Re-verification:** No, initial verification.
-**Scope note:** plans 15-08 (schema gate vs merged BE Phase 14) and 15-09 (device E2E, handoff, closure) are gated on the BE Phase 14 merge (CONTEXT D-09). Their must-haves are deferred, not gaps. REQUIREMENTS.md keeps FOOD-01..04 as `[ ]` / Pending by design.
+**Scope note:** plans 15-08 (schema gate vs merged BE Phase 14) and 15-09 (device E2E, handoff, closure) were gated on the BE Phase 14 merge (CONTEXT D-09); both ran on 2026-11-06 against BE `b492a46`: 45/45 documents OK, device E2E steps 1–8 passed (`15-HUMAN-UAT.md`), FOOD-01..04 ticked in REQUIREMENTS.md.
 
 ## Evidence gathered (run by the verifier)
 
@@ -68,12 +67,12 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Confirmation sheet shows food and HP lost from `travelPreview`; red «Vita» phrase and «Parti» disabled on `arrivesAlive: false`; nothing computed on the client | VERIFIED (code + tests; live data deferred) | `TravelPreview.food/hpLost/arrivesAlive`, `TravelFoodItem`, `TravelPreviewFragment`; `travel_cost_text.dart` (`foodText`, `lifeText`, `starvingPhrase`, U+2212, `noLifeLostText`); `travel_confirmation_sheet.dart` rows «Cibo»/«Vita», `isStarving: !preview.arrivesAlive`, «Parti» enabled only when `arrivesAlive`. Live: steps 1-3 |
-| 2 | Combat/service quest sheets show a «Viaggio» line from an owner-only preview; red and swipe disabled when starving | VERIFIED (code + tests; live data deferred) | `GetQuestTravelPreview` + `previewQuestTravel` + `TravelRepository.previewQuest`; `QuestTravelLine` ('Viaggio: ' prefix, starving phrase); `QuestSheetDetails.travelLine` rendered in both bodies of `quest_info_sheet.dart`; `QuestTravelPreviewCubit` per sheet in `board.dart`, `canTear` also requires `travelPreview?.arrivesAlive != false`. Live: steps 5-6 |
-| 3 | `startTravel` starving refusal -> banner and sheet kept open with refreshed preview; `acceptQuest` refusal -> banner, sheet recomposed; Journal updates via `characterUpdated` | VERIFIED (code + tests; live refusal deferred) | `travelStarvingCode` -> `TravelFailure.starving` / `QuestAcceptanceFailure.starving`, both notices map to `starvingPhrase`; `TravelRequoting` state in `travel_cubit.dart`, route/pawn layers keep it, `travel_outcome_listener.dart` one banner without reset; `board.dart` listener refreshes the preview on a starving acceptance refusal; no inventory/HP write in the FE (grep). Live: steps 4, 6 |
-| 4 | Teleport and instant jump unaffected; device UAT | VERIFIED in code (no FE change to the teleport path; null preview handled by tests); device UAT deferred | `previewQuest` returns null when no travel (15-02/15-07 tests); the device UAT is plan 15-09 (step 7 for the teleport) |
+| 1 | Confirmation sheet shows food and HP lost from `travelPreview`; red «Vita» phrase and «Parti» disabled on `arrivesAlive: false`; nothing computed on the client | VERIFIED (code + tests; device E2E 2026-11-06 passed) | `TravelPreview.food/hpLost/arrivesAlive`, `TravelFoodItem`, `TravelPreviewFragment`; `travel_cost_text.dart` (`foodText`, `lifeText`, `starvingPhrase`, U+2212, `noLifeLostText`); `travel_confirmation_sheet.dart` rows «Cibo»/«Vita», `isStarving: !preview.arrivesAlive`, «Parti» enabled only when `arrivesAlive`. Live: steps 1-3 |
+| 2 | Combat/service quest sheets show a «Viaggio» line from an owner-only preview; red and swipe disabled when starving | VERIFIED (code + tests; device E2E 2026-11-06 passed) | `GetQuestTravelPreview` + `previewQuestTravel` + `TravelRepository.previewQuest`; `QuestTravelLine` ('Viaggio: ' prefix, starving phrase); `QuestSheetDetails.travelLine` rendered in both bodies of `quest_info_sheet.dart`; `QuestTravelPreviewCubit` per sheet in `board.dart`, `canTear` also requires `travelPreview?.arrivesAlive != false`. Live: steps 5-6 |
+| 3 | `startTravel` starving refusal -> banner and sheet kept open with refreshed preview; `acceptQuest` refusal -> banner, sheet recomposed; Journal updates via `characterUpdated` | VERIFIED (code + tests; device E2E 2026-11-06 passed) | `travelStarvingCode` -> `TravelFailure.starving` / `QuestAcceptanceFailure.starving`, both notices map to `starvingPhrase`; `TravelRequoting` state in `travel_cubit.dart`, route/pawn layers keep it, `travel_outcome_listener.dart` one banner without reset; `board.dart` listener refreshes the preview on a starving acceptance refusal; no inventory/HP write in the FE (grep). Live: steps 4, 6 |
+| 4 | Teleport and instant jump unaffected; device UAT | VERIFIED in code and on the device E2E 2026-11-06 passed (no FE change to the teleport path; null preview handled by tests; step 7 through the BE mutation) | `previewQuest` returns null when no travel (15-02/15-07 tests); the device UAT is plan 15-09 (step 7 for the teleport) |
 
-**Score:** 4/4 success criteria verified in code and tests for 15-01..15-07 (live behaviour is the deferred device E2E).
+**Score:** 4/4 success criteria verified in code, tests and the device E2E of 2026-11-06 (steps 1–8 passed).
 
 ### Required Artifacts
 
@@ -102,7 +101,7 @@ human_verification:
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 |----------|---------------|--------|--------------------|--------|
-| Confirmation sheet | `preview.food/hpLost/arrivesAlive` | `GetTravelPreview` via shared fragment | Yes (BE server data; shape proof deferred to 15-08) | FLOWING |
+| Confirmation sheet | `preview.food/hpLost/arrivesAlive` | `GetTravelPreview` via shared fragment | Yes (BE server data; shape proved in 15-08, 45/45) | FLOWING |
 | Quest sheet | `travelPreview` | `questTravelPreview` query via cubit | Yes (nullable, absent without travel) | FLOWING |
 
 ### Behavioral Spot-Checks
@@ -113,10 +112,10 @@ Step 7b: covered by the test runs above (no runnable server in the sandbox).
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| FOOD-01 | 15-01, 15-05 | Rows «Cibo»/«Vita», red phrase, «Parti» disabled | SATISFIED in code; device steps 1-3 pending | truth 1 |
-| FOOD-02 | 15-02, 15-06, 15-07 | «Viaggio» line, red, swipe disabled | SATISFIED in code; steps 5-6 pending | truth 2 |
-| FOOD-03 | 15-03, 15-04, 15-07 | Starvation banner, sheet kept open, recompose | SATISFIED in code; steps 4, 6 pending | truth 3 |
-| FOOD-04 | 15-01..15-07 | Inventory/HP only via `characterUpdated`, nothing computed | SATISFIED in code; steps 1, 2, 7 pending | no client computation found |
+| FOOD-01 | 15-01, 15-05 | Rows «Cibo»/«Vita», red phrase, «Parti» disabled | SATISFIED (code + device steps 1-3 pass) | truth 1 |
+| FOOD-02 | 15-02, 15-06, 15-07 | «Viaggio» line, red, swipe disabled | SATISFIED (code + device steps 5-6 pass; two halves of step 5 covered by tests) | truth 2 |
+| FOOD-03 | 15-03, 15-04, 15-07 | Starvation banner, sheet kept open, recompose | SATISFIED (code + device steps 4, 6 pass) | truth 3 |
+| FOOD-04 | 15-01..15-07 | Inventory/HP only via `characterUpdated`, nothing computed | SATISFIED (code + device steps 1, 2, 7 pass) | no client computation found |
 
 No orphaned requirements: REQUIREMENTS maps only FOOD-01..04 to Phase 15.
 
@@ -126,11 +125,11 @@ None: no TODO/FIXME in the new travel models, repository, cubits and preview cub
 
 ### Human Verification Required
 
-The 7 device steps in the frontmatter (plan 15-09, after the BE Phase 14 merge and 15-08 gate).
+The 7 device steps in the frontmatter, run on 2026-11-06 (plan 15-09): all passed, outcomes in the frontmatter and in `15-HUMAN-UAT.md`.
 
 ### Gaps Summary
 
-No gaps in plans 15-01..15-07. Plans 15-08 and 15-09 are deferred by design (CONTEXT D-09); the status is `human_needed` because of the device E2E.
+No gaps. Plans 15-08 and 15-09 ran on 2026-11-06 after the BE Phase 14 merge; the device E2E passed, so the status is `passed`.
 
 ---
 

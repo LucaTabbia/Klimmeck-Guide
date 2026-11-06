@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-06T14:36:21.000Z"
-last_activity: 2026-11-06 -- Phase 15 resumed at 15-08 after the BE Phase 14 merge
+last_updated: "2026-11-06T15:40:26.000Z"
+last_activity: 2026-11-06 -- Phase 15 complete: device E2E passed (steps 1-8), FOOD-01..04 ticked
 progress:
   total_phases: 17
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 142
   completed_plans: 133
   percent: 94
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 15 (Travel Food) — RESUMED 2026-11-06 at 15-08 on `feat/15-travel-food` (from `develop` `08bd1a1`): plans 15-01..15-07 executed, reviewed, fixed, verified and audited; the BE Phase 14 PR #23 merged on BE `develop` (`b492a46`, 2026-11-06), so 15-08 (schema gate) and 15-09 (device E2E + handoff) run now (CONTEXT D-09)
-Plan: 8 of 9
-Completed phases: 13 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14)
-Next Phase: `/gsd-execute-phase 15` continues with 15-08 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c TravelFoodItem` ≥ 1, contract names proved on the merged SDL, `TRAVEL_STARVING` in the BE handoff, schema check 45/45, full suite) then 15-09 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements FOOD-01..04); then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Executing Phase 15 at 15-08/15-09 — the BE Phase 14 (`feat/14-viaggio-e-cibo`, 8/8 plans, review/verification/security closed) **merged on BE `develop` as `b492a46` (PR #23, 2026-11-06)**; the orchestrator rebuilt the BE from `develop` and restarted it from `dist/` on port 3001. Review 15-REVIEW.md: 0 critical, 1 warning, 2 info → 2 fixed (WR-01: a private `_QuestTravelPreviewLoader` in board.dart asks the preview when the sheet becomes acceptable while open, e.g. the standard lane frees; IN-01: no-food copy centralised in travel_cost_text.dart), 1 not needed (format reflow of formatter-dirty files); verification human_needed (0 gaps, 3 deferred to 15-08/15-09, 7 UAT steps); security secured (29 threats, 0 open, 7 deferred to the gated plans); full suite +3310, analyzer 0 error / 0 warning / 50 info. UAT note for 15-09: add a step «open a hunt sheet while the standard lane is busy, free the lane → the «Viaggio» line appears without reopening the sheet»; once shown, the line stays until the sheet closes even if the quest stops being acceptable (swipe still gated by canAccept).
-Last activity: 2026-11-06 -- BE Phase 14 merged (PR #23); Phase 15 resumed at 15-08 (schema gate) against BE develop `b492a46`
+Phase: 15 (Travel Food) — COMPLETE 2026-11-06 on `feat/15-travel-food` (from `develop` `08bd1a1`): plans 15-01..15-09 executed, reviewed, fixed, verified and audited; schema gate 45/45 on BE `develop` `b492a46` (15-08); Android device E2E steps 1–8 passed (15-09, `15-HUMAN-UAT.md`); FOOD-01..04 ticked
+Plan: 9 of 9
+Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
+Next Phase: FE PR `feat/15-travel-food` → `develop` (opened by the orchestrator; the BE Phase 14 PR #23 is already merged), then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
+Status: Phase 15 complete — BE Phase 14 merged on BE `develop` (`b492a46`, PR #23); 15-08 proved the contract (45/45, full suite 3310 green, analyzer 0 error / 0 warning); 15-09 device E2E 2026-11-06 steps 1–8 pass (step 5 service-with-line and story halves skipped: not reproducible on this DB, covered by tests; step 7 teleport through the BE mutation because the Locanda path needs a story quest in the queue); handoff `phases/15-travel-food/BACKEND-NOTES.md` (questions §5); VALIDATION approved, VERIFICATION passed, SECURITY 0 deferred; ready for the FE PR
+Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 ticked, BACKEND-NOTES written
 
 ## Current Milestone
 

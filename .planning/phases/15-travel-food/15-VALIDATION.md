@@ -58,9 +58,9 @@ created: 2026-11-05
 | 15-07-03 | 07 | 7 | FOOD-02, FOOD-03 | T-15-18, T-15-20, T-15-21 | session character only; starving paper resists; refresh on starving refusal | widget | `flutter test test/screens/mainScreen/tabs/board test/screens/mainScreen test/shared/components/popup` | ✅ (extend) | ✅ green |
 | 15-08-01 | 08 | 8 | FOOD-01..04 | T-15-22, T-15-23, T-15-24 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c TravelFoodItem` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
 | 15-08-02 | 08 | 8 | FOOD-01..04 | T-15-25 | sanity greps: no client arithmetic, no stale swipe gate | gate | `flutter test` (full) | ✅ | ✅ green |
-| 15-09-01 | 09 | 9 | FOOD-01..04 | T-15-26 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/15-travel-food/15-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
-| 15-09-02 | 09 | 9 | FOOD-01..04 | T-15-28, T-15-29 | human checkpoint; DB seeds outside the repo | manual | device E2E (`15-HUMAN-UAT.md`) | — | ⬜ pending |
-| 15-09-03 | 09 | 9 | FOOD-01..04 | T-15-26, T-15-27 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/15-travel-food/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
+| 15-09-01 | 09 | 9 | FOOD-01..04 | T-15-26 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/15-travel-food/15-HUMAN-UAT.md` | ❌ (created by the task) | ✅ green |
+| 15-09-02 | 09 | 9 | FOOD-01..04 | T-15-28, T-15-29 | human checkpoint; DB seeds outside the repo | manual | device E2E (`15-HUMAN-UAT.md`) | — | ✅ green |
+| 15-09-03 | 09 | 9 | FOOD-01..04 | T-15-26, T-15-27 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/15-travel-food/BACKEND-NOTES.md` | ❌ (created by the task) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -103,4 +103,6 @@ created: 2026-11-05
 
 Gate passed on BE `b492a46`: 45/45 OK, full suite 3310 green, analyzer 50 info (0 error, 0 warning).
 
-**Approval:** pending
+Device E2E passed on 2026-11-06 (`15-HUMAN-UAT.md`, steps 1–8 pass; step 5 two halves skipped, covered by tests).
+
+**Approval:** approved 2026-11-06

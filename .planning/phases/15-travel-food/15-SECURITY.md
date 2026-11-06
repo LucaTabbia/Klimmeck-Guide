@@ -6,20 +6,22 @@ status: secured
 asvs_level: 1
 block_on: high
 threats_total: 29
-threats_mitigated: 18
+threats_mitigated: 25
 threats_accepted: 3
 threats_transferred: 1
 threats_open: 0
 threats_open_blocking: 0
-threats_deferred: 7
+threats_deferred: 0
 open_ids: []
-deferred_ids: [T-15-22, T-15-23, T-15-24, T-15-25, T-15-26, T-15-27, T-15-28]
-updated: 2026-11-05
+deferred_ids: []
+updated: 2026-11-06
 ---
 
 # Phase 15 - Security (Travel Food, FE)
 
 Audit of the threat registers of plans 15-01..15-09 (29 rows, T-15-01..T-15-29) against HEAD `f3c603b` of `feat/15-travel-food` (base `develop` `08bd1a1`, review fixes of `15-REVIEW-FIX.md` included). Plans 15-08 (schema gate vs merged BE Phase 14 SDL) and 15-09 (device E2E, handoff, traceability) are gated on the BE merge: their process threats are DEFERRED, not open. BE-side mitigations are TRANSFERRED with BE decision IDs (BE 14-CONTEXT D-04/D-05/D-06 food selection and consumption, D-08 owner-only preview, D-11 `TRAVEL_STARVING` before any write, D-12 transactional writes); the BE repo was not read or touched. No command read `.env`, `google-services.json` or environment variables. Implementation files read only.
+
+Update 2026-11-06: plans 15-08 and 15-09 ran after the BE Phase 14 merge (`b492a46`); the seven deferred threats T-15-22..T-15-28 are now mitigated (evidence in their rows).
 
 Dispositions: mitigated / accepted / transferred / deferred.
 
@@ -32,7 +34,7 @@ Dispositions: mitigated / accepted / transferred / deferred.
 | T-15-03 | Tampering | client food/HP arithmetic (model/text) | mitigated | `lib/models/travel/travel_cost_text.dart:29-31` only prints `hpLost` (`'−${preview.hpLost} HP'`), no arithmetic | cross-check 3 |
 | T-15-04 | Info disclosure | `questTravelPreview` for another character | transferred | BE 14-CONTEXT D-08 (owner check, `FORBIDDEN`); FE sends only `viewer.characterId` (`board.dart:379`) | BE repo not read |
 | T-15-05 | DoS | malformed/missing `questTravelPreview` | mitigated | `graphql.dart:660-664` (`containsKey` guard + `FormatException`), `travel_repository.dart` `previewQuest` through `_guard`; sheet hides the line on failure (`QuestTravelPreviewFailed`) | |
-| T-15-06 | Tampering | over-selection beyond populate depth | mitigated | `lib/graphql/fragments/travel_preview_fragment.dart:11-17` (`food { quantity item { id name } }` only), `lib/graphql/queries/travel_queries.dart:19-24` reuses the fragment | final SDL proof is T-15-24 (deferred) |
+| T-15-06 | Tampering | over-selection beyond populate depth | mitigated | `lib/graphql/fragments/travel_preview_fragment.dart:11-17` (`food { quantity item { id name } }` only), `lib/graphql/queries/travel_queries.dart:19-24` reuses the fragment | final SDL proof is T-15-24 (closed in 15-08) |
 | T-15-07 | Info disclosure | server message in the banner | mitigated | no `.message` in classifiers/repository (cross-check 2); `starvingPhrase` constant (`travel_cost_text.dart:7`) used by `travel_notice.dart:19` and `quest_acceptance_notice.dart:37` | classifiers read `extensions.code` only |
 | T-15-08 | DoS | `previewQuest` hanging | mitigated | `travel_repository.dart:42-46,71-77` (`_guard`, 15 s, `TravelFailure.timedOut`); sheet hides the line on any failure | |
 | T-15-09 | Tampering | swipe/«Parti» forced past the client gate | mitigated | `travel_failure.dart:70` and `quest_acceptance_failure.dart:73` map `TRAVEL_STARVING` to `starving` on both mutations; BE side transferred to BE D-11 | refusal always explained |
@@ -48,13 +50,13 @@ Dispositions: mitigated / accepted / transferred / deferred.
 | T-15-19 | DoS | request storms / late answers | mitigated | `board_policy.dart:49` (`needsTravelPreview`); `quest_travel_preview_cubit.dart:24,38,45-47` (`_requestToken`); cubit scoped to the keyed sheet subtree (`board.dart:280`) | |
 | T-15-20 | Tampering | swipe forced on a starving quote | mitigated | `board.dart:315-317` (`canTear: ... && travelPreview?.arrivesAlive != false`); refusal recomposed and refreshed (`board.dart:285-291`) | no `isEnabled: false` use |
 | T-15-21 | Repudiation | preview failure hiding a problem | accepted | 15-07 plan, CONTEXT D-04 | failed preview shows nothing; BE refusal + banner cover it |
-| T-15-22 | Tampering | BE working tree during the gate | deferred | mitigation lives in 15-08 (read-only `fetch/show/log/ls-tree`) | verified when the gate runs |
-| T-15-23 | Info disclosure | `.env` during the gate | deferred | 15-08 | |
-| T-15-24 | DoS | documents ahead of the BE | deferred | 15-08 (45/45 on the merged SDL); registry already 45 (cross-check 5) | |
-| T-15-25 | Tampering | arithmetic / stale swipe gate sanity greps | deferred | 15-08 Task 2; interim result in cross-checks 3 and 7 is clean | re-run at the gate |
-| T-15-26 | Info disclosure | `15-HUMAN-UAT.md`, `BACKEND-NOTES.md` | deferred | 15-09 (grep `mongodb://`, `token=`, `password` = 0) | |
-| T-15-27 | Repudiation | requirement traceability | deferred | 15-09 | |
-| T-15-28 | Tampering | BE repo | deferred | 15-09 (read-only refs) | |
+| T-15-22 | Tampering | BE working tree during the gate | mitigated | 15-08-SUMMARY.md Task 1: only `git -C <BE> fetch -q origin develop` (FETCH_OK), `show origin/develop:<path>`, `log`, `ls-tree`; no checkout/edit/npm; BE ref `b492a46` | closed 2026-11-06 (15-08) |
+| T-15-23 | Info disclosure | `.env` during the gate | mitigated | 15-08-SUMMARY.md: no command read `.env`, `google-services.json` or environment variables; the schema check used `NODE_PATH` only | closed 2026-11-06 (15-08) |
+| T-15-24 | DoS | documents ahead of the BE | mitigated | 15-08-SUMMARY.md Task 1: contract names identical on the merged SDL `b492a46`; dump + validate 45 documents, 45/45 OK (`GetQuestTravelPreview`, `GetTravelPreview` included) | closed 2026-11-06 (15-08) |
+| T-15-25 | Tampering | arithmetic / stale swipe gate sanity greps | mitigated | 15-08-SUMMARY.md Task 2: sanity greps (`hpLost` arithmetic / `currentLifePoints` on food surfaces, `isEnabled: false` in board.dart, `description` in the fragment, Flutter imports in cubits/models) all empty | closed 2026-11-06 (15-08) |
+| T-15-26 | Info disclosure | `15-HUMAN-UAT.md`, `BACKEND-NOTES.md` | mitigated | 15-09: `grep -ciE "mongodb(\+srv)?://|token=|password"` prints 0 on both files; notes carry no user ids, tokens or URIs | closed 2026-11-06 (15-09) |
+| T-15-27 | Repudiation | requirement traceability | mitigated | 15-09: `requirements mark-complete` FOOD-01..04 only after the user's verbatim «pass» per step (`15-HUMAN-UAT.md`); FOOD-02 step 5 skipped halves under the orchestrator's recorded ruling (covered by tests) | closed 2026-11-06 (15-09) |
+| T-15-28 | Tampering | BE repo | mitigated | 15-09: BE read only through `fetch -q origin develop`, `show origin/develop:<path>`, `log`, `ls-tree`; device, DB and BE process handled by the orchestrator | closed 2026-11-06 (15-09) |
 | T-15-29 | Tampering | DB seeds for the UAT | accepted | 15-09 plan (accept): dev DB, orchestrator seeds, outside the repo | |
 
 ## Cross-cutting checks
@@ -77,8 +79,7 @@ None.
 
 ## Deferred
 
-- T-15-22..T-15-25: plan 15-08 (schema gate vs merged BE Phase 14 SDL, 45/45, sanity greps), gated on the BE merge.
-- T-15-26..T-15-28: plan 15-09 (device E2E, UAT/handoff secret-free, traceability, BE read-only), gated on 15-08.
+None. The seven deferred threats closed on 2026-11-06: T-15-22..T-15-25 with plan 15-08 (schema gate vs merged BE Phase 14 SDL `b492a46`, 45/45, sanity greps), T-15-26..T-15-28 with plan 15-09 (device E2E, UAT/handoff secret-free, traceability, BE read-only).
 
 ## Accepted risks
 
