@@ -13,7 +13,7 @@ enum PendingRefetch { idle, inFlight, done, failed }
 class QuestResultsState extends Equatable {
   const QuestResultsState({
     this.queue = const [],
-    this.showing,
+    this.showingGroup = const [],
     this.position = 0,
     this.arrival,
     this.arrivalSerial = 0,
@@ -23,7 +23,10 @@ class QuestResultsState extends Equatable {
   });
 
   final List<QuestResult> queue;
-  final QuestResult? showing;
+
+  /// Foglio o carosello aperto (16-CONTEXT D-11): un risultato, o le
+  /// imboscate consecutive in testa alla coda.
+  final List<QuestResult> showingGroup;
 
   /// Posizione del foglio corrente nel lotto («k di N», D-08).
   final int position;
@@ -33,7 +36,18 @@ class QuestResultsState extends Equatable {
   final DeathAcknowledgement deathAcknowledgement;
   final PendingRefetch pendingRefetch;
 
+  QuestResult? get showing => showingGroup.isEmpty ? null : showingGroup.first;
+
   QuestResult? get head => queue.isEmpty ? null : queue.first;
+
+  /// Unità da presentare (D-05): la testa da sola, oppure le imboscate
+  /// consecutive dalla testa, rivalutate a ogni lettura.
+  List<QuestResult> get presentable {
+    final head = this.head;
+    if (head == null) return const [];
+    if (!head.isAmbush) return [head];
+    return List.unmodifiable(queue.takeWhile((result) => result.isAmbush));
+  }
 
   /// Una morte in coda apre tutta la coda su qualunque tab (D-08).
   bool get isUnlockedByDeath => queue.any((result) => result.isDeath);
@@ -57,7 +71,7 @@ class QuestResultsState extends Equatable {
 
   QuestResultsState copyWith({
     List<QuestResult>? queue,
-    QuestResult? showing,
+    List<QuestResult>? showingGroup,
     int? position,
     QuestResult? arrival,
     int? arrivalSerial,
@@ -66,7 +80,7 @@ class QuestResultsState extends Equatable {
     PendingRefetch? pendingRefetch,
   }) => QuestResultsState(
     queue: queue ?? this.queue,
-    showing: showing ?? this.showing,
+    showingGroup: showingGroup ?? this.showingGroup,
     position: position ?? this.position,
     arrival: arrival ?? this.arrival,
     arrivalSerial: arrivalSerial ?? this.arrivalSerial,
@@ -92,7 +106,7 @@ class QuestResultsState extends Equatable {
   @override
   List<Object?> get props => [
     queue,
-    showing,
+    showingGroup,
     position,
     arrival,
     arrivalSerial,

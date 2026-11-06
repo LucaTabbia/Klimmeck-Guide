@@ -118,43 +118,50 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     }
   }
 
-  /// Il presenter ha aperto il foglio in testa alla coda.
-  void presented(String id) {
-    final head = state.head;
-    if (head == null || head.id != id) return;
+  /// Il presenter ha aperto la testa della coda (D-11): per un carosello
+  /// tutte le imboscate consecutive, il contatore avanza della loro somma.
+  void presented(String headId) {
+    final group = state.presentable;
+    if (group.isEmpty || group.first.id != headId) return;
     emit(
       state.copyWith(
-        queue: List.unmodifiable(state.queue.skip(1)),
-        showing: head,
-        position: state.position + 1,
+        queue: List.unmodifiable(state.queue.skip(group.length)),
+        showingGroup: group,
+        position: state.position + group.length,
       ),
     );
   }
 
-  /// Bottone del foglio (D-05, D-10): conferma best-effort; una conferma
-  /// fallita resta pendente e invisibile.
-  void closed(String id) {
-    if (state.showing?.id != id) return;
-    _closedIds.add(id);
+  /// Bottone del foglio o del carosello (D-05, D-10): conferma best-effort di
+  /// ogni id del gruppo, in fila; una conferma fallita resta pendente.
+  void closed(String headId) {
+    final group = state.showingGroup;
+    if (group.isEmpty || group.first.id != headId) return;
+    final ids = [for (final result in group) result.id];
+    _closedIds.addAll(ids);
     emit(
       state.withoutShowing(
         queue: state.queue,
         position: state.queue.isEmpty ? 0 : state.position,
       ),
     );
-    if (_acknowledgedIds.contains(id)) return;
-    unawaited(_acknowledgeQuietly(id));
+    for (final id in ids) {
+      if (_acknowledgedIds.contains(id)) continue;
+      unawaited(_acknowledgeQuietly(id));
+    }
   }
 
-  /// Foglio tolto da un pop esterno (logout, cambio sessione): torna in coda
-  /// al suo posto senza conferma, non è stato visto (D-10).
-  void dismissedExternally(String id) {
-    final showing = state.showing;
-    if (showing == null || showing.id != id) return;
+  /// Pop esterno (logout, tap su una notifica): tutto il gruppo torna in
+  /// coda senza conferma, non è stato visto (D-10, D-11).
+  void dismissedExternally(String headId) {
+    final group = state.showingGroup;
+    if (group.isEmpty || group.first.id != headId) return;
     emit(
       state.withoutShowing(
-        queue: _merged([showing]),
-        position: state.position > 0 ? state.position - 1 : 0,
+        queue: _merged(group),
+        position: state.position > group.length
+            ? state.position - group.length
+            : 0,
       ),
     );
   }
@@ -340,7 +347,7 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
       _closedIds.contains(id) ||
       _pendingAcks.contains(id) ||
       _acknowledgedIds.contains(id) ||
-      state.showing?.id == id ||
+      state.showingGroup.any((shown) => shown.id == id) ||
       state.queue.any((queued) => queued.id == id);
 
   List<QuestResult> _merged(Iterable<QuestResult> results) =>
