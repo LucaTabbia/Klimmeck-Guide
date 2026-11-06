@@ -168,20 +168,27 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     ),
   );
 
-  List<Widget> _header() {
-    final type = _result.quest.type;
+  List<Widget> _header() => [
+    Text(
+      _result.outcome.label,
+      key: QuestResultSheet.headerKey,
+      textAlign: TextAlign.center,
+      style: _theme.titleMedium.copyWith(color: _outcomeInk),
+    ),
+    ..._questTitle(),
+    Text(
+      _resolvedAtFormat.format(_result.resolvedAt.toLocal()),
+      textAlign: TextAlign.center,
+      style: _theme.bodyMedium,
+    ),
+  ];
+
+  List<Widget> _questTitle() {
+    final quest = _result.quest;
+    if (quest == null) return const [];
+    final type = quest.type;
     return [
-      Text(
-        _result.outcome.label,
-        key: QuestResultSheet.headerKey,
-        textAlign: TextAlign.center,
-        style: _theme.titleMedium.copyWith(color: _outcomeInk),
-      ),
-      Text(
-        _result.quest.title,
-        textAlign: TextAlign.center,
-        style: _theme.bodyMedium,
-      ),
+      Text(quest.title, textAlign: TextAlign.center, style: _theme.bodyMedium),
       if (type != null)
         Text(
           type.label,
@@ -189,11 +196,6 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
           textAlign: TextAlign.center,
           style: _theme.bodyMedium,
         ),
-      Text(
-        _resolvedAtFormat.format(_result.resolvedAt.toLocal()),
-        textAlign: TextAlign.center,
-        style: _theme.bodyMedium,
-      ),
     ];
   }
 

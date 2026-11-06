@@ -22,9 +22,9 @@ void main() {
       expect(result.resolvedAt.isUtc, isTrue);
       expect(result.characterId, 'c-1');
       expect(result.userId, 'u-1');
-      expect(result.quest.id, 'q-1');
-      expect(result.quest.type, QuestType.hunt);
-      expect(result.quest.title, 'Lupi di Valantar');
+      expect(result.quest!.id, 'q-1');
+      expect(result.quest!.type, QuestType.hunt);
+      expect(result.quest!.title, 'Lupi di Valantar');
       expect(result.hpBefore, 900);
       expect(result.hpAfter, 640);
       expect(result.maxLifePoints, 1200);
@@ -63,7 +63,7 @@ void main() {
       final result = questResult(rescuedResultJson());
 
       expect(result.outcome, QuestOutcome.rescued);
-      expect(result.quest.type, QuestType.aid);
+      expect(result.quest!.type, QuestType.aid);
       expect(result.hpBefore, result.hpAfter);
     });
 
@@ -72,7 +72,7 @@ void main() {
 
       expect(result.outcome, QuestOutcome.death);
       expect(result.characterId, 'c-9');
-      expect(result.quest.type, QuestType.aid);
+      expect(result.quest!.type, QuestType.aid);
       expect(result.hpBefore, result.hpAfter);
     });
 
@@ -81,7 +81,7 @@ void main() {
 
       expect(result.outcome, QuestOutcome.gmCompleted);
       expect(result.enemies, isEmpty);
-      expect(result.quest.type, QuestType.story);
+      expect(result.quest!.type, QuestType.story);
       expect(result.titleAfter, TitleType.adventurer);
     });
 
@@ -218,8 +218,8 @@ void main() {
     test('an unknown quest type keeps the title', () {
       final result = questResult(questResultJson(questType: 'raid'));
 
-      expect(result.quest.type, isNull);
-      expect(result.quest.title, 'Lupi di Valantar');
+      expect(result.quest!.type, isNull);
+      expect(result.quest!.title, 'Lupi di Valantar');
     });
 
     test('a spell usage with a null spell survives', () {

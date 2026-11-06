@@ -3,14 +3,17 @@ import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
+import 'package:klimmeck_guide/models/quest_result/ambush_report.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_quest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_rewards.dart';
 import 'package:klimmeck_guide/models/quest_result/spell_usage.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 
-/// Esito di una quest risolta dal backend (`QuestResult`, BE Phase 9): il
-/// foglio esiti lo mostra, il FE non ricalcola nulla (regola 4).
+/// Esito di una quest o report di un'imboscata risolti dal backend
+/// (`QuestResult`, BE Phase 9 / Phase 15): il foglio esiti lo mostra, il FE
+/// non ricalcola nulla (regola 4).
 class QuestResult extends Equatable {
   const QuestResult({
     required this.id,
@@ -38,6 +41,8 @@ class QuestResult extends Equatable {
     required this.stagesCleared,
     required this.stagesTotal,
     required this.rescuedCharacters,
+    this.kind = QuestResultKind.quest,
+    this.ambush,
     this.acknowledgedAt,
   });
 
@@ -48,7 +53,9 @@ class QuestResult extends Equatable {
   final DateTime resolvedAt;
   final String characterId;
   final String userId;
-  final QuestResultQuest quest;
+
+  /// Istantanea della quest; `null` per un report d'imboscata (BE Phase 15 D-14).
+  final QuestResultQuest? quest;
   final int hpBefore;
   final int hpAfter;
 
@@ -77,10 +84,18 @@ class QuestResult extends Equatable {
   final int? stagesTotal;
   final List<String> rescuedCharacters;
 
+  /// Quest o imboscata (D-01); un BE più vecchio vale `quest`.
+  final QuestResultKind kind;
+
+  /// Solo per un'imboscata: istante e città (D-01).
+  final AmbushReport? ambush;
+
   /// BE 9.2: istante della presa visione; assente prima del fragment del piano 09-12.
   final DateTime? acknowledgedAt;
 
   bool get isDeath => outcome == QuestOutcome.death;
+
+  bool get isAmbush => kind == QuestResultKind.ambush;
 
   bool get hasLevelChanged => levelBefore != levelAfter;
 
@@ -88,42 +103,52 @@ class QuestResult extends Equatable {
 
   bool get hasRewards => !rewards.isEmpty;
 
-  factory QuestResult.fromJson(Map<String, dynamic> json) => QuestResult(
-    id: json['id'] as String,
-    outcome:
-        QuestOutcome.fromWire(json['outcome']) ??
-        (throw const FormatException('unknown outcome')),
-    resolvedAt: DateTime.parse(json['resolvedAt'] as String).toUtc(),
-    characterId: json['character'] as String,
-    userId: json['user'] as String,
-    quest: QuestResultQuest.fromJson(json['quest'] as Map<String, dynamic>),
-    hpBefore: (json['hpBefore'] as num).toInt(),
-    hpAfter: (json['hpAfter'] as num).toInt(),
-    maxLifePoints: (json['maxLifePoints'] as num).toInt(),
-    injuriesAdded: _injuriesFrom(json['injuriesAdded'] as List),
-    consumablesUsed: assetQuantitiesFrom(json['consumablesUsed']),
-    spellsUsed: List.unmodifiable(
-      (json['spellsUsed'] as List).whereType<Map<String, dynamic>>().map(
-        SpellUsage.fromJson,
+  factory QuestResult.fromJson(Map<String, dynamic> json) {
+    final kind = QuestResultKind.fromWire(json['kind']);
+    final isAmbush = kind == QuestResultKind.ambush;
+    return QuestResult(
+      id: json['id'] as String,
+      kind: kind,
+      outcome:
+          QuestOutcome.fromWire(json['outcome']) ??
+          (throw const FormatException('unknown outcome')),
+      resolvedAt: DateTime.parse(json['resolvedAt'] as String).toUtc(),
+      characterId: json['character'] as String,
+      userId: json['user'] as String,
+      quest: isAmbush
+          ? _questOrNull(json['quest'])
+          : QuestResultQuest.fromJson(json['quest'] as Map<String, dynamic>),
+      hpBefore: (json['hpBefore'] as num).toInt(),
+      hpAfter: (json['hpAfter'] as num).toInt(),
+      maxLifePoints: (json['maxLifePoints'] as num).toInt(),
+      injuriesAdded: _injuriesFrom(json['injuriesAdded'] as List),
+      consumablesUsed: assetQuantitiesFrom(json['consumablesUsed']),
+      spellsUsed: List.unmodifiable(
+        (json['spellsUsed'] as List).whereType<Map<String, dynamic>>().map(
+          SpellUsage.fromJson,
+        ),
       ),
-    ),
-    rewards: QuestRewards.fromJson(json['rewards'] as Map<String, dynamic>),
-    xpBefore: (json['xpBefore'] as num).toInt(),
-    xpGained: (json['xpGained'] as num).toInt(),
-    xpAfter: (json['xpAfter'] as num).toInt(),
-    levelBefore: (json['levelBefore'] as num).toInt(),
-    levelAfter: (json['levelAfter'] as num).toInt(),
-    titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
-    titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
-    spellLearned: _spellFrom(json['spellLearned']),
-    enemies: QuestEnemy.lenientListFrom(json['enemies']),
-    stagesCleared: _countFrom(json['stagesCleared']),
-    stagesTotal: _countFrom(json['stagesTotal']),
-    rescuedCharacters: List.unmodifiable(
-      (json['rescuedCharacters'] as List).cast<String>(),
-    ),
-    acknowledgedAt: _instantFrom(json['acknowledgedAt']),
-  );
+      rewards: QuestRewards.fromJson(json['rewards'] as Map<String, dynamic>),
+      xpBefore: (json['xpBefore'] as num).toInt(),
+      xpGained: (json['xpGained'] as num).toInt(),
+      xpAfter: (json['xpAfter'] as num).toInt(),
+      levelBefore: (json['levelBefore'] as num).toInt(),
+      levelAfter: (json['levelAfter'] as num).toInt(),
+      titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
+      titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
+      spellLearned: _spellFrom(json['spellLearned']),
+      enemies: QuestEnemy.lenientListFrom(json['enemies']),
+      stagesCleared: _countFrom(json['stagesCleared']),
+      stagesTotal: _countFrom(json['stagesTotal']),
+      rescuedCharacters: List.unmodifiable(
+        (json['rescuedCharacters'] as List).cast<String>(),
+      ),
+      ambush: isAmbush
+          ? AmbushReport.fromJson(json['ambush'] as Map<String, dynamic>)
+          : null,
+      acknowledgedAt: _instantFrom(json['acknowledgedAt']),
+    );
+  }
 
   /// Confine di parsing: un risultato malformato vale null, mai un'eccezione (T-9-01).
   static QuestResult? tryFromJson(Object? json) {
@@ -153,6 +178,9 @@ class QuestResult extends Equatable {
     );
   }
 
+  static QuestResultQuest? _questOrNull(Object? json) =>
+      json is Map<String, dynamic> ? QuestResultQuest.fromJson(json) : null;
+
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
 
@@ -164,10 +192,11 @@ class QuestResult extends Equatable {
   Map<String, dynamic> toJson() => {
     'id': id,
     'outcome': outcome.name,
+    'kind': kind.name,
     'resolvedAt': resolvedAt.toUtc().toIso8601String(),
     'character': characterId,
     'user': userId,
-    'quest': quest.toJson(),
+    'quest': quest?.toJson(),
     'hpBefore': hpBefore,
     'hpAfter': hpAfter,
     'maxLifePoints': maxLifePoints,
@@ -189,6 +218,7 @@ class QuestResult extends Equatable {
     'stagesCleared': stagesCleared,
     'stagesTotal': stagesTotal,
     'rescuedCharacters': rescuedCharacters,
+    'ambush': ambush?.toJson(),
     if (acknowledgedAt != null)
       'acknowledgedAt': acknowledgedAt!.toUtc().toIso8601String(),
   };
@@ -197,6 +227,7 @@ class QuestResult extends Equatable {
   List<Object?> get props => [
     id,
     outcome,
+    kind,
     resolvedAt,
     characterId,
     userId,
@@ -220,6 +251,7 @@ class QuestResult extends Equatable {
     stagesCleared,
     stagesTotal,
     rescuedCharacters,
+    ambush,
     acknowledgedAt,
   ];
 }
