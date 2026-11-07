@@ -13,6 +13,7 @@ Map<String, dynamic> statusJson({
   Object? activeTravel,
   Object? spellStates,
   Object? awaitingAid = _absent,
+  Object? unlockedLore = _absent,
 }) => {
   'title': 'rookie',
   'xp': 1,
@@ -20,6 +21,7 @@ Map<String, dynamic> statusJson({
   'activeTravel': activeTravel,
   if (spellStates != null) 'spellStates': spellStates,
   if (!identical(awaitingAid, _absent)) 'awaitingAid': awaitingAid,
+  if (!identical(unlockedLore, _absent)) 'unlockedLore': unlockedLore,
 };
 
 const Object _absent = Object();
@@ -165,6 +167,79 @@ void main() {
 
       expect(copy.xp, 5);
       expect(copy.spellStates, status.spellStates);
+    });
+  });
+
+  group('unlockedLore (BE Phase 16)', () {
+    test('a missing unlockedLore is an empty list (D-01)', () {
+      final status = CharacterStatus.fromJson(statusJson());
+
+      expect(status.unlockedLore, isNotNull);
+      expect(status.unlockedLore, isEmpty);
+    });
+
+    test('parses the unlocked lore ids (D-01)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(unlockedLore: ['lore-andogan', 'lore-region-1']),
+      );
+
+      expect(status.unlockedLore, ['lore-andogan', 'lore-region-1']);
+    });
+
+    test('drops non-string ids and keeps the status (D-01)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(
+          unlockedLore: [
+            'lore-andogan',
+            42,
+            null,
+            {'id': 'x'},
+          ],
+        ),
+      );
+
+      expect(status.unlockedLore, ['lore-andogan']);
+      expect(status.location!.id, 'city-marker-1');
+    });
+
+    test('a non-list unlockedLore is an empty list (D-01)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(unlockedLore: 'lore-andogan'),
+      );
+
+      expect(status.unlockedLore, isEmpty);
+    });
+
+    test('toJson writes the unlocked lore ids (D-01)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(unlockedLore: ['lore-andogan']),
+      );
+
+      expect(status.toJson()['unlockedLore'], ['lore-andogan']);
+    });
+
+    test('props include unlockedLore (D-01)', () {
+      expect(
+        CharacterStatus.fromJson(statusJson(unlockedLore: ['lore-andogan'])) ==
+            CharacterStatus.fromJson(statusJson(unlockedLore: [])),
+        isFalse,
+      );
+    });
+
+    test('copyWith keeps the current unlockedLore (D-19)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(unlockedLore: ['lore-andogan']),
+      );
+
+      expect(status.copyWith(xp: 9).unlockedLore, ['lore-andogan']);
+    });
+
+    test('the parsed list cannot be modified (D-01)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(unlockedLore: ['lore-andogan']),
+      );
+
+      expect(() => status.unlockedLore.add('x'), throwsUnsupportedError);
     });
   });
 
