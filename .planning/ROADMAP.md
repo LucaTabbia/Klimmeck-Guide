@@ -83,7 +83,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
 - [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
-- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
+- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07.
 
 **Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last.
 
@@ -507,15 +507,16 @@ Plans:
 **Plans**: TBD
 
 ### Phase 17: Unlockable Lore
-**Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
-**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), BE Phase 11 (lore seeded), BE Phase 16
+**Goal**: The Library shows only what the character has discovered (home city, its regions and its state at creation; the same geography on every arrival at a city marker; enemies on victory; study rolls) and unknown enemies appear as a black silhouette with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16); the FE renders ids, flags and lists and computes nothing.
+**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), Phase 14 (`enemies` entries, `EnemyPortrait`), BE Phase 11 (lore seeded), BE Phase 16
 **Scope**: M
 **Requirements**: LORE-01, LORE-02, LORE-03
 **Success Criteria** (what must be TRUE):
-  1. The Library lists only the unlocked lore of the current character (backend-filtered), live after an unlock (city arrival, victory, study) without manual refresh; locked lore is hidden entirely; a book with nothing unlocked shows an empty-state line.
-  2. On quest and result sheets an enemy the character has never defeated shows a darkened portrait and the name only; known enemies render as today; the knowledge flag comes from the backend.
-  3. A new character sees exactly the home-city lore and its region; device UAT: travel to a new city → its lore appears; win against an enemy → its lore appears; delete and recreate → reset.
+  1. The Library lists only the unlocked lore of the current character (backend-filtered `lores`), refreshes itself while a book is open when `CharacterStatus.unlockedLore` (ids on the subscription) changes, hides the sections with nothing unlocked, shows one status line for an empty book and marks the entries unlocked since the last opening of that book with a «Nuovo» bookmark (per character, on the device); locked lore is never rendered.
+  2. On quest and result sheets an enemy the character has never defeated (`QuestEnemy.known == false`, exact enemy) shows its portrait as a full black silhouette and the «Nx nome» lines unchanged; known enemies render as today; after a victory the result sheet shows the defeated enemies in clear and lists the lore unlocked by the outcome («Conoscenza appresa: <name>» for a study roll, «Nuova pagina del Bestiario: <name>» for a first victory) from `QuestResult.loreUnlocked`.
+  3. A new character sees exactly the home-city lore, its regions and its state; a city not yet visited opens a name-only modal on the Map («Non conosci ancora questa città.», `City.relatedLore` null from the BE) instead of crashing; device UAT with a player identity (the dev bypass is the innkeeper and sees everything): travel to a new city → its page appears live with «Nuovo»; win against an enemy → portrait in clear + «Nuova pagina del Bestiario»; delete and recreate → reset. The Phase 16 device E2E (16-08) runs in the same session.
 **Decisions made (2026-10-29)**: per-character unlock, no cascade on `relatedLore`, enemy lore only on victory for all winners, study without spell → chance on a random locked lore among the study types, locked lore hidden.
+**Decisions of the discuss (2026-11-07, `17-CONTEXT.md` D-01..D-14)**: ids on the wire (`CharacterStatus.unlockedLore: [ID!]!`); geography = city + regions + state at birth and at every arrival on a city marker (territory POIs do not count); «known» = the exact enemy defeated (not the species); study roll at 50 % (BE env); result sheet lines from `QuestResult.loreUnlocked`; Map shows only the name of an unknown city, quest narrative stays whole; black silhouette; «Nuovo» bookmark per book; gated plans after the BE Phase 16 merge (pattern 16-07).
 **Backend prerequisite**: BE Phase 16 merged on BE `develop`.
 **Plans**: TBD
 

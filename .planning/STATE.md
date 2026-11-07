@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-06T15:42:35.000Z"
-last_activity: 2026-11-06 -- Phase 15 complete: device E2E passed (steps 1-8), FOOD-01..04 ticked
+status: discussing
+last_updated: "2026-11-07T10:23:38.000Z"
+last_activity: 2026-11-07 -- Phase 17 context gathered (joint discuss with the BE Phase 16); Phase 16 parked at 7/8 on its branch
 progress:
   total_phases: 17
   completed_phases: 14
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 15 (Travel Food) — COMPLETE 2026-11-06 on `feat/15-travel-food` (from `develop` `08bd1a1`): plans 15-01..15-09 executed, reviewed, fixed, verified and audited; schema gate 45/45 on BE `develop` `b492a46` (15-08); Android device E2E steps 1–8 passed (15-09, `15-HUMAN-UAT.md`); FOOD-01..04 ticked
-Plan: 9 of 9
+Phase: 17 (Unlockable Lore) — CONTEXT GATHERED 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`, the merge of PR #41): joint interactive discuss with the BE Phase 16 from this repo, 14 decisions in `phases/17-unlockable-lore/17-CONTEXT.md`. Phase 16 (Travel Ambushes) is PARKED at 7/8 on `feat/16-travel-ambushes` (16-07 gate passed on the merged BE `9103440`, 16-08 Task 1 done; its device E2E is deferred to the end of this phase: the user could not connect the phone on 2026-11-07; the two features stay on separate branches and PRs)
+Plan: 0 of 0 (not planned yet)
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: merge of the FE PR #41 `feat/15-travel-food` → `develop` (opened by the orchestrator on 2026-11-06; the BE Phase 14 PR #23 is already merged), then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 15 complete — BE Phase 14 merged on BE `develop` (`b492a46`, PR #23); 15-08 proved the contract (45/45, full suite 3310 green, analyzer 0 error / 0 warning); 15-09 device E2E 2026-11-06 steps 1–8 pass (step 5 service-with-line and story halves skipped: not reproducible on this DB, covered by tests; step 7 teleport through the BE mutation because the Locanda path needs a story quest in the queue); handoff `phases/15-travel-food/BACKEND-NOTES.md` (questions §5); VALIDATION approved, VERIFICATION passed, SECURITY 0 deferred; ready for the FE PR
-Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 ticked, BACKEND-NOTES written
+Next Phase: `/gsd-plan-phase 17` — `17-REPO-RULES.md` first (contract names shared with the BE `16-REPO-RULES.md`: `CharacterStatus.unlockedLore`, `QuestEnemy.known`, `QuestResult.loreUnlocked`), then research and plans; the plans that select the new names and the device E2E are gated on the BE Phase 16 merge (CONTEXT D-13); after that merge: schema gate + device E2E of Phase 17 and 16-08 in the same session (player identity for the Library), then the two FE PRs to `develop`; FE 12 (Hardening) last
+Status: Phase 17 discussing → context gathered 2026-11-07, ready to plan. BE Phase 16 `feat/16-lore-sbloccabili` (from BE `develop` `9103440`) discussed in the same session: its `16-CONTEXT.md` is the contract source (ids on the character, geography city + regions + state, exact-enemy `known`, study roll 50 %, `loreUnlocked`, `City.relatedLore` null when locked). The BE runs from `develop` `9103440` on port 3001 (orchestrator). Planning docs of Phase 16 live on its own branch: expect a small `.planning/STATE.md`/`ROADMAP.md` rebase when the second of the two PRs lands.
+Last activity: 2026-11-07 -- Phase 17 context gathered (joint discuss with the BE Phase 16, 2 question blocks); Phase 16 parked at 7/8 on its branch
 
 ## Current Milestone
 
@@ -41,6 +41,7 @@ Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 t
 ### Roadmap Evolution
 
 - Phases 13–17 added 2026-10-29 (user request, before closing v1.0): 13 City Shops ↔ BE 12, 14 Quest Generation companion ↔ BE 13 (`infos.enemies` replaces `infos.enemy`), 15 Travel Food ↔ BE 14, 16 Travel Ambushes ↔ BE 15, 17 Unlockable Lore ↔ BE 16; BE Phase 11 World Content (data-only, from `World building.docx`) is the data prerequisite of every device UAT. Execution order 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Each FE phase waits for the BE companion merge on BE `develop` (gate pattern 08-12/09-12). Contracts decided in the discuss of 2026-10-29 are recorded in the ROADMAP phase details; the BE roadmap carries the server rules.
+- 2026-11-07: Phase 17 discussed while Phase 16 waits for its device UAT (phone unavailable); the two phases run on separate branches from `develop` as two separate features (user decision); both device UATs (16-08 and the Phase 17 one) run at the end of Phase 17, then the two PRs land in sequence.
 
 ## Open Questions / Blockers
 
