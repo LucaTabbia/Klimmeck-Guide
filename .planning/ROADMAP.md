@@ -82,8 +82,8 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
 - [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
-- [x] **Phase 16: Travel Ambushes** — The pawn restarts from the ambush point towards the nearest city after a lost ambush (push + banner of a new category); the ambush reports of a travel open at arrival in a carousel of result sheets delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29, discussed 2026-11-06)_ (completed 2026-11-09)
-- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with the name only on the sheets. BE companion: BE Phase 16. _(added 2026-10-29)_
+- [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
+- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07.
 
 **Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last.
 
@@ -494,37 +494,29 @@ Plans:
 - [x] 15-09-PLAN.md — ⛔ GATED: device E2E `15-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff, `mark-complete` FOOD-01..04, ROADMAP/STATE/REQUIREMENTS closure
 
 ### Phase 16: Travel Ambushes
-**Goal**: A journey can be ambushed, more than once: the frontend renders the server's decision — the pawn keeps going after a victory, or restarts from the ambush point towards the nearest city after a defeat (push and banner «Imboscata!») — and at arrival shows the ambush reports of the travel in a carousel of result sheets, never lost (unacknowledged pipeline).
-**Depends on**: Phase 5 (push categories), Phase 7 (route rendering from `activeTravel`), Phase 9 (result sheet + ack), Phase 15 (travel preview flow), BE Phase 15
+**Goal**: A journey can be ambushed: the frontend renders the server's decision — the pawn keeps going after a victory, or turns back towards the nearest city after a defeat — and at arrival shows the ambush report on the result sheet, never lost (unacknowledged pipeline).
+**Depends on**: Phase 7 (route rendering from `activeTravel`), Phase 9 (result sheet + ack), Phase 15 (travel preview flow), BE Phase 15
 **Scope**: M
 **Requirements**: AMBUSH-01, AMBUSH-02, AMBUSH-03
 **Success Criteria** (what must be TRUE):
-  1. When the backend rewrites `activeTravel` after a lost ambush (new road from the ambush point, new `startTime`, `to` and `endTime`) the pawn, the dashed route and the remaining time follow the new polyline live; no client-side guessing; the defeat push (new category, settings toggle) and its in-app banner «Imboscata! Sei stato sconfitto: la via torna verso <città>» lead to the Map.
-  2. The ambush reports (`QuestResult` with `kind: ambush`) are result-sheet variants — «Imboscata presso <città>», enemies, HP bar, injuries; won: coins and XP; lost: «Portato a <città>» — opened at arrival in one carousel per travel (one parchment per ambush, chronological), acknowledged together on «Continua», shown on the free Map like the other sheets; quest results stay one at a time.
-  3. The travel confirmation sheet and the quest «Viaggio» line never reveal an ambush; the arrival banner/push (`travelEnd`) leads to the Map where the carousel appears; no extra push at arrival.
+  1. When the backend rewrites `activeTravel` after a lost ambush (new road, new `to`, new `endTime`) the pawn, the dashed route and the remaining time follow the new polyline live; no client-side guessing.
+  2. The ambush report is a variant of the result sheet (won: XP and coins; lost: HP delta, injuries, «portato a <città>»), queued with the other results and acknowledged on close, shown on the free Map like the other sheets.
+  3. The travel confirmation sheet never reveals an upcoming ambush; the arrival banner/push leads to the Map where the sheet appears.
 **Decisions made (2026-10-29)**: probability by km + night share (22–06 Europe/Rome), enemy by zone ≤ Medio band, resolution at ambush time (job), loss → HP ≥ 1 + injuries + reroute to the nearest city + standard-lane quest abandoned, food not refunded.
-**Decisions made (2026-11-06)**: soft calibration (0,2%/0,6% per km, 10 km threshold), several ambushes per travel with a redraw after every victory, nearest-POI zone with animals, [Facile, Medio] band per level, rewards as a generated enemy quest, HP applied at once, nearest city by road (destination included) with no extra cost, push on every defeat, reports held until arrival, `travelEnd` only, carousel of reports (FE CONTEXT D-01..D-09, BE CONTEXT D-01..D-16).
 **Backend prerequisite**: BE Phase 15 merged on BE `develop`.
-**Plans**: 9 plans (sequential waves; 16-07 and 16-08 gated by the BE Phase 15 merge; 16-09 inserted on 2026-11-09 from the device E2E finding D-19)
-- [x] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
-- [x] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
-- [x] 16-03-PLAN.md — ambush result sheet: header «Imboscata presso <città>» + date, «Portato a <città>» after «Ferite», won/lost proofs with no client branch on rewards
-- [x] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
-- [x] 16-05-PLAN.md — `AmbushReportCarousel` (`PageView` of result sheets, «k di N», swipe only, «Continua» closes from any page) and the presenter branch (waits while settling, no «Missione conclusa» banner, external pop requeues the group)
-- [x] 16-06-PLAN.md — reroute proof on `TravelProgressCubit` and the real `WorldMap`, D-07/D-17 pins on the confirmation sheet and the quest «Viaggio» line (tests only)
-- [x] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
-- [x] 16-08-PLAN.md — ⛔ gated by the BE Phase 15 merge: device E2E `16-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff (two-travel merge note), `mark-complete` AMBUSH-01..03, ROADMAP/STATE/REQUIREMENTS closure
-- [x] 16-09-PLAN.md — device UAT finding (D-19): the ambush carousel pages peek in from the edges (`PageController(viewportFraction: 0.62)` with several reports so the centred parchment of the neighbour shows ≈ 7% of the width, full width with one) and the carousel nudges once at opening with a translate animation that keeps taps alive; still swipe-only, no programmatic page turn
+**Plans**: TBD
+
 ### Phase 17: Unlockable Lore
-**Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
-**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), BE Phase 11 (lore seeded), BE Phase 16
+**Goal**: The Library shows only what the character has discovered (home city, its regions and its state at creation; the same geography on every arrival at a city marker; enemies on victory; study rolls) and unknown enemies appear as a black silhouette with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16); the FE renders ids, flags and lists and computes nothing.
+**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), Phase 14 (`enemies` entries, `EnemyPortrait`), BE Phase 11 (lore seeded), BE Phase 16
 **Scope**: M
 **Requirements**: LORE-01, LORE-02, LORE-03
 **Success Criteria** (what must be TRUE):
-  1. The Library lists only the unlocked lore of the current character (backend-filtered), live after an unlock (city arrival, victory, study) without manual refresh; locked lore is hidden entirely; a book with nothing unlocked shows an empty-state line.
-  2. On quest and result sheets an enemy the character has never defeated shows a darkened portrait and the name only; known enemies render as today; the knowledge flag comes from the backend.
-  3. A new character sees exactly the home-city lore and its region; device UAT: travel to a new city → its lore appears; win against an enemy → its lore appears; delete and recreate → reset.
+  1. The Library lists only the unlocked lore of the current character (backend-filtered `lores`), refreshes itself while a book is open when `CharacterStatus.unlockedLore` (ids on the subscription) changes, hides the sections with nothing unlocked, shows one status line for an empty book and marks the entries unlocked since the last opening of that book with a «Nuovo» bookmark (per character, on the device); locked lore is never rendered.
+  2. On quest and result sheets an enemy the character has never defeated (`QuestEnemy.known == false`, exact enemy) shows its portrait as a full black silhouette and the «Nx nome» lines unchanged; known enemies render as today; after a victory the result sheet shows the defeated enemies in clear and lists the lore unlocked by the outcome («Conoscenza appresa: <name>» for a study roll, «Nuova pagina del Bestiario: <name>» for a first victory) from `QuestResult.loreUnlocked`.
+  3. A new character sees exactly the home-city lore, its regions and its state; a city not yet visited opens a name-only modal on the Map («Non conosci ancora questa città.», `City.relatedLore` null from the BE) instead of crashing; device UAT with a player identity (the dev bypass is the innkeeper and sees everything): travel to a new city → its page appears live with «Nuovo»; win against an enemy → portrait in clear + «Nuova pagina del Bestiario»; delete and recreate → reset. The Phase 16 device E2E (16-08) runs in the same session.
 **Decisions made (2026-10-29)**: per-character unlock, no cascade on `relatedLore`, enemy lore only on victory for all winners, study without spell → chance on a random locked lore among the study types, locked lore hidden.
+**Decisions of the discuss (2026-11-07, `17-CONTEXT.md` D-01..D-14)**: ids on the wire (`CharacterStatus.unlockedLore: [ID!]!`); geography = city + regions + state at birth and at every arrival on a city marker (territory POIs do not count); «known» = the exact enemy defeated (not the species); study roll at 50 % (BE env); result sheet lines from `QuestResult.loreUnlocked`; Map shows only the name of an unknown city, quest narrative stays whole; black silhouette; «Nuovo» bookmark per book; gated plans after the BE Phase 16 merge (pattern 16-07).
 **Backend prerequisite**: BE Phase 16 merged on BE `develop`.
 **Plans**: TBD
 
@@ -547,7 +539,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 9/9 | Complete | 2026-11-09 |
+| 16. Travel Ambushes | 0/0 | Not started | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
@@ -655,9 +647,9 @@ Plans:
 | FOOD-02 | Phase 15 | Complete |
 | FOOD-03 | Phase 15 | Complete |
 | FOOD-04 | Phase 15 | Complete |
-| AMBUSH-01 | Phase 16 | Complete |
-| AMBUSH-02 | Phase 16 | Complete |
-| AMBUSH-03 | Phase 16 | Complete |
+| AMBUSH-01 | Phase 16 | Pending |
+| AMBUSH-02 | Phase 16 | Pending |
+| AMBUSH-03 | Phase 16 | Pending |
 | LORE-01 | Phase 17 | Pending |
 | LORE-02 | Phase 17 | Pending |
 | LORE-03 | Phase 17 | Pending |
