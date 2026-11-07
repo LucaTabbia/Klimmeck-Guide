@@ -90,6 +90,13 @@ void main() {
     test('selects the BE 9.2 acknowledgedAt right after resolvedAt', () {
       expect(sharedSelection, contains('resolvedAt acknowledgedAt'));
     });
+
+    test('selects the lore unlocked by the outcome (D-04)', () {
+      expect(
+        sharedSelection,
+        contains('spellLearned { id name } loreUnlocked { id name type }'),
+      );
+    });
   });
 
   group('OnQuestResultReceived', () {
