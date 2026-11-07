@@ -237,11 +237,12 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
 
   /// Nemici affrontati (D-07): ritratto del più forte se risolvibile (D-03),
   /// righe «Nx nome» nell'ordine del BE (D-02). Stesso blocco per le imboscate
-  /// (Phase 16).
+  /// (Phase 16); ritratto in sagoma se il BE dice `known: false` (D-08/D-09).
   List<Widget> _enemies() {
     final lines = enemyLinesOf(_result.enemies);
     if (lines.isEmpty) return const [];
-    final portraitPath = strongestEnemyOf(_result.enemies)?.imagePath;
+    final strongest = strongestEntryOf(_result.enemies);
+    final portraitPath = strongest?.enemy.imagePath;
     return [
       Column(
         key: QuestResultSheet.enemyKey,
@@ -253,6 +254,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
                 key: QuestResultSheet.enemyPortraitKey,
                 imagePath: portraitPath,
                 height: _enemyImageHeight,
+                known: strongest?.known ?? true,
               ),
             ),
           for (final line in lines)

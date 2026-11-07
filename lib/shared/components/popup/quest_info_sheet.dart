@@ -219,6 +219,7 @@ class QuestInfoSheet extends StatelessWidget {
             child: EnemyPortrait(
               key: enemyPortraitKey,
               imagePath: portraitPath,
+              known: details.isStrongestEnemyKnown,
             ),
           ),
         Flexible(
