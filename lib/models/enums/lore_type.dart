@@ -13,8 +13,9 @@ enum LoreType {
   knowledge,
 }
 
+/// Testo italiano del tipo (D-15): `name` resta il nome sul filo.
 extension LoreTypeExtension on LoreType {
-  String get name {
+  String get label {
     switch (this) {
       case LoreType.enemy:
         return 'Mostri';
@@ -42,4 +43,11 @@ extension LoreTypeExtension on LoreType {
         return 'Stati';
     }
   }
+
+  /// Pagine del Bestiario (D-10): la riga del foglio esiti dice «Nuova pagina
+  /// del Bestiario» per questi tipi, «Conoscenza appresa» per gli altri.
+  bool get isBestiary =>
+      this == LoreType.enemy ||
+      this == LoreType.animal ||
+      this == LoreType.plant;
 }
