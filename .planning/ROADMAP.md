@@ -523,7 +523,7 @@ Plans:
 - [x] 17-02-PLAN.md — `QuestEnemy.known` end to end in one GREEN commit (strict/lenient parsing, `toJson`, both fragments, `questEnemyJson` default `true`, pinned document tests) + `strongestEntryOf` / `QuestSheetDetails.isStrongestEnemyKnown` (D-03)
 - [x] 17-03-PLAN.md — `QuestResult.loreUnlocked` (lenient, `loreUnlocked { id name type }`, round trip) + the «Nuova pagina del Bestiario» / «Conoscenza appresa» lines after «Magia appresa» (D-04, D-10)
 - [x] 17-04-PLAN.md — black silhouette: `EnemyPortrait.known` («Sagoma del nemico»), passed from the quest sheet and the result sheet following the strongest enemy's own `known` (D-08, D-09, D-17)
-- [ ] 17-05-PLAN.md — `LibraryBook` enum + `LibraryBookmarksStore` (`SharedPreferencesAsync` implementation, `FakeSharedPreferencesAsync` string lists, `InMemoryLibraryBookmarksStore`) (D-07, D-12)
+- [x] 17-05-PLAN.md — `LibraryBook` enum + `LibraryBookmarksStore` (`SharedPreferencesAsync` implementation, `FakeSharedPreferencesAsync` string lists, `InMemoryLibraryBookmarksStore`) (D-07, D-12)
 - [ ] 17-06-PLAN.md — `LibraryCubit` (`openBook`, silent single-flight `syncUnlockedLore` with stale-completion drop, `goToInitial`, «Nuovo» marks vs the baseline), `LibraryLoadData(book, lore, newLoreIds)`, shell wiring, `BlocListener<CharacterCubit>` in `Library` (D-05, D-07)
 - [ ] 17-07-PLAN.md — `LibraryDataPage` redraw: hidden empty sections, «Le pagine di questo libro sono ancora bianche.», «Nuovo» ribbon on `LoreCard`, `ValueKey(type)`, live recompute (D-06, D-07)
 - [ ] 17-08-PLAN.md — Map: `UnknownCityModal` («Non conosci ancora questa città.») replaces the `relatedLore!` crash; silent `MainScreenCubit.refreshCities()` on an `unlockedLore` set change (D-11)
@@ -550,7 +550,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 4/10 | In Progress | - |
+| 17. Unlockable Lore | 5/10 | In Progress | - |
 
 ## Traceability
 
