@@ -17,12 +17,22 @@ class LibraryLoading extends LibraryState {
 }
 
 class LibraryLoadData extends LibraryState {
+  const LibraryLoadData({
+    required this.book,
+    required this.lore,
+    required this.newLoreIds,
+  });
+
+  final LibraryBook book;
+
+  /// Solo le lore di [book], come le restituisce il BE (D-02).
   final List<Lore> lore;
 
-  const LibraryLoadData(this.lore);
+  /// Id da segnare «Nuovo» (D-07): mai inviati al BE.
+  final Set<String> newLoreIds;
 
   @override
-  List<Object?> get props => [lore];
+  List<Object?> get props => [book, lore, newLoreIds];
 }
 
 class LibraryError extends LibraryState {

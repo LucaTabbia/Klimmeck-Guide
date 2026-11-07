@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/enums/lore_type.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_error_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_initial_page.dart';
@@ -16,10 +16,6 @@ class Library extends StatefulWidget {
 }
 
 class _LibraryState extends State<Library> {
-  late List<LoreType> _selectedTypes;
-  late String _title;
-  late String _bookmarkImagePath;
-
   @override
   void initState() {
     context.read<LibraryCubit>().goToInitial();
@@ -32,14 +28,16 @@ class _LibraryState extends State<Library> {
       child: BlocBuilder<LibraryCubit, LibraryState>(
         builder: (context, state) {
           if (state is LibraryInitial) {
-            return LibraryInitialPage(onTap: getData);
+            return LibraryInitialPage(
+              onOpen: (book) => context.read<LibraryCubit>().openBook(book),
+            );
           } else if (state is LibraryLoadData) {
             return LibraryDataPage(
               lore: state.lore,
-              types: _selectedTypes,
+              types: state.book.types,
               onBack: () => context.read<LibraryCubit>().goToInitial(),
-              title: _title,
-              bookmarkImagePath: _bookmarkImagePath,
+              title: state.book.title,
+              bookmarkImagePath: state.book.bookmarkUrl,
             );
           } else if (state is LibraryError) {
             return LibraryErrorPage();
@@ -49,14 +47,5 @@ class _LibraryState extends State<Library> {
         },
       ),
     );
-  }
-
-  void getData(List<LoreType> types, String title, String bookmarkImagePath) {
-    setState(() {
-      _selectedTypes = types;
-      _title = title;
-      _bookmarkImagePath = bookmarkImagePath;
-    });
-    context.read<LibraryCubit>().loadLoreData();
   }
 }
