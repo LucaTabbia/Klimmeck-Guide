@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/lore_fixtures.dart';
+import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
@@ -199,6 +200,90 @@ void main() {
         _inSection(QuestResultSheet.enemyPortraitKey, find.byType(CachedSvg)),
       );
       expect(portrait.url, CloudinaryAssets.url(_trollPortrait));
+    });
+
+    Finder silhouetteOfPortrait() => _inSection(
+      QuestResultSheet.enemyPortraitKey,
+      find.byType(ColorFiltered),
+    );
+
+    testWidgets('a victory shows the defeated enemies in clear (D-09)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            enemies: [
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsOneWidget);
+      expect(silhouetteOfPortrait(), findsNothing);
+    });
+
+    testWidgets('after a defeat an unknown enemy stays a silhouette (D-09)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            outcome: 'failure',
+            enemies: [
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: false,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(silhouetteOfPortrait(), findsOneWidget);
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Troll')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("the portrait follows the strongest enemy's own known "
+        '(D-08)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            enemies: [
+              questEnemyJson(id: 'wolf', xp: 10, known: false),
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsOneWidget);
+      expect(silhouetteOfPortrait(), findsNothing);
     });
 
     testWidgets('hides an unresolvable portrait and keeps the lines (D-03)', (
