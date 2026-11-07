@@ -9,6 +9,7 @@ import 'loot_fragment.dart';
 /// della BE 9.2 (null finché il foglio non è confermato). `enemies`,
 /// `stagesCleared`, `stagesTotal` e `rewards.pet` sono della BE Phase 13 (D-07).
 /// `known` sotto `enemies` è della BE Phase 16 (17-CONTEXT D-03).
+/// `loreUnlocked` è della BE Phase 16 (17-CONTEXT D-04): solo le novità dell'esito.
 class QuestResultFragment {
   static const String fields =
       '''
@@ -83,6 +84,11 @@ class QuestResultFragment {
     spellLearned {
       id
       name
+    }
+    loreUnlocked {
+      id
+      name
+      type
     }
     enemies {
       quantity
