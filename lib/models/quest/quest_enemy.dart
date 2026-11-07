@@ -114,14 +114,19 @@ List<String> enemyLinesOf(List<QuestEnemy> enemies) {
   ]);
 }
 
-/// Il più forte per il ritratto (D-02): `xp` più alto, `null` vale 0, a
-/// parità vince il primo. Il FE non ordina mai le righe per `xp`.
-Enemy? strongestEnemyOf(List<QuestEnemy> enemies) {
-  Enemy? strongest;
+/// La voce più forte per il ritratto (D-02): `xp` più alto, `null` vale 0, a
+/// parità vince la prima. Porta il proprio `known` (D-08).
+QuestEnemy? strongestEntryOf(List<QuestEnemy> enemies) {
+  QuestEnemy? strongest;
   for (final entry in enemies) {
-    if (strongest == null || (entry.enemy.xp ?? 0) > (strongest.xp ?? 0)) {
-      strongest = entry.enemy;
+    if (strongest == null ||
+        (entry.enemy.xp ?? 0) > (strongest.enemy.xp ?? 0)) {
+      strongest = entry;
     }
   }
   return strongest;
 }
+
+/// Il nemico della voce più forte (D-02). Il FE non ordina mai le righe per `xp`.
+Enemy? strongestEnemyOf(List<QuestEnemy> enemies) =>
+    strongestEntryOf(enemies)?.enemy;
