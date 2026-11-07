@@ -37,6 +37,18 @@ class FakeSharedPreferencesAsync extends Fake
   }
 
   @override
+  Future<List<String>?> getStringList(String key) async {
+    if (readFailures.isNotEmpty) throw readFailures.removeAt(0);
+    return values[key] as List<String>?;
+  }
+
+  @override
+  Future<void> setStringList(String key, List<String> value) async {
+    if (writeFailures.isNotEmpty) throw writeFailures.removeAt(0);
+    values[key] = List<String>.of(value);
+  }
+
+  @override
   Future<void> remove(String key) async {
     if (writeFailures.isNotEmpty) throw writeFailures.removeAt(0);
     values.remove(key);
