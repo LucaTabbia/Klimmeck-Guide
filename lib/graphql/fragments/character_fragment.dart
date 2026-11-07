@@ -62,6 +62,7 @@ class CharacterFragment {
           id
         }
       }
+      unlockedLore
     }
   ''';
 
