@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-07T00:10:44.000Z"
-last_activity: 2026-11-07 -- Phase 16 resumed at 6/8 after the BE Phase 15 merge
+status: paused
+last_updated: "2026-11-07T09:40:32.000Z"
+last_activity: 2026-11-07 -- Phase 16 parked at 7/8, device E2E deferred to the end of FE Phase 17
 progress:
   total_phases: 17
   completed_phases: 14
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 16 (Travel Ambushes) — RESUMED at 6/8 (2026-11-07) on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-06 executed, reviewed, fixed, verified and audited; the BE Phase 15 is merged on BE `develop` (PR #24, `9103440`, 2026-11-07), so 16-07 (schema gate) and 16-08 (device E2E + handoff) now run (CONTEXT D-09)
+Phase: 16 (Travel Ambushes) — PARKED at 7/8 (2026-11-07) on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-07 done (16-07 gate passed on the merged BE `9103440`: 45/45 OK, full suite 3391 green), 16-08 Task 1 done (`16-HUMAN-UAT.md`, `db9601b`); the device E2E (16-08 Tasks 2–3) is deferred by the user to the end of FE Phase 17 together with that phase's own device UAT (phone unavailable on 2026-11-07)
 Plan: 7 of 8
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: 16-07 (gate on the merged SDL `9103440`: contract names, `ambushDefeat` payload in the BE handoff, schema check 45/45, full suite) then 16-08 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements AMBUSH-01..03); then FE 17 (after BE 16), FE 12 (Hardening) last
-Status: Phase 16 resumed at 6/8 on 2026-11-07 after the BE Phase 15 merge (BE PR #24 → BE `develop` `9103440`; the BE runs from that build on port 3001, restarted by the orchestrator; handoff `.planning/phases/15-imboscate-in-viaggio/BACKEND-NOTES.md` in the BE repo). Plans 16-01..16-06: review 0 critical / 0 warning / 3 info → rulings (1 FIX: IN-02a, `quest` ignored on ambush results; 3 NOT_NEEDED) → fixer (2 commits, full suite +3391) → verification `human_needed` (0 gaps, 4 deferred, 7 UAT steps) → security `secured` (24 threats, 0 open, 7 deferred to 16-07/16-08). UAT notes: a lone quest sheet after a carousel reads «k di N» with the group counted (D-11, IN-03); offline a queued carousel waits for the in-flight read to give up (IN-01).
-Last activity: 2026-11-07 -- Phase 16 resumed after the BE Phase 15 merge (PR #24); 16-07 schema gate starting
+Next Phase: FE Phase 17 (Unlockable Lore) with BE Phase 16 (Lore sbloccabili) on branches from `develop` — independent of Phase 16 (ROADMAP: depends on Phases 3, 6, 9, BE 11, BE 16); then the two device UATs (16-08 Tasks 2–3 from the APK of `feat/16-travel-ambushes`, then the Phase 17 one), the FE PR of Phase 16 after its UAT; FE 12 (Hardening) last
+Status: Phase 16 paused at 7/8 — 16-08 is at the human checkpoint (Task 2, device E2E) deferred to the end of FE Phase 17 by the user. The BE runs from `develop` `9103440` on port 3001 (orchestrator, no Redis: sweeps every 60 s); APK debug built from `16d4c69` (docs-only difference to HEAD). Resume: a new 16-08 executor from Task 2 (guided UAT, record results, `requirements mark-complete AMBUSH-0N` only for passed requirements, close VALIDATION/ROADMAP/STATE, handoff `BACKEND-NOTES.md`), then the FE PR to `develop`.
+Last activity: 2026-11-07 -- Phase 16 parked at 7/8: 16-07 passed, 16-08 Task 1 done, device E2E deferred to the end of FE Phase 17 (user)
 
 ## Current Milestone
 
