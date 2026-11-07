@@ -55,7 +55,10 @@ class _LibraryState extends State<Library> {
                 onBack: () => context.read<LibraryCubit>().goToInitial(),
               );
             } else if (state is LibraryError) {
-              return LibraryErrorPage();
+              return LibraryErrorPage(
+                book: state.book,
+                onBack: () => context.read<LibraryCubit>().goToInitial(),
+              );
             } else {
               return const SizedBox.shrink();
             }

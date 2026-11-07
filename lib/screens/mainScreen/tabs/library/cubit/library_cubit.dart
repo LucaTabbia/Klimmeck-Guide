@@ -39,7 +39,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
       lore = _loreOf(book, await graphQl.getAllLores());
     } catch (e) {
       debugPrint('LibraryCubit.openBook error: $e');
-      if (generation == _generation) emit(LibraryError(e.toString()));
+      if (generation == _generation) emit(LibraryError(book, e.toString()));
       return;
     }
     final shown = _idsOf(lore);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
-import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_book_frame.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
 import '../../../../../models/enums/library_book.dart';
@@ -39,64 +39,30 @@ class LibraryDataPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sections = _sections;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 50.0),
-      child: Container(
-        width: MediaQuery.of(context).size.width - 100,
-        decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
-        height: MediaQuery.of(context).size.height,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 40),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: Text(
-                        book.title,
-                        style: KlimmeckGuideTheme.instance.headlineLarge,
-                      ),
-                    ),
-                    if (sections.isEmpty)
-                      Text(
-                        emptyBookLine,
-                        key: emptyBookKey,
-                        textAlign: TextAlign.center,
-                        style: KlimmeckGuideTheme.instance.bodyMedium,
-                      ),
-                    for (final section in sections)
-                      Dropdown(
-                        key: sectionKeyOf(section.type),
-                        sectionName: section.type.label,
-                        data: _LoreList(
-                          lores: section.entries,
-                          newLoreIds: newLoreIds,
-                          newMarkInk: book.newMarkInk,
-                        ),
-                      ),
-                    const SizedBox(height: 120),
-                  ],
-                ),
+    return LibraryBookFrame(
+      book: book,
+      onBack: onBack,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (sections.isEmpty)
+            Text(
+              emptyBookLine,
+              key: emptyBookKey,
+              textAlign: TextAlign.center,
+              style: KlimmeckGuideTheme.instance.bodyMedium,
+            ),
+          for (final section in sections)
+            Dropdown(
+              key: sectionKeyOf(section.type),
+              sectionName: section.type.label,
+              data: _LoreList(
+                lores: section.entries,
+                newLoreIds: newLoreIds,
+                newMarkInk: book.newMarkInk,
               ),
             ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: GestureDetector(
-                onTap: onBack,
-                child: SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: CachedSvg(url: book.bookmarkUrl),
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
