@@ -249,6 +249,32 @@ void main() {
       expect(details.strongestEnemy?.name, 'Capo goblin');
     });
 
+    test("the portrait follows the strongest enemy's own known (D-08)", () {
+      final unknownTroll = QuestSheetDetails.of(
+        buildQuest(
+          enemies: [
+            questEnemyJson(id: 'wolf', xp: 10),
+            questEnemyJson(id: 'troll', name: 'Troll', xp: 90, known: false),
+          ],
+        ),
+      );
+      expect(unknownTroll.isStrongestEnemyKnown, isFalse);
+
+      final knownTroll = QuestSheetDetails.of(
+        buildQuest(
+          enemies: [
+            questEnemyJson(id: 'wolf', xp: 10, known: false),
+            questEnemyJson(id: 'troll', name: 'Troll', xp: 90),
+          ],
+        ),
+      );
+      expect(knownTroll.isStrongestEnemyKnown, isTrue);
+    });
+
+    test('a quest without enemies counts as known (D-08)', () {
+      expect(QuestSheetDetails.of(buildQuest()).isStrongestEnemyKnown, isTrue);
+    });
+
     test('petPrizeLine reads «Compagno in premio: <nome>» (D-06)', () {
       final details = QuestSheetDetails.of(
         buildQuest(
