@@ -10,9 +10,13 @@ import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_error_page.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_initial_page.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fakes/in_memory_library_bookmarks_store.dart';
@@ -220,6 +224,31 @@ void main() {
 
       expect(find.byKey(LoreCard.newMarkKey), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a failed opening shows the faded-pages line and goes back to the shelves (D-06)',
+    (tester) async {
+      answers.add(() async => throw StateError('offline'));
+      await pumpLibrary(tester, character: characterWith(const []));
+      await openPlaces(tester);
+
+      expect(find.text(LibraryErrorPage.errorLine), findsOneWidget);
+      expect(find.byType(Placeholder), findsNothing);
+      expect(find.textContaining('offline'), findsNothing);
+
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is CachedSvg &&
+              widget.url == LibraryBook.places.bookmarkUrl,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LibraryInitialPage), findsOneWidget);
+      expect(find.text(LibraryErrorPage.errorLine), findsNothing);
     },
   );
 }

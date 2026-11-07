@@ -182,6 +182,21 @@ void main() {
       act: (cubit) => cubit.openBook(LibraryBook.places),
       expect: () => [const LibraryLoading(), isA<LibraryError>()],
     );
+
+    blocTest<LibraryCubit, LibraryState>(
+      'a failed opening remembers the book that failed (D-06)',
+      setUp: () => answers.add(() async => throw StateError('offline')),
+      build: buildCubit,
+      act: (cubit) => cubit.openBook(LibraryBook.religions),
+      expect: () => [
+        const LibraryLoading(),
+        isA<LibraryError>().having(
+          (error) => error.book,
+          'book',
+          LibraryBook.religions,
+        ),
+      ],
+    );
   });
 
   group('syncUnlockedLore', () {
