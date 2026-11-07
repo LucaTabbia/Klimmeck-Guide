@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 16 (Travel Ambushes) — RESUMED at 6/8 (2026-11-07) on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-06 executed, reviewed, fixed, verified and audited; the BE Phase 15 is merged on BE `develop` (PR #24, `9103440`, 2026-11-07), so 16-07 (schema gate) and 16-08 (device E2E + handoff) now run (CONTEXT D-09)
-Plan: 6 of 8
+Plan: 7 of 8
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: 16-07 (gate on the merged SDL `9103440`: contract names, `ambushDefeat` payload in the BE handoff, schema check 45/45, full suite) then 16-08 (device E2E with the user, handoff `BACKEND-NOTES.md`, requirements AMBUSH-01..03); then FE 17 (after BE 16), FE 12 (Hardening) last
 Status: Phase 16 resumed at 6/8 on 2026-11-07 after the BE Phase 15 merge (BE PR #24 → BE `develop` `9103440`; the BE runs from that build on port 3001, restarted by the orchestrator; handoff `.planning/phases/15-imboscate-in-viaggio/BACKEND-NOTES.md` in the BE repo). Plans 16-01..16-06: review 0 critical / 0 warning / 3 info → rulings (1 FIX: IN-02a, `quest` ignored on ambush results; 3 NOT_NEEDED) → fixer (2 commits, full suite +3391) → verification `human_needed` (0 gaps, 4 deferred, 7 UAT steps) → security `secured` (24 threats, 0 open, 7 deferred to 16-07/16-08). UAT notes: a lone quest sheet after a carousel reads «k di N» with the group counted (D-11, IN-03); offline a queued carousel waits for the in-flight read to give up (IN-01).

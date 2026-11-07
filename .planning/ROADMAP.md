@@ -512,7 +512,7 @@ Plans:
 - [x] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
 - [x] 16-05-PLAN.md — `AmbushReportCarousel` (`PageView` of result sheets, «k di N», swipe only, «Continua» closes from any page) and the presenter branch (waits while settling, no «Missione conclusa» banner, external pop requeues the group)
 - [x] 16-06-PLAN.md — reroute proof on `TravelProgressCubit` and the real `WorldMap`, D-07/D-17 pins on the confirmation sheet and the quest «Viaggio» line (tests only)
-- [ ] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
+- [x] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
 - [ ] 16-08-PLAN.md — ⛔ gated by the BE Phase 15 merge: device E2E `16-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff (two-travel merge note), `mark-complete` AMBUSH-01..03, ROADMAP/STATE/REQUIREMENTS closure
 ### Phase 17: Unlockable Lore
 **Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
@@ -546,7 +546,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 6/8 | In Progress | - |
+| 16. Travel Ambushes | 7/8 | In Progress | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability
