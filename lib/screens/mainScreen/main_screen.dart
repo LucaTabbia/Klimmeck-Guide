@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
@@ -94,6 +95,21 @@ class _MainScreenState extends State<MainScreen>
     return QuestResultPresenter(child: _buildScreen(context));
   }
 
+  /// Solo un cambio dell'insieme di lore sbloccate (D-11): HP, viaggio e
+  /// riordini non rileggono le città.
+  static bool _hasUnlockedLoreChanged(
+    CharacterState previous,
+    CharacterState current,
+  ) {
+    if (previous is! CharacterLoaded || current is! CharacterLoaded) {
+      return false;
+    }
+    return !setEquals(
+      (previous.character.status?.unlockedLore ?? const []).toSet(),
+      (current.character.status?.unlockedLore ?? const []).toSet(),
+    );
+  }
+
   Widget _buildScreen(BuildContext context) {
     return MultiBlocListener(
       listeners: [
@@ -106,6 +122,11 @@ class _MainScreenState extends State<MainScreen>
               context.read<MainScreenCubit>().loadData();
             }
           },
+        ),
+        BlocListener<CharacterCubit, CharacterState>(
+          listenWhen: _hasUnlockedLoreChanged,
+          listener: (context, _) =>
+              context.read<MainScreenCubit>().refreshCities(),
         ),
         BlocListener<MainScreenCubit, MainScreenState>(
           listenWhen: (previous, current) =>
