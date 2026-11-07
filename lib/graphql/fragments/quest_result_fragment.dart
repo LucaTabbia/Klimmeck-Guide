@@ -9,7 +9,7 @@ import 'loot_fragment.dart';
 /// della BE 9.2 (null finché il foglio non è confermato). `enemies`,
 /// `stagesCleared`, `stagesTotal` e `rewards.pet` sono della BE Phase 13 (D-07).
 /// `kind` e `ambush` sono della BE Phase 15 (16-CONTEXT D-01): `quest` è null
-/// per un'imboscata.
+/// per un'imboscata. `known` sotto `enemies` è della BE Phase 16 (17-CONTEXT D-03).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -88,6 +88,7 @@ class QuestResultFragment {
     }
     enemies {
       quantity
+      known
       enemy {
         id
         name

@@ -181,7 +181,7 @@ void main() {
         buildQuest(
           type: 'enemy',
           enemies: [
-            {'quantity': 1, 'enemy': _enemy},
+            {'quantity': 1, 'known': true, 'enemy': _enemy},
           ],
         ),
       );
@@ -198,7 +198,7 @@ void main() {
           buildQuest(
             type: 'enemy',
             enemies: [
-              {'quantity': 1, 'enemy': _enemy},
+              {'quantity': 1, 'known': true, 'enemy': _enemy},
             ],
           ),
         );
@@ -708,7 +708,7 @@ void main() {
       buildQuest(
         type: 'enemy',
         enemies: [
-          {'quantity': 1, 'enemy': _enemy},
+          {'quantity': 1, 'known': true, 'enemy': _enemy},
         ],
       ),
     );
