@@ -36,10 +36,14 @@ class LibraryLoadData extends LibraryState {
 }
 
 class LibraryError extends LibraryState {
+  /// Il libro la cui apertura è fallita: la pagina d'errore ne usa la pergamena.
+  final LibraryBook book;
+
+  /// Solo per i log: mai mostrato a schermo.
   final String errorMessage;
 
-  const LibraryError(this.errorMessage);
+  const LibraryError(this.book, this.errorMessage);
 
   @override
-  List<Object?> get props => [errorMessage];
+  List<Object?> get props => [book, errorMessage];
 }
