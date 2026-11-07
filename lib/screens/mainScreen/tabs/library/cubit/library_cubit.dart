@@ -54,20 +54,27 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
       ),
     );
     await _writeBaseline(book, shown);
+    if (generation != _generation) return;
+    if (_hasPendingRefresh && !_isRefreshing) await _runRefreshLoop();
   }
 
   /// Rilettura silenziosa (D-05): solo se cambia l'insieme e un libro è aperto;
-  /// mai caricamento né errore; una sola rilettura in coda durante il volo.
+  /// mai caricamento né errore; una sola rilettura in coda durante il volo o
+  /// durante l'apertura del libro.
   Future<void> syncUnlockedLore(List<String> ids) async {
     final next = ids.toSet();
     final previous = _lastUnlocked;
     _lastUnlocked = next;
     if (previous == null || setEquals(previous, next)) return;
-    if (state is! LibraryLoadData) return;
-    if (_isRefreshing) {
+    if (state is LibraryLoading || _isRefreshing) {
       _hasPendingRefresh = true;
       return;
     }
+    if (state is! LibraryLoadData) return;
+    await _runRefreshLoop();
+  }
+
+  Future<void> _runRefreshLoop() async {
     _isRefreshing = true;
     try {
       do {
