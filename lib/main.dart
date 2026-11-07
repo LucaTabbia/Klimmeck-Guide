@@ -28,6 +28,7 @@ import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dar
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
 import 'package:klimmeck_guide/repository/storage/device_identity_store.dart';
+import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
 import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
@@ -154,6 +155,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   );
   final NotificationPreferencesStore notificationPreferencesStore =
       SharedPreferencesNotificationPreferencesStore();
+  final LibraryBookmarksStore libraryBookmarksStore =
+      SharedPreferencesLibraryBookmarksStore();
 
   /// Registrazione push per tutta la vita del processo (D-07). Con il push disabilitato le
   /// porte no-op non producono token: mantiene solo lo specchio dell'utente attivo.
@@ -336,6 +339,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                               characterId: characterId,
                                               notificationPreferencesStore:
                                                   notificationPreferencesStore,
+                                              libraryBookmarksStore:
+                                                  libraryBookmarksStore,
                                               userId: user.id,
                                               notificationPermission:
                                                   widget.push.permission,
