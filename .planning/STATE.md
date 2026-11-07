@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-07T11:30:56.000Z"
-last_activity: 2026-11-07 -- Phase 17 planned (10 plans, plan-checker passed); BE Phase 16 planned in the same session
+last_updated: "2026-11-07T11:49:01.818Z"
+last_activity: 2026-11-07 -- Phase 17 execution started
 progress:
   total_phases: 17
   completed_phases: 14
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — PLANNED 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): 10 plans in 10 sequential waves (the last two — schema gate and device E2E + handoff — gated by the BE Phase 16 merge on BE `develop`, CONTEXT D-13); research, repo rules, validation skeleton and plan-checker pass recorded. Phase 16 (Travel Ambushes) stays PARKED at 7/8 on `feat/16-travel-ambushes` (device E2E at the end of this phase)
+Phase: 17 (Unlockable Lore) — EXECUTING since 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): 10 plans in 10 sequential waves (the last two — schema gate and device E2E + handoff — gated by the BE Phase 16 merge on BE `develop`, CONTEXT D-13). Phase 16 (Travel Ambushes) stays PARKED at 7/8 on `feat/16-travel-ambushes` (device E2E at the end of this phase)
 Plan: 0 of 10
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: `/gsd-execute-phase 17` (17-01..17-08 now on fixtures and mocks; 17-09/17-10 after the BE Phase 16 PR merges on BE `develop`), then the two device UATs (17 and 16-08) and the two FE PRs; FE 12 (Hardening) last
-Status: Phase 17 planned — ready to execute (`/gsd-execute-phase 17`); 17-09/17-10 wait for the BE Phase 16 merge; BE Phase 16 `feat/16-lore-sbloccabili` planned in the same session (its `16-REPO-RULES.md` fixes the contract names); the BE runs from `develop` `9103440` on port 3001
-Last activity: 2026-11-07 -- Phase 17 planned: research, repo rules, 10 plans, checker passed
+Status: Executing Phase 17 — 17-01..17-08 on fixtures and mocks; 17-09/17-10 wait for the BE Phase 16 merge; BE Phase 16 executing in the same session on `feat/16-lore-sbloccabili` (its `16-REPO-RULES.md` fixes the contract names); the BE runs from `develop` `9103440` on port 3001
+Last activity: 2026-11-07 -- Phase 17 execution started
 
 ## Current Milestone
 
