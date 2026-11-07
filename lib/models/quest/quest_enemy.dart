@@ -126,7 +126,3 @@ QuestEnemy? strongestEntryOf(List<QuestEnemy> enemies) {
   }
   return strongest;
 }
-
-/// Il nemico della voce più forte (D-02). Il FE non ordina mai le righe per `xp`.
-Enemy? strongestEnemyOf(List<QuestEnemy> enemies) =>
-    strongestEntryOf(enemies)?.enemy;
