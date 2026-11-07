@@ -91,6 +91,13 @@ void main() {
     );
   });
 
+  test('statusFields selects unlockedLore (D-01)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('spellStates { usages recoveries spell { id } } unlockedLore }'),
+    );
+  });
+
   test('a recorded characterUpdated payload parses its awaitingAid', () {
     final character = Character.fromJson(
       travellingCharacterJson(awaitingAid: awaitingAidJson()),
