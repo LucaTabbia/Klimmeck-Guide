@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_error_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_initial_page.dart';
@@ -50,11 +49,10 @@ class _LibraryState extends State<Library> {
               );
             } else if (state is LibraryLoadData) {
               return LibraryDataPage(
+                book: state.book,
                 lore: state.lore,
-                types: state.book.types,
+                newLoreIds: state.newLoreIds,
                 onBack: () => context.read<LibraryCubit>().goToInitial(),
-                title: state.book.title,
-                bookmarkImagePath: state.book.bookmarkUrl,
               );
             } else if (state is LibraryError) {
               return LibraryErrorPage();
