@@ -20,15 +20,9 @@ class _LibraryState extends State<Library> {
   void initState() {
     super.initState();
     final library = context.read<LibraryCubit>()..goToInitial();
-    final unlocked = _unlockedLoreOf(context.read<CharacterCubit>().state);
+    final unlocked = unlockedLoreOf(context.read<CharacterCubit>().state);
     if (unlocked != null) library.syncUnlockedLore(unlocked);
   }
-
-  /// Solo gli id (D-01): il confronto per insieme vive nel cubit (D-05).
-  static List<String>? _unlockedLoreOf(CharacterState state) =>
-      state is CharacterLoaded
-      ? state.character.status?.unlockedLore ?? const []
-      : null;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +30,7 @@ class _LibraryState extends State<Library> {
       child: BlocListener<CharacterCubit, CharacterState>(
         listenWhen: (_, current) => current is CharacterLoaded,
         listener: (context, state) {
-          final unlocked = _unlockedLoreOf(state);
+          final unlocked = unlockedLoreOf(state);
           if (unlocked != null) {
             context.read<LibraryCubit>().syncUnlockedLore(unlocked);
           }

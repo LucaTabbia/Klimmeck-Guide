@@ -101,13 +101,10 @@ class _MainScreenState extends State<MainScreen>
     CharacterState previous,
     CharacterState current,
   ) {
-    if (previous is! CharacterLoaded || current is! CharacterLoaded) {
-      return false;
-    }
-    return !setEquals(
-      (previous.character.status?.unlockedLore ?? const []).toSet(),
-      (current.character.status?.unlockedLore ?? const []).toSet(),
-    );
+    final before = unlockedLoreOf(previous);
+    final after = unlockedLoreOf(current);
+    if (before == null || after == null) return false;
+    return !setEquals(before.toSet(), after.toSet());
   }
 
   Widget _buildScreen(BuildContext context) {

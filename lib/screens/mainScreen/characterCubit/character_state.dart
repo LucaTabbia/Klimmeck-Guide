@@ -10,6 +10,12 @@ class CharacterInitial extends CharacterState {
   List<Object> get props => [];
 }
 
+/// Gli id delle lore sbloccate (D-01) di un personaggio caricato, `null`
+/// altrimenti: servono solo a riconoscere un cambio dell'insieme (D-05, D-11).
+List<String>? unlockedLoreOf(CharacterState state) => state is CharacterLoaded
+    ? state.character.status?.unlockedLore ?? const []
+    : null;
+
 class CharacterLoaded extends CharacterState {
   final Character character;
 
