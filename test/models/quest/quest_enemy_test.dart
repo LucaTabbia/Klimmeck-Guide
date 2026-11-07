@@ -212,24 +212,24 @@ void main() {
     });
   });
 
-  group('strongestEnemyOf', () {
-    test('strongestEnemyOf picks the highest xp, null xp counts as 0, first '
+  group('strongestEntryOf', () {
+    test('strongestEntryOf picks the highest xp, null xp counts as 0, first '
         'wins ties (D-02)', () {
-      final strongest = strongestEnemyOf(
+      final strongest = strongestEntryOf(
         _enemies([
           _entry('goblin', 'Goblin', xp: 7),
           _entry('chief', 'Capo', xp: 21),
           _entry('orc', 'Orco', xp: 21),
         ]),
       );
-      expect(strongest?.id, 'chief');
+      expect(strongest?.enemy.id, 'chief');
 
-      final tie = strongestEnemyOf(
+      final tie = strongestEntryOf(
         _enemies([_entry('a', 'A'), _entry('b', 'B')]),
       );
-      expect(tie?.id, 'a');
+      expect(tie?.enemy.id, 'a');
 
-      expect(strongestEnemyOf(const []), isNull);
+      expect(strongestEntryOf(const []), isNull);
     });
 
     test('the strongest entry carries its own known (D-08)', () {
@@ -251,18 +251,6 @@ void main() {
 
       expect(strongest?.enemy.id, 'a');
       expect(strongestEntryOf(const []), isNull);
-    });
-
-    test('strongestEnemyOf is the enemy of the strongest entry (D-08)', () {
-      for (final list in [
-        _enemies([
-          _entry('wolf', 'Lupo', xp: 10, known: true),
-          _entry('troll', 'Troll', xp: 90, known: false),
-        ]),
-        _enemies([_entry('a', 'A', xp: 10), _entry('b', 'B', xp: 10)]),
-      ]) {
-        expect(strongestEnemyOf(list), strongestEntryOf(list)!.enemy);
-      }
     });
   });
 }
