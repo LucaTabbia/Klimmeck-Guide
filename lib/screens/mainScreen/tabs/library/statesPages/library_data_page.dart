@@ -65,7 +65,7 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                     ),
                     ...List.generate(widget.types.length, (typesIndex) {
                       return Dropdown(
-                        sectionName: widget.types[typesIndex].name,
+                        sectionName: widget.types[typesIndex].label,
                         data: _LoreList(lores: _loreLists[typesIndex]),
                       );
                     }),

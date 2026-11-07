@@ -20,7 +20,7 @@ class Lore extends Equatable {
 
   factory Lore.fromJson(Map<String, dynamic> json) => Lore(
     id: json["id"],
-    type: json["type"] != null ? LoreType.values.byName(json["type"]) : null,
+    type: _typeFrom(json['type']),
     name: json["name"],
     description: json["description"],
     relatedLore: json['relatedLore'] != null
@@ -28,6 +28,11 @@ class Lore extends Equatable {
         : [],
     image: json["image"],
   );
+
+  /// Tollerante (D-16): un tipo sconosciuto o assente vale `null` e la voce
+  /// resta (nessuna sezione della Biblioteca, «Conoscenza appresa» sul foglio).
+  static LoreType? _typeFrom(Object? wire) =>
+      wire is String ? LoreType.values.asNameMap()[wire] : null;
 
   Map<String, dynamic> toJson() => {
     "id": id,
