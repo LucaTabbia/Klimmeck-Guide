@@ -47,23 +47,21 @@ void main() {
       );
     });
 
-    test(
-      'selects the enemies fought, the spells used and the rescued (D-07)',
-      () {
-        expect(
-          sharedSelection,
-          contains(
-            'enemies { quantity enemy { id name imagePath xp } } '
-            'stagesCleared stagesTotal',
-          ),
-        );
-        expect(
-          sharedSelection,
-          contains('spellsUsed { usages spell { id name } }'),
-        );
-        expect(sharedSelection, contains('rescuedCharacters'));
-      },
-    );
+    test('selects the enemies fought with known, the spells used and the '
+        'rescued (D-07, D-03)', () {
+      expect(
+        sharedSelection,
+        contains(
+          'enemies { quantity known enemy { id name imagePath xp } } '
+          'stagesCleared stagesTotal',
+        ),
+      );
+      expect(
+        sharedSelection,
+        contains('spellsUsed { usages spell { id name } }'),
+      );
+      expect(sharedSelection, contains('rescuedCharacters'));
+    });
 
     test('carries no single enemy selection besides the nested one (D-01)', () {
       final enemyBlocks = RegExp(

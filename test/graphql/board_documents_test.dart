@@ -47,10 +47,11 @@ void main() {
       expect(document, contains('recommendedLoot { quantity item {'));
     });
 
-    test('selects the enemies with quantity and xp (D-01, D-02)', () {
+    test('selects the enemies with quantity, known and xp '
+        '(D-01, D-02, D-03)', () {
       expect(
         document,
-        contains('enemies { quantity enemy { id name imagePath xp } }'),
+        contains('enemies { quantity known enemy { id name imagePath xp } }'),
       );
       expect(document, contains('relatedLore { id name description }'));
       // il premio loot viene reso con LootItemCard: servono effect e power
