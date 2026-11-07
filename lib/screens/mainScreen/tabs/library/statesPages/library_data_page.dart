@@ -28,15 +28,8 @@ class LibraryDataPage extends StatefulWidget {
 }
 
 class _LibraryDataPageState extends State<LibraryDataPage> {
-  late List<List<Lore>> _loreLists;
-
-  @override
-  void initState() {
-    super.initState();
-    _loreLists = widget.types
-        .map((type) => widget.lore.where((lore) => lore.type == type).toList())
-        .toList();
-  }
+  List<Lore> _loreOfType(LoreType type) =>
+      widget.lore.where((lore) => lore.type == type).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +59,9 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
                     ...List.generate(widget.types.length, (typesIndex) {
                       return Dropdown(
                         sectionName: widget.types[typesIndex].label,
-                        data: _LoreList(lores: _loreLists[typesIndex]),
+                        data: _LoreList(
+                          lores: _loreOfType(widget.types[typesIndex]),
+                        ),
                       );
                     }),
                     const SizedBox(height: 120),
