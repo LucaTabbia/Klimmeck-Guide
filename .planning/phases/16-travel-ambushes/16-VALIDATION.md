@@ -1,9 +1,9 @@
 ---
 phase: 16
 slug: travel-ambushes
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-06
 ---
 
@@ -50,8 +50,8 @@ created: 2026-11-06
 | 16-05-02 | 05 | 5 | AMBUSH-02, AMBUSH-03 | T-16-13, T-16-14 | Phase 9 gates; no questEnd banner for ambushes; toggle never gates the carousel | widget | `flutter test test/screens/mainScreen/components test/screens/mainScreen/questResultsCubit test/screens/mainScreen/main_screen_test.dart test/shared/components/popup` | ✅ (extend `quest_result_presenter_test.dart`) | ✅ green |
 | 16-06-01 | 06 | 6 | AMBUSH-01 | T-16-15 | reroute rendered as received; no lib diff on map/travel | unit/widget | `flutter test test/screens/mainScreen/tabs/map/travelProgressCubit test/screens/mainScreen/tabs/map/world_map_travel_test.dart` | ✅ (extend) | ✅ green |
 | 16-06-02 | 06 | 6 | AMBUSH-03 | T-16-16 | no ambush wording on the confirmation sheet or the quest line | widget/unit | `flutter test test/screens/mainScreen/tabs/map/travel_confirmation_sheet_test.dart test/models/quest/quest_travel_line_test.dart test/tool/schema_check_documents_test.dart` | ✅ (extend, D-17 pins) | ✅ green |
-| 16-07-01 | 07 | 7 | AMBUSH-01..03 | T-16-17, T-16-18, T-16-19 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c AmbushReport` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ⬜ pending |
-| 16-07-02 | 07 | 7 | AMBUSH-01..03 | T-16-20 | sanity greps: no FE defeat copy, `PushEvent` unchanged, no reroute mechanism, no gated carousel | gate | `flutter test` (full) | ✅ | ⬜ pending |
+| 16-07-01 | 07 | 7 | AMBUSH-01..03 | T-16-17, T-16-18, T-16-19 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c AmbushReport` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
+| 16-07-02 | 07 | 7 | AMBUSH-01..03 | T-16-20 | sanity greps: no FE defeat copy, `PushEvent` unchanged, no reroute mechanism, no gated carousel | gate | `flutter test` (full) | ✅ | ✅ green |
 | 16-08-01 | 08 | 8 | AMBUSH-01..03 | T-16-21 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/16-travel-ambushes/16-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 16-08-02 | 08 | 8 | AMBUSH-01..03 | T-16-23, T-16-24 | human checkpoint; DB seeds outside the repo | manual | device E2E (`16-HUMAN-UAT.md`) | — | ⬜ pending |
 | 16-08-03 | 08 | 8 | AMBUSH-01..03 | T-16-21, T-16-22 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/16-travel-ambushes/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
@@ -62,11 +62,11 @@ created: 2026-11-06
 
 ## Wave 0 Requirements
 
-- [ ] `test/models/quest_result/quest_result_kind_test.dart`, `test/models/quest_result/ambush_report_test.dart` — AMBUSH-02 (16-01 Task 1)
-- [ ] `test/helpers/fixtures/quest_result_fixtures.dart` — `ambushCityJson`, `ambushReportJson` (16-01 Task 1), `ambushWonResultJson`, `ambushLostResultJson` (16-01 Task 2)
-- [ ] pinned tests updated RED first (D-17, RESEARCH F7): `quest_result_documents_test.dart` and `quest_result_test.dart` (16-01 Task 2), `notification_category_test.dart`, `push_event_test.dart`, `data_message_handler_test.dart`, `notification_preferences_store_test.dart`, `notification_preferences_cubit_test.dart`, `notification_preferences_section_test.dart` (16-02 Task 1), `notification_intent_landing_test.dart` (16-02 Task 2); registry count stays 45 (`test/tool/schema_check_documents_test.dart`, 16-01/16-06)
-- [ ] `test/shared/components/popup/ambush_report_carousel_test.dart` — AMBUSH-02 (16-05 Task 1)
-- [ ] characterization pins green at first run by design (no production change): reroute tests (16-06 Task 1), confirmation sheet and quest line pins (16-06 Task 2)
+- [x] `test/models/quest_result/quest_result_kind_test.dart`, `test/models/quest_result/ambush_report_test.dart` — AMBUSH-02 (16-01 Task 1)
+- [x] `test/helpers/fixtures/quest_result_fixtures.dart` — `ambushCityJson`, `ambushReportJson` (16-01 Task 1), `ambushWonResultJson`, `ambushLostResultJson` (16-01 Task 2)
+- [x] pinned tests updated RED first (D-17, RESEARCH F7): `quest_result_documents_test.dart` and `quest_result_test.dart` (16-01 Task 2), `notification_category_test.dart`, `push_event_test.dart`, `data_message_handler_test.dart`, `notification_preferences_store_test.dart`, `notification_preferences_cubit_test.dart`, `notification_preferences_section_test.dart` (16-02 Task 1), `notification_intent_landing_test.dart` (16-02 Task 2); registry count stays 45 (`test/tool/schema_check_documents_test.dart`, 16-01/16-06)
+- [x] `test/shared/components/popup/ambush_report_carousel_test.dart` — AMBUSH-02 (16-05 Task 1)
+- [x] characterization pins green at first run by design (no production change): reroute tests (16-06 Task 1), confirmation sheet and quest line pins (16-06 Task 2)
 
 No framework install needed.
 
@@ -88,11 +88,13 @@ No framework install needed.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 16s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 16s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-07 (plan 16-07, device rows 16-08-01..03 still pending)
+
+Gate passed on BE `9103440`: 45/45 OK, full suite 3391 green, analyzer 50 info (0 error / 0 warning).
