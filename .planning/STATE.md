@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 17 (Unlockable Lore) — EXECUTING since 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): 10 plans in 10 sequential waves (the last two — schema gate and device E2E + handoff — gated by the BE Phase 16 merge on BE `develop`, CONTEXT D-13). Phase 16 (Travel Ambushes) stays PARKED at 7/8 on `feat/16-travel-ambushes` (device E2E at the end of this phase)
-Plan: 1 of 10
+Plan: 2 of 10
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: `/gsd-execute-phase 17` (17-01..17-08 now on fixtures and mocks; 17-09/17-10 after the BE Phase 16 PR merges on BE `develop`), then the two device UATs (17 and 16-08) and the two FE PRs; FE 12 (Hardening) last
 Status: Executing Phase 17 — 17-01..17-08 on fixtures and mocks; 17-09/17-10 wait for the BE Phase 16 merge; BE Phase 16 executing in the same session on `feat/16-lore-sbloccabili` (its `16-REPO-RULES.md` fixes the contract names); the BE runs from `develop` `9103440` on port 3001
