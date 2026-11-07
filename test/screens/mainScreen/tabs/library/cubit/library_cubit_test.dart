@@ -408,6 +408,38 @@ void main() {
     );
 
     test(
+      'a set change during the opening fetch is applied once the book is shown (D-05)',
+      () async {
+        final held = holdNextAnswer();
+        answerWith([andogan, bosa]);
+        final cubit = buildCubit();
+        final states = <LibraryState>[];
+        final subscription = cubit.stream.listen(states.add);
+
+        await cubit.syncUnlockedLore(['a']);
+        final opening = cubit.openBook(LibraryBook.places);
+        await cubit.syncUnlockedLore(['a', 'b']);
+        held.complete([andogan]);
+        await opening;
+        await pumpEventQueue();
+
+        verify(() => graphQl.getAllLores()).called(2);
+        expect(
+          cubit.state,
+          LibraryLoadData(
+            book: LibraryBook.places,
+            lore: [andogan, bosa],
+            newLoreIds: {bosa.id},
+          ),
+        );
+        expect(states.whereType<LibraryLoading>(), hasLength(1));
+        expect(states.whereType<LibraryError>(), isEmpty);
+        await subscription.cancel();
+        await cubit.close();
+      },
+    );
+
+    test(
       'changes during a refresh in flight run one trailing refresh (D-05)',
       () async {
         answerWith([andogan]);
