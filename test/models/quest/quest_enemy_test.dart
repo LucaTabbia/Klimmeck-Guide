@@ -7,8 +7,10 @@ Map<String, dynamic> _entry(
   int quantity = 1,
   int? xp,
   String? imagePath,
+  bool? known = true,
 }) => {
   'quantity': quantity,
+  if (known != null) 'known': known,
   'enemy': {'id': id, 'name': name, 'imagePath': imagePath, 'xp': xp},
 };
 
@@ -21,6 +23,7 @@ void main() {
         '(D-01)', () {
       final entry = QuestEnemy.fromJson({
         'quantity': 3,
+        'known': true,
         'enemy': {
           'id': 'goblin',
           'name': 'Goblin',
@@ -69,6 +72,35 @@ void main() {
 
       expect(QuestEnemy.fromJson(entry.toJson()), entry);
     });
+
+    test('reads whether the character knows the exact enemy (D-03)', () {
+      expect(
+        QuestEnemy.fromJson(_entry('goblin', 'Goblin', known: false)).known,
+        isFalse,
+      );
+      expect(
+        QuestEnemy.fromJson(_entry('goblin', 'Goblin', known: true)).known,
+        isTrue,
+      );
+    });
+
+    test('toJson writes known so the result round trip keeps the entry '
+        '(D-03, D-19)', () {
+      final entry = QuestEnemy.fromJson(
+        _entry('goblin', 'Goblin', xp: 7, known: false),
+      );
+
+      expect(entry.toJson()['known'], false);
+      expect(QuestEnemy.fromJson(entry.toJson()), entry);
+      expect(QuestEnemy.lenientListFrom([entry.toJson()]), [entry]);
+    });
+
+    test('entries differing only by known are not equal (D-03)', () {
+      expect(
+        QuestEnemy.fromJson(_entry('goblin', 'Goblin', known: true)),
+        isNot(QuestEnemy.fromJson(_entry('goblin', 'Goblin', known: false))),
+      );
+    });
   });
 
   group('QuestEnemy lists', () {
@@ -100,6 +132,31 @@ void main() {
       expect(() => list.add(list.first), throwsUnsupportedError);
       expect(QuestEnemy.lenientListFrom(null), isEmpty);
       expect(QuestEnemy.lenientListFrom('x'), isEmpty);
+    });
+
+    test('a board entry without known or with a non-boolean known drops the '
+        'quest (D-03)', () {
+      expect(
+        () => QuestEnemy.listFrom([_entry('goblin', 'Goblin', known: null)]),
+        throwsFormatException,
+      );
+      expect(
+        () => QuestEnemy.listFrom([
+          {..._entry('goblin', 'Goblin'), 'known': 'yes'},
+        ]),
+        throwsFormatException,
+      );
+    });
+
+    test('a result entry without known is dropped and the others stay '
+        '(D-03)', () {
+      final list = QuestEnemy.lenientListFrom([
+        _entry('goblin', 'Goblin', known: null),
+        _entry('troll', 'Troll'),
+      ]);
+
+      expect(list, hasLength(1));
+      expect(list.single.enemy.id, 'troll');
     });
   });
 
