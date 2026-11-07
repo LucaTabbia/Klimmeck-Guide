@@ -6,9 +6,21 @@ import '../../../../../models/lore.dart';
 import '../../../../../theme/kg_theme.dart';
 
 class LoreCard extends StatelessWidget {
-  const LoreCard({super.key, required this.lore});
+  const LoreCard({
+    super.key,
+    required this.lore,
+    this.isNew = false,
+    this.newMarkInk = KlimmeckGuideTheme.royalCrimson,
+  });
+
+  static const String newMarkLabel = 'Nuovo';
+  static const Key newMarkKey = ValueKey('loreCard.newMark');
 
   final Lore lore;
+  final bool isNew;
+
+  /// Inchiostro del segnalibro del libro (D-07).
+  final Color newMarkInk;
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +34,18 @@ class LoreCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10.0),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width - 160,
-                child: AutoSizeText(
-                  lore.name!,
-                  maxFontSize: 20,
-                  minFontSize: 12,
-                  style: KlimmeckGuideTheme.instance.specialText,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AutoSizeText(
+                        lore.name ?? '',
+                        maxFontSize: 20,
+                        minFontSize: 12,
+                        style: KlimmeckGuideTheme.instance.specialText,
+                      ),
+                    ),
+                    if (isNew) _newMark(),
+                  ],
                 ),
               ),
             ),
@@ -39,13 +58,17 @@ class LoreCard extends StatelessWidget {
                     child: AutoSizeText(
                       maxFontSize: 20,
                       minFontSize: 10,
-                      lore.description!,
+                      lore.description ?? '',
                       style: KlimmeckGuideTheme.instance.bodyMedium,
                     ),
                   ),
                 ),
                 if (lore.image != null)
-                  SizedBox(height: 200, width: 200, child: CachedSvg(url: lore.image!)),
+                  SizedBox(
+                    height: 200,
+                    width: 200,
+                    child: CachedSvg(url: lore.image!),
+                  ),
               ],
             ),
             Padding(
@@ -53,7 +76,12 @@ class LoreCard extends StatelessWidget {
               child: Container(
                 width: MediaQuery.of(context).size.width / 2,
                 decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: KlimmeckGuideTheme.darkBronze, width: 1)),
+                  border: Border(
+                    top: BorderSide(
+                      color: KlimmeckGuideTheme.darkBronze,
+                      width: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -62,4 +90,19 @@ class LoreCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _newMark() => Container(
+    key: newMarkKey,
+    padding: const EdgeInsets.symmetric(
+      horizontal: KlimmeckGuideTheme.spacingSm,
+      vertical: 2,
+    ),
+    decoration: BoxDecoration(color: newMarkInk),
+    child: Text(
+      newMarkLabel,
+      style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+        color: KlimmeckGuideTheme.parchment,
+      ),
+    ),
+  );
 }
