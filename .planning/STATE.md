@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: discussing
-last_updated: "2026-11-07T10:23:38.000Z"
-last_activity: 2026-11-07 -- Phase 17 context gathered (joint discuss with the BE Phase 16); Phase 16 parked at 7/8 on its branch
+status: executing
+last_updated: "2026-11-07T11:30:56.000Z"
+last_activity: 2026-11-07 -- Phase 17 planned (10 plans, plan-checker passed); BE Phase 16 planned in the same session
 progress:
   total_phases: 17
   completed_phases: 14
-  total_plans: 142
-  completed_plans: 135
-  percent: 95
+  total_plans: 152
+  completed_plans: 142
+  percent: 93
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — CONTEXT GATHERED 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`, the merge of PR #41): joint interactive discuss with the BE Phase 16 from this repo, 14 decisions in `phases/17-unlockable-lore/17-CONTEXT.md`. Phase 16 (Travel Ambushes) is PARKED at 7/8 on `feat/16-travel-ambushes` (16-07 gate passed on the merged BE `9103440`, 16-08 Task 1 done; its device E2E is deferred to the end of this phase: the user could not connect the phone on 2026-11-07; the two features stay on separate branches and PRs)
-Plan: 0 of 0 (not planned yet)
+Phase: 17 (Unlockable Lore) — PLANNED 2026-11-07 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): 10 plans in 10 sequential waves (the last two — schema gate and device E2E + handoff — gated by the BE Phase 16 merge on BE `develop`, CONTEXT D-13); research, repo rules, validation skeleton and plan-checker pass recorded. Phase 16 (Travel Ambushes) stays PARKED at 7/8 on `feat/16-travel-ambushes` (device E2E at the end of this phase)
+Plan: 0 of 10
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: `/gsd-plan-phase 17` — `17-REPO-RULES.md` first (contract names shared with the BE `16-REPO-RULES.md`: `CharacterStatus.unlockedLore`, `QuestEnemy.known`, `QuestResult.loreUnlocked`), then research and plans; the plans that select the new names and the device E2E are gated on the BE Phase 16 merge (CONTEXT D-13); after that merge: schema gate + device E2E of Phase 17 and 16-08 in the same session (player identity for the Library), then the two FE PRs to `develop`; FE 12 (Hardening) last
-Status: Phase 17 discussing → context gathered 2026-11-07, ready to plan. BE Phase 16 `feat/16-lore-sbloccabili` (from BE `develop` `9103440`) discussed in the same session: its `16-CONTEXT.md` is the contract source (ids on the character, geography city + regions + state, exact-enemy `known`, study roll 50 %, `loreUnlocked`, `City.relatedLore` null when locked). The BE runs from `develop` `9103440` on port 3001 (orchestrator). Planning docs of Phase 16 live on its own branch: expect a small `.planning/STATE.md`/`ROADMAP.md` rebase when the second of the two PRs lands.
-Last activity: 2026-11-07 -- Phase 17 context gathered (joint discuss with the BE Phase 16, 2 question blocks); Phase 16 parked at 7/8 on its branch
+Next Phase: `/gsd-execute-phase 17` (17-01..17-08 now on fixtures and mocks; 17-09/17-10 after the BE Phase 16 PR merges on BE `develop`), then the two device UATs (17 and 16-08) and the two FE PRs; FE 12 (Hardening) last
+Status: Phase 17 planned — ready to execute (`/gsd-execute-phase 17`); 17-09/17-10 wait for the BE Phase 16 merge; BE Phase 16 `feat/16-lore-sbloccabili` planned in the same session (its `16-REPO-RULES.md` fixes the contract names); the BE runs from `develop` `9103440` on port 3001
+Last activity: 2026-11-07 -- Phase 17 planned: research, repo rules, 10 plans, checker passed
 
 ## Current Milestone
 
