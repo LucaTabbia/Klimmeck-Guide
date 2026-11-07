@@ -27,6 +27,7 @@ import 'components/city_modal.dart';
 import 'components/teleport_mode_badge.dart';
 import 'components/teleport_mode_chip.dart';
 import 'components/travel_confirmation_sheet.dart';
+import 'components/unknown_city_modal.dart';
 import 'cubit/world_map_cubit.dart';
 import 'layers/character_marker_layer.dart';
 import 'layers/city_markers_layer.dart';
@@ -438,8 +439,16 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         : null;
   }
 
-  void _openCityLore(City city) =>
-      context.read<WorldMapCubit>().loadLoreData(city.relatedLore!.id);
+  /// Città sconosciuta (`relatedLore` null dal BE, D-11): solo il nome,
+  /// nessuna lettura della lore.
+  void _openCityLore(City city) {
+    final lore = city.relatedLore;
+    if (lore == null) {
+      _showPaperSheet(UnknownCityModal(cityName: city.name ?? ''));
+      return;
+    }
+    context.read<WorldMapCubit>().loadLoreData(lore.id);
+  }
 
   void _handleMapTap(TapPosition pos, LatLng latLng) {
     if (_selectedQuest != null) {
@@ -635,14 +644,17 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   void _showCityInfoModal() {
     if (_selectedLore == null) return;
 
+    _showPaperSheet(CityModal(lore: _selectedLore!));
+  }
+
+  void _showPaperSheet(Widget child) {
     showModalBottomSheet(
       useSafeArea: false,
       isScrollControlled: true,
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
       backgroundColor: Colors.transparent,
       context: context,
-      builder: (context) =>
-          PaperSheetModal(child: CityModal(lore: _selectedLore!)),
+      builder: (context) => PaperSheetModal(child: child),
     );
   }
 
