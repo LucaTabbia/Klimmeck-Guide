@@ -3,15 +3,17 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 
-/// Voce `QuestEnemy` sul filo (BE Phase 13 D-01): selezione `enemies { quantity enemy { id name imagePath xp } }`.
+/// Voce `QuestEnemy` sul filo (BE Phase 13 D-01): selezione `enemies { quantity known enemy { id name imagePath xp } }`; `known` vale `true` di default (BE Phase 16, D-03).
 Map<String, dynamic> questEnemyJson({
   String id = 'enemy-1',
   String? name = 'Lupo grigio',
   String? imagePath,
   int? xp = 10,
   int quantity = 1,
+  bool known = true,
 }) => {
   'quantity': quantity,
+  'known': known,
   'enemy': {'id': id, 'name': name, 'imagePath': imagePath, 'xp': xp},
 };
 

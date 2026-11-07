@@ -8,6 +8,7 @@ import 'loot_fragment.dart';
 /// (BE §14, BE Phase 13 populate a profondità 1). `acknowledgedAt` è il campo
 /// della BE 9.2 (null finché il foglio non è confermato). `enemies`,
 /// `stagesCleared`, `stagesTotal` e `rewards.pet` sono della BE Phase 13 (D-07).
+/// `known` sotto `enemies` è della BE Phase 16 (17-CONTEXT D-03).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -85,6 +86,7 @@ class QuestResultFragment {
     }
     enemies {
       quantity
+      known
       enemy {
         id
         name
