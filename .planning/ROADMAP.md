@@ -519,7 +519,7 @@ Plans:
 **Decisions of the discuss (2026-11-07, `17-CONTEXT.md` D-01..D-14)**: ids on the wire (`CharacterStatus.unlockedLore: [ID!]!`); geography = city + regions + state at birth and at every arrival on a city marker (territory POIs do not count); «known» = the exact enemy defeated (not the species); study roll at 50 % (BE env); result sheet lines from `QuestResult.loreUnlocked`; Map shows only the name of an unknown city, quest narrative stays whole; black silhouette; «Nuovo» bookmark per book; gated plans after the BE Phase 16 merge (pattern 16-07).
 **Backend prerequisite**: BE Phase 16 merged on BE `develop`.
 **Plans**: 10 plans (sequential waves; the last two gated by the BE Phase 16 merge)
-- [ ] 17-01-PLAN.md — `LoreType.label` (rename of the shadowing `name`) + `isBestiary`, tolerant `Lore.type`, lore fixtures, Italian section titles pinned, `CharacterStatus.unlockedLore` + `statusFields` selection (D-01, D-15, D-16)
+- [x] 17-01-PLAN.md — `LoreType.label` (rename of the shadowing `name`) + `isBestiary`, tolerant `Lore.type`, lore fixtures, Italian section titles pinned, `CharacterStatus.unlockedLore` + `statusFields` selection (D-01, D-15, D-16)
 - [ ] 17-02-PLAN.md — `QuestEnemy.known` end to end in one GREEN commit (strict/lenient parsing, `toJson`, both fragments, `questEnemyJson` default `true`, pinned document tests) + `strongestEntryOf` / `QuestSheetDetails.isStrongestEnemyKnown` (D-03)
 - [ ] 17-03-PLAN.md — `QuestResult.loreUnlocked` (lenient, `loreUnlocked { id name type }`, round trip) + the «Nuova pagina del Bestiario» / «Conoscenza appresa» lines after «Magia appresa» (D-04, D-10)
 - [ ] 17-04-PLAN.md — black silhouette: `EnemyPortrait.known` («Sagoma del nemico»), passed from the quest sheet and the result sheet following the strongest enemy's own `known` (D-08, D-09, D-17)
@@ -550,7 +550,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 0/10 | Planned | - |
+| 17. Unlockable Lore | 1/10 | In Progress | - |
 
 ## Traceability
 
