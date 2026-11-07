@@ -7,8 +7,10 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/teleport_mode_badge.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/teleport_mode_chip.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/unknown_city_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/city_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart';
@@ -22,6 +24,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/map_harness.dart';
 import '../../../../helpers/svg_cache_seed.dart';
@@ -140,6 +143,37 @@ void main() {
 
       verify(() => worldMapCubit.loadLoreData('lore-city-2')).called(1);
     });
+
+    testWidgets(
+      'a city without lore opens the name-only modal and never reads its lore (D-11)',
+      (tester) async {
+        final unknownCity = City.fromJson({
+          ...travelCityJson(
+            id: 'city-3',
+            name: 'Bosa',
+            markerId: 'city-marker-3',
+          ),
+          'relatedLore': null,
+        });
+        await pumpWorldMap(tester, character: characterLoaded());
+
+        tester
+            .widget<CityMarkersLayer>(find.byType(CityMarkersLayer))
+            .onCityTap!(unknownCity);
+        await tester.pumpAndSettle();
+
+        final modal = find.byType(UnknownCityModal);
+        expect(modal, findsOneWidget);
+        expect(
+          find.descendant(of: modal, matching: find.text('Bosa')),
+          findsOneWidget,
+        );
+        expect(find.text(UnknownCityModal.line), findsOneWidget);
+        expect(find.byType(CityModal), findsNothing);
+        verifyNever(() => worldMapCubit.loadLoreData(any()));
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 
   Future<void> pumpTeleportMap(
