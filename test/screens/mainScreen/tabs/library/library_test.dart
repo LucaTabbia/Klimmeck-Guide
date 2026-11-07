@@ -6,9 +6,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,6 +43,7 @@ void main() {
   late MockKlimmeckGraphQl graphQl;
   late MockCharacterCubit characterCubit;
   late StreamController<CharacterState> characterStates;
+  late InMemoryLibraryBookmarksStore bookmarks;
   late LibraryCubit libraryCubit;
   late List<Future<List<Lore>> Function()> answers;
 
@@ -58,9 +61,10 @@ void main() {
     characterStates = StreamController<CharacterState>.broadcast();
     answers = [];
     when(() => graphQl.getAllLores()).thenAnswer((_) => answers.removeAt(0)());
+    bookmarks = InMemoryLibraryBookmarksStore();
     libraryCubit = LibraryCubit(
       graphQl,
-      bookmarks: InMemoryLibraryBookmarksStore(),
+      bookmarks: bookmarks,
       characterId: 'c-1',
     );
   });
@@ -193,4 +197,29 @@ void main() {
     held.complete([andogan]);
     await tester.pumpAndSettle();
   });
+
+  testWidgets(
+    'a live arrival appears in the open book marked «Nuovo» (D-05, D-07)',
+    (tester) async {
+      bookmarks.seen[InMemoryLibraryBookmarksStore.keyOf(
+        'c-1',
+        LibraryBook.places,
+      )] = {
+        'lore-andogan',
+      };
+      answerWith([andogan]);
+      answerWith([andogan, bosa]);
+      await pumpLibrary(tester, character: characterWith(['lore-andogan']));
+      await openPlaces(tester);
+      expect(find.byKey(LoreCard.newMarkKey), findsNothing);
+
+      characterStates.add(characterWith(['lore-andogan', 'lore-bosa']));
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(LoreCard.newMarkKey), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    },
+  );
 }
