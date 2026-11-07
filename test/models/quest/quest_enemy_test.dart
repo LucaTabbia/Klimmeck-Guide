@@ -231,5 +231,38 @@ void main() {
 
       expect(strongestEnemyOf(const []), isNull);
     });
+
+    test('the strongest entry carries its own known (D-08)', () {
+      final strongest = strongestEntryOf(
+        _enemies([
+          _entry('wolf', 'Lupo', xp: 10, known: true),
+          _entry('troll', 'Troll', xp: 90, known: false),
+        ]),
+      );
+
+      expect(strongest!.enemy.id, 'troll');
+      expect(strongest.known, isFalse);
+    });
+
+    test('on equal xp the first entry is the strongest (D-08)', () {
+      final strongest = strongestEntryOf(
+        _enemies([_entry('a', 'A', xp: 10), _entry('b', 'B', xp: 10)]),
+      );
+
+      expect(strongest?.enemy.id, 'a');
+      expect(strongestEntryOf(const []), isNull);
+    });
+
+    test('strongestEnemyOf is the enemy of the strongest entry (D-08)', () {
+      for (final list in [
+        _enemies([
+          _entry('wolf', 'Lupo', xp: 10, known: true),
+          _entry('troll', 'Troll', xp: 90, known: false),
+        ]),
+        _enemies([_entry('a', 'A', xp: 10), _entry('b', 'B', xp: 10)]),
+      ]) {
+        expect(strongestEnemyOf(list), strongestEntryOf(list)!.enemy);
+      }
+    });
   });
 }
