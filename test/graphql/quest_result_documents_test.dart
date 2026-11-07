@@ -104,6 +104,13 @@ void main() {
         contains('ambush { at nearCity { id name } reachedCity { id name } }'),
       );
     });
+
+    test('selects the lore unlocked by the outcome (D-04)', () {
+      expect(
+        sharedSelection,
+        contains('spellLearned { id name } loreUnlocked { id name type }'),
+      );
+    });
   });
 
   group('OnQuestResultReceived', () {
