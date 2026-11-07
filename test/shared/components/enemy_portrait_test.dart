@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/svg_cache_seed.dart';
@@ -31,7 +33,11 @@ void main() {
     ).thenAnswer((_) => StreamController<FileResponse>().stream);
   });
 
-  Future<void> pumpPortrait(WidgetTester tester, String? imagePath) async {
+  Future<void> pumpPortrait(
+    WidgetTester tester,
+    String? imagePath, {
+    bool known = true,
+  }) async {
     await tester.pumpWidget(
       buildTestApp(
         home: Scaffold(
@@ -39,6 +45,7 @@ void main() {
             imagePath: imagePath,
             height: 48,
             cacheManager: cache,
+            known: known,
           ),
         ),
       ),
@@ -131,5 +138,86 @@ void main() {
 
     expect(find.bySemanticsLabel(EnemyPortrait.semanticLabel), findsNothing);
     semantics.dispose();
+  });
+
+  group('silhouette (BE Phase 16)', () {
+    const silhouette = ColorFilter.mode(
+      KlimmeckGuideTheme.deepNight,
+      BlendMode.srcIn,
+    );
+
+    testWidgets('an unknown enemy is a black silhouette of the SVG portrait '
+        '(D-08)', (tester) async {
+      seedSvgCache(['v1/goblin_test.svg']);
+
+      await pumpPortrait(tester, 'v1/goblin_test.svg', known: false);
+
+      final filtered = find.descendant(
+        of: find.byType(EnemyPortrait),
+        matching: find.byType(ColorFiltered),
+      );
+      expect(filtered, findsOneWidget);
+      expect(tester.widget<ColorFiltered>(filtered).colorFilter, silhouette);
+      expect(EnemyPortrait.silhouetteFilter, silhouette);
+      final svg = find.descendant(
+        of: filtered,
+        matching: find.byType(CachedSvg),
+      );
+      expect(svg, findsOneWidget);
+      expect(tester.widget<CachedSvg>(svg).height, 48);
+    });
+
+    testWidgets("a known enemy keeps today's portrait (D-08)", (tester) async {
+      seedSvgCache(['v1/goblin_test.svg']);
+
+      await pumpPortrait(tester, 'v1/goblin_test.svg');
+
+      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(CachedSvg), findsOneWidget);
+    });
+
+    testWidgets('the silhouette announces itself as «Sagoma del nemico» '
+        '(D-17)', (tester) async {
+      final semantics = tester.ensureSemantics();
+      seedSvgCache(['v1/goblin_test.svg']);
+
+      await pumpPortrait(tester, 'v1/goblin_test.svg', known: false);
+
+      expect(find.bySemanticsLabel('Sagoma del nemico'), findsOneWidget);
+      expect(find.bySemanticsLabel('Ritratto del nemico'), findsNothing);
+      expect(EnemyPortrait.unknownSemanticLabel, 'Sagoma del nemico');
+      semantics.dispose();
+    });
+
+    testWidgets('an unknown raster portrait is a silhouette too (D-08)', (
+      tester,
+    ) async {
+      await pumpPortrait(tester, _rasterUrl, known: false);
+
+      final image = tester.widget<CachedNetworkImage>(
+        find.byType(CachedNetworkImage),
+      );
+      final built = image.imageBuilder!(
+        tester.element(find.byType(CachedNetworkImage)),
+        MemoryImage(Uint8List(0)),
+      );
+
+      expect(built, isA<Semantics>());
+      final announced = built as Semantics;
+      expect(announced.properties.label, 'Sagoma del nemico');
+      expect(announced.child, isA<ColorFiltered>());
+      final filtered = announced.child! as ColorFiltered;
+      expect(filtered.colorFilter, silhouette);
+      expect(filtered.child, isA<Image>());
+    });
+
+    testWidgets('no portrait path still renders nothing when unknown (D-08)', (
+      tester,
+    ) async {
+      await pumpPortrait(tester, null, known: false);
+
+      expectNoImage();
+      expect(find.byType(ColorFiltered), findsNothing);
+    });
   });
 }
