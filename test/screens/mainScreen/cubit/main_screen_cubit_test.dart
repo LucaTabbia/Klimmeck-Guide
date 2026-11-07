@@ -89,6 +89,7 @@ void main() {
 
         second.complete([known]);
         await Future.wait([refresh, overlapping]);
+        await pumpEventQueue();
 
         verifyNever(() => graphQl.getCities());
         expect(states, [
