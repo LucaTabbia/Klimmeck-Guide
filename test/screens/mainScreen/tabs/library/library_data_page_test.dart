@@ -26,6 +26,20 @@ final Lore drustea = Lore.fromJson(
   loreJson(id: 'lore-drustea', type: 'state', name: 'Drustea'),
 );
 
+const String _cityImageId = 'v1/library_data_page_test_city.svg';
+
+/// Sessanta città con la stessa illustrazione (seminata una volta).
+List<Lore> sixtyCities() => [
+  for (var i = 1; i <= 60; i++)
+    Lore.fromJson(
+      loreJson(
+        id: 'lore-city-$i',
+        name: 'Città $i',
+        image: CloudinaryAssets.url(_cityImageId),
+      ),
+    ),
+];
+
 Future<void> pumpDataPage(
   WidgetTester tester, {
   LibraryBook book = LibraryBook.places,
@@ -40,6 +54,7 @@ Future<void> pumpDataPage(
     CloudinaryAssets.bookmarkYellow,
     CloudinaryAssets.bookmarkBlue,
     CloudinaryAssets.arrowDown,
+    _cityImageId,
   ]);
   await tester.pumpWidget(
     buildTestApp(
@@ -56,10 +71,19 @@ Future<void> pumpDataPage(
   await tester.pumpAndSettle();
 }
 
-List<Key?> dropdownKeys(WidgetTester tester) => tester
-    .widgetList<Dropdown>(find.byType(Dropdown))
-    .map((d) => d.key)
+Future<void> openSection(WidgetTester tester, String title) async {
+  await tester.tap(find.text(title));
+  await tester.pumpAndSettle();
+}
+
+List<Key?> sectionKeys(WidgetTester tester) => tester
+    .widgetList<DropdownHeader>(find.byType(DropdownHeader))
+    .map((header) => header.key)
     .toList();
+
+Finder cardOf(String loreId) => find.byWidgetPredicate(
+  (widget) => widget is LoreCard && widget.lore.id == loreId,
+);
 
 Finder backBookmarkOf(LibraryBook book) => find.byWidgetPredicate(
   (widget) => widget is CachedSvg && widget.url == book.bookmarkUrl,
@@ -96,7 +120,7 @@ void main() {
   ) async {
     await pumpDataPage(tester, lore: [andogan, bosa]);
 
-    expect(find.byType(Dropdown), findsOneWidget);
+    expect(find.byType(DropdownHeader), findsOneWidget);
     expect(find.text('Città'), findsOneWidget);
     expect(find.text('Regioni'), findsNothing);
     expect(find.text('Stati'), findsNothing);
@@ -120,7 +144,7 @@ void main() {
         LibraryDataPage.emptyBookLine,
         'Le pagine di questo libro sono ancora bianche.',
       );
-      expect(find.byType(Dropdown), findsNothing);
+      expect(find.byType(DropdownHeader), findsNothing);
       expect(find.text('Bestiario'), findsOneWidget);
 
       await tester.tap(backBookmarkOf(LibraryBook.bestiary));
@@ -134,13 +158,12 @@ void main() {
       lore: [andogan, bosa],
       newLoreIds: {'lore-bosa'},
     );
+    await openSection(tester, 'Città');
 
     expect(find.byKey(LoreCard.newMarkKey), findsOneWidget);
     expect(
       find.descendant(
-        of: find.byWidgetPredicate(
-          (widget) => widget is LoreCard && widget.lore.id == 'lore-bosa',
-        ),
+        of: cardOf('lore-bosa'),
         matching: find.byKey(LoreCard.newMarkKey),
       ),
       findsOneWidget,
@@ -157,26 +180,46 @@ void main() {
     expect(find.text('Regioni'), findsOneWidget);
   });
 
-  testWidgets('keeps an open section open when an earlier one appears (D-05)', (
+  testWidgets(
+    'keeps an open section open when an earlier one appears (D-05, D-20)',
+    (tester) async {
+      await pumpDataPage(tester, lore: [valtorre]);
+      await openSection(tester, 'Regioni');
+      expect(cardOf('lore-valtorre'), findsOneWidget);
+
+      await pumpDataPage(tester, lore: [andogan, valtorre]);
+
+      expect(sectionKeys(tester), [
+        LibraryDataPage.sectionKeyOf(LoreType.city),
+        LibraryDataPage.sectionKeyOf(LoreType.region),
+      ]);
+      expect(cardOf('lore-valtorre'), findsOneWidget);
+      expect(cardOf('lore-andogan'), findsNothing);
+    },
+  );
+
+  testWidgets('a closed section builds no card (D-20)', (tester) async {
+    await pumpDataPage(tester, lore: [andogan, bosa]);
+
+    expect(find.text('Città'), findsOneWidget);
+    expect(find.byType(LoreCard), findsNothing);
+  });
+
+  testWidgets('builds only the cards on screen of an open section (D-20)', (
     tester,
   ) async {
-    await pumpDataPage(tester, lore: [valtorre]);
-    await tester.tap(find.text('Regioni'));
-    await tester.pumpAndSettle();
+    await pumpDataPage(tester, lore: sixtyCities());
+    await openSection(tester, 'Città');
 
-    await pumpDataPage(tester, lore: [andogan, valtorre]);
+    final built = find.byType(LoreCard).evaluate().length;
+    expect(built, greaterThan(0));
+    expect(built, lessThan(60));
+    expect(cardOf('lore-city-60'), findsNothing);
 
-    expect(dropdownKeys(tester), [
-      const ValueKey<LoreType>(LoreType.city),
-      const ValueKey<LoreType>(LoreType.region),
-    ]);
-    final regionBody = tester.widget<SizeTransition>(
-      find.descendant(
-        of: find.byKey(const ValueKey<LoreType>(LoreType.region)),
-        matching: find.byType(SizeTransition),
-      ),
-    );
-    expect(regionBody.sizeFactor.value, 1.0);
+    await tester.scrollUntilVisible(find.text('Città 60'), 300);
+
+    expect(cardOf('lore-city-60'), findsOneWidget);
+    expect(find.byType(LoreCard).evaluate().length, lessThan(60));
   });
 
   testWidgets('the back bookmark returns to the books (D-06)', (tester) async {

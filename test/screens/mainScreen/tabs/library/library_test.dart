@@ -116,6 +116,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Una sezione chiusa non costruisce card (D-20): va aperta prima di leggerle.
+  Future<void> openCities(WidgetTester tester) async {
+    await tester.tap(find.text('Città'));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets(
     'forwards the unlocked ids of the character to the open book (D-05, D-12)',
     (tester) async {
@@ -123,6 +129,7 @@ void main() {
       answerWith([andogan, bosa]);
       await pumpLibrary(tester, character: characterWith(['lore-andogan']));
       await openPlaces(tester);
+      await openCities(tester);
       expect(find.text('Andogan'), findsOneWidget);
       expect(find.text('Bosa'), findsNothing);
 
@@ -141,6 +148,7 @@ void main() {
       final held = holdNextAnswer();
       await pumpLibrary(tester, character: characterWith(['lore-andogan']));
       await openPlaces(tester);
+      await openCities(tester);
 
       characterStates.add(characterWith(['lore-andogan', 'lore-bosa']));
       await tester.pump();
@@ -215,6 +223,7 @@ void main() {
       answerWith([andogan, bosa]);
       await pumpLibrary(tester, character: characterWith(['lore-andogan']));
       await openPlaces(tester);
+      await openCities(tester);
       expect(find.byKey(LoreCard.newMarkKey), findsNothing);
 
       characterStates.add(characterWith(['lore-andogan', 'lore-bosa']));
