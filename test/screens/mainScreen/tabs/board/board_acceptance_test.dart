@@ -511,8 +511,7 @@ void main() {
         CharacterLoaded state,
       ) async {
         characterStates.add(state);
-        await tester.pump();
-        await tester.pump();
+        await tester.pumpAndSettle();
       }
 
       testWidgets(

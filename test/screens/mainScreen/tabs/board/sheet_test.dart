@@ -75,4 +75,17 @@ void main() {
 
     expect(tapped, quest);
   });
+
+  testWidgets('a paper is tappable before its image is cached (D-21)', (
+    tester,
+  ) async {
+    // The announcement papers are not seeded: the box stays empty.
+    final quest = buildQuest(id: 'h-9', type: 'heal');
+    Quest? tapped;
+    await _pump(tester, quest, isTorn: false, onTap: (q) => tapped = q);
+
+    await tester.tap(find.byType(Sheet));
+
+    expect(tapped, quest);
+  });
 }
