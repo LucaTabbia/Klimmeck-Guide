@@ -39,7 +39,7 @@ key-decisions:
 
 requirements-completed: []
 
-duration: ~22min
+duration: ~8min
 completed: 2026-11-08
 ---
 
@@ -49,7 +49,7 @@ completed: 2026-11-08
 
 ## Performance
 
-- **Duration:** ~22 min (2026-11-08T19:33Z → 19:41Z)
+- **Duration:** ~8 min (2026-11-08T19:33Z → 19:41Z)
 - **Tasks:** 3/3
 - **Files:** 7 Dart files modified (3 lib, 4 test) + this SUMMARY + bookkeeping
 - **Commits:** 4 code (2 RED, 2 GREEN) + 2 docs

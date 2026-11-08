@@ -530,7 +530,7 @@ Plans:
 - [x] 17-09-PLAN.md — ⛔ gated by the BE Phase 16 merge: schema gate (`loreUnlocked` on BE `origin/develop`, names on the merged SDL, BE handoff read, dump + validate 45/45, full suite, analyzer, format/trailer/sanity gates, VALIDATION approved) (D-13)
 - [ ] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
 - [x] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
-- [ ] 17-12-PLAN.md — device UAT findings (D-23, D-24): the unknown-city paper sheet stretched to the paper width (name and line centred); a tap on the idle pawn opens the sheet of the city it stands on through the same city-tap path (the pawn covers the marker of the current city); drag and teleport pawn unchanged
+- [x] 17-12-PLAN.md — device UAT findings (D-23, D-24): the unknown-city paper sheet stretched to the paper width (name and line centred); a tap on the idle pawn opens the sheet of the city it stands on through the same city-tap path (the pawn covers the marker of the current city); drag and teleport pawn unchanged
 
 ## Progress Table
 
@@ -552,7 +552,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 10/12 | In Progress | - |
+| 17. Unlockable Lore | 11/12 | In Progress | - |
 
 ## Traceability
 
