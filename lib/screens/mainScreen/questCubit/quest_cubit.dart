@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/enemy_portrait_url.dart';
 
 import '../../../models/quest/quest.dart';
+import '../../../models/quest/quest_enemy.dart';
 
 part 'quest_state.dart';
 
@@ -20,17 +23,25 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
   StreamSubscription<Quest>? _questWatch;
   String? _watchedQuestId;
 
+  /// Riscalda in sottofondo i ritratti SVG dei nemici di ogni lista emessa
+  /// (D-22); assente nei test che non lo osservano.
+  final ImageWarmer? _warmer;
+
   static const Duration defaultCityRetryDelay = Duration(seconds: 2);
 
-  QuestCubit(this.repository, {this.cityRetryDelay = defaultCityRetryDelay})
-    : super(QuestInitial());
+  QuestCubit(
+    this.repository, {
+    this.cityRetryDelay = defaultCityRetryDelay,
+    ImageWarmer? warmer,
+  }) : _warmer = warmer,
+       super(QuestInitial());
 
   Future<void> loadQuest() async {
     emit(QuestLoading());
     try {
       final quests = await repository.getQuests();
       final current = state is QuestLoaded ? state as QuestLoaded : null;
-      emit(
+      _emitLoaded(
         QuestLoaded(
           quests,
           cityId: current?.cityId,
@@ -77,8 +88,22 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
       cityId: cityId ?? previous?.cityId,
       cityPointIds: cityPointIds,
     );
-    if (next != previous) emit(next);
+    if (next != previous) _emitLoaded(next);
   }
+
+  /// Emette la lista e riscalda i ritratti SVG dei suoi nemici senza attendere
+  /// e senza alcuno stato (D-22).
+  void _emitLoaded(QuestLoaded next) {
+    emit(next);
+    final warmer = _warmer;
+    if (warmer != null) unawaited(warmer.warm(_portraitSvgUrlsOf(next.quests)));
+  }
+
+  static Iterable<String> _portraitSvgUrlsOf(List<Quest> quests) => quests
+      .expand((quest) => quest.infos?.enemies ?? const <QuestEnemy>[])
+      .map((entry) => enemyPortraitUrl(entry.enemy.imagePath))
+      .whereType<String>()
+      .where((url) => url.toLowerCase().endsWith('.svg'));
 
   Future<Object?> _attempt(Future<Object?> Function() call) async {
     try {
@@ -129,7 +154,7 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
               listed.id == quest.id ? quest : listed,
           ]
         : [...current.quests, quest];
-    emit(
+    _emitLoaded(
       QuestLoaded(
         List.unmodifiable(quests),
         cityId: current.cityId,

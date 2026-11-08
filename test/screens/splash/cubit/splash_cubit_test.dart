@@ -123,8 +123,6 @@ void main() {
         final loreWarmUp = Completer<void>();
         warmer.holds[2] = loreWarmUp;
         final cubit = SplashCubit(rest, graphQl: graphQl, warmer: warmer);
-        final states = <SplashState>[];
-        cubit.stream.listen(states.add);
 
         final preload = cubit.getImages('main');
         await pumpEventQueue();
@@ -133,12 +131,12 @@ void main() {
           _folderUrls,
           [_cityA, _cityB],
         ]);
-        expect(states, isEmpty);
+        expect(cubit.state, const SplashInitial());
 
         loreWarmUp.complete();
         await preload;
 
-        expect(states, [const SplashData()]);
+        expect(cubit.state, const SplashData());
         await cubit.close();
       },
     );

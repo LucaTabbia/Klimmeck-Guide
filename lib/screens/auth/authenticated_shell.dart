@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
@@ -147,7 +148,10 @@ class AuthenticatedShell extends StatelessWidget {
           ),
         ),
         BlocProvider<QuestCubit>(
-          create: (_) => QuestCubit(QuestBoardRepository(graphQl: graphQl)),
+          create: (_) => QuestCubit(
+            QuestBoardRepository(graphQl: graphQl),
+            warmer: ImageWarmer(),
+          ),
         ),
         BlocProvider<TransactionCubit>(
           create: (_) => TransactionCubit(graphQl),

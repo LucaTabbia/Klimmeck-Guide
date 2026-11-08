@@ -10,6 +10,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
+import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
@@ -285,7 +286,11 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                     pushCleanup: _pushCoordinator,
                   )..start(),
                   child: BlocProvider<SplashCubit>(
-                    create: (_) => SplashCubit(rest),
+                    create: (_) => SplashCubit(
+                      rest,
+                      graphQl: graphQl,
+                      warmer: ImageWarmer(),
+                    ),
                     child: GraphQLProvider(
                       client: widget.graphQlClient,
                       child: AnnotatedRegion<SystemUiOverlayStyle>(
