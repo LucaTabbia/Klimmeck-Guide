@@ -518,7 +518,7 @@ Plans:
 **Decisions made (2026-10-29)**: per-character unlock, no cascade on `relatedLore`, enemy lore only on victory for all winners, study without spell → chance on a random locked lore among the study types, locked lore hidden.
 **Decisions of the discuss (2026-11-07, `17-CONTEXT.md` D-01..D-14)**: ids on the wire (`CharacterStatus.unlockedLore: [ID!]!`); geography = city + regions + state at birth and at every arrival on a city marker (territory POIs do not count); «known» = the exact enemy defeated (not the species); study roll at 50 % (BE env); result sheet lines from `QuestResult.loreUnlocked`; Map shows only the name of an unknown city, quest narrative stays whole; black silhouette; «Nuovo» bookmark per book; gated plans after the BE Phase 16 merge (pattern 16-07).
 **Backend prerequisite**: BE Phase 16 merged on BE `develop`.
-**Plans**: 10 plans (sequential waves; the last two gated by the BE Phase 16 merge)
+**Plans**: 11 plans (sequential waves; 17-09 and 17-10 gated by the BE Phase 16 merge; 17-11 added on 2026-11-08 from the device UAT finding, executed before the device E2E of 17-10 resumes)
 - [x] 17-01-PLAN.md — `LoreType.label` (rename of the shadowing `name`) + `isBestiary`, tolerant `Lore.type`, lore fixtures, Italian section titles pinned, `CharacterStatus.unlockedLore` + `statusFields` selection (D-01, D-15, D-16)
 - [x] 17-02-PLAN.md — `QuestEnemy.known` end to end in one GREEN commit (strict/lenient parsing, `toJson`, both fragments, `questEnemyJson` default `true`, pinned document tests) + `strongestEntryOf` / `QuestSheetDetails.isStrongestEnemyKnown` (D-03)
 - [x] 17-03-PLAN.md — `QuestResult.loreUnlocked` (lenient, `loreUnlocked { id name type }`, round trip) + the «Nuova pagina del Bestiario» / «Conoscenza appresa» lines after «Magia appresa» (D-04, D-10)
@@ -529,6 +529,7 @@ Plans:
 - [x] 17-08-PLAN.md — Map: `UnknownCityModal` («Non conosci ancora questa città.») replaces the `relatedLore!` crash; silent `MainScreenCubit.refreshCities()` on an `unlockedLore` set change (D-11)
 - [x] 17-09-PLAN.md — ⛔ gated by the BE Phase 16 merge: schema gate (`loreUnlocked` on BE `origin/develop`, names on the merged SDL, BE handoff read, dump + validate 45/45, full suite, analyzer, format/trailer/sanity gates, VALIDATION approved) (D-13)
 - [ ] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
+- [ ] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
 
 ## Progress Table
 
@@ -550,7 +551,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 9/10 | In Progress | - |
+| 17. Unlockable Lore | 9/11 | In Progress | - |
 
 ## Traceability
 
