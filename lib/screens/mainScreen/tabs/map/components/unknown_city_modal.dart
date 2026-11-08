@@ -14,6 +14,7 @@ class UnknownCityModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(height: MediaQuery.of(context).size.height / 7),
         AutoSizeText(
