@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
+import '../../../../../models/quest/board_policy.dart';
 import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
 import '../../../characterCubit/character_cubit.dart';
@@ -24,6 +25,7 @@ class CharacterMarkerLayer extends StatefulWidget {
     required this.bounds,
     required this.onDragUpdate,
     required this.onDragEnd,
+    this.onCityTap,
   });
 
   static const Key pawnKey = ValueKey('map.pawn');
@@ -39,6 +41,10 @@ class CharacterMarkerLayer extends StatefulWidget {
   final LatLngBounds bounds;
   final void Function(LatLng newLocation) onDragUpdate;
   final void Function(LatLng? finalLocation, City? targetCity) onDragEnd;
+
+  /// D-24: un tap (senza trascinamento) sulla pedina ferma apre la città sul
+  /// cui marker si trova; `null` = la pedina non apre nulla.
+  final void Function(City city)? onCityTap;
 
   @override
   State<CharacterMarkerLayer> createState() => _CharacterMarkerLayerState();
@@ -91,6 +97,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
             _buildDraggablePawn(
               pawnPath,
               canDrag: _canStartTravel(state, travel),
+              onTap: _cityTapOf(state, travel),
             ),
           ),
         ),
@@ -166,6 +173,18 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     _ => null,
   };
 
+  /// D-24: la pedina copre il marker della città in cui si trova e vince
+  /// l'hit test, così il tap passa dalla pedina per la stessa via del marker.
+  /// Niente col foglio di viaggio aperto (la pedina sta sulla meta, D-04) né
+  /// lontano da ogni marker.
+  VoidCallback? _cityTapOf(CharacterLoaded state, TravelState travel) {
+    final onCityTap = widget.onCityTap;
+    if (onCityTap == null || travel is! TravelIdle) return null;
+    final city = currentCityOf(widget.cities, state.character.status?.location);
+    if (city == null) return null;
+    return () => onCityTap(city);
+  }
+
   Widget _scaled(Widget pawn) {
     return ValueListenableBuilder<double>(
       valueListenable: widget.zoomNotifier,
@@ -176,7 +195,13 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     );
   }
 
-  Widget _buildDraggablePawn(String pawnPath, {required bool canDrag}) {
+  /// Il rilevatore è opaco: finché il file della pedina si carica `CachedSvg`
+  /// è una scatola vuota che non farebbe hit test (D-21).
+  Widget _buildDraggablePawn(
+    String pawnPath, {
+    required bool canDrag,
+    VoidCallback? onTap,
+  }) {
     return Draggable(
       maxSimultaneousDrags: canDrag ? null : 0,
       feedback: SizedBox(
@@ -187,7 +212,11 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       childWhenDragging: Opacity(opacity: 0, child: CachedSvg(url: pawnPath)),
       onDragUpdate: handlePawnDragUpdate,
       onDragEnd: (_) => handlePawnDragEnd(),
-      child: _pawn(pawnPath),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: _pawn(pawnPath),
+      ),
     );
   }
 

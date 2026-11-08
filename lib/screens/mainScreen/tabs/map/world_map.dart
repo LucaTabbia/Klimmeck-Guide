@@ -285,6 +285,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         bounds: _bounds,
         onDragUpdate: _handleCharacterDragUpdate,
         onDragEnd: _handleCharacterDragEnd,
+        onCityTap: _openCityLore,
       ),
       QuestPaperLayer(onOpen: _openFromPaper),
       _buildQuestOverlay(),
