@@ -1,9 +1,9 @@
 ---
 phase: 17
 slug: unlockable-lore
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-07
 ---
 
@@ -54,8 +54,8 @@ created: 2026-11-07
 | 17-07-02 | 07 | 7 | LORE-01 | T-17-19 | only received lore rendered; empty sections hidden; empty-book line; `ValueKey(type)` | widget | `flutter test test/screens/mainScreen/tabs/library` | ✅ (extend `library_data_page_test.dart`, `library_test.dart`) | ✅ green |
 | 17-08-01 | 08 | 8 | LORE-03 | T-17-22, T-17-23 | null `relatedLore` → name-only modal, never `lore(id)` | widget | `flutter test test/screens/mainScreen/tabs/map` | ❌ W0 (`unknown_city_modal_test.dart`) + extend `world_map_teleport_test.dart` | ✅ green |
 | 17-08-02 | 08 | 8 | LORE-03 | T-17-24 | silent `refreshCities` (no `MainScreenLoading`, list kept on failure) on an id-set change | bloc/widget | `flutter test test/screens/mainScreen` | ❌ W0 (`main_screen_cubit_test.dart`) + extend `main_screen_test.dart` | ✅ green |
-| 17-09-01 | 09 | 9 | LORE-01..03 | T-17-25, T-17-26, T-17-27 | BE read-only, no fetch; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c loreUnlocked` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ⬜ pending |
-| 17-09-02 | 09 | 9 | LORE-01..03 | T-17-28 | sanity greps: no `knownEnemies`, no cubit-to-cubit stream, no `relatedLore!`, lore queries unchanged | gate | `flutter test` (full) | ✅ | ⬜ pending |
+| 17-09-01 | 09 | 9 | LORE-01..03 | T-17-25, T-17-26, T-17-27 | BE read-only, no fetch; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c loreUnlocked` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
+| 17-09-02 | 09 | 9 | LORE-01..03 | T-17-28 | sanity greps: no `knownEnemies`, no cubit-to-cubit stream, no `relatedLore!`, lore queries unchanged | gate | `flutter test` (full) | ✅ | ✅ green |
 | 17-10-01 | 10 | 10 | LORE-01..03 | T-17-29, T-17-31 | UAT record with the player identity, without ids/URIs/tokens | doc | `grep -cE "^\| [1-8] \|" .planning/phases/17-unlockable-lore/17-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 17-10-02 | 10 | 10 | LORE-01..03 | T-17-32 | human checkpoint; BE, identity and DB seeds outside the repo | manual | device E2E (`17-HUMAN-UAT.md`) | — | ⬜ pending |
 | 17-10-03 | 10 | 10 | LORE-01..03 | T-17-29, T-17-30 | mark-complete only on passed steps | doc | `grep -q "## 3. UAT outcome" .planning/phases/17-unlockable-lore/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
@@ -87,11 +87,13 @@ No framework install needed.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 20s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 20s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-08 (plan 17-09; the 17-10 device rows stay pending until the human checkpoint)
+
+Gate passed on BE `6be50d2`: 45/45 OK, full suite 3420 green, analyzer 50 info (0 error / 0 warning); format gate clean on the 17 new Dart files; trailers 0; sanity greps empty, `LibraryLoading()` count 1.
