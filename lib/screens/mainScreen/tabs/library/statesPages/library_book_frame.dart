@@ -5,19 +5,21 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import '../../../../../models/enums/library_book.dart';
 import '../../../../../theme/kg_theme.dart';
 
-/// Pergamena di un libro aperto: titolo, contenuto e segnalibro in basso a
-/// destra per tornare agli scaffali (D-06).
+/// Pergamena di un libro aperto: titolo, [slivers] del contenuto e segnalibro
+/// in basso a destra per tornare agli scaffali (D-06). Un solo
+/// `CustomScrollView`, così le pagine costruiscono solo ciò che è a schermo
+/// (D-20).
 class LibraryBookFrame extends StatelessWidget {
   const LibraryBookFrame({
     super.key,
     required this.book,
     required this.onBack,
-    required this.child,
+    required this.slivers,
   });
 
   final LibraryBook book;
   final VoidCallback onBack;
-  final Widget child;
+  final List<Widget> slivers;
 
   @override
   Widget build(BuildContext context) {
@@ -25,29 +27,29 @@ class LibraryBookFrame extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 50.0),
       child: Container(
         width: MediaQuery.of(context).size.width - 100,
-        decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
+        decoration: const BoxDecoration(color: KlimmeckGuideTheme.parchment),
         height: MediaQuery.of(context).size.height,
         child: Stack(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SingleChildScrollView(
+              child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 40),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: Text(
-                        book.title,
-                        style: KlimmeckGuideTheme.instance.headlineLarge,
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 40.0, bottom: 20.0),
+                      child: Center(
+                        child: Text(
+                          book.title,
+                          style: KlimmeckGuideTheme.instance.headlineLarge,
+                        ),
                       ),
                     ),
-                    child,
-                    const SizedBox(height: 120),
-                  ],
-                ),
+                  ),
+                  ...slivers,
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                ],
               ),
             ),
             Align(

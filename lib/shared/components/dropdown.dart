@@ -5,6 +5,83 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../theme/kg_theme.dart';
 
+/// Intestazione di una sezione a tendina: nome, freccia ruotata di [turns]
+/// (0 chiusa, 0.5 aperta) e filo di bronzo sotto. Condivisa da [Dropdown] e
+/// dalle sezioni della Libreria (Phase 17 D-20).
+class DropdownHeader extends StatelessWidget {
+  const DropdownHeader({
+    super.key,
+    required this.sectionName,
+    required this.turns,
+    required this.onTap,
+  });
+
+  final String sectionName;
+  final double turns;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final contentWidth = maxWidth - (maxWidth / 5);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 42,
+              child: InkWell(
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5.0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: contentWidth,
+                        child: AutoSizeText(
+                          sectionName,
+                          maxFontSize: 20,
+                          minFontSize: 12,
+                          style: KlimmeckGuideTheme.instance.titleMedium,
+                        ),
+                      ),
+                      RotationTransition(
+                        turns: AlwaysStoppedAnimation(turns),
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CachedSvg(
+                            url: CloudinaryAssets.url(
+                              CloudinaryAssets.arrowDown,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: contentWidth,
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: KlimmeckGuideTheme.darkBronze,
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class Dropdown extends StatefulWidget {
   const Dropdown({
     super.key,
@@ -66,90 +143,41 @@ class _DropdownState extends State<Dropdown>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth;
-        final contentWidth = maxWidth - (maxWidth / 5);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 42,
-              child: InkWell(
-                onTap: () => _toggle(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedBuilder(
+          animation: _sizeFactor,
+          builder: (context, _) => DropdownHeader(
+            sectionName: widget.sectionName,
+            turns: _sizeFactor.value * 0.5,
+            onTap: _toggle,
+          ),
+        ),
+        widget.maxHeight != null
+            ? AnimatedContainer(
+                height: _isOpen ? widget.maxHeight! - 43 : 0,
+                duration: const Duration(milliseconds: 250),
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 5.0),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: contentWidth,
-                        child: AutoSizeText(
-                          widget.sectionName,
-                          maxFontSize: 20,
-                          minFontSize: 12,
-                          style: KlimmeckGuideTheme.instance.titleMedium,
-                        ),
-                      ),
-                      RotationTransition(
-                        turns: Tween<double>(
-                          begin: 0,
-                          end: 0.5,
-                        ).animate(_sizeFactor),
-                        child: SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CachedSvg(
-                            url: CloudinaryAssets.url(CloudinaryAssets.arrowDown),
-                          ),
-                        ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
+                  child: SingleChildScrollView(child: widget.data),
+                ),
+              )
+            : ClipRect(
+                child: SizeTransition(
+                  sizeFactor: _sizeFactor,
+                  axisAlignment: -1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 10,
+                      top: 10,
+                      bottom: 10,
+                    ),
+                    child: widget.data,
                   ),
                 ),
               ),
-            ),
-            Container(
-              width: contentWidth,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: KlimmeckGuideTheme.darkBronze,
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-            widget.maxHeight != null
-                ? AnimatedContainer(
-                    height: _isOpen ? widget.maxHeight! - 43 : 0,
-                    duration: const Duration(milliseconds: 250),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 10,
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: SingleChildScrollView(child: widget.data),
-                    ),
-                  )
-                : ClipRect(
-                    child: SizeTransition(
-                      sizeFactor: _sizeFactor,
-                      axisAlignment: -1,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 10,
-                          top: 10,
-                          bottom: 10,
-                        ),
-                        child: widget.data,
-                      ),
-                    ),
-                  ),
-          ],
-        );
-      },
+      ],
     );
   }
 }

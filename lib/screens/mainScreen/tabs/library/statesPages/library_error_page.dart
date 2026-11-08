@@ -21,12 +21,16 @@ class LibraryErrorPage extends StatelessWidget {
     return LibraryBookFrame(
       book: book,
       onBack: onBack,
-      child: Text(
-        errorLine,
-        key: errorKey,
-        textAlign: TextAlign.center,
-        style: KlimmeckGuideTheme.instance.bodyMedium,
-      ),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Text(
+            errorLine,
+            key: errorKey,
+            textAlign: TextAlign.center,
+            style: KlimmeckGuideTheme.instance.bodyMedium,
+          ),
+        ),
+      ],
     );
   }
 }

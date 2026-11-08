@@ -9,7 +9,12 @@ import '../../../../../models/enums/lore_type.dart';
 import '../../../../../models/lore.dart';
 import '../../../../../theme/kg_theme.dart';
 
-class LibraryDataPage extends StatelessWidget {
+typedef _Section = ({LoreType type, List<Lore> entries});
+
+/// Pagina di un libro: una sezione per tipo con almeno una voce (D-06), resa
+/// a sliver così solo le card a schermo costruiscono la loro immagine; una
+/// sezione chiusa non costruisce nulla (D-20).
+class LibraryDataPage extends StatefulWidget {
   const LibraryDataPage({
     super.key,
     required this.book,
@@ -31,66 +36,72 @@ class LibraryDataPage extends StatelessWidget {
   final Set<String> newLoreIds;
   final VoidCallback onBack;
 
-  List<({LoreType type, List<Lore> entries})> get _sections => [
-    for (final type in book.types)
-      (type: type, entries: lore.where((entry) => entry.type == type).toList()),
+  @override
+  State<LibraryDataPage> createState() => _LibraryDataPageState();
+}
+
+class _LibraryDataPageState extends State<LibraryDataPage> {
+  /// Sezioni aperte, per tipo: sopravvivono ai dati nuovi del libro (D-05).
+  final Set<LoreType> _open = {};
+
+  List<_Section> get _sections => [
+    for (final type in widget.book.types)
+      (
+        type: type,
+        entries: widget.lore.where((entry) => entry.type == type).toList(),
+      ),
   ].where((section) => section.entries.isNotEmpty).toList();
+
+  void _toggle(LoreType type) {
+    setState(() {
+      if (!_open.remove(type)) _open.add(type);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final sections = _sections;
     return LibraryBookFrame(
-      book: book,
-      onBack: onBack,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (sections.isEmpty)
-            Text(
-              emptyBookLine,
-              key: emptyBookKey,
+      book: widget.book,
+      onBack: widget.onBack,
+      slivers: [
+        if (sections.isEmpty)
+          SliverToBoxAdapter(
+            child: Text(
+              LibraryDataPage.emptyBookLine,
+              key: LibraryDataPage.emptyBookKey,
               textAlign: TextAlign.center,
               style: KlimmeckGuideTheme.instance.bodyMedium,
             ),
-          for (final section in sections)
-            Dropdown(
-              key: sectionKeyOf(section.type),
-              sectionName: section.type.label,
-              data: _LoreList(
-                lores: section.entries,
-                newLoreIds: newLoreIds,
-                newMarkInk: book.newMarkInk,
-              ),
-            ),
-        ],
-      ),
+          ),
+        for (final section in sections) ..._sectionSlivers(section),
+      ],
     );
   }
-}
 
-class _LoreList extends StatelessWidget {
-  const _LoreList({
-    required this.lores,
-    required this.newLoreIds,
-    required this.newMarkInk,
-  });
-
-  final List<Lore> lores;
-  final Set<String> newLoreIds;
-  final Color newMarkInk;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      itemCount: lores.length,
-      itemBuilder: (context, index) => LoreCard(
-        lore: lores[index],
-        isNew: newLoreIds.contains(lores[index].id),
-        newMarkInk: newMarkInk,
+  List<Widget> _sectionSlivers(_Section section) {
+    final isOpen = _open.contains(section.type);
+    return [
+      SliverToBoxAdapter(
+        child: DropdownHeader(
+          key: LibraryDataPage.sectionKeyOf(section.type),
+          sectionName: section.type.label,
+          turns: isOpen ? 0.5 : 0,
+          onTap: () => _toggle(section.type),
+        ),
       ),
-    );
+      if (isOpen)
+        SliverPadding(
+          padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
+          sliver: SliverList.builder(
+            itemCount: section.entries.length,
+            itemBuilder: (context, index) => LoreCard(
+              lore: section.entries[index],
+              isNew: widget.newLoreIds.contains(section.entries[index].id),
+              newMarkInk: widget.book.newMarkInk,
+            ),
+          ),
+        ),
+    ];
   }
 }

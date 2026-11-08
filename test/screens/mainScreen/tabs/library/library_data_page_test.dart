@@ -216,7 +216,7 @@ void main() {
     expect(built, lessThan(60));
     expect(cardOf('lore-city-60'), findsNothing);
 
-    await tester.scrollUntilVisible(find.text('Città 60'), 300);
+    await tester.scrollUntilVisible(find.text('Città 60'), 500);
 
     expect(cardOf('lore-city-60'), findsOneWidget);
     expect(find.byType(LoreCard).evaluate().length, lessThan(60));
