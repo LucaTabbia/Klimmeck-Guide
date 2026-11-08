@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 17 (Unlockable Lore) — RESUMED 2026-11-08 at 8/10 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-08 done, reviewed (0 critical / 2 warning / 4 info → 5 fixed, 1 not needed), verified (human_needed, 0 gaps, 4 deferred, 8 device steps), fixed and audited (32 threats, 0 open, 6 deferred); full suite 3420 green, analyzer 0 error / 0 warning / 50 info; the BE Phase 16 PR #25 was merged on BE `develop` on 2026-11-08 (`6be50d2`, `loreUnlocked` present in `origin/develop:src/schema.gql`, backfill run at the real boot, one-off removed): 17-09 (schema gate) runs now, then 17-10 (device E2E with the player identity)
-Plan: 8 of 10
+Plan: 9 of 10
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: after the BE Phase 16 merge: `/gsd-execute-phase 17` resumes with 17-09 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c loreUnlocked` ≥ 1) then 17-10 (device E2E with the player identity + handoff); the Phase 16 device E2E (16-08 Tasks 2–3 from the APK of `feat/16-travel-ambushes`) runs in the same session; then the two FE PRs (16 first, 17 rebased on `develop`, CONTEXT D-18); FE 12 (Hardening) last
 Status: Phase 17 in progress — 17-09 executing against the merged BE Phase 16 (`origin/develop` `6be50d2`); the BE runs from `develop` on port 3001 with the Phase 16 code; next 17-10 at the human checkpoint (device E2E with the player identity), then the two FE PRs (16 first, 17 rebased on `develop`, CONTEXT D-18)
