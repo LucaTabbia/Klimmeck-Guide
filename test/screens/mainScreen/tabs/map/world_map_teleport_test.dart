@@ -174,6 +174,51 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets(
+      'tapping the pawn on an unknown city opens the name-only sheet (D-24)',
+      (tester) async {
+        const bosaMarker = [-10.0, -20.0];
+        final unknownCity = City.fromJson({
+          ...travelCityJson(
+            id: 'city-3',
+            name: 'Bosa',
+            markerId: 'city-marker-3',
+            marker: bosaMarker,
+          ),
+          'type': 'drusteaCapital',
+          'relatedLore': null,
+        });
+        await pumpWorldMap(
+          tester,
+          character: characterLoaded(
+            locationId: 'city-marker-3',
+            location: bosaMarker,
+          ),
+          cities: [cityA, cityB, unknownCity],
+        );
+
+        await tester.tap(find.byKey(CharacterMarkerLayer.pawnKey));
+        await tester.pumpAndSettle();
+
+        final modal = find.byType(UnknownCityModal);
+        expect(modal, findsOneWidget);
+        expect(
+          find.descendant(of: modal, matching: find.text('Bosa')),
+          findsOneWidget,
+        );
+        expect(find.text(UnknownCityModal.line), findsOneWidget);
+        expect(find.byType(CityModal), findsNothing);
+        verifyNever(() => worldMapCubit.loadLoreData(any()));
+        verifyNever(
+          () => travelCubit.preview(
+            characterId: any(named: 'characterId'),
+            destination: any(named: 'destination'),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 
   Future<void> pumpTeleportMap(

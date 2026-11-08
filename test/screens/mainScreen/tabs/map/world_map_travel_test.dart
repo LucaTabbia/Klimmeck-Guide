@@ -110,6 +110,7 @@ Future<void> pumpWorldMap(
   DateTime? serverNow,
   List<Quest> quests = const [],
   TeleportModeState teleportState = const TeleportIdle(),
+  List<City>? cities,
 }) async {
   useLandscapePhone(tester);
   serverClock = FakeServerClockService(serverNow ?? travelStart);
@@ -145,7 +146,7 @@ Future<void> pumpWorldMap(
             BlocProvider<MapAvailabilityCubit>.value(value: mapAvailability),
             BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
           ],
-          child: Scaffold(body: WorldMap(cities: [cityA, cityB])),
+          child: Scaffold(body: WorldMap(cities: cities ?? [cityA, cityB])),
         ),
       ),
     ),

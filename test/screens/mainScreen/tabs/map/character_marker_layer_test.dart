@@ -51,12 +51,14 @@ const LatLng home = LatLng(10, 20);
 const LatLng destination = LatLng(10, 60);
 
 CharacterLoaded characterLoaded({
+  String locationId = 'city-marker-1',
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? awaitingAid,
 }) => CharacterLoaded(
   Character.fromJson(
     travellingCharacterJson(
+      locationId: locationId,
       activeTravel: activeTravel,
       pendingQuest: pendingQuest,
       awaitingAid: awaitingAid,
@@ -100,6 +102,7 @@ void main() {
   late StreamController<TravelState> travelStates;
   late StreamController<TravelProgressState> progressStates;
   late List<(LatLng?, City?)> dragEnds;
+  late List<City> tapped;
 
   setUp(() {
     characterCubit = MockCharacterCubit();
@@ -109,6 +112,7 @@ void main() {
     travelStates = StreamController<TravelState>.broadcast();
     progressStates = StreamController<TravelProgressState>.broadcast();
     dragEnds = [];
+    tapped = [];
     seedSvgCache([CloudinaryAssets.adventurerMalePawn]);
   });
 
@@ -147,6 +151,7 @@ void main() {
             ),
             onDragUpdate: (_) {},
             onDragEnd: (location, city) => dragEnds.add((location, city)),
+            onCityTap: tapped.add,
           ),
         ], controller: controller),
       ),
@@ -355,6 +360,71 @@ void main() {
 
       expect(dragEnds, [(destination, cityB)]);
       expect(pawnPoint(tester), home);
+    });
+  });
+
+  group('pawn tap (D-24)', () {
+    Future<void> tapPawn(WidgetTester tester) async {
+      await tester.tap(find.byKey(CharacterMarkerLayer.pawnKey));
+      // Un tap non raccolto passa alla mappa, che attende un eventuale doppio tap.
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('a tap on the idle pawn opens the city it stands on (D-24)', (
+      tester,
+    ) async {
+      await pumpLayer(tester, character: characterLoaded());
+
+      await tapPawn(tester);
+
+      expect(tapped, [cityA]);
+      expect(dragEnds, isEmpty);
+      expect(pawnPoint(tester), home);
+    });
+
+    testWidgets(
+      'a tap on the pawn away from any city marker opens nothing (D-24)',
+      (tester) async {
+        await pumpLayer(
+          tester,
+          character: characterLoaded(locationId: 'poi-road-1'),
+        );
+
+        await tapPawn(tester);
+
+        expect(tapped, isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('a tap while a travel sheet is open opens nothing (D-24)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(),
+        travel: confirming(),
+      );
+
+      await tapPawn(tester);
+
+      expect(tapped, isEmpty);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a tap on the travelling pawn opens nothing (D-24)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        progress: travelling(),
+      );
+
+      await tapPawn(tester);
+
+      expect(tapped, isEmpty);
+      expect(tester.takeException(), isNull);
     });
   });
 
