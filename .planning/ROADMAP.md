@@ -529,7 +529,7 @@ Plans:
 - [x] 17-08-PLAN.md — Map: `UnknownCityModal` («Non conosci ancora questa città.») replaces the `relatedLore!` crash; silent `MainScreenCubit.refreshCities()` on an `unlockedLore` set change (D-11)
 - [x] 17-09-PLAN.md — ⛔ gated by the BE Phase 16 merge: schema gate (`loreUnlocked` on BE `origin/develop`, names on the merged SDL, BE handoff read, dump + validate 45/45, full suite, analyzer, format/trailer/sanity gates, VALIDATION approved) (D-13)
 - [ ] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
-- [ ] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
+- [x] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
 
 ## Progress Table
 
@@ -551,7 +551,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 9/11 | In Progress | - |
+| 17. Unlockable Lore | 10/11 | In Progress | - |
 
 ## Traceability
 
