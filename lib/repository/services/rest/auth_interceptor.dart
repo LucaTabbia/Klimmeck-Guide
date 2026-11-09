@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
@@ -47,9 +46,7 @@ class AuthInterceptor extends Interceptor {
         options.headers['Authorization'] = '$_bearerPrefix$token';
       }
     } catch (e) {
-      if (kDebugMode) {
-        appLog('[AuthInterceptor] token fetch failed: ${e.runtimeType}');
-      }
+      appLog('[AuthInterceptor] token fetch failed: ${e.runtimeType}');
     }
     handler.next(options);
   }
