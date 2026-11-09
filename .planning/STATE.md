@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-last_updated: "2026-11-07T09:40:32.000Z"
-last_activity: 2026-11-07 -- Phase 16 parked at 7/8, device E2E deferred to the end of FE Phase 17
+status: executing
+last_updated: "2026-11-09T11:46:58.000Z"
+last_activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1-7), AMBUSH-01..03 ticked
 progress:
   total_phases: 17
-  completed_phases: 14
-  total_plans: 150
-  completed_plans: 142
+  completed_phases: 15
+  total_plans: 151
+  completed_plans: 144
   percent: 95
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 16 (Travel Ambushes) — PARKED at 7/8 (2026-11-07) on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-07 done (16-07 gate passed on the merged BE `9103440`: 45/45 OK, full suite 3391 green), 16-08 Task 1 done (`16-HUMAN-UAT.md`, `db9601b`); the device E2E (16-08 Tasks 2–3) is deferred by the user to the end of FE Phase 17 together with that phase's own device UAT (phone unavailable on 2026-11-07)
-Plan: 8 of 9
-Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: FE Phase 17 (Unlockable Lore) with BE Phase 16 (Lore sbloccabili) on branches from `develop` — independent of Phase 16 (ROADMAP: depends on Phases 3, 6, 9, BE 11, BE 16); then the two device UATs (16-08 Tasks 2–3 from the APK of `feat/16-travel-ambushes`, then the Phase 17 one), the FE PR of Phase 16 after its UAT; FE 12 (Hardening) last
-Status: Phase 16 paused at 7/8 — 16-08 is at the human checkpoint (Task 2, device E2E) deferred to the end of FE Phase 17 by the user. The BE runs from `develop` `9103440` on port 3001 (orchestrator, no Redis: sweeps every 60 s); APK debug built from `16d4c69` (docs-only difference to HEAD). Resume: a new 16-08 executor from Task 2 (guided UAT, record results, `requirements mark-complete AMBUSH-0N` only for passed requirements, close VALIDATION/ROADMAP/STATE, handoff `BACKEND-NOTES.md`), then the FE PR to `develop`. 2026-11-09: the device E2E (16-08 Task 2) resumed on its own APK — steps 1–7 passed; the user's carousel finding → D-19, plan 16-09 inserted and executed while the E2E closes (device re-check of the carousel, then 16-08 Task 3); 16-09 (D-19 carousel affordance) done on 2026-11-09, the device re-check of the carousel and 16-08 Task 3 follow.
-Last activity: 2026-11-07 -- Phase 16 parked at 7/8: 16-07 passed, 16-08 Task 1 done, device E2E deferred to the end of FE Phase 17 (user)
+Phase: 16 (Travel Ambushes) — COMPLETE 2026-11-09 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-09 executed (16-01..16-07 reviewed, fixed, verified and audited on 2026-11-07; 16-09 inserted on 2026-11-09 from the device E2E finding D-19 and executed during the E2E); schema gate 45/45 on BE `develop` `9103440` (16-07); Android device E2E steps 1–7 passed on 2026-11-09 against BE `develop` `6be50d2` (16-08, `16-HUMAN-UAT.md`); AMBUSH-01..03 ticked
+Plan: 9 of 9
+Completed phases: 15 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16)
+Next Phase: FE PR `feat/16-travel-ambushes` → `develop` (BE Phases 15 and 16 are already merged on BE `develop`), then rebase `feat/17-unlockable-lore` (FE Phase 17 complete on its own branch, 12/12 on 2026-11-09) on `develop` and open its PR; FE 12 (Hardening) last
+Status: Phase 16 complete — BE Phase 15 merged on BE `develop` (`9103440`, PR #24) and proven by the 16-07 gate (45/45, full suite 3391 green, analyzer 0 error / 0 warning); 16-08 device E2E 2026-11-09 steps 1–7 pass (step 7 optional) against BE `develop` `6be50d2` with the APK of this branch; the user's carousel finding became D-19 / plan 16-09 (peeking pages and an opening nudge), re-checked on the device; handoff `phases/16-travel-ambushes/BACKEND-NOTES.md` (questions §5: D-16 two-travel merge accepted, detour safety already BE D-03, GM teleport delivers the held report, a second BE process runs the sweeps too, `City.relatedLore` null on the pre-17 app, HP clamped at 1); VALIDATION approved 2026-11-09; ready for the FE PR (`gh pr create --base develop` from this branch with the personal gh token per command, never `main`)
+Last activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1–7), AMBUSH-01..03 ticked, BACKEND-NOTES written
 
 ## Current Milestone
 
@@ -66,7 +66,7 @@ Last activity: 2026-11-07 -- Phase 16 parked at 7/8: 16-07 passed, 16-08 Task 1 
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 - ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
 
-- **FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.
+- ~~**FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.~~ — **resolved 2026-11-09:** merged on BE `develop` (`9103440`, PR #24), consumed by plan 16-07 and proven by the device E2E of 16-08 against BE `develop` `6be50d2` (outcome in `phases/16-travel-ambushes/BACKEND-NOTES.md` §4; questions §5, among them the user's detour-safety rule already honoured by BE D-03).
 
 ### Quick Tasks Completed
 

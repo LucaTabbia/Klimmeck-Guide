@@ -52,9 +52,9 @@ created: 2026-11-06
 | 16-06-02 | 06 | 6 | AMBUSH-03 | T-16-16 | no ambush wording on the confirmation sheet or the quest line | widget/unit | `flutter test test/screens/mainScreen/tabs/map/travel_confirmation_sheet_test.dart test/models/quest/quest_travel_line_test.dart test/tool/schema_check_documents_test.dart` | ✅ (extend, D-17 pins) | ✅ green |
 | 16-07-01 | 07 | 7 | AMBUSH-01..03 | T-16-17, T-16-18, T-16-19 | BE read-only; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c AmbushReport` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
 | 16-07-02 | 07 | 7 | AMBUSH-01..03 | T-16-20 | sanity greps: no FE defeat copy, `PushEvent` unchanged, no reroute mechanism, no gated carousel | gate | `flutter test` (full) | ✅ | ✅ green |
-| 16-08-01 | 08 | 8 | AMBUSH-01..03 | T-16-21 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/16-travel-ambushes/16-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
-| 16-08-02 | 08 | 8 | AMBUSH-01..03 | T-16-23, T-16-24 | human checkpoint; DB seeds outside the repo | manual | device E2E (`16-HUMAN-UAT.md`) | — | ⬜ pending |
-| 16-08-03 | 08 | 8 | AMBUSH-01..03 | T-16-21, T-16-22 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/16-travel-ambushes/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
+| 16-08-01 | 08 | 8 | AMBUSH-01..03 | T-16-21 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/16-travel-ambushes/16-HUMAN-UAT.md` | ✅ | ✅ green |
+| 16-08-02 | 08 | 8 | AMBUSH-01..03 | T-16-23, T-16-24 | human checkpoint; DB seeds outside the repo | manual | device E2E (`16-HUMAN-UAT.md`) | — | ✅ green |
+| 16-08-03 | 08 | 8 | AMBUSH-01..03 | T-16-21, T-16-22 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/16-travel-ambushes/BACKEND-NOTES.md` | ✅ | ✅ green |
 | 16-09-01 | 09 | 9 | AMBUSH-02 | T-16-26 | carousel affordance: with several reports the neighbour pages peek in from the edges (right on page 1, left on later pages), a single report fills the width (D-19) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ✅ green |
 | 16-09-02 | 09 | 9 | AMBUSH-02 | T-16-25 | one nudge at opening with several reports (starts after the route transition + 200 ms rest, amplitude 6% of the width), none with one, «Continua» works during the nudge; still swipe-only — no programmatic page turn (D-19, D-05) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ✅ green |
 
@@ -99,6 +99,8 @@ No framework install needed.
 - [x] Feedback latency < 16s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-11-07 (plan 16-07, device rows 16-08-01..03 still pending)
+**Approval:** approved 2026-11-09 (device rows 16-08-01..03 green; first approved 2026-11-07 at plan 16-07 with the device rows pending)
 
 Gate passed on BE `9103440`: 45/45 OK, full suite 3391 green, analyzer 50 info (0 error / 0 warning).
+
+Device E2E passed on 2026-11-09 (`16-HUMAN-UAT.md`, steps 1–7 with step 7 optional; the D-19 re-check of plan 16-09 included) against BE `develop` `6be50d2` (BE Phases 15 and 16 merged).
