@@ -180,6 +180,34 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
   });
 
+  testWidgets('an ambushDefeat tap only latches the camera focus on the pawn '
+      '(D-02)', (tester) async {
+    await startSession(tester);
+    final mapFocus = MapFocusCubit();
+    addTearDown(mapFocus.close);
+    final controller = await pumpLanding(
+      tester,
+      popups: defaultNotificationPopups,
+      mapFocus: mapFocus,
+    );
+    controller.jumpToPage(3);
+    await tester.pump();
+
+    cubit.offer(
+      NotificationIntent(
+        category: NotificationCategory.ambushDefeat,
+        id: 'c-1',
+        sentAt: DateTime.utc(2026, 10, 18, 12, 10),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('page 0'), findsOneWidget);
+    expect(mapFocus.state.isCharacterFocusPending, isTrue);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
+  });
+
   testWidgets('a questEnd tap lands on the map and asks the queue for it', (
     tester,
   ) async {
@@ -207,10 +235,11 @@ void main() {
     verify(() => questResults.requestFromTap('result-7')).called(1);
   });
 
-  test('registers the travelEnd and questEnd popups', () {
+  test('registers the travelEnd, questEnd and ambushDefeat popups (D-02)', () {
     expect(defaultNotificationPopups.keys.toSet(), {
       NotificationCategory.travelEnd,
       NotificationCategory.questEnd,
+      NotificationCategory.ambushDefeat,
     });
   });
 }

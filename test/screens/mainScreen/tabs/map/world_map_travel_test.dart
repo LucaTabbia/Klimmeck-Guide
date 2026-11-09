@@ -31,6 +31,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/a
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -874,5 +875,75 @@ void main() {
         'In attesa del gruppo 2/3',
       );
     });
+  });
+
+  group('lost ambush reroute (D-03)', () {
+    final ambush = pawnAt(midTravel);
+    final rerouted = activeTravelJson(
+      startTime: '2026-10-24T11:20:00.000Z',
+      endTime: '2026-10-24T12:20:00.000Z',
+      duration: 3600000,
+      to: 'city-marker-1',
+      road: travelPathJson(
+        coordinates: [
+          [ambush.latitude, ambush.longitude],
+          departureWire,
+        ],
+        distance: 7.9,
+      ),
+    );
+
+    Future<void> pumpRerouted(WidgetTester tester) async {
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(activeTravel: activeTravelJson()),
+        serverNow: midTravel,
+      );
+      characterStates.add(characterLoaded(activeTravel: rerouted));
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets(
+      'the dashed route follows the rewritten travel from the ambush point (D-03)',
+      (tester) async {
+        await pumpRerouted(tester);
+
+        final polylines = routePolylines(tester);
+        expect(polylines, hasLength(1));
+        final points = polylines.single.points;
+        expect(points.first.latitude, closeTo(ambush.latitude, 1e-6));
+        expect(points.first.longitude, closeTo(ambush.longitude, 1e-6));
+        expect(points.last, const LatLng(10, 20));
+      },
+    );
+
+    testWidgets('the remaining time follows the rewritten travel (D-03)', (
+      tester,
+    ) async {
+      await pumpRerouted(tester);
+
+      expect(
+        find.text(formatGameDuration(const Duration(hours: 1))),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'a focus after the defeat centres the rerouted pawn (D-02, D-03)',
+      (tester) async {
+        await pumpRerouted(tester);
+        tester
+            .widget<FlutterMap>(find.byType(FlutterMap))
+            .mapController!
+            .move(const LatLng(0, 0), 2);
+        await tester.pump();
+
+        mapFocusCubit.requestCharacterFocus();
+        await tester.pump();
+
+        expectCentreAt(tester, ambush);
+      },
+    );
   });
 }

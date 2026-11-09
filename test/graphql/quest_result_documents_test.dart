@@ -92,6 +92,20 @@ void main() {
     test('selects the BE 9.2 acknowledgedAt right after resolvedAt', () {
       expect(sharedSelection, contains('resolvedAt acknowledgedAt'));
     });
+
+    test('selects the result kind right after the outcome (D-01)', () {
+      expect(
+        sharedSelection,
+        contains('outcome kind resolvedAt acknowledgedAt'),
+      );
+    });
+
+    test('selects the ambush report with its two cities (D-01)', () {
+      expect(
+        sharedSelection,
+        contains('ambush { at nearCity { id name } reachedCity { id name } }'),
+      );
+    });
   });
 
   group('OnQuestResultReceived', () {

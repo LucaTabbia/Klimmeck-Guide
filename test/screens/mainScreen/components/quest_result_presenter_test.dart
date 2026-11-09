@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
+import 'package:klimmeck_guide/shared/components/popup/ambush_report_carousel.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -38,6 +39,14 @@ String _at(int minute) => '2026-10-27T12:0$minute:00.000Z';
 
 QuestResult _success(String id, {int minute = 0}) =>
     questResult(successResultJson(id: id, resolvedAt: _at(minute)));
+
+QuestResult _won(String id) => questResult(
+  ambushWonResultJson(id: id, resolvedAt: '2026-10-27T11:20:00.000Z'),
+);
+
+QuestResult _lost(String id) => questResult(
+  ambushLostResultJson(id: id, resolvedAt: '2026-10-27T11:40:00.000Z'),
+);
 
 /// Presenter con i cubit reali della coda e della mappa contro fake e mock
 /// (09-10): la subscription live è [live], la lista non confermata [pending].
@@ -143,6 +152,14 @@ class _PresenterHarness {
 }
 
 final Finder _sheet = find.byType(QuestResultSheet);
+
+final Finder _carousel = find.byType(AmbushReportCarousel);
+
+/// «Continua» of one carousel page: with the peek (D-19) two pages are live.
+Finder _continueOfPage(String resultId) => find.descendant(
+  of: find.byKey(ValueKey('ambushReportCarousel.page.$resultId')),
+  matching: find.byKey(QuestResultSheet.continueKey),
+);
 
 BuildContext _homeContext(WidgetTester tester) =>
     tester.element(find.text('map'));
@@ -417,6 +434,154 @@ void main() {
           dedupKey: 'questResult|r-9',
         ),
       ).called(1);
+    });
+  });
+
+  group('QuestResultPresenter ambush carousel (D-05, D-06, D-12)', () {
+    testWidgets('the ambush reports of the batch open in one carousel (D-05)', (
+      tester,
+    ) async {
+      h.pending.results = [_won('a1'), _lost('a2'), _success('q')];
+      await h.pump(tester);
+      await h.enterMap(tester);
+
+      expect(_carousel, findsOneWidget);
+      expect(find.text('1 di 2'), findsOneWidget);
+    });
+
+    testWidgets('Continua on page 1 closes and acks all (D-05)', (
+      tester,
+    ) async {
+      h.pending.results = [_won('a1'), _lost('a2'), _success('q')];
+      await h.pump(tester);
+      await h.enterMap(tester);
+
+      await tester.tap(_continueOfPage('a1'));
+      await tester.pumpAndSettle();
+
+      expect(h.acknowledger.acknowledged, ['a1', 'a2']);
+      expect(_carousel, findsNothing);
+      expect(_sheet, findsOneWidget);
+      expect(find.text('Lupi di Valantar'), findsOneWidget);
+      expect(find.text('3 di 3'), findsOneWidget);
+    });
+
+    testWidgets('a single ambush opens a one-page carousel without counter '
+        '(D-05)', (tester) async {
+      h.pending.results = [_won('a1')];
+      await h.pump(tester);
+      await h.enterMap(tester);
+
+      expect(_carousel, findsOneWidget);
+      expect(find.byKey(QuestResultSheet.counterKey), findsNothing);
+    });
+
+    testWidgets('a live ambush waits for the settling read and opens with its '
+        'batch (D-12)', (tester) async {
+      await h.pump(tester);
+      await h.enterMap(tester);
+      final hold = Completer<void>();
+      h.pending.hold = hold;
+      h.pending.results = [_won('a1'), _lost('a2')];
+
+      h.live.add(_won('a1'));
+      await tester.pump();
+
+      expect(_carousel, findsNothing);
+
+      h.live.add(_lost('a2'));
+      await tester.pump();
+
+      expect(_carousel, findsNothing);
+
+      hold.complete();
+      await tester.pumpAndSettle();
+
+      expect(_carousel, findsOneWidget);
+      expect(find.text('1 di 2'), findsOneWidget);
+    });
+
+    testWidgets('an ambush arrival publishes no quest-end banner off the map '
+        '(D-06)', (tester) async {
+      await h.pump(tester);
+      h.pending.results = [_won('a1')];
+      await h.enterMap(tester, isMapPage: false);
+
+      await h.arrive(tester, _won('a1'));
+
+      verifyNoBanner();
+      expect(_carousel, findsNothing);
+
+      await h.enterMap(tester);
+
+      expect(_carousel, findsOneWidget);
+    });
+
+    testWidgets('an ambush arrival on the free map suppresses nothing (D-06)', (
+      tester,
+    ) async {
+      await h.pump(tester);
+      await h.enterMap(tester);
+      h.pending.results = [_won('a1')];
+
+      await h.arrive(tester, _won('a1'));
+
+      expect(_carousel, findsOneWidget);
+      verifyNoSuppression();
+      verifyNoBanner();
+    });
+
+    testWidgets('the carousel waits for the travel flow to end (D-06)', (
+      tester,
+    ) async {
+      h.pending.results = [_won('a1'), _lost('a2')];
+      await h.pump(tester);
+      await h.emitTravel(
+        tester,
+        TravelPreviewing(City.fromJson(travelCityJson(image: null))),
+      );
+
+      await h.enterMap(tester);
+
+      expect(_carousel, findsNothing);
+
+      await h.emitTravel(tester, const TravelIdle());
+
+      expect(_carousel, findsOneWidget);
+    });
+
+    testWidgets('an external pop requeues the whole carousel unacknowledged '
+        '(D-05, D-11)', (tester) async {
+      h.pending.results = [_won('a1'), _lost('a2')];
+      await h.pump(tester);
+      await h.enterMap(tester);
+      expect(_carousel, findsOneWidget);
+
+      Navigator.of(_homeContext(tester)).popUntil((route) => route.isFirst);
+      await tester.pumpAndSettle();
+
+      expect(h.acknowledger.calls, isEmpty);
+      expect(_carousel, findsOneWidget);
+      expect(find.text('1 di 2'), findsOneWidget);
+    });
+
+    testWidgets('the ambush toggle off never hides the carousel (D-10)', (
+      tester,
+    ) async {
+      when(() => h.preferences.state).thenReturn(
+        NotificationPreferencesState(
+          enabled: {
+            for (final category in NotificationCategory.values)
+              category: category != NotificationCategory.ambushDefeat,
+          },
+          isLoaded: true,
+        ),
+      );
+      h.pending.results = [_won('a1')];
+      await h.pump(tester);
+      await h.enterMap(tester);
+
+      expect(_carousel, findsOneWidget);
     });
   });
 }

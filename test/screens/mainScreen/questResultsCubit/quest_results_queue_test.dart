@@ -23,6 +23,14 @@ QuestResult _success(String id, {int minute = 0}) =>
 QuestResult _death(String id, {int minute = 0}) =>
     questResult(deathResultJson(id: id, resolvedAt: _at(minute)));
 
+QuestResult _won(String id, int minute) => questResult(
+  ambushWonResultJson(id: id, resolvedAt: '2026-10-27T11:2$minute:00.000Z'),
+);
+
+QuestResult _lost(String id, int minute) => questResult(
+  ambushLostResultJson(id: id, resolvedAt: '2026-10-27T11:2$minute:00.000Z'),
+);
+
 const QuestResultException _connectionLost = QuestResultException(
   QuestResultFailure.connection,
 );
@@ -379,5 +387,141 @@ void main() {
       expect(h.acknowledger.calls, ['d-1', 'd-1']);
       expect(h.refreshRequests, 1);
     });
+  });
+
+  group('QuestResultsCubit ambush group (D-05, D-11)', () {
+    List<String> idsOf(List<QuestResult> results) => [
+      for (final result in results) result.id,
+    ];
+
+    Future<void> presentGroup() async {
+      await h.offer([_won('a1', 0), _lost('a2', 5), _success('q')]);
+      h.cubit.presented('a1');
+    }
+
+    test(
+      'the ambushes at the head form one presentable group (D-05, D-11)',
+      () async {
+        await h.offer([_success('q'), _won('a1', 0), _lost('a2', 5)]);
+
+        expect(idsOf(h.state.presentable), ['a1', 'a2']);
+      },
+    );
+
+    test('a quest result at the head is a group of one (D-05)', () async {
+      await h.offer([
+        questResult(
+          successResultJson(id: 'q0', resolvedAt: '2026-10-27T11:00:00.000Z'),
+        ),
+        _won('a1', 0),
+      ]);
+
+      expect(idsOf(h.state.presentable), ['q0']);
+    });
+
+    test(
+      'presented moves the whole group and advances the counter by its size (D-11)',
+      () async {
+        await presentGroup();
+
+        expect(idsOf(h.state.showingGroup), ['a1', 'a2']);
+        expect(h.state.showing!.id, 'a1');
+        expect(h.queuedIds, ['q']);
+        expect(h.state.position, 2);
+        expect(h.state.total, 3);
+      },
+    );
+
+    test('presented ignores an id that is not the head (D-11)', () async {
+      await h.offer([_won('a1', 0), _lost('a2', 5), _success('q')]);
+      final before = h.state;
+
+      h.cubit.presented('a2');
+
+      expect(h.state, before);
+    });
+
+    test(
+      'closed acknowledges every report of the group in order (D-05, D-11)',
+      () async {
+        await presentGroup();
+
+        h.cubit.closed('a1');
+        await pumpEventQueue();
+
+        expect(h.acknowledger.acknowledged, ['a1', 'a2']);
+        expect(h.state.showingGroup, isEmpty);
+        expect(h.state.showing, isNull);
+      },
+    );
+
+    test(
+      'closed ignores an id that is not the head of the group (D-11)',
+      () async {
+        await presentGroup();
+
+        h.cubit.closed('a2');
+        await pumpEventQueue();
+
+        expect(h.acknowledger.calls, isEmpty);
+        expect(idsOf(h.state.showingGroup), ['a1', 'a2']);
+      },
+    );
+
+    test(
+      'a failed acknowledgement leaves only that report pending (D-05)',
+      () async {
+        h.acknowledger.errorOnce = Exception('ack');
+        await presentGroup();
+
+        h.cubit.closed('a1');
+        await pumpEventQueue();
+
+        expect(h.acknowledger.acknowledged, ['a2']);
+        expect(h.acknowledger.calls, ['a1', 'a2']);
+
+        await h.offer([]);
+
+        expect(h.acknowledger.acknowledged, ['a2', 'a1']);
+      },
+    );
+
+    test(
+      'an external pop requeues the whole group and rewinds the counter (D-11)',
+      () async {
+        await presentGroup();
+
+        h.cubit.dismissedExternally('a1');
+
+        expect(h.queuedIds, ['a1', 'a2', 'q']);
+        expect(h.state.position, 0);
+        expect(h.state.showingGroup, isEmpty);
+        expect(h.acknowledger.calls, isEmpty);
+      },
+    );
+
+    test(
+      'a refetched page of the open group never re-enters the queue (D-11)',
+      () async {
+        await presentGroup();
+
+        await h.offer([_won('a1', 0), _lost('a2', 5), _success('q')]);
+
+        expect(h.queuedIds, ['q']);
+      },
+    );
+
+    test(
+      'the quest sheet after a carousel reads the right counter (D-11)',
+      () async {
+        await presentGroup();
+        h.cubit.closed('a1');
+
+        h.cubit.presented('q');
+
+        expect(h.state.position, 3);
+        expect(h.state.total, 3);
+      },
+    );
   });
 }

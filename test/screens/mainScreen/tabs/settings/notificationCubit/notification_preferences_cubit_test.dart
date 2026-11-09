@@ -13,12 +13,14 @@ NotificationPreferencesState loaded({
   bool streamerLive = true,
   bool questEnd = true,
   bool questCancelled = true,
+  bool ambushDefeat = true,
 }) => NotificationPreferencesState(
   enabled: {
     NotificationCategory.travelEnd: travelEnd,
     NotificationCategory.streamerLive: streamerLive,
     NotificationCategory.questEnd: questEnd,
     NotificationCategory.questCancelled: questCancelled,
+    NotificationCategory.ambushDefeat: ambushDefeat,
   },
   isLoaded: true,
 );

@@ -16,9 +16,10 @@ import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14): un solo widget
-/// per i cinque esiti, sezioni senza dati non costruite. Puro: niente route,
-/// niente cubit; il presenter (piano 09-10) apre il dialog e conferma.
+/// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
+/// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
+/// senza dati non costruite. Puro: niente route, niente cubit; il presenter
+/// (piano 09-10) apre il dialog e conferma.
 class QuestResultSheet extends StatefulWidget {
   const QuestResultSheet({
     super.key,
@@ -33,12 +34,14 @@ class QuestResultSheet extends StatefulWidget {
 
   static const Key headerKey = ValueKey('questResult.header');
   static const Key questTypeKey = ValueKey('questResult.questType');
+  static const Key ambushPlaceKey = ValueKey('questResult.ambushPlace');
   static const Key deadNameKey = ValueKey('questResult.deadName');
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
   static const Key stagesKey = ValueKey('questResult.stages');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
+  static const Key reachedCityKey = ValueKey('questResult.reachedCity');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
   static const Key rewardsKey = ValueKey('questResult.rewards');
@@ -156,6 +159,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._line(_stagesText(), QuestResultSheet.stagesKey),
         ..._hp(),
         ..._injuries(),
+        ..._line(_reachedCityText(), QuestResultSheet.reachedCityKey),
         ..._consumables(),
         ..._spells(),
         ..._rewards(),
@@ -168,20 +172,42 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     ),
   );
 
-  List<Widget> _header() {
-    final type = _result.quest.type;
+  List<Widget> _header() => [
+    Text(
+      _result.outcome.label,
+      key: QuestResultSheet.headerKey,
+      textAlign: TextAlign.center,
+      style: _theme.titleMedium.copyWith(color: _outcomeInk),
+    ),
+    ..._placeLine(),
+    Text(
+      _resolvedAtFormat.format(_result.resolvedAt.toLocal()),
+      textAlign: TextAlign.center,
+      style: _theme.bodyMedium,
+    ),
+  ];
+
+  /// Al posto di titolo e tipo della quest: il luogo dell'imboscata scelto
+  /// dal BE (16-CONTEXT D-04, D-13).
+  List<Widget> _placeLine() {
+    final ambush = _result.ambush;
+    if (ambush == null) return _questTitle();
     return [
       Text(
-        _result.outcome.label,
-        key: QuestResultSheet.headerKey,
-        textAlign: TextAlign.center,
-        style: _theme.titleMedium.copyWith(color: _outcomeInk),
-      ),
-      Text(
-        _result.quest.title,
+        'Imboscata presso ${ambush.nearCity.name}',
+        key: QuestResultSheet.ambushPlaceKey,
         textAlign: TextAlign.center,
         style: _theme.bodyMedium,
       ),
+    ];
+  }
+
+  List<Widget> _questTitle() {
+    final quest = _result.quest;
+    if (quest == null) return const [];
+    final type = quest.type;
+    return [
+      Text(quest.title, textAlign: TextAlign.center, style: _theme.bodyMedium),
       if (type != null)
         Text(
           type.label,
@@ -189,11 +215,6 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
           textAlign: TextAlign.center,
           style: _theme.bodyMedium,
         ),
-      Text(
-        _resolvedAtFormat.format(_result.resolvedAt.toLocal()),
-        textAlign: TextAlign.center,
-        style: _theme.bodyMedium,
-      ),
     ];
   }
 
@@ -378,6 +399,14 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         child: Text(text, key: key, style: _theme.bodyMedium),
       ),
     ];
+  }
+
+  /// Dopo una sconfitta in imboscata la città raggiunta, scelta dal BE
+  /// (16-CONTEXT D-04, D-13): il FE la stampa soltanto.
+  String? _reachedCityText() {
+    final city = _result.ambush?.reachedCity;
+    if (city == null) return null;
+    return 'Portato a ${city.name}';
   }
 
   /// Contatori del BE per una dungeon (BE D-12): il FE li stampa, non li calcola.

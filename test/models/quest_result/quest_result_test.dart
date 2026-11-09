@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
 import '../../helpers/fixtures/quest_result_fixtures.dart';
@@ -21,9 +22,9 @@ void main() {
       expect(result.resolvedAt.isUtc, isTrue);
       expect(result.characterId, 'c-1');
       expect(result.userId, 'u-1');
-      expect(result.quest.id, 'q-1');
-      expect(result.quest.type, QuestType.hunt);
-      expect(result.quest.title, 'Lupi di Valantar');
+      expect(result.quest!.id, 'q-1');
+      expect(result.quest!.type, QuestType.hunt);
+      expect(result.quest!.title, 'Lupi di Valantar');
       expect(result.hpBefore, 900);
       expect(result.hpAfter, 640);
       expect(result.maxLifePoints, 1200);
@@ -62,7 +63,7 @@ void main() {
       final result = questResult(rescuedResultJson());
 
       expect(result.outcome, QuestOutcome.rescued);
-      expect(result.quest.type, QuestType.aid);
+      expect(result.quest!.type, QuestType.aid);
       expect(result.hpBefore, result.hpAfter);
     });
 
@@ -71,7 +72,7 @@ void main() {
 
       expect(result.outcome, QuestOutcome.death);
       expect(result.characterId, 'c-9');
-      expect(result.quest.type, QuestType.aid);
+      expect(result.quest!.type, QuestType.aid);
       expect(result.hpBefore, result.hpAfter);
     });
 
@@ -80,7 +81,7 @@ void main() {
 
       expect(result.outcome, QuestOutcome.gmCompleted);
       expect(result.enemies, isEmpty);
-      expect(result.quest.type, QuestType.story);
+      expect(result.quest!.type, QuestType.story);
       expect(result.titleAfter, TitleType.adventurer);
     });
 
@@ -217,8 +218,8 @@ void main() {
     test('an unknown quest type keeps the title', () {
       final result = questResult(questResultJson(questType: 'raid'));
 
-      expect(result.quest.type, isNull);
-      expect(result.quest.title, 'Lupi di Valantar');
+      expect(result.quest!.type, isNull);
+      expect(result.quest!.title, 'Lupi di Valantar');
     });
 
     test('a spell usage with a null spell survives', () {
@@ -367,6 +368,95 @@ void main() {
     });
   });
 
+  group('ambush reports (BE Phase 15)', () {
+    test('a missing kind reads as a quest result (D-01)', () {
+      final result = questResult(questResultJson());
+
+      expect(result.kind, QuestResultKind.quest);
+      expect(result.isAmbush, isFalse);
+      expect(result.ambush, isNull);
+      expect(result.quest!.title, 'Lupi di Valantar');
+    });
+
+    test('an unknown kind reads as a quest result (D-01)', () {
+      final result = questResult(questResultJson()..['kind'] = 'raid');
+
+      expect(result.kind, QuestResultKind.quest);
+    });
+
+    test('parses a won ambush without a quest (D-01)', () {
+      final result = questResult(ambushWonResultJson());
+
+      expect(result.isAmbush, isTrue);
+      expect(result.quest, isNull);
+      expect(result.outcome, QuestOutcome.success);
+      expect(result.ambush!.nearCity.name, 'Andogan');
+      expect(result.ambush!.reachedCity, isNull);
+      expect(result.ambush!.at, result.resolvedAt);
+      expect(result.rewards.coins.toCopper(), greaterThan(0));
+      expect(result.xpGained, 35);
+    });
+
+    test('an ambush ignores a malformed quest block (D-01)', () {
+      final result = questResult(
+        ambushWonResultJson()..['quest'] = {'id': 'q-1'},
+      );
+
+      expect(result.isAmbush, isTrue);
+      expect(result.quest, isNull);
+    });
+
+    test('parses a lost ambush with the city reached (D-01)', () {
+      final result = questResult(ambushLostResultJson());
+
+      expect(result.isAmbush, isTrue);
+      expect(result.outcome, QuestOutcome.failure);
+      expect(result.ambush!.reachedCity!.name, 'Bosa');
+      expect(result.hpAfter, 1);
+      expect(result.xpGained, 0);
+    });
+
+    test('drops an ambush without its report (D-01)', () {
+      expect(
+        QuestResult.tryFromJson(ambushWonResultJson()..remove('ambush')),
+        isNull,
+      );
+      expect(
+        QuestResult.tryFromJson(ambushWonResultJson()..['ambush'] = null),
+        isNull,
+      );
+    });
+
+    test('drops a quest result without its quest (D-01)', () {
+      expect(
+        QuestResult.tryFromJson(questResultJson()..['quest'] = null),
+        isNull,
+      );
+    });
+
+    test('ignores an ambush block on a quest result (D-01)', () {
+      final result = questResult(
+        questResultJson()
+          ..['kind'] = 'quest'
+          ..['ambush'] = ambushReportJson(),
+      );
+
+      expect(result.ambush, isNull);
+    });
+
+    test('results with a different ambush report are not equal (D-01)', () {
+      expect(
+        questResult(ambushWonResultJson()),
+        isNot(
+          questResult(
+            ambushWonResultJson()
+              ..['ambush'] = ambushReportJson(at: '2026-10-27T11:25:00.000Z'),
+          ),
+        ),
+      );
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'success': successResultJson(),
@@ -387,6 +477,8 @@ void main() {
         outcome: 'success',
         stagesCleared: 3,
       ),
+      'ambush won': ambushWonResultJson(),
+      'ambush lost': ambushLostResultJson(),
     };
 
     for (final entry in payloads.entries) {

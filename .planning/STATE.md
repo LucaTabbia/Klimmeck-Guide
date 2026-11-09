@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-06T15:42:35.000Z"
-last_activity: 2026-11-06 -- Phase 15 complete: device E2E passed (steps 1-8), FOOD-01..04 ticked
+last_updated: "2026-11-09T11:46:58.000Z"
+last_activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1-7), AMBUSH-01..03 ticked
 progress:
   total_phases: 17
-  completed_phases: 14
-  total_plans: 142
-  completed_plans: 135
+  completed_phases: 15
+  total_plans: 151
+  completed_plans: 144
   percent: 95
 ---
 
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 15 (Travel Food) — COMPLETE 2026-11-06 on `feat/15-travel-food` (from `develop` `08bd1a1`): plans 15-01..15-09 executed, reviewed, fixed, verified and audited; schema gate 45/45 on BE `develop` `b492a46` (15-08); Android device E2E steps 1–8 passed (15-09, `15-HUMAN-UAT.md`); FOOD-01..04 ticked
+Phase: 16 (Travel Ambushes) — COMPLETE 2026-11-09 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-09 executed (16-01..16-07 reviewed, fixed, verified and audited on 2026-11-07; 16-09 inserted on 2026-11-09 from the device E2E finding D-19 and executed during the E2E); schema gate 45/45 on BE `develop` `9103440` (16-07); Android device E2E steps 1–7 passed on 2026-11-09 against BE `develop` `6be50d2` (16-08, `16-HUMAN-UAT.md`); AMBUSH-01..03 ticked
 Plan: 9 of 9
-Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: merge of the FE PR #41 `feat/15-travel-food` → `develop` (opened by the orchestrator on 2026-11-06; the BE Phase 14 PR #23 is already merged), then FE 16 → 17 (each after its BE companion merge), FE 12 (Hardening) last
-Status: Phase 15 complete — BE Phase 14 merged on BE `develop` (`b492a46`, PR #23); 15-08 proved the contract (45/45, full suite 3310 green, analyzer 0 error / 0 warning); 15-09 device E2E 2026-11-06 steps 1–8 pass (step 5 service-with-line and story halves skipped: not reproducible on this DB, covered by tests; step 7 teleport through the BE mutation because the Locanda path needs a story quest in the queue); handoff `phases/15-travel-food/BACKEND-NOTES.md` (questions §5); VALIDATION approved, VERIFICATION passed, SECURITY 0 deferred; ready for the FE PR
-Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 ticked, BACKEND-NOTES written
+Completed phases: 15 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16)
+Next Phase: FE PR `feat/16-travel-ambushes` → `develop` (BE Phases 15 and 16 are already merged on BE `develop`), then rebase `feat/17-unlockable-lore` (FE Phase 17 complete on its own branch, 12/12 on 2026-11-09) on `develop` and open its PR; FE 12 (Hardening) last
+Status: Phase 16 complete — BE Phase 15 merged on BE `develop` (`9103440`, PR #24) and proven by the 16-07 gate (45/45, full suite 3391 green, analyzer 0 error / 0 warning); 16-08 device E2E 2026-11-09 steps 1–7 pass (step 7 optional) against BE `develop` `6be50d2` with the APK of this branch; the user's carousel finding became D-19 / plan 16-09 (peeking pages and an opening nudge), re-checked on the device; handoff `phases/16-travel-ambushes/BACKEND-NOTES.md` (questions §5: D-16 two-travel merge accepted, detour safety already BE D-03, GM teleport delivers the held report, a second BE process runs the sweeps too, `City.relatedLore` null on the pre-17 app, HP clamped at 1); VALIDATION approved 2026-11-09; ready for the FE PR (`gh pr create --base develop` from this branch with the personal gh token per command, never `main`)
+Last activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1–7), AMBUSH-01..03 ticked, BACKEND-NOTES written
 
 ## Current Milestone
 
@@ -65,6 +65,8 @@ Last activity: 2026-11-06 -- Phase 15 complete: device E2E passed, FOOD-01..04 t
 - **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 - ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
+
+- ~~**FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.~~ — **resolved 2026-11-09:** merged on BE `develop` (`9103440`, PR #24), consumed by plan 16-07 and proven by the device E2E of 16-08 against BE `develop` `6be50d2` (outcome in `phases/16-travel-ambushes/BACKEND-NOTES.md` §4; questions §5, among them the user's detour-safety rule already honoured by BE D-03).
 
 ### Quick Tasks Completed
 

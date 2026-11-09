@@ -6,7 +6,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/setti
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Tre switch per categoria di notifica, inerti finché le preferenze non sono caricate,
+/// Uno switch per categoria di notifica, inerti finché le preferenze non sono caricate,
 /// e sotto la riga del permesso di sistema negato (Phase 5 D-10).
 class NotificationPreferencesSection extends StatelessWidget {
   const NotificationPreferencesSection({super.key});
@@ -46,5 +46,6 @@ class NotificationPreferencesSection extends StatelessWidget {
     NotificationCategory.streamerLive => 'Streamer in live',
     NotificationCategory.questEnd => 'Fine quest',
     NotificationCategory.questCancelled => 'Missione annullata',
+    NotificationCategory.ambushDefeat => 'Imboscate',
   };
 }

@@ -70,4 +70,36 @@ void main() {
       expect(line?.isStarving, isTrue);
     },
   );
+
+  test(
+    'the line keeps the Phase 15 text and never mentions an ambush (D-07, D-17)',
+    () {
+      final covered = QuestTravelLine.of(
+        TravelPreview.fromJson(
+          travelPreviewJson(
+            food: [travelFoodItemJson()],
+            hpLost: 0,
+            arrivesAlive: true,
+          ),
+        ),
+      )!;
+      final starving = QuestTravelLine.of(
+        TravelPreview.fromJson(
+          travelPreviewJson(
+            food: [travelFoodItemJson()],
+            hpLost: 0,
+            arrivesAlive: false,
+          ),
+        ),
+      )!;
+
+      expect(covered.text, 'Viaggio: 1x Razione da viaggio · nessuna perdita');
+      expect(
+        starving.text,
+        'Viaggio: Non hai cibo a sufficienza per il viaggio',
+      );
+      expect(covered.text, isNot(contains('Imbosc')));
+      expect(starving.text, isNot(contains('Imbosc')));
+    },
+  );
 }

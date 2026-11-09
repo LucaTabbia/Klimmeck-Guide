@@ -632,4 +632,152 @@ void main() {
       expect(parchment.contains(button.bottomRight), isTrue);
     });
   });
+  group('ambush report (Phase 16)', () {
+    testWidgets('an ambush reads «Imboscata presso <città>» in place of the '
+        'quest title (D-04, D-13)', (tester) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Imboscata presso Andogan'), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.ambushPlaceKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.questTypeKey), findsNothing);
+      expect(find.text('Lupi di Valantar'), findsNothing);
+    });
+
+    testWidgets('the ambush header keeps the outcome label and ink (D-04)', (
+      tester,
+    ) async {
+      Text header() =>
+          tester.widget<Text>(find.byKey(QuestResultSheet.headerKey));
+
+      await _pump(tester, questResult(ambushWonResultJson()));
+      expect(header().data, 'Vittoria');
+      expect(header().style?.color, KlimmeckGuideTheme.darkBronze);
+
+      await _pump(tester, questResult(ambushLostResultJson()));
+      expect(header().data, 'Sconfitta');
+      expect(header().style?.color, KlimmeckGuideTheme.royalCrimson);
+    });
+
+    testWidgets('the ambush header shows the local ambush instant (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+
+      final expected = DateFormat(
+        'dd/MM HH:mm',
+      ).format(DateTime.utc(2026, 10, 27, 11, 20).toLocal());
+      expect(find.text(expected), findsOneWidget);
+    });
+
+    testWidgets('the near city of a lost ambush is the one of the report '
+        '(D-04)', (tester) async {
+      await _pump(
+        tester,
+        questResult(ambushLostResultJson(nearCityName: 'Kliever')),
+      );
+
+      expect(find.text('Imboscata presso Kliever'), findsOneWidget);
+    });
+
+    testWidgets('a quest result keeps its title and type and no ambush line '
+        '(D-04)', (tester) async {
+      await _pump(tester, questResult(questResultJson()));
+
+      expect(find.text('Lupi di Valantar'), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.questTypeKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.ambushPlaceKey), findsNothing);
+    });
+
+    testWidgets('a lost ambush shows «Portato a <città>» right after «Ferite» '
+        '(D-04, D-13)', (tester) async {
+      await _pump(tester, questResult(ambushLostResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Portato a Bosa'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.reachedCityKey)).data,
+        'Portato a Bosa',
+      );
+      expect(
+        tester.getTopLeft(find.byKey(QuestResultSheet.reachedCityKey)).dy,
+        greaterThan(
+          tester.getTopLeft(find.byKey(QuestResultSheet.injuriesKey)).dy,
+        ),
+      );
+    });
+
+    testWidgets('a won ambush has no «Portato a» line (D-04)', (tester) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsNothing);
+    });
+
+    testWidgets('a quest result never shows «Portato a» (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(failureResultJson()));
+
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsNothing);
+    });
+
+    testWidgets('a won ambush shows the coins and the experience (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.rewardsKey), findsOneWidget);
+      expect(find.byType(CoinsDisplay), findsOneWidget);
+      expect(find.text('Esperienza: 200 → 235 (+35)'), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.levelKey), findsNothing);
+    });
+
+    testWidgets('a lost ambush shows no rewards and no experience '
+        '(D-04, D-13)', (tester) async {
+      await _pump(tester, questResult(ambushLostResultJson()));
+
+      expect(find.byKey(QuestResultSheet.rewardsKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.xpKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsOneWidget);
+    });
+
+    testWidgets('an ambush shows the enemies fought and the HP bar (D-04)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(ambushWonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('2x Bandito')),
+        findsOneWidget,
+      );
+      expect(find.byKey(QuestResultSheet.hpKey), findsOneWidget);
+
+      await _pump(tester, questResult(ambushLostResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.injuriesKey), findsOneWidget);
+    });
+
+    testWidgets('a lost ambush keeps «Continua» as the only close (D-04)', (
+      tester,
+    ) async {
+      var continued = 0;
+      await _pump(
+        tester,
+        questResult(ambushLostResultJson()),
+        onContinue: () => continued++,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Continua'), findsOneWidget);
+      await tester.tap(find.byKey(QuestResultSheet.continueKey));
+      await tester.pump();
+
+      expect(continued, 1);
+    });
+  });
 }
