@@ -19,6 +19,8 @@ import '../../helpers/test_app.dart';
 
 const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
+const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
+const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 const _manualSignIn = 'Accedi manualmente';
 
 User _user(String id) => User(
@@ -143,6 +145,51 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text(_connectionLostNotice), findsOneWidget);
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('a session replaced by a new login shows its notice (D-12)', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(
+        reason: UnauthenticatedReason.replacedByNewLogin,
+      ),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.replacedByNewLogin);
+    expect(find.text(_newLoginNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('a role change shows its notice (D-12)', (tester) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.roleChanged),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.roleChanged);
+    expect(find.text(_roleChangedNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('an expired session keeps the neutral notice (D-12)', (
+    tester,
+  ) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.sessionExpired),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.sessionExpired);
+    expect(find.text(_newLoginNotice), findsNothing);
+    expect(find.text(_roleChangedNotice), findsNothing);
   });
 
   testWidgets('sync lost then session expired re-renders the notice', (

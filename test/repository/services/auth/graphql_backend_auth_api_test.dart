@@ -18,6 +18,8 @@ String? operationNameOf(Request request) => request
 
 typedef _Handler = Stream<Response> Function(Request request);
 
+const Object _noReason = Object();
+
 void main() {
   late List<Request> requests;
   late _Handler handler;
@@ -35,14 +37,17 @@ void main() {
   Stream<Response> data(Map<String, dynamic> data) =>
       Stream.value(Response(response: {'data': data}, data: data));
 
-  Stream<Response> gqlError(String code) => Stream.value(
-    Response(
-      response: const {},
-      errors: [
-        GraphQLError(message: 'x', extensions: {'code': code}),
-      ],
-    ),
-  );
+  Stream<Response> gqlErrors(List<GraphQLError> errors) =>
+      Stream.value(Response(response: const {}, errors: errors));
+
+  GraphQLError codedError(String code, {Object? reason = _noReason}) =>
+      GraphQLError(
+        message: 'x',
+        extensions: {'code': code, if (reason != _noReason) 'reason': reason},
+      );
+
+  Stream<Response> gqlError(String code, {Object? reason = _noReason}) =>
+      gqlErrors([codedError(code, reason: reason)]);
 
   setUp(() {
     requests = [];
@@ -121,6 +126,75 @@ void main() {
         );
       });
     }
+
+    test('SESSION_REVOKED carries the newLogin reason (D-12)', () async {
+      handler = (_) => gqlError('SESSION_REVOKED', reason: 'newLogin');
+
+      await expectLater(
+        buildApi().refreshSession('r'),
+        throwsA(const SessionRejected('SESSION_REVOKED', reason: 'newLogin')),
+      );
+    });
+
+    test('SESSION_REVOKED carries the roleChanged reason (D-12)', () async {
+      handler = (_) => gqlError('SESSION_REVOKED', reason: 'roleChanged');
+
+      await expectLater(
+        buildApi().refreshSession('r'),
+        throwsA(
+          const SessionRejected('SESSION_REVOKED', reason: 'roleChanged'),
+        ),
+      );
+    });
+
+    test('SESSION_REVOKED keeps an unknown reason string (D-12)', () async {
+      handler = (_) => gqlError('SESSION_REVOKED', reason: 'somethingNew');
+
+      await expectLater(
+        buildApi().refreshSession('r'),
+        throwsA(
+          const SessionRejected('SESSION_REVOKED', reason: 'somethingNew'),
+        ),
+      );
+    });
+
+    test(
+      'SESSION_REVOKED with a non-string or empty reason has no reason (D-12)',
+      () async {
+        for (final reason in <Object>[42, '']) {
+          handler = (_) => gqlError('SESSION_REVOKED', reason: reason);
+
+          await expectLater(
+            buildApi().refreshSession('r'),
+            throwsA(const SessionRejected('SESSION_REVOKED')),
+          );
+        }
+      },
+    );
+
+    test('SESSION_EXPIRED never carries a reason (D-12)', () async {
+      handler = (_) => gqlError('SESSION_EXPIRED', reason: 'newLogin');
+
+      await expectLater(
+        buildApi().refreshSession('r'),
+        throwsA(const SessionRejected('SESSION_EXPIRED')),
+      );
+    });
+
+    test(
+      'the reason comes from the error that carried the code (D-12)',
+      () async {
+        handler = (_) => gqlErrors([
+          GraphQLError(message: 'x', extensions: const {'reason': 'newLogin'}),
+          codedError('SESSION_REVOKED'),
+        ]);
+
+        await expectLater(
+          buildApi().refreshSession('r'),
+          throwsA(const SessionRejected('SESSION_REVOKED')),
+        );
+      },
+    );
 
     test('UNAUTHENTICATED is transient', () async {
       handler = (_) => gqlError('UNAUTHENTICATED');

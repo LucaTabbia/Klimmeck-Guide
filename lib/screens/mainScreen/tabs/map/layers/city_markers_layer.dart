@@ -46,23 +46,23 @@ class CityMarkersLayer extends StatelessWidget {
     );
   }
 
-  List<City> _getVisibleCities(double zoom) {
-    return cities.where((city) {
-      switch (city.type?.cityClass) {
-        case CitySizeType.capital:
-          return zoom >= MapConstants.capitalVisibleZoom;
-        case CitySizeType.city:
-          return zoom >= MapConstants.cityVisibleZoom;
-        case CitySizeType.village:
-          return zoom >= MapConstants.villageVisibleZoom;
-        default:
-          return false;
-      }
-    }).toList();
-  }
+  List<City> _getVisibleCities(double zoom) => cities
+      .where(
+        (city) =>
+            city.type != null &&
+            (city.type!.alwaysVisible || _isVisibleAt(city.size, zoom)),
+      )
+      .toList();
+
+  /// D-13c: la taglia arriva dal BE (`City.size`); senza taglia la città non si mostra.
+  static bool _isVisibleAt(CitySizeType? size, double zoom) => switch (size) {
+    CitySizeType.capital => zoom >= MapConstants.capitalVisibleZoom,
+    CitySizeType.city => zoom >= MapConstants.cityVisibleZoom,
+    CitySizeType.village => zoom >= MapConstants.villageVisibleZoom,
+    null => false,
+  };
 
   double _calculateMarkerScale(double zoom, int citySize) {
     return (zoom * 0.2 + 0.1) * 0.08 * citySize;
   }
 }
-

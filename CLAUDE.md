@@ -58,7 +58,8 @@ Prima di qualsiasi lavoro non triviale, leggere:
 flutter pub get           # dopo pull o modifiche a pubspec.yaml
 flutter analyze           # lint (flutter_lints) — deve essere pulito prima di PR
 flutter test              # test unit/widget/bloc
-flutter run               # dev run (device selezionato)
+flutter run --flavor dev -t lib/main_dev.dart   # dev run (bypass dev, .env)
+flutter build apk --release --dart-define-from-file=env/prod.json   # release (nessun .env)
 dart format lib test      # formattazione prima di commit
 ```
 

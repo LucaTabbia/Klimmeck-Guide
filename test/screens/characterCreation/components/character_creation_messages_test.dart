@@ -80,6 +80,27 @@ void main() {
     );
   });
 
+  test('imageRejected asks for another image (D-19)', () {
+    expect(
+      CharacterCreationFailure.imageRejected.message,
+      'Immagine non ammessa, scegline un\'altra.',
+    );
+  });
+
+  test('moderationUnavailable offers retry or no image (D-19)', () {
+    expect(
+      CharacterCreationFailure.moderationUnavailable.message,
+      'Controllo dell\'immagine non disponibile: riprova o procedi senza immagine.',
+    );
+  });
+
+  test('badUserInput keeps the generic copy (D-13)', () {
+    expect(
+      CharacterCreationFailure.badUserInput.message,
+      'Qualcosa è andato storto, riprova',
+    );
+  });
+
   test('every PortraitPickFailure has a message', () {
     expect(
       PortraitPickFailure.permissionDenied.message,

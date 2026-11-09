@@ -10,6 +10,18 @@ OperationException _withCode(String code) => OperationException(
   ],
 );
 
+OperationException _fromHttp400(String code) => OperationException(
+  linkException: ServerException(
+    statusCode: 400,
+    parsedResponse: Response(
+      response: const {},
+      errors: [
+        GraphQLError(message: 'server text', extensions: {'code': code}),
+      ],
+    ),
+  ),
+);
+
 void main() {
   group('characterDeletionFailureFrom', () {
     final byCode = {
@@ -23,6 +35,23 @@ void main() {
         expect(characterDeletionFailureFrom(_withCode(code)), failure);
       });
     });
+
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
+      expect(
+        characterDeletionFailureFrom(_withCode('BAD_USER_INPUT')),
+        CharacterDeletionFailure.badUserInput,
+      );
+    });
+
+    test(
+      'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
+      () {
+        expect(
+          characterDeletionFailureFrom(_fromHttp400('BAD_USER_INPUT')),
+          CharacterDeletionFailure.badUserInput,
+        );
+      },
+    );
 
     test('maps a link error without code to connection', () {
       final exception = OperationException(

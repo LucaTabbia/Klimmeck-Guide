@@ -32,10 +32,10 @@ void main() {
       });
     });
 
-    test('BAD_USER_INPUT maps to unknown', () {
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
       expect(
         characterCreationFailureFrom(fromGraphqlCode('BAD_USER_INPUT')),
-        CharacterCreationFailure.unknown,
+        CharacterCreationFailure.badUserInput,
       );
     });
 
@@ -55,12 +55,15 @@ void main() {
   });
 
   group('HTTP 400 parsedResponse path', () {
-    test('BAD_USER_INPUT maps to unknown, not connection', () {
-      expect(
-        characterCreationFailureFrom(fromHttp400('BAD_USER_INPUT')),
-        CharacterCreationFailure.unknown,
-      );
-    });
+    test(
+      'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
+      () {
+        expect(
+          characterCreationFailureFrom(fromHttp400('BAD_USER_INPUT')),
+          CharacterCreationFailure.badUserInput,
+        );
+      },
+    );
 
     test('CHARACTER_NAME_TAKEN maps to nameTaken', () {
       expect(
@@ -98,6 +101,49 @@ void main() {
         );
       },
     );
+  });
+
+  group('portrait upload body', () {
+    test('IMAGE_REJECTED in the upload body maps to imageRejected (D-13)', () {
+      expect(
+        portraitUploadFailureFrom({
+          'statusCode': 422,
+          'code': 'IMAGE_REJECTED',
+          'message': 'Immagine non ammessa',
+          'reasons': ['nudity'],
+        }),
+        CharacterCreationFailure.imageRejected,
+      );
+    });
+
+    test(
+      'IMAGE_MODERATION_UNAVAILABLE in the upload body maps to moderationUnavailable (D-13)',
+      () {
+        expect(
+          portraitUploadFailureFrom({
+            'statusCode': 503,
+            'code': 'IMAGE_MODERATION_UNAVAILABLE',
+            'message': 'x',
+          }),
+          CharacterCreationFailure.moderationUnavailable,
+        );
+      },
+    );
+
+    test('an upload body without a known code stays uploadFailed (D-13)', () {
+      for (final body in <Object?>[
+        null,
+        'text',
+        {'code': 42},
+        {'code': 'OTHER'},
+      ]) {
+        expect(
+          portraitUploadFailureFrom(body),
+          CharacterCreationFailure.uploadFailed,
+          reason: '$body',
+        );
+      }
+    });
   });
 
   test('graphqlErrors win over the parsedResponse errors', () {

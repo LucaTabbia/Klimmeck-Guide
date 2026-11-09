@@ -34,6 +34,7 @@ final City cityA = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 final City cityB = City.fromJson({
@@ -45,6 +46,7 @@ final City cityB = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 const LatLng home = LatLng(10, 20);

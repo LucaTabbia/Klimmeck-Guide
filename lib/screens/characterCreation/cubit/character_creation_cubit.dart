@@ -63,7 +63,7 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
     try {
       final path = await _repository.pickPortrait(source);
       if (path == null) return;
-      emit(state.copyWith(portraitPath: path));
+      emit(state.copyWith(portraitPath: path, submitFailure: null));
     } on PortraitPickException catch (error) {
       emit(state.copyWith(pickFailure: error.failure));
     }
@@ -71,7 +71,13 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
 
   void removePortrait() {
     if (state.isSubmitting) return;
-    emit(state.copyWith(portraitPath: null, uploadedPortrait: null));
+    emit(
+      state.copyWith(
+        portraitPath: null,
+        uploadedPortrait: null,
+        submitFailure: null,
+      ),
+    );
   }
 
   /// D-16: upload del ritratto (se scelto) e poi mutation. I dati non vengono
@@ -128,6 +134,9 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
   }
 
   Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async {
+    if (failure == CharacterCreationFailure.imageRejected) {
+      return _rejectPortrait();
+    }
     if (failure != CharacterCreationFailure.alreadyExists) {
       return _failSubmit(failure);
     }
@@ -146,6 +155,16 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
       return null;
     }
   }
+
+  /// D-13b: ritratto rifiutato → serve una nuova scelta; il resto della bozza resta.
+  void _rejectPortrait() => emit(
+    state.copyWith(
+      isSubmitting: false,
+      submitFailure: CharacterCreationFailure.imageRejected,
+      portraitPath: null,
+      uploadedPortrait: null,
+    ),
+  );
 
   void _failSubmit(CharacterCreationFailure failure) =>
       emit(state.copyWith(isSubmitting: false, submitFailure: failure));

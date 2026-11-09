@@ -26,8 +26,8 @@ final class AuthBootstrapping extends AuthState {
 /// Stato emesso quando l'utente è autenticato con successo.
 ///
 /// Contiene l'utente autenticato e il token di accesso corrente.
-/// Phase 1 (DevAuthTokenService): valori letti da `.env`.
-/// Phase 11 (SessionAuthTokenService): sessione del backend.
+/// `DevAuthTokenService` (solo entry point dev): valori letti da `.env`.
+/// `SessionAuthTokenService` (Phase 11): sessione del backend.
 final class AuthAuthenticated extends AuthState {
   const AuthAuthenticated({required this.user, required this.accessToken});
 
@@ -54,6 +54,13 @@ enum UnauthenticatedReason {
   /// accedi di nuovo.» (D-10/D-31).
   sessionExpired,
 
+  /// Sessione sostituita da un login su un altro dispositivo (BE Phase 17
+  /// `newLogin`, D-12).
+  replacedByNewLogin,
+
+  /// Ruolo cambiato sul backend (BE Phase 17 `roleChanged`, D-12).
+  roleChanged,
+
   /// Sync in tempo reale persa per ~3 minuti di degrado continuo: SignIn mostra
   /// «Connessione persa, accedi di nuovo.» (Phase 3 D-15).
   syncLost,
@@ -77,11 +84,13 @@ final class AuthUnauthenticated extends AuthState {
 /// Contratto canonico del servizio di autenticazione.
 ///
 /// Implementazioni:
-/// - `DevAuthTokenService` (Phase 1): stub backed da `.env` per sviluppo locale.
+/// - `DevAuthTokenService`: stub backed da `.env` per sviluppo locale, composto
+///   solo da `lib/main_dev.dart` tramite `buildDevAuthComposition` (Phase 12
+///   D-01); lo split degli entry point lo toglie dalla release.
 /// - `SessionAuthTokenService` (Phase 11): sessione del backend (refresh token
-///   rotante, nessun token Twitch nell'app, D-26). Sostituisce
-///   `DevAuthTokenService` senza toccare i consumer (GraphQL link, dio
-///   interceptor, AuthCubit).
+///   rotante, nessun token Twitch nell'app, D-26), l'unica composta
+///   dall'entry point di produzione; i consumer (GraphQL link, dio
+///   interceptor, AuthCubit) non distinguono le due implementazioni.
 ///
 /// Tutti i consumer devono dipendere da questo tipo astratto, mai dall'
 /// implementazione concreta.
@@ -89,7 +98,7 @@ abstract class AuthTokenService {
   /// Bootstrap hook: chiamato una volta da `AuthCubit.start()` dopo `runApp`
   /// (D-33); non va atteso prima del primo frame.
   ///
-  /// Phase 1 (Dev stub): emette immediatamente `AuthBootstrapping` →
+  /// Stub dev: emette immediatamente `AuthBootstrapping` →
   /// `AuthAuthenticated` con il test user letto da `.env`.
   ///
   /// Phase 11 (sessione reale): carica la sessione dal secure storage e la

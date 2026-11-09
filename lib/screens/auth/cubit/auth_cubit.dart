@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Stato di sessione di processo (globale, sopra MaterialApp). Unico consumer di
 /// `authStateStream` per la UI; `AuthGate` costruisce l'albero da questo stato.
@@ -61,7 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await _pushCleanup.unregister().timeout(pushUnregisterTimeout);
     } on Object catch (error) {
-      debugPrint('Push unregister skipped (${error.runtimeType})');
+      appLog('Push unregister skipped (${error.runtimeType})');
     }
   }
 

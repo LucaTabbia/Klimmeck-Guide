@@ -9,8 +9,8 @@ import 'package:klimmeck_guide/repository/services/push/notification_intent_sink
 part 'notification_intent_state.dart';
 
 /// Tap in attesa di essere consumato da MainScreen (D-15). Vive sopra AuthGate:
-/// sopravvive a splash e sign-in (tap da killed), si svuota a fine sessione e
-/// sulla pagina di creazione.
+/// sopravvive a splash e sign-in (tap da killed), si svuota a fine sessione, al
+/// cambio di utente e sulla pagina di creazione (Phase 12 D-11).
 class NotificationIntentCubit extends Cubit<NotificationIntentState>
     implements NotificationIntentSink {
   NotificationIntentCubit(Stream<AuthState> authStates)
@@ -39,7 +39,11 @@ class NotificationIntentCubit extends Cubit<NotificationIntentState>
     _lastAuthState = next;
     final endedSession =
         next is AuthUnauthenticated && previous is AuthAuthenticated;
-    if (endedSession || _isOnCreationPage) _clear();
+    final changedUser =
+        previous is AuthAuthenticated &&
+        next is AuthAuthenticated &&
+        previous.user.id != next.user.id;
+    if (endedSession || changedUser || _isOnCreationPage) _clear();
   }
 
   bool get _isOnCreationPage => switch (_lastAuthState) {

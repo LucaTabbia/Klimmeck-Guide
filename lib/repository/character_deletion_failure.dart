@@ -12,6 +12,10 @@ enum CharacterDeletionFailure {
   unauthenticated,
   connection,
 
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
+
   /// Personaggio eliminato ma `adoptUser` rifiutato dalla sessione.
   handoverRejected,
   unknown,
@@ -36,6 +40,7 @@ CharacterDeletionFailure characterDeletionFailureFrom(
   }
   return switch (code) {
     characterNotFoundCode => CharacterDeletionFailure.notFound,
+    badUserInputCode => CharacterDeletionFailure.badUserInput,
     unauthenticatedCode => CharacterDeletionFailure.unauthenticated,
     _ => CharacterDeletionFailure.unknown,
   };

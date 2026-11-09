@@ -32,6 +32,10 @@ enum TravelFailure {
   starving,
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -70,6 +74,7 @@ TravelFailure travelFailureFrom(OperationException exception) {
     travelStarvingCode => TravelFailure.starving,
     notFoundCode => TravelFailure.notFound,
     forbiddenCode => TravelFailure.forbidden,
+    badUserInputCode => TravelFailure.badUserInput,
     unauthenticatedCode => TravelFailure.unauthenticated,
     _ => TravelFailure.unknown,
   };

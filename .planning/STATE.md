@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-09T12:15:00.000Z"
-last_activity: 2026-11-09 -- Phases 16 and 17 complete; feat/17-unlockable-lore rebased on develop after the Phase 16 merge (PR #42)
+status: complete
+last_updated: "2026-11-10T00:30:00.000Z"
+last_activity: 2026-11-10 -- Phase 12 complete: device E2E approved, HARDEN-01..10 ticked
 progress:
   total_phases: 17
-  completed_phases: 16
-  total_plans: 153
-  completed_plans: 152
-  percent: 99
+  completed_phases: 17
+  total_plans: 180
+  completed_plans: 180
+  percent: 100
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md` Rebased on `develop` `a80e93c` (the Phase 16 merge, PR #42) on 2026-11-09 with five hand-resolved conflicts on the shared result files (fragment comment, model `fromJson`, three tests: unions of both phases, CONTEXT D-18).
-Plan: 12 of 12
-Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
-Next Phase: FE PR `feat/17-unlockable-lore` → `develop` (rebased on the Phase 16 merge `a80e93c`; BE Phases 15 and 16 merged on BE `develop` `6be50d2`), then FE 12 (Hardening) last
-Status: Phases 16 and 17 complete — 16 merged on `develop` (PR #42, `a80e93c`, device E2E 2026-11-09 steps 1–7, plan 16-09 from the carousel finding D-19); 17 complete 12/12 (device E2E 2026-11-09 steps 1–8, plans 17-11/17-12 from the UAT findings) and rebased on the merge: planning docs reconciled by hand (progress counters recomputed from the ROADMAP: FE 12 Hardening is the only phase still open), PR to open with the personal gh token per command, base `develop`
-Last activity: 2026-11-09 -- Phase 17 rebased on develop after the Phase 16 merge; planning docs reconciled
+Phase: 12 (Hardening) — COMPLETE 2026-11-10 on `refactor/12-hardening`: plans 12-01..12-17 done; gate 12-16 passed on BE `develop` `8bfd1b3` (BE Phase 17 merged, PR #27); device E2E 12-17 (Samsung + emulator, signed release through a TLS tunnel, real Twitch login) steps 1–8, 10, 11 pass, optional step 9 skipped, user verdict «approved»; DB-1 → D-13c UAT amendment (Talmvere always visible FE-side, commits `ee7db08`/`2bc4e7a`; Ferrion/Necrorian capitals BE-side, BE PR #28 open)
+Plan: 17 of 17
+Completed phases: 17 (1–17) — v1.0 Core Loop: every phase complete
+Next Phase: none in v1.0 — next step: the PR `refactor/12-hardening` → `develop` (opened by the orchestrator: `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then the v1.0 milestone close; BE PR #28 (`fix/city-size-capitals`) merges on the BE side
+Status: Phase 12 complete — v1.0 Core Loop: all 17 phases complete; FE PR #45 (`refactor/12-hardening` → `develop`) opened by the orchestrator on 2026-11-10 (CI to check), BE quick task PR #28 (`fix/city-size-capitals`, Ferrion and Necrorian capitals) open on the BE; next: the two merges, then the milestone close (`/gsd-complete-milestone`; the REQUIREMENTS «Coverage» line still counts 106 and must add HARDEN-07..10)
+Last activity: 2026-11-10 -- Phase 12 complete: device E2E approved (12-HUMAN-UAT.md), HARDEN-01..10 ticked, BACKEND-NOTES.md written
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
@@ -65,8 +65,8 @@ Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette,
 - **F2 — BE rule change from the Phase 9 UAT (2026-10-29):** a started quest whose participant is archived should be fought as if the seat were still occupied (user: «Per quello lasciamo il posto pieno»); today the BE fights with the remaining members (BE 9.2 D-07). Routed in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5.2; BE Phase 10 or a 9.3 companion — decision pending.
 - **F1 / F3 — FE items from the Phase 9 UAT:** F1 party counter / torn state of the own quest not live during the own travel (fix on `feat/09-combat-result-sheet` before the PR); F3 «In attesa del gruppo» on a due solo quest (minor, to check).
 - ~~**BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).~~ — **resolved 2026-11-01:** merged on BE `develop` (`4dc7e89`), consumed by plan 10-11 and proven by the device E2E (outcome in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6).
-- **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
-- **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
+- **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4. — **explained (2026-11-03/09):** the screen-off Doze and the adb tunnel lost on every USB reconnection drop `localhost`; a device-setup effect, not an app defect; not a Phase 12 item (12-CONTEXT §Deferred).
+- ~~**BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).~~ — **routed to Phase 12 on 2026-11-09 (HARDEN-10, CONTEXT D-13)** together with the `CityType.cityClass` → `City.size` item of the Phase 13 discuss.
 - ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
 
 - ~~**FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.~~ — **resolved 2026-11-09:** merged on BE `develop` (`9103440`, PR #24), consumed by plan 16-07 and proven by the device E2E of 16-08 against BE `develop` `6be50d2` (outcome in `phases/16-travel-ambushes/BACKEND-NOTES.md` §4; questions §5, among them the user's detour-safety rule already honoured by BE D-03).

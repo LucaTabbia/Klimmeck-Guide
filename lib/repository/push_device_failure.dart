@@ -11,6 +11,9 @@ const String pushInvalidTokenCode = 'PUSH_INVALID_TOKEN';
 enum PushDeviceFailure {
   invalidDeviceId,
   invalidToken,
+
+  /// BAD_USER_INPUT (BE Phase 10): bug del FE, mai ritentato (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
   unknown;
@@ -36,6 +39,7 @@ PushDeviceFailure pushDeviceFailureFrom(OperationException exception) {
   return switch (code) {
     pushInvalidDeviceIdCode => PushDeviceFailure.invalidDeviceId,
     pushInvalidTokenCode => PushDeviceFailure.invalidToken,
+    badUserInputCode => PushDeviceFailure.badUserInput,
     unauthenticatedCode => PushDeviceFailure.unauthenticated,
     _ => PushDeviceFailure.unknown,
   };

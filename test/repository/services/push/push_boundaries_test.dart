@@ -44,6 +44,9 @@ const String _travelRepository = 'lib/repository/travel_repository.dart';
 /// Superfici di Phase 5 che non devono mai mostrare il prompt notifiche (D-10, NOTIF-02).
 const List<String> _promptFreeFiles = [
   'lib/main.dart',
+  'lib/main_dev.dart',
+  'lib/bootstrap/app_bootstrap.dart',
+  'lib/bootstrap/klimmeck_guide_app.dart',
   'lib/screens/auth/auth_gate.dart',
   'lib/screens/splash/splash_screen.dart',
 ];

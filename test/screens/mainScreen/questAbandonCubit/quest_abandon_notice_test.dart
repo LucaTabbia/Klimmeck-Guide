@@ -22,6 +22,13 @@ void main() {
       });
     });
 
+    test('BAD_USER_INPUT keeps the abandon generic copy (D-13)', () {
+      expect(
+        questAbandonNoticeFor(QuestAbandonFailure.badUserInput)!.description,
+        'Impossibile abbandonare ora, riprova',
+      );
+    });
+
     test('forbidden and unauthenticated publish nothing', () {
       expect(questAbandonNoticeFor(QuestAbandonFailure.forbidden), isNull);
       expect(

@@ -1,25 +1,25 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
+import 'package:klimmeck_guide/config/insecure_transport_error.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Environment configuration for the Klimmeck Guide app.
 ///
 /// This class centralizes all environment-specific values like API URLs,
 /// keys, and other configuration that may change between environments.
 ///
-/// Backend URLs are resolved at runtime with this priority:
-/// 1. the `.env` file loaded by flutter_dotenv (`BASE_URL`, `GRAPHQL_HTTP_URL`,
-///    `GRAPHQL_WS_URL`) — the convenient way during development;
-/// 2. a `--dart-define` of the same name at build time;
+/// Backend URLs (`BASE_URL`, `GRAPHQL_HTTP_URL`, `GRAPHQL_WS_URL`) are
+/// resolved at runtime with this priority:
+/// 1. the runtime overrides installed by the dev entry point
+///    (`installRuntimeOverrides`, values of `.env`);
+/// 2. a `--dart-define` of the same name
+///    (`--dart-define-from-file=env/<name>.json`);
 /// 3. the built-in default.
-///
-/// ```bash
-/// flutter run --dart-define=GRAPHQL_HTTP_URL=https://your-server.com/api/graphql
-/// ```
 class EnvConfig {
   EnvConfig._();
 
   // ============== Backend URLs ==============
   //
-  // Il `.env` è un asset incluso nella build: questi valori non sono segreti.
+  // Valori non segreti: in release arrivano da `--dart-define-from-file` (D-02).
 
   static const String _baseUrlDefine = String.fromEnvironment(
     'BASE_URL',
@@ -44,17 +44,47 @@ class EnvConfig {
   static String get graphqlWsUrl =>
       _runtimeValue('GRAPHQL_WS_URL') ?? _graphqlWsUrlDefine;
 
-  /// Valore della chiave nel `.env` a runtime, oppure `null` se la chiave è
-  /// assente o vuota, o se dotenv non è stato inizializzato (release build
-  /// senza `.env`, test che non lo caricano): mai un crash, solo il fallback.
+  static Map<String, String> _runtimeOverrides = const {};
+
+  /// Valori `.env` installati dall'entry point di sviluppo (D-01): l'entry point
+  /// di produzione non li installa mai.
+  static void installRuntimeOverrides(Map<String, String> values) =>
+      _runtimeOverrides = Map.unmodifiable(values);
+
+  @visibleForTesting
+  static void resetRuntimeOverrides() => _runtimeOverrides = const {};
+
+  /// Valore dell'override per [key], oppure `null` se assente o vuoto: in quel
+  /// caso vale il `--dart-define` o il default.
   static String? _runtimeValue(String key) {
-    try {
-      final value = dotenv.env[key]?.trim();
-      return (value == null || value.isEmpty) ? null : value;
-    } catch (_) {
-      return null;
-    }
+    final value = _runtimeOverrides[key]?.trim();
+    return (value == null || value.isEmpty) ? null : value;
   }
+
+  // ============== Transport (D-03b) ==============
+  //
+  // dart:io ignora la cleartext policy di Android: il rifiuto è lato Dart.
+
+  /// In release lancia [InsecureTransportError] se un URL del backend non è
+  /// `https`/`wss`; fuori release si limita a loggare i nomi delle chiavi.
+  static void requireSecureTransport({bool isRelease = kReleaseMode}) {
+    final offending = _cleartextKeys();
+    if (offending.isEmpty) return;
+    if (isRelease) throw InsecureTransportError(offending);
+    appLog(
+      '[EnvConfig] cleartext backend URLs outside release: '
+      '${offending.join(', ')}',
+    );
+  }
+
+  static List<String> _cleartextKeys() => [
+    if (!_hasScheme(baseUrl, 'https')) 'BASE_URL',
+    if (!_hasScheme(graphqlHttpUrl, 'https')) 'GRAPHQL_HTTP_URL',
+    if (!_hasScheme(graphqlWsUrl, 'wss')) 'GRAPHQL_WS_URL',
+  ];
+
+  static bool _hasScheme(String url, String scheme) =>
+      Uri.tryParse(url)?.scheme.toLowerCase() == scheme;
 
   // ============== Timeouts ==============
 
@@ -80,33 +110,27 @@ class EnvConfig {
 
   // ============== Environment Flags ==============
 
-  static const bool isDebug = bool.fromEnvironment('DEBUG', defaultValue: true);
+  static const bool isDebug = bool.fromEnvironment(
+    'DEBUG',
+    defaultValue: !kReleaseMode,
+  );
 
   // ============== Dev Auth (bypass finché non esistono le chiavi Twitch, D-23) ==============
   //
-  // Questi valori sono letti a runtime da flutter_dotenv, NON con
-  // `String.fromEnvironment` (compile-time). Motivo: flutter_dotenv carica
-  // `.env` come asset Flutter a runtime — il valore non è disponibile al
-  // momento della compilazione, quindi `fromEnvironment` ritornerebbe sempre
-  // il defaultValue (pitfall 1 di 01-RESEARCH.md).
-  //
-  // La rimozione del flag e dello stub è in Phase 12 (Hardening).
+  // Il flag è letto dai runtime override installati dall'entry point di
+  // sviluppo: senza override (entry point di produzione) vale `false`.
 
-  /// Runtime flag letto da `.env` tramite flutter_dotenv.
-  ///
   /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive, spazi
-  /// attorno ignorati come per `DEV_AUTH_START_SIGNED_OUT`) nel file `.env`.
-  /// In release build senza `.env` negli assets, ritorna `false`
-  /// in modo sicuro (fail-safe su dotenv non inizializzato).
+  /// attorno ignorati come per `DEV_AUTH_START_SIGNED_OUT`) negli override.
   ///
-  /// Usato da `main.dart` per scegliere tra `DevAuthTokenService`
-  /// e `SessionAuthTokenService` tramite factory senza type-check.
+  /// Usato da `buildDevAuthComposition` (entry point `main_dev.dart`) per
+  /// scegliere tra `DevAuthTokenService` e `SessionAuthTokenService`.
   static bool get devAuthEnabled =>
       _runtimeValue('DEV_AUTH_ENABLED')?.toLowerCase() == 'true';
 
   static const bool enableLogging = bool.fromEnvironment(
     'ENABLE_LOGGING',
-    defaultValue: true,
+    defaultValue: !kReleaseMode,
   );
 
   // ============== Cloudinary ==============

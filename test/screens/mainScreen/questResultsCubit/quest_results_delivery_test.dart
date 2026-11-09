@@ -271,6 +271,21 @@ void main() {
         );
       });
     }
+
+    withHarness('a badUserInput read is not retried (D-13)', (h, a) {
+      h.pending.error = const QuestResultException(
+        QuestResultFailure.badUserInput,
+      );
+      _start(h, a);
+
+      a.elapse(const Duration(minutes: 10));
+
+      expect(h.pending.calls, 1);
+      expect(
+        h.state,
+        const QuestResultsState(pendingRefetch: PendingRefetch.failed),
+      );
+    });
   });
 
   group('QuestResultsCubit refetch progress (09-REVIEW WR-03)', () {
@@ -506,6 +521,19 @@ void main() {
         expect(h.state.notice?.serial, 2);
       });
     }
+
+    withHarness('a badUserInput tap produces a notice (D-13)', (h, a) {
+      when(
+        () => h.repository.fetch('r-9'),
+      ).thenThrow(const QuestResultException(QuestResultFailure.badUserInput));
+      _start(h, a);
+
+      h.cubit.requestFromTap('r-9');
+      a.flushMicrotasks();
+
+      expect(h.state.notice?.resultId, 'r-9');
+      expect(h.state.notice?.failure, QuestResultFailure.badUserInput);
+    });
 
     for (final failure in [
       QuestResultFailure.connection,

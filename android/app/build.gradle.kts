@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -7,6 +8,15 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val releaseKeystoreFile = rootProject.file("key.properties")
+val releaseKeystore = Properties().apply {
+    if (releaseKeystoreFile.exists()) releaseKeystoreFile.inputStream().use(::load)
+}
+val hasReleaseKeystore = releaseKeystoreFile.exists()
+
+fun requiredKeystoreProperty(key: String): String =
+    requireNotNull(releaseKeystore.getProperty(key)) { "key.properties: $key missing" }
 
 android {
     namespace = "it.lordreavor.klimmeckguide.klimmeck_guide"
@@ -34,11 +44,35 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") { dimension = "env" }
+        create("prod") { dimension = "env" }
+    }
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = file(requiredKeystoreProperty("storeFile"))
+                storePassword = requiredKeystoreProperty("storePassword")
+                keyAlias = requiredKeystoreProperty("keyAlias")
+                keyPassword = requiredKeystoreProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "release" else "debug")
+        }
+    }
+}
+
+// D-03a: the debug-keys warning only when a release variant is actually built.
+if (!hasReleaseKeystore) {
+    gradle.taskGraph.whenReady {
+        if (allTasks.any { it.name.contains("Release") }) {
+            logger.quiet("WARNING: android/key.properties not found: the release build is signed with the DEBUG keys and cannot be published.")
         }
     }
 }

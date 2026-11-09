@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
@@ -48,9 +47,10 @@ import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 class KlimmeckGraphQl {
-  /// Il client arriva dal composition root (`main.dart`) o dal test: il
+  /// Il client arriva dal composition root (`lib/bootstrap/`) o dal test: il
   /// service non conosce l'albero dei widget né il `navigatorKey`.
   KlimmeckGraphQl({required GraphQLClient Function() resolveClient})
     : _resolveClient = resolveClient;
@@ -258,7 +258,7 @@ class KlimmeckGraphQl {
         .toList();
     final skipped = json.length - parsed.length;
     if (skipped > 0) {
-      debugPrint('[Innkeeper] skipped $skipped malformed queue entries');
+      appLog('[Innkeeper] skipped $skipped malformed queue entries');
     }
     return List.unmodifiable(parsed);
   }
@@ -333,7 +333,7 @@ class KlimmeckGraphQl {
     for (final json in questsData) {
       final quest = Quest.tryFromJson(json);
       if (quest == null) {
-        debugPrint('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
+        appLog('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
         continue;
       }
       quests.add(quest);

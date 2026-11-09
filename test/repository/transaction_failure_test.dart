@@ -10,6 +10,18 @@ OperationException _withCode(String code) => OperationException(
   ],
 );
 
+OperationException _fromHttp400(String code) => OperationException(
+  linkException: ServerException(
+    statusCode: 400,
+    parsedResponse: Response(
+      response: const {},
+      errors: [
+        GraphQLError(message: 'server text', extensions: {'code': code}),
+      ],
+    ),
+  ),
+);
+
 void main() {
   group('transactionFailureFrom', () {
     final byCode = {
@@ -49,6 +61,23 @@ void main() {
             TransactionFailure.petAlreadyOwned,
             TransactionFailure.petNotOwned,
           ],
+        );
+      },
+    );
+
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
+      expect(
+        transactionFailureFrom(_withCode('BAD_USER_INPUT')),
+        TransactionFailure.badUserInput,
+      );
+    });
+
+    test(
+      'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
+      () {
+        expect(
+          transactionFailureFrom(_fromHttp400('BAD_USER_INPUT')),
+          TransactionFailure.badUserInput,
         );
       },
     );

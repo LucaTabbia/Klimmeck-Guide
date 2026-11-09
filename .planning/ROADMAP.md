@@ -1,7 +1,7 @@
 # Roadmap: Klimmeck Guide — v1.0 Core Loop
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-11-01 — Phase 10 complete (11/11 plans, Android device E2E 10/10, ADMIN-01..08).)_ _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
+**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-11-09 — Phase 12 discuss (joint with the BE Phase 17, inserted as companion): goal, requirements (HARDEN-02/05/06 amended, HARDEN-07..10 added) and success criteria amended; BE Phase 17 added to the backend prerequisites.)_ _(2026-11-01 — Phase 10 complete (11/11 plans, Android device E2E 10/10, ADMIN-01..08).)_ _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
 **Milestone:** v1.0 Core Loop
 **Granularity:** Standard (17 phases)
 **Coverage:** 95/95 v1 requirements mapped (79 + 16 added 2026-10-29)
@@ -61,6 +61,7 @@ Two v1.0 requirements require a backend schema change **before** the correspondi
 - **FOOD-01..04 (BE Phase 14, added 2026-10-29)** — additive food/HP fields on `travelPreview`, an acceptance preview for the quest automatic travel, the starvation refusal code. Blocks Phase 15 (Travel Food).
 - **AMBUSH-01..03 (BE Phase 15, added 2026-10-29)** — `activeTravel` rewritten on a lost ambush, ambush outcome on `QuestResult`. Blocks Phase 16 (Travel Ambushes).
 - **LORE-01..03 (BE Phase 16, added 2026-10-29)** — lore queries filtered per character, `known` flag on quest/result enemies. Blocks Phase 17 (Unlockable Lore); BE Phase 11 seeds the lore.
+- **HARDEN-02 / HARDEN-06 (BE Phase 17, added 2026-11-09)** — a table-driven authorization matrix over the enumerated innkeeper and owner-only handlers (the HARDEN-02 evidence), «l\'ultimo login caccia l\'altro» (other sessions revoked at login, their WebSockets closed at once with a dedicated close code, JWT stateless until expiry), `SESSION_REVOKED` + `extensions.reason` on the refused refresh and in the WS close reason, role-change revocation. Blocks only the contract-gated plans (revocation notices) and the dual-device UAT of Phase 12; everything else runs before the merge.
 
 Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
 
@@ -77,7 +78,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
 - [x] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_ (completed 2026-11-01)
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
-- [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
+- [x] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions; dev bypass moved to `lib/main_dev.dart` and out of the release bundle with `.env`, release signing + TLS-only + silent logs, GitHub Actions CI, «l'ultimo login caccia l'altro» with a specific notice (BE Phase 17 companion), parked follow-ups closed, cross-cutting review by area. _(amended 2026-11-09 in the discuss)_ (completed 2026-11-10)
 
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
@@ -397,21 +398,42 @@ Plans:
   - [x] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
 
 ### Phase 12: Hardening
-**Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
-**Depends on**: All prior phases feature-complete (incluso Phase 11 che rimpiazza lo stub con auth reale)
+**Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure: the production entry point `lib/main.dart` carries no dev bypass and no `.env` (the bypass lives in `lib/main_dev.dart`, URLs come from `--dart-define-from-file`), the release build is signed with the user's keystore, talks only TLS and logs nothing; the session layer is proven end to end (atomic logout, single-flight refresh, no retained subscriptions or cubits after logout — leak-tracking test + DevTools snapshot); the same Twitch account logging in on a second device replaces the first one cleanly («l'ultimo login caccia l'altro», BE Phase 17) with a specific sign-in notice and every identity transition rebuilds the whole shell; the follow-ups parked here since Phases 8, 10 and 13 are closed; a cross-cutting review by area fixes what it finds; a GitHub Actions pipeline guards all of it. _(amended 2026-11-09 in the discuss, `12-CONTEXT.md` D-01..D-15)_
+**Depends on**: All prior phases feature-complete (Phase 11 replaced the stub with the real auth; Phases 13–17 merged on `develop`); BE Phase 17 (authorization matrix, last-login-wins revocation with the dedicated WS close, `SESSION_REVOKED` + `reason`, role-change revocation) for the contract-gated plans and the dual-device UAT.
 **Scope**: L
-**Requirements**: HARDEN-01, HARDEN-02, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-06
+**Requirements**: HARDEN-01, HARDEN-02, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-06, HARDEN-07, HARDEN-08, HARDEN-09, HARDEN-10
 **Success Criteria** (what must be TRUE):
   1. An audit (code review + automated grep in CI) confirms no access or refresh token is ever written to shared_preferences, logs, or any unencrypted disk path.
-  2. Integration tests confirm every admin endpoint returns 403 when called with a non-innkeeper JWT.
-  3. An automated test demonstrates that logout is atomic end-to-end: Twitch token revoked, secure storage cleared, GraphQL cache reset, subscriptions cancelled, cubits reset, navigation to sign-in — all verified in a single flow.
-  4. A concurrency test confirms that two simultaneous 401 responses produce exactly one refresh call (mutex-guarded), with no silent logout.
-  5. A memory profiler run after logout shows no retained subscriptions or owning blocs; a dual-device test (same Twitch account on two devices) shows graceful identity/subscription conflict handling with no state corruption on the client.
-  6. Audit aggiuntivo: nessun riferimento residuo a `DevAuthTokenService` / `DEV_AUTH_*` nel codice di produzione; il flag `DEV_AUTH_ENABLED` in `.env` è rimosso dai build release.
-**Decisions to make during discuss step**:
-  - Concrete test harness(es) for memory profiling and dual-device simulation.
-**Plans**: TBD
-
+  2. Integration tests confirm every admin endpoint returns 403 when called with a non-innkeeper JWT — delivered by the BE Phase 17 table-driven matrix over the enumerated innkeeper (11) and owner-only (19) handlers in the BE repo; the FE records the evidence in its handoff. _(amended 2026-11-09)_
+  3. An automated test demonstrates that logout is atomic end-to-end: backend session invalidated (best-effort), secure storage cleared, GraphQL client and WebSocket link recreated, subscriptions cancelled, cubits reset, navigation to sign-in — all verified in a single flow (the existing Phase 11 suites audited and completed, never reinvented). _(amended 2026-11-09)_
+  4. A concurrency test confirms that two simultaneous 401 / `UNAUTHENTICATED` responses produce exactly one refresh call (single-flight), with no silent logout.
+  5. A leak-tracking widget test over the authenticated shell → logout fails on any retained subscription or cubit, and a DevTools memory snapshot before/after logout in the device UAT confirms it; the dual-device UAT (Samsung + Android emulator, same real Twitch account) shows the first device replaced cleanly by the second login (WS closed with the dedicated code, refresh refused with `SESSION_REVOKED` + `reason`, teardown, sign-in with the «altro dispositivo» notice, no state corruption) and identity transitions (account switch, character deleted or recreated from the other device) rebuilding the whole shell. _(amended 2026-11-09)_
+  6. No residual `DevAuthTokenService` / `DEV_AUTH_*` / `flutter_dotenv` in the production entry point `lib/main.dart` (the dev bypass lives only in `lib/main_dev.dart`); the built release APK contains no `.env` entry and no `DEV_AUTH_` string (CI grep on the bundle); backend URLs come from `--dart-define-from-file`. _(amended 2026-11-09)_
+  7. Release readiness: the release build is signed with the user's keystore read from `android/key.properties` (outside VCS; debug-key fallback with a visible warning when the file is missing), refuses cleartext `http://` / `ws://` backend URLs (AR-03 of the Phase 3 security audit closed) and emits no debug logging; the release build is exercised on the device through a TLS tunnel to the local BE with a real Twitch login. _(added 2026-11-09)_
+  8. A GitHub Actions workflow on PR → `develop` runs `flutter analyze` (0 error / 0 warning), `flutter test`, the guard greps of criteria 1 and 6, and `flutter build apk --release` with the dart-define file followed by the bundle grep. _(added 2026-11-09)_
+  9. Follow-ups closed: `BAD_USER_INPUT` mapped in every failure classifier; `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` mapped in character creation with dedicated messages; marker sizes read `City.size` from the BE and the FE `CityType.cityClass` map is gone. _(added 2026-11-09)_
+  10. A cross-cutting code review by area (session/WS, cubits and subscriptions, models/parsing) with every finding fixed in TDD or explicitly deferred. _(added 2026-11-09)_
+**Decisions of the discuss (2026-11-09, `12-CONTEXT.md` D-01..D-15)**: separate dev entry point; no `.env` in release; signing + TLS-only + silent logs in scope, keystore generated by the user with a debug fallback; leak-tracking test + DevTools; dual-device UAT on phone + emulator; full CI with the release build; HARDEN-03/04 verified on the existing suites; «l'ultimo login caccia l'altro», logout only of the own device, shell reset by construction proven, specific notices from `SESSION_REVOKED` + `reason`; three follow-ups folded (the diagnostics badge stays out); review by three areas + fixer; release UAT via TLS tunnel.
+**Backend prerequisite**: BE Phase 17 merged on BE `develop` for the contract-gated plans (revocation reason notices, dedicated WS close) and the dual-device UAT; everything else runs before it.
+**Branch**: `refactor/12-hardening` from `develop` (`ac75702`, the merge of PR #44) → PR to `develop`.
+**Plans**: 17 plans (sequential waves; the last two — gate and device UAT + handoff — gated by the BE Phase 17 merge; the review by area runs between the last code plan and the gate)
+- [x] 12-01-PLAN.md — `EnvConfig` runtime-override seam (no `flutter_dotenv` import, flags = `!kReleaseMode`) and the `appLog` seam; the pinned config tests rewritten RED first (D-01, D-03c)
+- [x] 12-02-PLAN.md — Entry points split: three-line production `lib/main.dart`, `lib/main_dev.dart` with the `appFlavor` assert, shared `lib/bootstrap/` module, barrel export of the dev service removed, purity tests (D-01, D-16)
+- [x] 12-03-PLAN.md — Build infrastructure in one commit: `env/dev.json`, `env/prod.json`, `env/*.local.json` ignored, flavored `.env` + `default-flavor: prod`, Android dev/prod flavors, `key.properties` signing with the `logger.quiet` warning, leak_tracker dev deps; scratch release build and bundle greps (D-02, D-03a, D-17)
+- [x] 12-04-PLAN.md — TLS only in release: `requireSecureTransport`, `InsecureTransportError`, `InsecureTransportScreen` with the D-19 copy, check first in `bootstrapApp` (D-03b)
+- [x] 12-05-PLAN.md — Repository/services logs (31 calls, 14 files) routed through `appLog`, per-directory guard test (D-03c)
+- [x] 12-06-PLAN.md — Screen/shared logs (23 calls, 13 files) routed through `appLog`; guard over all of `lib/` (D-03c)
+- [x] 12-07-PLAN.md — `tool/hardening_check.sh` and `.github/workflows/ci.yml` (D-07, D-18)
+- [x] 12-08-PLAN.md — HARDEN-03/04: `logout_flow_test.dart` (ordered teardown on the loopback socket, old client freed after `forceGC`) and `concurrent_unauthorized_refresh_test.dart` (one rotation for two 401) (D-08)
+- [x] 12-09-PLAN.md — HARDEN-05/06: `LeakTrackingBlocObserver` + `authenticated_shell_leak_test.dart`, `identity_transitions_test.dart`, the `NotificationIntentCubit` user-change gap fixed in TDD (D-05, D-11)
+- [x] 12-10-PLAN.md — `graphQlErrorCode` reads HTTP ≥ 300 `parsedResponse`; `BAD_USER_INPUT` in travel and quest acceptance (D-13a)
+- [x] 12-11-PLAN.md — `BAD_USER_INPUT` in shop transactions, quest abandon and quest results (the result banner no longer silent) (D-13a)
+- [x] 12-12-PLAN.md — Character creation (`BAD_USER_INPUT`, `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` with the D-19 copy and the two cubit reactions) and character deletion (D-13a, D-13b)
+- [x] 12-13-PLAN.md — `BAD_USER_INPUT` in innkeeper and push device (no retry); `cityClass` removed, marker visibility driven by `City.size`, per-type pixel sizes kept (D-13a, D-13c)
+- [x] 12-14-PLAN.md — `SessionRejected.reason` parsed leniently; `replacedByNewLogin` / `roleChanged` reasons and notices with the fixed copy; `_rotateSession` mapping and the `fakeAsync` companion, on fakes (D-12)
+- [x] 12-15-PLAN.md — `4409` handled like `4401` in `WsReconnectPolicy`; Wave 0 fakes (`closeSocket`, `onConnectionInit`, `FakeSessionBackend`); `dual_session_revocation_test.dart` cases a–e, on fakes (D-06, D-09)
+- [x] 12-16-PLAN.md — ⛔ Gate (after the BE Phase 17 merge): gate file check, names proven on the merged BE files, BE handoff read (HARDEN-02 evidence), schema check 45/45, guard script, full suite, analyzer, release build + bundle guard, format/trailer/sanity gates, VALIDATION approved
+- [x] 12-17-PLAN.md — ⛔ Device UAT + handoff: `12-HUMAN-UAT.md` (prerequisites incl. keystore, tunnel, Twitch redirect, one BE process; 11 steps), human checkpoint, verbatim results, `mark-complete` only here, `BACKEND-NOTES.md`, ROADMAP/STATE/REQUIREMENTS/VALIDATION closed (D-04, D-06, D-20)
 ### Phase 13: City Shops
 **Goal**: The shop a player opens on a city marker sells only that city's own pool of items — equipment, loot and companions (pets) — with the pool, the city size (`City.size`, derived by the BE from the `CityType`) and every refusal owned by the backend (BE Phase 12: pool seeded at boot and curated in the database, D-36); the frontend adapts the existing shop to the `cityShop(cityId)` query, keeps selling possible everywhere with infinite stock and catalogue prices, disables the Shop cell where the city has no shop, and adds what the companions require: a «Compagni» list in the buy/sell sheets and a «Compagno» slot in the Journal that equips one of the owned pets (`assets.ownedPets`, new) into the equipped slot (`assets.pet`, the one the travel speed uses), never automatically on purchase. _(amended 2026-11-02: user — «bisogna solo chiamare la chiamata al BE per adattarla alla nuova forma»; no city name on the sheet; pets added)_
 **Depends on**: Phase 7 (shop only on a city marker), Phase 8 (shop filters, `ItemRow`, Journal equip pattern), Phase 9 (refusal routing bubble vs banner), BE Phase 11 (catalogue, pets and cities in the DB), BE Phase 12 (`City.size` / `City.hasShop`, `cityShop`, `ITEM_NOT_IN_SHOP`, `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet`)
@@ -556,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 0/0 | Not started (executes last) | - |
+| 12. Hardening | 17/17 | Complete | 2026-11-10 |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
@@ -649,12 +671,16 @@ Plans:
 | AUTH-05 | Phase 11 | Pending |
 | AUTH-06 | Phase 11 | Pending |
 | AUTH-07 | Phase 11 | Pending |
-| HARDEN-01 | Phase 12 | Pending |
-| HARDEN-02 | Phase 12 | Pending |
-| HARDEN-03 | Phase 12 | Pending |
-| HARDEN-04 | Phase 12 | Pending |
-| HARDEN-05 | Phase 12 | Pending |
-| HARDEN-06 | Phase 12 | Pending |
+| HARDEN-01 | Phase 12 | Complete |
+| HARDEN-02 | Phase 12 | Complete |
+| HARDEN-03 | Phase 12 | Complete |
+| HARDEN-04 | Phase 12 | Complete |
+| HARDEN-05 | Phase 12 | Complete |
+| HARDEN-06 | Phase 12 | Complete |
+| HARDEN-07 | Phase 12 | Complete |
+| HARDEN-08 | Phase 12 | Complete |
+| HARDEN-09 | Phase 12 | Complete |
+| HARDEN-10 | Phase 12 | Complete |
 | SHOP-02 | Phase 13 | Complete |
 | SHOP-03 | Phase 13 | Complete |
 | SHOP-04 | Phase 13 | Complete |

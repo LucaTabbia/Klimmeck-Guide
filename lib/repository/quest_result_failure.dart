@@ -8,6 +8,10 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.da
 enum QuestResultFailure {
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
   timedOut,
@@ -33,6 +37,7 @@ QuestResultFailure questResultFailureFrom(OperationException exception) {
   return switch (code) {
     notFoundCode => QuestResultFailure.notFound,
     forbiddenCode => QuestResultFailure.forbidden,
+    badUserInputCode => QuestResultFailure.badUserInput,
     unauthenticatedCode => QuestResultFailure.unauthenticated,
     _ => QuestResultFailure.unknown,
   };

@@ -7,7 +7,6 @@ const String spellNotKnownCode = 'SPELL_NOT_KNOWN';
 const String spellAlreadyActiveCode = 'SPELL_ALREADY_ACTIVE';
 const String maxActiveSpellsReachedCode = 'MAX_ACTIVE_SPELLS_REACHED';
 const String spellNotActiveCode = 'SPELL_NOT_ACTIVE';
-const String badUserInputCode = 'BAD_USER_INPUT';
 
 /// Esiti di dominio del rifiuto di `equipSpell`/`unequipSpell` (BE Phase 4 §2,
 /// invariati dalla 9.1); la UI li traduce in copy (D-17).

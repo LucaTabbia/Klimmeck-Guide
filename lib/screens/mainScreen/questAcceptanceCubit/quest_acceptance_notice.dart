@@ -39,6 +39,7 @@ KGNotification? questAcceptanceNoticeFor(
     QuestAcceptanceFailure.timedOut =>
       'Il server non ha risposto in tempo: '
           'controlla la bacheca prima di riprovare',
+    QuestAcceptanceFailure.badUserInput ||
     QuestAcceptanceFailure.unknown => 'Qualcosa è andato storto, riprova',
     QuestAcceptanceFailure.unauthenticated => null,
   };

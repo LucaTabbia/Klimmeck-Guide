@@ -126,6 +126,48 @@ void main() {
     expect(client.socket.closeCode, 4401);
   });
 
+  test(
+    'closeSocket delivers the close code and reason to the client (D-06)',
+    () async {
+      final client = await _Client.connect(server.url);
+      client.send({'type': 'connection_init'});
+      await client.next('connection_ack');
+
+      await server.closeSocket(server.sockets.single, 4409, 'newLogin');
+
+      await client.closed.future.timeout(const Duration(seconds: 2));
+      expect(client.socket.closeCode, 4409);
+      expect(client.socket.closeReason, 'newLogin');
+    },
+  );
+
+  test('onConnectionInit can refuse the init without an ack (D-06)', () async {
+    final payloads = <Map<String, dynamic>?>[];
+    server.onConnectionInit = (ws, payload) {
+      payloads.add(payload);
+      if (payload?['Authorization'] == 'Bearer accepted') return true;
+      unawaited(server.closeSocket(ws, 4409, 'newLogin'));
+      return false;
+    };
+    final refused = await _Client.connect(server.url);
+    final accepted = await _Client.connect(server.url);
+
+    refused.send({
+      'type': 'connection_init',
+      'payload': {'Authorization': 'Bearer revoked'},
+    });
+    accepted.send({
+      'type': 'connection_init',
+      'payload': {'Authorization': 'Bearer accepted'},
+    });
+
+    await refused.closed.future.timeout(const Duration(seconds: 2));
+    expect(refused.socket.closeCode, 4409);
+    expect(refused.frames.where((f) => f['type'] == 'connection_ack'), isEmpty);
+    expect((await accepted.next('connection_ack'))['type'], 'connection_ack');
+    expect(payloads, hasLength(2));
+  });
+
   test('stop completes and refuses new connections', () async {
     final url = server.url;
 

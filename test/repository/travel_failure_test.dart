@@ -10,6 +10,18 @@ OperationException _withCode(String code) => OperationException(
   ],
 );
 
+OperationException _fromHttp400(String code) => OperationException(
+  linkException: ServerException(
+    statusCode: 400,
+    parsedResponse: Response(
+      response: const {},
+      errors: [
+        GraphQLError(message: 'server text', extensions: {'code': code}),
+      ],
+    ),
+  ),
+);
+
 void main() {
   group('travelFailureFrom', () {
     final byCode = {
@@ -36,6 +48,31 @@ void main() {
         travelFailureFrom(_withCode('TRAVEL_STARVING')),
         TravelFailure.starving,
       );
+    });
+
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
+      expect(
+        travelFailureFrom(_withCode('BAD_USER_INPUT')),
+        TravelFailure.badUserInput,
+      );
+    });
+
+    test(
+      'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
+      () {
+        expect(
+          travelFailureFrom(_fromHttp400('BAD_USER_INPUT')),
+          TravelFailure.badUserInput,
+        );
+      },
+    );
+
+    test('an HTTP error without a code stays connection (D-13)', () {
+      final exception = OperationException(
+        linkException: ServerException(statusCode: 500),
+      );
+
+      expect(travelFailureFrom(exception), TravelFailure.connection);
     });
 
     test('maps a link error without code to connection', () {

@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/repository/services/push/firebase_push_messaging.dart';
 import 'package:klimmeck_guide/repository/services/push/flutter_local_notifications_adapter.dart';
 import 'package:klimmeck_guide/repository/services/push/local_notifications_startup.dart';
 import 'package:klimmeck_guide/repository/services/push/permission_handler_notification_permission.dart';
 import 'package:klimmeck_guide/repository/services/push/push_background_handler.dart';
 import 'package:klimmeck_guide/repository/services/push/push_services.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 const Duration _firebaseInitTimeout = Duration(seconds: 3);
 
@@ -22,7 +22,7 @@ Future<PushServices> bootstrapPush() async {
   try {
     await Firebase.initializeApp().timeout(_firebaseInitTimeout);
   } on Object catch (error) {
-    debugPrint('Push disabled: Firebase unavailable (${error.runtimeType})');
+    appLog('Push disabled: Firebase unavailable (${error.runtimeType})');
     return const PushServices.disabled(permission: permission);
   }
   try {
@@ -38,9 +38,7 @@ Future<PushServices> bootstrapPush() async {
       launchIntent: await readLaunchIntent(notifications),
     );
   } on Object catch (error) {
-    debugPrint(
-      'Push disabled: notifications unavailable (${error.runtimeType})',
-    );
+    appLog('Push disabled: notifications unavailable (${error.runtimeType})');
     return const PushServices.disabled(permission: permission);
   }
 }

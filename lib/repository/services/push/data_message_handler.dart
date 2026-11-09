@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/models/push_event.dart';
 import 'package:klimmeck_guide/repository/services/push/local_notifications_port.dart';
 import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Filtro comune a background e foreground (D-14): messaggio valido, utente noto, toggle attivo.
 /// `null` = non mostrare nulla. Mai un'eccezione verso il chiamante.
@@ -13,14 +13,14 @@ Future<PushEvent?> acceptPushEvent(
 }) async {
   final event = PushEvent.tryParse(data);
   if (event == null) {
-    debugPrint('Push dropped: unknown or malformed message');
+    appLog('Push dropped: unknown or malformed message');
     return null;
   }
   if (userId == null) return null;
   try {
     return await preferences.isEnabled(userId, event.category) ? event : null;
   } on Object catch (error) {
-    debugPrint('Push dropped: preferences unavailable (${error.runtimeType})');
+    appLog('Push dropped: preferences unavailable (${error.runtimeType})');
     return null;
   }
 }
@@ -45,7 +45,7 @@ Future<String?> _activeUserId(ActiveUserStore store) async {
   try {
     return await store.read();
   } on Object catch (error) {
-    debugPrint('Push dropped: active user unavailable (${error.runtimeType})');
+    appLog('Push dropped: active user unavailable (${error.runtimeType})');
     return null;
   }
 }

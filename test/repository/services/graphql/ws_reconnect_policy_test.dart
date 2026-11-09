@@ -6,6 +6,7 @@ import '../../../helpers/mocks.dart';
 
 const _tokenExpired = 4401;
 const _forbidden = 4403;
+const _sessionRevoked = 4409;
 const _abnormalClosure = 1006;
 
 void main() {
@@ -181,6 +182,73 @@ void main() {
         ]);
       },
     );
+  });
+
+  group('onConnectionLost on a revoked session (BE Phase 17)', () {
+    test('4409 recovers the session before reconnecting (D-09)', () async {
+      recoveryAnswers('T2');
+      final policy = policyWith();
+      await policy.buildInitialPayload();
+
+      final delay = await policy.onConnectionLost(_sessionRevoked, 'newLogin');
+
+      expect(delay, WsReconnectPolicy.authRetryDelay);
+      verify(
+        () => mockRecovery.recoverFromUnauthorized(rejectedToken: 'T1'),
+      ).called(1);
+    });
+
+    test(
+      'a failed recovery after 4409 falls back to the backoff (D-09)',
+      () async {
+        recoveryAnswers(null);
+        final policy = policyWith();
+        await policy.buildInitialPayload();
+
+        final delay = await policy.onConnectionLost(
+          _sessionRevoked,
+          'newLogin',
+        );
+
+        expect(delay, const Duration(seconds: 1));
+        verify(
+          () => mockRecovery.recoverFromUnauthorized(
+            rejectedToken: any(named: 'rejectedToken'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('a repeated 4409 does not hot-loop (D-09)', () async {
+      recoveryAnswers('T2');
+      final policy = policyWith();
+
+      final delays = [
+        await policy.onConnectionLost(_sessionRevoked, 'newLogin'),
+        await policy.onConnectionLost(_sessionRevoked, 'newLogin'),
+      ];
+
+      expect(delays, const [
+        WsReconnectPolicy.authRetryDelay,
+        Duration(seconds: 2),
+      ]);
+    });
+
+    test('the 4409 close reason is ignored (D-09)', () async {
+      recoveryAnswers('T2');
+
+      final delays = [
+        for (final reason in ['newLogin', 'roleChanged', ''])
+          await policyWith().onConnectionLost(_sessionRevoked, reason),
+      ];
+
+      expect(delays, everyElement(WsReconnectPolicy.authRetryDelay));
+      verify(
+        () => mockRecovery.recoverFromUnauthorized(
+          rejectedToken: any(named: 'rejectedToken'),
+        ),
+      ).called(3);
+    });
   });
 
   group('onConnectionLost on other close codes', () {

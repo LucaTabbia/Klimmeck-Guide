@@ -11,6 +11,10 @@ enum QuestAbandonFailure {
   notWaiting,
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -38,6 +42,7 @@ QuestAbandonFailure questAbandonFailureFrom(OperationException exception) {
     questNotWaitingCode => QuestAbandonFailure.notWaiting,
     notFoundCode => QuestAbandonFailure.notFound,
     forbiddenCode => QuestAbandonFailure.forbidden,
+    badUserInputCode => QuestAbandonFailure.badUserInput,
     unauthenticatedCode => QuestAbandonFailure.unauthenticated,
     _ => QuestAbandonFailure.unknown,
   };

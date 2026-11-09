@@ -17,6 +17,8 @@ const _connectionError = 'Errore di connessione, riprova';
 const _unavailableError = 'Login con Twitch non ancora disponibile.';
 const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
+const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
+const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 
 void main() {
   late MockAuthTokenService service;
@@ -156,5 +158,31 @@ void main() {
     await pumpScreen(tester);
     await tester.pump();
     expect(find.text(_connectionLostNotice), findsNothing);
+  });
+
+  testWidgets('shows the new-login notice only when requested (D-12)', (
+    tester,
+  ) async {
+    await pumpScreen(tester, notice: SignInNotice.replacedByNewLogin);
+    expect(find.text(_newLoginNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+    expect(find.text(_roleChangedNotice), findsNothing);
+
+    await pumpScreen(tester);
+    await tester.pump();
+    expect(find.text(_newLoginNotice), findsNothing);
+  });
+
+  testWidgets('shows the role-changed notice only when requested (D-12)', (
+    tester,
+  ) async {
+    await pumpScreen(tester, notice: SignInNotice.roleChanged);
+    expect(find.text(_roleChangedNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+    expect(find.text(_newLoginNotice), findsNothing);
+
+    await pumpScreen(tester);
+    await tester.pump();
+    expect(find.text(_roleChangedNotice), findsNothing);
   });
 }

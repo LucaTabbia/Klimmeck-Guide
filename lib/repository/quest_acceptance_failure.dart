@@ -34,6 +34,10 @@ enum QuestAcceptanceFailure {
   /// BE Phase 14 D-11: il viaggio automatico verso il marker non arriverebbe
   /// vivo; il foglio si ricompone e l'anteprima si rinnova (15-CONTEXT D-05).
   starving,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -73,6 +77,7 @@ QuestAcceptanceFailure questAcceptanceFailureFrom(
     travelStarvingCode => QuestAcceptanceFailure.starving,
     notFoundCode => QuestAcceptanceFailure.notFound,
     forbiddenCode => QuestAcceptanceFailure.forbidden,
+    badUserInputCode => QuestAcceptanceFailure.badUserInput,
     unauthenticatedCode => QuestAcceptanceFailure.unauthenticated,
     _ => QuestAcceptanceFailure.unknown,
   };

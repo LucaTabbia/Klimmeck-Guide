@@ -29,13 +29,19 @@ void main() {
     when(() => api.refreshSession('r0')).thenAnswer((_) async => _session);
   });
 
-  SessionAuthTokenService startService(FakeAsync async) {
+  SessionAuthTokenService startService(
+    FakeAsync async, {
+    Future<void>? teardownGate,
+  }) {
     final service = SessionAuthTokenService(
       api: api,
       store: store,
       browser: MockBrowserAuthenticator(),
       backendBaseUrl: Uri.parse('http://backend.test/'),
-      onSessionTeardown: () async => teardowns++,
+      onSessionTeardown: () async {
+        teardowns++;
+        await teardownGate;
+      },
       now: () => testNow.add(async.elapsed),
     );
     service.authStateStream.listen(states.add);
@@ -124,6 +130,35 @@ void main() {
         expect(teardowns, 1);
         expect(unauthenticated(), [
           const AuthUnauthenticated(reason: UnauthenticatedReason.syncLost),
+        ]);
+        service.dispose();
+      });
+    });
+
+    test('a syncLost termination during a newLogin refusal teardown keeps '
+        'the first reason: one teardown, one terminal state (D-12)', () {
+      fakeAsync((async) {
+        final teardownGate = Completer<void>();
+        when(() => api.refreshSession('r1')).thenAnswer(
+          (_) async => throw const SessionRejected(
+            sessionRevokedCode,
+            reason: sessionRevokedReasonNewLogin,
+          ),
+        );
+        final service = startService(async, teardownGate: teardownGate.future);
+        service.recoverFromUnauthorized(rejectedToken: _session.accessToken);
+        async.flushMicrotasks();
+
+        service.terminateSession(UnauthenticatedReason.syncLost);
+        async.flushMicrotasks();
+        teardownGate.complete();
+        async.flushMicrotasks();
+
+        expect(teardowns, 1);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.replacedByNewLogin,
+          ),
         ]);
         service.dispose();
       });

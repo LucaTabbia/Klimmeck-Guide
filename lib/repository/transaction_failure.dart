@@ -39,6 +39,10 @@ enum TransactionFailure {
   petNotOwned,
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
   unknown,
@@ -63,6 +67,7 @@ TransactionFailure transactionFailureFrom(OperationException exception) {
     petNotOwnedCode => TransactionFailure.petNotOwned,
     notFoundCode => TransactionFailure.notFound,
     forbiddenCode => TransactionFailure.forbidden,
+    badUserInputCode => TransactionFailure.badUserInput,
     unauthenticatedCode => TransactionFailure.unauthenticated,
     _ => TransactionFailure.unknown,
   };

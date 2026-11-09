@@ -36,9 +36,19 @@ void main() {
         }
       },
     );
+    test('BAD_USER_INPUT raises no banner (D-13)', () {
+      expect(transactionNoticeFor(TransactionFailure.badUserInput), isNull);
+    });
   });
 
   group('shopkeeperRefusalLine', () {
+    test("BAD_USER_INPUT keeps the shopkeeper's generic line (D-13)", () {
+      expect(
+        shopkeeperRefusalLine(TransactionFailure.badUserInput),
+        genericRefusalLine,
+      );
+    });
+
     test(
       'only the off-city refusal has no bubble line: it is the banner (Phase 9 D-16)',
       () {
