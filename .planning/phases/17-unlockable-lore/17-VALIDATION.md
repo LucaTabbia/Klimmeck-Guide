@@ -56,9 +56,9 @@ created: 2026-11-07
 | 17-08-02 | 08 | 8 | LORE-03 | T-17-24 | silent `refreshCities` (no `MainScreenLoading`, list kept on failure) on an id-set change | bloc/widget | `flutter test test/screens/mainScreen` | ❌ W0 (`main_screen_cubit_test.dart`) + extend `main_screen_test.dart` | ✅ green |
 | 17-09-01 | 09 | 9 | LORE-01..03 | T-17-25, T-17-26, T-17-27 | BE read-only, no fetch; no `.env`; 45/45 OK before the device | gate | `git -C <BE> show origin/develop:src/schema.gql \| grep -c loreUnlocked` + `flutter test test/graphql test/tool test/models test/repository` | ✅ | ✅ green |
 | 17-09-02 | 09 | 9 | LORE-01..03 | T-17-28 | sanity greps: no `knownEnemies`, no cubit-to-cubit stream, no `relatedLore!`, lore queries unchanged | gate | `flutter test` (full) | ✅ | ✅ green |
-| 17-10-01 | 10 | 10 | LORE-01..03 | T-17-29, T-17-31 | UAT record with the player identity, without ids/URIs/tokens | doc | `grep -cE "^\| [1-8] \|" .planning/phases/17-unlockable-lore/17-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
-| 17-10-02 | 10 | 10 | LORE-01..03 | T-17-32 | human checkpoint; BE, identity and DB seeds outside the repo | manual | device E2E (`17-HUMAN-UAT.md`) | — | ⬜ pending |
-| 17-10-03 | 10 | 10 | LORE-01..03 | T-17-29, T-17-30 | mark-complete only on passed steps | doc | `grep -q "## 3. UAT outcome" .planning/phases/17-unlockable-lore/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
+| 17-10-01 | 10 | 10 | LORE-01..03 | T-17-29, T-17-31 | UAT record with the player identity, without ids/URIs/tokens | doc | `grep -cE "^\| [1-8] \|" .planning/phases/17-unlockable-lore/17-HUMAN-UAT.md` | ✅ | ✅ green |
+| 17-10-02 | 10 | 10 | LORE-01..03 | T-17-32 | human checkpoint; BE, identity and DB seeds outside the repo | manual | device E2E (`17-HUMAN-UAT.md`) | — | ✅ green (steps 1–8 pass, 2026-11-08/09) |
+| 17-10-03 | 10 | 10 | LORE-01..03 | T-17-29, T-17-30 | mark-complete only on passed steps | doc | `grep -q "## 3. UAT outcome" .planning/phases/17-unlockable-lore/BACKEND-NOTES.md` | ✅ | ✅ green |
 | 17-11-01 | 11 | 11 | LORE-01 | T-17-33 | `CachedSvg` shows an empty box while loading, never a spinner; svg cache cap 2000; board papers hit-test their whole box | widget | `flutter test test/shared/components/cached_svg_test.dart test/screens/mainScreen/tabs/board/sheet_test.dart` | ✅ (`cached_svg_test.dart` created, `sheet_test.dart` extended) | ✅ green |
 | 17-11-02 | 11 | 11 | LORE-01 | T-17-33, T-17-36 | lazy sliver book page: a closed section builds no card, an open one only the cards on screen; open state per `LoreType`; `Dropdown` consumers untouched | widget | `flutter test test/screens/mainScreen/tabs/library test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ (`library_data_page_test.dart`, `library_test.dart` rewritten on the sliver structure) | ✅ green |
 | 17-11-03 | 11 | 11 | LORE-01 | T-17-34, T-17-35 | bounded warm-up (6 at a time), cached urls and failures skipped, lore read failure never blocks the boot, board warm-up never awaited | unit/bloc | `flutter test test/repository/cache/image_warmer_test.dart test/screens/splash/cubit/splash_cubit_test.dart test/screens/mainScreen/questCubit/quest_cubit_test.dart` | ✅ (`image_warmer_test.dart`, `recording_image_warmer.dart` created; cubit tests extended) | ✅ green |
@@ -99,9 +99,11 @@ No framework install needed.
 - [x] Feedback latency < 20s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-11-08 (plan 17-09; the 17-10 device rows stay pending until the human checkpoint)
+**Approval:** approved 2026-11-09 (plan 17-10; every row green, device rows included)
 
 Gate passed on BE `6be50d2`: 45/45 OK, full suite 3420 green, analyzer 50 info (0 error / 0 warning); format gate clean on the 17 new Dart files; trailers 0; sanity greps empty, `LibraryLoading()` count 1.
+
+Device E2E passed on 2026-11-09 (`17-HUMAN-UAT.md`, steps 1–8; player identity on the BE process, BE `develop` `6be50d2`); plans 17-11 (D-20..D-22) and 17-12 (D-23, D-24) were inserted from the run and re-verified on the device; LORE-01..03 marked complete.
 
 Plan 17-11 (device UAT finding, 2026-11-08): full suite 3437 green (`01:15 +3437: All tests passed!`), analyzer `50 issues found.` (0 error / 0 warning); format gate clean on the 21 touched Dart files; trailers 0; `CircularProgressIndicator`/`shrinkWrap` greps empty; Journal, shop and `pubspec.yaml` untouched.
 

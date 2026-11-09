@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-08T16:05:00.000Z"
-last_activity: 2026-11-08 -- Phase 17 RESUMED: BE Phase 16 merged on BE develop (PR #25, `6be50d2`), 17-09 starts
+last_updated: "2026-11-09T09:40:00.000Z"
+last_activity: 2026-11-09 -- Phase 17 complete: 17-10 device E2E passed (steps 1–8, player identity), LORE-01..03 ticked, FE handoff written
 progress:
   total_phases: 17
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 152
   completed_plans: 142
   percent: 93
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — RESUMED 2026-11-08 at 8/10 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-08 done, reviewed (0 critical / 2 warning / 4 info → 5 fixed, 1 not needed), verified (human_needed, 0 gaps, 4 deferred, 8 device steps), fixed and audited (32 threats, 0 open, 6 deferred); full suite 3420 green, analyzer 0 error / 0 warning / 50 info; the BE Phase 16 PR #25 was merged on BE `develop` on 2026-11-08 (`6be50d2`, `loreUnlocked` present in `origin/develop:src/schema.gql`, backfill run at the real boot, one-off removed): 17-09 (schema gate) runs now, then 17-10 (device E2E with the player identity)
-Plan: 11 of 12
-Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
-Next Phase: after the BE Phase 16 merge: `/gsd-execute-phase 17` resumes with 17-09 (gate: `git -C <BE> show origin/develop:src/schema.gql | grep -c loreUnlocked` ≥ 1) then 17-10 (device E2E with the player identity + handoff); the Phase 16 device E2E (16-08 Tasks 2–3 from the APK of `feat/16-travel-ambushes`) runs in the same session; then the two FE PRs (16 first, 17 rebased on `develop`, CONTEXT D-18); FE 12 (Hardening) last
-Status: Phase 17 in progress — 17-09 passed against the merged BE Phase 16 (`6be50d2`); 17-10 Task 1 done (`17-HUMAN-UAT.md`), its human checkpoint paused: the device run as the innkeeper got the app killed by the Android low-memory killer on the Library «Luoghi» page (2026-11-08), so plan 17-11 (D-20..D-22: lazy sliver page, no spinner in `CachedSvg`, boot image warm-up) runs first, then the app is rebuilt and the device E2E resumes with the player identity; then the two FE PRs (16 first, 17 rebased on `develop`, CONTEXT D-18) 2026-11-08 evening: the device E2E resumed as the player after 17-11 (steps 1–2 passed); step 3 raised two findings → D-23/D-24, plan 17-12 inserted and executed while the E2E continues.
-Last activity: 2026-11-07 -- Phase 17 parked at 8/10: review, verification, fixes and security audit done; 17-09/17-10 gated by the BE Phase 16 merge
+Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md`
+Plan: 12 of 12
+Completed phases: 15 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17)
+Next Phase: the FE Phase 16 PR first (`feat/16-travel-ambushes` → `develop`, after its device UAT 16-08 from its own APK), then rebase `feat/17-unlockable-lore` on `develop` (orchestrator/user, CONTEXT D-18: rebase, never merge `develop` in) and open its PR to `develop` (never `main`), then FE 12 (Hardening) last
+Status: Phase 17 complete — no code work open on this branch; waiting for the two FE PRs in the D-18 order (16 first, then 17 rebased on `develop`)
+Last activity: 2026-11-09 -- Phase 17 complete: 17-10 Task 3 recorded the device E2E (steps 1–8 pass), LORE-01..03 ticked, ROADMAP/VALIDATION closed, FE handoff written
 
 ## Current Milestone
 

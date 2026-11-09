@@ -1,10 +1,11 @@
 ---
-status: in-progress
+status: complete
 phase: 17-unlockable-lore
 device: Android (USB, adb reverse tcp:3000)
 be_ref: 6be50d2
 date: 2026-11-08
-verdict:
+completed: 2026-11-09
+verdict: steps 1–7 pass and optional step 8 pass (2026-11-08/09, player identity on the BE process); step 3 findings fixed by plan 17-12 and re-verified on the device; LORE-01..03 complete, no gaps
 ---
 
 # Phase 17 — Device E2E (unlockable lore)
@@ -37,7 +38,10 @@ Field names only, from the BE Phase 16 handoff §4 and `17-09-SUMMARY.md` §Step
 
 ### Session notes (2026-11-08)
 
-_To be filled at Task 3 from the orchestrator's seeds and the user's words — nothing recorded yet._
+- Device run 1 (2026-11-08, as the innkeeper, before the player run): the app was killed by the Android low-memory killer on the Library «Luoghi» page (167 cities + 17 regions + 8 states decoding their SVG at once) → plan 17-11 (D-20..D-22: lazy sliver book page, no spinner in `CachedSvg`, bounded image warm-up at the cold start and on the board) was inserted, executed and the app rebuilt before the player run.
+- Device run 2 (2026-11-08 evening → 2026-11-09, player identity on the BE process, debug APK of the branch): steps 1–2 passed; step 3 raised two findings → plan 17-12 (D-23 sheet centred on the paper, D-24 a tap on the idle pawn opens the current city) was inserted and executed, the app rebuilt and step 3 re-verified on 2026-11-09 («pass»); steps 4–8 passed.
+- Seeds by the orchestrator at DB outside the repo (same write shapes as the BE, never printed): shortened travels and waits; a manual rescue after the lost fight of the first attempt of step 5; a GM teleport (innkeeper mutation, temporary identity) to reach Portonuovo without a long travel; the study quest's required title lowered for step 6, then the user's product rule «Le missioni studio dovrebbero essere tutto disponibili fin dal grado rookie» applied as content at DB to all 29 study quests (adventurer/paladin → rookie), no BE code change.
+- Test characters: an elf born in Ko Shaeras (steps 1–6 and 8), then an aarakocra born in Thengran after the deletion (step 7). Travel of step 2: Ko Shaeras → Rae Thelar. Enemy of steps 4, 5 and 8: «Caccia: Falco». Lore of step 6: «Hilword Valantar».
 
 Device notes (user memory): `flutter run` may lose the device in background (relaunch from the phone); «bad base-64» secure-storage log is benign; screen off → `adb shell svc power stayon usb`; port 3000 busy → `PORT=3001` + `adb reverse tcp:3000 tcp:3001`.
 
@@ -45,17 +49,21 @@ Device notes (user memory): `flutter run` may lose the device in background (rel
 
 | Step | Requirements | Decisions | Expected | Result | Note |
 |------|--------------|-----------|----------|--------|------|
-| 1 | LORE-01, LORE-03 | D-02, D-06, D-07 | New character (player identity): open the Library → «Luoghi» shows only the home city, its regions and its state, with no «Nuovo» on this first opening; the empty sections are hidden; «Bestiario», «Religioni» and «Conoscenze» each show «Le pagine di questo libro sono ancora bianche.» (LORE-01, LORE-03; D-02, D-06, D-07). |  |  |
-| 2 | LORE-01 | D-05, D-07 | With «Luoghi» open, travel to a never-visited city (travel time shortened by the orchestrator): at the arrival its page (and its region/state when new) appears without spinner and marked «Nuovo»; close the book and reopen it → no mark; cold restart and reopen → still no mark (LORE-01; D-05, D-07). |  |  |
-| 3 | LORE-03 | D-11 | Map: tap a never-visited city → the paper modal shows only its name and «Non conosci ancora questa città.» (no image, no description); without restarting, tap the city just reached in step 2 → its lore as before (image, name, description) (LORE-03; D-11). |  |  |
-| 4 | LORE-02 | D-08 | Board: open a quest whose strongest enemy the character never defeated → the portrait is a full black silhouette, the «Nx nome» lines and the «Consigliati» are unchanged (LORE-02; D-08). |  |  |
-| 5 | LORE-02, LORE-01 | D-09, D-10 | Win that quest (orchestrator seeds the outcome path as in the BE handoff) → the result sheet shows the portrait in clear and «Nuova pagina del Bestiario: <nome>» after «Magia appresa» (when present); the «Bestiario» shows the page marked «Nuovo»; after the board re-reads, the same enemy's portrait on a quest card is in clear (LORE-02, LORE-01; D-09, D-10). |  |  |
-| 6 | LORE-02 | D-10 | Win a study quest with the roll forced → «Conoscenza appresa: <nome>» on the result sheet; the page appears in its book (LORE-02; D-10). |  |  |
-| 7 | LORE-03 | D-07, BE D-01 | Delete the character and create a new one → the Library is back to the birth geography only, no «Nuovo» marks, the enemies of step 4 are silhouettes again (LORE-03; D-07, BE D-01). |  |  |
-| 8 | LORE-02 (optional) | D-09 | (optional) Lose against an unknown enemy → the silhouette stays on the result sheet and no lore line appears (LORE-02; D-09). |  |  |
+| 1 | LORE-01, LORE-03 | D-02, D-06, D-07 | New character (player identity): open the Library → «Luoghi» shows only the home city, its regions and its state, with no «Nuovo» on this first opening; the empty sections are hidden; «Bestiario», «Religioni» and «Conoscenze» each show «Le pagine di questo libro sono ancora bianche.» (LORE-01, LORE-03; D-02, D-06, D-07). | pass | User: «pass» (2026-11-08). New character (elf, born in Ko Shaeras): «Luoghi» = home city + its regions + its state, no «Nuovo» on the first opening, the other three books blank. |
+| 2 | LORE-01 | D-05, D-07 | With «Luoghi» open, travel to a never-visited city (travel time shortened by the orchestrator): at the arrival its page (and its region/state when new) appears without spinner and marked «Nuovo»; close the book and reopen it → no mark; cold restart and reopen → still no mark (LORE-01; D-05, D-07). | pass | User: «partito», then «pass» (2026-11-08). Travel Ko Shaeras → Rae Thelar shortened by the orchestrator at DB; the new city page appeared live with «Nuovo», no spinner; reopen / cold restart → no mark. |
+| 3 | LORE-03 | D-11 | Map: tap a never-visited city → the paper modal shows only its name and «Non conosci ancora questa città.» (no image, no description); without restarting, tap the city just reached in step 2 → its lore as before (image, name, description) (LORE-03; D-11). | pass | User (2026-11-08): «Vorrei il nome della città e la scritta Non conosci ancora questa città. centrate orizzontalmente rispetto al foglio. Non posso cliccare su una città in cui sono. Per il resto pass»; re-verified on the rebuilt app on 2026-11-09: «pass». Two findings → D-23 (sheet centred on the paper) and D-24 (a tap on the idle pawn opens the current city), plan 17-12, fixed and re-verified on the device. |
+| 4 | LORE-02 | D-08 | Board: open a quest whose strongest enemy the character never defeated → the portrait is a full black silhouette, the «Nx nome» lines and the «Consigliati» are unchanged (LORE-02; D-08). | pass | User: «Ho 2 ore e 15 min di viaggio, per il resto pass». Black silhouette on «Caccia: Falco» (never defeated), the «Nx nome» lines and the «Consigliati» unchanged. The 2 h 15 travel comes from the road speed factors at DB (travel phase rule), not a finding. |
+| 5 | LORE-02, LORE-01 | D-09, D-10 | Win that quest (orchestrator seeds the outcome path as in the BE handoff) → the result sheet shows the portrait in clear and «Nuova pagina del Bestiario: <nome>» after «Magia appresa» (when present); the «Bestiario» shows the page marked «Nuovo»; after the board re-reads, the same enemy's portrait on a quest card is in clear (LORE-02, LORE-01; D-09, D-10). | pass | User: «Per aprire il tabellone devo tornare in città. Il resto lo confermo», then «pass» on the board card. First attempt lost on a legitimate 2.5 % roll (used as step 8), rescued at DB by the orchestrator; second attempt won: portrait in clear + «Nuova pagina del Bestiario: Falco», Bestiario page marked «Nuovo», board card in clear after a GM teleport back to the city. After a quest the character stays at the POI and the board opens only in a city (earlier-phase rule, not a finding). |
+| 6 | LORE-02 | D-10 | Win a study quest with the roll forced → «Conoscenza appresa: <nome>» on the result sheet; the page appears in its book (LORE-02; D-10). | pass | User: «pass e vai». Study quest with the roll forced on the BE process: «Conoscenza appresa: Hilword Valantar», the page in «Conoscenze» marked «Nuovo». Product rule stated by the user: «Le missioni studio dovrebbero essere tutto disponibili fin dal grado rookie» → applied by the orchestrator as content at DB (29 study quests from adventurer/paladin to rookie), no BE code change. |
+| 7 | LORE-03 | D-07, BE D-01 | Delete the character and create a new one → the Library is back to the birth geography only, no «Nuovo» marks, the enemies of step 4 are silhouettes again (LORE-03; D-07, BE D-01). | pass | User: «pass e creato», then «pass». New character (aarakocra, born in Thengran): Library = birth geography only, no marks, blank books; after a GM teleport to Portonuovo the Falco card shows the silhouette again. |
+| 8 | LORE-02 (optional) | D-09 | (optional) Lose against an unknown enemy → the silhouette stays on the result sheet and no lore line appears (LORE-02; D-09). | pass (optional) | User: «Accettata e pass». On the defeat sheet of the first attempt of step 5: silhouette kept, no lore line. |
 
 Requirement ↔ step map: LORE-01 (1, 2, 5), LORE-02 (4, 5, 6), LORE-03 (1, 3, 7); step 8 optional. The trailing-refresh race (D-05), the dropped stale completion (D-19) and the «Nuovo» colours per book have no reliable device path or are cosmetic: covered by the 17-06/17-07 tests («changes during a refresh in flight run one trailing refresh (D-05)», «a refresh completing after goToInitial is dropped (D-05, D-19)»).
 
 ## Verdict
 
-_Pending the device run (Task 2); written at Task 3 from the user's words only._
+- LORE-01: steps 1, 2, 5 pass → complete.
+- LORE-02: steps 4, 5, 6 pass (optional step 8 pass) → complete.
+- LORE-03: steps 1, 3, 7 pass (step 3 after the 17-12 fixes, re-verified on the device on 2026-11-09) → complete.
+
+No gaps. Findings during the run became plans 17-11 (D-20..D-22, low-memory kill of the Library page as the innkeeper) and 17-12 (D-23, D-24, step 3), both executed, re-verified on the device and recorded in their own SUMMARYs; the content rule on study quests was applied at DB by the orchestrator (no FE or BE code).

@@ -83,7 +83,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
 - [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
 - [ ] **Phase 16: Travel Ambushes** — The pawn follows a rerouted `activeTravel` after a lost ambush; the ambush report is a variant of the result sheet delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29)_
-- [ ] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07.
+- [x] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07. (completed 2026-11-09)
 
 **Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last.
 
@@ -528,7 +528,7 @@ Plans:
 - [x] 17-07-PLAN.md — `LibraryDataPage` redraw: hidden empty sections, «Le pagine di questo libro sono ancora bianche.», «Nuovo» ribbon on `LoreCard`, `ValueKey(type)`, live recompute (D-06, D-07)
 - [x] 17-08-PLAN.md — Map: `UnknownCityModal` («Non conosci ancora questa città.») replaces the `relatedLore!` crash; silent `MainScreenCubit.refreshCities()` on an `unlockedLore` set change (D-11)
 - [x] 17-09-PLAN.md — ⛔ gated by the BE Phase 16 merge: schema gate (`loreUnlocked` on BE `origin/develop`, names on the merged SDL, BE handoff read, dump + validate 45/45, full suite, analyzer, format/trailer/sanity gates, VALIDATION approved) (D-13)
-- [ ] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
+- [x] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
 - [x] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
 - [x] 17-12-PLAN.md — device UAT findings (D-23, D-24): the unknown-city paper sheet stretched to the paper width (name and line centred); a tap on the idle pawn opens the sheet of the city it stands on through the same city-tap path (the pawn covers the marker of the current city); drag and teleport pawn unchanged
 
@@ -552,7 +552,7 @@ Plans:
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 0/0 | Not started | - |
-| 17. Unlockable Lore | 11/12 | In Progress | - |
+| 17. Unlockable Lore | 12/12 | Complete | 2026-11-09 |
 
 ## Traceability
 
@@ -662,9 +662,9 @@ Plans:
 | AMBUSH-01 | Phase 16 | Pending |
 | AMBUSH-02 | Phase 16 | Pending |
 | AMBUSH-03 | Phase 16 | Pending |
-| LORE-01 | Phase 17 | Pending |
-| LORE-02 | Phase 17 | Pending |
-| LORE-03 | Phase 17 | Pending |
+| LORE-01 | Phase 17 | Complete |
+| LORE-02 | Phase 17 | Complete |
+| LORE-03 | Phase 17 | Complete |
 
 **Coverage:** 95 / 95 v1 requirements mapped (79 + 16 added 2026-10-29). No orphans. No duplicates.
 
