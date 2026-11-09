@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import 'svg_cache.dart';
 import 'svg_cache_manager.dart';
@@ -38,7 +38,7 @@ class ImageWarmer {
       try {
         _cache.add(url, await _download(url));
       } catch (error) {
-        debugPrint('[ImageWarmer] skipped ${error.runtimeType}');
+        appLog('[ImageWarmer] skipped ${error.runtimeType}');
       }
     }
   }

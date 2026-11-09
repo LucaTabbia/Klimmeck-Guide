@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/auth/auth_session.dart';
 import 'package:klimmeck_guide/models/auth/login_challenge.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 
 import 'access_token_lifetime.dart';
@@ -301,7 +302,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       return await _store.readRefreshToken();
     } catch (error) {
-      debugPrint('[SessionAuth] session read failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session read failed: ${error.runtimeType}');
       return null;
     }
   }
@@ -313,7 +314,7 @@ class SessionAuthTokenService extends AuthTokenService
       return;
     } catch (error) {
       if (epoch != _epoch) return;
-      debugPrint('[SessionAuth] session resolve failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session resolve failed: ${error.runtimeType}');
       _scheduleBootstrapRetry(epoch);
       return;
     }
@@ -380,7 +381,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       await _store.writeRefreshToken(refreshToken);
     } catch (error) {
-      debugPrint(
+      appLog(
         '[SessionAuth] refresh token persist failed: ${error.runtimeType}',
       );
     }
@@ -434,9 +435,7 @@ class SessionAuthTokenService extends AuthTokenService
       return;
     } catch (error) {
       if (epoch != _epoch || _refreshToken == null) return;
-      debugPrint(
-        '[SessionAuth] proactive refresh failed: ${error.runtimeType}',
-      );
+      appLog('[SessionAuth] proactive refresh failed: ${error.runtimeType}');
       _scheduleProactiveRefresh(
         exponentialBackoff(_proactiveRetryAttempt++, max: _proactiveRetryCap),
       );
@@ -492,7 +491,7 @@ class SessionAuthTokenService extends AuthTokenService
       if (accessToken == null) return;
       await _api.logout(accessToken);
     } catch (error) {
-      debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
+      appLog('[SessionAuth] backend logout failed: ${error.runtimeType}');
     }
   }
 
@@ -516,7 +515,7 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
-  void _logLogoutTimeout() => debugPrint(
+  void _logLogoutTimeout() => appLog(
     '[SessionAuth] backend logout timed out, continuing local teardown',
   );
 
@@ -533,7 +532,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       await _onSessionTeardown();
     } catch (error) {
-      debugPrint('[SessionAuth] session teardown failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session teardown failed: ${error.runtimeType}');
     }
   }
 
@@ -541,9 +540,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       await _store.clear();
     } catch (error) {
-      debugPrint(
-        '[SessionAuth] session store clear failed: ${error.runtimeType}',
-      );
+      appLog('[SessionAuth] session store clear failed: ${error.runtimeType}');
     }
   }
 }

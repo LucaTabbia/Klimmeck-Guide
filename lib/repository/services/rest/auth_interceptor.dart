@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Dio interceptor che inietta il token OAuth nell'header `Authorization`
 /// e ritenta UNA volta una richiesta rifiutata con 401.
@@ -47,7 +48,7 @@ class AuthInterceptor extends Interceptor {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[AuthInterceptor] token fetch failed: ${e.runtimeType}');
+        appLog('[AuthInterceptor] token fetch failed: ${e.runtimeType}');
       }
     }
     handler.next(options);

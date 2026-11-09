@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/graphql/socket_connection_monitor.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Possiede il client GraphQL corrente.
 ///
@@ -44,7 +45,7 @@ class GraphQLClientHolder {
     try {
       await _webSocketLink.dispose();
     } catch (error) {
-      debugPrint(
+      appLog(
         '[GraphQLClientHolder] websocket dispose failed: ${error.runtimeType}',
       );
     }
