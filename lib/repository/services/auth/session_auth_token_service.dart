@@ -368,7 +368,7 @@ class SessionAuthTokenService extends AuthTokenService
       completer.complete(session.accessToken);
     } on SessionRejected catch (error) {
       if (epoch != _epoch) return completer.completeError(_superseded);
-      await _endSession(UnauthenticatedReason.sessionExpired);
+      await _endSession(_unauthenticatedReasonOf(error));
       completer.completeError(error);
     } catch (error) {
       completer.completeError(error);
@@ -376,6 +376,16 @@ class SessionAuthTokenService extends AuthTokenService
       if (identical(_refreshInFlight, completer)) _refreshInFlight = null;
     }
   }
+
+  /// D-12: avviso dedicato solo per i motivi noti; il resto è «sessione
+  /// scaduta».
+  static UnauthenticatedReason _unauthenticatedReasonOf(
+    SessionRejected rejection,
+  ) => switch (rejection.reason) {
+    sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
+    sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
+    _ => UnauthenticatedReason.sessionExpired,
+  };
 
   Future<void> _persistRefreshToken(String refreshToken) async {
     try {
