@@ -9,7 +9,7 @@ const String _tagline = 'Accedi con Twitch per iniziare la tua avventura.';
 const String _sessionExpiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const String _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const String _replacedByNewLoginNotice =
-    'Hai effettuato l\'accesso da un altro dispositivo.';
+    "Hai effettuato l'accesso da un altro dispositivo.";
 const String _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 const String _connectionError = 'Errore di connessione, riprova';
 const String _twitchUnavailableError =
