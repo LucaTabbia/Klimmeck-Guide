@@ -346,6 +346,39 @@ void main() {
         act: (cubit) => cubit.removePortrait(),
         expect: () => [const CharacterCreationState()],
       );
+
+      blocTest<CharacterCreationCubit, CharacterCreationState>(
+        'a new pick after imageRejected clears the submit failure (D-13)',
+        build: () {
+          when(
+            () => repository.pickPortrait(PortraitSource.gallery),
+          ).thenAnswer((_) async => '/tmp/new.jpg');
+          return build();
+        },
+        seed: () => const CharacterCreationState(
+          submitFailure: CharacterCreationFailure.imageRejected,
+        ),
+        act: (cubit) => cubit.pickPortrait(PortraitSource.gallery),
+        verify: (cubit) {
+          expect(cubit.state.portraitPath, '/tmp/new.jpg');
+          expect(cubit.state.submitFailure, isNull);
+        },
+      );
+
+      blocTest<CharacterCreationCubit, CharacterCreationState>(
+        'removing the portrait after moderationUnavailable clears the '
+        'submit failure (D-13)',
+        build: build,
+        seed: () => const CharacterCreationState(
+          portraitPath: '/tmp/p.jpg',
+          submitFailure: CharacterCreationFailure.moderationUnavailable,
+        ),
+        act: (cubit) => cubit.removePortrait(),
+        verify: (cubit) {
+          expect(cubit.state.portraitPath, isNull);
+          expect(cubit.state.submitFailure, isNull);
+        },
+      );
     });
   });
   group('submit', () {
