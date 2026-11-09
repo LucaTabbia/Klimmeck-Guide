@@ -41,9 +41,9 @@ class CharacterCreationRepository {
       throw const CharacterCreationException(
         CharacterCreationFailure.uploadFailed,
       );
-    } on DioException {
-      throw const CharacterCreationException(
-        CharacterCreationFailure.uploadFailed,
+    } on DioException catch (error) {
+      throw CharacterCreationException(
+        portraitUploadFailureFrom(error.response?.data),
       );
     } on FileSystemException {
       throw const CharacterCreationException(

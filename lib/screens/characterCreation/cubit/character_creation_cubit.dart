@@ -128,6 +128,9 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
   }
 
   Future<void> _handleSubmitFailure(CharacterCreationFailure failure) async {
+    if (failure == CharacterCreationFailure.imageRejected) {
+      return _rejectPortrait();
+    }
     if (failure != CharacterCreationFailure.alreadyExists) {
       return _failSubmit(failure);
     }
@@ -146,6 +149,16 @@ class CharacterCreationCubit extends Cubit<CharacterCreationState>
       return null;
     }
   }
+
+  /// D-13b: ritratto rifiutato → serve una nuova scelta; il resto della bozza resta.
+  void _rejectPortrait() => emit(
+    state.copyWith(
+      isSubmitting: false,
+      submitFailure: CharacterCreationFailure.imageRejected,
+      portraitPath: null,
+      uploadedPortrait: null,
+    ),
+  );
 
   void _failSubmit(CharacterCreationFailure failure) =>
       emit(state.copyWith(isSubmitting: false, submitFailure: failure));
