@@ -426,7 +426,7 @@ Plans:
 - [x] 12-07-PLAN.md — `tool/hardening_check.sh` and `.github/workflows/ci.yml` (D-07, D-18)
 - [x] 12-08-PLAN.md — HARDEN-03/04: `logout_flow_test.dart` (ordered teardown on the loopback socket, old client freed after `forceGC`) and `concurrent_unauthorized_refresh_test.dart` (one rotation for two 401) (D-08)
 - [x] 12-09-PLAN.md — HARDEN-05/06: `LeakTrackingBlocObserver` + `authenticated_shell_leak_test.dart`, `identity_transitions_test.dart`, the `NotificationIntentCubit` user-change gap fixed in TDD (D-05, D-11)
-- [ ] 12-10-PLAN.md — `graphQlErrorCode` reads HTTP ≥ 300 `parsedResponse`; `BAD_USER_INPUT` in travel and quest acceptance (D-13a)
+- [x] 12-10-PLAN.md — `graphQlErrorCode` reads HTTP ≥ 300 `parsedResponse`; `BAD_USER_INPUT` in travel and quest acceptance (D-13a)
 - [ ] 12-11-PLAN.md — `BAD_USER_INPUT` in shop transactions, quest abandon and quest results (the result banner no longer silent) (D-13a)
 - [ ] 12-12-PLAN.md — Character creation (`BAD_USER_INPUT`, `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` with the D-19 copy and the two cubit reactions) and character deletion (D-13a, D-13b)
 - [ ] 12-13-PLAN.md — `BAD_USER_INPUT` in innkeeper and push device (no retry); `cityClass` removed, marker visibility driven by `City.size`, per-type pixel sizes kept (D-13a, D-13c)
@@ -578,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 9/17 | In Progress (executes last) | - |
+| 12. Hardening | 10/17 | In Progress (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |

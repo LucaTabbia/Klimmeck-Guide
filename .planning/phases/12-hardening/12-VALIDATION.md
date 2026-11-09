@@ -57,8 +57,8 @@ created: 2026-11-09
 | 12-09-01 | 09 | 9 | HARDEN-05 | T-12-25, T-12-28 | no cubit/subscription retained after logout | widget + leak_tracker | `flutter test test/screens/auth/authenticated_shell_leak_test.dart` | ❌ W0 | ✅ green |
 | 12-09-02 | 09 | 9 | HARDEN-06 | T-12-26 | identity transitions rebuild the whole shell | widget | `flutter test test/screens/auth/identity_transitions_test.dart test/screens/auth/auth_gate_test.dart test/screens/auth/session_home_test.dart` | ❌ W0 | ✅ green |
 | 12-09-03 | 09 | 9 | HARDEN-06 | T-12-27 | pending push tap dropped on a user change | unit (bloc) | `flutter test test/screens/auth test/repository/services/push` | ✅ | ✅ green |
-| 12-10-01 | 10 | 10 | HARDEN-10 | T-12-30 | error codes read from HTTP ≥ 300 GraphQL answers | unit | `flutter test test/repository` | ✅ | ⬜ pending |
-| 12-10-02 | 10 | 10 | HARDEN-10 | T-12-29, T-12-30 | `BAD_USER_INPUT` on travel and quest acceptance | unit | `flutter test test/repository test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit` | ✅ | ⬜ pending |
+| 12-10-01 | 10 | 10 | HARDEN-10 | T-12-30 | error codes read from HTTP ≥ 300 GraphQL answers | unit | `flutter test test/repository` | ✅ | ✅ green |
+| 12-10-02 | 10 | 10 | HARDEN-10 | T-12-29, T-12-30 | `BAD_USER_INPUT` on travel and quest acceptance | unit | `flutter test test/repository test/screens/mainScreen/travelCubit test/screens/mainScreen/questAcceptanceCubit` | ✅ | ✅ green |
 | 12-11-01 | 11 | 11 | HARDEN-10 | T-12-31 | `BAD_USER_INPUT` on shop transactions, generic bubble | unit | `flutter test test/repository/transaction_failure_test.dart test/screens/mainScreen/tabs/shop` | ✅ | ⬜ pending |
 | 12-11-02 | 11 | 11 | HARDEN-10 | T-12-31 | `BAD_USER_INPUT` on quest abandon | unit | `flutter test test/repository/quest_abandon_failure_test.dart test/screens/mainScreen/questAbandonCubit` | ✅ | ⬜ pending |
 | 12-11-03 | 11 | 11 | HARDEN-10 | T-12-31, T-12-32 | `BAD_USER_INPUT` on quest results, banner no longer silent | unit | `flutter test test/repository test/screens/mainScreen/questResultsCubit` | ✅ | ⬜ pending |
