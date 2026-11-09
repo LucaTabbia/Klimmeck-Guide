@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 12 (Hardening) — RESUMED 2026-11-09 evening on `refactor/12-hardening` (from `develop` `ac75702`): plans 12-01..12-15 done, reviewed by area, verified, fixed and audited (parked at 15/17); the BE Phase 17 PR #27 is MERGED on BE `develop` (`8bfd1b3`): 12-16 (gate against the merged BE) runs now, then 12-17 (device UAT + handoff, human checkpoint)
-Plan: 15 of 17
+Plan: 16 of 17
 Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
 Next Phase: after the BE Phase 17 merge: `/gsd-execute-phase 12` resumes with 12-16 (gate: `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts | grep -c newLogin` ≥ 1; the orchestrator aligns `origin/develop` first) then 12-17 (device UAT: the user generates the keystore and `android/key.properties`, installs `cloudflared`, registers the tunnel redirect URI on Twitch; Samsung + Android emulator; one BE process); then the FE PR to `develop` and the v1.0 close (Hardening is the last phase)
 Status: Executing Phase 12 — resumed at 12-16 after the BE Phase 17 merge (BE `origin/develop` `8bfd1b3`, gate file `session-revoke-reason.enum.ts` present); the BE on port 3001 is being restarted from `develop` by the orchestrator (build before the stop); then 12-17 at the human checkpoint (keystore, cloudflared, Twitch redirect URI, Samsung + emulator, one BE process)
