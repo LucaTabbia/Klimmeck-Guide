@@ -267,4 +267,133 @@ void main() {
       });
     });
   });
+
+  group('revocation reason (BE Phase 17)', () {
+    void refuseRefresh(String refreshToken, SessionRejected rejection) {
+      when(
+        () => api.refreshSession(refreshToken),
+      ).thenAnswer((_) async => throw rejection);
+    }
+
+    const newLogin = SessionRejected(
+      sessionRevokedCode,
+      reason: sessionRevokedReasonNewLogin,
+    );
+
+    void expectEndedWith(UnauthenticatedReason reason) {
+      expect(states.last, AuthUnauthenticated(reason: reason));
+      expect(teardowns, 1);
+      expect(store.refreshToken, isNull);
+    }
+
+    test('a reactive refresh refused for a new login ends with '
+        'replacedByNewLogin (D-12)', () {
+      fakeAsync((async) {
+        refuseRefresh('r1', newLogin);
+        final service = startService(async);
+
+        final token = resolve(
+          service.recoverFromUnauthorized(
+            rejectedToken: _firstSession.accessToken,
+          ),
+          async,
+        );
+
+        expect(token, isNull);
+        expectEndedWith(UnauthenticatedReason.replacedByNewLogin);
+        service.dispose();
+      });
+    });
+
+    test('a proactive refresh refused for a new login ends with '
+        'replacedByNewLogin (D-12)', () {
+      fakeAsync((async) {
+        refuseRefresh('r1', newLogin);
+        final service = startService(async);
+
+        async.elapse(_proactiveDelay + const Duration(seconds: 1));
+
+        verify(() => api.refreshSession('r1')).called(1);
+        expectEndedWith(UnauthenticatedReason.replacedByNewLogin);
+        expect(states.whereType<AuthUnauthenticated>(), hasLength(1));
+        service.dispose();
+      });
+    });
+
+    test('a cold start refused for a role change ends with roleChanged '
+        '(D-12)', () {
+      fakeAsync((async) {
+        refuseRefresh(
+          'r0',
+          const SessionRejected(
+            sessionRevokedCode,
+            reason: sessionRevokedReasonRoleChanged,
+          ),
+        );
+        final service = startService(async);
+
+        expectEndedWith(UnauthenticatedReason.roleChanged);
+        expect(states.whereType<AuthAuthenticated>(), isEmpty);
+        service.dispose();
+      });
+    });
+
+    test('an unknown or missing reason ends with sessionExpired (D-12)', () {
+      for (final rejection in const [
+        SessionRejected(sessionRevokedCode, reason: 'reuseDetected'),
+        SessionRejected(sessionRevokedCode),
+        SessionRejected(sessionExpiredCode),
+      ]) {
+        fakeAsync((async) {
+          store = InMemorySessionStore(refreshToken: 'r0');
+          teardowns = 0;
+          states = [];
+          refuseRefresh('r1', rejection);
+          final service = startService(async);
+
+          resolve(
+            service.recoverFromUnauthorized(
+              rejectedToken: _firstSession.accessToken,
+            ),
+            async,
+          );
+
+          expectEndedWith(UnauthenticatedReason.sessionExpired);
+          service.dispose();
+        });
+      }
+    });
+
+    test('handleRevocation stays sessionExpired (D-12)', () {
+      fakeAsync((async) {
+        refuseRefresh('r1', newLogin);
+        final service = startService(async);
+
+        service.handleRevocation();
+        async.flushMicrotasks();
+
+        verifyNever(() => api.refreshSession('r1'));
+        expectEndedWith(UnauthenticatedReason.sessionExpired);
+        service.dispose();
+      });
+    });
+
+    test('a logout whose refresh is refused for a new login still ends '
+        'signed out (D-12)', () {
+      fakeAsync((async) {
+        var clock = testNow;
+        refuseRefresh('r1', newLogin);
+        final service = startService(async, now: () => clock);
+        clock = testNow.add(_proactiveDelay + const Duration(seconds: 1));
+
+        resolve(service.logout(), async);
+
+        verify(() => api.refreshSession('r1')).called(1);
+        verifyNever(() => api.logout(any()));
+        expectEndedWith(UnauthenticatedReason.signedOut);
+        expect(states.whereType<AuthUnauthenticated>(), hasLength(1));
+        service.dispose();
+      });
+    });
+  });
 }
