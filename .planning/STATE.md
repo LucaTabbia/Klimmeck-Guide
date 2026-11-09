@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-last_updated: "2026-11-09T19:01:40.000Z"
-last_activity: 2026-11-09 -- Phase 12 parked at 15/17, gated plans wait for the BE Phase 17 merge
+status: executing
+last_updated: "2026-11-09T19:51:44.000Z"
+last_activity: 2026-11-09 -- Phase 12 resumed at 12-16 after the BE Phase 17 merge
 progress:
   total_phases: 17
   completed_phases: 16
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 12 (Hardening) — PARKED at 15/17 (2026-11-09) on `refactor/12-hardening` (from `develop` `ac75702`): plans 12-01..12-15 done, reviewed by area (3 groups: 5 warning / 20 info → 21 fixed, 3 not needed, 1 deferred to the UAT), verified (human_needed, 0 gaps, 6 deferred, 11 device steps), fixed and audited (56 threats, 0 open, 7 deferred to 12-16/12-17); full suite 3704 tests green after the fixes, analyzer 47 info / 0 / 0, hardening_check OK on the tree and on the release APK; 12-16 (gate against the merged BE Phase 17) and 12-17 (device UAT + handoff) wait for the BE Phase 17 PR merge on BE `develop` (REPO-RULES §Gate)
+Phase: 12 (Hardening) — RESUMED 2026-11-09 evening on `refactor/12-hardening` (from `develop` `ac75702`): plans 12-01..12-15 done, reviewed by area, verified, fixed and audited (parked at 15/17); the BE Phase 17 PR #27 is MERGED on BE `develop` (`8bfd1b3`): 12-16 (gate against the merged BE) runs now, then 12-17 (device UAT + handoff, human checkpoint)
 Plan: 15 of 17
 Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
 Next Phase: after the BE Phase 17 merge: `/gsd-execute-phase 12` resumes with 12-16 (gate: `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts | grep -c newLogin` ≥ 1; the orchestrator aligns `origin/develop` first) then 12-17 (device UAT: the user generates the keystore and `android/key.properties`, installs `cloudflared`, registers the tunnel redirect URI on Twitch; Samsung + Android emulator; one BE process); then the FE PR to `develop` and the v1.0 close (Hardening is the last phase)
-Status: Phase 12 paused at 15/17 — waiting for the BE Phase 17 merge (`feat/17-autorizzazione-e-sessioni`, BE PR #27 open, its CI green); the new FE CI workflow is green on this branch at `761a9ca` (run 42681645719, 12 min: analyze, test, guard, release build, bundle guard) after two workflow fixes found by the first runs (empty dev `.env` placeholder for the analyzer's flavored asset, Android SDK licences before the release build); the BE on port 3001 runs from `develop` `31dba96` (pre-17: never run the gated plans against it). Resume: a new 12-16 executor once the gate prints ≥ 1, then 12-17 at the human checkpoint.
-Last activity: 2026-11-09 -- Phase 12 parked at 15/17: review by area, verification, fixes and security audit done; 12-16/12-17 gated by the BE Phase 17 merge
+Status: Executing Phase 12 — resumed at 12-16 after the BE Phase 17 merge (BE `origin/develop` `8bfd1b3`, gate file `session-revoke-reason.enum.ts` present); the BE on port 3001 is being restarted from `develop` by the orchestrator (build before the stop); then 12-17 at the human checkpoint (keystore, cloudflared, Twitch redirect URI, Samsung + emulator, one BE process)
+Last activity: 2026-11-09 -- Phase 12 resumed: BE Phase 17 merged (PR #27), 12-16 gate started
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
