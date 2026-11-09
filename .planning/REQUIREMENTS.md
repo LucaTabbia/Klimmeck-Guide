@@ -229,6 +229,7 @@ Deferred to post-v1.0. Tracked but not in current roadmap.
 - ~~**FUT-02**: Pet/mount speed modifiers affecting travel ETA (`Character.assets.pet` already modeled; backend would factor the modifier into `activeTravel.duration`)~~ — **delivered**: BE Phase 8 D-08 (2026-10-21) factors `Pet.speedModifier` into `activeTravel.duration`, the FE shows the server ETA (Phase 7) and equips the companion from the Journal (Phase 13, 2026-11-03); no FE logic _(realigned 2026-11-09)_
 - **FUT-03**: Village visual with clickable buildings showing available quests
 - **FUT-04**: Full accessibility pass (screen reader support, large text, motor-impairment affordances)
+- **FUT-05**: Live position sharing: the pawns of the other players of a room move on the Map in real time (about 50 players per room), a player can create their own room and join or leave one; the server owns rooms and positions, the FE renders the pawns with the same interpolation as its own (BE-FUT-06) _(added 2026-11-09)_
 
 ## Out of Scope
 

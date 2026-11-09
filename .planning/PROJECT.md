@@ -84,6 +84,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 **Future (post v1.0):**
 
 - [ ] Log round-per-round esiti combattimento
+- [ ] Live share della posizione con altri giocatori: le pedine degli altri sulla Mappa in stanze (circa 50 per stanza), con la possibilità di creare una stanza propria _(aggiunto 2026-11-09)_
 - ~~UI pet/cavalcature come modificatori di velocità di spostamento~~ — consegnato: il BE applica `Pet.speedModifier` alla durata del viaggio (BE Phase 8, 2026-10-21) e il compagno si equipaggia dal Diario (Phase 13, 2026-11-03) _(riallineato 2026-11-09)_
 
 ### Out of Scope
