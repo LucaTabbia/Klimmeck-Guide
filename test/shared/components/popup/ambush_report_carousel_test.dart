@@ -22,8 +22,13 @@ const double _peekEdge = (1 - _peekViewportFraction) / 2;
 /// Least visible strip of the neighbour parchment, as a fraction of the width.
 const double _minVisiblePeek = 0.05;
 
-/// D-19: farthest the opening nudge may carry the pages, in logical pixels.
-const double _nudgeDistance = 28;
+/// D-19: the opening nudge rests this long after the route transition, then
+/// carries the pages by at most this fraction of the carousel width.
+const Duration _nudgeDelay = Duration(milliseconds: 200);
+const double _nudgeFraction = 0.06;
+
+/// Fade of the presenter's `showGeneralDialog` that hosts the carousel.
+const Duration _routeTransition = Duration(milliseconds: 250);
 
 /// Pumps the carousel and one more frame only: the opening nudge is live.
 Future<void> _pumpUnsettled(
@@ -42,6 +47,40 @@ Future<void> _pumpUnsettled(
       ),
     ),
   );
+  await tester.pump();
+}
+
+/// Hosts the carousel in a dialog route like the presenter does (fade of
+/// `_routeTransition`) and taps it open: one frame pumped, the fade is live.
+Future<void> _pumpInDialog(
+  WidgetTester tester,
+  List<QuestResult> results,
+) async {
+  useLandscapePhone(tester);
+  await tester.pumpWidget(
+    buildTestApp(
+      home: Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showGeneralDialog<void>(
+              context: context,
+              transitionDuration: _routeTransition,
+              pageBuilder: (_, __, ___) => Material(
+                type: MaterialType.transparency,
+                child: AmbushReportCarousel(
+                  results: results,
+                  onContinue: () {},
+                ),
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('open'));
   await tester.pump();
 }
 
@@ -221,20 +260,21 @@ void main() {
 
   group('AmbushReportCarousel opening nudge (D-19)', () {
     testWidgets(
-      'opening with several reports nudges forward and settles back on the '
-      'first page (D-19)',
+      'the nudge rests before moving, then moves and settles back (D-19)',
       (tester) async {
         await _pumpUnsettled(tester, [_won, _lost]);
-        await tester.pump(const Duration(milliseconds: 120));
-
         final w = _viewportWidth(tester);
         final restLeft = w * _peekEdge;
+
+        await tester.pump(_nudgeDelay - const Duration(milliseconds: 50));
+        expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
+
+        await tester.pump(const Duration(milliseconds: 210));
         final shift = restLeft - tester.getRect(_page(_won)).left;
         expect(shift, greaterThan(0));
-        expect(shift, lessThan(_nudgeDistance + 1));
+        expect(shift, lessThanOrEqualTo(w * _nudgeFraction + 1));
 
         await tester.pumpAndSettle();
-
         expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
         expect(
           tester.getRect(_page(_lost)).left,
@@ -244,11 +284,33 @@ void main() {
       },
     );
 
+    testWidgets('the nudge waits for the route transition to complete (D-19)', (
+      tester,
+    ) async {
+      await _pumpInDialog(tester, [_won, _lost]);
+      final w = _viewportWidth(tester);
+      final restLeft = w * _peekEdge;
+
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
+
+      // Frames at the end of the fade, at the end of the rest, mid-nudge.
+      await tester.pump(_routeTransition - const Duration(milliseconds: 200));
+      await tester.pump(_nudgeDelay);
+      await tester.pump(const Duration(milliseconds: 160));
+      final shift = restLeft - tester.getRect(_page(_won)).left;
+      expect(shift, greaterThan(0));
+      expect(shift, lessThanOrEqualTo(w * _nudgeFraction + 1));
+
+      await tester.pumpAndSettle();
+      expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
+    });
+
     testWidgets('a single report does not move at opening (D-19)', (
       tester,
     ) async {
       await _pumpUnsettled(tester, [_won]);
-      await tester.pump(const Duration(milliseconds: 120));
+      await tester.pump(_nudgeDelay + const Duration(milliseconds: 160));
 
       expect(tester.getRect(_page(_won)).left, closeTo(0, 0.5));
 
@@ -262,7 +324,7 @@ void main() {
     ) async {
       var closes = 0;
       await _pumpUnsettled(tester, [_won, _lost], onContinue: () => closes++);
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(_nudgeDelay + const Duration(milliseconds: 100));
 
       await tester.tap(_continueOf(_won));
       await tester.pumpAndSettle();
