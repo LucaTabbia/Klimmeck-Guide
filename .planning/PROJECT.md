@@ -58,27 +58,33 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - ✓ Viaggio: drag della pedina su una città → foglio di pergamena con distanza, durata ed ETA dal backend (`travelPreview`, nessun costo) e rotta tratteggiata, "Parti"/"Resta"; pedina che avanza sulla rotta interpolata sull'ora del server (offset `serverTime`, l'orologio del telefono non la sposta) con il solo tempo residuo sopra, ricostruzione dopo un kill da `activeTravel`, arrivo con push "Viaggio completato" o banner in-app e scatto su `characterUpdated`, viaggio automatico delle quest senza push, rifiuti `TRAVEL_IN_PROGRESS`/`QUEST_IN_PROGRESS` sul banner per codice, Bacheca e Negozio solo su un marker di città e mai in viaggio — Validated in Phase 7: Travel (E2E su Android il 2026-10-26, passi 1-11 pass, contro il BE con la Phase 8 travel lifecycle; TRAVEL-02/03 emendati)
 - ✓ Sezione Magie nel Diario: lista delle magie conosciute con carta, descrizione e riga compatta «Usi · Recupero/prossimo tra X · Attacco: Fuoco 12», slot guidati da `maxActiveSpells` con segnalibro e contatore a matita, tap = toggle ottimistico con rimbalzo e banner per codice, long-press = foglio di pergamena, countdown dal tempo server su `status.spellStates[].recoveries` (BE 9.1: il recupero non si interrompe mai), filtri a chip per `useType` (magie) ed `effect` (oggetti del Diario e negozio, solo i tipi presenti), label italiane di `EffectType` e riga «Cura: 12» sugli oggetti — Validated in Phase 8: Spells Section (device UAT 12/12 il 2026-10-27)
 - ✓ Foglio esito missione: pergamena a schermo intero con titolo e tipo della quest, nemico, barra vita animata da `hpBefore` a `hpAfter` contro il massimo, ferite con label italiane, consumabili e magie usati, premi, XP, livello/titolo solo se cambiano, magia appresa e «Hai salvato N avventurieri»; un solo widget per i cinque esiti (inchiostro scuro e «Riposa in pace» per la morte), chiusura solo col bottone (scrim, back e swipe ignorati); presentato solo sulla Mappa libera (altrove il banner porta lì), coda FIFO per `resolvedAt` con «1 di N»; tre sorgenti deduplicate per id (subscription, tap del push `questEnd`, `unacknowledgedQuestResults` a cold start/resume/riconnessione) e ack alla chiusura, così nessun esito va perso; foglio di morte prima della pagina di creazione anche a cold start (il BE tiene `currentCharacter` sul morto fino all'ack); stato ferito sulla Mappa («In attesa di soccorso», pedina, Bacheca e Negozio disabilitati) e quest `aid` nella famiglia combattimento; quest avviata strappata fino alla conclusione (posti tenuti dal BE 9.2) — Validated in Phase 9: Combat Result Sheet (device UAT 12/12 il 2026-10-29 contro BE develop `8f30d1d` con la Phase 9.2)
+- ✓ Locanda dell'oste (Phase 10, 2026-11-01): coda live delle richieste story/worldMission, modulo di completamento con override per partecipante, teleport dalla coda trascinando la pedina sulla Mappa
+- ✓ Negozi per città (Phase 13, 2026-11-03): pool per taglia dal BE via `cityShop`, Negozio chiuso dove la città non ne ha, «Compagni» nel negozio e «Compagno» nel Diario (posseduti vs equipaggiato; la velocità di viaggio segue il compagno equipaggiato)
+- ✓ Companion della generazione quest (Phase 14, 2026-11-05): schede e fogli esito multi-nemico (`infos.enemies`), «Genera missioni» nella Locanda, famiglie crime/guard/dungeon, annuncio del committente sul foglio
+- ✓ Viaggio e cibo (Phase 15, 2026-11-06): righe «Cibo»/«Vita» sul foglio di conferma e «Viaggio» sui fogli quest, frase del rifiuto per fame, inventario e HP solo via subscription
+- ✓ Imboscate (Phase 16, 2026-11-09): pedina deviata dal punto dell'imboscata dopo una sconfitta con push e banner dedicati, carosello dei report all'arrivo, foglio di conferma che non rivela nulla
+- ✓ Lore sbloccabili (Phase 17, 2026-11-09): Biblioteca filtrata dal BE con aggiornamento live e segnalibro «Nuovo», sagome nere dei nemici sconosciuti, righe della conoscenza sul foglio esito, modal della città sconosciuta sulla Mappa
 
 ### Active
 
 **v1.0 Core Loop (in corso):**
 
-- [ ] Admin panel: lista pendingRequest story/worldMission
-- [ ] Admin panel: spostamento istantaneo personaggio su qualsiasi POI
-- [ ] Admin panel: selezione mostri/grado quest, scelta premi, applicazione ferite
-- [ ] Negozi per città con pool per taglia (Phase 13 ↔ BE Phase 12) _(aggiunto 2026-10-29)_
-- [ ] Companion della generazione quest: multi-nemico, «Genera missioni», crime/guard/dungeon fisse (Phase 14 ↔ BE Phase 13) _(aggiunto 2026-10-29)_
-- [ ] Viaggio e cibo: anteprima di cibo e vita, rifiuto per fame (Phase 15 ↔ BE Phase 14) _(aggiunto 2026-10-29)_
-- [ ] Imboscate in viaggio: rotta deviata live, report sul foglio esito (Phase 16 ↔ BE Phase 15) _(aggiunto 2026-10-29)_
-- [ ] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_
+- [x] Admin panel: lista pendingRequest story/worldMission — Phase 10 (2026-11-01) _(riallineato 2026-11-09)_
+- [x] Admin panel: spostamento istantaneo personaggio su qualsiasi POI (trascinando la pedina dalla coda sulla Mappa) — Phase 10 (2026-11-01) _(riallineato 2026-11-09)_
+- [x] Admin panel: modulo di completamento con override per partecipante (HP, ferite, consumabili, magie); selezione mostri/grado e scelta premi scartate nel discuss del 2026-10-29 (nessun grade, premi dal catalogo) — Phase 10 (2026-11-01) _(riallineato 2026-11-09)_
+- [x] Negozi per città con pool per taglia (Phase 13 ↔ BE Phase 12) _(aggiunto 2026-10-29)_ — 2026-11-03
+- [x] Companion della generazione quest: multi-nemico, «Genera missioni», crime/guard/dungeon fisse (Phase 14 ↔ BE Phase 13) _(aggiunto 2026-10-29)_ — 2026-11-05
+- [x] Viaggio e cibo: anteprima di cibo e vita, rifiuto per fame (Phase 15 ↔ BE Phase 14) _(aggiunto 2026-10-29)_ — 2026-11-06
+- [x] Imboscate in viaggio: rotta deviata live, report sul foglio esito (Phase 16 ↔ BE Phase 15) _(aggiunto 2026-10-29)_ — 2026-11-09
+- [x] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_ — 2026-11-09
 - [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, poi la 18)
 - [ ] Quest heal per taglia: foglio con le sole ferite curabili del personaggio e la riga della vita, «Guarite: …» sull'esito; pozioni bevute dal Diario con la ricarica globale del BE (conto alla rovescia, riga «Ricarica: …») e lore «Il limite del corpo» (Phase 18 ↔ BE Phase 18) _(aggiunto 2026-11-09, eseguita dopo la 12)_
 - [ ] Companion della revisione dei modelli: debolezze, compagni con esperienza e «Il tuo compagno guadagna N PE», `attack`/`defense` dei pet, equipaggiamento indossato, una sola lista di magie, parser fragili sistemati (Phase 19 ↔ BE Phase 19) _(aggiunto 2026-11-09, eseguita dopo la 18)_
 
 **Future (post v1.0):**
 
-- [ ] UI pet/cavalcature come modificatori di velocità di spostamento
 - [ ] Log round-per-round esiti combattimento
+- ~~UI pet/cavalcature come modificatori di velocità di spostamento~~ — consegnato: il BE applica `Pet.speedModifier` alla durata del viaggio (BE Phase 8, 2026-10-21) e il compagno si equipaggia dal Diario (Phase 13, 2026-11-03) _(riallineato 2026-11-09)_
 
 ### Out of Scope
 
