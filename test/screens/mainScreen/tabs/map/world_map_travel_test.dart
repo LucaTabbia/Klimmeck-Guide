@@ -53,6 +53,7 @@ final City cityA = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 final City cityB = City.fromJson({
@@ -64,6 +65,7 @@ final City cityB = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 /// Viaggio della fixture: 10:00 → 12:40 UTC.
