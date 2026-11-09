@@ -176,6 +176,23 @@ void main() {
       },
     );
 
+    test(
+      'closing the cubit during the warm-up surfaces no StateError',
+      () async {
+        final folderWarmUp = Completer<void>();
+        warmer.holds[1] = folderWarmUp;
+        final cubit = SplashCubit(rest, warmer: warmer);
+
+        final preload = cubit.getImages('main');
+        await pumpEventQueue();
+        await cubit.close();
+        folderWarmUp.complete();
+
+        await expectLater(preload, completes);
+        expect(cubit.state, const SplashInitial());
+      },
+    );
+
     test('an empty folder still reads as the error state (D-22)', () async {
       when(
         () => rest.fetchCloudinarySubfoldersUrls('main'),
