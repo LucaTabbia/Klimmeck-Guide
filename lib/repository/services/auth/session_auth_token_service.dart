@@ -91,6 +91,7 @@ class SessionAuthTokenService extends AuthTokenService
   Completer<String>? _refreshInFlight;
   Future<void>? _logoutInFlight;
   Future<void>? _terminationInFlight;
+  Future<void>? _endInFlight;
   int _epoch = 0;
   Timer? _proactiveRefreshTimer;
   Timer? _bootstrapRetryTimer;
@@ -530,7 +531,13 @@ class SessionAuthTokenService extends AuthTokenService
   );
 
   /// Teardown D-12 senza chiamata al backend: l'access JWT è scartato subito.
-  Future<void> _endSession(UnauthenticatedReason reason) async {
+  /// Single-flight fra rifiuto della rotazione, `terminateSession` e
+  /// `handleRevocation`: vince il primo motivo, una chiamata durante il
+  /// teardown lo condivide senza un secondo stato terminale.
+  Future<void> _endSession(UnauthenticatedReason reason) => _endInFlight ??=
+      _performEndSession(reason).whenComplete(() => _endInFlight = null);
+
+  Future<void> _performEndSession(UnauthenticatedReason reason) async {
     _supersedeSession();
     _forgetSession();
     await _runTeardown();
