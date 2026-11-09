@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:klimmeck_guide/config/insecure_transport_error.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Environment configuration for the Klimmeck Guide app.
 ///
@@ -58,6 +60,31 @@ class EnvConfig {
     final value = _runtimeOverrides[key]?.trim();
     return (value == null || value.isEmpty) ? null : value;
   }
+
+  // ============== Transport (D-03b) ==============
+  //
+  // dart:io ignora la cleartext policy di Android: il rifiuto è lato Dart.
+
+  /// In release lancia [InsecureTransportError] se un URL del backend non è
+  /// `https`/`wss`; fuori release si limita a loggare i nomi delle chiavi.
+  static void requireSecureTransport({bool isRelease = kReleaseMode}) {
+    final offending = _cleartextKeys();
+    if (offending.isEmpty) return;
+    if (isRelease) throw InsecureTransportError(offending);
+    appLog(
+      '[EnvConfig] cleartext backend URLs outside release: '
+      '${offending.join(', ')}',
+    );
+  }
+
+  static List<String> _cleartextKeys() => [
+    if (!_hasScheme(baseUrl, 'https')) 'BASE_URL',
+    if (!_hasScheme(graphqlHttpUrl, 'https')) 'GRAPHQL_HTTP_URL',
+    if (!_hasScheme(graphqlWsUrl, 'wss')) 'GRAPHQL_WS_URL',
+  ];
+
+  static bool _hasScheme(String url, String scheme) =>
+      Uri.tryParse(url)?.scheme.toLowerCase() == scheme;
 
   // ============== Timeouts ==============
 
