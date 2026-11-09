@@ -2,6 +2,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/spell_equip_failure.dart'
+    show badUserInputCode;
 
 const String shopNotInCityCode = 'SHOP_NOT_IN_CITY';
 const String insufficientFundsCode = 'INSUFFICIENT_FUNDS';
@@ -39,6 +41,10 @@ enum TransactionFailure {
   petNotOwned,
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
   unknown,
@@ -63,6 +69,7 @@ TransactionFailure transactionFailureFrom(OperationException exception) {
     petNotOwnedCode => TransactionFailure.petNotOwned,
     notFoundCode => TransactionFailure.notFound,
     forbiddenCode => TransactionFailure.forbidden,
+    badUserInputCode => TransactionFailure.badUserInput,
     unauthenticatedCode => TransactionFailure.unauthenticated,
     _ => TransactionFailure.unknown,
   };
