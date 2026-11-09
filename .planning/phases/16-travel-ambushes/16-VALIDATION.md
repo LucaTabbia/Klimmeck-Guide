@@ -55,6 +55,8 @@ created: 2026-11-06
 | 16-08-01 | 08 | 8 | AMBUSH-01..03 | T-16-21 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/16-travel-ambushes/16-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 16-08-02 | 08 | 8 | AMBUSH-01..03 | T-16-23, T-16-24 | human checkpoint; DB seeds outside the repo | manual | device E2E (`16-HUMAN-UAT.md`) | — | ⬜ pending |
 | 16-08-03 | 08 | 8 | AMBUSH-01..03 | T-16-21, T-16-22 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/16-travel-ambushes/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
+| 16-09-01 | 09 | 9 | AMBUSH-02 | T-16-26 | carousel affordance: with several reports the neighbour pages peek in from the edges (right on page 1, left on later pages), a single report fills the width (D-19) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ⬜ pending |
+| 16-09-02 | 09 | 9 | AMBUSH-02 | T-16-25 | one nudge at opening with several reports, none with one, «Continua» works during the nudge; still swipe-only — no programmatic page turn (D-19, D-05) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

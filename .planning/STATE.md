@@ -18,10 +18,10 @@ progress:
 ## Current Position
 
 Phase: 16 (Travel Ambushes) — PARKED at 7/8 (2026-11-07) on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-07 done (16-07 gate passed on the merged BE `9103440`: 45/45 OK, full suite 3391 green), 16-08 Task 1 done (`16-HUMAN-UAT.md`, `db9601b`); the device E2E (16-08 Tasks 2–3) is deferred by the user to the end of FE Phase 17 together with that phase's own device UAT (phone unavailable on 2026-11-07)
-Plan: 7 of 8
+Plan: 7 of 9
 Completed phases: 14 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15)
 Next Phase: FE Phase 17 (Unlockable Lore) with BE Phase 16 (Lore sbloccabili) on branches from `develop` — independent of Phase 16 (ROADMAP: depends on Phases 3, 6, 9, BE 11, BE 16); then the two device UATs (16-08 Tasks 2–3 from the APK of `feat/16-travel-ambushes`, then the Phase 17 one), the FE PR of Phase 16 after its UAT; FE 12 (Hardening) last
-Status: Phase 16 paused at 7/8 — 16-08 is at the human checkpoint (Task 2, device E2E) deferred to the end of FE Phase 17 by the user. The BE runs from `develop` `9103440` on port 3001 (orchestrator, no Redis: sweeps every 60 s); APK debug built from `16d4c69` (docs-only difference to HEAD). Resume: a new 16-08 executor from Task 2 (guided UAT, record results, `requirements mark-complete AMBUSH-0N` only for passed requirements, close VALIDATION/ROADMAP/STATE, handoff `BACKEND-NOTES.md`), then the FE PR to `develop`.
+Status: Phase 16 paused at 7/8 — 16-08 is at the human checkpoint (Task 2, device E2E) deferred to the end of FE Phase 17 by the user. The BE runs from `develop` `9103440` on port 3001 (orchestrator, no Redis: sweeps every 60 s); APK debug built from `16d4c69` (docs-only difference to HEAD). Resume: a new 16-08 executor from Task 2 (guided UAT, record results, `requirements mark-complete AMBUSH-0N` only for passed requirements, close VALIDATION/ROADMAP/STATE, handoff `BACKEND-NOTES.md`), then the FE PR to `develop`. 2026-11-09: the device E2E (16-08 Task 2) resumed on its own APK — steps 1–7 passed; the user's carousel finding → D-19, plan 16-09 inserted and executed while the E2E closes (device re-check of the carousel, then 16-08 Task 3).
 Last activity: 2026-11-07 -- Phase 16 parked at 7/8: 16-07 passed, 16-08 Task 1 done, device E2E deferred to the end of FE Phase 17 (user)
 
 ## Current Milestone
