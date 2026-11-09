@@ -364,6 +364,30 @@ void main() {
       }
     });
 
+    test('a known reason on SESSION_EXPIRED ends with sessionExpired '
+        '(D-12)', () {
+      fakeAsync((async) {
+        refuseRefresh(
+          'r1',
+          const SessionRejected(
+            sessionExpiredCode,
+            reason: sessionRevokedReasonNewLogin,
+          ),
+        );
+        final service = startService(async);
+
+        resolve(
+          service.recoverFromUnauthorized(
+            rejectedToken: _firstSession.accessToken,
+          ),
+          async,
+        );
+
+        expectEndedWith(UnauthenticatedReason.sessionExpired);
+        service.dispose();
+      });
+    });
+
     test('handleRevocation stays sessionExpired (D-12)', () {
       fakeAsync((async) {
         refuseRefresh('r1', newLogin);
