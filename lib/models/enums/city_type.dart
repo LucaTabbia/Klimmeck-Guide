@@ -12,7 +12,11 @@ enum CityType {
   liberiaCapital(size: 59, imageId: CloudinaryAssets.liberiaCapital),
   ferrionCity(size: 55, imageId: CloudinaryAssets.ferrion),
   necrorianCity(size: 60, imageId: CloudinaryAssets.necrorian),
-  talmvereVillage(size: 39, imageId: CloudinaryAssets.talmvere),
+  talmvereVillage(
+    size: 39,
+    imageId: CloudinaryAssets.talmvere,
+    alwaysVisible: true,
+  ),
   drusteaCity(size: 43, imageId: CloudinaryAssets.drusteaCity),
   drusteaVillage(size: 30, imageId: CloudinaryAssets.drusteaVillage),
   drusteaSeaCity(size: 45, imageId: CloudinaryAssets.drusteaSeaCity),
@@ -38,8 +42,16 @@ enum CityType {
   final int size;
   final String _imageId;
 
+  /// Marker sempre visibile a ogni zoom (regola di prodotto della UAT Phase 12,
+  /// D-13c emendata): Talmvere resta un villaggio per il BE, la cui taglia
+  /// guida il gameplay.
+  final bool alwaysVisible;
+
   String get imagePath => CloudinaryAssets.url(_imageId);
 
-  const CityType({required this.size, required String imageId})
-    : _imageId = imageId;
+  const CityType({
+    required this.size,
+    required String imageId,
+    this.alwaysVisible = false,
+  }) : _imageId = imageId;
 }

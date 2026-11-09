@@ -47,7 +47,11 @@ class CityMarkersLayer extends StatelessWidget {
   }
 
   List<City> _getVisibleCities(double zoom) => cities
-      .where((city) => city.type != null && _isVisibleAt(city.size, zoom))
+      .where(
+        (city) =>
+            city.type != null &&
+            (city.type!.alwaysVisible || _isVisibleAt(city.size, zoom)),
+      )
       .toList();
 
   /// D-13c: la taglia arriva dal BE (`City.size`); senza taglia la città non si mostra.
