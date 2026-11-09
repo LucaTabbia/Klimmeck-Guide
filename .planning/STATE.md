@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-09T09:40:00.000Z"
-last_activity: 2026-11-09 -- Phase 17 complete: 17-10 device E2E passed (steps 1–8, player identity), LORE-01..03 ticked, FE handoff written
+last_updated: "2026-11-09T12:15:00.000Z"
+last_activity: 2026-11-09 -- Phases 16 and 17 complete; feat/17-unlockable-lore rebased on develop after the Phase 16 merge (PR #42)
 progress:
   total_phases: 17
-  completed_phases: 15
-  total_plans: 152
-  completed_plans: 142
-  percent: 93
+  completed_phases: 16
+  total_plans: 153
+  completed_plans: 152
+  percent: 99
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md`
+Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md` Rebased on `develop` `a80e93c` (the Phase 16 merge, PR #42) on 2026-11-09 with five hand-resolved conflicts on the shared result files (fragment comment, model `fromJson`, three tests: unions of both phases, CONTEXT D-18).
 Plan: 12 of 12
-Completed phases: 15 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17)
-Next Phase: the FE Phase 16 PR first (`feat/16-travel-ambushes` → `develop`, after its device UAT 16-08 from its own APK), then rebase `feat/17-unlockable-lore` on `develop` (orchestrator/user, CONTEXT D-18: rebase, never merge `develop` in) and open its PR to `develop` (never `main`), then FE 12 (Hardening) last
-Status: Phase 17 complete — no code work open on this branch; waiting for the two FE PRs in the D-18 order (16 first, then 17 rebased on `develop`)
-Last activity: 2026-11-09 -- Phase 17 complete: 17-10 Task 3 recorded the device E2E (steps 1–8 pass), LORE-01..03 ticked, ROADMAP/VALIDATION closed, FE handoff written
+Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
+Next Phase: FE PR `feat/17-unlockable-lore` → `develop` (rebased on the Phase 16 merge `a80e93c`; BE Phases 15 and 16 merged on BE `develop` `6be50d2`), then FE 12 (Hardening) last
+Status: Phases 16 and 17 complete — 16 merged on `develop` (PR #42, `a80e93c`, device E2E 2026-11-09 steps 1–7, plan 16-09 from the carousel finding D-19); 17 complete 12/12 (device E2E 2026-11-09 steps 1–8, plans 17-11/17-12 from the UAT findings) and rebased on the merge: planning docs reconciled by hand (progress counters recomputed from the ROADMAP: FE 12 Hardening is the only phase still open), PR to open with the personal gh token per command, base `develop`
+Last activity: 2026-11-09 -- Phase 17 rebased on develop after the Phase 16 merge; planning docs reconciled
 
 ## Current Milestone
 
@@ -66,6 +66,8 @@ Last activity: 2026-11-09 -- Phase 17 complete: 17-10 Task 3 recorded the device
 - **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
 - **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
 - ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
+
+- ~~**FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.~~ — **resolved 2026-11-09:** merged on BE `develop` (`9103440`, PR #24), consumed by plan 16-07 and proven by the device E2E of 16-08 against BE `develop` `6be50d2` (outcome in `phases/16-travel-ambushes/BACKEND-NOTES.md` §4; questions §5, among them the user's detour-safety rule already honoured by BE D-03).
 
 ### Quick Tasks Completed
 
