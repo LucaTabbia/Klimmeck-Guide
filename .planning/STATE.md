@@ -18,7 +18,7 @@ progress:
 ## Current Position
 
 Phase: 12 (Hardening) — EXECUTING since 2026-11-09 on `refactor/12-hardening` (from `develop` `ac75702`): 17 plans in 17 sequential waves (12-01..12-15 on fakes with the contract names of the BE `17-REPO-RULES.md`; 12-16 gate and 12-17 device UAT + handoff gated by the BE Phase 17 merge on BE `develop`)
-Plan: 10 of 17
+Plan: 11 of 17
 Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
 Next Phase: `/gsd-execute-phase 12` (12-01..12-15 now on fakes with the contract names of the BE `17-REPO-RULES.md`; review by area, then 12-16/12-17 after the BE Phase 17 PR merges on BE `develop`), then the FE PR to `develop` and the v1.0 close (Hardening is the last phase)
 Status: Executing Phase 12 — 12-01..12-15 run now; 12-16/12-17 wait for the BE Phase 17 merge; BE Phase 17 executing in the same session on `feat/17-autorizzazione-e-sessioni`; the BE runs from `develop` `31dba96` on port 3001; the user generates the release keystore and `android/key.properties` before the UAT (handoff steps)
