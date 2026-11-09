@@ -4,6 +4,11 @@ on:
     branches: [develop]
   push:
     branches: ['feat/**', 'fix/**', 'refactor/**']
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   flutter:
     runs-on: ubuntu-latest
