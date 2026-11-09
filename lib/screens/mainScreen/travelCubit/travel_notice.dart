@@ -24,6 +24,7 @@ KGNotification? travelNoticeFor(TravelFailure failure) {
       'Il server non ha risposto in tempo: '
           'controlla la mappa prima di riprovare',
     TravelFailure.declined => 'Il server ha rifiutato la partenza, riprova',
+    TravelFailure.badUserInput ||
     TravelFailure.unknown => 'Qualcosa è andato storto, riprova',
     TravelFailure.unauthenticated => null,
   };
