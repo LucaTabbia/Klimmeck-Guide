@@ -19,13 +19,13 @@ requirements: [LOOT-01]
 
 must_haves:
   truths:
-    - "LootItem.effectedInjuries is an unmodifiable List<InjuryType>: const [] when the wire omits it or sends a non-list, unknown names dropped, written back by toJson, carried by copyWith, part of props"
-    - "LootFragment.definition and LootFragment.fields select effectedInjuries; the quest fragment's inline LootItem block selects it too; simpleFields unchanged; the registry stays at 45 documents"
+    - "LootItem.canHeal is an unmodifiable List<InjuryType>: const [] when the wire omits it or sends a non-list, unknown names dropped, written back by toJson, carried by copyWith, part of props"
+    - "LootFragment.definition and LootFragment.fields select canHeal; the quest fragment's inline LootItem block selects it too; simpleFields unchanged; the registry stays at 45 documents"
     - "healedInjuriesLine(item) is «Cura: <labels>» (Italian InjuryType labels in enum order, lower case, joined by ', ') only for a heal item with at least one injury; null otherwise"
     - "ItemRow shows that line under the effect line (shop and Journal), keyed item-injuries-<id>; LootItemCard unchanged"
   artifacts:
     - path: "lib/models/loot_item.dart"
-      contains: "effectedInjuries"
+      contains: "canHeal"
     - path: "lib/utils/item_lines.dart"
       contains: "healedInjuriesLine"
     - path: "lib/shared/components/item_row.dart"
@@ -37,9 +37,9 @@ must_haves:
       pattern: "healedInjuriesLine"
 ---
 
-# Quick 261109-inj: «Cura: …» dagli `effectedInjuries` dei LootItem
+# Quick 261109-inj: «Cura: …» dal `canHeal` dei LootItem
 
-Regola dell'utente (2026-11-09): i `LootItem` hanno un nuovo campo `effectedInjuries` (lista di `InjuryType`) che dice quali ferite un oggetto heal può curare. Il BE lo aggiunge con il quick task gemello (stesso nome di branch, `effectedInjuries: [InjuryType!]!` su `type LootItem`); la FE lo legge in modo tollerante e lo mostra subito come riga «Cura: …» sugli oggetti heal nel negozio e nel Diario (scelta dell'utente), anche se la meccanica di cura non esiste ancora (nessun uso oggetti: le pozioni si bevono da sole in combattimento, le ferite si curano con le quest «heal»). Il contenuto a DB lo scrive l'orchestratore dopo la revisione dell'utente.
+Regola dell'utente (2026-11-09): i `LootItem` hanno un campo `canHeal` (lista di `InjuryType`) che dice quali ferite un oggetto heal può curare. Il BE lo serve con il quick task gemello (stesso nome di branch) riusando il campo preesistente `canHeal: [InjuryType!]!` su `type LootItem` — correzione dell'utente del 2026-11-09 al nome provvisorio scelto dal piano, che sopravvive solo nel nome del branch e di questa cartella; la FE lo legge in modo tollerante e lo mostra subito come riga «Cura: …» sugli oggetti heal nel negozio e nel Diario (scelta dell'utente), anche se la meccanica di cura non esiste ancora (nessun uso oggetti: le pozioni si bevono da sole in combattimento, le ferite si curano con le quest «heal»). Il contenuto a DB lo scrive l'orchestratore dopo la revisione dell'utente.
 
 ## Oggi (leggi prima)
 - `lib/models/loot_item.dart`: `LootItem extends AssetItem` con `effect: EffectType?`, `power: int?`, `fromJson` tollerante su prezzi e `description`, `toJson`, `copyWith`, `props`.
@@ -51,8 +51,8 @@ Regola dell'utente (2026-11-09): i `LootItem` hanno un nuovo campo `effectedInju
 - Regole: `docs/rules/testing.md`, `docs/rules/graphql.md` (il registro conta i documenti, non i campi), analyzer 0 error / 0 warning (baseline ≈ 50 info), `dart format` solo sui file toccati, niente Co-Authored-By.
 
 ## Task
-1. RED `test/models/loot_item_test.dart` (nuovo): parse di `effectedInjuries: ['deepCut', 'infection']` → `[InjuryType.deepCut, InjuryType.infection]` immutabile; nome ignoto (`'brokenWing'`) scartato; campo assente o non lista → `[]`; `toJson` scrive i nomi; `fromJson(toJson())` uguale (Equatable). GREEN in `loot_item.dart` (`this.effectedInjuries = const []`, parser tollerante, `List.unmodifiable`, `copyWith`, `props`).
-2. RED `test/graphql/character_fragment_test.dart` (o un test dedicato in `test/graphql/`): `LootFragment.fields` e `LootFragment.definition` contengono `effectedInjuries`; il blocco inline del `QuestFragment` lo seleziona; `LootFragment.simpleFields` no; il conteggio del registro resta 45. GREEN nei due fragment (aggiungi `effectedInjuries` dopo `power`). Se un test dei documenti pinna il testo esatto del blocco, aggiornalo nello stesso commit del fragment e dillo nel SUMMARY.
+1. RED `test/models/loot_item_test.dart` (nuovo): parse di `canHeal: ['deepCut', 'infection']` → `[InjuryType.deepCut, InjuryType.infection]` immutabile; nome ignoto (`'brokenWing'`) scartato; campo assente o non lista → `[]`; `toJson` scrive i nomi; `fromJson(toJson())` uguale (Equatable). GREEN in `loot_item.dart` (`this.canHeal = const []`, parser tollerante, `List.unmodifiable`, `copyWith`, `props`).
+2. RED `test/graphql/character_fragment_test.dart` (o un test dedicato in `test/graphql/`): `LootFragment.fields` e `LootFragment.definition` contengono `canHeal`; il blocco inline del `QuestFragment` lo seleziona; `LootFragment.simpleFields` no; il conteggio del registro resta 45. GREEN nei due fragment (aggiungi `canHeal` dopo `power`). Se un test dei documenti pinna il testo esatto del blocco, aggiornalo nello stesso commit del fragment e dillo nel SUMMARY.
 3. RED `test/utils/item_lines_test.dart`: oggetto heal con `[blackEye, blindness]` → «Cura: cecità, occhio nero» (ordine dell'enum: `blindness` precede `blackEye`? NO: l'ordine è quello di `InjuryType.values` — `blindness` è il 5°, `blackEye` il 6° → «Cura: cecità, occhio nero»); heal senza ferite → `null`; `hunger` con ferite → `null`. GREEN `healedInjuriesLine(LootItem)` in `item_lines.dart`, etichette `label.toLowerCase()` unite da `', '`, filtro `effect == EffectType.heal`.
 4. RED `test/shared/components/item_row_test.dart`: per un oggetto heal con ferite compare `find.byKey(ValueKey('item-injuries-<id>'))` con il testo «Cura: …» sotto la riga dell'effetto; per un oggetto senza ferite non compare. GREEN in `ItemRow._buildTexts` (terza `Text`, stesso stile `bodyMedium`). `LootItemCard` invariata.
 5. Gate: `flutter test test/models test/utils test/shared/components test/graphql` verde; `flutter analyze 2>&1 | grep -cE '^ *(error|warning) •'` → `0`; `dart format` sui soli file toccati, uno per uno.
