@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/services/push/local_notifications_port.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Tetto di ogni chiamata locale prima di `runApp`: un canale di piattaforma bloccato
 /// non deve mai trattenere l'avvio del gioco.
@@ -14,9 +14,7 @@ Future<bool> initializeLocalNotifications(
     await notifications.initialize().timeout(localNotificationsStartupTimeout);
     return true;
   } on Object catch (error) {
-    debugPrint(
-      'Push disabled: notifications unavailable (${error.runtimeType})',
-    );
+    appLog('Push disabled: notifications unavailable (${error.runtimeType})');
     return false;
   }
 }
@@ -30,7 +28,7 @@ Future<NotificationIntent?> readLaunchIntent(
       localNotificationsStartupTimeout,
     );
   } on Object catch (error) {
-    debugPrint('Push launch tap skipped (${error.runtimeType})');
+    appLog('Push launch tap skipped (${error.runtimeType})');
     return null;
   }
 }

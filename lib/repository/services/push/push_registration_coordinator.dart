@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/repository/push_device_failure.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
@@ -9,6 +8,7 @@ import 'package:klimmeck_guide/repository/services/push/push_messaging_port.dart
 import 'package:klimmeck_guide/repository/services/push/push_session_cleanup.dart';
 import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
 import 'package:klimmeck_guide/repository/storage/device_identity_store.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/silent_retry.dart';
 
 /// Ciclo di vita della registrazione push (D-07/D-08/D-09), vivo per tutto il processo.
@@ -126,7 +126,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
 
   void _onRegistrationGivenUp(Object error) {
     _retryOnForeground = true;
-    debugPrint('Push registration stopped (${_describe(error)})');
+    appLog('Push registration stopped (${_describe(error)})');
   }
 
   bool _isCancelled(int generation) =>
@@ -207,7 +207,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     try {
       await action();
     } on Object catch (error) {
-      debugPrint('Push $step failed (${_describe(error)})');
+      appLog('Push $step failed (${_describe(error)})');
     }
   }
 }
