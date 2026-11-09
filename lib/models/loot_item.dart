@@ -3,6 +3,7 @@ import 'package:klimmeck_guide/models/asset_item.dart';
 
 import 'coins.dart';
 import 'enums/effect_type.dart';
+import 'enums/injury_type.dart';
 import 'enums/rarity_type.dart';
 
 class LootItem extends AssetItem with EquatableMixin {
@@ -15,14 +16,19 @@ class LootItem extends AssetItem with EquatableMixin {
     required super.sellPrice,
     required this.power,
     required this.effect,
+    this.canHeal = const [],
   });
 
   final EffectType? effect;
   final int? power;
 
+  /// Ferite che un oggetto heal può curare; vuota quando il filo non le serve
+  /// (i documenti con i soli simpleFields) o manda qualcosa che non è una lista.
+  final List<InjuryType> canHeal;
+
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
-    id: json["id"],
-    name: json["name"],
+    id: json['id'],
+    name: json['name'],
     // il documento `quests` seleziona gli item con i soli simpleFields
     description: json['description'] ?? '',
     sellPrice: json['sellPrice'] != null
@@ -31,25 +37,27 @@ class LootItem extends AssetItem with EquatableMixin {
     buyPrice: json['buyPrice'] != null
         ? Coins.fromJson(json['buyPrice'])
         : null,
-    power: json["power"] != null ? (json["power"] as num).toInt() : null,
+    power: json['power'] != null ? (json['power'] as num).toInt() : null,
     effect: json['effect'] != null
         ? EffectType.values.byName(json['effect'])
         : null,
     rarity: json['rarity'] != null
         ? RarityType.values.byName(json['rarity'])
         : null,
+    canHeal: _canHealFrom(json['canHeal']),
   );
 
   @override
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-    "description": description,
-    "buyPrice": buyPrice?.toJson(),
-    "sellPrice": sellPrice?.toJson(),
-    "power": power,
-    "effect": effect?.name,
-    "rarity": rarity?.name,
+    'id': id,
+    'name': name,
+    'description': description,
+    'buyPrice': buyPrice?.toJson(),
+    'sellPrice': sellPrice?.toJson(),
+    'power': power,
+    'effect': effect?.name,
+    'rarity': rarity?.name,
+    'canHeal': canHeal.map((type) => type.name).toList(),
   };
 
   LootItem copyWith({
@@ -61,6 +69,7 @@ class LootItem extends AssetItem with EquatableMixin {
     Coins? sellPrice,
     int? power,
     EffectType? effect,
+    List<InjuryType>? canHeal,
   }) {
     return LootItem(
       id: id ?? this.id,
@@ -71,13 +80,18 @@ class LootItem extends AssetItem with EquatableMixin {
       sellPrice: sellPrice ?? this.sellPrice,
       power: power ?? this.power,
       effect: effect ?? this.effect,
+      canHeal: canHeal ?? this.canHeal,
     );
   }
 
   @override
-  List<Object?> get props => [
-    ...super.props,
-    power,
-    effect,
-  ];
+  List<Object?> get props => [...super.props, power, effect, canHeal];
+}
+
+List<InjuryType> _canHealFrom(Object? json) {
+  if (json is! List) return const [];
+  final byName = InjuryType.values.asNameMap();
+  return List.unmodifiable(
+    json.map((name) => byName[name]).whereType<InjuryType>(),
+  );
 }

@@ -34,6 +34,7 @@ class ItemRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final lootItem = assetItem.asLoot;
     final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
+    final injuriesLine = lootItem == null ? null : healedInjuriesLine(lootItem);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
@@ -66,7 +67,7 @@ class ItemRow extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: _buildTexts(effectLine),
+              child: _buildTexts(effectLine, injuriesLine),
             ),
           ),
         ],
@@ -74,20 +75,24 @@ class ItemRow extends StatelessWidget {
     );
   }
 
-  Widget _buildTexts(String? effectLine) {
+  Widget _buildTexts(String? effectLine, String? injuriesLine) {
+    final style = KlimmeckGuideTheme.instance.bodyMedium;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          assetItem.description,
-          style: KlimmeckGuideTheme.instance.bodyMedium,
-        ),
+        Text(assetItem.description, style: style),
         if (effectLine != null)
           Text(
             effectLine,
             key: ValueKey('item-effect-${assetItem.id}'),
-            style: KlimmeckGuideTheme.instance.bodyMedium,
+            style: style,
+          ),
+        if (injuriesLine != null)
+          Text(
+            injuriesLine,
+            key: ValueKey('item-injuries-${assetItem.id}'),
+            style: style,
           ),
       ],
     );

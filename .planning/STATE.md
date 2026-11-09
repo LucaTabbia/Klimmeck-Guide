@@ -23,6 +23,8 @@ Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
 Next Phase: FE PR `feat/17-unlockable-lore` → `develop` (rebased on the Phase 16 merge `a80e93c`; BE Phases 15 and 16 merged on BE `develop` `6be50d2`), then FE 12 (Hardening) last
 Status: Phases 16 and 17 complete — 16 merged on `develop` (PR #42, `a80e93c`, device E2E 2026-11-09 steps 1–7, plan 16-09 from the carousel finding D-19); 17 complete 12/12 (device E2E 2026-11-09 steps 1–8, plans 17-11/17-12 from the UAT findings) and rebased on the merge: planning docs reconciled by hand (progress counters recomputed from the ROADMAP: FE 12 Hardening is the only phase still open), PR to open with the personal gh token per command, base `develop`
 Last activity: 2026-11-09 -- Phase 17 rebased on develop after the Phase 16 merge; planning docs reconciled
+Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
+Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
 ## Current Milestone
 
