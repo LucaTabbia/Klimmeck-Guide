@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/character/character_status.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/spell/spell_state.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
@@ -14,6 +15,7 @@ Map<String, dynamic> statusJson({
   Object? spellStates,
   Object? awaitingAid = _absent,
   Object? unlockedLore = _absent,
+  Object? injuries = _absent,
 }) => {
   'title': 'rookie',
   'xp': 1,
@@ -22,6 +24,7 @@ Map<String, dynamic> statusJson({
   if (spellStates != null) 'spellStates': spellStates,
   if (!identical(awaitingAid, _absent)) 'awaitingAid': awaitingAid,
   if (!identical(unlockedLore, _absent)) 'unlockedLore': unlockedLore,
+  if (!identical(injuries, _absent)) 'injuries': injuries,
 };
 
 const Object _absent = Object();
@@ -323,6 +326,73 @@ void main() {
         (free['status'] as Map<String, dynamic>).containsKey('awaitingAid'),
         isFalse,
       );
+    });
+  });
+
+  group('injuries (quick 261109-inj2)', () {
+    void expectOtherFieldsParsed(CharacterStatus status) {
+      expect(status.location!.id, 'city-marker-1');
+      expect(status.title, TitleType.rookie);
+      expect(status.xp, 1);
+    }
+
+    test('drops an injury name the client does not know', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut', 'brokenWing', 'stunned']),
+      );
+
+      expect(status.injuries, [InjuryType.deepCut, InjuryType.stunned]);
+      expectOtherFieldsParsed(status);
+    });
+
+    test('a missing injuries is an empty list, not null', () {
+      final status = CharacterStatus.fromJson(statusJson());
+
+      expect(status.injuries, isNotNull);
+      expect(status.injuries, isEmpty);
+    });
+
+    test('a null injuries is an empty list', () {
+      final status = CharacterStatus.fromJson(statusJson(injuries: null));
+
+      expect(status.injuries, isEmpty);
+    });
+
+    test('a non-list injuries is an empty list and the status survives', () {
+      final status = CharacterStatus.fromJson(statusJson(injuries: 'deepCut'));
+
+      expect(status.injuries, isEmpty);
+      expectOtherFieldsParsed(status);
+    });
+
+    test('the parsed list cannot be modified', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut']),
+      );
+
+      expect(
+        () => status.injuries!.add(InjuryType.blackEye),
+        throwsUnsupportedError,
+      );
+    });
+
+    test('toJson writes the injury names', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut', 'stunned']),
+      );
+
+      expect(status.toJson()['injuries'], ['deepCut', 'stunned']);
+    });
+
+    test('copyWith keeps the injuries unless they are replaced', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut']),
+      );
+
+      expect(status.copyWith(xp: 4).injuries, [InjuryType.deepCut]);
+      expect(status.copyWith(injuries: [InjuryType.blackEye]).injuries, [
+        InjuryType.blackEye,
+      ]);
     });
   });
 
