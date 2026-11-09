@@ -1,0 +1,5 @@
+{
+  "BASE_URL": "http://localhost:3000/",
+  "GRAPHQL_HTTP_URL": "http://localhost:3000/api/graphql",
+  "GRAPHQL_WS_URL": "ws://localhost:3000/api/graphql"
+}
