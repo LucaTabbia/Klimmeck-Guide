@@ -1,9 +1,9 @@
 ---
 phase: 12
 slug: hardening
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-09
 ---
 
@@ -73,8 +73,8 @@ created: 2026-11-09
 | 12-15-01 | 15 | 15 | HARDEN-06 | T-12-44, T-12-46 | `4409` refreshes before reconnecting, bounded | unit | `flutter test test/repository/services/graphql` | ✅ | ✅ green |
 | 12-15-02 | 15 | 15 | HARDEN-06 | T-12-43, T-12-45 | WS fake close hooks + session backend fake | unit (helpers) | `flutter test test/helpers/fakes test/repository/services/graphql` | ❌ W0 | ✅ green |
 | 12-15-03 | 15 | 15 | HARDEN-06 | T-12-43, T-12-44, T-12-45 | last login replaces the other device (5 cases) | integration (loopback, two services) | `flutter test test/repository/services/auth/dual_session_revocation_test.dart` | ❌ W0 | ✅ green |
-| 12-16-01 | 16 | 16 | HARDEN-02, HARDEN-06 | T-12-47, T-12-48, T-12-49 | contract names proven on merged BE Phase 17; 45/45 OK | gate | `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts \| grep -c newLogin` + `flutter test test/repository/services test/screens/auth test/screens/signIn` | n/a | ⬜ pending |
-| 12-16-02 | 16 | 16 | HARDEN-01, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-07, HARDEN-09, HARDEN-10 | T-12-50, T-12-51 | all automated gates green, bundle guard OK | gate | `bash tool/hardening_check.sh && flutter test` | n/a | ⬜ pending |
+| 12-16-01 | 16 | 16 | HARDEN-02, HARDEN-06 | T-12-47, T-12-48, T-12-49 | contract names proven on merged BE Phase 17; 45/45 OK | gate | `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts \| grep -c newLogin` + `flutter test test/repository/services test/screens/auth test/screens/signIn` | n/a | ✅ green |
+| 12-16-02 | 16 | 16 | HARDEN-01, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-07, HARDEN-09, HARDEN-10 | T-12-50, T-12-51 | all automated gates green, bundle guard OK | gate | `bash tool/hardening_check.sh && flutter test` | n/a | ✅ green |
 | 12-17-01 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-07, HARDEN-08, HARDEN-09 | T-12-52, T-12-53 | UAT sheet with prerequisites, no secret written | doc | `grep -cE "^\| (1[01]\|[1-9]) \|" .planning/phases/12-hardening/12-HUMAN-UAT.md` | ❌ W0 | ⬜ pending |
 | 12-17-02 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-08, HARDEN-09 | T-12-55, T-12-56 | device E2E (release via tunnel, DevTools, dual device) | manual (checkpoint) | `test -f .planning/phases/12-hardening/12-HUMAN-UAT.md` | n/a | ⬜ pending |
 | 12-17-03 | 17 | 17 | HARDEN-01..HARDEN-10 | T-12-52, T-12-54 | requirements ticked only on passed evidence; BE handoff | doc | `grep -q "## 3. UAT outcome" .planning/phases/12-hardening/BACKEND-NOTES.md` | ❌ W0 | ⬜ pending |
@@ -109,11 +109,13 @@ created: 2026-11-09
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 20 s per task subset
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 20 s per task subset
+- [x] `nyquist_compliant` set to true in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-09 (plan 12-16; the 12-17 device rows stay pending)
+
+Gate passed on BE `8bfd1b3`: names confirmed, 45/45 OK, full suite 3704 green, analyzer 47 info, bundle guard OK
