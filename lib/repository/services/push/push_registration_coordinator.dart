@@ -62,9 +62,9 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
   /// riprova in silenzio, così una rete instabile al login non lascia senza push.
   bool _retryOnForeground = false;
 
-  /// Tentativo di registrazione sul filo: la rimozione lo attende (WR-01), altrimenti
-  /// una `register` lenta potrebbe ricreare la riga dopo l'`unregister`.
-  Future<void>? _attemptInFlight;
+  /// Tentativi di registrazione sul filo: la rimozione li attende tutti (WR-01),
+  /// altrimenti una `register` lenta potrebbe ricreare la riga dopo l'`unregister`.
+  final Set<Future<void>> _attemptsInFlight = {};
 
   /// Gli stati auth si gestiscono uno alla volta (WR-03): un `Unauthenticated` arrivato
   /// durante la scrittura dell'utente attivo lo cancella sempre dopo di essa.
@@ -133,10 +133,8 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
       generation != _generation || _suspended || _sessionUserId == null;
 
   Future<void> _trackAttempt(Future<void> attempt) {
-    _attemptInFlight = attempt;
-    return attempt.whenComplete(() {
-      if (identical(_attemptInFlight, attempt)) _attemptInFlight = null;
-    });
+    _attemptsInFlight.add(attempt);
+    return attempt.whenComplete(() => _attemptsInFlight.remove(attempt));
   }
 
   /// Senza token (ancora) disponibile non si registra: arriverà con `tokenRefreshes`.
@@ -158,7 +156,7 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     if (_sessionUserId == null) return;
     _suspended = true;
     _generation++;
-    await _drainAttemptInFlight();
+    await _drainAttemptsInFlight();
     if (!_hasSeenToken) return;
     await _guarded('unregister', () async {
       final deviceId = await _deviceIdentity.readOrCreate();
@@ -166,12 +164,15 @@ class PushRegistrationCoordinator implements PushSessionCleanup {
     });
   }
 
-  Future<void> _drainAttemptInFlight() async {
-    final attempt = _attemptInFlight;
-    if (attempt == null) return;
+  /// Attende ogni tentativo in volo, non solo l'ultimo: uno più vecchio già
+  /// partito verso il backend non deve atterrare dopo la rimozione.
+  Future<void> _drainAttemptsInFlight() async {
+    if (_attemptsInFlight.isEmpty) return;
     await _guarded(
       'registration drain',
-      () => attempt.timeout(registrationDrainTimeout),
+      () => Future.wait(
+        _attemptsInFlight.toList(),
+      ).timeout(registrationDrainTimeout),
     );
   }
 
