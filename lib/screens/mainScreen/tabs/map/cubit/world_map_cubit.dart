@@ -22,7 +22,7 @@ class WorldMapCubit extends Cubit<WorldMapState> with SafeEmit<WorldMapState> {
       emit(WorldMapLoadData(lore));
     } catch (e) {
       appLog('WorldMapCubit error: ${e.runtimeType}');
-      emit(WorldMapError(e.toString()));
+      emit(WorldMapError(e.runtimeType.toString()));
     }
   }
 }
