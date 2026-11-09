@@ -7,6 +7,7 @@ extension CharacterDeletionFailureMessage on CharacterDeletionFailure {
     CharacterDeletionFailure.handoverRejected =>
       'Personaggio eliminato, ma la sessione non si è aggiornata: esci e rientra',
     CharacterDeletionFailure.notFound ||
+    CharacterDeletionFailure.badUserInput ||
     CharacterDeletionFailure.unauthenticated ||
     CharacterDeletionFailure.unknown =>
       'Impossibile eliminare il personaggio, riprova',
