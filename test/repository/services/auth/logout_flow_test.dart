@@ -146,19 +146,28 @@ void main() {
     expect(socket.closeCode, isNotNull);
   }, timeout: _flowTimeout);
 
-  test('the old subscription stays silent after logout (D-08)', () async {
+  test('the old subscription stays silent after logout and its link never '
+      'reconnects (D-08)', () async {
     final oldStream = await openLiveSubscription();
     final oldSubscriptionId = server.framesOf('subscribe').single['id'];
     final oldEvents = <QueryResult>[];
     final oldListener = oldStream.listen(oldEvents.add);
     final oldSocket = server.sockets.single;
+    final liveBeforeLogout = expectLater(oldStream, emits(isA<QueryResult>()));
+    server.emit(oldSocket, oldSubscriptionId as String, {
+      'userUpdated': {'id': 'u-live'},
+    });
+    await liveBeforeLogout;
+    await pumpEventQueue();
+    expect(oldEvents, hasLength(1));
+    oldEvents.clear();
 
     await cubit.logout();
     await oldSocket.done;
     final newStream = await openLiveSubscription();
     final newSocket = server.sockets.last;
     final newSubscriptionId = server.framesOf('subscribe').last['id'];
-    server.emit(newSocket, oldSubscriptionId as String, {
+    server.emit(newSocket, oldSubscriptionId, {
       'userUpdated': {'id': 'u-old'},
     });
     final newEvent = expectLater(newStream, emits(isA<QueryResult>()));
@@ -169,6 +178,8 @@ void main() {
     await pumpEventQueue();
 
     expect(oldEvents, isEmpty);
+    expect(server.framesOf('connection_init'), hasLength(2));
+    expect(server.sockets, hasLength(2));
     await oldListener.cancel();
   }, timeout: _flowTimeout);
 
