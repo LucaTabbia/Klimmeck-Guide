@@ -10,6 +10,7 @@ const List<String> _routedRoots = [
   'lib/repository/storage',
   'lib/repository/services/sync',
   'lib/repository/cache',
+  'lib/repository/services/push',
 ];
 
 const String _appLogPath = 'lib/utils/app_log.dart';
