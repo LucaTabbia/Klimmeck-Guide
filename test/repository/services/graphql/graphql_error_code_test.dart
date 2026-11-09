@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 
@@ -89,6 +90,21 @@ void main() {
       );
 
       expect(graphQlErrorCode(exception), isNull);
+    });
+
+    test('a coded HTTP 500 reads as its code and classifies as unknown, an '
+        'uncoded one stays connection (D-13)', () {
+      final coded = _fromHttp('INTERNAL_SERVER_ERROR', 500);
+      final uncoded = OperationException(
+        linkException: ServerException(statusCode: 500, parsedResponse: null),
+      );
+
+      expect(graphQlErrorCode(coded), 'INTERNAL_SERVER_ERROR');
+      expect(questAcceptanceFailureFrom(coded), QuestAcceptanceFailure.unknown);
+      expect(
+        questAcceptanceFailureFrom(uncoded),
+        QuestAcceptanceFailure.connection,
+      );
     });
   });
 
