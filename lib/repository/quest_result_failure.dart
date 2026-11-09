@@ -2,8 +2,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
-import 'package:klimmeck_guide/repository/spell_equip_failure.dart'
-    show badUserInputCode;
 
 /// Esiti di dominio della lettura/conferma di un risultato (BE Phase 9 §2,
 /// BE 9.2): solo `extensions.code`.

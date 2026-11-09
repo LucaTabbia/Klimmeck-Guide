@@ -2,8 +2,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
-import 'package:klimmeck_guide/repository/spell_equip_failure.dart'
-    show badUserInputCode;
 
 const String travelInProgressCode = 'TRAVEL_IN_PROGRESS';
 const String travelSameLocationCode = 'TRAVEL_SAME_LOCATION';

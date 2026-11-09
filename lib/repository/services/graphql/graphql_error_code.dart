@@ -4,6 +4,7 @@ import 'graphql_sync_exceptions.dart';
 
 const String forbiddenCode = 'FORBIDDEN';
 const String notFoundCode = 'NOT_FOUND';
+const String badUserInputCode = 'BAD_USER_INPUT';
 
 /// Codici terminali sui percorsi di sync: lo stream non va ri-sottoscritto
 /// (niente hot loop) e in una sessione già caricata la reazione è silenziosa.

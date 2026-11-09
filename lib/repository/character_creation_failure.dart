@@ -1,7 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
-import 'package:klimmeck_guide/repository/spell_equip_failure.dart'
-    show badUserInputCode;
 
 const String characterNameInvalidCode = 'CHARACTER_NAME_INVALID';
 const String characterNameTakenCode = 'CHARACTER_NAME_TAKEN';
