@@ -54,3 +54,10 @@ Data in the question: FE 12 Hardening discussed and researched on its branch («
 - Heal items used from the Journal: stand-by (user).
 - Travel food (gradual HP, progressive meals, hunger debt): deferred (user).
 - Cures stay in combat, in the user's engine; recommended loot untouched (user).
+
+## Journal potions reopened (2026-11-09 evening, after the discuss, in chat)
+
+- User: consumable potions come back with a **global recovery** («Ogni oggetto heal ha un suo recoveryTime, come per le magie… non posso più prendere pozioni di qualsiasi tipo»), minimum 30 min, maximum 24 h; potions in combat work differently (the user's engine, maybe `recoveryTurns`); model shape chosen by the user: `recovery { time: int; turns: int }`.
+- Claude: in favour; one date on the character instead of the spell machinery; the recovery limits bursts, not the recovery over a long trip, hence times growing with power; table of the 28 times (BE D-18) accepted as the base.
+- User: «aggiungiamo anche la creazione di una nuova lore che spieghi come mai le pozioni non si possono bere in sequenza» → BE D-19 / FE D-16: `knowledge` lore «Il limite del corpo», linked from the potions (`LootItem.relatedLore`), unlocked on the first potion; the FE shows it through the Phase 17 Library flow plus one line in the Journal.
+
