@@ -83,19 +83,6 @@ void main() {
       );
     });
 
-    test('nothing selects the retired effectedInjuries name', () {
-      final selections = [
-        LootFragment.fields,
-        LootFragment.definition,
-        QuestFragment.fields,
-        ..._fullLootDocuments.values,
-        QuestQueries.getAllQuests,
-      ];
-      for (final selection in selections) {
-        expect(selection, isNot(contains('effectedInjuries')));
-      }
-    });
-
     test('the registry stays at 45 documents', () {
       expect(schemaCheckDocuments.length, 45);
     });

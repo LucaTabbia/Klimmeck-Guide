@@ -16,7 +16,7 @@ class LootItem extends AssetItem with EquatableMixin {
     required super.sellPrice,
     required this.power,
     required this.effect,
-    this.effectedInjuries = const [],
+    this.canHeal = const [],
   });
 
   final EffectType? effect;
@@ -24,7 +24,7 @@ class LootItem extends AssetItem with EquatableMixin {
 
   /// Ferite che un oggetto heal può curare; vuota quando il filo non le serve
   /// (i documenti con i soli simpleFields) o manda qualcosa che non è una lista.
-  final List<InjuryType> effectedInjuries;
+  final List<InjuryType> canHeal;
 
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
     id: json['id'],
@@ -44,7 +44,7 @@ class LootItem extends AssetItem with EquatableMixin {
     rarity: json['rarity'] != null
         ? RarityType.values.byName(json['rarity'])
         : null,
-    effectedInjuries: _effectedInjuriesFrom(json['effectedInjuries']),
+    canHeal: _canHealFrom(json['canHeal']),
   );
 
   @override
@@ -57,7 +57,7 @@ class LootItem extends AssetItem with EquatableMixin {
     'power': power,
     'effect': effect?.name,
     'rarity': rarity?.name,
-    'effectedInjuries': effectedInjuries.map((type) => type.name).toList(),
+    'canHeal': canHeal.map((type) => type.name).toList(),
   };
 
   LootItem copyWith({
@@ -69,7 +69,7 @@ class LootItem extends AssetItem with EquatableMixin {
     Coins? sellPrice,
     int? power,
     EffectType? effect,
-    List<InjuryType>? effectedInjuries,
+    List<InjuryType>? canHeal,
   }) {
     return LootItem(
       id: id ?? this.id,
@@ -80,15 +80,15 @@ class LootItem extends AssetItem with EquatableMixin {
       sellPrice: sellPrice ?? this.sellPrice,
       power: power ?? this.power,
       effect: effect ?? this.effect,
-      effectedInjuries: effectedInjuries ?? this.effectedInjuries,
+      canHeal: canHeal ?? this.canHeal,
     );
   }
 
   @override
-  List<Object?> get props => [...super.props, power, effect, effectedInjuries];
+  List<Object?> get props => [...super.props, power, effect, canHeal];
 }
 
-List<InjuryType> _effectedInjuriesFrom(Object? json) {
+List<InjuryType> _canHealFrom(Object? json) {
   if (json is! List) return const [];
   final byName = InjuryType.values.asNameMap();
   return List.unmodifiable(

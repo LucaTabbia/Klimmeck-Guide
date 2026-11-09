@@ -84,7 +84,7 @@ class QuestFragment {
             description
             effect
             power
-            effectedInjuries
+            canHeal
           }
         }
       }

@@ -12,7 +12,7 @@ class LootFragment {
       rarity
       effect
       power
-      effectedInjuries
+      canHeal
       buyPrice {
         ${CoinsFragment.fields}
       }
@@ -29,7 +29,7 @@ class LootFragment {
     rarity
     effect
     power
-    effectedInjuries
+    canHeal
     buyPrice {
       gold
       silver

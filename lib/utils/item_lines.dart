@@ -58,7 +58,7 @@ String? healedInjuriesLine(LootItem item) {
   if (item.effect != EffectType.heal) return null;
   final labels = [
     for (final type in InjuryType.values)
-      if (item.effectedInjuries.contains(type)) type.label.toLowerCase(),
+      if (item.canHeal.contains(type)) type.label.toLowerCase(),
   ];
   if (labels.isEmpty) return null;
   return 'Cura: ${labels.join(', ')}';
