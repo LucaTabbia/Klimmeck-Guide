@@ -10,13 +10,22 @@ const List<String> _devMarkers = [
   'DEV_AUTH_',
 ];
 
-const List<String> _sharedCompositionFiles = [
-  'lib/bootstrap/app_bootstrap.dart',
-  'lib/bootstrap/session_auth_composition.dart',
-  'lib/bootstrap/auth_composition.dart',
-  'lib/bootstrap/klimmeck_guide_app.dart',
-  'lib/bootstrap/insecure_transport_screen.dart',
-];
+const String _bootstrapDir = 'lib/bootstrap';
+const String _devCompositionFile = 'lib/bootstrap/dev_auth_composition.dart';
+
+List<String> _bootstrapFiles() =>
+    Directory(_bootstrapDir)
+        .listSync()
+        .whereType<File>()
+        .map((file) => file.path)
+        .where((path) => path.endsWith('.dart'))
+        .toList()
+      ..sort();
+
+/// Ogni file di `lib/bootstrap/` tranne la composizione dev: un file nuovo
+/// entra nel controllo senza doverlo elencare.
+List<String> _sharedCompositionFiles() =>
+    _bootstrapFiles().where((path) => path != _devCompositionFile).toList();
 
 String _source(String path) => File(path).readAsStringSync();
 
@@ -42,10 +51,24 @@ void main() {
 
   test('the shared composition files never mention the dev bypass (D-01)', () {
     final violations = [
-      for (final path in _sharedCompositionFiles) ..._devMarkersIn(path),
+      for (final path in _sharedCompositionFiles()) ..._devMarkersIn(path),
     ];
 
+    expect(
+      _sharedCompositionFiles(),
+      contains('lib/bootstrap/app_bootstrap.dart'),
+    );
     expect(violations, isEmpty);
+  });
+
+  test('lib/bootstrap holds exactly one dev file, the dev composition '
+      '(D-01)', () {
+    final devFiles = [
+      for (final path in _bootstrapFiles())
+        if (_devMarkersIn(path).isNotEmpty) path,
+    ];
+
+    expect(devFiles, [_devCompositionFile]);
   });
 
   test('the auth barrel no longer exports the dev bypass (D-01)', () {
