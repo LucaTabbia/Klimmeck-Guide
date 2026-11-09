@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
@@ -21,6 +22,7 @@ import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/storage/cubit/storage_cubit.dart';
+import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/repository/spells_repository.dart';
 import 'package:klimmeck_guide/repository/travel_repository.dart';
@@ -104,6 +106,7 @@ class AuthenticatedShell extends StatelessWidget {
     required this.graphQl,
     required this.characterId,
     required this.notificationPreferencesStore,
+    required this.libraryBookmarksStore,
     required this.userId,
     required this.notificationPermission,
     required this.pushMessaging,
@@ -113,6 +116,9 @@ class AuthenticatedShell extends StatelessWidget {
   final KlimmeckGraphQl graphQl;
   final String characterId;
   final NotificationPreferencesStore notificationPreferencesStore;
+
+  /// Segnalibri «Nuovo» della Biblioteca, per personaggio (Phase 17 D-07).
+  final LibraryBookmarksStore libraryBookmarksStore;
   final String userId;
 
   /// Permesso notifiche di sistema per la riga di Impostazioni (D-10).
@@ -142,7 +148,10 @@ class AuthenticatedShell extends StatelessWidget {
           ),
         ),
         BlocProvider<QuestCubit>(
-          create: (_) => QuestCubit(QuestBoardRepository(graphQl: graphQl)),
+          create: (_) => QuestCubit(
+            QuestBoardRepository(graphQl: graphQl),
+            warmer: ImageWarmer(),
+          ),
         ),
         BlocProvider<TransactionCubit>(
           create: (_) => TransactionCubit(graphQl),
@@ -150,7 +159,13 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<MainScreenCubit>(create: (_) => MainScreenCubit(graphQl)),
         BlocProvider<WorldMapCubit>(create: (_) => WorldMapCubit(graphQl)),
         BlocProvider<ShopCubit>(create: (_) => ShopCubit(graphQl)),
-        BlocProvider<LibraryCubit>(create: (_) => LibraryCubit(graphQl)),
+        BlocProvider<LibraryCubit>(
+          create: (_) => LibraryCubit(
+            graphQl,
+            bookmarks: libraryBookmarksStore,
+            characterId: characterId,
+          ),
+        ),
         BlocProvider<JournalCubit>(create: (_) => JournalCubit(graphQl)),
         BlocProvider<NotificationPreferencesCubit>(
           create: (_) => NotificationPreferencesCubit(

@@ -33,19 +33,24 @@ const _potion = {
   'item': {'id': 'l-1', 'name': 'Pozione', 'description': 'd'},
 };
 
-List<Map<String, dynamic>> _goblinPack() => [
+List<Map<String, dynamic>> _goblinPack({
+  bool goblinsKnown = true,
+  bool chiefKnown = true,
+}) => [
   questEnemyJson(
     id: 'goblin',
     name: 'Goblin',
     imagePath: _goblinPortrait,
     xp: 7,
     quantity: 3,
+    known: goblinsKnown,
   ),
   questEnemyJson(
     id: 'goblin-chief',
     name: 'Capo goblin',
     imagePath: _goblinChiefPortrait,
     xp: 21,
+    known: chiefKnown,
   ),
 ];
 
@@ -173,6 +178,43 @@ void main() {
       );
     });
 
+    testWidgets('an unknown strongest enemy is a silhouette and its lines '
+        'stay (D-08)', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'enemy', enemies: _goblinPack(chiefKnown: false)),
+      );
+
+      final silhouette = find.descendant(
+        of: find.byKey(QuestInfoSheet.enemyPortraitKey),
+        matching: find.byType(ColorFiltered),
+      );
+      expect(silhouette, findsOneWidget);
+      final svg = tester.widget<CachedSvg>(
+        find.descendant(of: silhouette, matching: find.byType(CachedSvg)),
+      );
+      expect(svg.url, CloudinaryAssets.url(_goblinChiefPortrait));
+      expect(_inCombat('3x Goblin'), findsOneWidget);
+      expect(_inCombat('1x Capo goblin'), findsOneWidget);
+    });
+
+    testWidgets('a known strongest enemy is drawn in clear beside unknown '
+        'ones (D-08)', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'enemy', enemies: _goblinPack(goblinsKnown: false)),
+      );
+
+      expect(
+        find.descendant(
+          of: find.byKey(QuestInfoSheet.enemyPortraitKey),
+          matching: find.byType(ColorFiltered),
+        ),
+        findsNothing,
+      );
+      expect(find.byKey(QuestInfoSheet.enemyPortraitKey), findsOneWidget);
+    });
+
     testWidgets('a single enemy with quantity 1 reads the bare name (D-02)', (
       tester,
     ) async {
@@ -181,7 +223,7 @@ void main() {
         buildQuest(
           type: 'enemy',
           enemies: [
-            {'quantity': 1, 'enemy': _enemy},
+            {'quantity': 1, 'known': true, 'enemy': _enemy},
           ],
         ),
       );
@@ -198,7 +240,7 @@ void main() {
           buildQuest(
             type: 'enemy',
             enemies: [
-              {'quantity': 1, 'enemy': _enemy},
+              {'quantity': 1, 'known': true, 'enemy': _enemy},
             ],
           ),
         );
@@ -708,7 +750,7 @@ void main() {
       buildQuest(
         type: 'enemy',
         enemies: [
-          {'quantity': 1, 'enemy': _enemy},
+          {'quantity': 1, 'known': true, 'enemy': _enemy},
         ],
       ),
     );

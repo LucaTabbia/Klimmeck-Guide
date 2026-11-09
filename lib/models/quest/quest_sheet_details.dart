@@ -64,6 +64,7 @@ class QuestSheetDetails extends Equatable {
     required this.loreParagraphs,
     required this.enemyLines,
     required this.strongestEnemy,
+    this.isStrongestEnemyKnown = true,
     required this.petPrizeLine,
     required this.travelLine,
   });
@@ -77,6 +78,7 @@ class QuestSheetDetails extends Equatable {
     final family = questSheetFamilyOf(type);
     final minTitle = quest.requirements?.minTitle;
     final enemies = quest.infos?.enemies ?? const <QuestEnemy>[];
+    final strongest = strongestEntryOf(enemies);
     return QuestSheetDetails(
       family: family,
       requiredTitleText: _requiredTitleText(type, minTitle),
@@ -111,7 +113,8 @@ class QuestSheetDetails extends Equatable {
           if (lore.description?.isNotEmpty ?? false) lore.description!,
       ]),
       enemyLines: enemyLinesOf(enemies),
-      strongestEnemy: strongestEnemyOf(enemies),
+      strongestEnemy: strongest?.enemy,
+      isStrongestEnemyKnown: strongest?.known ?? true,
       petPrizeLine: _petPrizeLine(quest.prizes?.pet?.name),
       travelLine: family == QuestSheetFamily.narrative
           ? null
@@ -131,6 +134,9 @@ class QuestSheetDetails extends Equatable {
   /// Righe «Nx nome» nell'ordine del BE (D-02); il ritratto usa [strongestEnemy].
   final List<String> enemyLines;
   final Enemy? strongestEnemy;
+
+  /// Il ritratto segue il `known` del più forte (D-08): `false` → sagoma nera.
+  final bool isStrongestEnemyKnown;
   final String? petPrizeLine;
 
   /// Riga «Viaggio» (D-04): mai sulle narrative (story e worldMission non
@@ -149,6 +155,7 @@ class QuestSheetDetails extends Equatable {
     loreParagraphs,
     enemyLines,
     strongestEnemy,
+    isStrongestEnemyKnown,
     petPrizeLine,
     travelLine,
   ];

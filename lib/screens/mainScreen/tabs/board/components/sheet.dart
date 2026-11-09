@@ -21,8 +21,11 @@ class Sheet extends StatelessWidget {
   final ValueChanged<Quest> onTap;
   final double randomizer;
 
+  /// Il bersaglio del tocco è l'intero foglio, anche prima che la sua
+  /// immagine sia caricata (il segnaposto di `CachedSvg` è una scatola vuota).
   @override
   Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
     onTap: () => onTap(quest),
     child: Semantics(
       button: true,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/enums/lore_type.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_error_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_initial_page.dart';
@@ -16,47 +16,49 @@ class Library extends StatefulWidget {
 }
 
 class _LibraryState extends State<Library> {
-  late List<LoreType> _selectedTypes;
-  late String _title;
-  late String _bookmarkImagePath;
-
   @override
   void initState() {
-    context.read<LibraryCubit>().goToInitial();
     super.initState();
+    final library = context.read<LibraryCubit>()..goToInitial();
+    final unlocked = unlockedLoreOf(context.read<CharacterCubit>().state);
+    if (unlocked != null) library.syncUnlockedLore(unlocked);
   }
 
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
-      child: BlocBuilder<LibraryCubit, LibraryState>(
-        builder: (context, state) {
-          if (state is LibraryInitial) {
-            return LibraryInitialPage(onTap: getData);
-          } else if (state is LibraryLoadData) {
-            return LibraryDataPage(
-              lore: state.lore,
-              types: _selectedTypes,
-              onBack: () => context.read<LibraryCubit>().goToInitial(),
-              title: _title,
-              bookmarkImagePath: _bookmarkImagePath,
-            );
-          } else if (state is LibraryError) {
-            return LibraryErrorPage();
-          } else {
-            return Placeholder();
+      child: BlocListener<CharacterCubit, CharacterState>(
+        listenWhen: (_, current) => current is CharacterLoaded,
+        listener: (context, state) {
+          final unlocked = unlockedLoreOf(state);
+          if (unlocked != null) {
+            context.read<LibraryCubit>().syncUnlockedLore(unlocked);
           }
         },
+        child: BlocBuilder<LibraryCubit, LibraryState>(
+          builder: (context, state) {
+            if (state is LibraryInitial) {
+              return LibraryInitialPage(
+                onOpen: (book) => context.read<LibraryCubit>().openBook(book),
+              );
+            } else if (state is LibraryLoadData) {
+              return LibraryDataPage(
+                book: state.book,
+                lore: state.lore,
+                newLoreIds: state.newLoreIds,
+                onBack: () => context.read<LibraryCubit>().goToInitial(),
+              );
+            } else if (state is LibraryError) {
+              return LibraryErrorPage(
+                book: state.book,
+                onBack: () => context.read<LibraryCubit>().goToInitial(),
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
+          },
+        ),
       ),
     );
-  }
-
-  void getData(List<LoreType> types, String title, String bookmarkImagePath) {
-    setState(() {
-      _selectedTypes = types;
-      _title = title;
-      _bookmarkImagePath = bookmarkImagePath;
-    });
-    context.read<LibraryCubit>().loadLoreData();
   }
 }

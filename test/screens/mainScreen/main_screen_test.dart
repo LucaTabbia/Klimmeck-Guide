@@ -366,6 +366,8 @@ void main() {
       String locationId, {
       Map<String, dynamic>? activeTravel,
       Map<String, dynamic>? awaitingAid,
+      CharacterState? character,
+      Stream<CharacterState>? characterStream,
     }) async {
       useLandscapePhone(tester);
       final authStates = StreamController<AuthState>.broadcast();
@@ -376,18 +378,20 @@ void main() {
       });
       whenListen(
         characterCubit,
-        Stream<CharacterState>.empty(),
-        initialState: CharacterLoaded(
-          Character.fromJson(
-            activeTravel == null && awaitingAid == null
-                ? characterWithLanesJson(locationId: locationId)
-                : travellingCharacterJson(
-                    locationId: locationId,
-                    activeTravel: activeTravel,
-                    awaitingAid: awaitingAid,
-                  ),
-          ),
-        ),
+        characterStream ?? Stream<CharacterState>.empty(),
+        initialState:
+            character ??
+            CharacterLoaded(
+              Character.fromJson(
+                activeTravel == null && awaitingAid == null
+                    ? characterWithLanesJson(locationId: locationId)
+                    : travellingCharacterJson(
+                        locationId: locationId,
+                        activeTravel: activeTravel,
+                        awaitingAid: awaitingAid,
+                      ),
+              ),
+            ),
       );
       await tester.pumpWidget(
         buildTestApp(
@@ -469,6 +473,66 @@ void main() {
           matching: find.byType(CompanionOutcomeListener),
         ),
         findsOneWidget,
+      );
+    });
+
+    group('cities refresh', () {
+      late StreamController<CharacterState> characterStates;
+
+      setUp(() {
+        characterStates = StreamController<CharacterState>.broadcast();
+        addTearDown(characterStates.close);
+        when(() => mainScreenCubit.loadData()).thenAnswer((_) async {});
+        when(() => mainScreenCubit.refreshCities()).thenAnswer((_) async {});
+      });
+
+      CharacterLoaded characterKnowing(
+        List<String> unlockedLore, {
+        int currentLifePoints = 900,
+      }) {
+        final json = characterWithLanesJson();
+        (json['status'] as Map<String, dynamic>)
+          ..['unlockedLore'] = unlockedLore
+          ..['currentLifePoints'] = currentLifePoints;
+        return CharacterLoaded(Character.fromJson(json));
+      }
+
+      Future<void> pumpKnowing(WidgetTester tester, List<String> ids) =>
+          pumpMainScreen(
+            tester,
+            'city-marker-1',
+            character: characterKnowing(ids),
+            characterStream: characterStates.stream,
+          );
+
+      testWidgets(
+        'a change of the unlocked set refreshes the cities silently (D-11)',
+        (tester) async {
+          await pumpKnowing(tester, ['lore-a']);
+
+          characterStates.add(characterKnowing(['lore-a', 'lore-b']));
+          await tester.pump();
+
+          verify(() => mainScreenCubit.refreshCities()).called(1);
+          verify(() => mainScreenCubit.loadData()).called(1);
+        },
+      );
+
+      testWidgets(
+        'the same set in another order or other status changes refresh '
+        'nothing (D-11)',
+        (tester) async {
+          await pumpKnowing(tester, ['lore-a', 'lore-b']);
+
+          characterStates.add(
+            characterKnowing(['lore-b', 'lore-a'], currentLifePoints: 400),
+          );
+          await tester.pump();
+          characterStates.add(characterKnowing(['lore-a', 'lore-b']));
+          await tester.pump();
+
+          verifyNever(() => mainScreenCubit.refreshCities());
+        },
       );
     });
 

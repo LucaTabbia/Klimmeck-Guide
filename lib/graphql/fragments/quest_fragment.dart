@@ -20,6 +20,7 @@ class QuestFragment {
       description
       enemies {
         quantity
+        known
         enemy {
           id
           name

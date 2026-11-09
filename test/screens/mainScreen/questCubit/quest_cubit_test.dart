@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/fakes/recording_image_warmer.dart';
 import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/mocks.dart';
 
@@ -461,6 +463,65 @@ void main() {
       },
       expect: () => <QuestState>[],
       verify: (_) => verify(() => repository.watchQuest('q-1')).called(2),
+    );
+  });
+
+  group('portrait warm-up', () {
+    const rasterUrl = 'https://res.cloudinary.com/x/image/upload/v1/ogre.png';
+    final quests = [
+      buildQuest(
+        id: 'warm-1',
+        enemies: [
+          questEnemyJson(id: 'e-1', imagePath: 'v1/goblin.svg'),
+          questEnemyJson(id: 'e-2', imagePath: 'v1/wolf.svg'),
+          questEnemyJson(id: 'e-3', imagePath: rasterUrl),
+          questEnemyJson(id: 'e-4', imagePath: null),
+        ],
+      ),
+      buildQuest(
+        id: 'warm-2',
+        enemies: [questEnemyJson(id: 'e-1', imagePath: 'v1/goblin.svg')],
+      ),
+    ];
+    final svgUrls = [
+      CloudinaryAssets.url('v1/goblin.svg'),
+      CloudinaryAssets.url('v1/wolf.svg'),
+      CloudinaryAssets.url('v1/goblin.svg'),
+    ];
+    late RecordingImageWarmer warmer;
+
+    setUp(() {
+      warmer = RecordingImageWarmer();
+      warmer.holds[1] = Completer<void>();
+    });
+
+    blocTest<QuestCubit, QuestState>(
+      'warms the svg portraits of the loaded quests without awaiting (D-22)',
+      setUp: () =>
+          when(() => repository.getQuests()).thenAnswer((_) async => quests),
+      build: () => QuestCubit(repository, warmer: warmer),
+      act: (cubit) => cubit.loadQuest(),
+      expect: () => [isA<QuestLoading>(), QuestLoaded(quests)],
+      verify: (_) => expect(warmer.calls, [svgUrls]),
+    );
+
+    blocTest<QuestCubit, QuestState>(
+      'a silent refresh warms the portraits of the new list too (D-22)',
+      setUp: () =>
+          when(() => repository.getQuests()).thenAnswer((_) async => quests),
+      build: () => QuestCubit(repository, warmer: warmer),
+      act: (cubit) => cubit.refreshQuests(),
+      expect: () => [QuestLoaded(quests)],
+      verify: (_) => expect(warmer.calls, [svgUrls]),
+    );
+
+    blocTest<QuestCubit, QuestState>(
+      'a cubit without a warmer loads as today (D-22)',
+      setUp: () =>
+          when(() => repository.getQuests()).thenAnswer((_) async => quests),
+      build: () => QuestCubit(repository),
+      act: (cubit) => cubit.loadQuest(),
+      expect: () => [isA<QuestLoading>(), QuestLoaded(quests)],
     );
   });
 }

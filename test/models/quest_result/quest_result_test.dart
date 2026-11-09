@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/enums/lore_type.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
 
+import '../../helpers/fixtures/lore_fixtures.dart';
 import '../../helpers/fixtures/quest_fixtures.dart';
 import '../../helpers/fixtures/quest_result_fixtures.dart';
 
@@ -457,6 +459,95 @@ void main() {
     });
   });
 
+  group('lore unlocked (BE Phase 16)', () {
+    test('a missing loreUnlocked is an empty list (D-04)', () {
+      final result = questResult(questResultJson()..remove('loreUnlocked'));
+
+      expect(result.loreUnlocked, isEmpty);
+    });
+
+    test('parses the lore unlocked by the outcome in BE order (D-04)', () {
+      final result = questResult(
+        questResultJson(
+          loreUnlocked: [
+            loreRefJson(),
+            loreRefJson(
+              id: 'lore-runes',
+              name: 'Rune antiche',
+              type: 'knowledge',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.loreUnlocked.map((lore) => lore.id), [
+        'lore-goblin',
+        'lore-runes',
+      ]);
+      expect(result.loreUnlocked.map((lore) => lore.type), [
+        LoreType.enemy,
+        LoreType.knowledge,
+      ]);
+      expect(result.loreUnlocked.map((lore) => lore.name), [
+        'Goblin',
+        'Rune antiche',
+      ]);
+    });
+
+    test('drops malformed entries and keeps the result (D-04)', () {
+      final json = questResultJson(
+        loreUnlocked: [
+          'Goblin',
+          {'name': 'Senza id', 'type': 'enemy'},
+          {'id': 'l3', 'type': 'enemy'},
+          {'id': 'l4', 'name': '', 'type': 'enemy'},
+          loreRefJson(),
+        ],
+      );
+
+      expect(QuestResult.tryFromJson(json), isNotNull);
+      expect(questResult(json).loreUnlocked.map((lore) => lore.id), [
+        'lore-goblin',
+      ]);
+    });
+
+    test('keeps an entry with an unknown type, without type (D-16)', () {
+      final result = questResult(
+        questResultJson(loreUnlocked: [loreRefJson(type: 'dragon')]),
+      );
+
+      expect(result.loreUnlocked, hasLength(1));
+      expect(result.loreUnlocked.single.type, isNull);
+    });
+
+    test('a non-list loreUnlocked is an empty list (D-04)', () {
+      final result = questResult(
+        questResultJson()..['loreUnlocked'] = 'lore-goblin',
+      );
+
+      expect(result.loreUnlocked, isEmpty);
+    });
+
+    test('results with different lore unlocked are not equal (D-04)', () {
+      final withGoblin = questResult(
+        questResultJson(loreUnlocked: [loreRefJson()]),
+      );
+      final withRunes = questResult(
+        questResultJson(
+          loreUnlocked: [
+            loreRefJson(
+              id: 'lore-runes',
+              name: 'Rune antiche',
+              type: 'knowledge',
+            ),
+          ],
+        ),
+      );
+
+      expect(withGoblin, isNot(withRunes));
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'success': successResultJson(),
@@ -479,6 +570,16 @@ void main() {
       ),
       'ambush won': ambushWonResultJson(),
       'ambush lost': ambushLostResultJson(),
+      'lore unlocked': questResultJson(
+        loreUnlocked: [
+          loreRefJson(),
+          loreRefJson(
+            id: 'lore-runes',
+            name: 'Rune antiche',
+            type: 'knowledge',
+          ),
+        ],
+      ),
     };
 
     for (final entry in payloads.entries) {

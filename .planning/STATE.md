@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-11-09T11:46:58.000Z"
-last_activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1-7), AMBUSH-01..03 ticked
+last_updated: "2026-11-09T12:15:00.000Z"
+last_activity: 2026-11-09 -- Phases 16 and 17 complete; feat/17-unlockable-lore rebased on develop after the Phase 16 merge (PR #42)
 progress:
   total_phases: 17
-  completed_phases: 15
-  total_plans: 151
-  completed_plans: 144
-  percent: 95
+  completed_phases: 16
+  total_plans: 153
+  completed_plans: 152
+  percent: 99
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 16 (Travel Ambushes) — COMPLETE 2026-11-09 on `feat/16-travel-ambushes` (from `develop` `f560d1d`): plans 16-01..16-09 executed (16-01..16-07 reviewed, fixed, verified and audited on 2026-11-07; 16-09 inserted on 2026-11-09 from the device E2E finding D-19 and executed during the E2E); schema gate 45/45 on BE `develop` `9103440` (16-07); Android device E2E steps 1–7 passed on 2026-11-09 against BE `develop` `6be50d2` (16-08, `16-HUMAN-UAT.md`); AMBUSH-01..03 ticked
-Plan: 9 of 9
-Completed phases: 15 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16)
-Next Phase: FE PR `feat/16-travel-ambushes` → `develop` (BE Phases 15 and 16 are already merged on BE `develop`), then rebase `feat/17-unlockable-lore` (FE Phase 17 complete on its own branch, 12/12 on 2026-11-09) on `develop` and open its PR; FE 12 (Hardening) last
-Status: Phase 16 complete — BE Phase 15 merged on BE `develop` (`9103440`, PR #24) and proven by the 16-07 gate (45/45, full suite 3391 green, analyzer 0 error / 0 warning); 16-08 device E2E 2026-11-09 steps 1–7 pass (step 7 optional) against BE `develop` `6be50d2` with the APK of this branch; the user's carousel finding became D-19 / plan 16-09 (peeking pages and an opening nudge), re-checked on the device; handoff `phases/16-travel-ambushes/BACKEND-NOTES.md` (questions §5: D-16 two-travel merge accepted, detour safety already BE D-03, GM teleport delivers the held report, a second BE process runs the sweeps too, `City.relatedLore` null on the pre-17 app, HP clamped at 1); VALIDATION approved 2026-11-09; ready for the FE PR (`gh pr create --base develop` from this branch with the personal gh token per command, never `main`)
-Last activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1–7), AMBUSH-01..03 ticked, BACKEND-NOTES written
+Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md` Rebased on `develop` `a80e93c` (the Phase 16 merge, PR #42) on 2026-11-09 with five hand-resolved conflicts on the shared result files (fragment comment, model `fromJson`, three tests: unions of both phases, CONTEXT D-18).
+Plan: 12 of 12
+Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
+Next Phase: FE PR `feat/17-unlockable-lore` → `develop` (rebased on the Phase 16 merge `a80e93c`; BE Phases 15 and 16 merged on BE `develop` `6be50d2`), then FE 12 (Hardening) last
+Status: Phases 16 and 17 complete — 16 merged on `develop` (PR #42, `a80e93c`, device E2E 2026-11-09 steps 1–7, plan 16-09 from the carousel finding D-19); 17 complete 12/12 (device E2E 2026-11-09 steps 1–8, plans 17-11/17-12 from the UAT findings) and rebased on the merge: planning docs reconciled by hand (progress counters recomputed from the ROADMAP: FE 12 Hardening is the only phase still open), PR to open with the personal gh token per command, base `develop`
+Last activity: 2026-11-09 -- Phase 17 rebased on develop after the Phase 16 merge; planning docs reconciled
 
 ## Current Milestone
 
@@ -41,6 +41,7 @@ Last activity: 2026-11-09 -- Phase 16 complete: device E2E passed (steps 1–7),
 ### Roadmap Evolution
 
 - Phases 13–17 added 2026-10-29 (user request, before closing v1.0): 13 City Shops ↔ BE 12, 14 Quest Generation companion ↔ BE 13 (`infos.enemies` replaces `infos.enemy`), 15 Travel Food ↔ BE 14, 16 Travel Ambushes ↔ BE 15, 17 Unlockable Lore ↔ BE 16; BE Phase 11 World Content (data-only, from `World building.docx`) is the data prerequisite of every device UAT. Execution order 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Each FE phase waits for the BE companion merge on BE `develop` (gate pattern 08-12/09-12). Contracts decided in the discuss of 2026-10-29 are recorded in the ROADMAP phase details; the BE roadmap carries the server rules.
+- 2026-11-07: Phase 17 discussed while Phase 16 waits for its device UAT (phone unavailable); the two phases run on separate branches from `develop` as two separate features (user decision); both device UATs (16-08 and the Phase 17 one) run at the end of Phase 17, then the two PRs land in sequence.
 
 ## Open Questions / Blockers
 

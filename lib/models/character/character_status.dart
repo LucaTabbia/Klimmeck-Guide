@@ -24,6 +24,7 @@ class CharacterStatus extends Equatable {
     this.activeTravel,
     this.spellStates,
     this.awaitingAid,
+    this.unlockedLore = const [],
   });
 
   final int? xp;
@@ -45,6 +46,10 @@ class CharacterStatus extends Equatable {
 
   /// Ferito in attesa di soccorso (D-16); `null` = libero o campo assente.
   final AwaitingAid? awaitingAid;
+
+  /// Id delle lore sbloccate dal personaggio (BE Phase 16, D-01): servono solo
+  /// a sapere quando e cosa è cambiato; l'ordine non conta.
+  final List<String> unlockedLore;
 
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
@@ -71,6 +76,7 @@ class CharacterStatus extends Equatable {
         activeTravel: ActiveTravel.tryFromJson(json['activeTravel']),
         spellStates: _spellStatesFrom(json['spellStates']),
         awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
+        unlockedLore: _unlockedLoreFrom(json['unlockedLore']),
       );
 
   static List<SpellState>? _spellStatesFrom(Object? json) {
@@ -78,6 +84,11 @@ class CharacterStatus extends Equatable {
     return List<SpellState>.unmodifiable(
       json.map(SpellState.tryFromJson).whereType<SpellState>(),
     );
+  }
+
+  static List<String> _unlockedLoreFrom(Object? json) {
+    if (json is! List) return const [];
+    return List<String>.unmodifiable(json.whereType<String>());
   }
 
   Map<String, dynamic> toJson() => {
@@ -94,6 +105,7 @@ class CharacterStatus extends Equatable {
     "activeTravel": activeTravel?.toJson(),
     "spellStates": spellStates?.map((state) => state.toJson()).toList(),
     "awaitingAid": awaitingAid?.toJson(),
+    "unlockedLore": unlockedLore,
   };
 
   CharacterStatus copyWith({
@@ -122,6 +134,7 @@ class CharacterStatus extends Equatable {
       activeTravel: activeTravel,
       spellStates: spellStates,
       awaitingAid: awaitingAid,
+      unlockedLore: unlockedLore,
     );
   }
 
@@ -140,5 +153,6 @@ class CharacterStatus extends Equatable {
     activeTravel,
     spellStates,
     awaitingAid,
+    unlockedLore,
   ];
 }

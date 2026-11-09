@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/ambush_report.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
@@ -44,6 +45,7 @@ class QuestResult extends Equatable {
     this.kind = QuestResultKind.quest,
     this.ambush,
     this.acknowledgedAt,
+    this.loreUnlocked = const [],
   });
 
   final String id;
@@ -75,6 +77,10 @@ class QuestResult extends Equatable {
   final TitleType? titleBefore;
   final TitleType? titleAfter;
   final Spell? spellLearned;
+
+  /// Le sole lore sbloccate da questo esito (BE Phase 16, D-04), nell'ordine
+  /// del BE: tiro dello studio o prima vittoria su una specie.
+  final List<Lore> loreUnlocked;
 
   /// Nemici affrontati, nell'ordine del BE (D-07); una voce malformata è scartata.
   final List<QuestEnemy> enemies;
@@ -137,6 +143,7 @@ class QuestResult extends Equatable {
       titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
       titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
       spellLearned: _spellFrom(json['spellLearned']),
+      loreUnlocked: _loreUnlockedFrom(json['loreUnlocked']),
       enemies: QuestEnemy.lenientListFrom(json['enemies']),
       stagesCleared: _countFrom(json['stagesCleared']),
       stagesTotal: _countFrom(json['stagesTotal']),
@@ -181,6 +188,25 @@ class QuestResult extends Equatable {
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
 
+  /// Tollerante voce per voce (D-04): una voce senza id o senza nome è
+  /// scartata, il risultato resta.
+  static List<Lore> _loreUnlockedFrom(Object? json) {
+    if (json is! List) return const [];
+    return List<Lore>.unmodifiable(
+      json.whereType<Map<String, dynamic>>().map(_loreRefOrNull).nonNulls,
+    );
+  }
+
+  static Lore? _loreRefOrNull(Map<String, dynamic> json) {
+    try {
+      final lore = Lore.fromJson(json);
+      final name = lore.name;
+      return name == null || name.isEmpty ? null : lore;
+    } on Object {
+      return null;
+    }
+  }
+
   static int? _countFrom(Object? json) => json is num ? json.toInt() : null;
 
   static DateTime? _instantFrom(Object? json) =>
@@ -211,6 +237,11 @@ class QuestResult extends Equatable {
     'spellLearned': spellLearned == null
         ? null
         : {'id': spellLearned!.id, 'name': spellLearned!.name},
+    'loreUnlocked': loreUnlocked
+        .map(
+          (lore) => {'id': lore.id, 'name': lore.name, 'type': lore.type?.name},
+        )
+        .toList(),
     'enemies': enemies.map((entry) => entry.toJson()).toList(),
     'stagesCleared': stagesCleared,
     'stagesTotal': stagesTotal,
@@ -244,6 +275,7 @@ class QuestResult extends Equatable {
     titleBefore,
     titleAfter,
     spellLearned,
+    loreUnlocked,
     enemies,
     stagesCleared,
     stagesTotal,

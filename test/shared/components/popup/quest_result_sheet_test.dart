@@ -12,6 +12,8 @@ import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
+import '../../../helpers/fixtures/lore_fixtures.dart';
+import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
@@ -198,6 +200,90 @@ void main() {
         _inSection(QuestResultSheet.enemyPortraitKey, find.byType(CachedSvg)),
       );
       expect(portrait.url, CloudinaryAssets.url(_trollPortrait));
+    });
+
+    Finder silhouetteOfPortrait() => _inSection(
+      QuestResultSheet.enemyPortraitKey,
+      find.byType(ColorFiltered),
+    );
+
+    testWidgets('a victory shows the defeated enemies in clear (D-09)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            enemies: [
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsOneWidget);
+      expect(silhouetteOfPortrait(), findsNothing);
+    });
+
+    testWidgets('after a defeat an unknown enemy stays a silhouette (D-09)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            outcome: 'failure',
+            enemies: [
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: false,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(silhouetteOfPortrait(), findsOneWidget);
+      expect(
+        _inSection(QuestResultSheet.enemyKey, find.text('Troll')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("the portrait follows the strongest enemy's own known "
+        '(D-08)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            enemies: [
+              questEnemyJson(id: 'wolf', xp: 10, known: false),
+              questEnemyJson(
+                id: 'troll',
+                name: 'Troll',
+                xp: 90,
+                imagePath: _trollPortrait,
+                known: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.enemyPortraitKey), findsOneWidget);
+      expect(silhouetteOfPortrait(), findsNothing);
     });
 
     testWidgets('hides an unresolvable portrait and keeps the lines (D-03)', (
@@ -520,6 +606,106 @@ void main() {
         tester.widget<Text>(find.byKey(QuestResultSheet.spellLearnedKey)).data,
         'Magia appresa: Scudo',
       );
+    });
+  });
+
+  group('lore unlocked (BE Phase 16)', () {
+    String lineOf(WidgetTester tester, String loreId) => tester
+        .widget<Text>(find.byKey(QuestResultSheet.loreUnlockedKeyOf(loreId)))
+        .data!;
+
+    testWidgets('lists the lore unlocked right after the learned spell, in BE '
+        'order (D-10)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            spellLearned: const {'id': 's-9', 'name': 'Scudo'},
+            loreUnlocked: [
+              loreRefJson(),
+              loreRefJson(
+                id: 'lore-runes',
+                name: 'Rune antiche',
+                type: 'knowledge',
+              ),
+              loreRefJson(
+                id: 'lore-mandragora',
+                name: 'Mandragora',
+                type: 'plant',
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(
+        lineOf(tester, 'lore-goblin'),
+        'Nuova pagina del Bestiario: Goblin',
+      );
+      expect(lineOf(tester, 'lore-runes'), 'Conoscenza appresa: Rune antiche');
+      expect(
+        lineOf(tester, 'lore-mandragora'),
+        'Nuova pagina del Bestiario: Mandragora',
+      );
+      final tops = [
+        find.byKey(QuestResultSheet.spellLearnedKey),
+        find.byKey(QuestResultSheet.loreUnlockedKeyOf('lore-goblin')),
+        find.byKey(QuestResultSheet.loreUnlockedKeyOf('lore-runes')),
+        find.byKey(QuestResultSheet.loreUnlockedKeyOf('lore-mandragora')),
+      ].map((finder) => tester.getTopLeft(finder).dy).toList();
+      for (var index = 1; index < tops.length; index++) {
+        expect(tops[index], greaterThan(tops[index - 1]));
+      }
+    });
+
+    testWidgets('labels animals as Bestiario pages and cities, gods, '
+        'characters as knowledge (D-10)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            loreUnlocked: [
+              loreRefJson(id: 'lore-lupo', name: 'Lupo', type: 'animal'),
+              loreRefJson(id: 'lore-bosa', name: 'Bosa', type: 'city'),
+              loreRefJson(id: 'lore-dio', name: 'Andur', type: 'god'),
+              loreRefJson(id: 'lore-eroe', name: 'Kliever', type: 'character'),
+            ],
+          ),
+        ),
+      );
+
+      expect(lineOf(tester, 'lore-lupo'), 'Nuova pagina del Bestiario: Lupo');
+      expect(lineOf(tester, 'lore-bosa'), 'Conoscenza appresa: Bosa');
+      expect(lineOf(tester, 'lore-dio'), 'Conoscenza appresa: Andur');
+      expect(lineOf(tester, 'lore-eroe'), 'Conoscenza appresa: Kliever');
+    });
+
+    testWidgets('a lore with an unknown type reads as knowledge (D-16)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            loreUnlocked: [
+              loreRefJson(id: 'lore-x', name: 'Arcano', type: 'dragon'),
+            ],
+          ),
+        ),
+      );
+
+      expect(lineOf(tester, 'lore-x'), 'Conoscenza appresa: Arcano');
+    });
+
+    testWidgets('shows no lore line when nothing was unlocked (D-10)', (
+      tester,
+    ) async {
+      for (final json in [questResultJson(), failureResultJson()]) {
+        await _pump(tester, questResult(json));
+
+        expect(find.textContaining('Conoscenza appresa'), findsNothing);
+        expect(find.textContaining('Nuova pagina del Bestiario'), findsNothing);
+      }
     });
   });
 

@@ -5,9 +5,14 @@ import '../quantity_line.dart';
 
 /// Voce di `QuestInfos.enemies` / `QuestResult.enemies` (BE Phase 13 D-01):
 /// un tipo di nemico e quanti ne affronta la quest. L'ordine è quello del BE
-/// (per una dungeon l'ordine delle tappe, BE D-12).
+/// (per una dungeon l'ordine delle tappe, BE D-12). `known` dalla BE Phase 16
+/// (17-CONTEXT D-03).
 class QuestEnemy extends Equatable {
-  const QuestEnemy({required this.enemy, required this.quantity});
+  const QuestEnemy({
+    required this.enemy,
+    required this.quantity,
+    required this.known,
+  });
 
   /// Solo id, nome, immagine e xp: altri campi del nemico farebbero fallire
   /// `Enemy.fromJson` (BE §14); `xp` serve solo al ritratto (D-02).
@@ -20,6 +25,8 @@ class QuestEnemy extends Equatable {
     if (quantity is! num || quantity < 1) {
       throw const FormatException('QuestEnemy.quantity invalid');
     }
+    final known = json['known'];
+    if (known is! bool) throw const FormatException('QuestEnemy.known missing');
     return QuestEnemy(
       enemy: Enemy.fromJson({
         'id': enemy['id'],
@@ -28,11 +35,16 @@ class QuestEnemy extends Equatable {
         'xp': enemy['xp'],
       }),
       quantity: quantity.toInt(),
+      known: known,
     );
   }
 
   final Enemy enemy;
   final int quantity;
+
+  /// Il personaggio corrente ha già sconfitto proprio questo nemico (BE Phase
+  /// 16, D-03): lo decide il BE per chi legge, il FE non lo calcola.
+  final bool known;
 
   /// Quest della board: una voce malformata scarta la quest intera
   /// (`Quest.tryFromJson`), mai la board (D-01).
@@ -73,10 +85,11 @@ class QuestEnemy extends Equatable {
       'xp': enemy.xp,
     },
     'quantity': quantity,
+    'known': known,
   };
 
   @override
-  List<Object?> get props => [enemy, quantity];
+  List<Object?> get props => [enemy, quantity, known];
 }
 
 /// Righe «Nx nome» (formato dei «Consigliati», D-02): un tipo per riga,
@@ -101,13 +114,14 @@ List<String> enemyLinesOf(List<QuestEnemy> enemies) {
   ]);
 }
 
-/// Il più forte per il ritratto (D-02): `xp` più alto, `null` vale 0, a
-/// parità vince il primo. Il FE non ordina mai le righe per `xp`.
-Enemy? strongestEnemyOf(List<QuestEnemy> enemies) {
-  Enemy? strongest;
+/// La voce più forte per il ritratto (D-02): `xp` più alto, `null` vale 0, a
+/// parità vince la prima. Porta il proprio `known` (D-08).
+QuestEnemy? strongestEntryOf(List<QuestEnemy> enemies) {
+  QuestEnemy? strongest;
   for (final entry in enemies) {
-    if (strongest == null || (entry.enemy.xp ?? 0) > (strongest.xp ?? 0)) {
-      strongest = entry.enemy;
+    if (strongest == null ||
+        (entry.enemy.xp ?? 0) > (strongest.enemy.xp ?? 0)) {
+      strongest = entry;
     }
   }
   return strongest;
