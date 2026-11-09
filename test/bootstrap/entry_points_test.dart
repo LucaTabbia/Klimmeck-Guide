@@ -15,6 +15,7 @@ const List<String> _sharedCompositionFiles = [
   'lib/bootstrap/session_auth_composition.dart',
   'lib/bootstrap/auth_composition.dart',
   'lib/bootstrap/klimmeck_guide_app.dart',
+  'lib/bootstrap/insecure_transport_screen.dart',
 ];
 
 String _source(String path) => File(path).readAsStringSync();
