@@ -2,6 +2,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
+import 'package:klimmeck_guide/repository/spell_equip_failure.dart'
+    show badUserInputCode;
 import 'package:klimmeck_guide/repository/travel_failure.dart'
     show questInProgressCode;
 
@@ -18,6 +20,10 @@ enum InnkeeperFailure {
   overrideInvalid,
   notParticipant,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -51,6 +57,7 @@ InnkeeperFailure innkeeperFailureFrom(OperationException exception) {
     outcomeOverrideInvalidCode => InnkeeperFailure.overrideInvalid,
     outcomeNotParticipantCode => InnkeeperFailure.notParticipant,
     forbiddenCode => InnkeeperFailure.forbidden,
+    badUserInputCode => InnkeeperFailure.badUserInput,
     unauthenticatedCode => InnkeeperFailure.unauthenticated,
     _ => InnkeeperFailure.unknown,
   };
