@@ -423,7 +423,7 @@ Plans:
 - [x] 12-04-PLAN.md — TLS only in release: `requireSecureTransport`, `InsecureTransportError`, `InsecureTransportScreen` with the D-19 copy, check first in `bootstrapApp` (D-03b)
 - [x] 12-05-PLAN.md — Repository/services logs (31 calls, 14 files) routed through `appLog`, per-directory guard test (D-03c)
 - [x] 12-06-PLAN.md — Screen/shared logs (23 calls, 13 files) routed through `appLog`; guard over all of `lib/` (D-03c)
-- [ ] 12-07-PLAN.md — `tool/hardening_check.sh` and `.github/workflows/ci.yml` (D-07, D-18)
+- [x] 12-07-PLAN.md — `tool/hardening_check.sh` and `.github/workflows/ci.yml` (D-07, D-18)
 - [ ] 12-08-PLAN.md — HARDEN-03/04: `logout_flow_test.dart` (ordered teardown on the loopback socket, old client freed after `forceGC`) and `concurrent_unauthorized_refresh_test.dart` (one rotation for two 401) (D-08)
 - [ ] 12-09-PLAN.md — HARDEN-05/06: `LeakTrackingBlocObserver` + `authenticated_shell_leak_test.dart`, `identity_transitions_test.dart`, the `NotificationIntentCubit` user-change gap fixed in TDD (D-05, D-11)
 - [ ] 12-10-PLAN.md — `graphQlErrorCode` reads HTTP ≥ 300 `parsedResponse`; `BAD_USER_INPUT` in travel and quest acceptance (D-13a)
@@ -578,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 6/17 | In Progress (executes last) | - |
+| 12. Hardening | 7/17 | In Progress (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
