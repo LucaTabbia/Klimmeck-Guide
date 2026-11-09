@@ -7,6 +7,11 @@ const String loginTicketInvalidCode = 'LOGIN_TICKET_INVALID';
 const String unauthenticatedCode = 'UNAUTHENTICATED';
 const String badRequestCode = 'BAD_REQUEST';
 
+/// Valori di `extensions.reason` (BE Phase 17 `SessionRevokeReason`) che hanno
+/// un avviso dedicato; gli altri valori restano leciti e valgono l'avviso neutro.
+const String sessionRevokedReasonNewLogin = 'newLogin';
+const String sessionRevokedReasonRoleChanged = 'roleChanged';
+
 /// Errori di dominio delle operazioni di auth: portano solo codici, mai token.
 sealed class AuthApiException extends Equatable implements Exception {
   const AuthApiException();
@@ -14,12 +19,15 @@ sealed class AuthApiException extends Equatable implements Exception {
 
 /// Il backend ha respinto il refresh token (terminale: la sessione va chiusa).
 class SessionRejected extends AuthApiException {
-  const SessionRejected(this.code);
+  const SessionRejected(this.code, {this.reason});
 
   final String code;
 
+  /// Solo per `SESSION_REVOKED` (D-12): null se assente o illeggibile.
+  final String? reason;
+
   @override
-  List<Object?> get props => [code];
+  List<Object?> get props => [code, reason];
 }
 
 class LoginTicketInvalid extends AuthApiException {
@@ -63,9 +71,14 @@ AuthApiException mapAuthOperationException(OperationException exception) {
   }
   if (link != null) return const TransientAuthFailure('network');
 
-  final code = _firstCode(exception.graphqlErrors);
+  final error = _firstCodedError(exception.graphqlErrors);
+  final code = error?.extensions?['code'] as String?;
   return switch (code) {
-    sessionExpiredCode || sessionRevokedCode => SessionRejected(code!),
+    sessionExpiredCode => const SessionRejected(sessionExpiredCode),
+    sessionRevokedCode => SessionRejected(
+      sessionRevokedCode,
+      reason: _revokeReasonOf(error!),
+    ),
     loginTicketInvalidCode => const LoginTicketInvalid(),
     unauthenticatedCode => const AccessTokenRejected(),
     badRequestCode => AuthRequestRejected(code!),
@@ -73,10 +86,14 @@ AuthApiException mapAuthOperationException(OperationException exception) {
   };
 }
 
-String? _firstCode(List<GraphQLError> errors) {
+GraphQLError? _firstCodedError(List<GraphQLError> errors) {
   for (final error in errors) {
-    final code = error.extensions?['code'];
-    if (code is String) return code;
+    if (error.extensions?['code'] is String) return error;
   }
   return null;
+}
+
+String? _revokeReasonOf(GraphQLError error) {
+  final reason = error.extensions?['reason'];
+  return reason is String && reason.isNotEmpty ? reason : null;
 }
