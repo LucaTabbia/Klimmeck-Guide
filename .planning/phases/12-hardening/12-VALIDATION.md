@@ -75,9 +75,9 @@ created: 2026-11-09
 | 12-15-03 | 15 | 15 | HARDEN-06 | T-12-43, T-12-44, T-12-45 | last login replaces the other device (5 cases) | integration (loopback, two services) | `flutter test test/repository/services/auth/dual_session_revocation_test.dart` | ❌ W0 | ✅ green |
 | 12-16-01 | 16 | 16 | HARDEN-02, HARDEN-06 | T-12-47, T-12-48, T-12-49 | contract names proven on merged BE Phase 17; 45/45 OK | gate | `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts \| grep -c newLogin` + `flutter test test/repository/services test/screens/auth test/screens/signIn` | n/a | ✅ green |
 | 12-16-02 | 16 | 16 | HARDEN-01, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-07, HARDEN-09, HARDEN-10 | T-12-50, T-12-51 | all automated gates green, bundle guard OK | gate | `bash tool/hardening_check.sh && flutter test` | n/a | ✅ green |
-| 12-17-01 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-07, HARDEN-08, HARDEN-09 | T-12-52, T-12-53 | UAT sheet with prerequisites, no secret written | doc | `grep -cE "^\| (1[01]\|[1-9]) \|" .planning/phases/12-hardening/12-HUMAN-UAT.md` | ❌ W0 | ⬜ pending |
-| 12-17-02 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-08, HARDEN-09 | T-12-55, T-12-56 | device E2E (release via tunnel, DevTools, dual device) | manual (checkpoint) | `test -f .planning/phases/12-hardening/12-HUMAN-UAT.md` | n/a | ⬜ pending |
-| 12-17-03 | 17 | 17 | HARDEN-01..HARDEN-10 | T-12-52, T-12-54 | requirements ticked only on passed evidence; BE handoff | doc | `grep -q "## 3. UAT outcome" .planning/phases/12-hardening/BACKEND-NOTES.md` | ❌ W0 | ⬜ pending |
+| 12-17-01 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-07, HARDEN-08, HARDEN-09 | T-12-52, T-12-53 | UAT sheet with prerequisites, no secret written | doc | `grep -cE "^\| (1[01]\|[1-9]) \|" .planning/phases/12-hardening/12-HUMAN-UAT.md` | ✅ | ✅ green |
+| 12-17-02 | 17 | 17 | HARDEN-05, HARDEN-06, HARDEN-08, HARDEN-09 | T-12-55, T-12-56 | device E2E (release via tunnel, DevTools, dual device) | manual (checkpoint) | `test -f .planning/phases/12-hardening/12-HUMAN-UAT.md` | n/a | ✅ green |
+| 12-17-03 | 17 | 17 | HARDEN-01..HARDEN-10 | T-12-52, T-12-54 | requirements ticked only on passed evidence; BE handoff | doc | `grep -q "## 3. UAT outcome" .planning/phases/12-hardening/BACKEND-NOTES.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -101,9 +101,9 @@ created: 2026-11-09
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| DevTools memory snapshot before/after logout shows no retained cubit or subscription | HARDEN-05 | A profiler run on the device cannot be automated in `flutter test` | `12-HUMAN-UAT.md` step: DevTools › Memory, snapshot after login, logout, GC, snapshot: no `*Cubit`, `WebSocketLink`, `StreamSubscription` instances of the session remain; screenshots attached |
-| Second login on the emulator replaces the phone session with the dedicated notice | HARDEN-06 | Needs two real Twitch logins on two devices against the merged BE Phase 17 | `12-HUMAN-UAT.md` steps: login on the Samsung, login on the emulator with the same account, the phone shows «Hai effettuato l'accesso da un altro dispositivo.» within a minute; no crash, no stale state |
-| Release APK through the TLS tunnel: real login, play, logout | HARDEN-08 | Signed release build, TLS-only transport and the tunnel exist only on the device | `12-HUMAN-UAT.md` steps: `flutter build apk --release --dart-define-from-file=env/<tunnel>.json`, `adb install -r`, login via Twitch, one quest/travel round trip, logout |
+| DevTools memory snapshot before/after logout shows no retained cubit or subscription | HARDEN-05 | A profiler run on the device cannot be automated in `flutter test` | `12-HUMAN-UAT.md` step: DevTools › Memory, snapshot after login, logout, GC, snapshot: no `*Cubit`, `WebSocketLink`, `StreamSubscription` instances of the session remain; screenshots attached — verified on 2026-11-09 (step 5) |
+| Second login on the emulator replaces the phone session with the dedicated notice | HARDEN-06 | Needs two real Twitch logins on two devices against the merged BE Phase 17 | `12-HUMAN-UAT.md` steps: login on the Samsung, login on the emulator with the same account, the phone shows «Hai effettuato l'accesso da un altro dispositivo.» within a minute; no crash, no stale state — verified on 2026-11-09 (steps 6, 7) |
+| Release APK through the TLS tunnel: real login, play, logout | HARDEN-08 | Signed release build, TLS-only transport and the tunnel exist only on the device | `12-HUMAN-UAT.md` steps: `flutter build apk --release --dart-define-from-file=env/<tunnel>.json`, `adb install -r`, login via Twitch, one quest/travel round trip, logout — verified on 2026-11-09 (steps 1, 2, 3) |
 
 ---
 
@@ -116,6 +116,8 @@ created: 2026-11-09
 - [x] Feedback latency < 20 s per task subset
 - [x] `nyquist_compliant` set to true in frontmatter
 
-**Approval:** approved 2026-11-09 (plan 12-16; the 12-17 device rows stay pending)
+**Approval:** approved 2026-11-10 (plan 12-16 gate 2026-11-09; device rows closed by plan 12-17)
+
+Device E2E passed on 2026-11-09 (`12-HUMAN-UAT.md`, steps 1–8, 10, 11 pass; optional step 9 skipped; DB-1 resolved with the D-13c UAT amendment; user verdict «approved» 2026-11-10)
 
 Gate passed on BE `8bfd1b3`: names confirmed, 45/45 OK, full suite 3704 green, analyzer 47 info, bundle guard OK

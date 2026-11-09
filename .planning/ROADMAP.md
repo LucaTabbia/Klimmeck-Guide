@@ -78,7 +78,7 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
 - [x] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_ (completed 2026-11-01)
 - [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
-- [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions; dev bypass moved to `lib/main_dev.dart` and out of the release bundle with `.env`, release signing + TLS-only + silent logs, GitHub Actions CI, «l'ultimo login caccia l'altro» with a specific notice (BE Phase 17 companion), parked follow-ups closed, cross-cutting review by area. _(amended 2026-11-09 in the discuss)_
+- [x] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions; dev bypass moved to `lib/main_dev.dart` and out of the release bundle with `.env`, release signing + TLS-only + silent logs, GitHub Actions CI, «l'ultimo login caccia l'altro» with a specific notice (BE Phase 17 companion), parked follow-ups closed, cross-cutting review by area. _(amended 2026-11-09 in the discuss)_ (completed 2026-11-10)
 
 - [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
 - [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
@@ -433,7 +433,7 @@ Plans:
 - [x] 12-14-PLAN.md — `SessionRejected.reason` parsed leniently; `replacedByNewLogin` / `roleChanged` reasons and notices with the fixed copy; `_rotateSession` mapping and the `fakeAsync` companion, on fakes (D-12)
 - [x] 12-15-PLAN.md — `4409` handled like `4401` in `WsReconnectPolicy`; Wave 0 fakes (`closeSocket`, `onConnectionInit`, `FakeSessionBackend`); `dual_session_revocation_test.dart` cases a–e, on fakes (D-06, D-09)
 - [x] 12-16-PLAN.md — ⛔ Gate (after the BE Phase 17 merge): gate file check, names proven on the merged BE files, BE handoff read (HARDEN-02 evidence), schema check 45/45, guard script, full suite, analyzer, release build + bundle guard, format/trailer/sanity gates, VALIDATION approved
-- [ ] 12-17-PLAN.md — ⛔ Device UAT + handoff: `12-HUMAN-UAT.md` (prerequisites incl. keystore, tunnel, Twitch redirect, one BE process; 11 steps), human checkpoint, verbatim results, `mark-complete` only here, `BACKEND-NOTES.md`, ROADMAP/STATE/REQUIREMENTS/VALIDATION closed (D-04, D-06, D-20)
+- [x] 12-17-PLAN.md — ⛔ Device UAT + handoff: `12-HUMAN-UAT.md` (prerequisites incl. keystore, tunnel, Twitch redirect, one BE process; 11 steps), human checkpoint, verbatim results, `mark-complete` only here, `BACKEND-NOTES.md`, ROADMAP/STATE/REQUIREMENTS/VALIDATION closed (D-04, D-06, D-20)
 ### Phase 13: City Shops
 **Goal**: The shop a player opens on a city marker sells only that city's own pool of items — equipment, loot and companions (pets) — with the pool, the city size (`City.size`, derived by the BE from the `CityType`) and every refusal owned by the backend (BE Phase 12: pool seeded at boot and curated in the database, D-36); the frontend adapts the existing shop to the `cityShop(cityId)` query, keeps selling possible everywhere with infinite stock and catalogue prices, disables the Shop cell where the city has no shop, and adds what the companions require: a «Compagni» list in the buy/sell sheets and a «Compagno» slot in the Journal that equips one of the owned pets (`assets.ownedPets`, new) into the equipped slot (`assets.pet`, the one the travel speed uses), never automatically on purchase. _(amended 2026-11-02: user — «bisogna solo chiamare la chiamata al BE per adattarla alla nuova forma»; no city name on the sheet; pets added)_
 **Depends on**: Phase 7 (shop only on a city marker), Phase 8 (shop filters, `ItemRow`, Journal equip pattern), Phase 9 (refusal routing bubble vs banner), BE Phase 11 (catalogue, pets and cities in the DB), BE Phase 12 (`City.size` / `City.hasShop`, `cityShop`, `ITEM_NOT_IN_SHOP`, `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet`)
@@ -578,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 16/17 | In Progress (executes last) | - |
+| 12. Hardening | 17/17 | Complete | 2026-11-10 |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
@@ -671,12 +671,16 @@ Plans:
 | AUTH-05 | Phase 11 | Pending |
 | AUTH-06 | Phase 11 | Pending |
 | AUTH-07 | Phase 11 | Pending |
-| HARDEN-01 | Phase 12 | Pending |
-| HARDEN-02 | Phase 12 | Pending |
-| HARDEN-03 | Phase 12 | Pending |
-| HARDEN-04 | Phase 12 | Pending |
-| HARDEN-05 | Phase 12 | Pending |
-| HARDEN-06 | Phase 12 | Pending |
+| HARDEN-01 | Phase 12 | Complete |
+| HARDEN-02 | Phase 12 | Complete |
+| HARDEN-03 | Phase 12 | Complete |
+| HARDEN-04 | Phase 12 | Complete |
+| HARDEN-05 | Phase 12 | Complete |
+| HARDEN-06 | Phase 12 | Complete |
+| HARDEN-07 | Phase 12 | Complete |
+| HARDEN-08 | Phase 12 | Complete |
+| HARDEN-09 | Phase 12 | Complete |
+| HARDEN-10 | Phase 12 | Complete |
 | SHOP-02 | Phase 13 | Complete |
 | SHOP-03 | Phase 13 | Complete |
 | SHOP-04 | Phase 13 | Complete |

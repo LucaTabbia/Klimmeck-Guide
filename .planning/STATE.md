@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-09T19:51:44.000Z"
-last_activity: 2026-11-09 -- Phase 12 resumed at 12-16 after the BE Phase 17 merge
+status: complete
+last_updated: "2026-11-10T00:30:00.000Z"
+last_activity: 2026-11-10 -- Phase 12 complete: device E2E approved, HARDEN-01..10 ticked
 progress:
   total_phases: 17
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 180
-  completed_plans: 163
-  percent: 91
+  completed_plans: 180
+  percent: 100
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 12 (Hardening) — RESUMED 2026-11-09 evening on `refactor/12-hardening` (from `develop` `ac75702`): plans 12-01..12-15 done, reviewed by area, verified, fixed and audited (parked at 15/17); the BE Phase 17 PR #27 is MERGED on BE `develop` (`8bfd1b3`): 12-16 (gate against the merged BE) runs now, then 12-17 (device UAT + handoff, human checkpoint)
-Plan: 16 of 17
-Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
-Next Phase: after the BE Phase 17 merge: `/gsd-execute-phase 12` resumes with 12-16 (gate: `git -C <BE> show origin/develop:src/auth/session/session-revoke-reason.enum.ts | grep -c newLogin` ≥ 1; the orchestrator aligns `origin/develop` first) then 12-17 (device UAT: the user generates the keystore and `android/key.properties`, installs `cloudflared`, registers the tunnel redirect URI on Twitch; Samsung + Android emulator; one BE process); then the FE PR to `develop` and the v1.0 close (Hardening is the last phase)
-Status: Executing Phase 12 — resumed at 12-16 after the BE Phase 17 merge (BE `origin/develop` `8bfd1b3`, gate file `session-revoke-reason.enum.ts` present); the BE on port 3001 is being restarted from `develop` by the orchestrator (build before the stop); then 12-17 at the human checkpoint (keystore, cloudflared, Twitch redirect URI, Samsung + emulator, one BE process)
-Last activity: 2026-11-09 -- Phase 12 resumed: BE Phase 17 merged (PR #27), 12-16 gate started
+Phase: 12 (Hardening) — COMPLETE 2026-11-10 on `refactor/12-hardening`: plans 12-01..12-17 done; gate 12-16 passed on BE `develop` `8bfd1b3` (BE Phase 17 merged, PR #27); device E2E 12-17 (Samsung + emulator, signed release through a TLS tunnel, real Twitch login) steps 1–8, 10, 11 pass, optional step 9 skipped, user verdict «approved»; DB-1 → D-13c UAT amendment (Talmvere always visible FE-side, commits `ee7db08`/`2bc4e7a`; Ferrion/Necrorian capitals BE-side, BE PR #28 open)
+Plan: 17 of 17
+Completed phases: 17 (1–17) — v1.0 Core Loop: every phase complete
+Next Phase: none in v1.0 — next step: the PR `refactor/12-hardening` → `develop` (opened by the orchestrator: `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then the v1.0 milestone close; BE PR #28 (`fix/city-size-capitals`) merges on the BE side
+Status: Phase 12 complete — v1.0 Core Loop: all 17 phases complete; awaiting the FE PR to `develop` and the milestone close
+Last activity: 2026-11-10 -- Phase 12 complete: device E2E approved (12-HUMAN-UAT.md), HARDEN-01..10 ticked, BACKEND-NOTES.md written
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
