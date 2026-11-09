@@ -85,8 +85,9 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 16: Travel Ambushes** — The pawn restarts from the ambush point towards the nearest city after a lost ambush (push + banner of a new category); the ambush reports of a travel open at arrival in a carousel of result sheets delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29, discussed 2026-11-06)_ (completed 2026-11-09)
 - [x] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07. (completed 2026-11-09)
 - [ ] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_
+- [ ] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_
 
-**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last. **Amended 2026-11-09:** … → 17 → 12 Hardening → 18 Heal Quests by City Size (planned on 2026-11-09, executed after the Phase 12 merge; user decision).
+**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last. **Amended 2026-11-09:** … → 17 → 12 Hardening → 18 Heal Quests by City Size (planned on 2026-11-09, executed after the Phase 12 merge; user decision) → 19 Model Review companion (added 2026-11-09, after Phase 18).
 
 ## Phase Details
 
@@ -557,6 +558,20 @@ Plans:
 **Backend prerequisite**: BE Phase 18 merged on BE `develop` (itself after the BE Phase 17).
 **Plans**: TBD
 
+### Phase 19: Model Review (frontend companion)
+**Goal**: The frontend consumes the cleaned backend models without changing what the player sees, except the companion xp decided by the user: owned companions carry `xp` and `currentLifePoints` on the character, the companion row shows the experience and the result sheet says how much the companion gained (10 % of the enemies' xp, capped at the catalogue `maxXp`, backend-owned). Shape changes consumed: `Enemy.weaknesses { base, energy }`, `Pet.attack`/`Pet.defense` instead of `damages`, `ownedPets` entries, `wornEquipment` with `feet`, one `spellStates` list with `active` (the Journal spells section reads known = all, equipped = active), `PointOfInterest.quest` removed, `Lore.imagePath`. FE-only: fragile parsers fixed with tests.
+**Depends on**: Phase 8 (spells section), Phase 9 (result sheet), Phase 13 (companions), Phase 14 (non-additive contract pattern), Phase 18 (same branch, executed before), BE Phase 19 (SDL + migrator + handoff table)
+**Scope**: M
+**Requirements**: MODEL-01, MODEL-02, MODEL-03, MODEL-04
+**Success Criteria** (what must be TRUE):
+  1. Enemy, lore and POI models and fragments follow the new SDL: `weaknesses` parsed leniently into `{ base, energy }`, `Lore.imagePath` read everywhere, `PointOfInterest.quest` gone; the Map and the Library behave as before.
+  2. `CharacterAssets.ownedPets` is parsed as entries (`pet`, `xp`, `currentLifePoints`; malformed entry dropped); the «Compagni» list and the «Compagno» slot work on the entry's catalogue pet; the owned companion row shows «Esperienza: N / maxXp»; `Pet.attack`/`Pet.defense` replace `damages` on the companion card; the result sheet shows «Il tuo compagno guadagna N PE» when `petXpGained` > 0.
+  3. `wornEquipment` and the `feet` slot replace the old names in fragment, model, enum and mannequin; the Journal spells section reads the single `spellStates` list (`active` = equipped) with usages and recovery from the same entry, `CharacterStatus.spells` and `CharacterAssets.activeSpells` no longer selected; equip/unequip optimistic rollback adapted; `maxActiveSpells` unchanged.
+  4. FE-only: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; the sweep of the models for the same fragile patterns lands with a pinned test per fix; the schema gate and the device E2E after the BE Phase 19 merge pass (Journal companions, spells, mannequin; a fight with the equipped companion; Map; Library).
+**Decisions of the discuss (2026-11-09, `19-CONTEXT.md` D-01..D-12)**: as above; out of scope the single inventory list, spell `damages`/`requiredLearnTime` (separate session), combat rules.
+**Backend prerequisite**: BE Phase 19 merged on BE `develop` (after the BE Phase 18).
+**Plans**: TBD
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -579,6 +594,7 @@ Plans:
 | 16. Travel Ambushes | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | 0/0 | Not started (after Phase 12) | - |
+| 19. Model Review (companion) | 0/0 | Not started (after Phase 18) | - |
 
 ## Traceability
 
@@ -696,8 +712,12 @@ Plans:
 | HEAL-03 | Phase 18 | Pending |
 | HEAL-04 | Phase 18 | Pending |
 | HEAL-05 | Phase 18 | Pending |
+| MODEL-01 | Phase 19 | Pending |
+| MODEL-02 | Phase 19 | Pending |
+| MODEL-03 | Phase 19 | Pending |
+| MODEL-04 | Phase 19 | Pending |
 
-**Coverage:** 100 / 100 v1 requirements mapped (79 + 16 added 2026-10-29 + 5 HEAL added 2026-11-09). No orphans. No duplicates.
+**Coverage:** 104 / 104 v1 requirements mapped (79 + 16 added 2026-10-29 + 5 HEAL + 4 MODEL added 2026-11-09). No orphans. No duplicates.
 
 ---
 
@@ -705,3 +725,4 @@ _Roadmap created: 2026-04-10_
 _Last restructured: 2026-04-14 — Auth split in Phase 1 (Dev Auth Stub) + Phase 11 (full OAuth); Hardening shifted to Phase 12_
 _Last extended: 2026-10-29 — Phases 13–17 appended (City Shops, Quest Generation companion, Travel Food, Travel Ambushes, Unlockable Lore), mirrors of BE Phases 12–16 with BE Phase 11 World Content as data prerequisite; Phase 12 Hardening executes last_
 _Last extended: 2026-11-09 — Phase 18 appended (Heal Quests by City Size, mirror of BE Phase 18); planned now, executed after Phase 12 Hardening (user decision)_
+_Last extended: 2026-11-09 — Phase 19 appended (Model Review companion of BE Phase 19: weaknesses, owned pets with xp, pet attack/defense, worn equipment, single spell list, no POI back-link, lore imagePath, fragile parsers); executes after Phase 18_

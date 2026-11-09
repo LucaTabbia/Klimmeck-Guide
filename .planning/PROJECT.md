@@ -73,6 +73,7 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - [ ] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_
 - [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, poi la 18)
 - [ ] Quest heal per taglia: foglio con le sole ferite curabili del personaggio e la riga della vita, «Guarite: …» sull'esito; pozioni bevute dal Diario con la ricarica globale del BE (conto alla rovescia, riga «Ricarica: …») e lore «Il limite del corpo» (Phase 18 ↔ BE Phase 18) _(aggiunto 2026-11-09, eseguita dopo la 12)_
+- [ ] Companion della revisione dei modelli: debolezze, compagni con esperienza e «Il tuo compagno guadagna N PE», `attack`/`defense` dei pet, equipaggiamento indossato, una sola lista di magie, parser fragili sistemati (Phase 19 ↔ BE Phase 19) _(aggiunto 2026-11-09, eseguita dopo la 18)_
 
 **Future (post v1.0):**
 
