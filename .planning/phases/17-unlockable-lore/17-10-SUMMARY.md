@@ -121,7 +121,7 @@ Not touched by this plan (documentation only).
 ## PR reminder (D-18 merge order)
 
 1. The FE Phase 16 PR first (`feat/16-travel-ambushes` → `develop`, after its device UAT 16-08 from its own APK).
-2. Then rebase `feat/17-unlockable-lore` on `develop` (orchestrator/user; rebase, never merge `develop` in) and open its PR from the branch with `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop` (never `main`), mentioning: the unlocked-lore Library with «Nuovo» bookmarks, the enemy silhouettes, the result lines, the unknown-city modal, the lazy book page and boot warm-up (17-11), the centred sheet and pawn tap (17-12), and the BE Phase 16 dependency (the branch never runs against a BE without it, D-14).
+2. Then rebase `feat/17-unlockable-lore` on `develop` (orchestrator/user; rebase, never merge `develop` in) and open its PR from the branch with `gh pr create --base develop` under the personal `gh` identity (`gh auth token --user LucaTabbia` exported as the GitHub CLI token for that single command, project memory), never `main`, mentioning: the unlocked-lore Library with «Nuovo» bookmarks, the enemy silhouettes, the result lines, the unknown-city modal, the lazy book page and boot warm-up (17-11), the centred sheet and pawn tap (17-12), and the BE Phase 16 dependency (the branch never runs against a BE without it, D-14).
 3. FE 12 (Hardening) last.
 
 ## Known Stubs
