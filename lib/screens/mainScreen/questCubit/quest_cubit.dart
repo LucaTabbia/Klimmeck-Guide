@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/enemy_portrait_url.dart';
 
 import '../../../models/quest/quest.dart';
@@ -109,7 +110,7 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
     try {
       return await call();
     } catch (error) {
-      debugPrint('Quest refresh failed (${error.runtimeType})');
+      appLog('Quest refresh failed (${error.runtimeType})');
       return null;
     }
   }
@@ -126,7 +127,7 @@ class QuestCubit extends Cubit<QuestState> with SafeEmit<QuestState> {
         .listen(
           _replaceQuest,
           onError: (Object error) {
-            debugPrint('Quest watch failed (${error.runtimeType})');
+            appLog('Quest watch failed (${error.runtimeType})');
             _forgetWatch();
           },
           onDone: _forgetWatch,

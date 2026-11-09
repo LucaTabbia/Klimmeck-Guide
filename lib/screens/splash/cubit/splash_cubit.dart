@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../../repository/cache/cache_expiry.dart';
 import '../../../repository/cache/image_warmer.dart';
@@ -56,7 +57,7 @@ class SplashCubit extends Cubit<SplashState> {
       await _warmLoreImages();
       emit(const SplashData());
     } catch (e) {
-      debugPrint('[Splash] image preload failed: ${e.runtimeType}');
+      appLog('[Splash] image preload failed: ${e.runtimeType}');
       emit(SplashError(e.toString()));
     }
   }
@@ -78,7 +79,7 @@ class SplashCubit extends Cubit<SplashState> {
       final lores = await graphQl.getAllLores();
       await _warmer.warm(lores.map((lore) => lore.image).whereType<String>());
     } catch (e) {
-      debugPrint('[Splash] lore warm-up skipped: ${e.runtimeType}');
+      appLog('[Splash] lore warm-up skipped: ${e.runtimeType}');
     }
   }
 
