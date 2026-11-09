@@ -29,7 +29,11 @@ KGNotification? questResultNoticeFor(QuestResultFailure failure) {
     QuestResultFailure.notFound => 'Questo risultato non esiste più',
     QuestResultFailure.forbidden => 'Questo risultato non ti appartiene',
     QuestResultFailure.badUserInput => 'Qualcosa è andato storto, riprova',
-    _ => null,
+    QuestResultFailure.connection ||
+    QuestResultFailure.timedOut ||
+    QuestResultFailure.malformed ||
+    QuestResultFailure.unknown ||
+    QuestResultFailure.unauthenticated => null,
   };
   if (description == null) return null;
   return KGNotification(
