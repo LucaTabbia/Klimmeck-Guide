@@ -7,7 +7,7 @@ import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dar
 /// Servizio REST dell'app. Riceve il `RestClient` via DI costruttore.
 ///
 /// Il singleton statico di `RestClient` è stato rimosso: l'istanza è
-/// fornita da `main.dart` dopo la costruzione dell'`AuthTokenService`,
+/// fornita dal bootstrap dopo la costruzione dell'`AuthTokenService`,
 /// garantendo che ogni request HTTP porti l'header `Authorization`.
 class KlimmeckRest {
   KlimmeckRest(this._restClient);

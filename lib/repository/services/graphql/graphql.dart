@@ -50,7 +50,7 @@ import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptio
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
 
 class KlimmeckGraphQl {
-  /// Il client arriva dal composition root (`main.dart`) o dal test: il
+  /// Il client arriva dal composition root (`lib/bootstrap/`) o dal test: il
   /// service non conosce l'albero dei widget né il `navigatorKey`.
   KlimmeckGraphQl({required GraphQLClient Function() resolveClient})
     : _resolveClient = resolveClient;

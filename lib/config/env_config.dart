@@ -96,8 +96,8 @@ class EnvConfig {
   /// Ritorna `true` solo se `DEV_AUTH_ENABLED=true` (case-insensitive, spazi
   /// attorno ignorati come per `DEV_AUTH_START_SIGNED_OUT`) negli override.
   ///
-  /// Usato da `main.dart` per scegliere tra `DevAuthTokenService`
-  /// e `SessionAuthTokenService` tramite factory senza type-check.
+  /// Usato da `buildDevAuthComposition` (entry point `main_dev.dart`) per
+  /// scegliere tra `DevAuthTokenService` e `SessionAuthTokenService`.
   static bool get devAuthEnabled =>
       _runtimeValue('DEV_AUTH_ENABLED')?.toLowerCase() == 'true';
 
