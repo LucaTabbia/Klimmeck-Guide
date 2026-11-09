@@ -11,7 +11,7 @@ requires:
     provides: gate passed on the merged BE schema (the device E2E runs on this branch)
 provides:
   - AmbushReportCarousel with peeking pages (PageController viewportFraction 0.62 with several reports, 1.0 with one)
-  - one bounded opening nudge (translate 28 px out and back, 520 ms) with several reports, none with one
+  - one bounded opening nudge with several reports, none with one: after the route transition, 200 ms rest, translate 6% of the width out and back in 700 ms (device re-check fix)
   - D-19 pins (8 titles) next to the 8 D-05 pins; the 16-05 «no programmatic paging» grep narrowed to page-turning calls
 affects: [16-08]
 
@@ -19,7 +19,7 @@ tech-stack:
   added: []
   patterns:
     - "Peek by PageController(viewportFraction) only; the sheet keeps centring its 315/375 parchment in the slot"
-    - "Opening hint as a one-shot TweenAnimationBuilder + Transform.translate over the PageView (clipBehavior none), never the scroll position: a scroll animation ignores pointers"
+    - "Opening hint as an AnimationController-driven Transform.translate over the PageView (clipBehavior none), armed on the route transition's completed status, never the scroll position: a scroll animation ignores pointers"
 
 key-files:
   created: []
@@ -44,7 +44,7 @@ completed: 2026-11-09
 
 # Phase 16 Plan 09: Carousel affordance (D-19) Summary
 
-**The ambush carousel now reads as a carousel: with several reports each page slot takes 0.62 of the viewport so the neighbour parchment peeks in (about 7% of the width, right on page 1, left on later pages), and at opening the pages slide forward up to 28 px and back in 520 ms; one report fills the width and does not move; still swipe-only, «Continua» works at any moment.**
+**The ambush carousel now reads as a carousel: with several reports each page slot takes 0.62 of the viewport so the neighbour parchment peeks in (about 7% of the width, right on page 1, left on later pages), and, once the dialog has faded in and rested 200 ms, the pages slide forward by 6% of the width and back in 700 ms; one report fills the width and does not move; still swipe-only, «Continua» works at any moment.**
 
 ## Accomplishments
 
@@ -136,8 +136,18 @@ None.
 
 ## Threat Flags
 
-None. T-16-25 mitigated by the bounded one-shot animation (520 ms, no controller to leak, the `PageController` is disposed) and the three nudge tests; T-16-26 by the page-turn grep at 0 and the «settles back on the first page» pin.
+None. T-16-25 mitigated by the bounded one-shot animation (900 ms including the rest; `AnimationController` and `PageController` disposed, route status listener removed) and the three nudge tests; T-16-26 by the page-turn grep at 0 and the «settles back on the first page» pin.
+
+## Device re-check (2026-11-09)
+
+- **User, on two openings including a cold restart (the peek was fine):** «il movimento non si vede».
+- **Cause (orchestrator, verified in code):** `QuestResultPresenter._present` opens the carousel with `showGeneralDialog(transitionDuration: 250 ms)` (default fade, no `transitionBuilder`), so the whole 520 ms nudge of `6b57b6e` ran while the dialog was still fading in; and 28 px are about 3% of the landscape viewport (the app is landscape-only).
+- **Fix (Rule 1, `24aee99`):** the nudge is driven by an `AnimationController` of 900 ms (`nudgeDelay` 200 ms rest, `nudgeOut` 320 ms forward easeOut, `nudgeBack` 380 ms back easeIn; `_nudgeTravel` 0 → 1 → 0) whose amplitude is `nudgeFraction = 0.06` of the carousel width (`LayoutBuilder` `constraints.maxWidth`), armed in `didChangeDependencies`: started at once when `ModalRoute.of(context)?.animation` is absent or already completed (the widget test host), otherwise on its `AnimationStatus.completed` (status listener removed afterwards and in `dispose`); `mounted` guard; controller created in `initState`, disposed with the `PageController`. The translate mechanism, `Clip.none` and the page-turn grep at 0 are unchanged; `nudgeDistance`, `nudgeOut 240`, `nudgeBack 280` are gone.
+- **RED (`02fa37e`, `+12 -2`):** «the nudge rests before moving, then moves and settles back (D-19)» — at 150 ms `Expected: a numeric value within <0.5> of <148.2>, Actual: <125.59868164062499>` (already 22.6 px out); «the nudge waits for the route transition to complete (D-19)» — carousel hosted in a real `showGeneralDialog` with a 250 ms fade, at 200 ms after the push `Actual: <121.43925358057021>` (26.8 px out, mid-fade). Kept and green: «a single report does not move at opening (D-19)» (sampled at 360 ms) and «Continua during the nudge still closes (D-05, D-19)» (tap at 300 ms).
+- **Pins now:** rest ± 0.5 px at 150 ms; shift ∈ (0, 0.06 w + 1] at 360 ms (≈ 32 px on 780); back to rest ± 0.5 after settle; dialog host: no shift at 200 ms, shift after the fade + 200 ms rest + 160 ms, settle. The presenter tests needed nothing (they `pumpAndSettle`).
+- **Learnt on the way (GREEN iterations, not committed):** a `late final AnimationController(vsync: this)` first touched in `dispose` (single report, never started) throws «Looking up a deactivated widget's ancestor is unsafe» — hence the eager creation in `initState`; an `AnimationController` reaches `completed` on the first frame *beyond* its duration (`isDone` is `time > duration`), so the dialog test pumps 100 ms past the fade and then one frame for the nudge ticker's zero.
+- **Gates:** carousel file 14/14; `flutter test test/shared/components/popup test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart` +311 all passed; `flutter analyze` 0 error / 0 warning, 50 infos (two `unnecessary_underscores` from `(_, __, ___)` turned into wildcards before the commit); `dart format` on the two touched files only. Greps on the widget: `nudgeFraction` 3, `nudgeDelay` 4, `nudgeOut` 3, `nudgeBack` 3, `ModalRoute.of` 1, `addStatusListener` 1, `removeStatusListener` 1, `AnimationController` 2, `AnimatedBuilder` 1, `LayoutBuilder` 1, `Transform.translate` 1, `nudgeDistance` 0, `TweenAnimationBuilder` 0, `animateToPage|nextPage|previousPage|jumpToPage` 0, `peekViewportFraction` 2, `PageController` 1; tests `D-19)` 9, `D-05)` 8. VALIDATION 16-09-02 text amended; ROADMAP/STATE unchanged (8/9).
 
 ## Self-Check: PASSED
 
-- Files exist: the three code/test files and this SUMMARY; commits 58a33de, 458bd4e, 92dc689, 6b57b6e present in `git log`.
+- Files exist: the three code/test files and this SUMMARY; commits 58a33de, 458bd4e, 92dc689, 6b57b6e, 14dbb2e, 02fa37e, 24aee99 present in `git log`.
