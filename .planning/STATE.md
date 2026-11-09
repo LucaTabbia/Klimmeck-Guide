@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-11-09T14:30:00.000Z"
-last_activity: 2026-11-09 -- Phase 12 (Hardening) context gathered in a joint discuss with the BE Phase 17 (Autorizzazione e sessioni), inserted as its companion; branch refactor/12-hardening from develop ac75702
+status: executing
+last_updated: "2026-11-09T16:14:38.000Z"
+last_activity: 2026-11-09 -- Phase 12 planned (17 plans, plan-checker passed); BE Phase 17 planned in the same session
 progress:
   total_phases: 17
   completed_phases: 16
-  total_plans: 153
-  completed_plans: 152
-  percent: 99
+  total_plans: 180
+  completed_plans: 163
+  percent: 91
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 12 (Hardening) — CONTEXT GATHERED 2026-11-09 on `refactor/12-hardening` (from `develop` `ac75702`, the merge of PR #44): interactive discuss from this repo, joint with the BE Phase 17 «Autorizzazione e sessioni» inserted the same day as the BE companion (BE branch `feat/17-autorizzazione-e-sessioni` from BE `develop` `31dba96`); `12-CONTEXT.md` D-01..D-15 (separate dev entry point, no `.env` in release, signing + TLS-only + silent logs, leak-tracking + DevTools, dual-device UAT on phone + emulator, full CI with the release build, «l'ultimo login caccia l'altro» with specific notices, three follow-ups folded, review by area); next `/gsd-plan-phase 12` together with the BE Phase 17 plan
-Plan: 0 of TBD
+Phase: 12 (Hardening) — PLANNED 2026-11-09 on `refactor/12-hardening` (from `develop` `ac75702`): 17 plans in 17 sequential waves (the last two — gate and device UAT + handoff — gated by the BE Phase 17 merge on BE `develop`); research, repo rules, validation skeleton and plan-checker pass recorded; BE Phase 17 planned in the same session on `feat/17-autorizzazione-e-sessioni`
+Plan: 0 of 17
 Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
-Next Phase: plan Phase 12 (`/gsd-plan-phase 12`, REPO-RULES of the BE Phase 17 written first with the contract names: revoke reason enum, dedicated WS close code) alongside the BE Phase 17 plan; the contract-gated FE plans (revocation notices) and the dual-device UAT wait for the BE Phase 17 merge on BE `develop`; Phase 12 stays the last phase of v1.0
-Status: Phase 12 context gathered — ready to plan (discuss 2026-11-09: four FE areas + the BE 17 companion block, 21 questions, every area resolved); Phases 16 and 17 merged on `develop` (PR #42 `a80e93c`, PR #43), quick tasks 261109-inj/inj2 merged (PR #44 `ac75702`); BE Phases 15 and 16 and the twin quick tasks merged on BE `develop` (`31dba96`)
-Last activity: 2026-11-09 -- Phase 12 discuss: `12-CONTEXT.md` D-01..D-15 and `12-DISCUSSION-LOG.md`; BE Phase 17 inserted as companion with its CONTEXT; ROADMAP/REQUIREMENTS amended (HARDEN-02/05/06, HARDEN-07..10)
+Next Phase: `/gsd-execute-phase 12` (12-01..12-15 now on fakes with the contract names of the BE `17-REPO-RULES.md`; review by area, then 12-16/12-17 after the BE Phase 17 PR merges on BE `develop`), then the FE PR to `develop` and the v1.0 close (Hardening is the last phase)
+Status: Phase 12 planned — ready to execute (`/gsd-execute-phase 12`); 12-16/12-17 wait for the BE Phase 17 merge; the user generates the release keystore and `android/key.properties` before the UAT (handoff steps)
+Last activity: 2026-11-09 -- Phase 12 planned: research, repo rules, 17 plans, checker passed
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
