@@ -67,9 +67,9 @@ created: 2026-11-09
 | 12-12-03 | 12 | 12 | HARDEN-10 | T-12-31 | `BAD_USER_INPUT` on character deletion | unit | `flutter test test/repository/character_deletion_failure_test.dart test/screens/mainScreen/tabs/settings` | ✅ | ✅ green |
 | 12-13-01 | 13 | 13 | HARDEN-10 | T-12-36 | innkeeper + push map `BAD_USER_INPUT`, push never retries it | unit | `flutter test test/repository test/screens/innkeeper test/repository/services/push test/screens/mainScreen/tabs/map/components` | ✅ | ✅ green |
 | 12-13-02 | 13 | 13 | HARDEN-10 | T-12-37, T-12-38 | markers by `City.size`, `cityClass` gone | widget | `flutter test test/screens/mainScreen/tabs/map test/models test/graphql test/tool` | ✅ | ✅ green |
-| 12-14-01 | 14 | 14 | HARDEN-06 | T-12-40, T-12-41 | revocation reason parsed only on `SESSION_REVOKED` | unit | `flutter test test/repository/services/auth` | ✅ | ⬜ pending |
-| 12-14-02 | 14 | 14 | HARDEN-06 | T-12-39 | dedicated notices for new login and role change | widget | `flutter test test/screens/auth test/screens/signIn test/repository/services/auth` | ✅ | ⬜ pending |
-| 12-14-03 | 14 | 14 | HARDEN-06 | T-12-39, T-12-42 | sign-out reason from the BE reason on every refresh path | unit (fakeAsync) | `flutter test test/repository/services/auth test/screens/auth` | ✅ | ⬜ pending |
+| 12-14-01 | 14 | 14 | HARDEN-06 | T-12-40, T-12-41 | revocation reason parsed only on `SESSION_REVOKED` | unit | `flutter test test/repository/services/auth` | ✅ | ✅ green |
+| 12-14-02 | 14 | 14 | HARDEN-06 | T-12-39 | dedicated notices for new login and role change | widget | `flutter test test/screens/auth test/screens/signIn test/repository/services/auth` | ✅ | ✅ green |
+| 12-14-03 | 14 | 14 | HARDEN-06 | T-12-39, T-12-42 | sign-out reason from the BE reason on every refresh path | unit (fakeAsync) | `flutter test test/repository/services/auth test/screens/auth` | ✅ | ✅ green |
 | 12-15-01 | 15 | 15 | HARDEN-06 | T-12-44, T-12-46 | `4409` refreshes before reconnecting, bounded | unit | `flutter test test/repository/services/graphql` | ✅ | ⬜ pending |
 | 12-15-02 | 15 | 15 | HARDEN-06 | T-12-43, T-12-45 | WS fake close hooks + session backend fake | unit (helpers) | `flutter test test/helpers/fakes test/repository/services/graphql` | ❌ W0 | ⬜ pending |
 | 12-15-03 | 15 | 15 | HARDEN-06 | T-12-43, T-12-44, T-12-45 | last login replaces the other device (5 cases) | integration (loopback, two services) | `flutter test test/repository/services/auth/dual_session_revocation_test.dart` | ❌ W0 | ⬜ pending |
