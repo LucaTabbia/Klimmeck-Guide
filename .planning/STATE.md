@@ -21,7 +21,7 @@ Phase: 12 (Hardening) — COMPLETE 2026-11-10 on `refactor/12-hardening`: plans 
 Plan: 17 of 17
 Completed phases: 17 (1–17) — v1.0 Core Loop: every phase complete
 Next Phase: none in v1.0 — next step: the PR `refactor/12-hardening` → `develop` (opened by the orchestrator: `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then the v1.0 milestone close; BE PR #28 (`fix/city-size-capitals`) merges on the BE side
-Status: Phase 12 complete — v1.0 Core Loop: all 17 phases complete; awaiting the FE PR to `develop` and the milestone close
+Status: Phase 12 complete — v1.0 Core Loop: all 17 phases complete; FE PR #45 (`refactor/12-hardening` → `develop`) opened by the orchestrator on 2026-11-10 (CI to check), BE quick task PR #28 (`fix/city-size-capitals`, Ferrion and Necrorian capitals) open on the BE; next: the two merges, then the milestone close (`/gsd-complete-milestone`; the REQUIREMENTS «Coverage» line still counts 106 and must add HARDEN-07..10)
 Last activity: 2026-11-10 -- Phase 12 complete: device E2E approved (12-HUMAN-UAT.md), HARDEN-01..10 ticked, BACKEND-NOTES.md written
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
