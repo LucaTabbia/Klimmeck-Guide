@@ -46,6 +46,13 @@ void main() {
       );
     });
 
+    test('BAD_USER_INPUT shows the generic copy (D-13)', () {
+      expect(
+        travelNoticeFor(TravelFailure.badUserInput)!.description,
+        'Qualcosa è andato storto, riprova',
+      );
+    });
+
     test('unauthenticated shows no banner', () {
       expect(travelNoticeFor(TravelFailure.unauthenticated), isNull);
     });

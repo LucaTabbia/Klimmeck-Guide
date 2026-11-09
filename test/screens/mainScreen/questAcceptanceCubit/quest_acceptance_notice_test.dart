@@ -66,6 +66,16 @@ void main() {
       expect(of(null), 'Hai già una missione in corso');
     });
 
+    test('BAD_USER_INPUT shows the generic copy (D-13)', () {
+      expect(
+        questAcceptanceNoticeFor(
+          QuestAcceptanceFailure.badUserInput,
+          type: QuestType.hunt,
+        )!.description,
+        'Qualcosa è andato storto, riprova',
+      );
+    });
+
     test('unauthenticated has no banner', () {
       expect(
         questAcceptanceNoticeFor(QuestAcceptanceFailure.unauthenticated),
