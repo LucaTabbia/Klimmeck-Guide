@@ -27,7 +27,10 @@ City cityWith({String? type = 'drusteaCapital', String? size}) =>
 
 /// Phase 12 D-13c: i marker delle città compaiono per zoom secondo `City.size`.
 void main() {
-  setUp(() => seedSvgCache([CloudinaryAssets.cliffbreak]));
+  setUp(
+    () =>
+        seedSvgCache([CloudinaryAssets.cliffbreak, CloudinaryAssets.talmvere]),
+  );
 
   Future<void> pumpLayer(WidgetTester tester, City city, double zoom) async {
     useLandscapePhone(tester);
@@ -82,5 +85,31 @@ void main() {
 
     expect(find.byType(CityMarker), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an always-visible type is shown below its size zoom (D-13)', (
+    tester,
+  ) async {
+    await pumpLayer(
+      tester,
+      cityWith(type: 'talmvereVillage', size: 'village'),
+      0,
+    );
+
+    expect(find.byType(CityMarker), findsOneWidget);
+  });
+
+  testWidgets('an always-visible type is shown even without a size (D-13)', (
+    tester,
+  ) async {
+    await pumpLayer(tester, cityWith(type: 'talmvereVillage'), 0);
+
+    expect(find.byType(CityMarker), findsOneWidget);
+  });
+
+  testWidgets('a regular type still follows City.size (D-13)', (tester) async {
+    await pumpLayer(tester, cityWith(size: 'village'), 3);
+
+    expect(find.byType(CityMarker), findsNothing);
   });
 }
