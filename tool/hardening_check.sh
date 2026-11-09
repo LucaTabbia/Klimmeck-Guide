@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Phase 12 guard greps (HARDEN-01, HARDEN-07, D-03c). Usage: tool/hardening_check.sh [path/to/app-prod-release.apk]
 set -uo pipefail
+apk=""
+if [ $# -ge 1 ]; then
+  case "$1" in /*) apk="$1" ;; *) apk="$PWD/$1" ;; esac
+fi
 cd "$(dirname "$0")/.." || exit 2
 failures=0
 fail() { echo "FAIL: $1"; failures=$((failures + 1)); }
@@ -18,10 +22,11 @@ grep -rlE '\.set(String|StringList|Bool|Int|Double)\(' lib --include='*.dart' | 
 grep -rn -A3 -E '\.set(String|StringList)\(' lib --include='*.dart' | grep -iE 'token|jwt|bearer|secret' && fail "a SharedPreferences write mentions a token"
 
 grep -rnE '(^|[^A-Za-z_])(debugPrint|print)\(|developer\.log\(' lib --include='*.dart' | grep -v '^lib/utils/app_log.dart:' && fail "log call outside lib/utils/app_log.dart"
+# The 3 lines of context deliberately over-approximate a multi-line log call: an unrelated credential-like
+# interpolation right after a log line also fails, so keep such names away from log calls.
 grep -rn -A3 -E '(appLog|debugPrint)\(' lib --include='*.dart' | grep -E '\$\{?[A-Za-z_.]*([Tt]oken|[Bb]earer|[Jj]wt|[Aa]uthorization|[Pp]assword|[Ss]ecret)' && fail "a log call interpolates a credential"
 
-if [ $# -ge 1 ]; then
-  apk="$1"
+if [ -n "$apk" ]; then
   if ! { [ -f "$apk" ] && unzip -tq "$apk" >/dev/null 2>&1; }; then
     fail "$apk not found or not a readable archive"
   elif [ "$(unzip -l "$apk" | grep -c 'lib/.*libapp\.so')" = "0" ]; then
