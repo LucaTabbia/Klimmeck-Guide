@@ -514,7 +514,7 @@ Plans:
 - [x] 16-06-PLAN.md — reroute proof on `TravelProgressCubit` and the real `WorldMap`, D-07/D-17 pins on the confirmation sheet and the quest «Viaggio» line (tests only)
 - [x] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
 - [ ] 16-08-PLAN.md — ⛔ gated by the BE Phase 15 merge: device E2E `16-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff (two-travel merge note), `mark-complete` AMBUSH-01..03, ROADMAP/STATE/REQUIREMENTS closure
-- [ ] 16-09-PLAN.md — device UAT finding (D-19): the ambush carousel pages peek in from the edges (`PageController(viewportFraction: 0.86)` with several reports, full width with one) and the carousel nudges once at opening; still swipe-only, no programmatic page turn
+- [x] 16-09-PLAN.md — device UAT finding (D-19): the ambush carousel pages peek in from the edges (`PageController(viewportFraction: 0.86)` with several reports, full width with one) and the carousel nudges once at opening; still swipe-only, no programmatic page turn
 ### Phase 17: Unlockable Lore
 **Goal**: The Library shows only what the character has discovered (home city and its region at creation, cities on arrival, enemies on victory, study rolls) and unknown enemies appear darkened with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16).
 **Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), BE Phase 11 (lore seeded), BE Phase 16
@@ -547,7 +547,7 @@ Plans:
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 7/9 | In Progress | - |
+| 16. Travel Ambushes | 8/9 | In Progress | - |
 | 17. Unlockable Lore | 0/0 | Not started | - |
 
 ## Traceability

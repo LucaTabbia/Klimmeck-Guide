@@ -46,7 +46,7 @@ created: 2026-11-06
 | 16-03-02 | 03 | 3 | AMBUSH-02 | T-16-07 | no client branch on rewards; BE zeros hide them | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart test/screens/mainScreen/components/quest_result_presenter_test.dart` | ✅ (extend) | ✅ green |
 | 16-04-01 | 04 | 4 | AMBUSH-02 | T-16-09, T-16-10 | group dedup; external pop requeues unacknowledged | bloc/unit | `flutter test test/screens/mainScreen/questResultsCubit test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart` | ✅ (extend `quest_results_queue_test.dart`) | ✅ green |
 | 16-04-02 | 04 | 4 | AMBUSH-02 | T-16-11 | one settling read, one chained; no debounce timer | bloc/unit | `flutter test test/screens/mainScreen/questResultsCubit test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart` | ✅ (extend `quest_results_delivery_test.dart`) | ✅ green |
-| 16-05-01 | 05 | 5 | AMBUSH-02 | T-16-12 | «Continua» closes from any page (user veto); no programmatic paging | widget | `flutter test test/shared/components/popup` | ❌ W0 (`ambush_report_carousel_test.dart`) | ✅ green |
+| 16-05-01 | 05 | 5 | AMBUSH-02 | T-16-12 | «Continua» closes from any page (user veto); no programmatic page turn (D-19 allows the controller for the peek and the nudge) | widget | `flutter test test/shared/components/popup` | ❌ W0 (`ambush_report_carousel_test.dart`) | ✅ green |
 | 16-05-02 | 05 | 5 | AMBUSH-02, AMBUSH-03 | T-16-13, T-16-14 | Phase 9 gates; no questEnd banner for ambushes; toggle never gates the carousel | widget | `flutter test test/screens/mainScreen/components test/screens/mainScreen/questResultsCubit test/screens/mainScreen/main_screen_test.dart test/shared/components/popup` | ✅ (extend `quest_result_presenter_test.dart`) | ✅ green |
 | 16-06-01 | 06 | 6 | AMBUSH-01 | T-16-15 | reroute rendered as received; no lib diff on map/travel | unit/widget | `flutter test test/screens/mainScreen/tabs/map/travelProgressCubit test/screens/mainScreen/tabs/map/world_map_travel_test.dart` | ✅ (extend) | ✅ green |
 | 16-06-02 | 06 | 6 | AMBUSH-03 | T-16-16 | no ambush wording on the confirmation sheet or the quest line | widget/unit | `flutter test test/screens/mainScreen/tabs/map/travel_confirmation_sheet_test.dart test/models/quest/quest_travel_line_test.dart test/tool/schema_check_documents_test.dart` | ✅ (extend, D-17 pins) | ✅ green |
@@ -55,10 +55,12 @@ created: 2026-11-06
 | 16-08-01 | 08 | 8 | AMBUSH-01..03 | T-16-21 | UAT record without ids/URIs/tokens | doc | `grep -cE "^\| [1-7] \|" .planning/phases/16-travel-ambushes/16-HUMAN-UAT.md` | ❌ (created by the task) | ⬜ pending |
 | 16-08-02 | 08 | 8 | AMBUSH-01..03 | T-16-23, T-16-24 | human checkpoint; DB seeds outside the repo | manual | device E2E (`16-HUMAN-UAT.md`) | — | ⬜ pending |
 | 16-08-03 | 08 | 8 | AMBUSH-01..03 | T-16-21, T-16-22 | mark-complete only on passed steps | doc | `grep -q "## 4. E2E outcome" .planning/phases/16-travel-ambushes/BACKEND-NOTES.md` | ❌ (created by the task) | ⬜ pending |
-| 16-09-01 | 09 | 9 | AMBUSH-02 | T-16-26 | carousel affordance: with several reports the neighbour pages peek in from the edges (right on page 1, left on later pages), a single report fills the width (D-19) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ⬜ pending |
-| 16-09-02 | 09 | 9 | AMBUSH-02 | T-16-25 | one nudge at opening with several reports, none with one, «Continua» works during the nudge; still swipe-only — no programmatic page turn (D-19, D-05) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ⬜ pending |
+| 16-09-01 | 09 | 9 | AMBUSH-02 | T-16-26 | carousel affordance: with several reports the neighbour pages peek in from the edges (right on page 1, left on later pages), a single report fills the width (D-19) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ✅ green |
+| 16-09-02 | 09 | 9 | AMBUSH-02 | T-16-25 | one nudge at opening with several reports, none with one, «Continua» works during the nudge; still swipe-only — no programmatic page turn (D-19, D-05) | widget | `flutter test test/shared/components/popup/ambush_report_carousel_test.dart` | ❌ W0 (RED first) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+*Plan 9 (D-19) added on 2026-11-09 from the device E2E; `PageController` allowed, page-turning calls still 0 (`animateToPage|nextPage|previousPage|jumpToPage` on the widget).*
 
 ---
 
