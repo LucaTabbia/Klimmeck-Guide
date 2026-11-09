@@ -26,6 +26,13 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # The dev flavor declares `.env` as an asset (pubspec `flavors: [dev]`): the analyzer reports
+      # `asset_does_not_exist` as a warning when the file is missing, and warnings are fatal here.
+      # CI has no `.env` (secrets never reach the runner): an empty placeholder satisfies the analyzer;
+      # the prod release bundles no `.env` by construction and the bundle guard below proves it.
+      - name: Create the empty dev .env placeholder
+        run: touch .env
+
       - name: Analyze (0 error / 0 warning, infos tolerated)
         run: flutter analyze --no-fatal-infos
       - name: Test
