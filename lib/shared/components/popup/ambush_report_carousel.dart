@@ -9,7 +9,7 @@ import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 ///
 /// D-19: con più report le pagine sono più strette della viewport, così la
 /// pergamena vicina fa capolino dal bordo (a destra sulla prima pagina, a
-/// sinistra dalle successive) e all'apertura il carosello fa un breve
+/// sinistra dalle successive) e, a dialog apparso, il carosello fa un breve
 /// movimento in avanti e torna sulla prima pagina; un solo report occupa
 /// tutta la larghezza e non si muove.
 class AmbushReportCarousel extends StatefulWidget {
@@ -27,12 +27,15 @@ class AmbushReportCarousel extends StatefulWidget {
   /// valore la vicina mostra circa il 7% della larghezza dello schermo.
   static const double peekViewportFraction = 0.62;
 
-  /// D-19: il nudge d'apertura trasla le pagine (non la posizione di scroll,
-  /// che durante un'animazione ignorerebbe i tap) di al più questa distanza,
-  /// avanti in `nudgeOut` e indietro in `nudgeBack`; non cambia mai pagina.
-  static const double nudgeDistance = 28;
-  static const Duration nudgeOut = Duration(milliseconds: 240);
-  static const Duration nudgeBack = Duration(milliseconds: 280);
+  /// D-19: il nudge d'apertura parte quando la transizione della route è
+  /// finita (il fade del dialog lo nasconderebbe), riposa `nudgeDelay`, poi
+  /// trasla le pagine (non la posizione di scroll, che durante
+  /// un'animazione ignorerebbe i tap) di `nudgeFraction` della larghezza in
+  /// avanti e indietro; non cambia mai pagina.
+  static const Duration nudgeDelay = Duration(milliseconds: 200);
+  static const double nudgeFraction = 0.06;
+  static const Duration nudgeOut = Duration(milliseconds: 320);
+  static const Duration nudgeBack = Duration(milliseconds: 380);
 
   /// Ordine della coda (per `resolvedAt`, D-05): il carosello non riordina.
   final List<QuestResult> results;
@@ -42,37 +45,85 @@ class AmbushReportCarousel extends StatefulWidget {
   State<AmbushReportCarousel> createState() => _AmbushReportCarouselState();
 }
 
-class _AmbushReportCarouselState extends State<AmbushReportCarousel> {
-  /// Spostamento del nudge lungo la sua durata: avanti con easeOut, indietro
-  /// con easeIn, da zero a zero.
+class _AmbushReportCarouselState extends State<AmbushReportCarousel>
+    with SingleTickerProviderStateMixin {
+  /// Corsa del nudge lungo la sua durata, da 0 a 1 a 0: fermo nel riposo,
+  /// avanti con easeOut, indietro con easeIn.
   static final Animatable<double> _nudgeTravel = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: ConstantTween<double>(0),
+      weight: AmbushReportCarousel.nudgeDelay.inMilliseconds.toDouble(),
+    ),
     TweenSequenceItem(
       tween: Tween<double>(
         begin: 0,
-        end: AmbushReportCarousel.nudgeDistance,
+        end: 1,
       ).chain(CurveTween(curve: Curves.easeOut)),
       weight: AmbushReportCarousel.nudgeOut.inMilliseconds.toDouble(),
     ),
     TweenSequenceItem(
       tween: Tween<double>(
-        begin: AmbushReportCarousel.nudgeDistance,
+        begin: 1,
         end: 0,
       ).chain(CurveTween(curve: Curves.easeIn)),
       weight: AmbushReportCarousel.nudgeBack.inMilliseconds.toDouble(),
     ),
   ]);
 
-  late final PageController _controller = PageController(
+  late final PageController _pageController = PageController(
     viewportFraction: _hasSeveralReports
         ? AmbushReportCarousel.peekViewportFraction
         : 1.0,
   );
 
+  late final AnimationController _nudge;
+
+  Animation<double>? _routeAnimation;
+  bool _isNudgeArmed = false;
+
   bool get _hasSeveralReports => widget.results.length > 1;
 
   @override
+  void initState() {
+    super.initState();
+    _nudge = AnimationController(
+      vsync: this,
+      duration:
+          AmbushReportCarousel.nudgeDelay +
+          AmbushReportCarousel.nudgeOut +
+          AmbushReportCarousel.nudgeBack,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isNudgeArmed || !_hasSeveralReports) return;
+    _isNudgeArmed = true;
+    final routeAnimation = ModalRoute.of(context)?.animation;
+    if (routeAnimation == null || routeAnimation.isCompleted) {
+      _nudge.forward();
+      return;
+    }
+    _routeAnimation = routeAnimation..addStatusListener(_onRouteStatus);
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    _stopWaitingForRoute();
+    if (mounted) _nudge.forward();
+  }
+
+  void _stopWaitingForRoute() {
+    _routeAnimation?.removeStatusListener(_onRouteStatus);
+    _routeAnimation = null;
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _stopWaitingForRoute();
+    _nudge.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -80,14 +131,19 @@ class _AmbushReportCarouselState extends State<AmbushReportCarousel> {
   Widget build(BuildContext context) {
     final pages = _pages();
     if (!_hasSeveralReports) return pages;
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: AmbushReportCarousel.nudgeOut + AmbushReportCarousel.nudgeBack,
-      child: pages,
-      builder: (context, progress, child) => Transform.translate(
-        offset: Offset(-_nudgeTravel.transform(progress), 0),
-        child: child,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final distance =
+            constraints.maxWidth * AmbushReportCarousel.nudgeFraction;
+        return AnimatedBuilder(
+          animation: _nudge,
+          child: pages,
+          builder: (context, child) => Transform.translate(
+            offset: Offset(-_nudgeTravel.evaluate(_nudge) * distance, 0),
+            child: child,
+          ),
+        );
+      },
     );
   }
 
@@ -95,7 +151,7 @@ class _AmbushReportCarouselState extends State<AmbushReportCarousel> {
   /// bordo liberato invece di restare tagliata al limite della viewport.
   Widget _pages() => PageView(
     key: AmbushReportCarousel.pagesKey,
-    controller: _controller,
+    controller: _pageController,
     clipBehavior: Clip.none,
     children: [
       for (final (index, result) in widget.results.indexed)

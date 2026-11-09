@@ -65,7 +65,7 @@ Future<void> _pumpInDialog(
             onPressed: () => showGeneralDialog<void>(
               context: context,
               transitionDuration: _routeTransition,
-              pageBuilder: (_, __, ___) => Material(
+              pageBuilder: (_, _, _) => Material(
                 type: MaterialType.transparency,
                 child: AmbushReportCarousel(
                   results: results,
@@ -294,8 +294,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
 
-      // Frames at the end of the fade, at the end of the rest, mid-nudge.
-      await tester.pump(_routeTransition - const Duration(milliseconds: 200));
+      // Past the end of the fade (a controller completes on the first frame
+      // beyond its duration), then the nudge's first frame, the end of its
+      // rest and mid-nudge.
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
       await tester.pump(_nudgeDelay);
       await tester.pump(const Duration(milliseconds: 160));
       final shift = restLeft - tester.getRect(_page(_won)).left;
