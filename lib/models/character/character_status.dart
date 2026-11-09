@@ -61,11 +61,7 @@ class CharacterStatus extends Equatable {
         spells: json['spells'] != null
             ? List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x)))
             : [],
-        injuries: json['injuries'] != null
-            ? List<InjuryType>.from(
-                json['injuries'].map((x) => InjuryType.values.byName(x)),
-              )
-            : [],
+        injuries: _injuriesFrom(json['injuries']),
         currentLifePoints: json["currentLifePoints"]?.toInt(),
         maxLifePoints: json["maxLifePoints"]?.toInt(),
         level: json["level"]?.toInt(),
@@ -89,6 +85,16 @@ class CharacterStatus extends Equatable {
   static List<String> _unlockedLoreFrom(Object? json) {
     if (json is! List) return const [];
     return List<String>.unmodifiable(json.whereType<String>());
+  }
+
+  /// Un nome di ferita che il client non conosce è scartato (quick 261109-inj2):
+  /// un BE più nuovo non rompe mai la lettura del personaggio.
+  static List<InjuryType> _injuriesFrom(Object? json) {
+    if (json is! List) return const [];
+    final byName = InjuryType.values.asNameMap();
+    return List<InjuryType>.unmodifiable(
+      json.map((name) => byName[name]).nonNulls,
+    );
   }
 
   Map<String, dynamic> toJson() => {
