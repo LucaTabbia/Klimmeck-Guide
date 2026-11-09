@@ -39,6 +39,11 @@ jobs:
         run: flutter test
       - name: Guard greps
         run: bash tool/hardening_check.sh
+      # The release build installs the NDK the project pins (`ndkVersion`), which the runner image
+      # does not ship pre-accepted: Gradle fails with LicenceNotAcceptedException otherwise.
+      - name: Accept the Android SDK licenses
+        run: yes 2>/dev/null | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+
       - name: Release build (no .env, no key.properties, no google-services.json)
         run: flutter build apk --release --dart-define-from-file=env/prod.json
       - name: Bundle greps
