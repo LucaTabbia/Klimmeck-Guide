@@ -22,12 +22,14 @@ grep -rn -A3 -E '(appLog|debugPrint)\(' lib --include='*.dart' | grep -E '\$\{?[
 
 if [ $# -ge 1 ]; then
   apk="$1"
-  if [ -f "$apk" ]; then
+  if ! { [ -f "$apk" ] && unzip -tq "$apk" >/dev/null 2>&1; }; then
+    fail "$apk not found or not a readable archive"
+  elif [ "$(unzip -l "$apk" | grep -c 'lib/.*libapp\.so')" = "0" ]; then
+    fail "$apk has no libapp.so: not a Flutter release bundle"
+  else
     [ "$(unzip -l "$apk" | grep -c 'flutter_assets/\.env$')" = "0" ] || fail ".env bundled in $apk"
     [ "$(unzip -p "$apk" | grep -a -c 'DEV_AUTH_')" = "0" ] || fail "DEV_AUTH_ found in $apk"
     [ "$(unzip -p "$apk" | grep -a -c 'DevAuthTokenService')" = "0" ] || fail "DevAuthTokenService found in $apk"
-  else
-    fail "$apk not found"
   fi
 fi
 
