@@ -10,6 +10,18 @@ OperationException _withCode(String code) => OperationException(
   ],
 );
 
+OperationException _fromHttp400(String code) => OperationException(
+  linkException: ServerException(
+    statusCode: 400,
+    parsedResponse: Response(
+      response: const {},
+      errors: [
+        GraphQLError(message: 'server text', extensions: {'code': code}),
+      ],
+    ),
+  ),
+);
+
 void main() {
   group('pushDeviceFailureFrom', () {
     final byCode = {
@@ -23,6 +35,20 @@ void main() {
       test('maps $code to ${failure.name}', () {
         expect(pushDeviceFailureFrom(_withCode(code)), failure);
       });
+    });
+
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
+      expect(
+        pushDeviceFailureFrom(_withCode('BAD_USER_INPUT')),
+        PushDeviceFailure.badUserInput,
+      );
+    });
+
+    test('BAD_USER_INPUT over HTTP 400 maps to badUserInput (D-13)', () {
+      expect(
+        pushDeviceFailureFrom(_fromHttp400('BAD_USER_INPUT')),
+        PushDeviceFailure.badUserInput,
+      );
     });
 
     test('maps a link error without code to connection', () {
@@ -59,6 +85,10 @@ void main() {
         expect(failure.isRetryable, retryable.contains(failure));
       });
     }
+
+    test('BAD_USER_INPUT is never retried (D-13)', () {
+      expect(PushDeviceFailure.badUserInput.isRetryable, isFalse);
+    });
   });
 
   group('PushDeviceException', () {
