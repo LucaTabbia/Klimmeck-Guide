@@ -15,6 +15,9 @@ val releaseKeystore = Properties().apply {
 }
 val hasReleaseKeystore = releaseKeystoreFile.exists()
 
+fun requiredKeystoreProperty(key: String): String =
+    requireNotNull(releaseKeystore.getProperty(key)) { "key.properties: $key missing" }
+
 android {
     namespace = "it.lordreavor.klimmeckguide.klimmeck_guide"
     compileSdk = flutter.compileSdkVersion
@@ -50,22 +53,26 @@ android {
     signingConfigs {
         if (hasReleaseKeystore) {
             create("release") {
-                storeFile = file(releaseKeystore.getProperty("storeFile"))
-                storePassword = releaseKeystore.getProperty("storePassword")
-                keyAlias = releaseKeystore.getProperty("keyAlias")
-                keyPassword = releaseKeystore.getProperty("keyPassword")
+                storeFile = file(requiredKeystoreProperty("storeFile"))
+                storePassword = requiredKeystoreProperty("storePassword")
+                keyAlias = requiredKeystoreProperty("keyAlias")
+                keyPassword = requiredKeystoreProperty("keyPassword")
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = if (hasReleaseKeystore) {
-                signingConfigs.getByName("release")
-            } else {
-                logger.quiet("WARNING: android/key.properties not found: the release build is signed with the DEBUG keys and cannot be published.")
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "release" else "debug")
+        }
+    }
+}
+
+// D-03a: the debug-keys warning only when a release variant is actually built.
+if (!hasReleaseKeystore) {
+    gradle.taskGraph.whenReady {
+        if (allTasks.any { it.name.contains("Release") }) {
+            logger.quiet("WARNING: android/key.properties not found: the release build is signed with the DEBUG keys and cannot be published.")
         }
     }
 }
