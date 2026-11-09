@@ -15,7 +15,7 @@ grep -n 'flutter_dotenv' lib/config/env_config.dart && fail "env_config imports 
 
 allowed='lib/repository/cache/cache_expiry.dart|lib/repository/storage/(storage_manager|active_user_store|device_identity_store|notification_preferences_store|library_bookmarks_store|session_store)\.dart'
 grep -rlE '\.set(String|StringList|Bool|Int|Double)\(' lib --include='*.dart' | grep -vE "^($allowed)$" | while read -r f; do echo "FAIL: $f writes SharedPreferences outside the allow-list"; done | grep . && failures=$((failures + 1))
-grep -rnE '\.set(String|StringList)\(' lib --include='*.dart' | grep -iE 'token|jwt|bearer|secret' && fail "a SharedPreferences write mentions a token"
+grep -rn -A3 -E '\.set(String|StringList)\(' lib --include='*.dart' | grep -iE 'token|jwt|bearer|secret' && fail "a SharedPreferences write mentions a token"
 
 grep -rnE '(^|[^A-Za-z_])(debugPrint|print)\(|developer\.log\(' lib --include='*.dart' | grep -v '^lib/utils/app_log.dart:' && fail "log call outside lib/utils/app_log.dart"
 grep -rn -A3 -E '(appLog|debugPrint)\(' lib --include='*.dart' | grep -E '\$\{?[A-Za-z_.]*([Tt]oken|[Bb]earer|[Jj]wt|[Aa]uthorization|[Pp]assword|[Ss]ecret)' && fail "a log call interpolates a credential"
