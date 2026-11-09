@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../../../../repository/services/graphql/graphql.dart';
 
@@ -20,7 +21,7 @@ class JournalCubit extends Cubit<JournalState> with SafeEmit<JournalState> {
       final equipment = await graphQl.getEquipment(characterId);
       emit(JournalLoadData(equipment));
     } catch (e) {
-      print(e.toString());
+      appLog('JournalCubit error: ${e.runtimeType}');
       emit(JournalError(e.toString()));
     }
   }
@@ -29,7 +30,7 @@ class JournalCubit extends Cubit<JournalState> with SafeEmit<JournalState> {
     try {
       await graphQl.equipItem(request);
     } catch (e) {
-      print(e.toString());
+      appLog('JournalCubit error: ${e.runtimeType}');
       emit(JournalError(e.toString()));
     }
   }

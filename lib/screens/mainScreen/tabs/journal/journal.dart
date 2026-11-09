@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
 
 import '../../../../models/coins.dart';
@@ -388,7 +389,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       itemIdToSend = null;
     } else {
       if (_selectedSlot == null) {
-        debugPrint("Impossibile equipaggiare: Selezionare prima uno slot.");
+        appLog("Impossibile equipaggiare: Selezionare prima uno slot.");
         return;
       }
       targetSlot = _selectedSlot;
@@ -396,7 +397,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     }
 
     if (targetSlot == null) {
-      debugPrint("Errore: Impossibile determinare lo slot target per l'azione.");
+      appLog("Errore: Impossibile determinare lo slot target per l'azione.");
       return;
     }
 
@@ -412,12 +413,13 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _positionAnimation = Tween<double>(
-      begin: MediaQuery.of(context).size.height,
-      end: 0.0,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
+    _positionAnimation =
+        Tween<double>(
+          begin: MediaQuery.of(context).size.height,
+          end: 0.0,
+        ).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+        );
   }
 
   @override

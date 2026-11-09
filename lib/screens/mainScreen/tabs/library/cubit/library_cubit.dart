@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../../../../models/lore.dart';
 import '../../../../../repository/services/graphql/graphql.dart';
@@ -38,7 +39,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       lore = _loreOf(book, await graphQl.getAllLores());
     } catch (e) {
-      debugPrint('LibraryCubit.openBook error: $e');
+      appLog('LibraryCubit.openBook error: ${e.runtimeType}');
       if (generation == _generation) emit(LibraryError(book, e.toString()));
       return;
     }
@@ -99,7 +100,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       lore = _loreOf(shown.book, await graphQl.getAllLores());
     } catch (e) {
-      debugPrint('LibraryCubit refresh error: $e');
+      appLog('LibraryCubit refresh error: ${e.runtimeType}');
       return;
     }
     if (generation != _generation) return;
@@ -118,7 +119,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       return await _bookmarks.readSeen(_characterId, book);
     } on Object catch (e) {
-      debugPrint('LibraryCubit baseline read error: $e');
+      appLog('LibraryCubit baseline read error: ${e.runtimeType}');
       return null;
     }
   }
@@ -127,7 +128,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       await _bookmarks.writeSeen(_characterId, book, ids);
     } on Object catch (e) {
-      debugPrint('LibraryCubit baseline write error: $e');
+      appLog('LibraryCubit baseline write error: ${e.runtimeType}');
     }
   }
 
