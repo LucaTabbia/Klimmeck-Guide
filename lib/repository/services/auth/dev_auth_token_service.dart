@@ -28,7 +28,9 @@ import 'session_terminator.dart';
 /// `DEV_AUTH_USER_ID` resta solo fallback offline.
 ///
 /// Nessuna guardia `kReleaseMode` (D-30): il backend è il confine di
-/// sicurezza. Lo stub viene rimosso in Phase 12.
+/// sicurezza. Lo stub resta: lo compone solo `lib/main_dev.dart` tramite
+/// `buildDevAuthComposition` (Phase 12 D-01); l'entry point di produzione
+/// non lo compone e lo split degli entry point lo toglie dalla release.
 ///
 /// Variabili `.env`:
 /// - `DEV_AUTH_ACCESS_TOKEN` — token di accesso dev
