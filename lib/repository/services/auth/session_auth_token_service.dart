@@ -378,15 +378,20 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
-  /// D-12: avviso dedicato solo per i motivi noti; il resto è «sessione
-  /// scaduta».
+  /// D-12: avviso dedicato solo per i motivi noti di `SESSION_REVOKED`; il
+  /// resto è «sessione scaduta».
   static UnauthenticatedReason _unauthenticatedReasonOf(
     SessionRejected rejection,
-  ) => switch (rejection.reason) {
-    sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
-    sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
-    _ => UnauthenticatedReason.sessionExpired,
-  };
+  ) {
+    if (rejection.code != sessionRevokedCode) {
+      return UnauthenticatedReason.sessionExpired;
+    }
+    return switch (rejection.reason) {
+      sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
+      sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
+      _ => UnauthenticatedReason.sessionExpired,
+    };
+  }
 
   Future<void> _persistRefreshToken(String refreshToken) async {
     try {
