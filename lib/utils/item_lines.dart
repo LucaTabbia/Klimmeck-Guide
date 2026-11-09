@@ -1,5 +1,7 @@
 import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
+import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
@@ -47,4 +49,17 @@ String? accessoryUsageLine(EquipmentItem item) {
   ];
   if (labels.isEmpty) return null;
   return 'Uso: ${labels.join(' e ')}';
+}
+
+/// Riga «Cura: …» di un oggetto heal: le ferite che può curare, etichette in
+/// minuscolo nell'ordine dell'enum, unite da virgola; nessuna riga senza
+/// ferite o su un effetto diverso.
+String? healedInjuriesLine(LootItem item) {
+  if (item.effect != EffectType.heal) return null;
+  final labels = [
+    for (final type in InjuryType.values)
+      if (item.effectedInjuries.contains(type)) type.label.toLowerCase(),
+  ];
+  if (labels.isEmpty) return null;
+  return 'Cura: ${labels.join(', ')}';
 }
