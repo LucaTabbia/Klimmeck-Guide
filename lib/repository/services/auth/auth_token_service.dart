@@ -54,6 +54,13 @@ enum UnauthenticatedReason {
   /// accedi di nuovo.» (D-10/D-31).
   sessionExpired,
 
+  /// Sessione sostituita da un login su un altro dispositivo (BE Phase 17
+  /// `newLogin`, D-12).
+  replacedByNewLogin,
+
+  /// Ruolo cambiato sul backend (BE Phase 17 `roleChanged`, D-12).
+  roleChanged,
+
   /// Sync in tempo reale persa per ~3 minuti di degrado continuo: SignIn mostra
   /// «Connessione persa, accedi di nuovo.» (Phase 3 D-15).
   syncLost,

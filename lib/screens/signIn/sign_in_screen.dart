@@ -8,6 +8,9 @@ const String _loginLabel = 'Login con Twitch';
 const String _tagline = 'Accedi con Twitch per iniziare la tua avventura.';
 const String _sessionExpiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const String _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
+const String _replacedByNewLoginNotice =
+    'Hai effettuato l\'accesso da un altro dispositivo.';
+const String _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 const String _connectionError = 'Errore di connessione, riprova';
 const String _twitchUnavailableError =
     'Login con Twitch non ancora disponibile.';
@@ -16,8 +19,15 @@ const String _privacyLabel = 'Privacy';
 const String _logoAsset = 'assets/icons/appIcon/appIcon.png';
 const String _twitchGlyphAsset = 'assets/icons/twitch_glitch.svg';
 
-/// Avviso inline sopra il pulsante di login (Phase 11 D-31, Phase 3 D-15).
-enum SignInNotice { none, sessionExpired, connectionLost }
+/// Avviso inline sopra il pulsante di login (Phase 11 D-31, Phase 3 D-15,
+/// Phase 12 D-12).
+enum SignInNotice {
+  none,
+  sessionExpired,
+  connectionLost,
+  replacedByNewLogin,
+  roleChanged,
+}
 
 /// Utility screen (chrome ammesso): unico entry point del login.
 class SignInScreen extends StatelessWidget {
@@ -29,6 +39,8 @@ class SignInScreen extends StatelessWidget {
     SignInNotice.none => null,
     SignInNotice.sessionExpired => _sessionExpiredNotice,
     SignInNotice.connectionLost => _connectionLostNotice,
+    SignInNotice.replacedByNewLogin => _replacedByNewLoginNotice,
+    SignInNotice.roleChanged => _roleChangedNotice,
   };
 
   @override
