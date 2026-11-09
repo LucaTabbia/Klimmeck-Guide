@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/env_config.dart';
 
@@ -22,5 +23,10 @@ void main() {
 
       expect(EnvConfig.devAuthEnabled, isFalse);
     });
+  });
+
+  test('isDebug and enableLogging follow the build mode (D-03)', () {
+    expect(EnvConfig.isDebug, !kReleaseMode);
+    expect(EnvConfig.enableLogging, !kReleaseMode);
   });
 }

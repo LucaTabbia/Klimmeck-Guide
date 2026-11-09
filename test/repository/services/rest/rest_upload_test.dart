@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/env_config.dart';
 import 'package:klimmeck_guide/repository/services/rest/image_upload_exception.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
@@ -15,7 +15,8 @@ void main() {
   late File file;
 
   setUp(() {
-    dotenv.loadFromString(envString: 'BASE_URL=http://localhost:3000/');
+    EnvConfig.installRuntimeOverrides({'BASE_URL': 'http://localhost:3000/'});
+    addTearDown(EnvConfig.resetRuntimeOverrides);
     final dir = Directory.systemTemp.createTempSync('upload_test');
     file = File('${dir.path}/portrait.jpg')..writeAsBytesSync([1, 2, 3]);
     addTearDown(() => dir.deleteSync(recursive: true));
