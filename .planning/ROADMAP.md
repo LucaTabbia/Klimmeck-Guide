@@ -419,7 +419,7 @@ Plans:
 **Plans**: 17 plans (sequential waves; the last two — gate and device UAT + handoff — gated by the BE Phase 17 merge; the review by area runs between the last code plan and the gate)
 - [x] 12-01-PLAN.md — `EnvConfig` runtime-override seam (no `flutter_dotenv` import, flags = `!kReleaseMode`) and the `appLog` seam; the pinned config tests rewritten RED first (D-01, D-03c)
 - [x] 12-02-PLAN.md — Entry points split: three-line production `lib/main.dart`, `lib/main_dev.dart` with the `appFlavor` assert, shared `lib/bootstrap/` module, barrel export of the dev service removed, purity tests (D-01, D-16)
-- [ ] 12-03-PLAN.md — Build infrastructure in one commit: `env/dev.json`, `env/prod.json`, `env/*.local.json` ignored, flavored `.env` + `default-flavor: prod`, Android dev/prod flavors, `key.properties` signing with the `logger.quiet` warning, leak_tracker dev deps; scratch release build and bundle greps (D-02, D-03a, D-17)
+- [x] 12-03-PLAN.md — Build infrastructure in one commit: `env/dev.json`, `env/prod.json`, `env/*.local.json` ignored, flavored `.env` + `default-flavor: prod`, Android dev/prod flavors, `key.properties` signing with the `logger.quiet` warning, leak_tracker dev deps; scratch release build and bundle greps (D-02, D-03a, D-17)
 - [ ] 12-04-PLAN.md — TLS only in release: `requireSecureTransport`, `InsecureTransportError`, `InsecureTransportScreen` with the D-19 copy, check first in `bootstrapApp` (D-03b)
 - [ ] 12-05-PLAN.md — Repository/services logs (31 calls, 14 files) routed through `appLog`, per-directory guard test (D-03c)
 - [ ] 12-06-PLAN.md — Screen/shared logs (23 calls, 13 files) routed through `appLog`; guard over all of `lib/` (D-03c)
@@ -578,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 2/17 | In Progress (executes last) | - |
+| 12. Hardening | 3/17 | In Progress (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
