@@ -431,7 +431,7 @@ Plans:
 - [x] 12-12-PLAN.md — Character creation (`BAD_USER_INPUT`, `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` with the D-19 copy and the two cubit reactions) and character deletion (D-13a, D-13b)
 - [x] 12-13-PLAN.md — `BAD_USER_INPUT` in innkeeper and push device (no retry); `cityClass` removed, marker visibility driven by `City.size`, per-type pixel sizes kept (D-13a, D-13c)
 - [x] 12-14-PLAN.md — `SessionRejected.reason` parsed leniently; `replacedByNewLogin` / `roleChanged` reasons and notices with the fixed copy; `_rotateSession` mapping and the `fakeAsync` companion, on fakes (D-12)
-- [ ] 12-15-PLAN.md — `4409` handled like `4401` in `WsReconnectPolicy`; Wave 0 fakes (`closeSocket`, `onConnectionInit`, `FakeSessionBackend`); `dual_session_revocation_test.dart` cases a–e, on fakes (D-06, D-09)
+- [x] 12-15-PLAN.md — `4409` handled like `4401` in `WsReconnectPolicy`; Wave 0 fakes (`closeSocket`, `onConnectionInit`, `FakeSessionBackend`); `dual_session_revocation_test.dart` cases a–e, on fakes (D-06, D-09)
 - [ ] 12-16-PLAN.md — ⛔ Gate (after the BE Phase 17 merge): gate file check, names proven on the merged BE files, BE handoff read (HARDEN-02 evidence), schema check 45/45, guard script, full suite, analyzer, release build + bundle guard, format/trailer/sanity gates, VALIDATION approved
 - [ ] 12-17-PLAN.md — ⛔ Device UAT + handoff: `12-HUMAN-UAT.md` (prerequisites incl. keystore, tunnel, Twitch redirect, one BE process; 11 steps), human checkpoint, verbatim results, `mark-complete` only here, `BACKEND-NOTES.md`, ROADMAP/STATE/REQUIREMENTS/VALIDATION closed (D-04, D-06, D-20)
 ### Phase 13: City Shops
@@ -578,7 +578,7 @@ Plans:
 | 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
 | 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
 | 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 14/17 | In Progress (executes last) | - |
+| 12. Hardening | 15/17 | In Progress (executes last) | - |
 | 13. City Shops | 11/11 | Complete | 2026-11-03 |
 | 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
