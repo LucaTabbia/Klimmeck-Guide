@@ -3,13 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 
 import '../../helpers/svg_cache_seed.dart';
 import '../../helpers/test_app.dart';
 
-LootItem _loot({EffectType? effect, int? power}) => LootItem(
+LootItem _loot({
+  EffectType? effect,
+  int? power,
+  List<InjuryType> injuries = const [],
+}) => LootItem(
   id: 'l-1',
   name: 'Pozione',
   description: 'Cura le ferite',
@@ -18,6 +23,7 @@ LootItem _loot({EffectType? effect, int? power}) => LootItem(
   sellPrice: null,
   effect: effect,
   power: power,
+  effectedInjuries: injuries,
 );
 
 final _helm = AssetItem.fromJson({
@@ -85,6 +91,37 @@ void main() {
 
       expect(find.text('Un elmo robusto'), findsOneWidget);
       expect(find.byKey(const ValueKey('item-effect-e-1')), findsNothing);
+    });
+  });
+
+  group('injuries line', () {
+    testWidgets('a heal item lists the injuries it cures under the effect', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _loot(
+          effect: EffectType.heal,
+          power: 12,
+          injuries: [InjuryType.blackEye, InjuryType.blindness],
+        ),
+      );
+
+      expect(find.text('Cura: cecità, occhio nero'), findsOneWidget);
+      expect(find.byKey(const ValueKey('item-injuries-l-1')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Cura: cecità, occhio nero')).dy,
+        greaterThan(tester.getTopLeft(find.text('Cura: 12')).dy),
+      );
+    });
+
+    testWidgets('a heal item without injuries shows no injuries line', (
+      tester,
+    ) async {
+      await _pump(tester, _loot(effect: EffectType.heal, power: 12));
+
+      expect(find.byKey(const ValueKey('item-effect-l-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('item-injuries-l-1')), findsNothing);
     });
   });
 }

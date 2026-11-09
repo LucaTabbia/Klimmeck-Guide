@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
@@ -9,7 +10,11 @@ import 'package:klimmeck_guide/utils/item_lines.dart';
 
 import '../helpers/fixtures/shop_fixtures.dart';
 
-LootItem _loot({EffectType? effect, int? power}) => LootItem(
+LootItem _loot({
+  EffectType? effect,
+  int? power,
+  List<InjuryType> injuries = const [],
+}) => LootItem(
   id: 'l-1',
   name: 'Pozione',
   description: '',
@@ -18,6 +23,7 @@ LootItem _loot({EffectType? effect, int? power}) => LootItem(
   sellPrice: null,
   effect: effect,
   power: power,
+  effectedInjuries: injuries,
 );
 
 EquipmentItem _jewel(EquipType equipType, List<AccessoryUseType>? uses) =>
@@ -152,6 +158,50 @@ void main() {
     test('a ring without use types has no line (D-12)', () {
       expect(accessoryUsageLine(_jewel(EquipType.ring, null)), isNull);
       expect(accessoryUsageLine(_jewel(EquipType.ring, const [])), isNull);
+    });
+  });
+
+  group('healedInjuriesLine', () {
+    test(
+      'a heal item lists the injuries it cures in enum order, lower case',
+      () {
+        expect(
+          healedInjuriesLine(
+            _loot(
+              effect: EffectType.heal,
+              power: 12,
+              injuries: [InjuryType.blackEye, InjuryType.blindness],
+            ),
+          ),
+          'Cura: cecità, occhio nero',
+        );
+      },
+    );
+
+    test('a single injury reads without a separator', () {
+      expect(
+        healedInjuriesLine(
+          _loot(effect: EffectType.heal, injuries: [InjuryType.deepCut]),
+        ),
+        'Cura: taglio profondo',
+      );
+    });
+
+    test('a heal item without injuries has no line', () {
+      expect(
+        healedInjuriesLine(_loot(effect: EffectType.heal, power: 12)),
+        isNull,
+      );
+    });
+
+    test('a non-heal item never has the line, even with injuries', () {
+      expect(
+        healedInjuriesLine(
+          _loot(effect: EffectType.hunger, injuries: [InjuryType.deepCut]),
+        ),
+        isNull,
+      );
+      expect(healedInjuriesLine(_loot(injuries: [InjuryType.deepCut])), isNull);
     });
   });
 }
