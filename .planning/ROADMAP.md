@@ -84,8 +84,9 @@ Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, T
 - [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
 - [x] **Phase 16: Travel Ambushes** — The pawn restarts from the ambush point towards the nearest city after a lost ambush (push + banner of a new category); the ambush reports of a travel open at arrival in a carousel of result sheets delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29, discussed 2026-11-06)_ (completed 2026-11-09)
 - [x] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07. (completed 2026-11-09)
+- [ ] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_
 
-**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last.
+**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last. **Amended 2026-11-09:** … → 17 → 12 Hardening → 18 Heal Quests by City Size (planned on 2026-11-09, executed after the Phase 12 merge; user decision).
 
 ## Phase Details
 
@@ -541,6 +542,19 @@ Plans:
 - [x] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
 - [x] 17-12-PLAN.md — device UAT findings (D-23, D-24): the unknown-city paper sheet stretched to the paper width (name and line centred); a tap on the idle pawn opens the sheet of the city it stands on through the same city-tap path (the pawn covers the marker of the current city); drag and teleport pawn unchanged
 
+### Phase 18: Heal Quests by City Size
+**Goal**: Heal quests stop being all alike. The backend owns the cure as an explicit prize of the quest (`prizes.cure { lifePointsShare, canHeal }`: a ceiling on the maximum HP and the list of injuries healed, applied to every won quest that carries it) and the content by city size (village ≤20 / city ≤40 / capital all, lore touches by city type, 2 / 5 / 8 hours, descriptions by size, free). The frontend consumes the field: on the sheet of a quest with a cure it shows only the current character's injuries that the quest heals plus the life row, on the result sheet the injuries actually healed; it computes no game rule (the intersection with the character's injuries is display filtering).
+**Depends on**: Phase 6 (per-type sheets), Phase 9 (result parchment, HP delta, injuries line), Phase 14 (description on the sheet), quick tasks 261109-inj/inj2 (`canHeal` item line, 37 `InjuryType`, tolerant parsing), BE Phase 18 (`QuestPrizes.cure`, `QuestResult.injuriesHealed`, content at DB); **executes after Phase 12 Hardening** (user decision 2026-11-09)
+**Scope**: S
+**Requirements**: HEAL-01, HEAL-02, HEAL-03
+**Success Criteria** (what must be TRUE):
+  1. `QuestPrizes.cure` (`lifePointsShare`, `canHeal`) is parsed leniently into the quest model from the shared fragment (unknown injuries dropped, malformed cure → null, the quest stays); on the sheet of any quest with a non-null cure the cure line lists only the current character's injuries present in `canHeal` (lowercase Italian labels, character order) and is absent when none matches; the life row «Vita: almeno il N%» is shown whenever the cure is present (share 1 → «al massimo», share 0 → hidden); a heal without a cure shows neither row.
+  2. The result sheet shows «Guarite: <labels>» from `QuestResult.injuriesHealed` (lenient) after the HP delta and before the injuries added, hidden when empty.
+  3. Device UAT with the player identity after the BE Phase 18 merge and the content write: seeded injuries on the test character, one heal per size (village: one listed and one unlisted injury → one healed, HP to 50%, «Guarite» line; city; capital: everything healed, HP full); the schema gate confirms the names on the merged BE SDL.
+**Decisions of the discuss (2026-11-09, `18-CONTEXT.md` D-01..D-10)**: HP and injuries separated with explicit lists per place (user); ceiling 50/80/100; lists ≤20/≤40/all with lore touches; hours 2/5/8; sheet with only the viewer's curable injuries, no count, no line when none (user, confirmed); life row always; «Guarite: …» on the result; executed after Phase 12; Journal item use on stand-by and travel food deferred (user).
+**Backend prerequisite**: BE Phase 18 merged on BE `develop` (itself after the BE Phase 17).
+**Plans**: TBD
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -562,6 +576,7 @@ Plans:
 | 15. Travel Food | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | 12/12 | Complete | 2026-11-09 |
+| 18. Heal Quests by City Size | 0/0 | Not started (after Phase 12) | - |
 
 ## Traceability
 
@@ -674,11 +689,15 @@ Plans:
 | LORE-01 | Phase 17 | Complete |
 | LORE-02 | Phase 17 | Complete |
 | LORE-03 | Phase 17 | Complete |
+| HEAL-01 | Phase 18 | Pending |
+| HEAL-02 | Phase 18 | Pending |
+| HEAL-03 | Phase 18 | Pending |
 
-**Coverage:** 95 / 95 v1 requirements mapped (79 + 16 added 2026-10-29). No orphans. No duplicates.
+**Coverage:** 98 / 98 v1 requirements mapped (79 + 16 added 2026-10-29 + 3 HEAL added 2026-11-09). No orphans. No duplicates.
 
 ---
 
 _Roadmap created: 2026-04-10_
 _Last restructured: 2026-04-14 — Auth split in Phase 1 (Dev Auth Stub) + Phase 11 (full OAuth); Hardening shifted to Phase 12_
 _Last extended: 2026-10-29 — Phases 13–17 appended (City Shops, Quest Generation companion, Travel Food, Travel Ambushes, Unlockable Lore), mirrors of BE Phases 12–16 with BE Phase 11 World Content as data prerequisite; Phase 12 Hardening executes last_
+_Last extended: 2026-11-09 — Phase 18 appended (Heal Quests by City Size, mirror of BE Phase 18); planned now, executed after Phase 12 Hardening (user decision)_

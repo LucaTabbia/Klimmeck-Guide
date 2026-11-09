@@ -71,7 +71,8 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
 - [ ] Viaggio e cibo: anteprima di cibo e vita, rifiuto per fame (Phase 15 ↔ BE Phase 14) _(aggiunto 2026-10-29)_
 - [ ] Imboscate in viaggio: rotta deviata live, report sul foglio esito (Phase 16 ↔ BE Phase 15) _(aggiunto 2026-10-29)_
 - [ ] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_
-- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, eseguita per ultima)
+- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, poi la 18)
+- [ ] Quest heal per taglia: foglio con le sole ferite curabili del personaggio e la riga della vita, «Guarite: …» sull'esito (Phase 18 ↔ BE Phase 18) _(aggiunto 2026-11-09, eseguita dopo la 12)_
 
 **Future (post v1.0):**
 

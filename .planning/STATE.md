@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-11-09T12:15:00.000Z"
-last_activity: 2026-11-09 -- Phases 16 and 17 complete; feat/17-unlockable-lore rebased on develop after the Phase 16 merge (PR #42)
+status: planning
+last_updated: "2026-11-09T16:50:00.000Z"
+last_activity: 2026-11-09 -- Phase 18 (Heal Quests by City Size) context gathered in a joint discuss with the BE Phase 18; branch feat/18-heal-quests-by-size from develop ac75702 (worktree); executes after the Phase 12 Hardening
 progress:
-  total_phases: 17
+  total_phases: 18
   completed_phases: 16
   total_plans: 153
   completed_plans: 152
@@ -17,12 +17,12 @@ progress:
 
 ## Current Position
 
-Phase: 17 (Unlockable Lore) — COMPLETE 2026-11-09 on `feat/17-unlockable-lore` (from `develop` `f560d1d`): plans 17-01..17-12 done (17-11 and 17-12 inserted from the device UAT findings, D-20..D-24), reviewed, verified, fixed and audited; schema gate 45/45 OK on BE `develop` `6be50d2`; device E2E `17-HUMAN-UAT.md` steps 1–8 pass with the player identity (2026-11-08/09); LORE-01..03 complete; FE handoff `phases/17-unlockable-lore/BACKEND-NOTES.md` Rebased on `develop` `a80e93c` (the Phase 16 merge, PR #42) on 2026-11-09 with five hand-resolved conflicts on the shared result files (fragment comment, model `fromJson`, three tests: unions of both phases, CONTEXT D-18).
-Plan: 12 of 12
+Phase: 18 (Heal Quests by City Size) — CONTEXT GATHERED 2026-11-09 on `feat/18-heal-quests-by-size` (from `develop` `ac75702`, the merge of PR #44; git worktree because `refactor/12-hardening` occupies the main working tree): interactive discuss from this repo, joint with the BE Phase 18 «Quest heal per taglia» (BE branch `feat/18-quest-heal-per-taglia` from BE `develop` `31dba96`, worktree); `18-CONTEXT.md` D-01..D-10 (`prizes.cure` consumed leniently, cure line with only the viewer's curable injuries and no line when none, life row always, «Guarite: …» on the result, gated plans + device UAT by size); planned now, **executed after the Phase 12 Hardening merge** (user decision); next `/gsd-plan-phase 18` together with the BE Phase 18 plan
+Plan: 0 of TBD
 Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
-Next Phase: FE PR `feat/17-unlockable-lore` → `develop` (rebased on the Phase 16 merge `a80e93c`; BE Phases 15 and 16 merged on BE `develop` `6be50d2`), then FE 12 (Hardening) last
-Status: Phases 16 and 17 complete — 16 merged on `develop` (PR #42, `a80e93c`, device E2E 2026-11-09 steps 1–7, plan 16-09 from the carousel finding D-19); 17 complete 12/12 (device E2E 2026-11-09 steps 1–8, plans 17-11/17-12 from the UAT findings) and rebased on the merge: planning docs reconciled by hand (progress counters recomputed from the ROADMAP: FE 12 Hardening is the only phase still open), PR to open with the personal gh token per command, base `develop`
-Last activity: 2026-11-09 -- Phase 17 rebased on develop after the Phase 16 merge; planning docs reconciled
+Next Phase: plan Phase 18 (`/gsd-plan-phase 18`, BE `18-REPO-RULES.md` with the contract names first: `QuestCure`, `lifePointsShare`, `canHeal`, `injuriesHealed`) alongside the BE Phase 18 plan; execution after the Phase 12 Hardening merge on `develop` and the BE Phase 17 → 18 merges on BE `develop`; the Phase 12 (`refactor/12-hardening`, discussed and researched 2026-11-09) is planned in another session; reconcile STATE/ROADMAP/REQUIREMENTS/PROJECT at the second merge
+Status: Phase 18 context gathered — ready to plan (discuss 2026-11-09: 4 BE questions + 3 FE/planning questions + 1 confirmation, every area resolved); Phases 16 and 17 merged on `develop` (PR #42 `a80e93c`, PR #43), quick tasks 261109-inj/inj2 merged (PR #44 `ac75702`); Phase 12 Hardening on `refactor/12-hardening` (other session); BE Phases 15/16 and the twin quick tasks merged on BE `develop` (`31dba96`), BE Phase 17 on its branch
+Last activity: 2026-11-09 -- Phase 18 discuss: `18-CONTEXT.md` D-01..D-10 and `18-DISCUSSION-LOG.md`; BE Phase 18 added as companion with its CONTEXT; ROADMAP/REQUIREMENTS/PROJECT amended (HEAL-01..03)
 Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
 Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
 
