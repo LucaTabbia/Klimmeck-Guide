@@ -118,6 +118,49 @@ void main() {
     expect: () => const <NotificationIntentState>[],
   );
 
+  blocTest<NotificationIntentCubit, NotificationIntentState>(
+    'a direct switch to another user drops the pending tap (D-11)',
+    build: () => NotificationIntentCubit(authStates.stream),
+    act: (cubit) async {
+      authStates.add(withCharacter());
+      await Future<void>.value();
+      cubit.offer(questIntent);
+      authStates.add(
+        AuthAuthenticated(
+          user: buildTestUserWithCharacter(
+            characterId: 'character-b',
+          ).copyWith(id: 'user-b'),
+          accessToken: testAccessToken,
+        ),
+      );
+      await Future<void>.value();
+    },
+    expect: () => [
+      NotificationIntentState(pending: questIntent),
+      const NotificationIntentState(),
+    ],
+    verify: (cubit) => expect(cubit.state.pending, isNull),
+  );
+
+  blocTest<NotificationIntentCubit, NotificationIntentState>(
+    'a refresh of the same user keeps the pending tap (D-11)',
+    build: () => NotificationIntentCubit(authStates.stream),
+    act: (cubit) async {
+      authStates.add(withCharacter());
+      await Future<void>.value();
+      cubit.offer(questIntent);
+      authStates.add(
+        AuthAuthenticated(
+          user: buildTestUserWithCharacter().copyWith(twitchPoints: 50),
+          accessToken: 'rotated-token',
+        ),
+      );
+      await Future<void>.value();
+    },
+    expect: () => [NotificationIntentState(pending: questIntent)],
+    verify: (cubit) => expect(cubit.state.pending, questIntent),
+  );
+
   test('after close auth events are no longer observed', () async {
     final cubit = NotificationIntentCubit(authStates.stream);
     await cubit.close();
