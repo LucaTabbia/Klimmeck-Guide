@@ -5,7 +5,8 @@ cd "$(dirname "$0")/.." || exit 2
 failures=0
 fail() { echo "FAIL: $1"; failures=$((failures + 1)); }
 
-for f in lib/main.dart lib/bootstrap/app_bootstrap.dart lib/bootstrap/session_auth_composition.dart; do
+# Production graph: the entry point plus every bootstrap file except the dev composition.
+for f in lib/main.dart $(ls lib/bootstrap/*.dart | grep -v dev_auth_composition); do
   [ -f "$f" ] || { fail "$f missing"; continue; }
   grep -nE 'DEV_AUTH_|DevAuthTokenService|dev_auth_token_service|dev_auth_composition|flutter_dotenv' "$f" && fail "$f references the dev bypass"
 done
