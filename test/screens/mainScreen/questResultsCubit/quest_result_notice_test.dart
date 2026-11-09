@@ -25,11 +25,23 @@ void main() {
       );
     });
 
+    test('BAD_USER_INPUT shows the generic banner (D-13)', () {
+      final notice = questResultNoticeFor(QuestResultFailure.badUserInput)!;
+
+      expect(notice.title, questResultNoticeTitle);
+      expect(notice.description, 'Qualcosa è andato storto, riprova');
+    });
+
+    test('connection stays silent (D-13)', () {
+      expect(questResultNoticeFor(QuestResultFailure.connection), isNull);
+    });
+
     test('every other failure stays silent', () {
       final silent = QuestResultFailure.values.where(
         (failure) =>
             failure != QuestResultFailure.notFound &&
-            failure != QuestResultFailure.forbidden,
+            failure != QuestResultFailure.forbidden &&
+            failure != QuestResultFailure.badUserInput,
       );
 
       for (final failure in silent) {
