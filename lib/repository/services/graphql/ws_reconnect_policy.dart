@@ -2,6 +2,11 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/auth/unauthorized_recovery.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 
+/// Close code del backend per una sessione revocata (BE Phase 17
+/// `WS_SESSION_REVOKED_CLOSE_CODE`): stesso percorso di 4401, refresh prima di
+/// riconnettere (Phase 12 D-09).
+const int wsSessionRevokedCloseCode = 4409;
+
 /// Politica di (ri)connessione del WebSocket GraphQL per il `SocketClient` di
 /// `graphql` 5.2.1, che rivaluta `initialPayload` a ogni connect e attende
 /// `onConnectionLost` prima di armare il timer di riconnessione.
@@ -11,7 +16,8 @@ import 'package:klimmeck_guide/utils/backoff.dart';
 ///   non si spezzano (D-37). Il link viene disposto e ricreato solo al logout
 ///   da `GraphQLClientHolder.reset()` (D-12).
 /// - [onConnectionLost] su 4401 (`Token expired`) / 4403 (rifiuto al connect)
-///   passa dalla [UnauthorizedRecovery] prima di riconnettere; ogni altro
+///   / 4409 (sessione revocata) passa dalla [UnauthorizedRecovery] prima di
+///   riconnettere, senza leggere il motivo della chiusura; ogni altro
 ///   caso usa un backoff esponenziale limitato, azzerato solo dopo una
 ///   connessione stabile: nessun hot loop con un token morto.
 ///
@@ -26,7 +32,11 @@ class WsReconnectPolicy {
        _recovery = recovery,
        _now = now;
 
-  static const Set<int> authRejectedCloseCodes = {4401, 4403};
+  static const Set<int> authRejectedCloseCodes = {
+    4401,
+    4403,
+    wsSessionRevokedCloseCode,
+  };
   static const Duration authRetryDelay = Duration(milliseconds: 500);
   static const Duration maxReconnectDelay = Duration(seconds: 60);
   static const Duration stableConnection = Duration(seconds: 30);
