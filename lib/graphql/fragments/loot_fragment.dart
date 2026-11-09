@@ -3,7 +3,8 @@ import 'coins_fragment.dart';
 class LootFragment {
   static const String name = 'LootItemFields';
 
-  static String get definition => '''
+  static String get definition =>
+      '''
     fragment $name on LootItem {
       id
       name
@@ -11,6 +12,7 @@ class LootFragment {
       rarity
       effect
       power
+      effectedInjuries
       buyPrice {
         ${CoinsFragment.fields}
       }
@@ -27,6 +29,7 @@ class LootFragment {
     rarity
     effect
     power
+    effectedInjuries
     buyPrice {
       gold
       silver
@@ -46,4 +49,3 @@ class LootFragment {
     rarity
   ''';
 }
-
