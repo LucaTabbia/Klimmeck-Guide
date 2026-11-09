@@ -19,6 +19,19 @@ OperationException _subscriptionError(Object? payload) => OperationException(
   ),
 );
 
+GraphQLError _errorWithCode(String code) =>
+    GraphQLError(message: 'server text', extensions: {'code': code});
+
+ServerException _serverException(String code, int status) => ServerException(
+  statusCode: status,
+  parsedResponse: Response(response: const {}, errors: [_errorWithCode(code)]),
+);
+
+OperationException _fromHttp(String code, int status) =>
+    OperationException(linkException: _serverException(code, status));
+
+OperationException _fromHttp400(String code) => _fromHttp(code, 400);
+
 void main() {
   group('graphQlErrorCode', () {
     test('reads the code of a graphql error (backend wire shape)', () {
@@ -52,6 +65,30 @@ void main() {
       );
 
       expect(graphQlErrorCode(exception), 'NOT_FOUND');
+    });
+
+    test('reads the code of a GraphQL error answered with HTTP 400 (D-13)', () {
+      expect(
+        graphQlErrorCode(_fromHttp400('BAD_USER_INPUT')),
+        'BAD_USER_INPUT',
+      );
+    });
+
+    test('prefers the graphql errors over the parsed response (D-13)', () {
+      final exception = OperationException(
+        graphqlErrors: [_errorWithCode('FORBIDDEN')],
+        linkException: _serverException('NOT_FOUND', 400),
+      );
+
+      expect(graphQlErrorCode(exception), 'FORBIDDEN');
+    });
+
+    test('returns null for an HTTP error without a code (D-13)', () {
+      final exception = OperationException(
+        linkException: ServerException(statusCode: 500, parsedResponse: null),
+      );
+
+      expect(graphQlErrorCode(exception), isNull);
     });
   });
 
@@ -102,6 +139,10 @@ void main() {
     test('recognises a raw operation exception', () {
       expect(isAccessDeniedError(_graphqlError('FORBIDDEN')), isTrue);
       expect(isAccessDeniedError(_graphqlError('OTHER')), isFalse);
+    });
+
+    test('a FORBIDDEN answered with HTTP 403 is an access denial (D-13)', () {
+      expect(isAccessDeniedError(_fromHttp('FORBIDDEN', 403)), isTrue);
     });
 
     test('ignores unrelated errors', () {
