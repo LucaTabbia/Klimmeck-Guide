@@ -10,15 +10,18 @@ const String notFoundCode = 'NOT_FOUND';
 const Set<String> accessDeniedCodes = {forbiddenCode, notFoundCode};
 
 /// Estrae `extensions.code` dall'eccezione. La forma reale del backend è un
-/// `next` con `errors` (-> `graphqlErrors`); la forma con `SubscriptionError`
-/// (payload lista) è interpretata in modo difensivo.
+/// `next` con `errors` (-> `graphqlErrors`) e il `parsedResponse` di un
+/// `ServerException` (risposta HTTP ≥ 300, Phase 12 D-13a); la forma con
+/// `SubscriptionError` (payload lista) è interpretata in modo difensivo.
 String? graphQlErrorCode(OperationException? exception) {
   if (exception == null) return null;
-  for (final error in exception.graphqlErrors) {
-    final code = error.extensions?['code'];
-    if (code is String) return code;
-  }
-  final original = exception.linkException?.originalException;
+  final link = exception.linkException;
+  final code = _firstCodeOf([
+    ...exception.graphqlErrors,
+    if (link is ServerException) ...?link.parsedResponse?.errors,
+  ]);
+  if (code != null) return code;
+  final original = link?.originalException;
   if (original is SubscriptionError && original.payload is List) {
     for (final item in original.payload as List) {
       final code = _codeOfPayloadItem(item);
@@ -27,6 +30,11 @@ String? graphQlErrorCode(OperationException? exception) {
   }
   return null;
 }
+
+String? _firstCodeOf(List<GraphQLError> errors) => errors
+    .map((error) => error.extensions?['code'])
+    .whereType<String>()
+    .firstOrNull;
 
 String? _codeOfPayloadItem(Object? item) {
   if (item is! Map) return null;
