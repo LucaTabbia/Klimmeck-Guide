@@ -65,7 +65,6 @@ created: 2026-11-09
 | DevTools memory snapshot before/after logout shows no retained cubit or subscription | HARDEN-05 | A profiler run on the device cannot be automated in `flutter test` | `12-HUMAN-UAT.md` step: DevTools › Memory, snapshot after login, logout, GC, snapshot: no `*Cubit`, `WebSocketLink`, `StreamSubscription` instances of the session remain; screenshots attached |
 | Second login on the emulator replaces the phone session with the dedicated notice | HARDEN-06 | Needs two real Twitch logins on two devices against the merged BE Phase 17 | `12-HUMAN-UAT.md` steps: login on the Samsung, login on the emulator with the same account, the phone shows «Hai effettuato l'accesso da un altro dispositivo.» within a minute; no crash, no stale state |
 | Release APK through the TLS tunnel: real login, play, logout | HARDEN-08 | Signed release build, TLS-only transport and the tunnel exist only on the device | `12-HUMAN-UAT.md` steps: `flutter build apk --release --dart-define-from-file=env/<tunnel>.json`, `adb install -r`, login via Twitch, one quest/travel round trip, logout |
-| Marker sizes from `City.size` (56/43/31): the three outliers `valanCapital`, `talmvereVillage`, `elfCapital` look right on the Map | HARDEN-10 | Visual check of a size table change | `12-HUMAN-UAT.md` step: open the Map on the device, compare the three cities with their neighbours, record the verdict |
 
 ---
 
