@@ -48,6 +48,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: '.env');
+  EnvConfig.installRuntimeOverrides(dotenv.env);
   // Phase 5 D-02: senza google-services.json il push resta disabilitato, il gioco no.
   final push = await bootstrapPush();
 
