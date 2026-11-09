@@ -155,6 +155,12 @@ final Finder _sheet = find.byType(QuestResultSheet);
 
 final Finder _carousel = find.byType(AmbushReportCarousel);
 
+/// «Continua» of one carousel page: with the peek (D-19) two pages are live.
+Finder _continueOfPage(String resultId) => find.descendant(
+  of: find.byKey(ValueKey('ambushReportCarousel.page.$resultId')),
+  matching: find.byKey(QuestResultSheet.continueKey),
+);
+
 BuildContext _homeContext(WidgetTester tester) =>
     tester.element(find.text('map'));
 
@@ -450,7 +456,7 @@ void main() {
       await h.pump(tester);
       await h.enterMap(tester);
 
-      await tester.tap(find.byKey(QuestResultSheet.continueKey));
+      await tester.tap(_continueOfPage('a1'));
       await tester.pumpAndSettle();
 
       expect(h.acknowledger.acknowledged, ['a1', 'a2']);
