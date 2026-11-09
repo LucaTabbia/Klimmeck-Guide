@@ -3,15 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Directory il cui codice registra solo tramite `appLog` (D-03c).
-const List<String> _routedRoots = [
-  'lib/repository/services/auth',
-  'lib/repository/services/graphql',
-  'lib/repository/services/rest',
-  'lib/repository/storage',
-  'lib/repository/services/sync',
-  'lib/repository/cache',
-  'lib/repository/services/push',
-];
+const List<String> _routedRoots = ['lib'];
 
 const String _appLogPath = 'lib/utils/app_log.dart';
 
