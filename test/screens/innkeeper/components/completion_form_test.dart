@@ -124,8 +124,8 @@ void main() {
     testWidgets('one chip per injury with the Italian label', (tester) async {
       await pumpSection(tester, _aldoDraft);
 
-      expect(InjuryType.values.length, 28);
-      expect(find.byType(FilterChip), findsNWidgets(28));
+      expect(InjuryType.values.length, 37);
+      expect(find.byType(FilterChip), findsNWidgets(37));
       for (final injury in InjuryType.values) {
         expect(find.text(injury.label), findsOneWidget);
       }
