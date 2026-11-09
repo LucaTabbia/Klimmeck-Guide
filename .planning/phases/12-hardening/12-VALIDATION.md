@@ -38,8 +38,8 @@ created: 2026-11-09
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 12-01-01 | 01 | 1 | HARDEN-07 | T-12-01, T-12-03 | `EnvConfig` reads installed overrides only, no `flutter_dotenv` import; flags `!kReleaseMode` | unit | `flutter test test/config test/repository/services/rest/rest_upload_test.dart test/repository/services/auth test/screens/auth` | ✅ (rewrite) | ⬜ pending |
-| 12-01-02 | 01 | 1 | HARDEN-08, HARDEN-01 | T-12-02 | `appLog` silent under release, audible in debug | unit | `flutter test test/utils/app_log_test.dart` | ❌ W0 | ⬜ pending |
+| 12-01-01 | 01 | 1 | HARDEN-07 | T-12-01, T-12-03 | `EnvConfig` reads installed overrides only, no `flutter_dotenv` import; flags `!kReleaseMode` | unit | `flutter test test/config test/repository/services/rest/rest_upload_test.dart test/repository/services/auth test/screens/auth` | ✅ (rewrite) | ✅ green |
+| 12-01-02 | 01 | 1 | HARDEN-08, HARDEN-01 | T-12-02 | `appLog` silent under release, audible in debug | unit | `flutter test test/utils/app_log_test.dart` | ❌ W0 | ✅ green |
 | 12-02-01 | 02 | 2 | HARDEN-07 | T-12-04 | session factory vs dev factory with fallback | unit | `flutter test test/bootstrap/auth_composition_test.dart` | ❌ W0 | ⬜ pending |
 | 12-02-02 | 02 | 2 | HARDEN-07 | T-12-04, T-12-05, T-12-06 | `lib/main.dart` production-pure, barrel without dev export, `main_dev.dart` flavor assert | unit (source) | `flutter test test/bootstrap test/repository/services/push test/repository/services/auth test/screens/auth test/app` | ❌ W0 | ⬜ pending |
 | 12-03-01 | 03 | 3 | HARDEN-07 | T-12-09 | dart-define files URL-only, `env/*.local.json` ignored | infra | `python3 -c "import json; [json.load(open(p)) for p in ('env/dev.json','env/prod.json')]; print('JSON_OK')" && grep -c "env/\*.local.json" .gitignore` | ❌ W0 | ⬜ pending |
