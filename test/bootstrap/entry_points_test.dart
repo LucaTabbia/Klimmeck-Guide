@@ -65,6 +65,23 @@ void main() {
     expect(flavorAssert, lessThan(dotenvLoad));
   });
 
+  test('bootstrapApp runs the secure-transport blocker before push and any '
+      'client (D-03)', () {
+    final source = _source('lib/bootstrap/app_bootstrap.dart');
+    final blocker = source.indexOf(
+      'secureTransportBlocker(isRelease: isRelease)',
+    );
+    final push = source.indexOf('bootstrapPush()');
+    final authApi = source.indexOf('GraphQlBackendAuthApi.forEndpoint');
+
+    expect(blocker, isNonNegative);
+    expect(push, isNonNegative);
+    expect(authApi, isNonNegative);
+    expect(blocker, lessThan(push));
+    expect(blocker, lessThan(authApi));
+    expect(source, contains('return runApp(blocker)'));
+  });
+
   test('env_config no longer imports flutter_dotenv (D-01)', () {
     expect(
       _source('lib/config/env_config.dart'),
