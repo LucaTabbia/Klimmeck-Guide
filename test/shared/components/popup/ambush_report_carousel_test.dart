@@ -22,7 +22,11 @@ const double _peekEdge = (1 - _peekViewportFraction) / 2;
 /// Least visible strip of the neighbour parchment, as a fraction of the width.
 const double _minVisiblePeek = 0.05;
 
-Future<void> _pump(
+/// D-19: farthest the opening nudge may carry the pages, in logical pixels.
+const double _nudgeDistance = 28;
+
+/// Pumps the carousel and one more frame only: the opening nudge is live.
+Future<void> _pumpUnsettled(
   WidgetTester tester,
   List<QuestResult> results, {
   VoidCallback? onContinue,
@@ -38,6 +42,15 @@ Future<void> _pump(
       ),
     ),
   );
+  await tester.pump();
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  List<QuestResult> results, {
+  VoidCallback? onContinue,
+}) async {
+  await _pumpUnsettled(tester, results, onContinue: onContinue);
   await tester.pumpAndSettle();
 }
 
@@ -204,5 +217,57 @@ void main() {
         expect(p1.left, closeTo(0, 1));
       },
     );
+  });
+
+  group('AmbushReportCarousel opening nudge (D-19)', () {
+    testWidgets(
+      'opening with several reports nudges forward and settles back on the '
+      'first page (D-19)',
+      (tester) async {
+        await _pumpUnsettled(tester, [_won, _lost]);
+        await tester.pump(const Duration(milliseconds: 120));
+
+        final w = _viewportWidth(tester);
+        final restLeft = w * _peekEdge;
+        final shift = restLeft - tester.getRect(_page(_won)).left;
+        expect(shift, greaterThan(0));
+        expect(shift, lessThan(_nudgeDistance + 1));
+
+        await tester.pumpAndSettle();
+
+        expect(tester.getRect(_page(_won)).left, closeTo(restLeft, 0.5));
+        expect(
+          tester.getRect(_page(_lost)).left,
+          closeTo(w * (1 - _peekEdge), 0.5),
+        );
+        expect(find.text('1 di 2'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a single report does not move at opening (D-19)', (
+      tester,
+    ) async {
+      await _pumpUnsettled(tester, [_won]);
+      await tester.pump(const Duration(milliseconds: 120));
+
+      expect(tester.getRect(_page(_won)).left, closeTo(0, 0.5));
+
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(_page(_won)).left, closeTo(0, 0.5));
+    });
+
+    testWidgets('Continua during the nudge still closes (D-05, D-19)', (
+      tester,
+    ) async {
+      var closes = 0;
+      await _pumpUnsettled(tester, [_won, _lost], onContinue: () => closes++);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(_continueOf(_won));
+      await tester.pumpAndSettle();
+
+      expect(closes, 1);
+    });
   });
 }
