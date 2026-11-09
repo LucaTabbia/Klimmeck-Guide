@@ -449,6 +449,51 @@ void main() {
       },
     );
 
+    void stubUploadFailure(CharacterCreationFailure failure) => when(
+      () => repository.uploadPortrait(any()),
+    ).thenAnswer((_) async => throw CharacterCreationException(failure));
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'a rejected portrait is cleared and the draft kept (D-13)',
+      build: () {
+        stubUploadFailure(CharacterCreationFailure.imageRejected);
+        return build();
+      },
+      seed: () => _submittable(portraitPath: '/tmp/a.jpg'),
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        verifyNever(() => repository.createCharacter(any()));
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(
+          cubit.state.submitFailure,
+          CharacterCreationFailure.imageRejected,
+        );
+        expect(cubit.state.portraitPath, isNull);
+        expect(cubit.state.uploadedPortrait, isNull);
+        expect(cubit.state.draft, _validDraft);
+      },
+    );
+
+    blocTest<CharacterCreationCubit, CharacterCreationState>(
+      'moderation unavailable keeps the portrait for a retry (D-13)',
+      build: () {
+        stubUploadFailure(CharacterCreationFailure.moderationUnavailable);
+        return build();
+      },
+      seed: () => _submittable(portraitPath: '/tmp/a.jpg'),
+      act: (cubit) => cubit.submit(),
+      verify: (cubit) {
+        verifyNever(() => repository.createCharacter(any()));
+        expect(cubit.state.isSubmitting, isFalse);
+        expect(
+          cubit.state.submitFailure,
+          CharacterCreationFailure.moderationUnavailable,
+        );
+        expect(cubit.state.portraitPath, '/tmp/a.jpg');
+        expect(cubit.state.draft, _validDraft);
+      },
+    );
+
     blocTest<CharacterCreationCubit, CharacterCreationState>(
       'mutation failure after the upload keeps the uploaded url',
       build: () {
