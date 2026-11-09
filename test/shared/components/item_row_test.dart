@@ -23,7 +23,7 @@ LootItem _loot({
   sellPrice: null,
   effect: effect,
   power: power,
-  effectedInjuries: injuries,
+  canHeal: injuries,
 );
 
 final _helm = AssetItem.fromJson({

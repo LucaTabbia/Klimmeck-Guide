@@ -24,57 +24,54 @@ final Map<String, String> _fullLootDocuments = {
 
 void main() {
   group('LootFragment', () {
-    test('fields select effectedInjuries after power', () {
+    test('fields select canHeal after power', () {
       expect(
         _collapsed(LootFragment.fields),
-        contains('effect power effectedInjuries buyPrice {'),
+        contains('effect power canHeal buyPrice {'),
       );
     });
 
-    test('definition selects effectedInjuries after power', () {
+    test('definition selects canHeal after power', () {
       expect(
         _collapsed(LootFragment.definition),
-        contains('effect power effectedInjuries buyPrice {'),
+        contains('effect power canHeal buyPrice {'),
       );
     });
 
-    test('simpleFields stay without effectedInjuries', () {
-      expect(LootFragment.simpleFields, isNot(contains('effectedInjuries')));
+    test('simpleFields stay without canHeal', () {
+      expect(LootFragment.simpleFields, isNot(contains('canHeal')));
     });
   });
 
   group('QuestFragment', () {
     final fields = _collapsed(QuestFragment.fields);
 
-    test('the prize item loot block selects effectedInjuries', () {
+    test('the prize item loot block selects canHeal', () {
       expect(
         fields,
         contains(
           '... on LootItem { ${_collapsed(LootFragment.simpleFields)} '
-          'description effect power effectedInjuries }',
+          'description effect power canHeal }',
         ),
       );
     });
 
     test('the recommended and random loot keep the simple fields', () {
-      expect(RegExp(r'\beffectedInjuries\b').allMatches(fields), hasLength(1));
+      expect(RegExp(r'\bcanHeal\b').allMatches(fields), hasLength(1));
     });
   });
 
   group('documents', () {
     for (final entry in _fullLootDocuments.entries) {
-      test(
-        '${entry.key} selects effectedInjuries and parses as one operation',
-        () {
-          expect(entry.value, contains('effectedInjuries'));
-          expect(
-            parseString(
-              entry.value,
-            ).definitions.whereType<OperationDefinitionNode>(),
-            hasLength(1),
-          );
-        },
-      );
+      test('${entry.key} selects canHeal and parses as one operation', () {
+        expect(entry.value, contains('canHeal'));
+        expect(
+          parseString(
+            entry.value,
+          ).definitions.whereType<OperationDefinitionNode>(),
+          hasLength(1),
+        );
+      });
     }
 
     test('the quests query parses as one operation', () {
@@ -84,6 +81,19 @@ void main() {
         ).definitions.whereType<OperationDefinitionNode>(),
         hasLength(1),
       );
+    });
+
+    test('nothing selects the retired effectedInjuries name', () {
+      final selections = [
+        LootFragment.fields,
+        LootFragment.definition,
+        QuestFragment.fields,
+        ..._fullLootDocuments.values,
+        QuestQueries.getAllQuests,
+      ];
+      for (final selection in selections) {
+        expect(selection, isNot(contains('effectedInjuries')));
+      }
     });
 
     test('the registry stays at 45 documents', () {

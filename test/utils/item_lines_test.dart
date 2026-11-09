@@ -23,7 +23,7 @@ LootItem _loot({
   sellPrice: null,
   effect: effect,
   power: power,
-  effectedInjuries: injuries,
+  canHeal: injuries,
 );
 
 EquipmentItem _jewel(EquipType equipType, List<AccessoryUseType>? uses) =>

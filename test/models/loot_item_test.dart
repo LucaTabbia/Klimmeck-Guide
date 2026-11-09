@@ -8,39 +8,36 @@ LootItem _potion({Object? injuries}) => LootItem.fromJson({
   'rarity': 'common',
   'effect': 'heal',
   'power': 12,
-  if (injuries != null) 'effectedInjuries': injuries,
+  if (injuries != null) 'canHeal': injuries,
 });
 
 void main() {
-  group('LootItem.effectedInjuries', () {
+  group('LootItem.canHeal', () {
     test(
       'parses the injuries a heal item can cure as an unmodifiable list',
       () {
         final potion = _potion(injuries: ['deepCut', 'infection']);
 
-        expect(potion.effectedInjuries, [
-          InjuryType.deepCut,
-          InjuryType.infection,
-        ]);
+        expect(potion.canHeal, [InjuryType.deepCut, InjuryType.infection]);
         expect(
-          () => potion.effectedInjuries.add(InjuryType.blackEye),
+          () => potion.canHeal.add(InjuryType.blackEye),
           throwsUnsupportedError,
         );
       },
     );
 
     test('drops unknown injury names instead of throwing', () {
-      expect(_potion(injuries: ['deepCut', 'brokenWing']).effectedInjuries, [
+      expect(_potion(injuries: ['deepCut', 'brokenWing']).canHeal, [
         InjuryType.deepCut,
       ]);
     });
 
     test('is empty when the wire omits the field or sends a non-list', () {
-      expect(_potion().effectedInjuries, isEmpty);
-      expect(_potion(injuries: 'deepCut').effectedInjuries, isEmpty);
-      expect(_potion(injuries: 3).effectedInjuries, isEmpty);
+      expect(_potion().canHeal, isEmpty);
+      expect(_potion(injuries: 'deepCut').canHeal, isEmpty);
+      expect(_potion(injuries: 3).canHeal, isEmpty);
       expect(
-        () => _potion().effectedInjuries.add(InjuryType.blackEye),
+        () => _potion().canHeal.add(InjuryType.blackEye),
         throwsUnsupportedError,
       );
     });
@@ -48,9 +45,9 @@ void main() {
     test('writes the injury names back in toJson', () {
       expect(
         _potion(injuries: ['deepCut', 'infection']).toJson(),
-        containsPair('effectedInjuries', ['deepCut', 'infection']),
+        containsPair('canHeal', ['deepCut', 'infection']),
       );
-      expect(_potion().toJson(), containsPair('effectedInjuries', isEmpty));
+      expect(_potion().toJson(), containsPair('canHeal', isEmpty));
     });
 
     test('round-trips through toJson and lists the injuries in props', () {
@@ -64,16 +61,13 @@ void main() {
     test('copyWith keeps the injuries unless they are replaced', () {
       final potion = _potion(injuries: ['deepCut', 'infection']);
 
-      expect(potion.copyWith(power: 20).effectedInjuries, [
+      expect(potion.copyWith(power: 20).canHeal, [
         InjuryType.deepCut,
         InjuryType.infection,
       ]);
-      expect(
-        potion
-            .copyWith(effectedInjuries: [InjuryType.blackEye])
-            .effectedInjuries,
-        [InjuryType.blackEye],
-      );
+      expect(potion.copyWith(canHeal: [InjuryType.blackEye]).canHeal, [
+        InjuryType.blackEye,
+      ]);
     });
   });
 }
