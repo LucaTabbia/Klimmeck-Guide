@@ -47,4 +47,15 @@ void main() {
       'Serve almeno il titolo Eroe',
     );
   });
+
+  test('a heal with no effect explains itself in the world (D-20)', () {
+    expect(
+      questBlockedReasonOf(
+        QuestAvailability.noEffect,
+        minTitle: null,
+        type: QuestType.heal,
+      ),
+      'Il tempio non può fare nulla per te adesso',
+    );
+  });
 }

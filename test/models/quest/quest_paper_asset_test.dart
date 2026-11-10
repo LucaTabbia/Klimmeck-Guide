@@ -51,7 +51,6 @@ void main() {
         QuestType.hunt,
         QuestType.job,
         QuestType.guard,
-        QuestType.heal,
         QuestType.study,
         QuestType.crime,
       ]) {
@@ -73,6 +72,20 @@ void main() {
         CloudinaryAssets.crimeSheet2,
       ]);
     });
+
+    test(
+      'a torn heal borrows the torn quest sheets, a whole one keeps the announcement (D-20)',
+      () {
+        expect(questPaperAssetIds(QuestType.heal, isTorn: true), [
+          CloudinaryAssets.questSheetTorn1,
+          CloudinaryAssets.questSheetTorn2,
+        ]);
+        expect(questPaperAssetIds(QuestType.heal, isTorn: false), [
+          CloudinaryAssets.announcementSheet1,
+          CloudinaryAssets.announcementSheet2,
+        ]);
+      },
+    );
 
     test('a null type falls back to the quest family', () {
       expect(questPaperAssetIds(null, isTorn: false), [

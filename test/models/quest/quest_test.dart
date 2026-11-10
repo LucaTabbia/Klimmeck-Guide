@@ -290,4 +290,37 @@ void main() {
       expect(withoutCure, isNot(prizes));
     });
   });
+
+  group('noEffect (BE Phase 18)', () {
+    test('a quest reads its per-viewer noEffect flag (D-20)', () {
+      expect(buildQuest(type: 'heal', noEffect: true).noEffect, isTrue);
+    });
+
+    test(
+      'a missing or malformed noEffect is false and the quest stays (D-20)',
+      () {
+        final absent = Quest.tryFromJson(questJson(type: 'heal'));
+        expect(absent, isNotNull);
+        expect(absent!.noEffect, isFalse);
+        for (final malformed in <Object?>[null, 'true', 1]) {
+          final quest = Quest.tryFromJson({
+            ...questJson(type: 'heal'),
+            'noEffect': malformed,
+          });
+          expect(quest, isNotNull, reason: '$malformed');
+          expect(quest!.noEffect, isFalse, reason: '$malformed');
+        }
+      },
+    );
+
+    test('toJson, copyWith and props carry noEffect (D-20)', () {
+      final quest = buildQuest(type: 'heal', noEffect: true);
+      expect(quest.toJson()['noEffect'], isTrue);
+      expect(Quest.fromJson(quest.toJson()).noEffect, isTrue);
+      expect(quest.copyWith(id: 'q-2').noEffect, isTrue);
+      expect(quest.copyWith(noEffect: false).noEffect, isFalse);
+      expect(quest, isNot(quest.copyWith(noEffect: false)));
+      expect(quest, buildQuest(type: 'heal', noEffect: true));
+    });
+  });
 }

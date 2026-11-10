@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 
@@ -287,6 +288,75 @@ void main() {
       expect(
         availabilityOf(buildQuest(type: 'enemy', minTitle: 'hero'), viewer),
         QuestAvailability.alreadyDone,
+      );
+    });
+  });
+
+  group('noEffect (D-20)', () {
+    test('a quest with noEffect is torn and cannot be accepted (D-20)', () {
+      final standing = standingOf(
+        buildQuest(type: 'heal', noEffect: true),
+        buildViewer(),
+      );
+      expect(standing.availability, QuestAvailability.noEffect);
+      expect(standing.isTorn, isTrue);
+      expect(standing.canAccept, isFalse);
+    });
+
+    test('without the flag the same heal is available and whole (D-20)', () {
+      final standing = standingOf(buildQuest(type: 'heal'), buildViewer());
+      expect(standing.availability, QuestAvailability.available);
+      expect(standing.isTorn, isFalse);
+      expect(standing.canAccept, isTrue);
+    });
+
+    test(
+      'a more specific block keeps its reason and the sheet stays torn (D-20)',
+      () {
+        final viewer = buildViewer(
+          quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+        );
+        final standing = standingOf(
+          buildQuest(type: 'heal', noEffect: true),
+          viewer,
+        );
+        expect(standing.availability, QuestAvailability.laneBusy);
+        expect(standing.isTorn, isTrue);
+      },
+    );
+
+    test("the lane owner's heal stays tornForOwner (D-20)", () {
+      final viewer = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questId: 'q-1')),
+      );
+      final standing = standingOf(
+        buildQuest(type: 'heal', noEffect: true),
+        viewer,
+      );
+      expect(standing.availability, QuestAvailability.tornForOwner);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('the flag is read for any type, no rule on the type (D-20)', () {
+      final standing = standingOf(
+        buildQuest(type: 'job', noEffect: true),
+        buildViewer(),
+      );
+      expect(standing.availability, QuestAvailability.noEffect);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('a quest with noEffect asks for no travel preview (D-20)', () {
+      expect(
+        needsTravelPreview(buildQuest(type: 'heal'), buildViewer()),
+        isTrue,
+      );
+      expect(
+        needsTravelPreview(
+          buildQuest(type: 'heal', noEffect: true),
+          buildViewer(),
+        ),
+        isFalse,
       );
     });
   });
