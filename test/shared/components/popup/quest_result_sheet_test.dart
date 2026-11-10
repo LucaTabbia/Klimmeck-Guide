@@ -966,4 +966,70 @@ void main() {
       expect(continued, 1);
     });
   });
+
+  group('healed injuries (BE Phase 18)', () {
+    String healedText(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(QuestResultSheet.healedKey)).data!;
+
+    double topOf(WidgetTester tester, Key key) =>
+        tester.getTopLeft(find.byKey(key)).dy;
+
+    testWidgets(
+      'Guarite sits between the HP bar and the injuries added (D-06)',
+      (tester) async {
+        await _pump(
+          tester,
+          questResult(
+            questResultJson(
+              injuriesAdded: const ['deepCut'],
+              injuriesHealed: const ['contusion'],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(healedText(tester), 'Guarite: contusione');
+        final hp = topOf(tester, QuestResultSheet.hpKey);
+        final healed = topOf(tester, QuestResultSheet.healedKey);
+        final injuries = topOf(tester, QuestResultSheet.injuriesKey);
+        expect(hp, lessThan(healed));
+        expect(healed, lessThan(injuries));
+      },
+    );
+
+    testWidgets(
+      'the healed labels are lowercase and in the order of the result (D-19)',
+      (tester) async {
+        await _pump(
+          tester,
+          questResult(
+            questResultJson(injuriesHealed: const ['deepCut', 'contusion']),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(healedText(tester), 'Guarite: taglio profondo, contusione');
+      },
+    );
+
+    testWidgets('the healed line is hidden when nothing was healed (D-06)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(questResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.healedKey), findsNothing);
+    });
+
+    testWidgets('a heal result shows the HP gain and the healed line (D-06)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(healResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(tester.widget<HpDeltaBar>(find.byType(HpDeltaBar)).isGain, isTrue);
+      expect(healedText(tester), 'Guarite: contusione');
+    });
+  });
 }
