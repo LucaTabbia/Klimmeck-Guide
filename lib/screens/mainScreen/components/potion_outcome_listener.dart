@@ -16,10 +16,12 @@ class PotionOutcomeListener extends StatelessWidget {
   final Widget child;
 
   /// Dopo questi rifiuti la vista può essere stantia (oggetto non più
-  /// posseduto) o l'esito incerto (timeout): rilettura silenziosa.
+  /// posseduto) o l'esito incerto (timeout, esito illeggibile dopo che il
+  /// server l'ha applicato): rilettura silenziosa.
   static const Set<ItemUseFailure> _staleViewFailures = {
     ItemUseFailure.notOwned,
     ItemUseFailure.timedOut,
+    ItemUseFailure.unknown,
   };
 
   @override
