@@ -193,6 +193,21 @@ void main() {
     expect(find.textContaining('Conoscenza appresa'), findsNothing);
   });
 
+  testWidgets('without a positive maximum life the outcome shows no HP bar '
+      'but keeps Guarite and the lore line (D-18)', (tester) async {
+    await pumpSheet(
+      tester,
+      state: PotionDrunk(_herb, result),
+      maxLifePoints: 0,
+    );
+
+    expect(find.byKey(PotionSheet.hpKey), findsNothing);
+    expect(find.byType(HpDeltaBar), findsNothing);
+    expect(find.text('Guarite: contusione'), findsOneWidget);
+    expect(find.byKey(PotionSheet.loreKeyOf('lore-limit')), findsOneWidget);
+    expect(find.byKey(PotionSheet.continueKey), findsOneWidget);
+  });
+
   testWidgets('Continua closes the sheet (D-18)', (tester) async {
     await pumpSheet(tester, state: PotionDrunk(_herb, result));
 
