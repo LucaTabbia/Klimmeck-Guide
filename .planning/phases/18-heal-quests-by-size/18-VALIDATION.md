@@ -1,9 +1,9 @@
 ---
 phase: 18
 slug: heal-quests-by-size
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-10
 ---
 
@@ -63,9 +63,9 @@ created: 2026-11-10
 | 18-10-01 | 10 | 10 | HEAL-06 | T-18-36, T-18-37 | the flag is read, never computed; malformed → `false` | unit | `flutter test test/models/quest test/screens/mainScreen/tabs/board test/shared/components/popup/quest_info_sheet_test.dart` | ✅ (add groups) | ✅ green |
 | 18-10-02 | 10 | 10 | HEAL-06 | T-18-36, T-18-38, T-18-40 | inert sheet makes no accept call; reread only in a city and only on a value change | widget | `flutter test test/screens/mainScreen/tabs/board test/screens/mainScreen/components test/screens/mainScreen/main_screen_test.dart` | ✅ (add groups) | ✅ green |
 | 18-11-01 | 11 | 11 | HEAL-06 | T-18-39, T-18-50 | refusal explained with the fixed copy chosen by the code, list reread once | unit + widget | `flutter test test/repository test/screens/mainScreen/questAcceptanceCubit test/screens/mainScreen/components test/screens/mainScreen/tabs/board` | ✅ (add cases) | ✅ green |
-| 18-12-01 | 12 | 12 | HEAL-03 | T-18-41, T-18-42, T-18-43, T-18-45 | BE read-only; gate stops and parks; no rename | gate | the seven `grep -cF` on `origin/develop:src/schema.gql` (`GATE_OK`) | ✅ | ⬜ pending |
-| 18-12-02 | 12 | 12 | HEAL-01, HEAL-02, HEAL-04, HEAL-05, HEAL-06 | T-18-43 | 46/46 documents valid on the merged schema | unit + gate | `flutter test test/graphql test/tool test/models test/repository` + `dump_documents.dart` / `validate_documents.js` | ✅ (pins of RESEARCH §F13) | ⬜ pending |
-| 18-12-03 | 12 | 12 | HEAL-03 | T-18-44 | product-rule greps empty; full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ⬜ pending |
+| 18-12-01 | 12 | 12 | HEAL-03 | T-18-41, T-18-42, T-18-43, T-18-45 | BE read-only; gate stops and parks; no rename | gate | the eleven `grep -cF` (seven + four of quick 261110-cgd) on `origin/develop:src/schema.gql` (`GATE_OK`) | ✅ | ✅ green |
+| 18-12-02 | 12 | 12 | HEAL-01, HEAL-02, HEAL-04, HEAL-05, HEAL-06 | T-18-43 | 46/46 documents valid on the merged schema | unit + gate | `flutter test test/graphql test/tool test/models test/repository` + `dump_documents.dart` / `validate_documents.js` | ✅ (pins of RESEARCH §F13) | ✅ green |
+| 18-12-03 | 12 | 12 | HEAL-03 | T-18-44 | product-rule greps empty; full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ✅ green |
 | 18-13-01 | 13 | 13 | HEAL-03 | T-18-46 | no ids, tokens or URIs in the record | docs | `test -f .planning/phases/18-heal-quests-by-size/18-HUMAN-UAT.md` + row count 15 | ❌ (created by the task) | ⬜ pending |
 | 18-13-02 | 13 | 13 | HEAL-01..06 | T-18-48 | probe outside the repo; outcomes only | manual (device checkpoint) | `18-HUMAN-UAT.md` steps 1–15 | — | ⬜ pending |
 | 18-13-03 | 13 | 13 | HEAL-01..06 | T-18-46, T-18-47 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ⬜ pending |
@@ -78,17 +78,17 @@ created: 2026-11-10
 
 Test files and helpers that do not exist yet; each is created in the RED step of the task that needs it (no separate Wave 0 plan: every task is TDD).
 
-- [ ] `test/models/quest/quest_cure_test.dart` — HEAL-01 (18-01)
-- [ ] `test/models/loot_recovery_test.dart`, `test/models/use_item_result_test.dart` — HEAL-05, HEAL-04 (18-02)
-- [ ] `test/helpers/fixtures/potion_fixtures.dart` (`lootRecoveryJson`, `healPotionJson`, `ownedHealPotionJson`, `useItemResultJson`); `questCureJson` in `quest_fixtures.dart`; `injuriesHealed` + `healResultJson` in `quest_result_fixtures.dart` (18-01, 18-02)
-- [ ] `test/screens/mainScreen/characterCubit/character_selectors_test.dart` — HEAL-01 (18-04)
-- [ ] `test/graphql/use_item_document_test.dart`, `test/repository/services/graphql/graphql_use_item_test.dart`, `test/repository/item_use_failure_test.dart`, `test/repository/item_use_repository_test.dart` — HEAL-04 (18-06)
-- [ ] `test/screens/mainScreen/tabs/journal/potionCubit/potion_cubit_test.dart`, `test/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit_test.dart` — HEAL-04, HEAL-05 (18-07)
-- [ ] `test/screens/mainScreen/tabs/journal/potionCubit/potion_notice_test.dart`, `test/screens/mainScreen/components/potion_outcome_listener_test.dart` — HEAL-04 (18-08)
-- [ ] `test/utils/lore_lines_test.dart` — HEAL-04, D-21 (18-09)
-- [ ] `test/screens/mainScreen/tabs/journal/components/potion_sheet_test.dart`, `test/screens/mainScreen/tabs/journal/sections/items_section_test.dart` — HEAL-04, HEAL-05 (18-09)
-- [ ] Mocks in `test/helpers/mocks.dart`: `MockItemUseRepository` (18-06), `MockPotionCubit` (18-07); `idlePotionCubit`, the new `journalCharacter` parameters and the potion provider in `test/helpers/journal_harness.dart` (18-09)
-- [ ] Fixture parameters for HEAL-06: `noEffect` on `questJson` / `buildQuest`, `currentLifePoints` / `maxLifePoints` / `injuries` on `characterWithLanesJson` (18-10)
+- [x] `test/models/quest/quest_cure_test.dart` — HEAL-01 (18-01)
+- [x] `test/models/loot_recovery_test.dart`, `test/models/use_item_result_test.dart` — HEAL-05, HEAL-04 (18-02)
+- [x] `test/helpers/fixtures/potion_fixtures.dart` (`lootRecoveryJson`, `healPotionJson`, `ownedHealPotionJson`, `useItemResultJson`); `questCureJson` in `quest_fixtures.dart`; `injuriesHealed` + `healResultJson` in `quest_result_fixtures.dart` (18-01, 18-02)
+- [x] `test/screens/mainScreen/characterCubit/character_selectors_test.dart` — HEAL-01 (18-04)
+- [x] `test/graphql/use_item_document_test.dart`, `test/repository/services/graphql/graphql_use_item_test.dart`, `test/repository/item_use_failure_test.dart`, `test/repository/item_use_repository_test.dart` — HEAL-04 (18-06)
+- [x] `test/screens/mainScreen/tabs/journal/potionCubit/potion_cubit_test.dart`, `test/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit_test.dart` — HEAL-04, HEAL-05 (18-07)
+- [x] `test/screens/mainScreen/tabs/journal/potionCubit/potion_notice_test.dart`, `test/screens/mainScreen/components/potion_outcome_listener_test.dart` — HEAL-04 (18-08)
+- [x] `test/utils/lore_lines_test.dart` — HEAL-04, D-21 (18-09)
+- [x] `test/screens/mainScreen/tabs/journal/components/potion_sheet_test.dart`, `test/screens/mainScreen/tabs/journal/sections/items_section_test.dart` — HEAL-04, HEAL-05 (18-09)
+- [x] Mocks in `test/helpers/mocks.dart`: `MockItemUseRepository` (18-06), `MockPotionCubit` (18-07); `idlePotionCubit`, the new `journalCharacter` parameters and the potion provider in `test/helpers/journal_harness.dart` (18-09)
+- [x] Fixture parameters for HEAL-06: `noEffect` on `questJson` / `buildQuest`, `currentLifePoints` / `maxLifePoints` / `injuries` on `characterWithLanesJson` (18-10)
 - No framework install needed; `FakeServerClockService` already covers the clock.
 
 ---
@@ -108,11 +108,13 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s for the per-task runs
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s for the per-task runs
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-11 (plan 18-12; the 18-13 device rows stay pending)
+
+Gate passed on BE `66df2ef2`: 46/46 OK, full suite 4029 green, analyzer 47 info.
