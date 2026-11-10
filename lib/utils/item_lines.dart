@@ -96,10 +96,13 @@ String? lifeShareLine(QuestCure? cure) {
   return 'Vita: almeno $article$percent%';
 }
 
-/// «l'8%», «l'11%», «l'80%»…«l'89%»: i numeri che in italiano iniziano per
-/// vocale (D-21).
+/// «l'1%», «l'8%», «l'11%», «l'80%»…«l'89%»: i numeri che in italiano
+/// iniziano per vocale (D-21).
 bool _elidesArticle(int percent) =>
-    percent == 8 || percent == 11 || (percent >= 80 && percent <= 89);
+    percent == 1 ||
+    percent == 8 ||
+    percent == 11 ||
+    (percent >= 80 && percent <= 89);
 
 /// Riga «Guarite: …» del foglio esiti e della pozione bevuta (D-06): etichette
 /// in minuscolo nell'ordine ricevuto; nessuna riga senza ferite guarite.
