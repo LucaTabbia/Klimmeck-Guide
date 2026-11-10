@@ -10,8 +10,8 @@ import '../../../../helpers/landscape.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 
-const _huntIntact = [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2];
-const _huntTorn = [
+const _bossIntact = [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2];
+const _enemyTorn = [
   CloudinaryAssets.enemyTornSheet1,
   CloudinaryAssets.enemyTornSheet2,
 ];
@@ -44,8 +44,8 @@ String _url(WidgetTester tester) =>
 void main() {
   setUp(
     () => seedSvgCache([
-      ..._huntIntact,
-      ..._huntTorn,
+      ..._bossIntact,
+      ..._enemyTorn,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
     ]),
@@ -65,13 +65,13 @@ void main() {
   testWidgets('a torn boss shows a torn hunt paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);
 
-    expect(_url(tester), isIn(_huntTorn.map(CloudinaryAssets.url)));
+    expect(_url(tester), isIn(_enemyTorn.map(CloudinaryAssets.url)));
   });
 
-  testWidgets('an intact boss shows an intact hunt paper', (tester) async {
+  testWidgets('an intact boss shows an intact boss paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: false);
 
-    expect(_url(tester), isIn(_huntIntact.map(CloudinaryAssets.url)));
+    expect(_url(tester), isIn(_bossIntact.map(CloudinaryAssets.url)));
   });
 
   testWidgets('the paper does not change across rebuilds', (tester) async {

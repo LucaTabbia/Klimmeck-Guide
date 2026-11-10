@@ -2,18 +2,28 @@ import '../../config/cloudinary_assets.dart';
 import '../enums/quest_type.dart';
 import 'quest.dart';
 
+const _enemyTornSheets = [
+  CloudinaryAssets.enemyTornSheet1,
+  CloudinaryAssets.enemyTornSheet2,
+];
+const _questTornSheets = [
+  CloudinaryAssets.questSheetTorn1,
+  CloudinaryAssets.questSheetTorn2,
+];
+
 /// Famiglia di asset del foglio sulla board (D-12), riusata dal foglio sulla mappa (D-07).
 List<String> questPaperAssetIds(
   QuestType? type, {
   required bool isTorn,
 }) => switch (type) {
-  QuestType.boss || QuestType.enemy =>
+  QuestType.enemy =>
     isTorn
-        ? const [
-            CloudinaryAssets.enemyTornSheet1,
-            CloudinaryAssets.enemyTornSheet2,
-          ]
+        ? _enemyTornSheets
         : const [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2],
+  QuestType.boss =>
+    isTorn
+        ? _enemyTornSheets
+        : const [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2],
   QuestType.worldMission =>
     isTorn
         ? const [CloudinaryAssets.worldMissionTornSheet]
@@ -71,12 +81,13 @@ List<String> questPaperAssetIds(
     isTorn
         ? const [CloudinaryAssets.magicTornSheet]
         : const [CloudinaryAssets.magicSheet],
-  QuestType.dungeon || QuestType.aid || null =>
+  QuestType.aid =>
     isTorn
-        ? const [
-            CloudinaryAssets.questSheetTorn1,
-            CloudinaryAssets.questSheetTorn2,
-          ]
+        ? _questTornSheets
+        : const [CloudinaryAssets.aidSheet1, CloudinaryAssets.aidSheet2],
+  QuestType.dungeon || null =>
+    isTorn
+        ? _questTornSheets
         : const [CloudinaryAssets.questSheet2, CloudinaryAssets.questSheet1],
 };
 
