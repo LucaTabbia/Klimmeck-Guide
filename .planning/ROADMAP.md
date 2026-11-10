@@ -72,7 +72,7 @@ Plans:
 - [x] 18-07-PLAN.md — Potion cubits (`PotionCubit`, `PotionRecoveryCubit`)
 - [x] 18-08-PLAN.md — Potion notices and wiring (`potionNoticeFor`, `PotionOutcomeListener`)
 - [x] 18-09-PLAN.md — Shared lore line and Journal potion flow (`PotionSheet`, `ItemsSection`, countdown, travel, awaiting aid)
-- [ ] 18-10-PLAN.md — Heal with no effect: `Quest.noEffect`, torn inert sheet, vitals reread
+- [x] 18-10-PLAN.md — Heal with no effect: `Quest.noEffect`, torn inert sheet, vitals reread
 - [ ] 18-11-PLAN.md — Heal with no effect: `QUEST_NO_EFFECT` refusal, notice, list reread
 - [ ] 18-12-PLAN.md — Schema gate, fragment selections, document validation, full suite (gated on the BE Phase 18 merge)
 - [ ] 18-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
@@ -112,7 +112,7 @@ Plans:
 | 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
-| 18. Heal Quests by City Size | v1.1 | 9/13 | In Progress | - |
+| 18. Heal Quests by City Size | v1.1 | 10/13 | In Progress | - |
 | 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
