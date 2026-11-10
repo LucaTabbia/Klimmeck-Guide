@@ -11,9 +11,9 @@ import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 
 const _bossIntact = [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2];
-const _enemyTorn = [
-  CloudinaryAssets.enemyTornSheet1,
-  CloudinaryAssets.enemyTornSheet2,
+const _bossTorn = [
+  CloudinaryAssets.bossTornSheet1,
+  CloudinaryAssets.bossTornSheet2,
 ];
 
 Future<void> _pump(
@@ -45,7 +45,7 @@ void main() {
   setUp(
     () => seedSvgCache([
       ..._bossIntact,
-      ..._enemyTorn,
+      ..._bossTorn,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
     ]),
@@ -62,10 +62,10 @@ void main() {
     expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicTornSheet));
   });
 
-  testWidgets('a torn boss shows a torn hunt paper', (tester) async {
+  testWidgets('a torn boss shows a torn boss paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);
 
-    expect(_url(tester), isIn(_enemyTorn.map(CloudinaryAssets.url)));
+    expect(_url(tester), isIn(_bossTorn.map(CloudinaryAssets.url)));
   });
 
   testWidgets('an intact boss shows an intact boss paper', (tester) async {

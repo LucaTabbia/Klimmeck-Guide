@@ -18,14 +18,14 @@ void main() {
       ]);
     });
 
-    test('boss has its own whole sheets and the torn enemy ones', () {
+    test('boss uses its own whole and torn sheets', () {
       expect(questPaperAssetIds(QuestType.boss, isTorn: false), [
         CloudinaryAssets.bossSheet1,
         CloudinaryAssets.bossSheet2,
       ]);
       expect(questPaperAssetIds(QuestType.boss, isTorn: true), [
-        CloudinaryAssets.enemyTornSheet1,
-        CloudinaryAssets.enemyTornSheet2,
+        CloudinaryAssets.bossTornSheet1,
+        CloudinaryAssets.bossTornSheet2,
       ]);
     });
 
@@ -305,6 +305,14 @@ void main() {
     test('the boss and aid sheets point to their files', () {
       expect(CloudinaryAssets.bossSheet1, 'v1794330835/bossSheet_kmcubi.svg');
       expect(CloudinaryAssets.bossSheet2, 'v1794331761/bossSheet2_jpfofw.svg');
+      expect(
+        CloudinaryAssets.bossTornSheet1,
+        'v1794346460/tornBossSheet1_aua3ms.svg',
+      );
+      expect(
+        CloudinaryAssets.bossTornSheet2,
+        'v1794346467/tornBossSheet2_oi6v2x.svg',
+      );
       expect(CloudinaryAssets.aidSheet1, 'v1794331772/aidSheet1_bv1und.svg');
       expect(CloudinaryAssets.aidSheet2, 'v1794331778/aidSheet2_iuxlwt.svg');
       expect(
