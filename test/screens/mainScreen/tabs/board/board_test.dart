@@ -78,10 +78,10 @@ void main() {
   setUp(() {
     seedSvgCache([
       CloudinaryAssets.emptySheet,
-      CloudinaryAssets.huntSheet1,
-      CloudinaryAssets.huntSheet2,
-      CloudinaryAssets.huntTornSheet1,
-      CloudinaryAssets.huntTornSheet2,
+      CloudinaryAssets.enemySheet1,
+      CloudinaryAssets.enemySheet2,
+      CloudinaryAssets.enemyTornSheet1,
+      CloudinaryAssets.enemyTornSheet2,
       CloudinaryAssets.storySheet1,
       CloudinaryAssets.storySheet2,
       CloudinaryAssets.storyTornSheet1,

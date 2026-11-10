@@ -7,15 +7,15 @@ import '../../helpers/fixtures/quest_fixtures.dart';
 
 void main() {
   group('questPaperAssetIds', () {
-    test('boss and enemy use the hunt family', () {
+    test('boss and enemy use the enemy family', () {
       for (final type in [QuestType.boss, QuestType.enemy]) {
         expect(questPaperAssetIds(type, isTorn: false), [
-          CloudinaryAssets.huntSheet1,
-          CloudinaryAssets.huntSheet2,
+          CloudinaryAssets.enemySheet1,
+          CloudinaryAssets.enemySheet2,
         ]);
         expect(questPaperAssetIds(type, isTorn: true), [
-          CloudinaryAssets.huntTornSheet1,
-          CloudinaryAssets.huntTornSheet2,
+          CloudinaryAssets.enemyTornSheet1,
+          CloudinaryAssets.enemyTornSheet2,
         ]);
       }
     });
@@ -63,14 +63,14 @@ void main() {
       ]);
     });
 
-    test('hunt uses the game sheets, whole and torn', () {
+    test('hunt uses its own whole and torn sheets', () {
       expect(questPaperAssetIds(QuestType.hunt, isTorn: false), [
-        CloudinaryAssets.gameSheet1,
-        CloudinaryAssets.gameSheet2,
+        CloudinaryAssets.huntSheet1,
+        CloudinaryAssets.huntSheet2,
       ]);
       expect(questPaperAssetIds(QuestType.hunt, isTorn: true), [
-        CloudinaryAssets.gameTornSheet1,
-        CloudinaryAssets.gameTornSheet2,
+        CloudinaryAssets.huntTornSheet1,
+        CloudinaryAssets.huntTornSheet2,
       ]);
     });
 
@@ -159,11 +159,11 @@ void main() {
         'v1794314149/tornStorySheet2_otpfcb.svg',
       );
       expect(
-        CloudinaryAssets.huntTornSheet1,
+        CloudinaryAssets.enemyTornSheet1,
         'v1794313032/tornHuntSheet1_tk1xqh.svg',
       );
       expect(
-        CloudinaryAssets.huntTornSheet2,
+        CloudinaryAssets.enemyTornSheet2,
         'v1794312697/tornHuntSheet2_kf1oy7.svg',
       );
       expect(
@@ -214,15 +214,15 @@ void main() {
       );
     });
 
-    test('the game sheets point to their files', () {
-      expect(CloudinaryAssets.gameSheet1, 'v1794324911/gameSheet1_togp4w.svg');
-      expect(CloudinaryAssets.gameSheet2, 'v1794324912/gameSheet2_zrmzpe.svg');
+    test('the hunt sheets point to their files', () {
+      expect(CloudinaryAssets.huntSheet1, 'v1794324911/gameSheet1_togp4w.svg');
+      expect(CloudinaryAssets.huntSheet2, 'v1794324912/gameSheet2_zrmzpe.svg');
       expect(
-        CloudinaryAssets.gameTornSheet1,
+        CloudinaryAssets.huntTornSheet1,
         'v1794324905/tornGameSheet1_ruztfx.svg',
       );
       expect(
-        CloudinaryAssets.gameTornSheet2,
+        CloudinaryAssets.huntTornSheet2,
         'v1794324906/tornGameSheet2_j1xtv6.svg',
       );
     });

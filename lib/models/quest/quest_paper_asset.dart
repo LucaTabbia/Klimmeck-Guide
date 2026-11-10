@@ -10,10 +10,10 @@ List<String> questPaperAssetIds(
   QuestType.boss || QuestType.enemy =>
     isTorn
         ? const [
-            CloudinaryAssets.huntTornSheet1,
-            CloudinaryAssets.huntTornSheet2,
+            CloudinaryAssets.enemyTornSheet1,
+            CloudinaryAssets.enemyTornSheet2,
           ]
-        : const [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2],
+        : const [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2],
   QuestType.story || QuestType.worldMission =>
     isTorn
         ? const [
@@ -38,10 +38,10 @@ List<String> questPaperAssetIds(
   QuestType.hunt =>
     isTorn
         ? const [
-            CloudinaryAssets.gameTornSheet1,
-            CloudinaryAssets.gameTornSheet2,
+            CloudinaryAssets.huntTornSheet1,
+            CloudinaryAssets.huntTornSheet2,
           ]
-        : const [CloudinaryAssets.gameSheet1, CloudinaryAssets.gameSheet2],
+        : const [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2],
   // Senza foglio strappato finché non arrivano gli asset:
   // job e study usano il foglio intero anche se strappati.
   QuestType.job => const [
