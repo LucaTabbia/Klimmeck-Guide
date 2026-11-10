@@ -46,30 +46,44 @@ void main() {
       }
     });
 
-    test('job, study and crime have no torn sheet yet (quick 261110-mag)', () {
-      for (final type in [
-        QuestType.hunt,
-        QuestType.job,
-        QuestType.guard,
-        QuestType.study,
-        QuestType.crime,
-      ]) {
+    test('hunt, job and study have no torn sheet yet', () {
+      for (final type in [QuestType.hunt, QuestType.job, QuestType.study]) {
         expect(
           questPaperAssetIds(type, isTorn: true),
           questPaperAssetIds(type, isTorn: false),
         );
       }
-      expect(questPaperAssetIds(QuestType.job, isTorn: false), [
-        CloudinaryAssets.jobSheet1,
-        CloudinaryAssets.jobSheet2,
-      ]);
+      for (final type in [QuestType.hunt, QuestType.job]) {
+        expect(questPaperAssetIds(type, isTorn: false), [
+          CloudinaryAssets.jobSheet1,
+          CloudinaryAssets.jobSheet2,
+        ]);
+      }
       expect(questPaperAssetIds(QuestType.study, isTorn: false), [
         CloudinaryAssets.announcementSheet1,
         CloudinaryAssets.announcementSheet2,
       ]);
+    });
+
+    test('crime has a torn variant', () {
       expect(questPaperAssetIds(QuestType.crime, isTorn: false), [
         CloudinaryAssets.crimeSheet1,
         CloudinaryAssets.crimeSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.crime, isTorn: true), [
+        CloudinaryAssets.crimeTornSheet1,
+        CloudinaryAssets.crimeTornSheet2,
+      ]);
+    });
+
+    test('guard uses its own whole and torn sheets', () {
+      expect(questPaperAssetIds(QuestType.guard, isTorn: false), [
+        CloudinaryAssets.guardSheet1,
+        CloudinaryAssets.guardSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.guard, isTorn: true), [
+        CloudinaryAssets.guardTornSheet1,
+        CloudinaryAssets.guardTornSheet2,
       ]);
     });
 
@@ -153,11 +167,41 @@ void main() {
       );
     });
 
-    test('the magic sheets point to their files (quick 261110-mag)', () {
-      expect(CloudinaryAssets.magicSheet, 'v1794317365/magicSheet_i7xslb.svg');
+    test('the magic sheets point to their revised files', () {
+      expect(CloudinaryAssets.magicSheet, 'v1794321047/magicSheet_inikhm.svg');
       expect(
         CloudinaryAssets.magicTornSheet,
-        'v1794317370/tornMagicSheet_tmjghe.svg',
+        'v1794321051/tornMagicSheet_f8gu75.svg',
+      );
+    });
+
+    test('the torn crime sheets point to their files', () {
+      expect(
+        CloudinaryAssets.crimeTornSheet1,
+        'v1794321444/tornCrimeSheet1_digaof.svg',
+      );
+      expect(
+        CloudinaryAssets.crimeTornSheet2,
+        'v1794321440/tornCrimeSheet2_z2jugi.svg',
+      );
+    });
+
+    test('the guard sheets point to their files', () {
+      expect(
+        CloudinaryAssets.guardSheet1,
+        'v1794322926/guardSheet1_yfzvwp.svg',
+      );
+      expect(
+        CloudinaryAssets.guardSheet2,
+        'v1794322931/guardSheet2_g7rlqv.svg',
+      );
+      expect(
+        CloudinaryAssets.guardTornSheet1,
+        'v1794322936/tornGuardSheet1_tsxzu5.svg',
+      );
+      expect(
+        CloudinaryAssets.guardTornSheet2,
+        'v1794322939/tornGuardSheet2_aqqbsj.svg',
       );
     });
   });
