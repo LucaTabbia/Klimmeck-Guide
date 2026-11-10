@@ -17,4 +17,13 @@ void main() {
       expect(prisonReleaseLine(Duration.zero), 'Sei in prigione');
     });
   });
+
+  group('prisonMarkerLine', () {
+    test('tells how long the prison lasts over the pawn', () {
+      expect(
+        prisonMarkerLine(const Duration(hours: 9, minutes: 12)),
+        'In prigione per: 9 h 12 min',
+      );
+    });
+  });
 }

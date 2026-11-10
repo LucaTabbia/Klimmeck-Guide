@@ -266,7 +266,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(CharacterMarkerLayer.prisonLabelKey),
-          matching: find.text('In prigione'),
+          matching: find.text('In prigione per: 9 h'),
         ),
         findsOneWidget,
       );
@@ -277,6 +277,16 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('the marker follows the remaining time', (tester) async {
+      await pumpLayer(tester, character: characterLoaded(), prison: imprisoned);
+
+      prisonStates.add(const PrisonState(Duration(hours: 8, minutes: 59)));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('In prigione per: 8 h 59 min'), findsOneWidget);
     });
 
     testWidgets('at the release the marker goes and the pawn drags again '
