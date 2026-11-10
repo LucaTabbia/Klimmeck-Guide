@@ -46,7 +46,7 @@ void main() {
       }
     });
 
-    test('job, announcement and crime families are never torn', () {
+    test('job, study and crime sheets are never torn', () {
       for (final type in [
         QuestType.hunt,
         QuestType.job,
@@ -63,7 +63,7 @@ void main() {
         CloudinaryAssets.jobSheet1,
         CloudinaryAssets.jobSheet2,
       ]);
-      expect(questPaperAssetIds(QuestType.heal, isTorn: false), [
+      expect(questPaperAssetIds(QuestType.study, isTorn: false), [
         CloudinaryAssets.announcementSheet1,
         CloudinaryAssets.announcementSheet2,
       ]);
@@ -73,19 +73,16 @@ void main() {
       ]);
     });
 
-    test(
-      'a torn heal borrows the torn quest sheets, a whole one keeps the announcement (D-20)',
-      () {
-        expect(questPaperAssetIds(QuestType.heal, isTorn: true), [
-          CloudinaryAssets.questSheetTorn1,
-          CloudinaryAssets.questSheetTorn2,
-        ]);
-        expect(questPaperAssetIds(QuestType.heal, isTorn: false), [
-          CloudinaryAssets.announcementSheet1,
-          CloudinaryAssets.announcementSheet2,
-        ]);
-      },
-    );
+    test('a torn heal uses the torn announcement sheets (D-20)', () {
+      expect(questPaperAssetIds(QuestType.heal, isTorn: true), [
+        CloudinaryAssets.announcementTornSheet1,
+        CloudinaryAssets.announcementTornSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.heal, isTorn: false), [
+        CloudinaryAssets.announcementSheet1,
+        CloudinaryAssets.announcementSheet2,
+      ]);
+    });
 
     test('a null type falls back to the quest family', () {
       expect(questPaperAssetIds(null, isTorn: false), [
@@ -104,6 +101,47 @@ void main() {
         expect(questPaperAssetId(quest, isTorn: true), first);
       }
       expect(questPaperAssetIds(QuestType.boss, isTorn: true), contains(first));
+    });
+  });
+
+  group('quest sheet asset ids', () {
+    test('the sheets re-uploaded on 2026-11-10 point to the new files', () {
+      expect(
+        CloudinaryAssets.crimeSheet2,
+        'v1794314260/crimeSheet2_kenql4.svg',
+      );
+      expect(
+        CloudinaryAssets.questSheetTorn1,
+        'v1794313623/tornQuestSheet1_jo92rm.svg',
+      );
+      expect(
+        CloudinaryAssets.questSheetTorn2,
+        'v1794313329/tornQuestSheet2_gm4nz0.svg',
+      );
+      expect(
+        CloudinaryAssets.storyTornSheet1,
+        'v1794312688/tornStorySheet1_jyoucq.svg',
+      );
+      expect(
+        CloudinaryAssets.storyTornSheet2,
+        'v1794314149/tornStorySheet2_otpfcb.svg',
+      );
+      expect(
+        CloudinaryAssets.huntTornSheet1,
+        'v1794313032/tornHuntSheet1_tk1xqh.svg',
+      );
+      expect(
+        CloudinaryAssets.huntTornSheet2,
+        'v1794312697/tornHuntSheet2_kf1oy7.svg',
+      );
+      expect(
+        CloudinaryAssets.announcementTornSheet1,
+        'v1794303769/tornAnnouncementSheet1_ez2vyw.svg',
+      );
+      expect(
+        CloudinaryAssets.announcementTornSheet2,
+        'v1794303777/tornAnnouncementSheet2_ayfvwu.svg',
+      );
     });
   });
 }
