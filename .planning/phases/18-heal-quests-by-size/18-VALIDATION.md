@@ -41,8 +41,8 @@ created: 2026-11-10
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 18-01-01 | 01 | 1 | HEAL-01 | T-18-01, T-18-03 | a malformed cure is `null` and the quest stays; share outside [0, 1] → no rows | unit | `flutter test test/models` | ❌ W0 (`quest_cure_test.dart`) / ✅ | ⬜ pending |
-| 18-01-02 | 01 | 1 | HEAL-02 | T-18-02 | a non-list `injuriesHealed` is `[]`, the result stays | unit | `flutter test test/models test/shared/components/popup/quest_result_sheet_test.dart` | ✅ (add group) | ⬜ pending |
+| 18-01-01 | 01 | 1 | HEAL-01 | T-18-01, T-18-03 | a malformed cure is `null` and the quest stays; share outside [0, 1] → no rows | unit | `flutter test test/models` | ❌ W0 (`quest_cure_test.dart`) / ✅ | ✅ green |
+| 18-01-02 | 01 | 1 | HEAL-02 | T-18-02 | a non-list `injuriesHealed` is `[]`, the result stays | unit | `flutter test test/models test/shared/components/popup/quest_result_sheet_test.dart` | ✅ (add group) | ✅ green |
 | 18-02-01 | 02 | 2 | HEAL-05 | T-18-04, T-18-05, T-18-06 | bad date / bad recovery → `null`, never a throw; `copyWith` keeps the recovery end | unit | `flutter test test/models` | ❌ W0 (`loot_recovery_test.dart`, `potion_fixtures.dart`) / ✅ | ⬜ pending |
 | 18-02-02 | 02 | 2 | HEAL-04 | T-18-07 | strict numbers/date in `UseItemResult`, lenient lists | unit | `flutter test test/models test/shared/components/popup/quest_result_sheet_test.dart` | ❌ W0 (`use_item_result_test.dart`) / ✅ | ⬜ pending |
 | 18-03-01 | 03 | 3 | HEAL-01, HEAL-02 | T-18-08, T-18-09 | only the viewer's own curable injuries are listed; no rule beyond the percentage | unit | `flutter test test/utils/item_lines_test.dart` | ✅ (add groups) | ⬜ pending |

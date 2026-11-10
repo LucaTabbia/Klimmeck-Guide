@@ -63,7 +63,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 **Plans**: 13 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — Quest cure models (`QuestCure`, `QuestPrizes.cure`, `QuestResult.injuriesHealed`, lenient injury reader)
+- [x] 18-01-PLAN.md — Quest cure models (`QuestCure`, `QuestPrizes.cure`, `QuestResult.injuriesHealed`, lenient injury reader)
 - [ ] 18-02-PLAN.md — Potion models (`LootRecovery`, `potionRecoveryUntil`, `UseItemResult`, fixtures)
 - [ ] 18-03-PLAN.md — Lines (`curableInjuriesLine`, `lifeShareLine`, `healedLine`, `recoveryLine`, `potionReadyInLine`)
 - [ ] 18-04-PLAN.md — Quest sheet: cure line and life row, `characterInjuries` from Board and Map
@@ -112,7 +112,7 @@ Plans:
 | 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
-| 18. Heal Quests by City Size | v1.1 | 0/13 | Planned | - |
+| 18. Heal Quests by City Size | v1.1 | 1/13 | In Progress | - |
 | 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
