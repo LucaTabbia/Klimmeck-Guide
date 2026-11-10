@@ -30,6 +30,7 @@ import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_gene
 import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -164,6 +165,8 @@ class MockCompanionCubit extends MockCubit<CompanionState>
     implements CompanionCubit {}
 
 class MockPotionCubit extends MockCubit<PotionState> implements PotionCubit {}
+
+class MockPrisonCubit extends MockCubit<PrisonState> implements PrisonCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
     implements TravelProgressCubit {}

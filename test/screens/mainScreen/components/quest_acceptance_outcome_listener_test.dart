@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -34,6 +35,7 @@ void main() {
   late MockInAppNotificationsCubit notices;
   late MockQuestCubit questCubit;
   late MockCharacterCubit characterCubit;
+  late MockPrisonCubit prison;
   late StreamController<QuestAcceptanceState> states;
 
   setUpAll(() {
@@ -45,6 +47,12 @@ void main() {
     notices = MockInAppNotificationsCubit();
     questCubit = MockQuestCubit();
     characterCubit = MockCharacterCubit();
+    prison = MockPrisonCubit();
+    whenListen(
+      prison,
+      const Stream<PrisonState>.empty(),
+      initialState: const PrisonState(Duration(minutes: 42)),
+    );
     states = StreamController<QuestAcceptanceState>.broadcast();
     addTearDown(states.close);
     when(
@@ -84,6 +92,7 @@ void main() {
             BlocProvider<InAppNotificationsCubit>.value(value: notices),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
+            BlocProvider<PrisonCubit>.value(value: prison),
           ],
           child: QuestAcceptanceOutcomeListener(
             cities: _cities,
@@ -101,6 +110,29 @@ void main() {
 
   KGNotification notice(String description) =>
       KGNotification(title: 'Missione non accettata', description: description);
+
+  testWidgets('a prison refusal feeds the prison and announces the release '
+      '(quick 261110-cgd)', (tester) async {
+    final release = DateTime.utc(2026, 11, 10, 22);
+    await pumpListener(tester);
+
+    await emit(
+      tester,
+      QuestAcceptanceFailed(
+        'h-1',
+        QuestAcceptanceFailure.imprisoned,
+        imprisonedUntil: release,
+      ),
+    );
+
+    verify(() => prison.learnRelease(release)).called(1);
+    verify(
+      () => notices.publishNotice(
+        notice('Sei in prigione: uscirai fra 42 min'),
+        dedupKey: any(named: 'dedupKey'),
+      ),
+    ).called(1);
+  });
 
   testWidgets('rejection after leaving the Board still publishes the banner', (
     tester,
