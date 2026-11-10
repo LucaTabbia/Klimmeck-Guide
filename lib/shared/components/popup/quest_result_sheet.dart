@@ -6,8 +6,6 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/column_layout_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
-import 'package:klimmeck_guide/models/enums/lore_type.dart';
-import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
@@ -18,6 +16,7 @@ import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
+import 'package:klimmeck_guide/utils/lore_lines.dart';
 
 /// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
 /// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
@@ -59,8 +58,8 @@ class QuestResultSheet extends StatefulWidget {
   /// Righe delle lore sbloccate (D-10): una per voce, dopo «Magia appresa».
   static Key loreUnlockedKeyOf(String loreId) =>
       ValueKey('questResult.loreUnlocked.$loreId');
-  static const String bestiaryPagePrefix = 'Nuova pagina del Bestiario: ';
-  static const String knowledgePrefix = 'Conoscenza appresa: ';
+  static const String bestiaryPagePrefix = bestiaryPageLinePrefix;
+  static const String knowledgePrefix = knowledgeLinePrefix;
   static const Key counterKey = ValueKey('questResult.counter');
   static const Key continueKey = ValueKey('questResult.continue');
   static const Key acknowledgeErrorKey = ValueKey(
@@ -470,17 +469,10 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
   List<Widget> _loreUnlockedLines() => [
     for (final lore in _result.loreUnlocked)
       ..._line(
-        _loreUnlockedText(lore),
+        loreUnlockedLine(lore),
         QuestResultSheet.loreUnlockedKeyOf(lore.id),
       ),
   ];
-
-  String _loreUnlockedText(Lore lore) {
-    final prefix = lore.type?.isBestiary ?? false
-        ? QuestResultSheet.bestiaryPagePrefix
-        : QuestResultSheet.knowledgePrefix;
-    return '$prefix${lore.name}';
-  }
 
   String? _rescuedText() {
     final count = _result.rescuedCharacters.length;
