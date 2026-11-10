@@ -8,7 +8,7 @@ last_activity: 2026-11-10 -- Milestone v1.1 Healing & Models started
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 12
   completed_plans: 0
   percent: 0
 ---
