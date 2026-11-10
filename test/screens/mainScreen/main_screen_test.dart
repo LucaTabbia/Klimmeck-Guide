@@ -30,6 +30,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_l
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
@@ -39,6 +40,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -298,6 +300,7 @@ void main() {
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
     late MockCompanionCubit companionCubit;
+    late MockPotionCubit potionCubit;
     late MockTransactionCubit transactionCubit;
     late StreamController<TransactionState> transactionStates;
     late MapAvailabilityCubit availability;
@@ -336,6 +339,12 @@ void main() {
         companionCubit,
         const Stream<CompanionState>.empty(),
         initialState: const CompanionState(),
+      );
+      potionCubit = MockPotionCubit();
+      whenListen(
+        potionCubit,
+        const Stream<PotionState>.empty(),
+        initialState: const PotionIdle(),
       );
       transactionCubit = MockTransactionCubit();
       transactionStates = StreamController<TransactionState>.broadcast();
@@ -406,6 +415,7 @@ void main() {
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
               BlocProvider<CompanionCubit>.value(value: companionCubit),
+              BlocProvider<PotionCubit>.value(value: potionCubit),
               BlocProvider<TransactionCubit>.value(value: transactionCubit),
               BlocProvider<MapAvailabilityCubit>.value(value: availability),
               BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
@@ -471,6 +481,20 @@ void main() {
         find.descendant(
           of: find.byType(SpellOutcomeListener),
           matching: find.byType(CompanionOutcomeListener),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('mounts the potion outcome listener in the session chain '
+        '(D-18)', (tester) async {
+      await pumpMainScreen(tester, 'city-marker-1');
+
+      expect(find.byType(PotionOutcomeListener), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(CompanionOutcomeListener),
+          matching: find.byType(PotionOutcomeListener),
         ),
         findsOneWidget,
       );
