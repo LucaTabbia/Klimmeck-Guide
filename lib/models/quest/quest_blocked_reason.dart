@@ -2,6 +2,9 @@ import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
 import 'quest_availability.dart';
 
+/// Copy fissata dall'utente (D-20): riga del foglio e banner del rifiuto.
+const String questNoEffectLine = 'Il tempio non può fare nulla per te adesso';
+
 /// Riga di rifiuto mostrata al giocatore: testo di dominio fisso, mai testo del
 /// server (copy provvisoria, D-19).
 String? questBlockedReasonOf(
@@ -23,4 +26,5 @@ String? questBlockedReasonOf(
   QuestAvailability.full => 'Non ci sono più posti per il tuo rango',
   QuestAvailability.notInCity => 'Devi trovarti nella città della missione',
   QuestAvailability.insufficientPoints => 'Punti canale insufficienti',
+  QuestAvailability.noEffect => questNoEffectLine,
 };

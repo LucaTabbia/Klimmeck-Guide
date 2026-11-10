@@ -19,6 +19,9 @@ enum QuestAvailability {
   full,
   notInCity,
   insufficientPoints,
+
+  /// Il backend dice che la quest non avrebbe effetto (D-20): foglio strappato.
+  noEffect,
 }
 
 class QuestStanding extends Equatable {
@@ -26,7 +29,8 @@ class QuestStanding extends Equatable {
 
   final QuestAvailability availability;
 
-  /// Foglio strappato sulla board: corsia del proprietario o posti esauriti (D-12).
+  /// Foglio strappato sulla board: corsia del proprietario, posti esauriti (D-12)
+  /// o quest senza effetto per chi guarda (D-20).
   final bool isTorn;
 
   bool get canAccept => availability == QuestAvailability.available;
@@ -53,6 +57,7 @@ QuestStanding standingOf(Quest quest, QuestViewer viewer) {
     availability: availability,
     isTorn:
         availability == QuestAvailability.tornForOwner ||
+        quest.noEffect ||
         _isFullForViewer(quest, viewer),
   );
 }
@@ -94,7 +99,9 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
       balance < (requirements?.requiredPoints ?? 0)) {
     return QuestAvailability.insufficientPoints;
   }
-  return QuestAvailability.available;
+  return quest.noEffect
+      ? QuestAvailability.noEffect
+      : QuestAvailability.available;
 }
 
 /// Con la forma Phase 7 (`Int`) una capienza 0 non è un difetto: decide il BE.
