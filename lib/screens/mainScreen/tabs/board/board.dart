@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 import 'package:klimmeck_guide/models/quest/quest_lane.dart';
@@ -13,6 +14,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_selectors.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
@@ -319,10 +321,14 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       onTorn: () => _accept(viewer, selected),
       child: ColoredBox(
         color: Colors.transparent,
-        child: QuestInfoSheet(
-          quest: selected,
-          viewer: viewer,
-          travelPreview: travelPreview,
+        child: BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
+          selector: characterInjuriesOf,
+          builder: (context, injuries) => QuestInfoSheet(
+            quest: selected,
+            viewer: viewer,
+            travelPreview: travelPreview,
+            characterInjuries: injuries,
+          ),
         ),
       ),
     ),

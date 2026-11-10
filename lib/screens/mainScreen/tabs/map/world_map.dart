@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../models/city.dart';
+import '../../../../models/enums/injury_type.dart';
 import '../../../../models/lore.dart';
 import '../../../../models/pending_quest.dart';
 import '../../../../models/quest/board_policy.dart';
@@ -19,6 +20,7 @@ import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../characterCubit/character_selectors.dart';
 import '../../questAbandonCubit/quest_abandon_cubit.dart';
 import '../../questCubit/quest_cubit.dart';
 import '../../travelCubit/travel_cubit.dart';
@@ -345,13 +347,17 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
       builder: (context, questState) {
         final quest = _currentOf(_selectedQuest, questState);
         final lane = _selectedLane;
-        return QuestInfoOverlay(
-          animationController: _questAnimationController,
-          selectedQuest: quest,
-          stateLabel: lane == null ? null : questStateLabel(lane, quest),
-          onAbandon: quest != null && lane?.isWaitingForParty == true
-              ? () => _confirmAbandon(quest)
-              : null,
+        return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
+          selector: characterInjuriesOf,
+          builder: (context, injuries) => QuestInfoOverlay(
+            animationController: _questAnimationController,
+            selectedQuest: quest,
+            stateLabel: lane == null ? null : questStateLabel(lane, quest),
+            onAbandon: quest != null && lane?.isWaitingForParty == true
+                ? () => _confirmAbandon(quest)
+                : null,
+            characterInjuries: injuries,
+          ),
         );
       },
     );
