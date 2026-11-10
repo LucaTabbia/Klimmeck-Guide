@@ -35,6 +35,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -161,6 +162,8 @@ class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
 
 class MockCompanionCubit extends MockCubit<CompanionState>
     implements CompanionCubit {}
+
+class MockPotionCubit extends MockCubit<PotionState> implements PotionCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
     implements TravelProgressCubit {}
