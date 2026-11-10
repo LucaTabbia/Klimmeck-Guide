@@ -11,6 +11,8 @@ import 'loot_fragment.dart';
 /// `kind` e `ambush` sono della BE Phase 15 (16-CONTEXT D-01): `quest` è null
 /// per un'imboscata. `known` sotto `enemies` è della BE Phase 16 (17-CONTEXT D-03).
 /// `loreUnlocked` è della BE Phase 16 (17-CONTEXT D-04): solo le novità dell'esito.
+/// `injuriesHealed` è della BE Phase 18 (18-CONTEXT D-02); `arrested`,
+/// `coinsLost` e `guardEncounter` sono della quick 261110-cgd (BE §1.6).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -30,6 +32,12 @@ class QuestResultFragment {
     hpAfter
     maxLifePoints
     injuriesAdded
+    injuriesHealed
+    arrested
+    coinsLost {
+      ${CoinsFragment.fields}
+    }
+    guardEncounter
     consumablesUsed {
       quantity
       item {

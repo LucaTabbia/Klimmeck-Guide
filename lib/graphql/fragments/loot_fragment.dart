@@ -19,6 +19,10 @@ class LootFragment {
       sellPrice {
         ${CoinsFragment.fields}
       }
+      recovery {
+        time
+        turns
+      }
     }
   ''';
 
@@ -39,6 +43,10 @@ class LootFragment {
       gold
       silver
       copper
+    }
+    recovery {
+      time
+      turns
     }
   ''';
 

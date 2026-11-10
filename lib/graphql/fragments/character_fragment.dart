@@ -52,6 +52,8 @@ class CharacterFragment {
         aidQuest
         since
       }
+      potionRecoveryUntil
+      imprisonedUntil
       spells {
         ${SpellFragment.fields}
       }
