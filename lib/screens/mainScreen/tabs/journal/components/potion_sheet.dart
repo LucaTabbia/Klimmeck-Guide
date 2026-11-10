@@ -24,8 +24,8 @@ class PotionSheet extends StatelessWidget {
   final LootItem item;
 
   /// Vita massima letta dal personaggio prima di aprire il foglio: l'esito
-  /// del backend non la porta.
-  final int maxLifePoints;
+  /// del backend non la porta. Ignota o non positiva = nessuna barra.
+  final int? maxLifePoints;
 
   static const Key drinkKey = ValueKey('potion.drink');
   static const Key notNowKey = ValueKey('potion.notNow');
@@ -128,7 +128,7 @@ class PotionSheet extends StatelessWidget {
           style: textTheme.titleMedium,
         ),
         const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-        _hpBar(result),
+        ?_hpBar(result),
         if (healed != null) _line(context, healed, key: healedKey),
         for (final lore in result.loreUnlocked)
           _line(context, loreUnlockedLine(lore), key: loreKeyOf(lore.id)),
@@ -143,18 +143,16 @@ class PotionSheet extends StatelessWidget {
     );
   }
 
-  Widget _hpBar(UseItemResult result) {
+  Widget? _hpBar(UseItemResult result) {
+    final max = maxLifePoints;
+    if (max == null || max <= 0) return null;
     final before = result.hpBefore.toDouble();
     final after = result.hpAfter.toDouble();
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: before, end: after),
       duration: hpAnimationDuration,
-      builder: (_, hp, _) => HpDeltaBar(
-        key: hpKey,
-        hp: hp,
-        max: maxLifePoints,
-        isGain: after > before,
-      ),
+      builder: (_, hp, _) =>
+          HpDeltaBar(key: hpKey, hp: hp, max: max, isGain: after > before),
     );
   }
 

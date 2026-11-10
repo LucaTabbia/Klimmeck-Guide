@@ -50,7 +50,7 @@ void main() {
     required PotionState state,
     Stream<PotionState>? stream,
     LootItem? item,
-    int maxLifePoints = 12,
+    int? maxLifePoints = 12,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, stream ?? states.stream, initialState: state);
@@ -195,17 +195,29 @@ void main() {
 
   testWidgets('without a positive maximum life the outcome shows no HP bar '
       'but keeps Guarite and the lore line (D-18)', (tester) async {
-    await pumpSheet(
-      tester,
-      state: PotionDrunk(_herb, result),
-      maxLifePoints: 0,
-    );
+    for (final maxLifePoints in [null, 0]) {
+      await pumpSheet(
+        tester,
+        state: PotionDrunk(_herb, result),
+        maxLifePoints: maxLifePoints,
+      );
 
-    expect(find.byKey(PotionSheet.hpKey), findsNothing);
-    expect(find.byType(HpDeltaBar), findsNothing);
-    expect(find.text('Guarite: contusione'), findsOneWidget);
-    expect(find.byKey(PotionSheet.loreKeyOf('lore-limit')), findsOneWidget);
-    expect(find.byKey(PotionSheet.continueKey), findsOneWidget);
+      final reason = '$maxLifePoints';
+      expect(find.byKey(PotionSheet.hpKey), findsNothing, reason: reason);
+      expect(find.byType(HpDeltaBar), findsNothing, reason: reason);
+      expect(find.text('Guarite: contusione'), findsOneWidget, reason: reason);
+      expect(
+        find.byKey(PotionSheet.loreKeyOf('lore-limit')),
+        findsOneWidget,
+        reason: reason,
+      );
+      expect(
+        find.byKey(PotionSheet.continueKey),
+        findsOneWidget,
+        reason: reason,
+      );
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 
   testWidgets('Continua closes the sheet (D-18)', (tester) async {

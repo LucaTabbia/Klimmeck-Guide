@@ -219,7 +219,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
           child: PaperSheetModal(
             child: PotionSheet(
               item: potion,
-              maxLifePoints: character.status?.maxLifePoints ?? 0,
+              maxLifePoints: character.status?.maxLifePoints,
             ),
           ),
         ),
