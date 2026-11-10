@@ -37,7 +37,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// la Phase 13 aggiunge `GetCityShop`, `EquipPet` e `UnequipPet` e ha tolto
 /// i due cataloghi globali di equipaggiamento e loot (BE D-20: deprecati,
 /// nessun consumer); la Phase 14 aggiunge `GenerateQuests`;
-/// la Phase 15 aggiunge `GetQuestTravelPreview`; ogni documento futuro va
+/// la Phase 15 aggiunge `GetQuestTravelPreview`; la Phase 18 aggiunge
+/// `UseItem`; ogni documento futuro va
 /// aggiunto qui (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
@@ -69,6 +70,7 @@ final Map<String, String> schemaCheckDocuments = {
   'UnequipSpell': CharacterMutations.unequipSpell,
   'EquipPet': CharacterMutations.equipPet,
   'UnequipPet': CharacterMutations.unequipPet,
+  'UseItem': CharacterMutations.useItem,
   'AcceptQuest': QuestMutations.acceptQuest,
   'AbandonQuest': QuestMutations.abandonQuest,
   'GenerateQuests': QuestMutations.generateQuests,

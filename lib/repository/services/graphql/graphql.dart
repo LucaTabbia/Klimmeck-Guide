@@ -43,6 +43,7 @@ import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
+import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
@@ -728,6 +729,27 @@ class KlimmeckGraphQl {
     'unequipPet',
     request.toJson(),
   );
+
+  /// Beve una pozione (BE Phase 18, D-11): la risposta serve solo al
+  /// riscontro, lo stato arriva da `characterUpdated`. Lancia
+  /// [OperationException] o [FormatException] per una risposta malformata.
+  Future<UseItemResult> useItem(String itemId) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: CharacterMutations.useItem,
+        variables: {'itemId': itemId},
+      ),
+    );
+    final result = data['useItem'];
+    if (result is! Map<String, dynamic>) {
+      throw const FormatException('useItem without a result');
+    }
+    try {
+      return UseItemResult.fromJson(result);
+    } on Object {
+      throw const FormatException('useItem with a malformed result');
+    }
+  }
 
   Future<bool> _successfulMutation(
     String document,

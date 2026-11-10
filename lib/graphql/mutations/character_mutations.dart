@@ -69,4 +69,22 @@ class CharacterMutations {
         successful
       }
     }''';
+
+  /// Beve una pozione dal Diario (BE Phase 18): l'identità è il bearer, si
+  /// manda solo l'id dell'oggetto.
+  static const String useItem = r'''
+    mutation UseItem($itemId: ID!) {
+      useItem(itemId: $itemId) {
+        hpBefore
+        hpAfter
+        injuriesHealed
+        quantityLeft
+        recoveryUntil
+        loreUnlocked {
+          id
+          name
+          type
+        }
+      }
+    }''';
 }
