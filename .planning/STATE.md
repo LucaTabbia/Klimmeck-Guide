@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: executing
-last_updated: "2026-11-10T16:00:00.000Z"
-last_activity: 2026-11-10 -- Phase 18 execution started
+status: paused
+last_updated: "2026-11-10T19:00:00.000Z"
+last_activity: 2026-11-10 -- Phase 18 parked at 11/13 (waits for the BE Phase 18 merge)
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 13
-  completed_plans: 0
-  percent: 0
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 18 — Heal Quests by City Size — EXECUTING (since 2026-11-10) on `feat/18-heal-quests-by-size`: 13 plans in 13 sequential waves, plan-checker passed (↔ BE Phase 18, executing in the same session)
+**Current focus:** Phase 18 — Heal Quests by City Size — PARKED at 11/13 on `feat/18-heal-quests-by-size` (pushed, no PR): plans 18-01..18-11 executed, reviewed, fixed, verified and audited; 18-12 (schema gate + fragment selections) and 18-13 (device UAT + handoff) wait for the BE Phase 18 merge on BE `develop` (↔ BE Phase 18)
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
-Phase: 18 of 19 (Heal Quests by City Size) — EXECUTING since 2026-11-10 on `feat/18-heal-quests-by-size` (from `develop` `53c734e` + the milestone start): 13 plans in 13 sequential waves (18-01..18-11 on fixtures with the contract names of the REPO-RULES; 18-12 schema gate and 18-13 device UAT + handoff gated by the BE Phase 18 merge on BE `develop`)
+Phase: 18 of 19 (Heal Quests by City Size) — PARKED at 11/13 since 2026-11-10 on `feat/18-heal-quests-by-size`: 18-01..18-11 done on fixtures with the contract names of the REPO-RULES; 18-12 schema gate and 18-13 device UAT + handoff gated by the BE Phase 18 merge on BE `develop`
 Plan: 11 of 13
-Status: Executing Phase 18 — 18-01..18-11 run now; 18-12/18-13 wait for the BE Phase 18 merge; BE Phase 18 executing in the same session on `feat/18-quest-heal-per-taglia`
-Last activity: 2026-11-10 -- Phase 18 execution started (planned the same day: research, 13 plans, plan check passed)
-Next step: execute 18-01..18-11, then review → fix → verify → security and park the phase at 11/13 until the BE Phase 18 PR is merged on BE `develop`; then 18-12 (schema gate) and 18-13 (device UAT).
+Status: Paused at 11/13 — waiting for the BE Phase 18 PR to be merged on BE `develop`. Code review 0 critical / 1 warning / 11 info → 9 fixed, 3 not needed (`18-REVIEW-FIX.md`); verification `human_needed` with 0 gaps (`18-VERIFICATION.md`); security audit 50 threats, 0 open, 8 deferred to 18-12/18-13 (`18-SECURITY.md`); full suite 3913 tests green, analyzer 47 info / 0 error / 0 warning. Until 18-12 selects the new fields the new UI is inert against a live BE (Pitfall 14).
+Last activity: 2026-11-10 -- Phase 18 plans 18-01..18-11 executed, reviewed, fixed, verified and audited; phase parked at 11/13
+Next step: after the BE Phase 18 PR is merged on BE `develop` (and the orchestrator applied the content scripts to the DB): align the BE `origin/develop` ref, restart the BE from `develop`, run 18-12 (schema gate, fragment selections, 46/46 documents, full suite), then 18-13 (device UAT, one step at a time). To check on the device in 18-13: a narrative quest sheet with prizes, a cost line and the Paladin title overflows by 22 px on the landscape test harness with the test font (pre-existing, found by the review fixer under A-IN-05) — confirm or dismiss it with the real font.
 
 ## Current Milestone
 
@@ -78,5 +78,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
-Stopped at: Phase 18 executing (0/13, 2026-11-10)
-Resume file: .planning/phases/18-heal-quests-by-size/18-01-PLAN.md
+Stopped at: Phase 18 parked at 11/13 (2026-11-10) — waits for the BE Phase 18 merge
+Resume file: .planning/phases/18-heal-quests-by-size/18-12-PLAN.md
