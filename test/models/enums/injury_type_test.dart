@@ -153,4 +153,30 @@ void main() {
       ]);
     });
   });
+
+  group('injuryTypesFrom', () {
+    test('reads the known names in wire order (D-01)', () {
+      expect(injuryTypesFrom(['deepCut', 'contusion']), [
+        InjuryType.deepCut,
+        InjuryType.contusion,
+      ]);
+    });
+
+    test('drops unknown names and non-strings (D-01)', () {
+      expect(injuryTypesFrom(['contusion', 'dragonBite', 42, null]), [
+        InjuryType.contusion,
+      ]);
+    });
+
+    test('anything but a list is an empty list (D-01)', () {
+      expect(injuryTypesFrom(null), isEmpty);
+      expect(injuryTypesFrom('contusion'), isEmpty);
+      expect(injuryTypesFrom(<String, dynamic>{}), isEmpty);
+    });
+
+    test('the list cannot be modified (D-01)', () {
+      final injuries = injuryTypesFrom(['contusion']);
+      expect(() => injuries.add(InjuryType.deepCut), throwsUnsupportedError);
+    });
+  });
 }

@@ -247,4 +247,47 @@ void main() {
       expect(json.containsKey('enemy'), isFalse);
     });
   });
+
+  group('prizes.cure (BE Phase 18)', () {
+    test('a quest carries its cure (D-01)', () {
+      final quest = buildQuest(
+        type: 'heal',
+        prizes: {'cure': questCureJson(share: 0.8)},
+      );
+      expect(quest.prizes?.cure?.lifePointsShare, 0.8);
+    });
+
+    test('a quest without cure has cure null (D-01)', () {
+      expect(buildQuest(prizes: {}).prizes?.cure, isNull);
+      expect(buildQuest().prizes?.cure, isNull);
+    });
+
+    test('a malformed cure keeps the quest with cure null (D-01)', () {
+      final wrongType = Quest.tryFromJson(
+        questJson(prizes: {'cure': 'everything'}),
+      );
+      expect(wrongType, isNotNull);
+      expect(wrongType!.prizes?.cure, isNull);
+
+      final wrongShare = Quest.tryFromJson(
+        questJson(
+          prizes: {
+            'cure': {'lifePointsShare': 'half', 'canHeal': []},
+          },
+        ),
+      );
+      expect(wrongShare, isNotNull);
+      expect(wrongShare!.prizes?.cure, isNull);
+    });
+
+    test('QuestPrizes writes, copies and compares its cure (D-01)', () {
+      final prizes = buildQuest(prizes: {'cure': questCureJson()}).prizes!;
+      final cure = prizes.cure!;
+      expect(prizes.toJson()['cure'], cure.toJson());
+      expect(prizes.copyWith(xpPrize: 3).cure, cure);
+
+      final withoutCure = buildQuest(prizes: {}).prizes!;
+      expect(withoutCure, isNot(prizes));
+    });
+  });
 }

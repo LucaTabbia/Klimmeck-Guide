@@ -62,6 +62,12 @@ Map<String, dynamic> questJson({
   'registeredAdventurers': registered,
 };
 
+/// `prizes.cure` sul filo (BE Phase 18): quota di vita e ferite guarite.
+Map<String, dynamic> questCureJson({
+  Object? share = 0.5,
+  Object? canHeal = const ['contusion', 'deepCut'],
+}) => {'lifePointsShare': share, 'canHeal': canHeal};
+
 /// Forma Phase 7 oggi su `develop`: capienza Int e id dei registrati.
 Map<String, dynamic> legacyQuestJson({
   String id = 'q-legacy',
