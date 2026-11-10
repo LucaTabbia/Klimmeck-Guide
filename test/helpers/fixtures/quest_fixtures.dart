@@ -109,6 +109,9 @@ Map<String, dynamic> characterWithLanesJson({
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? activeStoryQuest,
   Map<String, dynamic>? activeWorldMissionQuest,
+  int? currentLifePoints,
+  int? maxLifePoints,
+  List<String>? injuries,
 }) => {
   'id': id,
   'status': {
@@ -117,6 +120,9 @@ Map<String, dynamic> characterWithLanesJson({
       'id': locationId,
       'location': [1.0, 2.0],
     },
+    if (currentLifePoints != null) 'currentLifePoints': currentLifePoints,
+    if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
+    if (injuries != null) 'injuries': injuries,
   },
   'quests': {
     'completedQuests': [

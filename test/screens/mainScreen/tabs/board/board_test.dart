@@ -18,6 +18,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/auth_fixtures.dart';
@@ -44,6 +45,7 @@ Quest _boardQuest(
   String? minTitle = 'rookie',
   List<Object> registered = const [],
   Map<String, dynamic>? prizes,
+  bool? noEffect,
 }) => buildQuest(
   id: id,
   type: type,
@@ -51,6 +53,7 @@ Quest _boardQuest(
   minTitle: minTitle,
   registered: registered,
   prizes: prizes,
+  noEffect: noEffect,
 );
 
 Map<String, dynamic> _injuredCharacterJson(List<String> injuries) {
@@ -331,6 +334,81 @@ void main() {
 
         expect(find.byKey(QuestInfoSheet.cureLineKey), findsNothing);
         expect(find.text('Vita: almeno il 50%'), findsOneWidget);
+      },
+    );
+  });
+
+  group('heal with no effect (D-20)', () {
+    final inert = _boardQuest('heal-1', 'heal', noEffect: true);
+
+    Future<void> openInert(WidgetTester tester) async {
+      await tester.ensureVisible(paper('heal-1'));
+      await tester.tap(paper('heal-1'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    TearablePaper openSheet(WidgetTester tester) =>
+        tester.widget<TearablePaper>(find.byType(TearablePaper));
+
+    testWidgets('a heal with no effect stays in its place, drawn torn (D-20)', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([inert, _boardQuest('h-1', 'hunt')]),
+      );
+
+      expect(paper('heal-1'), findsOneWidget);
+      expect(isTorn(tester, 'heal-1'), isTrue);
+      expect(isTorn(tester, 'h-1'), isFalse);
+    });
+
+    testWidgets(
+      'its open sheet ignores the swipe and never calls accept (D-20)',
+      (tester) async {
+        await pumpBoard(tester, quests: loaded([inert]));
+        await openInert(tester);
+
+        final visibleCenter = Offset(
+          tester.getCenter(find.byType(TearablePaper)).dx,
+          180,
+        );
+        await tester.dragFrom(visibleCenter, const Offset(-600, 0));
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(openSheet(tester).isEnabled, isFalse);
+        verifyNever(
+          () => acceptanceCubit.accept(
+            characterId: any(named: 'characterId'),
+            questId: any(named: 'questId'),
+          ),
+        );
+      },
+    );
+
+    testWidgets('its open sheet says why in the world (D-20)', (tester) async {
+      await pumpBoard(tester, quests: loaded([inert]));
+      await openInert(tester);
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.blockedReasonKey)).data,
+        'Il tempio non può fare nulla per te adesso',
+      );
+    });
+
+    testWidgets(
+      'when the reread list clears the flag the sheet is whole and tearable again (D-20)',
+      (tester) async {
+        await pumpBoard(tester, quests: loaded([inert]));
+        await openInert(tester);
+        expect(openSheet(tester).isEnabled, isFalse);
+
+        questStates.add(loaded([_boardQuest('heal-1', 'heal')]));
+        await tester.pump();
+
+        expect(isTorn(tester, 'heal-1'), isFalse);
+        expect(openSheet(tester).isEnabled, isTrue);
       },
     );
   });
