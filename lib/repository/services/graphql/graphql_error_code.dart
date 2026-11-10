@@ -47,6 +47,13 @@ Object? graphQlErrorExtension(OperationException? exception, String key) {
       .firstOrNull;
 }
 
+/// Un istante ISO 8601 in `extensions` (es. la fine di una ricarica o della
+/// prigione), in UTC; `null` se manca o è illeggibile.
+DateTime? graphQlErrorInstant(OperationException? exception, String key) {
+  final wire = graphQlErrorExtension(exception, key);
+  return wire is String ? DateTime.tryParse(wire)?.toUtc() : null;
+}
+
 String? _firstCodeOf(List<GraphQLError> errors) => errors
     .map((error) => error.extensions?['code'])
     .whereType<String>()

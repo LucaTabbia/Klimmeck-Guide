@@ -5,6 +5,10 @@ import 'quest_availability.dart';
 /// Copy fissata dall'utente (D-20): riga del foglio e banner del rifiuto.
 const String questNoEffectLine = 'Il tempio non può fare nulla per te adesso';
 
+/// Copy provvisoria della prigione (quick 261110-cgd): riga del foglio e dei
+/// banner, completata dal tempo che manca dove è noto.
+const String questImprisonedLine = 'Sei in prigione';
+
 /// Riga di rifiuto mostrata al giocatore: testo di dominio fisso, mai testo del
 /// server (copy provvisoria, D-19).
 String? questBlockedReasonOf(

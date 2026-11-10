@@ -72,9 +72,8 @@ ItemUseException itemUseExceptionFrom(OperationException exception) {
   if (failure != ItemUseFailure.potionRecovering) {
     return ItemUseException(failure);
   }
-  final wire = graphQlErrorExtension(exception, recoveryUntilExtension);
   return ItemUseException(
     failure,
-    recoveryUntil: wire is String ? DateTime.tryParse(wire)?.toUtc() : null,
+    recoveryUntil: graphQlErrorInstant(exception, recoveryUntilExtension),
   );
 }
