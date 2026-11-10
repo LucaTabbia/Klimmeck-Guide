@@ -1,12 +1,14 @@
 /// Categorie di notifica regolabili in Impostazioni (D-09). `storageKey` è
 /// esplicita: rinominare un valore non deve orfanare i dati salvati.
 /// `ambushDefeat` (Phase 16 D-02): sconfitta in un'imboscata, titolo e testo dal BE.
+/// `prisonRelease` (quick 261110-prp): fine della prigionia, titolo e testo dal BE.
 enum NotificationCategory {
   travelEnd('travel_end', 'travelEnd'),
   streamerLive('streamer_live', 'streamerLive'),
   questEnd('quest_end', 'questEnd'),
   questCancelled('quest_cancelled', 'questCancelled'),
-  ambushDefeat('ambush_defeat', 'ambushDefeat');
+  ambushDefeat('ambush_defeat', 'ambushDefeat'),
+  prisonRelease('prison_release', 'prisonRelease');
 
   const NotificationCategory(this.storageKey, this.wireType);
 
