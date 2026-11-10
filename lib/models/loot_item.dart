@@ -44,7 +44,7 @@ class LootItem extends AssetItem with EquatableMixin {
     rarity: json['rarity'] != null
         ? RarityType.values.byName(json['rarity'])
         : null,
-    canHeal: _canHealFrom(json['canHeal']),
+    canHeal: injuryTypesFrom(json['canHeal']),
   );
 
   @override
@@ -86,12 +86,4 @@ class LootItem extends AssetItem with EquatableMixin {
 
   @override
   List<Object?> get props => [...super.props, power, effect, canHeal];
-}
-
-List<InjuryType> _canHealFrom(Object? json) {
-  if (json is! List) return const [];
-  final byName = InjuryType.values.asNameMap();
-  return List.unmodifiable(
-    json.map((name) => byName[name]).whereType<InjuryType>(),
-  );
 }

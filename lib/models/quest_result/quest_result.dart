@@ -127,7 +127,7 @@ class QuestResult extends Equatable {
       hpBefore: (json['hpBefore'] as num).toInt(),
       hpAfter: (json['hpAfter'] as num).toInt(),
       maxLifePoints: (json['maxLifePoints'] as num).toInt(),
-      injuriesAdded: _injuriesFrom(json['injuriesAdded'] as List),
+      injuriesAdded: injuryTypesFrom(json['injuriesAdded'] as List),
       consumablesUsed: assetQuantitiesFrom(json['consumablesUsed']),
       spellsUsed: List.unmodifiable(
         (json['spellsUsed'] as List).whereType<Map<String, dynamic>>().map(
@@ -175,13 +175,6 @@ class QuestResult extends Equatable {
           .whereType<Map<String, dynamic>>()
           .map(AssetQuantity.fromJson)
           .where((entry) => entry.item != null),
-    );
-  }
-
-  static List<InjuryType> _injuriesFrom(List<dynamic> names) {
-    final injuries = InjuryType.values.asNameMap();
-    return List.unmodifiable(
-      names.map((name) => injuries[name]).whereType<InjuryType>(),
     );
   }
 
