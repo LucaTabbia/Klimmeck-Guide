@@ -306,6 +306,113 @@ void main() {
     });
   });
 
+  group('torn sheet rule (quick 261110-mag)', () {
+    // (torn with its own requirements met, torn with one of them failing)
+    const expected = {
+      QuestAvailability.available: (false, false),
+      QuestAvailability.tornForOwner: (true, true),
+      QuestAvailability.notAcceptable: (true, true),
+      QuestAvailability.alreadyDone: (true, true),
+      QuestAvailability.titleMismatch: (true, true),
+      QuestAvailability.laneBusy: (false, true),
+      QuestAvailability.full: (true, true),
+      QuestAvailability.notInCity: (true, true),
+      QuestAvailability.insufficientPoints: (true, true),
+      QuestAvailability.noEffect: (true, true),
+    };
+
+    test('every availability has a torn decision (quick 261110-mag)', () {
+      expect(expected.keys.toSet(), QuestAvailability.values.toSet());
+      expected.forEach((availability, torn) {
+        expect(
+          isSheetTorn(availability, failsOwnRequirements: false),
+          torn.$1,
+          reason: '${availability.name} with its requirements met',
+        );
+        expect(
+          isSheetTorn(availability, failsOwnRequirements: true),
+          torn.$2,
+          reason: '${availability.name} with a requirement failing',
+        );
+      });
+    });
+
+    test('a quest above the viewer title is torn (quick 261110-mag)', () {
+      final standing = standingOf(
+        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildViewer(title: TitleType.paladin),
+      );
+      expect(standing.availability, QuestAvailability.titleMismatch);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('the same quest is whole once the title is reached '
+        '(quick 261110-mag)', () {
+      final standing = standingOf(
+        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildViewer(title: TitleType.mage),
+      );
+      expect(standing.availability, QuestAvailability.available);
+      expect(standing.isTorn, isFalse);
+    });
+
+    test('every other refusal is torn (quick 261110-mag)', () {
+      final done = standingOf(
+        buildQuest(type: 'boss', registered: ['c-1']),
+        buildViewer(),
+      );
+      final defect = standingOf(buildQuest(type: 'story'), buildViewer());
+      final away = standingOf(
+        buildQuest(type: 'hunt', markerId: 'poi-9'),
+        buildViewer(),
+      );
+      final poor = standingOf(
+        buildQuest(type: 'story', requiredPoints: 3000),
+        buildViewer(twitchPoints: 1200),
+      );
+      expect(done.availability, QuestAvailability.alreadyDone);
+      expect(defect.availability, QuestAvailability.notAcceptable);
+      expect(away.availability, QuestAvailability.notInCity);
+      expect(poor.availability, QuestAvailability.insufficientPoints);
+      for (final standing in [done, defect, away, poor]) {
+        expect(standing.isTorn, isTrue, reason: '${standing.availability}');
+      }
+    });
+
+    test('a busy lane alone leaves the sheet whole (quick 261110-mag)', () {
+      final viewer = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+      final standing = standingOf(buildQuest(type: 'magic'), viewer);
+      expect(standing.availability, QuestAvailability.laneBusy);
+      expect(standing.isTorn, isFalse);
+    });
+
+    test('a busy lane with too few points for the quest is torn '
+        '(quick 261110-mag)', () {
+      final quest = buildQuest(type: 'worldMission', requiredPoints: 3000);
+      final viewer = buildViewer(
+        twitchPoints: 1200,
+        quests: buildLanes(activeWorldMissionQuest: laneJson(questId: 'other')),
+      );
+      final standing = standingOf(quest, viewer);
+      expect(standing.availability, QuestAvailability.laneBusy);
+      expect(standing.isTorn, isTrue);
+      expect(
+        standingOf(
+          quest,
+          buildViewer(
+            twitchPoints: 5000,
+            quests: buildLanes(
+              activeWorldMissionQuest: laneJson(questId: 'other'),
+            ),
+          ),
+        ).isTorn,
+        isFalse,
+      );
+    });
+  });
+
   group('noEffect (D-20)', () {
     test('a quest with noEffect is torn and cannot be accepted (D-20)', () {
       final standing = standingOf(

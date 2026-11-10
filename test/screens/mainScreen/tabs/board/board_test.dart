@@ -88,6 +88,8 @@ void main() {
       CloudinaryAssets.storyTornSheet2,
       CloudinaryAssets.questSheet1,
       CloudinaryAssets.questSheet2,
+      CloudinaryAssets.magicSheet,
+      CloudinaryAssets.magicTornSheet,
     ]);
     questCubit = MockQuestCubit();
     characterCubit = MockCharacterCubit();
@@ -225,6 +227,40 @@ void main() {
     expect(isTorn(tester, 'b-full'), isTrue);
     expect(isTorn(tester, 'h-1'), isFalse);
   });
+
+  testWidgets(
+    'a magic quest above the title is torn until the rank (quick 261110-mag)',
+    (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([_boardQuest('m-1', 'magic', minTitle: 'mage')]),
+      );
+
+      expect(isTorn(tester, 'm-1'), isTrue);
+    },
+  );
+
+  testWidgets(
+    'a busy standard lane leaves the sheets whole (quick 261110-mag)',
+    (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([
+          _boardQuest('h-1', 'hunt'),
+          _boardQuest('m-1', 'magic', minTitle: 'mage'),
+          _boardQuest('m-2', 'magic', minTitle: 'paladin'),
+        ]),
+        character: characterWithLanesJson(
+          title: 'paladin',
+          pendingQuest: laneJson(id: 'pq-1', questId: 'other'),
+        ),
+      );
+
+      expect(isTorn(tester, 'h-1'), isFalse);
+      expect(isTorn(tester, 'm-2'), isFalse);
+      expect(isTorn(tester, 'm-1'), isTrue);
+    },
+  );
 
   testWidgets('never uses the POIs of another city', (tester) async {
     await pumpBoard(
