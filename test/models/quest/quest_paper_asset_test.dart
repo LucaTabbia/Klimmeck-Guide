@@ -46,22 +46,31 @@ void main() {
       }
     });
 
-    test('hunt, job and study have no torn sheet yet', () {
-      for (final type in [QuestType.hunt, QuestType.job, QuestType.study]) {
+    test('job and study have no torn sheet yet', () {
+      for (final type in [QuestType.job, QuestType.study]) {
         expect(
           questPaperAssetIds(type, isTorn: true),
           questPaperAssetIds(type, isTorn: false),
         );
       }
-      for (final type in [QuestType.hunt, QuestType.job]) {
-        expect(questPaperAssetIds(type, isTorn: false), [
-          CloudinaryAssets.jobSheet1,
-          CloudinaryAssets.jobSheet2,
-        ]);
-      }
+      expect(questPaperAssetIds(QuestType.job, isTorn: false), [
+        CloudinaryAssets.jobSheet1,
+        CloudinaryAssets.jobSheet2,
+      ]);
       expect(questPaperAssetIds(QuestType.study, isTorn: false), [
         CloudinaryAssets.announcementSheet1,
         CloudinaryAssets.announcementSheet2,
+      ]);
+    });
+
+    test('hunt uses the game sheets, whole and torn', () {
+      expect(questPaperAssetIds(QuestType.hunt, isTorn: false), [
+        CloudinaryAssets.gameSheet1,
+        CloudinaryAssets.gameSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.hunt, isTorn: true), [
+        CloudinaryAssets.gameTornSheet1,
+        CloudinaryAssets.gameTornSheet2,
       ]);
     });
 
@@ -202,6 +211,19 @@ void main() {
       expect(
         CloudinaryAssets.guardTornSheet2,
         'v1794322939/tornGuardSheet2_aqqbsj.svg',
+      );
+    });
+
+    test('the game sheets point to their files', () {
+      expect(CloudinaryAssets.gameSheet1, 'v1794324911/gameSheet1_togp4w.svg');
+      expect(CloudinaryAssets.gameSheet2, 'v1794324912/gameSheet2_zrmzpe.svg');
+      expect(
+        CloudinaryAssets.gameTornSheet1,
+        'v1794324905/tornGameSheet1_ruztfx.svg',
+      );
+      expect(
+        CloudinaryAssets.gameTornSheet2,
+        'v1794324906/tornGameSheet2_j1xtv6.svg',
       );
     });
   });
