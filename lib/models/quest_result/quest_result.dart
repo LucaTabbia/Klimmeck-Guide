@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
+import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/lore.dart';
@@ -47,6 +48,9 @@ class QuestResult extends Equatable {
     this.acknowledgedAt,
     this.loreUnlocked = const [],
     this.injuriesHealed = const [],
+    this.arrested = false,
+    this.coinsLost,
+    this.guardEncounter = false,
   });
 
   final String id;
@@ -69,6 +73,17 @@ class QuestResult extends Equatable {
   /// Ferite guarite dall'esito (BE Phase 18, D-02); vuota quando il filo non
   /// le manda.
   final List<InjuryType> injuriesHealed;
+
+  /// Arresto alla fine di una crime (quick 261110-cgd): nessun premio, la
+  /// prigione arriva sullo stato del personaggio.
+  final bool arrested;
+
+  /// Monete confiscate con l'arresto; `null` fuori dall'arresto o illeggibili.
+  final Coins? coinsLost;
+
+  /// Scontro alla fine di una guard (quick 261110-cgd): la paga raddoppiata
+  /// di una vittoria è già nei premi del server.
+  final bool guardEncounter;
 
   final List<AssetQuantity> consumablesUsed;
   final List<SpellUsage> spellsUsed;
@@ -135,6 +150,9 @@ class QuestResult extends Equatable {
       maxLifePoints: (json['maxLifePoints'] as num).toInt(),
       injuriesAdded: injuryTypesFrom(json['injuriesAdded'] as List),
       injuriesHealed: injuryTypesFrom(json['injuriesHealed']),
+      arrested: json['arrested'] == true,
+      coinsLost: _coinsFrom(json['coinsLost']),
+      guardEncounter: json['guardEncounter'] == true,
       consumablesUsed: assetQuantitiesFrom(json['consumablesUsed']),
       spellsUsed: List.unmodifiable(
         (json['spellsUsed'] as List).whereType<Map<String, dynamic>>().map(
@@ -188,6 +206,9 @@ class QuestResult extends Equatable {
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
 
+  static Coins? _coinsFrom(Object? json) =>
+      json is Map<String, dynamic> ? Coins.fromJson(json) : null;
+
   static int? _countFrom(Object? json) => json is num ? json.toInt() : null;
 
   static DateTime? _instantFrom(Object? json) =>
@@ -206,6 +227,9 @@ class QuestResult extends Equatable {
     'maxLifePoints': maxLifePoints,
     'injuriesAdded': injuriesAdded.map((injury) => injury.name).toList(),
     'injuriesHealed': injuriesHealed.map((injury) => injury.name).toList(),
+    'arrested': arrested,
+    'coinsLost': coinsLost?.toJson(),
+    'guardEncounter': guardEncounter,
     'consumablesUsed': consumablesUsed.map((entry) => entry.toJson()).toList(),
     'spellsUsed': spellsUsed.map((usage) => usage.toJson()).toList(),
     'rewards': rewards.toJson(),
@@ -247,6 +271,9 @@ class QuestResult extends Equatable {
     maxLifePoints,
     injuriesAdded,
     injuriesHealed,
+    arrested,
+    coinsLost,
+    guardEncounter,
     consumablesUsed,
     spellsUsed,
     rewards,

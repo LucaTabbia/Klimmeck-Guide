@@ -26,6 +26,7 @@ class CharacterStatus extends Equatable {
     this.awaitingAid,
     this.unlockedLore = const [],
     this.potionRecoveryUntil,
+    this.imprisonedUntil,
   });
 
   final int? xp;
@@ -56,6 +57,10 @@ class CharacterStatus extends Equatable {
   /// server; `null` = nessuna ricarica in corso o campo assente.
   final DateTime? potionRecoveryUntil;
 
+  /// Fine della prigione (quick 261110-cgd), istante UTC del server; `null` o
+  /// passata = libero. Nessuno sweep la azzera: il client si libera da sé.
+  final DateTime? imprisonedUntil;
+
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
         location: json['location'] != null
@@ -79,6 +84,7 @@ class CharacterStatus extends Equatable {
         awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
         unlockedLore: _unlockedLoreFrom(json['unlockedLore']),
         potionRecoveryUntil: _instantOrNull(json['potionRecoveryUntil']),
+        imprisonedUntil: _instantOrNull(json['imprisonedUntil']),
       );
 
   static List<SpellState>? _spellStatesFrom(Object? json) {
@@ -113,6 +119,7 @@ class CharacterStatus extends Equatable {
     "awaitingAid": awaitingAid?.toJson(),
     "unlockedLore": unlockedLore,
     "potionRecoveryUntil": potionRecoveryUntil?.toUtc().toIso8601String(),
+    "imprisonedUntil": imprisonedUntil?.toUtc().toIso8601String(),
   };
 
   CharacterStatus copyWith({
@@ -143,6 +150,7 @@ class CharacterStatus extends Equatable {
       awaitingAid: awaitingAid,
       unlockedLore: unlockedLore,
       potionRecoveryUntil: potionRecoveryUntil,
+      imprisonedUntil: imprisonedUntil,
     );
   }
 
@@ -163,5 +171,6 @@ class CharacterStatus extends Equatable {
     awaitingAid,
     unlockedLore,
     potionRecoveryUntil,
+    imprisonedUntil,
   ];
 }
