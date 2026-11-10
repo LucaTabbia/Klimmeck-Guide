@@ -33,17 +33,24 @@ void main() {
       }
     });
 
-    test('story and worldMission have a torn variant', () {
-      for (final type in [QuestType.story, QuestType.worldMission]) {
-        expect(questPaperAssetIds(type, isTorn: false), [
-          CloudinaryAssets.storySheet1,
-          CloudinaryAssets.storySheet2,
-        ]);
-        expect(questPaperAssetIds(type, isTorn: true), [
-          CloudinaryAssets.storyTornSheet2,
-          CloudinaryAssets.storyTornSheet1,
-        ]);
-      }
+    test('story has a torn variant', () {
+      expect(questPaperAssetIds(QuestType.story, isTorn: false), [
+        CloudinaryAssets.storySheet1,
+        CloudinaryAssets.storySheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.story, isTorn: true), [
+        CloudinaryAssets.storyTornSheet2,
+        CloudinaryAssets.storyTornSheet1,
+      ]);
+    });
+
+    test('worldMission uses its own whole and torn sheets', () {
+      expect(questPaperAssetIds(QuestType.worldMission, isTorn: false), [
+        CloudinaryAssets.worldMissionSheet,
+      ]);
+      expect(questPaperAssetIds(QuestType.worldMission, isTorn: true), [
+        CloudinaryAssets.worldMissionTornSheet,
+      ]);
     });
 
     test('job has a torn variant', () {
@@ -263,6 +270,17 @@ void main() {
       expect(
         CloudinaryAssets.healTornSheet2,
         'v1794329034/tornHealSheet2_cppkog.svg',
+      );
+    });
+
+    test('the world mission sheets point to their files', () {
+      expect(
+        CloudinaryAssets.worldMissionSheet,
+        'v1794330767/worldMissionSheet_uvximo.svg',
+      );
+      expect(
+        CloudinaryAssets.worldMissionTornSheet,
+        'v1794330793/tornWorldMissionSheet_xaijpq.svg',
       );
     });
   });
