@@ -15,6 +15,7 @@ The backend is the source of truth for every rule: each requirement below descri
 - [ ] **HEAL-03**: Device UAT with the player identity after the BE Phase 18 merge and the content write by city size: one heal per size (village: one listed and one unlisted seeded injury → one healed and HP to 50%; city; capital: everything healed, HP full), schema gate on the merged BE SDL; the heal paper, description and time line (2 / 5 / 8 h, data only) unchanged
 - [ ] **HEAL-04**: In the Journal «Oggetti» section a heal item with a `recovery` is tappable: an in-world confirmation on parchment calls `useItem(itemId)` (repository + failures); on success the HP gain animates (`HpDeltaBar`), «Guarite: …» lists `injuriesHealed`, «Nuova pagina delle Conoscenze: <name>» appears when `loreUnlocked` is not empty, and the new state arrives from the character stream; refusals are in-world notices (`POTION_RECOVERING` with the backend's remaining time, `ITEM_NO_EFFECT`, others generic); available in travel, hidden while awaiting aid; combat untouched _(added 2026-11-09 evening)_
 - [ ] **HEAL-05**: `CharacterStatus.potionRecoveryUntil` (nullable date) and `LootItem.recovery { time, turns }` (nullable, lenient) are parsed; while the date is in the future every heal parchment is disabled with a countdown «pronta fra …» from the server date (local tick, no call); shop and Journal item rows show «Ricarica: …» humanised from `recovery.time` (`turns` not shown); the device E2E drinks a field herb, sees the countdown and the lore line, and gets the `POTION_RECOVERING` notice on a second potion _(added 2026-11-09 evening)_
+- [ ] **HEAL-06**: On the Board a quest whose per-viewer `noEffect` is true (backend-owned: a `heal` that would change nothing for the current character) is drawn as an already torn sheet that cannot be torn or accepted; the list is reread silently when the character's HP or injuries change, so the sheet becomes whole again when the heal is useful; a `QUEST_NO_EFFECT` refusal shows an in-world notice; `noEffect` parsed leniently (missing → false); no rule computed on the FE _(added 2026-11-10, user rule during the plan)_
 
 ### Model Review companion (Phase 19, added 2026-11-09)
 
@@ -52,12 +53,13 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | HEAL-03 | Phase 18 | Pending |
 | HEAL-04 | Phase 18 | Pending |
 | HEAL-05 | Phase 18 | Pending |
+| HEAL-06 | Phase 18 | Pending |
 | MODEL-01 | Phase 19 | Pending |
 | MODEL-02 | Phase 19 | Pending |
 | MODEL-03 | Phase 19 | Pending |
 | MODEL-04 | Phase 19 | Pending |
 
-**Coverage:** 9 / 9 v1.1 requirements mapped (5 HEAL → Phase 18, 4 MODEL → Phase 19). No orphans. No duplicates.
+**Coverage:** 10 / 10 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19). No orphans. No duplicates.
 
 ---
 
