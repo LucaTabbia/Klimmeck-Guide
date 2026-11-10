@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
 Phase: 18 of 19 (Heal Quests by City Size) — EXECUTING since 2026-11-10 on `feat/18-heal-quests-by-size` (from `develop` `53c734e` + the milestone start): 13 plans in 13 sequential waves (18-01..18-11 on fixtures with the contract names of the REPO-RULES; 18-12 schema gate and 18-13 device UAT + handoff gated by the BE Phase 18 merge on BE `develop`)
-Plan: 1 of 13
+Plan: 2 of 13
 Status: Executing Phase 18 — 18-01..18-11 run now; 18-12/18-13 wait for the BE Phase 18 merge; BE Phase 18 executing in the same session on `feat/18-quest-heal-per-taglia`
 Last activity: 2026-11-10 -- Phase 18 execution started (planned the same day: research, 13 plans, plan check passed)
 Next step: execute 18-01..18-11, then review → fix → verify → security and park the phase at 11/13 until the BE Phase 18 PR is merged on BE `develop`; then 18-12 (schema gate) and 18-13 (device UAT).
