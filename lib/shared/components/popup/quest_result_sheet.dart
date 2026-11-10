@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
 
 /// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
 /// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
@@ -43,6 +44,7 @@ class QuestResultSheet extends StatefulWidget {
   static const Key stagesKey = ValueKey('questResult.stages');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
+  static const Key healedKey = ValueKey('questResult.healed');
   static const Key reachedCityKey = ValueKey('questResult.reachedCity');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
@@ -166,6 +168,10 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._enemies(),
         ..._line(_stagesText(), QuestResultSheet.stagesKey),
         ..._hp(),
+        ..._line(
+          healedLine(_result.injuriesHealed),
+          QuestResultSheet.healedKey,
+        ),
         ..._injuries(),
         ..._line(_reachedCityText(), QuestResultSheet.reachedCityKey),
         ..._consumables(),
