@@ -35,9 +35,16 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.guardTornSheet2,
           ]
         : const [CloudinaryAssets.guardSheet1, CloudinaryAssets.guardSheet2],
+  QuestType.hunt =>
+    isTorn
+        ? const [
+            CloudinaryAssets.gameTornSheet1,
+            CloudinaryAssets.gameTornSheet2,
+          ]
+        : const [CloudinaryAssets.gameSheet1, CloudinaryAssets.gameSheet2],
   // Senza foglio strappato finché non arrivano gli asset:
-  // hunt/job e study usano il foglio intero anche se strappati.
-  QuestType.hunt || QuestType.job => const [
+  // job e study usano il foglio intero anche se strappati.
+  QuestType.job => const [
     CloudinaryAssets.jobSheet1,
     CloudinaryAssets.jobSheet2,
   ],
