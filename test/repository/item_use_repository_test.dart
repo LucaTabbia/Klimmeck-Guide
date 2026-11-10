@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
@@ -67,18 +68,31 @@ void main() {
     },
   );
 
-  test('a timeout is timedOut (D-19)', () async {
-    final completer = Completer<UseItemResult>();
-    when(() => graphQl.useItem(any())).thenAnswer((_) => completer.future);
-    final bounded = ItemUseRepository(
-      graphQl: graphQl,
-      timeout: const Duration(milliseconds: 20),
-    );
+  test('no answer within the default timeout is timedOut (D-19)', () {
+    fakeAsync((async) {
+      when(
+        () => graphQl.useItem(any()),
+      ).thenAnswer((_) => Completer<UseItemResult>().future);
+      Object? failure;
 
-    await expectLater(
-      bounded.useItem('l-herb'),
-      _failsWith(ItemUseFailure.timedOut),
-    );
+      repository
+          .useItem('l-herb')
+          .then<void>((_) {}, onError: (Object error) => failure = error);
+      async.elapse(
+        ItemUseRepository.defaultTimeout - const Duration(milliseconds: 1),
+      );
+      expect(failure, isNull);
+      async.elapse(const Duration(milliseconds: 1));
+
+      expect(
+        failure,
+        isA<ItemUseException>().having(
+          (e) => e.failure,
+          'failure',
+          ItemUseFailure.timedOut,
+        ),
+      );
+    });
   });
 
   test('the default timeout is 15 seconds', () {
