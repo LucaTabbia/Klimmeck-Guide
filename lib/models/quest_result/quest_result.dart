@@ -46,6 +46,7 @@ class QuestResult extends Equatable {
     this.ambush,
     this.acknowledgedAt,
     this.loreUnlocked = const [],
+    this.injuriesHealed = const [],
   });
 
   final String id;
@@ -64,6 +65,11 @@ class QuestResult extends Equatable {
   /// Massimo dopo l'esito (BE §3): cresce con un passaggio di livello.
   final int maxLifePoints;
   final List<InjuryType> injuriesAdded;
+
+  /// Ferite guarite dall'esito (BE Phase 18, D-02); vuota quando il filo non
+  /// le manda.
+  final List<InjuryType> injuriesHealed;
+
   final List<AssetQuantity> consumablesUsed;
   final List<SpellUsage> spellsUsed;
   final QuestRewards rewards;
@@ -128,6 +134,7 @@ class QuestResult extends Equatable {
       hpAfter: (json['hpAfter'] as num).toInt(),
       maxLifePoints: (json['maxLifePoints'] as num).toInt(),
       injuriesAdded: injuryTypesFrom(json['injuriesAdded'] as List),
+      injuriesHealed: injuryTypesFrom(json['injuriesHealed']),
       consumablesUsed: assetQuantitiesFrom(json['consumablesUsed']),
       spellsUsed: List.unmodifiable(
         (json['spellsUsed'] as List).whereType<Map<String, dynamic>>().map(
@@ -217,6 +224,7 @@ class QuestResult extends Equatable {
     'hpAfter': hpAfter,
     'maxLifePoints': maxLifePoints,
     'injuriesAdded': injuriesAdded.map((injury) => injury.name).toList(),
+    'injuriesHealed': injuriesHealed.map((injury) => injury.name).toList(),
     'consumablesUsed': consumablesUsed.map((entry) => entry.toJson()).toList(),
     'spellsUsed': spellsUsed.map((usage) => usage.toJson()).toList(),
     'rewards': rewards.toJson(),
@@ -257,6 +265,7 @@ class QuestResult extends Equatable {
     hpAfter,
     maxLifePoints,
     injuriesAdded,
+    injuriesHealed,
     consumablesUsed,
     spellsUsed,
     rewards,
