@@ -406,6 +406,7 @@ void main() {
 
         questStates.add(loaded([_boardQuest('heal-1', 'heal')]));
         await tester.pump();
+        await tester.pump();
 
         expect(isTorn(tester, 'heal-1'), isFalse);
         expect(openSheet(tester).isEnabled, isTrue);

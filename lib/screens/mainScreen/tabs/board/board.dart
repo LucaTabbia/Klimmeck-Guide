@@ -317,7 +317,8 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       canTear:
           standingOf(selected, viewer).canAccept &&
           travelPreview?.arrivesAlive != false,
-      isEnabled: isIdle,
+      // D-20: un foglio già strappato dal backend non si trascina né si accetta.
+      isEnabled: isIdle && !selected.noEffect,
       onTorn: () => _accept(viewer, selected),
       child: ColoredBox(
         color: Colors.transparent,

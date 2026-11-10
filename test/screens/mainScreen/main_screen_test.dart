@@ -508,6 +508,10 @@ void main() {
         addTearDown(characterStates.close);
         when(() => mainScreenCubit.loadData()).thenAnswer((_) async {});
         when(() => mainScreenCubit.refreshCities()).thenAnswer((_) async {});
+        // D-20: un cambio di vita in città rilegge anche le quest.
+        when(
+          () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+        ).thenAnswer((_) async {});
       });
 
       CharacterLoaded characterKnowing(
