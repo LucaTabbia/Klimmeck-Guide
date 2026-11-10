@@ -306,6 +306,66 @@ void main() {
     });
   });
 
+  group('prison (quick 261110-cgd)', () {
+    const nineHours = Duration(hours: 9);
+
+    test('an imprisoned viewer cannot accept and every sheet is torn '
+        '(quick 261110-cgd)', () {
+      for (final type in ['hunt', 'crime', 'study', 'heal']) {
+        final standing = standingOf(
+          buildQuest(type: type),
+          buildViewer(imprisonedFor: nineHours),
+        );
+
+        expect(
+          standing.availability,
+          QuestAvailability.imprisoned,
+          reason: type,
+        );
+        expect(standing.canAccept, isFalse, reason: type);
+        expect(standing.isTorn, isTrue, reason: type);
+      }
+    });
+
+    test('prison comes before a busy lane or a missing requirement '
+        '(quick 261110-cgd)', () {
+      final viewer = buildViewer(
+        imprisonedFor: nineHours,
+        title: TitleType.rookie,
+        twitchPoints: 0,
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+
+      expect(
+        availabilityOf(buildQuest(type: 'hunt'), viewer),
+        QuestAvailability.imprisoned,
+      );
+      expect(
+        availabilityOf(buildQuest(type: 'guard', minTitle: 'paladin'), viewer),
+        QuestAvailability.imprisoned,
+      );
+    });
+
+    test('the own lane quest stays the owner\'s (quick 261110-cgd)', () {
+      final viewer = buildViewer(
+        imprisonedFor: nineHours,
+        quests: buildLanes(activeStoryQuest: laneJson(questId: 'q-1')),
+      );
+
+      expect(
+        availabilityOf(buildQuest(type: 'story', requiredPoints: 3000), viewer),
+        QuestAvailability.tornForOwner,
+      );
+    });
+
+    test('a free viewer is unaffected (quick 261110-cgd)', () {
+      expect(
+        availabilityOf(buildQuest(type: 'hunt'), buildViewer()),
+        QuestAvailability.available,
+      );
+    });
+  });
+
   group('torn sheet rule (quick 261110-mag)', () {
     // (torn with its own requirements met, torn with one of them failing)
     const expected = {
@@ -319,6 +379,7 @@ void main() {
       QuestAvailability.notInCity: (true, true),
       QuestAvailability.insufficientPoints: (true, true),
       QuestAvailability.noEffect: (true, true),
+      QuestAvailability.imprisoned: (true, true),
     };
 
     test('every availability has a torn decision (quick 261110-mag)', () {

@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -73,7 +74,9 @@ void main() {
   late MockAuthCubit authCubit;
   late MockQuestAcceptanceCubit acceptanceCubit;
   late MockTravelRepository travelRepository;
+  late MockPrisonCubit prisonCubit;
   late StreamController<QuestState> questStates;
+  late StreamController<PrisonState> prisonStates;
 
   setUp(() {
     seedSvgCache([
@@ -96,6 +99,9 @@ void main() {
     authCubit = MockAuthCubit();
     acceptanceCubit = MockQuestAcceptanceCubit();
     travelRepository = MockTravelRepository();
+    prisonCubit = MockPrisonCubit();
+    prisonStates = StreamController<PrisonState>.broadcast();
+    addTearDown(prisonStates.close);
     when(
       () => travelRepository.previewQuest(
         characterId: any(named: 'characterId'),
@@ -127,8 +133,10 @@ void main() {
     required QuestLoaded quests,
     Map<String, dynamic>? character,
     Stream<CharacterState>? characterStates,
+    PrisonState prison = const PrisonState(null),
   }) async {
     useLandscapePhone(tester);
+    whenListen(prisonCubit, prisonStates.stream, initialState: prison);
     whenListen(
       characterCubit,
       characterStates ?? const Stream<CharacterState>.empty(),
@@ -152,6 +160,7 @@ void main() {
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<AuthCubit>.value(value: authCubit),
             BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
+            BlocProvider<PrisonCubit>.value(value: prisonCubit),
           ],
           child: Scaffold(body: Board(cities: _cities)),
         ),
@@ -372,6 +381,65 @@ void main() {
         expect(find.text('Vita: almeno il 50%'), findsOneWidget);
       },
     );
+  });
+
+  group('prison (quick 261110-cgd)', () {
+    const imprisoned = PrisonState(Duration(hours: 9, minutes: 12));
+
+    Future<void> open(WidgetTester tester, String id) async {
+      await tester.ensureVisible(paper(id));
+      await tester.tap(paper(id));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('in prison every sheet is torn and none can be torn off '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([_boardQuest('h-1', 'hunt')]),
+        prison: imprisoned,
+      );
+
+      expect(isTorn(tester, 'h-1'), isTrue);
+
+      await open(tester, 'h-1');
+      expect(
+        tester.widget<TearablePaper>(find.byType(TearablePaper)).canTear,
+        isFalse,
+      );
+    });
+
+    testWidgets('the open sheet says «Sei in prigione» with the release time '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([_boardQuest('h-1', 'hunt')]),
+        prison: imprisoned,
+      );
+      await open(tester, 'h-1');
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.blockedReasonKey)).data,
+        'Sei in prigione: uscirai fra 9 h 12 min',
+      );
+    });
+
+    testWidgets('at the release the sheets turn whole again '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([_boardQuest('h-1', 'hunt')]),
+        prison: imprisoned,
+      );
+      expect(isTorn(tester, 'h-1'), isTrue);
+
+      when(() => prisonCubit.state).thenReturn(const PrisonState(null));
+      prisonStates.add(const PrisonState(null));
+      await tester.pump();
+
+      expect(isTorn(tester, 'h-1'), isFalse);
+    });
   });
 
   group('heal with no effect (D-20)', () {

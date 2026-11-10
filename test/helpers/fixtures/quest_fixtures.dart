@@ -176,12 +176,14 @@ QuestViewer buildViewer({
   CharacterQuests? quests,
   Set<String>? cityPointIds = const {'poi-1'},
   int? twitchPoints = 5000,
+  Duration? imprisonedFor,
 }) => QuestViewer(
   characterId: characterId,
   title: title,
   quests: quests,
   cityPointIds: cityPointIds,
   twitchPoints: twitchPoints,
+  imprisonedFor: imprisonedFor,
 );
 
 CharacterQuests buildLanes({
