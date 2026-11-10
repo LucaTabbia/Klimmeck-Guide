@@ -67,6 +67,9 @@ Finder _card(String id) => find.byKey(ValueKey(id));
 
 Finder _statusOf(String id) => find.byKey(ValueKey('item-status-$id'));
 
+String? _statusTextOf(WidgetTester tester, String id) =>
+    tester.widget<Text>(_statusOf(id)).data;
+
 double _opacityOf(WidgetTester tester, String id) => tester
     .widget<AnimatedOpacity>(find.byKey(ValueKey('item-card-opacity-$id')))
     .opacity;
@@ -181,11 +184,7 @@ void main() {
 
     expect(find.text(_readyIn72), findsNWidgets(2));
     for (final id in [_herb, _balm]) {
-      expect(
-        find.descendant(of: _statusOf(id), matching: find.text(_readyIn72)),
-        findsOneWidget,
-        reason: id,
-      );
+      expect(_statusTextOf(tester, id), _readyIn72, reason: id);
       expect(
         _opacityOf(tester, id),
         KlimmeckGuideTheme.pendingInkOpacity,
@@ -284,10 +283,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(
-      find.descendant(of: _statusOf(_herb), matching: find.text(_readyIn72)),
-      findsOneWidget,
-    );
+    expect(_statusTextOf(tester, _herb), _readyIn72);
     verifyNever(() => characterCubit.refreshCharacter());
     await unmount(tester);
   });
