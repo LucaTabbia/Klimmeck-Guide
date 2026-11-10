@@ -6,10 +6,6 @@ const _enemyTornSheets = [
   CloudinaryAssets.enemyTornSheet1,
   CloudinaryAssets.enemyTornSheet2,
 ];
-const _questTornSheets = [
-  CloudinaryAssets.questSheetTorn1,
-  CloudinaryAssets.questSheetTorn2,
-];
 
 /// Famiglia di asset del foglio sulla board (D-12), riusata dal foglio sulla mappa (D-07).
 List<String> questPaperAssetIds(
@@ -83,11 +79,14 @@ List<String> questPaperAssetIds(
         : const [CloudinaryAssets.magicSheet],
   QuestType.aid =>
     isTorn
-        ? _questTornSheets
+        ? const [CloudinaryAssets.aidTornSheet1, CloudinaryAssets.aidTornSheet2]
         : const [CloudinaryAssets.aidSheet1, CloudinaryAssets.aidSheet2],
   QuestType.dungeon || null =>
     isTorn
-        ? _questTornSheets
+        ? const [
+            CloudinaryAssets.questSheetTorn1,
+            CloudinaryAssets.questSheetTorn2,
+          ]
         : const [CloudinaryAssets.questSheet2, CloudinaryAssets.questSheet1],
 };
 
