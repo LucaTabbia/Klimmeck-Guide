@@ -33,6 +33,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -100,6 +101,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
 /// La Locanda (Phase 10) legge `InnkeeperRepository` e `ServerClockService` da qui con `openInnkeeperPanel`.
+///
+/// Prigione (quick 261110-cgd): sull'ora del server, qui perché mappa,
+/// Bacheca, borsa e banner la leggono tutti.
 ///
 /// Modalità teletrasporto del GM (Phase 10): a livello di shell perché il pannello (route radice) la avvia e la Mappa la mostra.
 class AuthenticatedShell extends StatelessWidget {
@@ -251,6 +255,10 @@ class AuthenticatedShell extends StatelessWidget {
             graphQl: graphQl,
             permissionGate: context.read<NotificationPermissionGate>(),
           ),
+        ),
+        BlocProvider<PrisonCubit>(
+          create: (context) =>
+              PrisonCubit(clock: context.read<ServerClockService>()),
         ),
         BlocProvider<TravelCubit>(
           create: (context) => TravelCubit(
