@@ -58,8 +58,6 @@ class QuestResultSheet extends StatefulWidget {
   /// Righe delle lore sbloccate (D-10): una per voce, dopo «Magia appresa».
   static Key loreUnlockedKeyOf(String loreId) =>
       ValueKey('questResult.loreUnlocked.$loreId');
-  static const String bestiaryPagePrefix = bestiaryPageLinePrefix;
-  static const String knowledgePrefix = knowledgeLinePrefix;
   static const Key counterKey = ValueKey('questResult.counter');
   static const Key continueKey = ValueKey('questResult.continue');
   static const Key acknowledgeErrorKey = ValueKey(
