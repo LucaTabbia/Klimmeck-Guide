@@ -31,4 +31,5 @@ String? questBlockedReasonOf(
   QuestAvailability.notInCity => 'Devi trovarti nella città della missione',
   QuestAvailability.insufficientPoints => 'Punti canale insufficienti',
   QuestAvailability.noEffect => questNoEffectLine,
+  QuestAvailability.imprisoned => questImprisonedLine,
 };

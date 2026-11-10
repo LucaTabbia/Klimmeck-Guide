@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
+import 'package:klimmeck_guide/utils/prison_lines.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../models/enums/injury_type.dart';
@@ -146,9 +147,9 @@ class QuestInfoSheet extends StatelessWidget {
             QuestSheetFamily.service => _serviceBody(details),
           },
         ),
-        if (details.blockedReason != null)
+        if (_blockedReasonOf(details) case final reason?)
           Text(
-            details.blockedReason!,
+            reason,
             key: blockedReasonKey,
             style: theme.bodyLarge.copyWith(color: KlimmeckGuideTheme.bloodRed),
           ),
@@ -158,6 +159,11 @@ class QuestInfoSheet extends StatelessWidget {
       ],
     );
   }
+
+  /// In prigione la riga dice anche il tempo che manca (quick 261110-cgd).
+  String? _blockedReasonOf(QuestSheetDetails details) => details.isImprisoned
+      ? prisonReleaseLine(viewer?.imprisonedFor)
+      : details.blockedReason;
 
   /// Annuncio del committente sotto il titolo, in ogni famiglia (D-05).
   List<Widget> _description(KlimmeckGuideTheme theme) {

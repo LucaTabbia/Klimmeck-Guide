@@ -434,8 +434,8 @@ void main() {
       );
       expect(isTorn(tester, 'h-1'), isTrue);
 
-      when(() => prisonCubit.state).thenReturn(const PrisonState(null));
       prisonStates.add(const PrisonState(null));
+      await tester.pump();
       await tester.pump();
 
       expect(isTorn(tester, 'h-1'), isFalse);

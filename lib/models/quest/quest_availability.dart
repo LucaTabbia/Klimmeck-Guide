@@ -22,6 +22,9 @@ enum QuestAvailability {
 
   /// Il backend dice che la quest non avrebbe effetto (D-20): foglio strappato.
   noEffect,
+
+  /// Il personaggio è in prigione (quick 261110-cgd): nessuna quest.
+  imprisoned,
 }
 
 class QuestStanding extends Equatable {
@@ -77,7 +80,8 @@ bool isSheetTorn(
   QuestAvailability.full ||
   QuestAvailability.notInCity ||
   QuestAvailability.insufficientPoints ||
-  QuestAvailability.noEffect => true,
+  QuestAvailability.noEffect ||
+  QuestAvailability.imprisoned => true,
 };
 
 /// Requisiti della quest indipendenti dalla corsia, letti anche a corsia occupata.
@@ -95,6 +99,7 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
   if (laneQuestOf(viewer.quests, lane)?.quest?.id == quest.id) {
     return QuestAvailability.tornForOwner;
   }
+  if (viewer.imprisonedFor != null) return QuestAvailability.imprisoned;
   if (_isCatalogueDefect(type, lane, quest)) {
     return QuestAvailability.notAcceptable;
   }
