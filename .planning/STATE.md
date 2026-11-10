@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: planning
-last_updated: "2026-11-10T12:00:00.000Z"
-last_activity: 2026-11-10 -- Milestone v1.1 Healing & Models started
+status: executing
+last_updated: "2026-11-10T16:00:00.000Z"
+last_activity: 2026-11-10 -- Phase 18 execution started
 progress:
   total_phases: 2
   completed_phases: 0
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 18 — Heal Quests by City Size (context gathered, ready to plan; ↔ BE Phase 18)
+**Current focus:** Phase 18 — Heal Quests by City Size — EXECUTING (since 2026-11-10) on `feat/18-heal-quests-by-size`: 13 plans in 13 sequential waves, plan-checker passed (↔ BE Phase 18, executing in the same session)
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
-Phase: 18 of 19 (Heal Quests by City Size) — context gathered on 2026-11-09 (`18-CONTEXT.md` D-01..D-16), ready to plan
-Plan: —
-Status: Ready to plan
-Last activity: 2026-11-10 -- Milestone v1.1 started (requirements and roadmap defined, phase contexts of 18 and 19 carried over from their discuss branches)
-Next step: `/gsd-plan-phase 18` jointly with the BE Phase 18, on `feat/18-heal-quests-by-size` recreated from `develop` once `docs/v1.1-milestone-start` is merged (the old discuss branches `feat/18-heal-quests-by-size` and `feat/19-model-review` are superseded: their contexts are on this branch, their edits of ROADMAP/REQUIREMENTS/STATE are replaced by the v1.1 files).
+Phase: 18 of 19 (Heal Quests by City Size) — EXECUTING since 2026-11-10 on `feat/18-heal-quests-by-size` (from `develop` `53c734e` + the milestone start): 13 plans in 13 sequential waves (18-01..18-11 on fixtures with the contract names of the REPO-RULES; 18-12 schema gate and 18-13 device UAT + handoff gated by the BE Phase 18 merge on BE `develop`)
+Plan: 0 of 13
+Status: Executing Phase 18 — 18-01..18-11 run now; 18-12/18-13 wait for the BE Phase 18 merge; BE Phase 18 executing in the same session on `feat/18-quest-heal-per-taglia`
+Last activity: 2026-11-10 -- Phase 18 execution started (planned the same day: research, 13 plans, plan check passed)
+Next step: execute 18-01..18-11, then review → fix → verify → security and park the phase at 11/13 until the BE Phase 18 PR is merged on BE `develop`; then 18-12 (schema gate) and 18-13 (device UAT).
 
 ## Current Milestone
 
@@ -78,5 +78,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
-Stopped at: milestone initialized on `docs/v1.1-milestone-start` (PR → `develop`); next: plan Phase 18 with the BE Phase 18
-Resume file: .planning/phases/18-heal-quests-by-size/18-CONTEXT.md
+Stopped at: Phase 18 executing (0/13, 2026-11-10)
+Resume file: .planning/phases/18-heal-quests-by-size/18-01-PLAN.md
