@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
+import 'package:klimmeck_guide/utils/prison_lines.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
@@ -37,10 +38,6 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const String awaitingAidLabel = 'In attesa di soccorso';
 
   static const Key prisonLabelKey = ValueKey('map.prisonLabel');
-
-  /// Copy provvisoria (quick 261110-cgd): segnalino della prigione, solo testo
-  /// come quello dell'attesa di soccorso.
-  static const String prisonLabel = 'In prigione';
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
@@ -85,12 +82,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               ? _buildTravellingPawn(characterState, progress)
               : BlocBuilder<TravelCubit, TravelState>(
                   builder: (context, travel) =>
-                      BlocSelector<PrisonCubit, PrisonState, bool>(
-                        selector: (prison) => prison.isImprisoned,
-                        builder: (context, isImprisoned) => _buildIdlePawn(
+                      BlocSelector<PrisonCubit, PrisonState, Duration?>(
+                        selector: (prison) => prison.remaining,
+                        builder: (context, prisonRemaining) => _buildIdlePawn(
                           characterState,
                           travel,
-                          isImprisoned: isImprisoned,
+                          prisonRemaining: prisonRemaining,
                         ),
                       ),
                 ),
@@ -102,7 +99,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
   Widget _buildIdlePawn(
     CharacterLoaded state,
     TravelState travel, {
-    required bool isImprisoned,
+    required Duration? prisonRemaining,
   }) {
     final location = state.character.status!.location!.location!;
     final point = dragPoint ?? _confirmingDestination(travel) ?? location;
@@ -114,7 +111,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
           child: _scaled(
             _buildDraggablePawn(
               pawnPath,
-              canDrag: !isImprisoned && _canStartTravel(state, travel),
+              canDrag:
+                  prisonRemaining == null && _canStartTravel(state, travel),
               onTap: _cityTapOf(state, travel),
             ),
           ),
@@ -127,12 +125,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               text: CharacterMarkerLayer.awaitingAidLabel,
             ),
           ),
-        if (isImprisoned)
+        if (prisonRemaining != null)
           _labelMarker(
             point,
-            const PawnLabel(
+            PawnLabel(
               key: CharacterMarkerLayer.prisonLabelKey,
-              text: CharacterMarkerLayer.prisonLabel,
+              text: prisonMarkerLine(prisonRemaining),
             ),
           ),
       ],

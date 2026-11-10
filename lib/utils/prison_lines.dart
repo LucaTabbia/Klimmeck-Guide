@@ -10,3 +10,7 @@ String prisonReleaseLine(Duration? remaining) {
   }
   return '$questImprisonedLine: uscirai fra ${formatGameDuration(remaining)}';
 }
+
+/// «In prigione per: 9 h 12 min»: il segnalino sopra la pedina.
+String prisonMarkerLine(Duration remaining) =>
+    'In prigione per: ${formatGameDuration(remaining)}';
