@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -324,6 +325,49 @@ void main() {
     await tapAndSettle(tester, _card(_herb));
 
     expect(find.byType(PotionSheet), findsOneWidget);
+  });
+
+  group('drag to dismiss (D-18)', () {
+    Future<void> dragSheetDown(WidgetTester tester) async {
+      await tester.dragFrom(const Offset(390, 250), const Offset(0, 300));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('dragging the sheet down cannot dismiss a drink in flight, '
+        'and its outcome lands on the same sheet', (tester) async {
+      final potionStates = StreamController<PotionState>.broadcast();
+      addTearDown(potionStates.close);
+      whenListen(
+        potionCubit,
+        potionStates.stream,
+        initialState: const PotionDrinking(_herb),
+      );
+      await pumpItems(tester);
+      await tapAndSettle(tester, _card(_herb));
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(PotionSheet), findsOneWidget);
+
+      potionStates.add(
+        PotionDrunk(_herb, UseItemResult.fromJson(useItemResultJson())),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(PotionSheet.hpKey), findsOneWidget);
+      expect(find.byKey(PotionSheet.continueKey), findsOneWidget);
+    });
+
+    testWidgets('dragging the sheet down dismisses it before the drink', (
+      tester,
+    ) async {
+      await pumpItems(tester);
+      await tapAndSettle(tester, _card(_herb));
+
+      await dragSheetDown(tester);
+
+      expect(find.byType(PotionSheet), findsNothing);
+    });
   });
 
   testWidgets("the sheet receives the character's maximum life (D-18)", (
