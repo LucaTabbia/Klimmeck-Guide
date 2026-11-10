@@ -12,6 +12,7 @@ const String questTitleMismatchCode = 'QUEST_TITLE_MISMATCH';
 const String questNotInCityCode = 'QUEST_NOT_IN_CITY';
 const String questNotAcceptableCode = 'QUEST_NOT_ACCEPTABLE';
 const String insufficientPointsCode = 'INSUFFICIENT_POINTS';
+const String questNoEffectCode = 'QUEST_NO_EFFECT';
 
 /// Esiti di dominio del rifiuto di `acceptQuest`; la UI li traduce in copy (D-04).
 enum QuestAcceptanceFailure {
@@ -34,6 +35,10 @@ enum QuestAcceptanceFailure {
   /// BE Phase 14 D-11: il viaggio automatico verso il marker non arriverebbe
   /// vivo; il foglio si ricompone e l'anteprima si rinnova (15-CONTEXT D-05).
   starving,
+
+  /// BE Phase 18 D-25: la heal non cambierebbe nulla al personaggio; arriva
+  /// solo con una lista stantia (il foglio è già strappato, D-20).
+  noEffect,
 
   /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
   /// server (Phase 12 D-13a).
@@ -75,6 +80,7 @@ QuestAcceptanceFailure questAcceptanceFailureFrom(
     travelInProgressCode => QuestAcceptanceFailure.travelInProgress,
     awaitingAidCode => QuestAcceptanceFailure.awaitingAid,
     travelStarvingCode => QuestAcceptanceFailure.starving,
+    questNoEffectCode => QuestAcceptanceFailure.noEffect,
     notFoundCode => QuestAcceptanceFailure.notFound,
     forbiddenCode => QuestAcceptanceFailure.forbidden,
     badUserInputCode => QuestAcceptanceFailure.badUserInput,
