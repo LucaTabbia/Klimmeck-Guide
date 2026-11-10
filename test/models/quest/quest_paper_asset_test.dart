@@ -7,30 +7,48 @@ import '../../helpers/fixtures/quest_fixtures.dart';
 
 void main() {
   group('questPaperAssetIds', () {
-    test('boss and enemy use the enemy family', () {
-      for (final type in [QuestType.boss, QuestType.enemy]) {
-        expect(questPaperAssetIds(type, isTorn: false), [
-          CloudinaryAssets.enemySheet1,
-          CloudinaryAssets.enemySheet2,
-        ]);
-        expect(questPaperAssetIds(type, isTorn: true), [
-          CloudinaryAssets.enemyTornSheet1,
-          CloudinaryAssets.enemyTornSheet2,
-        ]);
-      }
+    test('enemy uses the enemy family', () {
+      expect(questPaperAssetIds(QuestType.enemy, isTorn: false), [
+        CloudinaryAssets.enemySheet1,
+        CloudinaryAssets.enemySheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.enemy, isTorn: true), [
+        CloudinaryAssets.enemyTornSheet1,
+        CloudinaryAssets.enemyTornSheet2,
+      ]);
     });
 
-    test('dungeon and aid use the quest family', () {
-      for (final type in [QuestType.dungeon, QuestType.aid]) {
-        expect(questPaperAssetIds(type, isTorn: false), [
-          CloudinaryAssets.questSheet2,
-          CloudinaryAssets.questSheet1,
-        ]);
-        expect(questPaperAssetIds(type, isTorn: true), [
-          CloudinaryAssets.questSheetTorn1,
-          CloudinaryAssets.questSheetTorn2,
-        ]);
-      }
+    test('boss has its own whole sheets and the torn enemy ones', () {
+      expect(questPaperAssetIds(QuestType.boss, isTorn: false), [
+        CloudinaryAssets.bossSheet1,
+        CloudinaryAssets.bossSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.boss, isTorn: true), [
+        CloudinaryAssets.enemyTornSheet1,
+        CloudinaryAssets.enemyTornSheet2,
+      ]);
+    });
+
+    test('dungeon uses the quest family', () {
+      expect(questPaperAssetIds(QuestType.dungeon, isTorn: false), [
+        CloudinaryAssets.questSheet2,
+        CloudinaryAssets.questSheet1,
+      ]);
+      expect(questPaperAssetIds(QuestType.dungeon, isTorn: true), [
+        CloudinaryAssets.questSheetTorn1,
+        CloudinaryAssets.questSheetTorn2,
+      ]);
+    });
+
+    test('aid has its own whole sheets and the torn quest ones', () {
+      expect(questPaperAssetIds(QuestType.aid, isTorn: false), [
+        CloudinaryAssets.aidSheet1,
+        CloudinaryAssets.aidSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.aid, isTorn: true), [
+        CloudinaryAssets.questSheetTorn1,
+        CloudinaryAssets.questSheetTorn2,
+      ]);
     });
 
     test('story has a torn variant', () {
@@ -282,6 +300,13 @@ void main() {
         CloudinaryAssets.worldMissionTornSheet,
         'v1794330793/tornWorldMissionSheet_xaijpq.svg',
       );
+    });
+
+    test('the boss and aid sheets point to their files', () {
+      expect(CloudinaryAssets.bossSheet1, 'v1794330835/bossSheet_kmcubi.svg');
+      expect(CloudinaryAssets.bossSheet2, 'v1794331761/bossSheet2_jpfofw.svg');
+      expect(CloudinaryAssets.aidSheet1, 'v1794331772/aidSheet1_bv1und.svg');
+      expect(CloudinaryAssets.aidSheet2, 'v1794331778/aidSheet2_iuxlwt.svg');
     });
   });
 }
