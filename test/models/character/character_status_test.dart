@@ -16,6 +16,7 @@ Map<String, dynamic> statusJson({
   Object? awaitingAid = _absent,
   Object? unlockedLore = _absent,
   Object? injuries = _absent,
+  Object? potionRecoveryUntil = _absent,
 }) => {
   'title': 'rookie',
   'xp': 1,
@@ -25,6 +26,8 @@ Map<String, dynamic> statusJson({
   if (!identical(awaitingAid, _absent)) 'awaitingAid': awaitingAid,
   if (!identical(unlockedLore, _absent)) 'unlockedLore': unlockedLore,
   if (!identical(injuries, _absent)) 'injuries': injuries,
+  if (!identical(potionRecoveryUntil, _absent))
+    'potionRecoveryUntil': potionRecoveryUntil,
 };
 
 const Object _absent = Object();
@@ -243,6 +246,85 @@ void main() {
       );
 
       expect(() => status.unlockedLore.add('x'), throwsUnsupportedError);
+    });
+  });
+
+  group('potionRecoveryUntil (BE Phase 18)', () {
+    const recoveryEndWire = '2026-10-27T10:30:00.000Z';
+    final recoveryEnd = DateTime.utc(2026, 10, 27, 10, 30);
+
+    test('a missing or null potionRecoveryUntil is null (D-12)', () {
+      expect(
+        CharacterStatus.fromJson(statusJson()).potionRecoveryUntil,
+        isNull,
+      );
+      expect(
+        CharacterStatus.fromJson(
+          statusJson(potionRecoveryUntil: null),
+        ).potionRecoveryUntil,
+        isNull,
+      );
+    });
+
+    test('parses the recovery end as a UTC instant (D-12)', () {
+      final utc = CharacterStatus.fromJson(
+        statusJson(potionRecoveryUntil: recoveryEndWire),
+      ).potionRecoveryUntil!;
+      final offset = CharacterStatus.fromJson(
+        statusJson(potionRecoveryUntil: '2026-10-27T11:30:00.000+01:00'),
+      ).potionRecoveryUntil!;
+
+      expect(utc, recoveryEnd);
+      expect(utc.isUtc, isTrue);
+      expect(offset, recoveryEnd);
+      expect(offset.isUtc, isTrue);
+    });
+
+    test(
+      'a malformed potionRecoveryUntil is null and the status stays (D-12)',
+      () {
+        for (final malformed in <Object>['soon', 42, <String, dynamic>{}]) {
+          final status = CharacterStatus.fromJson(
+            statusJson(potionRecoveryUntil: malformed),
+          );
+
+          expect(status.potionRecoveryUntil, isNull);
+          expect(status.location!.id, 'city-marker-1');
+          expect(status.title, TitleType.rookie);
+          expect(status.xp, 1);
+        }
+      },
+    );
+
+    test('toJson writes the recovery end (D-12)', () {
+      expect(
+        CharacterStatus.fromJson(
+          statusJson(potionRecoveryUntil: recoveryEndWire),
+        ).toJson()['potionRecoveryUntil'],
+        recoveryEndWire,
+      );
+      expect(
+        CharacterStatus.fromJson(statusJson()).toJson(),
+        containsPair('potionRecoveryUntil', isNull),
+      );
+    });
+
+    test('props include potionRecoveryUntil (D-12)', () {
+      expect(
+        CharacterStatus.fromJson(
+              statusJson(potionRecoveryUntil: recoveryEndWire),
+            ) ==
+            CharacterStatus.fromJson(statusJson()),
+        isFalse,
+      );
+    });
+
+    test('copyWith keeps the current potionRecoveryUntil (D-12)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(potionRecoveryUntil: recoveryEndWire),
+      );
+
+      expect(status.copyWith(xp: 9).potionRecoveryUntil, recoveryEnd);
     });
   });
 
