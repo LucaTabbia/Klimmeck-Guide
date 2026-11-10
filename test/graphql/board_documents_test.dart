@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
+import 'package:klimmeck_guide/graphql/fragments/fragments.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 
@@ -84,6 +85,20 @@ void main() {
 
     test('selects the companion prize (D-06)', () {
       expect(document, contains('pet { id name }'));
+    });
+
+    test('the prizes select cure { lifePointsShare canHeal } (D-01)', () {
+      expect(
+        _collapsed(QuestFragment.fields),
+        contains('pet { id name } cure { lifePointsShare canHeal }'),
+      );
+    });
+
+    test('the quest selection asks for the per-viewer noEffect (D-20)', () {
+      expect(
+        RegExp(r'\bnoEffect\b').allMatches(QuestFragment.fields),
+        hasLength(1),
+      );
     });
 
     test('never selects lore or locations under an enemy (D-01)', () {
