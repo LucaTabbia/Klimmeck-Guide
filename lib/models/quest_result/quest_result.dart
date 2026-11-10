@@ -150,7 +150,7 @@ class QuestResult extends Equatable {
       titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
       titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
       spellLearned: _spellFrom(json['spellLearned']),
-      loreUnlocked: _loreUnlockedFrom(json['loreUnlocked']),
+      loreUnlocked: Lore.lenientRefsFrom(json['loreUnlocked']),
       enemies: QuestEnemy.lenientListFrom(json['enemies']),
       stagesCleared: _countFrom(json['stagesCleared']),
       stagesTotal: _countFrom(json['stagesTotal']),
@@ -187,25 +187,6 @@ class QuestResult extends Equatable {
 
   static Spell? _spellFrom(Object? json) =>
       json is Map<String, dynamic> ? Spell.fromJson(json) : null;
-
-  /// Tollerante voce per voce (D-04): una voce senza id o senza nome è
-  /// scartata, il risultato resta.
-  static List<Lore> _loreUnlockedFrom(Object? json) {
-    if (json is! List) return const [];
-    return List<Lore>.unmodifiable(
-      json.whereType<Map<String, dynamic>>().map(_loreRefOrNull).nonNulls,
-    );
-  }
-
-  static Lore? _loreRefOrNull(Map<String, dynamic> json) {
-    try {
-      final lore = Lore.fromJson(json);
-      final name = lore.name;
-      return name == null || name.isEmpty ? null : lore;
-    } on Object {
-      return null;
-    }
-  }
 
   static int? _countFrom(Object? json) => json is num ? json.toInt() : null;
 
