@@ -68,7 +68,7 @@ Plans:
 - [x] 18-03-PLAN.md — Lines (`curableInjuriesLine`, `lifeShareLine`, `healedLine`, `recoveryLine`, `potionReadyInLine`)
 - [x] 18-04-PLAN.md — Quest sheet: cure line and life row, `characterInjuries` from Board and Map
 - [x] 18-05-PLAN.md — Result sheet «Guarite» and `ItemRow` «Ricarica» / disabled look / status line
-- [ ] 18-06-PLAN.md — `useItem` plumbing (document + registry 46, extension reader, `ItemUseFailure`, `ItemUseRepository`)
+- [x] 18-06-PLAN.md — `useItem` plumbing (document + registry 46, extension reader, `ItemUseFailure`, `ItemUseRepository`)
 - [ ] 18-07-PLAN.md — Potion cubits (`PotionCubit`, `PotionRecoveryCubit`)
 - [ ] 18-08-PLAN.md — Potion notices and wiring (`potionNoticeFor`, `PotionOutcomeListener`)
 - [ ] 18-09-PLAN.md — Shared lore line and Journal potion flow (`PotionSheet`, `ItemsSection`, countdown, travel, awaiting aid)
@@ -112,7 +112,7 @@ Plans:
 | 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
-| 18. Heal Quests by City Size | v1.1 | 5/13 | In Progress | - |
+| 18. Heal Quests by City Size | v1.1 | 6/13 | In Progress | - |
 | 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
