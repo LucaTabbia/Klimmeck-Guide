@@ -46,7 +46,7 @@ void main() {
       }
     });
 
-    test('job, study and crime sheets are never torn', () {
+    test('job, study and crime have no torn sheet yet (quick 261110-mag)', () {
       for (final type in [
         QuestType.hunt,
         QuestType.job,

@@ -21,6 +21,8 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.storyTornSheet1,
           ]
         : const [CloudinaryAssets.storySheet1, CloudinaryAssets.storySheet2],
+  // Senza foglio strappato finché non arrivano gli asset (quick 261110-mag):
+  // crime, guard/hunt/job e study usano il foglio intero anche se strappati.
   QuestType.crime => const [
     CloudinaryAssets.crimeSheet1,
     CloudinaryAssets.crimeSheet2,
@@ -29,7 +31,6 @@ List<String> questPaperAssetIds(
     CloudinaryAssets.jobSheet1,
     CloudinaryAssets.jobSheet2,
   ],
-  // L'annuncio strappato esiste solo per la heal (D-20): lo study non si strappa.
   QuestType.heal =>
     isTorn
         ? const [
