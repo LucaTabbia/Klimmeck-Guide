@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -71,10 +72,12 @@ class QuestScopeListener extends StatelessWidget {
       currentLifePoints: isInCity ? status?.currentLifePoints : null,
       maxLifePoints: isInCity ? status?.maxLifePoints : null,
       // Una lista nel record si confronta per identità: le ferite viaggiano
-      // come valore unico per non rileggere a ogni emissione.
-      injuries: isInCity
-          ? status?.injuries?.map((injury) => injury.name).join(',')
-          : null,
+      // come valore unico, ordinato, per non rileggere a ogni emissione né
+      // per lo stesso insieme in un altro ordine.
+      injuries: isInCity ? _injurySetOf(status?.injuries) : null,
     );
   }
+
+  String? _injurySetOf(List<InjuryType>? injuries) =>
+      (injuries?.map((injury) => injury.name).toList()?..sort())?.join(',');
 }
