@@ -71,10 +71,20 @@ class CloudinaryAssets {
       'v1794303769/tornAnnouncementSheet1_ez2vyw.svg';
   static const String announcementTornSheet2 =
       'v1794303777/tornAnnouncementSheet2_ayfvwu.svg';
-  static const String magicSheet = 'v1794317365/magicSheet_i7xslb.svg';
-  static const String magicTornSheet = 'v1794317370/tornMagicSheet_tmjghe.svg';
+  static const String magicSheet = 'v1794321047/magicSheet_inikhm.svg';
+  static const String magicTornSheet = 'v1794321051/tornMagicSheet_f8gu75.svg';
+  static const String guardSheet1 = 'v1794322926/guardSheet1_yfzvwp.svg';
+  static const String guardSheet2 = 'v1794322931/guardSheet2_g7rlqv.svg';
+  static const String guardTornSheet1 =
+      'v1794322936/tornGuardSheet1_tsxzu5.svg';
+  static const String guardTornSheet2 =
+      'v1794322939/tornGuardSheet2_aqqbsj.svg';
   static const String crimeSheet1 = 'v1757660763/crimeSheet1_yhl3tp.svg';
   static const String crimeSheet2 = 'v1794314260/crimeSheet2_kenql4.svg';
+  static const String crimeTornSheet1 =
+      'v1794321444/tornCrimeSheet1_digaof.svg';
+  static const String crimeTornSheet2 =
+      'v1794321440/tornCrimeSheet2_z2jugi.svg';
   static const String storySheet1 = 'v1757660783/storySheet1_evrqbp.svg';
   static const String storySheet2 = 'v1757660774/storySheet2_jsq0nv.svg';
   static const String storyTornSheet1 =

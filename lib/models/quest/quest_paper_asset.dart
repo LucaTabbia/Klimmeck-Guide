@@ -21,13 +21,23 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.storyTornSheet1,
           ]
         : const [CloudinaryAssets.storySheet1, CloudinaryAssets.storySheet2],
-  // Senza foglio strappato finché non arrivano gli asset (quick 261110-mag):
-  // crime, guard/hunt/job e study usano il foglio intero anche se strappati.
-  QuestType.crime => const [
-    CloudinaryAssets.crimeSheet1,
-    CloudinaryAssets.crimeSheet2,
-  ],
-  QuestType.guard || QuestType.hunt || QuestType.job => const [
+  QuestType.crime =>
+    isTorn
+        ? const [
+            CloudinaryAssets.crimeTornSheet1,
+            CloudinaryAssets.crimeTornSheet2,
+          ]
+        : const [CloudinaryAssets.crimeSheet1, CloudinaryAssets.crimeSheet2],
+  QuestType.guard =>
+    isTorn
+        ? const [
+            CloudinaryAssets.guardTornSheet1,
+            CloudinaryAssets.guardTornSheet2,
+          ]
+        : const [CloudinaryAssets.guardSheet1, CloudinaryAssets.guardSheet2],
+  // Senza foglio strappato finché non arrivano gli asset:
+  // hunt/job e study usano il foglio intero anche se strappati.
+  QuestType.hunt || QuestType.job => const [
     CloudinaryAssets.jobSheet1,
     CloudinaryAssets.jobSheet2,
   ],
