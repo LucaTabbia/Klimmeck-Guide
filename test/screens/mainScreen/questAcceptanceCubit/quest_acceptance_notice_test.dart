@@ -89,6 +89,23 @@ void main() {
       );
     });
 
+    test('imprisoned shows the release time from the server date '
+        '(quick 261110-cgd)', () {
+      expect(
+        questAcceptanceNoticeFor(
+          QuestAcceptanceFailure.imprisoned,
+          imprisonedFor: const Duration(minutes: 42),
+        )!.description,
+        'Sei in prigione: uscirai fra 42 min',
+      );
+      expect(
+        questAcceptanceNoticeFor(
+          QuestAcceptanceFailure.imprisoned,
+        )!.description,
+        'Sei in prigione',
+      );
+    });
+
     test('unauthenticated has no banner', () {
       expect(
         questAcceptanceNoticeFor(QuestAcceptanceFailure.unauthenticated),
