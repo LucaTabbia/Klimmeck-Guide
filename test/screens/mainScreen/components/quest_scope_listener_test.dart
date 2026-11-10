@@ -255,6 +255,19 @@ void main() {
       verifyNoReread();
     });
 
+    testWidgets('the same injuries in another order do not reread (D-20)', (
+      tester,
+    ) async {
+      await pumpListener(
+        tester,
+        initial: _character(injuries: const ['contusion', 'deepCut']),
+      );
+
+      await emit(tester, _character(injuries: const ['deepCut', 'contusion']));
+
+      verifyNoReread();
+    });
+
     testWidgets(
       'outside a city a change of life points does not reread (D-20)',
       (tester) async {
