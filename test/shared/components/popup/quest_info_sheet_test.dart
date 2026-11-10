@@ -1002,6 +1002,77 @@ void main() {
     });
 
     testWidgets(
+      'a narrative quest with a long lore scrolls to the cure rows and keeps '
+      'cost and title pinned in landscape (D-05)',
+      (tester) async {
+        final longLore = [
+          for (var i = 0; i < 4; i++)
+            {
+              'id': 'l-$i',
+              'name': 'Cronaca $i',
+              'description':
+                  'Molto tempo fa, quando le torri di Andogan erano giovani, '
+                      'i guaritori del tempio custodivano un patto antico. ' *
+                  4,
+            },
+        ];
+        await _pump(
+          tester,
+          buildQuest(
+            type: 'story',
+            requiredPoints: 3000,
+            minTitle: 'hero',
+            lore: longLore,
+            prizes: {'cure': questCureJson(share: 0.5)},
+          ),
+          viewer: buildViewer(twitchPoints: 1200),
+          characterInjuries: const [InjuryType.contusion],
+        );
+
+        expect(tester.takeException(), isNull);
+        final family = find.byKey(QuestInfoSheet.narrativeFamilyKey);
+        final scrollRegion = find.descendant(
+          of: family,
+          matching: find.byType(Scrollable),
+        );
+        final lifeLine = find.byKey(QuestInfoSheet.lifeLineKey);
+        final pinnedLines = [
+          find.byKey(QuestInfoSheet.costLineKey),
+          find.text('Titolo richiesto: Eroe'),
+        ];
+        Offset offsetInFamily(Finder line) =>
+            tester.getTopLeft(line) - tester.getTopLeft(family);
+        final pinnedOffsets = pinnedLines.map(offsetInFamily).toList();
+        expect(
+          tester.getRect(lifeLine).top,
+          greaterThanOrEqualTo(tester.getRect(scrollRegion).bottom),
+        );
+
+        await tester.ensureVisible(lifeLine);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(
+          tester.state<ScrollableState>(scrollRegion).position.pixels,
+          greaterThan(0),
+        );
+        expect(
+          tester.getRect(lifeLine).overlaps(tester.getRect(scrollRegion)),
+          isTrue,
+        );
+        expect(pinnedLines.map(offsetInFamily).toList(), pinnedOffsets);
+        for (final line in pinnedLines) {
+          expect(
+            tester
+                .getRect(family)
+                .contains(tester.getBottomRight(line) - const Offset(1, 1)),
+            isTrue,
+          );
+        }
+      },
+    );
+
+    testWidgets(
       'a job with a cure shows the two rows, a heal without a cure shows neither (D-05)',
       (tester) async {
         await _pump(
