@@ -178,6 +178,27 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a no-effect refusal publishes the notice and rereads the list (D-20)',
+    (tester) async {
+      await pumpListener(tester);
+
+      await emit(
+        tester,
+        const QuestAcceptanceFailed('h-1', QuestAcceptanceFailure.noEffect),
+      );
+
+      verify(
+        () => notices.publishNotice(
+          notice('Il tempio non può fare nulla per te adesso'),
+          dedupKey: 'quest-acceptance|noEffect|h-1',
+        ),
+      ).called(1);
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      verify(() => acceptance.reset()).called(1);
+    },
+  );
+
   testWidgets('insufficient points do not refresh the list', (tester) async {
     await pumpListener(tester);
 

@@ -66,6 +66,19 @@ void main() {
       expect(of(null), 'Hai già una missione in corso');
     });
 
+    test('a no-effect refusal says the temple can do nothing (D-20)', () {
+      expect(
+        questAcceptanceNoticeFor(
+          QuestAcceptanceFailure.noEffect,
+          type: QuestType.heal,
+        ),
+        const KGNotification(
+          title: 'Missione non accettata',
+          description: 'Il tempio non può fare nulla per te adesso',
+        ),
+      );
+    });
+
     test('BAD_USER_INPUT shows the generic copy (D-13)', () {
       expect(
         questAcceptanceNoticeFor(
