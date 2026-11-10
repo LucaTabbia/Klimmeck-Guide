@@ -6,8 +6,10 @@ import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/utils.dart';
 
+import '../../../models/enums/injury_type.dart';
 import '../../../models/quest/quest.dart';
 import '../../../models/quest/quest_sheet_details.dart';
 import '../../../models/quest/quest_viewer.dart';
@@ -22,6 +24,7 @@ class QuestInfoSheet extends StatelessWidget {
     this.stateLabel,
     this.onAbandon,
     this.travelPreview,
+    this.characterInjuries,
   });
 
   final Quest? quest;
@@ -40,6 +43,10 @@ class QuestInfoSheet extends StatelessWidget {
   /// Null = nessuna riga «Viaggio» (mappa, in attesa, fallita, nessun viaggio).
   final TravelPreview? travelPreview;
 
+  /// Ferite del personaggio che guarda (Bacheca e Mappa, D-19): servono solo
+  /// alla riga della cura. Null = ferite ignote, nessuna riga della cura.
+  final List<InjuryType>? characterInjuries;
+
   static const Key combatFamilyKey = ValueKey('questSheet.family.combat');
   static const Key narrativeFamilyKey = ValueKey('questSheet.family.narrative');
   static const Key serviceFamilyKey = ValueKey('questSheet.family.service');
@@ -52,6 +59,8 @@ class QuestInfoSheet extends StatelessWidget {
   static const Key petPrizeKey = ValueKey('questSheet.petPrize');
   static const Key enemyPortraitKey = ValueKey('questSheet.enemyPortrait');
   static const Key recommendedLootKey = ValueKey('questSheet.recommendedLoot');
+  static const Key cureLineKey = ValueKey('questSheet.cureLine');
+  static const Key lifeLineKey = ValueKey('questSheet.lifeLine');
   static const String recommendedLootTitle = 'Consigliati';
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
@@ -197,6 +206,7 @@ class QuestInfoSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ..._timeLine(),
+                ..._cureLines(),
                 ..._travelLine(details),
                 ..._titleLine(details),
                 ..._slotLines(details),
@@ -243,17 +253,28 @@ class QuestInfoSheet extends StatelessWidget {
     );
   }
 
+  /// Lore e righe della cura scorrono insieme; costo, titolo e posti restano
+  /// fermi in fondo al foglio.
   Widget _narrativeBody(QuestSheetDetails details) {
+    final hasLore = details.loreParagraphs.isNotEmpty;
+    final cureLines = _cureLines();
     return Column(
       key: narrativeFamilyKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (details.loreParagraphs.isNotEmpty)
+        if (hasLore || cureLines.isNotEmpty)
           Expanded(
             child: SingleChildScrollView(
-              child: Text(
-                details.loreParagraphs.join('\n\n'),
-                style: KlimmeckGuideTheme.instance.bodyLarge,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (hasLore)
+                    Text(
+                      details.loreParagraphs.join('\n\n'),
+                      style: KlimmeckGuideTheme.instance.bodyLarge,
+                    ),
+                  ...cureLines,
+                ],
               ),
             ),
           ),
@@ -271,6 +292,7 @@ class QuestInfoSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ..._timeLine(),
+          ..._cureLines(),
           ..._travelLine(details),
           ..._titleLine(details),
           ..._recommendedLoot(details),
@@ -302,6 +324,20 @@ class QuestInfoSheet extends StatelessWidget {
         'Tempo richiesto: ${getStringToShowFromDuration(Duration(milliseconds: millis))}',
         style: KlimmeckGuideTheme.instance.bodyLarge,
       ),
+    ];
+  }
+
+  /// Righe della cura (D-03, D-04): presenti per ogni quest che porta una
+  /// cura, in ogni famiglia di foglio (D-05). Le stringhe nascono qui, nel
+  /// widget, dagli helper puri delle righe (D-21).
+  List<Widget> _cureLines() {
+    final cure = quest!.prizes?.cure;
+    final style = KlimmeckGuideTheme.instance.bodyLarge;
+    return [
+      if (curableInjuriesLine(cure, characterInjuries) case final line?)
+        Text(line, key: cureLineKey, style: style),
+      if (lifeShareLine(cure) case final line?)
+        Text(line, key: lifeLineKey, style: style),
     ];
   }
 
