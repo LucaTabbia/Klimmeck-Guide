@@ -967,6 +967,86 @@ void main() {
     });
   });
 
+  group('arrest and guard encounter (quick 261110-cgd)', () {
+    String lineText(WidgetTester tester, Key key) =>
+        tester.widget<Text>(find.byKey(key)).data!;
+
+    testWidgets('an arrest says so and shows the confiscated coins, no '
+        'rewards, no duration and no aid wait (quick 261110-cgd)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(arrestResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        lineText(tester, QuestResultSheet.arrestKey),
+        'Sei stato arrestato.',
+      );
+      expect(
+        _inSection(
+          QuestResultSheet.confiscatedKey,
+          find.text('Monete confiscate'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        _inSection(QuestResultSheet.confiscatedKey, find.byType(CoinsDisplay)),
+        findsOneWidget,
+      );
+      expect(find.byKey(QuestResultSheet.rewardsKey), findsNothing);
+      expect(find.textContaining('ore'), findsNothing);
+      expect(find.textContaining('soccorso'), findsNothing);
+    });
+
+    testWidgets('an arrest with no coins lost shows no confiscation '
+        '(quick 261110-cgd)', (tester) async {
+      await _pump(tester, questResult(arrestResultJson(coinsLost: null)));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.arrestKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.confiscatedKey), findsNothing);
+    });
+
+    testWidgets('a won guard encounter says the pay was doubled and shows '
+        'the server rewards (quick 261110-cgd)', (tester) async {
+      await _pump(tester, questResult(guardEncounterResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        lineText(tester, QuestResultSheet.guardEncounterKey),
+        'Scontro durante la guardia: vittoria, paga raddoppiata',
+      );
+      expect(find.byKey(QuestResultSheet.rewardsKey), findsOneWidget);
+    });
+
+    testWidgets('a lost guard encounter says defeat with no aid wait '
+        '(quick 261110-cgd)', (tester) async {
+      await _pump(
+        tester,
+        questResult(guardEncounterResultJson(outcome: 'failure')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        lineText(tester, QuestResultSheet.guardEncounterKey),
+        'Scontro durante la guardia: sconfitta',
+      );
+      expect(find.textContaining('soccorso'), findsNothing);
+      expect(find.byKey(QuestResultSheet.arrestKey), findsNothing);
+    });
+
+    testWidgets('an ordinary result shows neither line (quick 261110-cgd)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(questResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.arrestKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.confiscatedKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.guardEncounterKey), findsNothing);
+    });
+  });
+
   group('healed injuries (BE Phase 18)', () {
     String healedText(WidgetTester tester) =>
         tester.widget<Text>(find.byKey(QuestResultSheet.healedKey)).data!;
