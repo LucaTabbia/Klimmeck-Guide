@@ -25,6 +25,7 @@ class CharacterStatus extends Equatable {
     this.spellStates,
     this.awaitingAid,
     this.unlockedLore = const [],
+    this.potionRecoveryUntil,
   });
 
   final int? xp;
@@ -51,6 +52,10 @@ class CharacterStatus extends Equatable {
   /// a sapere quando e cosa è cambiato; l'ordine non conta.
   final List<String> unlockedLore;
 
+  /// Fine della ricarica delle pozioni (BE Phase 18, D-12), istante UTC del
+  /// server; `null` = nessuna ricarica in corso o campo assente.
+  final DateTime? potionRecoveryUntil;
+
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
         location: json['location'] != null
@@ -73,6 +78,7 @@ class CharacterStatus extends Equatable {
         spellStates: _spellStatesFrom(json['spellStates']),
         awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
         unlockedLore: _unlockedLoreFrom(json['unlockedLore']),
+        potionRecoveryUntil: _instantOrNull(json['potionRecoveryUntil']),
       );
 
   static List<SpellState>? _spellStatesFrom(Object? json) {
@@ -86,6 +92,10 @@ class CharacterStatus extends Equatable {
     if (json is! List) return const [];
     return List<String>.unmodifiable(json.whereType<String>());
   }
+
+  /// Una data illeggibile vale `null`: il personaggio sopravvive.
+  static DateTime? _instantOrNull(Object? json) =>
+      json is String ? DateTime.tryParse(json)?.toUtc() : null;
 
   Map<String, dynamic> toJson() => {
     "location": location?.toJson(),
@@ -102,6 +112,7 @@ class CharacterStatus extends Equatable {
     "spellStates": spellStates?.map((state) => state.toJson()).toList(),
     "awaitingAid": awaitingAid?.toJson(),
     "unlockedLore": unlockedLore,
+    "potionRecoveryUntil": potionRecoveryUntil?.toUtc().toIso8601String(),
   };
 
   CharacterStatus copyWith({
@@ -131,6 +142,7 @@ class CharacterStatus extends Equatable {
       spellStates: spellStates,
       awaitingAid: awaitingAid,
       unlockedLore: unlockedLore,
+      potionRecoveryUntil: potionRecoveryUntil,
     );
   }
 
@@ -150,5 +162,6 @@ class CharacterStatus extends Equatable {
     spellStates,
     awaitingAid,
     unlockedLore,
+    potionRecoveryUntil,
   ];
 }

@@ -5,6 +5,7 @@ import 'coins.dart';
 import 'enums/effect_type.dart';
 import 'enums/injury_type.dart';
 import 'enums/rarity_type.dart';
+import 'loot_recovery.dart';
 
 class LootItem extends AssetItem with EquatableMixin {
   const LootItem({
@@ -17,6 +18,7 @@ class LootItem extends AssetItem with EquatableMixin {
     required this.power,
     required this.effect,
     this.canHeal = const [],
+    this.recovery,
   });
 
   final EffectType? effect;
@@ -25,6 +27,9 @@ class LootItem extends AssetItem with EquatableMixin {
   /// Ferite che un oggetto heal può curare; vuota quando il filo non le serve
   /// (i documenti con i soli simpleFields) o manda qualcosa che non è una lista.
   final List<InjuryType> canHeal;
+
+  /// Ricarica della pozione (BE Phase 18, D-13); `null` = non si beve dal Diario.
+  final LootRecovery? recovery;
 
   factory LootItem.fromJson(Map<String, dynamic> json) => LootItem(
     id: json['id'],
@@ -45,6 +50,7 @@ class LootItem extends AssetItem with EquatableMixin {
         ? RarityType.values.byName(json['rarity'])
         : null,
     canHeal: injuryTypesFrom(json['canHeal']),
+    recovery: LootRecovery.tryFromJson(json['recovery']),
   );
 
   @override
@@ -58,6 +64,7 @@ class LootItem extends AssetItem with EquatableMixin {
     'effect': effect?.name,
     'rarity': rarity?.name,
     'canHeal': canHeal.map((type) => type.name).toList(),
+    'recovery': recovery?.toJson(),
   };
 
   LootItem copyWith({
@@ -70,6 +77,7 @@ class LootItem extends AssetItem with EquatableMixin {
     int? power,
     EffectType? effect,
     List<InjuryType>? canHeal,
+    LootRecovery? recovery,
   }) {
     return LootItem(
       id: id ?? this.id,
@@ -81,9 +89,10 @@ class LootItem extends AssetItem with EquatableMixin {
       power: power ?? this.power,
       effect: effect ?? this.effect,
       canHeal: canHeal ?? this.canHeal,
+      recovery: recovery ?? this.recovery,
     );
   }
 
   @override
-  List<Object?> get props => [...super.props, power, effect, canHeal];
+  List<Object?> get props => [...super.props, power, effect, canHeal, recovery];
 }
