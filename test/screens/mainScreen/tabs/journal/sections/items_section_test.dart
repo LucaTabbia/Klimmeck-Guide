@@ -4,7 +4,10 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
+import 'package:klimmeck_guide/repository/item_use_failure.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -120,12 +123,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> pumpItems(WidgetTester tester) async {
+  Future<void> pumpItems(
+    WidgetTester tester, {
+    PotionCubit? potion,
+    InAppNotificationsCubit? notices,
+  }) async {
     await pumpJournalPage(
       tester,
       characterCubit: characterCubit,
       spellsCubit: spellsCubit,
-      potionCubit: potionCubit,
+      potionCubit: potion ?? potionCubit,
+      notices: notices,
       clock: clock,
     );
     await tapAndSettle(tester, find.text('Oggetti'));
@@ -367,6 +375,79 @@ void main() {
       await dragSheetDown(tester);
 
       expect(find.byType(PotionSheet), findsNothing);
+    });
+  });
+
+  group('with the real PotionCubit (D-18)', () {
+    late MockItemUseRepository itemUse;
+    late MockInAppNotificationsCubit notices;
+    late PotionCubit potion;
+
+    setUpAll(() {
+      registerFallbackValue(const KGNotification(title: '', description: ''));
+    });
+
+    setUp(() {
+      itemUse = MockItemUseRepository();
+      notices = MockInAppNotificationsCubit();
+      potion = PotionCubit(itemUse);
+      addTearDown(potion.close);
+    });
+
+    Future<void> tapInSheet(WidgetTester tester, Key action) async {
+      await tester.ensureVisible(find.byKey(action));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(action));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a drink shows its outcome and the reopened sheet asks again '
+        'with no stale outcome', (tester) async {
+      when(
+        () => itemUse.useItem(_herb),
+      ).thenAnswer((_) async => UseItemResult.fromJson(useItemResultJson()));
+      await pumpItems(tester, potion: potion, notices: notices);
+
+      await tapAndSettle(tester, _card(_herb));
+      await tapInSheet(tester, PotionSheet.drinkKey);
+
+      expect(find.byKey(PotionSheet.hpKey), findsOneWidget);
+      expect(find.text('Guarite: contusione'), findsOneWidget);
+
+      await tapInSheet(tester, PotionSheet.continueKey);
+      expect(find.byType(PotionSheet), findsNothing);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.text('Bevi Erbe da campo?'), findsOneWidget);
+      expect(find.byKey(PotionSheet.hpKey), findsNothing);
+      verify(() => itemUse.useItem(_herb)).called(1);
+      verifyNever(
+        () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
+      );
+    });
+
+    testWidgets('a refusal closes the sheet and publishes one banner', (
+      tester,
+    ) async {
+      when(
+        () => itemUse.useItem(_herb),
+      ).thenThrow(const ItemUseException(ItemUseFailure.noEffect));
+      await pumpItems(tester, potion: potion, notices: notices);
+
+      await tapAndSettle(tester, _card(_herb));
+      await tapInSheet(tester, PotionSheet.drinkKey);
+
+      expect(find.byType(PotionSheet), findsNothing);
+      verify(
+        () => notices.publishNotice(
+          const KGNotification(
+            title: 'Pozione non bevuta',
+            description: 'Questa pozione non ti farebbe nulla adesso',
+          ),
+          dedupKey: any(named: 'dedupKey'),
+        ),
+      ).called(1);
     });
   });
 

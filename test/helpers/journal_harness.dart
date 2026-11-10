@@ -9,7 +9,9 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -108,12 +110,15 @@ PotionCubit idlePotionCubit() {
 }
 
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
+/// Come in produzione, il Diario sta sotto PotionOutcomeListener: i banner dei
+/// rifiuti vanno a [notices].
 Future<void> pumpJournalPage(
   WidgetTester tester, {
   required CharacterCubit characterCubit,
   required SpellsCubit spellsCubit,
   CompanionCubit? companionCubit,
   PotionCubit? potionCubit,
+  InAppNotificationsCubit? notices,
   FakeServerClockService? clock,
 }) async {
   useLandscapePhone(tester);
@@ -132,8 +137,11 @@ Future<void> pumpJournalPage(
             BlocProvider<PotionCubit>.value(
               value: potionCubit ?? idlePotionCubit(),
             ),
+            BlocProvider<InAppNotificationsCubit>.value(
+              value: notices ?? MockInAppNotificationsCubit(),
+            ),
           ],
-          child: const Scaffold(body: Journal()),
+          child: const PotionOutcomeListener(child: Scaffold(body: Journal())),
         ),
       ),
     ),
