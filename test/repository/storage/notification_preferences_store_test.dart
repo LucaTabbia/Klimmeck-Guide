@@ -43,6 +43,7 @@ void main() {
       NotificationCategory.questEnd: true,
       NotificationCategory.questCancelled: true,
       NotificationCategory.ambushDefeat: true,
+      NotificationCategory.prisonRelease: true,
     });
   });
 
@@ -93,6 +94,7 @@ void main() {
       NotificationCategory.questEnd: false,
       NotificationCategory.questCancelled: true,
       NotificationCategory.ambushDefeat: true,
+      NotificationCategory.prisonRelease: true,
     });
   });
 
