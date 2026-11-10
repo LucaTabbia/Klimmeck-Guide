@@ -58,27 +58,31 @@ class CloudinaryAssets {
   static const String questSheet1 = 'v1757660768/questSheet1_c0hswz.svg';
   static const String questSheet2 = 'v1757660778/questSheet2_ekuuzv.svg';
   static const String questSheetTorn1 =
-      'v1757660760/questSheetTorn1_ds3oyp.svg';
+      'v1794313623/tornQuestSheet1_jo92rm.svg';
   static const String questSheetTorn2 =
-      'v1757660756/questSheetTorn2_guqkvh.svg';
+      'v1794313329/tornQuestSheet2_gm4nz0.svg';
   static const String jobSheet1 = 'v1757660765/jobSheet1_osfobz.svg';
   static const String jobSheet2 = 'v1757660773/jobSheet2_dgkg6x.svg';
   static const String announcementSheet1 =
       'v1757660770/announcementSheet1_bmh8f2.svg';
   static const String announcementSheet2 =
       'v1757660776/announcementSheet2_tpub5j.svg';
+  static const String announcementTornSheet1 =
+      'v1794303769/tornAnnouncementSheet1_ez2vyw.svg';
+  static const String announcementTornSheet2 =
+      'v1794303777/tornAnnouncementSheet2_ayfvwu.svg';
   static const String crimeSheet1 = 'v1757660763/crimeSheet1_yhl3tp.svg';
-  static const String crimeSheet2 = 'v1757660761/crimeSheet2_q0aysa.svg';
+  static const String crimeSheet2 = 'v1794314260/crimeSheet2_kenql4.svg';
   static const String storySheet1 = 'v1757660783/storySheet1_evrqbp.svg';
   static const String storySheet2 = 'v1757660774/storySheet2_jsq0nv.svg';
   static const String storyTornSheet1 =
-      'v1757660766/storyTornSheet1_sxqcw0.svg';
+      'v1794312688/tornStorySheet1_jyoucq.svg';
   static const String storyTornSheet2 =
-      'v1757660754/storyTornSheet2_bhl8um.svg';
+      'v1794314149/tornStorySheet2_otpfcb.svg';
   static const String huntSheet1 = 'v1757660781/huntSheet1_ufnh7p.svg';
   static const String huntSheet2 = 'v1757660779/huntSheet2_to0gfr.svg';
-  static const String huntTornSheet1 = 'v1757660753/huntTornSheet1_j8irp4.svg';
-  static const String huntTornSheet2 = 'v1757660749/huntTornSheet2_kqqouj.svg';
+  static const String huntTornSheet1 = 'v1794313032/tornHuntSheet1_tk1xqh.svg';
+  static const String huntTornSheet2 = 'v1794312697/tornHuntSheet2_kf1oy7.svg';
 
   // ============== Pawns ==============
   static const String adventurerFemalePawn =

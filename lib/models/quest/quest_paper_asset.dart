@@ -29,13 +29,12 @@ List<String> questPaperAssetIds(
     CloudinaryAssets.jobSheet1,
     CloudinaryAssets.jobSheet2,
   ],
-  // Un annuncio non ha una variante strappata: la heal strappata (D-20) prende
-  // in prestito i fogli strappati generici, provvisori.
+  // L'annuncio strappato esiste solo per la heal (D-20): lo study non si strappa.
   QuestType.heal =>
     isTorn
         ? const [
-            CloudinaryAssets.questSheetTorn1,
-            CloudinaryAssets.questSheetTorn2,
+            CloudinaryAssets.announcementTornSheet1,
+            CloudinaryAssets.announcementTornSheet2,
           ]
         : const [
             CloudinaryAssets.announcementSheet1,
