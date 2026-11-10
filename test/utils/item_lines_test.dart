@@ -283,6 +283,10 @@ void main() {
       expect(lifeShareLine(_cure(share: 0.5)), 'Vita: almeno il 50%');
     });
 
+    test('elides the article before one per cent too (D-21)', () {
+      expect(lifeShareLine(_cure(share: 0.01)), "Vita: almeno l'1%");
+    });
+
     test('a full share reads al massimo (D-04)', () {
       expect(lifeShareLine(_cure(share: 1)), 'Vita: al massimo');
     });
