@@ -383,7 +383,7 @@ void main() {
       (tester) async {
         await pumpSession(tester);
         expect(find.text('main $testCharacterId'), findsOneWidget);
-        expect(references, hasLength(24));
+        expect(references, hasLength(25));
 
         await logOut(tester);
 
