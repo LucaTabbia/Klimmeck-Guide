@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
@@ -66,6 +67,7 @@ Future<void> _pump(
   String? stateLabel,
   VoidCallback? onAbandon,
   TravelPreview? travelPreview,
+  List<InjuryType>? characterInjuries,
 }) async {
   useLandscapePhone(tester);
   await tester.pumpWidget(
@@ -78,6 +80,7 @@ Future<void> _pump(
             stateLabel: stateLabel,
             onAbandon: onAbandon,
             travelPreview: travelPreview,
+            characterInjuries: characterInjuries,
           ),
         ),
       ),
@@ -97,6 +100,21 @@ TravelPreview _travelPreview({bool arrivesAlive = true}) =>
         arrivesAlive: arrivesAlive,
       ),
     );
+
+Quest _cureQuest({
+  String type = 'heal',
+  Object? share = 0.5,
+  Object? canHeal = const ['contusion', 'deepCut'],
+}) => buildQuest(
+  type: type,
+  prizes: {'cure': questCureJson(share: share, canHeal: canHeal)},
+);
+
+Finder _inFamily(Key familyKey, Key lineKey) =>
+    find.descendant(of: find.byKey(familyKey), matching: find.byKey(lineKey));
+
+String? _textOf(WidgetTester tester, Key key) =>
+    tester.widget<Text>(find.byKey(key)).data;
 
 Finder _travelLineIn(Key familyKey) => find.descendant(
   of: find.byKey(familyKey),
@@ -874,6 +892,192 @@ void main() {
 
       expect(find.byKey(QuestInfoSheet.combatFamilyKey), findsOneWidget);
       expect(find.byKey(QuestInfoSheet.travelLineKey), findsNothing);
+    });
+  });
+
+  group('cure rows (BE Phase 18)', () {
+    testWidgets(
+      'a heal with a cure shows the cure line and the life row on the service sheet (D-03, D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          _cureQuest(),
+          characterInjuries: const [InjuryType.contusion],
+        );
+
+        final serviceFamily = QuestInfoSheet.serviceFamilyKey;
+        expect(
+          _inFamily(serviceFamily, QuestInfoSheet.cureLineKey),
+          findsOneWidget,
+        );
+        expect(
+          _inFamily(serviceFamily, QuestInfoSheet.lifeLineKey),
+          findsOneWidget,
+        );
+        expect(
+          _textOf(tester, QuestInfoSheet.cureLineKey),
+          'Cura le tue ferite: contusione',
+        );
+        expect(
+          _textOf(tester, QuestInfoSheet.lifeLineKey),
+          'Vita: almeno il 50%',
+        );
+      },
+    );
+
+    testWidgets(
+      'the life row elides the article for 80 and keeps it for 50 (D-21)',
+      (tester) async {
+        const expected = [
+          (0.8, "Vita: almeno l'80%"),
+          (0.5, 'Vita: almeno il 50%'),
+          (1, 'Vita: al massimo'),
+        ];
+        for (final (share, line) in expected) {
+          await _pump(tester, _cureQuest(share: share));
+
+          expect(_textOf(tester, QuestInfoSheet.lifeLineKey), line);
+        }
+      },
+    );
+
+    testWidgets(
+      "the cure line lists the viewer's curable injuries in the character's order (D-03)",
+      (tester) async {
+        await _pump(
+          tester,
+          _cureQuest(),
+          characterInjuries: const [
+            InjuryType.deepCut,
+            InjuryType.blindness,
+            InjuryType.contusion,
+          ],
+        );
+
+        expect(
+          _textOf(tester, QuestInfoSheet.cureLineKey),
+          'Cura le tue ferite: taglio profondo, contusione',
+        );
+      },
+    );
+
+    testWidgets('a combat quest with a cure shows the two rows (D-05)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _cureQuest(type: 'enemy'),
+        characterInjuries: const [InjuryType.contusion],
+      );
+
+      final combatFamily = QuestInfoSheet.combatFamilyKey;
+      expect(
+        _inFamily(combatFamily, QuestInfoSheet.cureLineKey),
+        findsOneWidget,
+      );
+      expect(
+        _inFamily(combatFamily, QuestInfoSheet.lifeLineKey),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a narrative quest with a cure shows the two rows (D-05)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _cureQuest(type: 'story'),
+        characterInjuries: const [InjuryType.contusion],
+      );
+
+      final narrativeFamily = QuestInfoSheet.narrativeFamilyKey;
+      expect(
+        _inFamily(narrativeFamily, QuestInfoSheet.cureLineKey),
+        findsOneWidget,
+      );
+      expect(
+        _inFamily(narrativeFamily, QuestInfoSheet.lifeLineKey),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'a job with a cure shows the two rows, a heal without a cure shows neither (D-05)',
+      (tester) async {
+        await _pump(
+          tester,
+          _cureQuest(type: 'job'),
+          characterInjuries: const [InjuryType.contusion],
+        );
+
+        expect(find.byKey(QuestInfoSheet.cureLineKey), findsOneWidget);
+        expect(find.byKey(QuestInfoSheet.lifeLineKey), findsOneWidget);
+
+        for (final heal in [
+          buildQuest(type: 'heal'),
+          buildQuest(type: 'heal', prizes: {}),
+        ]) {
+          await _pump(
+            tester,
+            heal,
+            characterInjuries: const [InjuryType.contusion],
+          );
+
+          expect(find.byKey(QuestInfoSheet.cureLineKey), findsNothing);
+          expect(find.byKey(QuestInfoSheet.lifeLineKey), findsNothing);
+        }
+      },
+    );
+
+    testWidgets('with no curable injury only the life row is shown (D-03)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _cureQuest(),
+        characterInjuries: const [InjuryType.blindness],
+      );
+
+      expect(find.byKey(QuestInfoSheet.cureLineKey), findsNothing);
+      expect(find.byKey(QuestInfoSheet.lifeLineKey), findsOneWidget);
+    });
+
+    testWidgets(
+      "without the character's injuries only the life row is shown (D-19)",
+      (tester) async {
+        await _pump(tester, _cureQuest());
+
+        expect(find.byKey(QuestInfoSheet.cureLineKey), findsNothing);
+        expect(find.byKey(QuestInfoSheet.lifeLineKey), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a zero share hides the life row and keeps the cure line (D-04)',
+      (tester) async {
+        await _pump(
+          tester,
+          _cureQuest(share: 0),
+          characterInjuries: const [InjuryType.contusion],
+        );
+
+        expect(find.byKey(QuestInfoSheet.lifeLineKey), findsNothing);
+        expect(find.byKey(QuestInfoSheet.cureLineKey), findsOneWidget);
+      },
+    );
+
+    testWidgets('the cure line sits above the life row (D-03, D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _cureQuest(),
+        characterInjuries: const [InjuryType.contusion],
+      );
+
+      final cureTop = tester.getTopLeft(find.byKey(QuestInfoSheet.cureLineKey));
+      final lifeTop = tester.getTopLeft(find.byKey(QuestInfoSheet.lifeLineKey));
+      expect(cureTop.dy, lessThan(lifeTop.dy));
     });
   });
 }
