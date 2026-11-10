@@ -84,6 +84,15 @@ void main() {
       ]);
     });
 
+    test('magic uses its own whole and torn sheets (quick 261110-mag)', () {
+      expect(questPaperAssetIds(QuestType.magic, isTorn: false), [
+        CloudinaryAssets.magicSheet,
+      ]);
+      expect(questPaperAssetIds(QuestType.magic, isTorn: true), [
+        CloudinaryAssets.magicTornSheet,
+      ]);
+    });
+
     test('a null type falls back to the quest family', () {
       expect(questPaperAssetIds(null, isTorn: false), [
         CloudinaryAssets.questSheet2,
@@ -141,6 +150,14 @@ void main() {
       expect(
         CloudinaryAssets.announcementTornSheet2,
         'v1794303777/tornAnnouncementSheet2_ayfvwu.svg',
+      );
+    });
+
+    test('the magic sheets point to their files (quick 261110-mag)', () {
+      expect(CloudinaryAssets.magicSheet, 'v1794317365/magicSheet_i7xslb.svg');
+      expect(
+        CloudinaryAssets.magicTornSheet,
+        'v1794317370/tornMagicSheet_tmjghe.svg',
       );
     });
   });

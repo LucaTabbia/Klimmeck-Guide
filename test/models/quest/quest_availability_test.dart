@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
+import 'package:klimmeck_guide/models/quest/quest_lane.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
 
@@ -98,6 +99,19 @@ void main() {
       );
       expect(
         availabilityOf(buildQuest(type: 'hunt'), viewer),
+        QuestAvailability.available,
+      );
+    });
+
+    test('magic is a repeatable standard-lane quest (quick 261110-mag)', () {
+      expect(laneOf(QuestType.magic), QuestLane.standard);
+      expect(nonRepeatableQuestTypes, isNot(contains(QuestType.magic)));
+      expect(registeredQuestTypes, isNot(contains(QuestType.magic)));
+      final viewer = buildViewer(
+        quests: buildLanes(completedQuestIds: ['q-1']),
+      );
+      expect(
+        availabilityOf(buildQuest(type: 'magic'), viewer),
         QuestAvailability.available,
       );
     });

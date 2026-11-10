@@ -38,6 +38,7 @@ void main() {
         QuestType.heal,
         QuestType.job,
         QuestType.study,
+        QuestType.magic,
         QuestType.crime,
         QuestType.guard,
         null,

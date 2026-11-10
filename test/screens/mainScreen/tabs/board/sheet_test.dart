@@ -42,7 +42,25 @@ String _url(WidgetTester tester) =>
     tester.widget<CachedSvg>(find.byType(CachedSvg)).url;
 
 void main() {
-  setUp(() => seedSvgCache([..._huntIntact, ..._huntTorn]));
+  setUp(
+    () => seedSvgCache([
+      ..._huntIntact,
+      ..._huntTorn,
+      CloudinaryAssets.magicSheet,
+      CloudinaryAssets.magicTornSheet,
+    ]),
+  );
+
+  testWidgets('a magic quest shows its own sheet (quick 261110-mag)', (
+    tester,
+  ) async {
+    final magic = buildQuest(id: 'm-1', type: 'magic');
+    await _pump(tester, magic, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
+
+    await _pump(tester, magic, isTorn: true);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicTornSheet));
+  });
 
   testWidgets('a torn boss shows a torn hunt paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);
