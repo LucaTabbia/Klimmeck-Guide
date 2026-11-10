@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
@@ -9,7 +11,12 @@ import '../../../../helpers/landscape.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
-  Future<void> pumpOverlay(WidgetTester tester, {String? stateLabel}) async {
+  Future<void> pumpOverlay(
+    WidgetTester tester, {
+    String? stateLabel,
+    Quest? quest,
+    List<InjuryType>? characterInjuries,
+  }) async {
     useLandscapePhone(tester);
     final controller = AnimationController(
       vsync: tester,
@@ -23,8 +30,9 @@ void main() {
             children: [
               QuestInfoOverlay(
                 animationController: controller,
-                selectedQuest: buildQuest(id: 'e-1', type: 'enemy'),
+                selectedQuest: quest ?? buildQuest(id: 'e-1', type: 'enemy'),
                 stateLabel: stateLabel,
+                characterInjuries: characterInjuries,
               ),
             ],
           ),
@@ -39,6 +47,22 @@ void main() {
 
     final text = tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey));
     expect(text.data, 'In viaggio');
+  });
+
+  testWidgets("forwards the character's injuries to the sheet (D-19)", (
+    tester,
+  ) async {
+    await pumpOverlay(
+      tester,
+      quest: buildQuest(
+        id: 'h-1',
+        type: 'heal',
+        prizes: {'cure': questCureJson()},
+      ),
+      characterInjuries: const [InjuryType.contusion],
+    );
+
+    expect(find.text('Cura le tue ferite: contusione'), findsOneWidget);
   });
 
   testWidgets('hides the state line without a label', (tester) async {

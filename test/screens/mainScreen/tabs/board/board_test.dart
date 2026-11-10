@@ -43,13 +43,26 @@ Quest _boardQuest(
   String markerId = 'poi-1',
   String? minTitle = 'rookie',
   List<Object> registered = const [],
+  Map<String, dynamic>? prizes,
 }) => buildQuest(
   id: id,
   type: type,
   markerId: markerId,
   minTitle: minTitle,
   registered: registered,
+  prizes: prizes,
 );
+
+Map<String, dynamic> _injuredCharacterJson(List<String> injuries) {
+  final json = characterWithLanesJson(
+    title: 'paladin',
+    locationId: 'city-marker-1',
+  );
+  return {
+    ...json,
+    'status': {...json['status'] as Map<String, dynamic>, 'injuries': injuries},
+  };
+}
 
 void main() {
   late MockQuestCubit questCubit;
@@ -108,11 +121,12 @@ void main() {
     WidgetTester tester, {
     required QuestLoaded quests,
     Map<String, dynamic>? character,
+    Stream<CharacterState>? characterStates,
   }) async {
     useLandscapePhone(tester);
     whenListen(
       characterCubit,
-      const Stream<CharacterState>.empty(),
+      characterStates ?? const Stream<CharacterState>.empty(),
       initialState: CharacterLoaded(
         Character.fromJson(
           character ??
@@ -269,5 +283,55 @@ void main() {
     final sheet = tester.widget<QuestInfoSheet>(find.byType(QuestInfoSheet));
     expect(sheet.quest, freed);
     expect(isTorn(tester, 'b-full'), isFalse);
+  });
+
+  group('cure rows (BE Phase 18)', () {
+    final heal = _boardQuest('he-1', 'heal', prizes: {'cure': questCureJson()});
+
+    Future<void> openHeal(WidgetTester tester) async {
+      await tester.ensureVisible(paper('he-1'));
+      await tester.tap(paper('he-1'));
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets(
+      "the Board sheet lists the character's curable injuries (D-19)",
+      (tester) async {
+        await pumpBoard(
+          tester,
+          quests: loaded([heal]),
+          character: _injuredCharacterJson(['contusion', 'blindness']),
+        );
+
+        await openHeal(tester);
+
+        expect(find.text('Cura le tue ferite: contusione'), findsOneWidget);
+        expect(find.text('Vita: almeno il 50%'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a new character from the stream updates the cure line (D-19)',
+      (tester) async {
+        final characterStates = StreamController<CharacterState>.broadcast();
+        addTearDown(characterStates.close);
+        await pumpBoard(
+          tester,
+          quests: loaded([heal]),
+          character: _injuredCharacterJson(['contusion']),
+          characterStates: characterStates.stream,
+        );
+        await openHeal(tester);
+        expect(find.text('Cura le tue ferite: contusione'), findsOneWidget);
+
+        characterStates.add(
+          CharacterLoaded(Character.fromJson(_injuredCharacterJson([]))),
+        );
+        await tester.pump();
+
+        expect(find.byKey(QuestInfoSheet.cureLineKey), findsNothing);
+        expect(find.text('Vita: almeno il 50%'), findsOneWidget);
+      },
+    );
   });
 }

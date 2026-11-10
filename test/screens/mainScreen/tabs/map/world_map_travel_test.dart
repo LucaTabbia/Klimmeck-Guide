@@ -680,6 +680,47 @@ void main() {
       expectCentreAt(tester, const LatLng(0, 0));
     });
   });
+  group('cure rows on the lane sheet (BE Phase 18)', () {
+    testWidgets(
+      "the lane sheet on the Map lists the character's curable injuries (D-19)",
+      (tester) async {
+        final heal = buildQuest(
+          id: 'he-1',
+          type: 'heal',
+          prizes: {'cure': questCureJson()},
+        );
+        seedSvgCache([
+          questPaperAssetId(heal, isTorn: false),
+          CloudinaryAssets.emptySheet,
+        ]);
+        final json = travellingCharacterJson(
+          pendingQuest: laneJson(
+            questId: 'he-1',
+            arrivedAt: '2026-10-25T09:30:00.000Z',
+          ),
+        );
+        await pumpWorldMap(
+          tester,
+          character: CharacterLoaded(
+            Character.fromJson({
+              ...json,
+              'status': {
+                ...json['status'] as Map<String, dynamic>,
+                'injuries': ['contusion'],
+              },
+            }),
+          ),
+          quests: [heal],
+        );
+
+        await tester.tap(find.byKey(QuestPaperLayer.paperKey));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cura le tue ferite: contusione'), findsOneWidget);
+      },
+    );
+  });
+
   group('abandon the waiting party (quick 261025-grp)', () {
     final enemy = buildQuest(id: 'e-1', type: 'enemy');
     const arrival = '2026-10-25T09:30:00.000Z';
