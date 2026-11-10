@@ -32,6 +32,21 @@ String? graphQlErrorCode(OperationException? exception) {
   return null;
 }
 
+/// Un'altra chiave di `extensions` dell'errore che porta il codice (stesse due
+/// fonti di [graphQlErrorCode]): `null` se manca la chiave o l'errore.
+Object? graphQlErrorExtension(OperationException? exception, String key) {
+  if (exception == null) return null;
+  final link = exception.linkException;
+  final errors = [
+    ...exception.graphqlErrors,
+    if (link is ServerException) ...?link.parsedResponse?.errors,
+  ];
+  return errors
+      .where((error) => error.extensions?['code'] is String)
+      .map((error) => error.extensions?[key])
+      .firstOrNull;
+}
+
 String? _firstCodeOf(List<GraphQLError> errors) => errors
     .map((error) => error.extensions?['code'])
     .whereType<String>()
