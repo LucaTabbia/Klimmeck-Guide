@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/shared/bloc/server_deadline_countdown.dart';
 
 part 'potion_recovery_state.dart';
 
@@ -16,48 +17,26 @@ class PotionRecoveryCubit extends Cubit<PotionRecoveryState>
   PotionRecoveryCubit({
     required ServerClockService clock,
     Duration tick = defaultTick,
-  }) : _clock = clock,
-       _tick = tick,
-       super(const PotionRecoveryState(null)) {
-    _offsetSubscription = clock.offsetChanges.listen((_) => _refresh());
+  }) : super(const PotionRecoveryState(null)) {
+    _countdown = ServerDeadlineCountdown(
+      clock: clock,
+      tick: tick,
+      onRemaining: (remaining) => emit(PotionRecoveryState(remaining)),
+    );
   }
 
   /// L'etichetta cambia al minuto: un secondo basta a riaccendere le
   /// pergamene senza ritardo.
   static const Duration defaultTick = Duration(seconds: 1);
 
-  final ServerClockService _clock;
-  final Duration _tick;
-  late final StreamSubscription<void> _offsetSubscription;
-  Timer? _timer;
-  DateTime? _until;
+  late final ServerDeadlineCountdown _countdown;
 
-  void follow(DateTime? potionRecoveryUntil) {
-    _until = potionRecoveryUntil;
-    _refresh();
-  }
-
-  void _refresh() {
-    final left = _until?.difference(_clock.now());
-    if (left == null || left <= Duration.zero) {
-      emit(const PotionRecoveryState(null));
-      return _stopTimer();
-    }
-    final minutes = (left.inMilliseconds / Duration.millisecondsPerMinute)
-        .ceil();
-    emit(PotionRecoveryState(Duration(minutes: minutes)));
-    _timer ??= Timer.periodic(_tick, (_) => _refresh());
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-  }
+  void follow(DateTime? potionRecoveryUntil) =>
+      _countdown.follow(potionRecoveryUntil);
 
   @override
   Future<void> close() {
-    _stopTimer();
-    unawaited(_offsetSubscription.cancel());
+    unawaited(_countdown.dispose());
     return super.close();
   }
 }
