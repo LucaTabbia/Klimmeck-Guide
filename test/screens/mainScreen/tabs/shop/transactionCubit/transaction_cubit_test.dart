@@ -78,6 +78,37 @@ void main() {
   );
 
   blocTest<TransactionCubit, TransactionState>(
+    'a prison refusal carries the server release (quick 261110-cgd)',
+    setUp: () {
+      when(() => graphQl.doTransaction(request)).thenThrow(
+        OperationException(
+          graphqlErrors: [
+            GraphQLError(
+              message: 'server text',
+              extensions: {
+                'code': 'CHARACTER_IMPRISONED',
+                'imprisonedUntil': '2026-11-10T22:00:00.000Z',
+              },
+            ),
+          ],
+        ),
+      );
+    },
+    build: buildCubit,
+    act: (cubit) => cubit.doTransaction(request),
+    wait: const Duration(milliseconds: 1),
+    expect: () => [
+      isA<TransactionLoading>(),
+      errorWith(TransactionFailure.imprisoned).having(
+        (state) => (state as TransactionError).imprisonedUntil,
+        'imprisonedUntil',
+        DateTime.utc(2026, 11, 10, 22),
+      ),
+      isA<TransactionInitial>(),
+    ],
+  );
+
+  blocTest<TransactionCubit, TransactionState>(
     'a non-GraphQL failure becomes Error(unknown)',
     setUp: () {
       when(

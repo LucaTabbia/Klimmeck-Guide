@@ -110,6 +110,28 @@ void main() {
     );
 
     blocTest<TravelCubit, TravelState>(
+      'a prison refusal of the preview carries the server release '
+      '(quick 261110-cgd)',
+      setUp: () => stubPreview().thenThrow(
+        TravelException(
+          TravelFailure.imprisoned,
+          imprisonedUntil: DateTime.utc(2026, 11, 10, 22),
+        ),
+      ),
+      build: build,
+      act: previewValdoria,
+      expect: () => [
+        TravelPreviewing(valdoria),
+        TravelFailed(
+          destination: valdoria,
+          failure: TravelFailure.imprisoned,
+          stage: TravelStage.preview,
+          imprisonedUntil: DateTime.utc(2026, 11, 10, 22),
+        ),
+      ],
+    );
+
+    blocTest<TravelCubit, TravelState>(
       'maps an unexpected preview error to unknown',
       setUp: () => stubPreview().thenThrow(StateError('boom')),
       build: build,
