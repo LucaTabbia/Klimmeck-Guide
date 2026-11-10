@@ -60,7 +60,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
   5. While `CharacterStatus.potionRecoveryUntil` is in the future every heal parchment is disabled with a countdown «pronta fra …» from the server date; item rows in the shop and the Journal show «Ricarica: …» from `recovery.time` (`turns` not shown); `LootRecovery` and `potionRecoveryUntil` are parsed leniently; the device E2E drinks a field herb, sees the countdown and the lore line; the `POTION_RECOVERING` notice on a second potion is proved by tests and by the orchestrator's GraphQL probe, the parchments being disabled during the countdown (D-19).
 **Decisions of the discuss (2026-11-09, `18-CONTEXT.md` D-01..D-10)**: HP and injuries separated with explicit lists per place (user); ceiling 50/80/100; lists ≤20/≤40/all with lore touches; hours 2/5/8; sheet with only the viewer's curable injuries, no count, no line when none (user, confirmed); life row always; «Guarite: …» on the result; executed after Phase 12; travel food deferred (user). **Amended the same evening (D-11..D-16)**: Journal potions with the global recovery (`recovery { time, turns }`, 30 min–24 h, `turns` data only), confirmation + feedback + countdown, «Ricarica: …» rows, lore «Il limite del corpo» through the Phase 17 Library flow.
 **Backend prerequisite**: BE Phase 18 merged on BE `develop` (itself after the BE Phase 17).
-**Plans**: 12 plans
+**Plans**: 13 plans
 
 Plans:
 - [ ] 18-01-PLAN.md — Quest cure models (`QuestCure`, `QuestPrizes.cure`, `QuestResult.injuriesHealed`, lenient injury reader)
@@ -71,10 +71,11 @@ Plans:
 - [ ] 18-06-PLAN.md — `useItem` plumbing (document + registry 46, extension reader, `ItemUseFailure`, `ItemUseRepository`)
 - [ ] 18-07-PLAN.md — Potion cubits (`PotionCubit`, `PotionRecoveryCubit`)
 - [ ] 18-08-PLAN.md — Potion notices and wiring (`potionNoticeFor`, `PotionOutcomeListener`)
-- [ ] 18-09-PLAN.md — Journal potion flow (`PotionSheet`, `ItemsSection`, countdown, travel, awaiting aid)
-- [ ] 18-10-PLAN.md — Heal with no effect (`Quest.noEffect`, torn inert sheet, vitals reread, `QUEST_NO_EFFECT`)
-- [ ] 18-11-PLAN.md — Schema gate, fragment selections, document validation, full suite (gated on the BE Phase 18 merge)
-- [ ] 18-12-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
+- [ ] 18-09-PLAN.md — Shared lore line and Journal potion flow (`PotionSheet`, `ItemsSection`, countdown, travel, awaiting aid)
+- [ ] 18-10-PLAN.md — Heal with no effect: `Quest.noEffect`, torn inert sheet, vitals reread
+- [ ] 18-11-PLAN.md — Heal with no effect: `QUEST_NO_EFFECT` refusal, notice, list reread
+- [ ] 18-12-PLAN.md — Schema gate, fragment selections, document validation, full suite (gated on the BE Phase 18 merge)
+- [ ] 18-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ### Phase 19: Model Review (frontend companion)
 **Goal**: The frontend consumes the cleaned backend models without changing what the player sees, except the companion xp decided by the user: owned companions carry `xp` and `currentLifePoints` on the character, the companion row shows the experience and the result sheet says how much the companion gained (10 % of the enemies' xp, capped at the catalogue `maxXp`, backend-owned). Shape changes consumed: `Enemy.weaknesses { base, energy }`, `Pet.attack`/`Pet.defense` instead of `damages`, `ownedPets` entries, `wornEquipment` with `feet`, one `spellStates` list with `active` (the Journal spells section reads known = all, equipped = active), `PointOfInterest.quest` removed, `Lore.imagePath`. FE-only: fragile parsers fixed with tests.
@@ -111,7 +112,7 @@ Plans:
 | 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
-| 18. Heal Quests by City Size | v1.1 | 0/12 | Planned | - |
+| 18. Heal Quests by City Size | v1.1 | 0/13 | Planned | - |
 | 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
