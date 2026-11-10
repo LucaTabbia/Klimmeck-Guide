@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/character_imprisoned.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 
@@ -29,7 +30,12 @@ class TransactionCubit extends Cubit<TransactionState>
       await graphQl.doTransaction(input);
       emit(TransactionDone());
     } on OperationException catch (error) {
-      emit(TransactionError(transactionFailureFrom(error)));
+      emit(
+        TransactionError(
+          transactionFailureFrom(error),
+          imprisonedUntil: imprisonedUntilFrom(error),
+        ),
+      );
     } on Object {
       emit(TransactionError(TransactionFailure.unknown));
     }

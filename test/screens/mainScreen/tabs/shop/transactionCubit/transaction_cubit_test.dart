@@ -99,11 +99,17 @@ void main() {
     wait: const Duration(milliseconds: 1),
     expect: () => [
       isA<TransactionLoading>(),
-      errorWith(TransactionFailure.imprisoned).having(
-        (state) => (state as TransactionError).imprisonedUntil,
-        'imprisonedUntil',
-        DateTime.utc(2026, 11, 10, 22),
-      ),
+      isA<TransactionError>()
+          .having(
+            (state) => state.failure,
+            'failure',
+            TransactionFailure.imprisoned,
+          )
+          .having(
+            (state) => state.imprisonedUntil,
+            'imprisonedUntil',
+            DateTime.utc(2026, 11, 10, 22),
+          ),
       isA<TransactionInitial>(),
     ],
   );

@@ -61,9 +61,9 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
       if (_isStale(token)) return;
       emit(_confirmingFrom(destination, result));
     } on TravelException catch (error) {
-      _failPreview(token, destination, error.failure);
+      _failPreview(token, destination, error);
     } catch (_) {
-      _failPreview(token, destination, TravelFailure.unknown);
+      _failPreview(token, destination, _unknown);
     }
   }
 
@@ -85,9 +85,9 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
       _holdStarted();
     } on TravelException catch (error) {
       if (error.failure == TravelFailure.starving) return _requote(starting);
-      _failStart(destination, error.failure);
+      _failStart(destination, error);
     } catch (_) {
-      _failStart(destination, TravelFailure.unknown);
+      _failStart(destination, _unknown);
     }
   }
 
@@ -117,9 +117,9 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
       if (_isStale(token)) return;
       emit(_confirmingFrom(destination, result));
     } on TravelException catch (error) {
-      _failPreview(token, destination, error.failure);
+      _failPreview(token, destination, error);
     } catch (_) {
-      _failPreview(token, destination, TravelFailure.unknown);
+      _failPreview(token, destination, _unknown);
     }
   }
 
@@ -172,22 +172,26 @@ class TravelCubit extends Cubit<TravelState> with SafeEmit<TravelState> {
     });
   }
 
-  void _failPreview(int token, City destination, TravelFailure failure) {
+  static const TravelException _unknown = TravelException(
+    TravelFailure.unknown,
+  );
+
+  void _failPreview(int token, City destination, TravelException error) {
     if (_isStale(token)) return;
-    emit(
-      TravelFailed(
-        destination: destination,
-        failure: failure,
-        stage: TravelStage.preview,
-      ),
-    );
+    emit(_failed(destination, error, TravelStage.preview));
   }
 
-  void _failStart(City destination, TravelFailure failure) => emit(
-    TravelFailed(
-      destination: destination,
-      failure: failure,
-      stage: TravelStage.start,
-    ),
+  void _failStart(City destination, TravelException error) =>
+      emit(_failed(destination, error, TravelStage.start));
+
+  static TravelFailed _failed(
+    City destination,
+    TravelException error,
+    TravelStage stage,
+  ) => TravelFailed(
+    destination: destination,
+    failure: error.failure,
+    stage: stage,
+    imprisonedUntil: error.imprisonedUntil,
   );
 }
