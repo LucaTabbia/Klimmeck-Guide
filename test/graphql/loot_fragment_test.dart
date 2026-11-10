@@ -83,8 +83,8 @@ void main() {
       );
     });
 
-    test('the registry stays at 45 documents', () {
-      expect(schemaCheckDocuments.length, 45);
+    test('the registry stays at 46 documents', () {
+      expect(schemaCheckDocuments.length, 46);
     });
   });
 }
