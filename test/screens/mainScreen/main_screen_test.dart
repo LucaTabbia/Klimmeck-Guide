@@ -31,11 +31,13 @@ import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dar
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/prison_status_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
@@ -377,8 +379,15 @@ void main() {
       Map<String, dynamic>? awaitingAid,
       CharacterState? character,
       Stream<CharacterState>? characterStream,
+      PrisonState prison = const PrisonState(null),
     }) async {
       useLandscapePhone(tester);
+      final prisonCubit = MockPrisonCubit();
+      whenListen(
+        prisonCubit,
+        const Stream<PrisonState>.empty(),
+        initialState: prison,
+      );
       final authStates = StreamController<AuthState>.broadcast();
       final intentCubit = NotificationIntentCubit(authStates.stream);
       addTearDown(() async {
@@ -424,6 +433,7 @@ void main() {
               ),
               BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
               BlocProvider<AuthCubit>.value(value: authCubit),
+              BlocProvider<PrisonCubit>.value(value: prisonCubit),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -498,6 +508,13 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('mounts the prison status listener in the session chain '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpMainScreen(tester, 'city-marker-1');
+
+      expect(find.byType(PrisonStatusListener), findsOneWidget);
     });
 
     group('cities refresh', () {
@@ -774,6 +791,20 @@ void main() {
 
       await tapItem(tester, SatchelLayout.shopPageIndex);
       expect(controller.page!.round(), 0);
+    });
+
+    testWidgets('in prison only the shop cell is disabled: the board shows '
+        'torn sheets (quick 261110-cgd)', (tester) async {
+      await pumpMainScreen(
+        tester,
+        'city-marker-1',
+        prison: const PrisonState(Duration(hours: 9)),
+      );
+
+      expect(
+        tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
+        {SatchelLayout.shopPageIndex},
+      );
     });
 
     testWidgets('awaiting aid the board and shop cells look disabled', (

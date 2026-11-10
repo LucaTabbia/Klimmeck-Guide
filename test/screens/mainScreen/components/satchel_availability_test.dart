@@ -78,6 +78,19 @@ void main() {
     );
   });
 
+  test('in prison only the shop closes: the board shows torn sheets '
+      '(quick 261110-cgd)', () {
+    expect(
+      disabledSatchelPages(
+        location: poi('city-marker-1'),
+        cities: cities,
+        isTravelling: false,
+        isImprisoned: true,
+      ),
+      {5},
+    );
+  });
+
   test('on a city marker not awaiting aid nothing is disabled', () {
     expect(
       disabledSatchelPages(

@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/abandon_party_sheet.dart';
@@ -140,6 +141,11 @@ Future<void> pumpWorldMap(
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
+            BlocProvider<PrisonCubit>(
+              create: (_) => PrisonCubit(
+                clock: FakeServerClockService(DateTime.utc(2026, 11, 10)),
+              ),
+            ),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<WorldMapCubit>.value(value: worldMapCubit),
             BlocProvider<TravelCubit>.value(value: travelCubit),
