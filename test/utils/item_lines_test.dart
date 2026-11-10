@@ -6,9 +6,19 @@ import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/quest/quest_cure.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
 import '../helpers/fixtures/shop_fixtures.dart';
+
+QuestCure _cure({
+  double share = 0.5,
+  List<InjuryType> canHeal = const [
+    InjuryType.contusion,
+    InjuryType.deepCut,
+    InjuryType.frostbite,
+  ],
+}) => QuestCure(lifePointsShare: share, canHeal: canHeal);
 
 LootItem _loot({
   EffectType? effect,
@@ -202,6 +212,102 @@ void main() {
         isNull,
       );
       expect(healedInjuriesLine(_loot(injuries: [InjuryType.deepCut])), isNull);
+    });
+  });
+
+  group('curableInjuriesLine', () {
+    test(
+      "lists only the character's injuries the cure heals, in the character's order (D-03)",
+      () {
+        expect(
+          curableInjuriesLine(_cure(), const [
+            InjuryType.deepCut,
+            InjuryType.blindness,
+            InjuryType.contusion,
+          ]),
+          'Cura le tue ferite: taglio profondo, contusione',
+        );
+      },
+    );
+
+    test('a repeated injury is listed once (D-03)', () {
+      expect(
+        curableInjuriesLine(_cure(), const [
+          InjuryType.contusion,
+          InjuryType.contusion,
+        ]),
+        'Cura le tue ferite: contusione',
+      );
+    });
+
+    test(
+      "no line when none of the character's injuries is in the list (D-03)",
+      () {
+        expect(
+          curableInjuriesLine(_cure(), const [InjuryType.blindness]),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      "no line without a cure or without the character's injuries (D-03)",
+      () {
+        expect(curableInjuriesLine(null, const [InjuryType.contusion]), isNull);
+        expect(curableInjuriesLine(_cure(), null), isNull);
+        expect(curableInjuriesLine(_cure(), const []), isNull);
+      },
+    );
+
+    test('never lists an injury the character does not have (D-03)', () {
+      final line = curableInjuriesLine(_cure(), const [InjuryType.contusion]);
+      expect(line, isNot(contains('taglio profondo')));
+      expect(line, isNot(contains('congelamento')));
+    });
+  });
+
+  group('lifeShareLine', () {
+    test('turns the share into a percentage (D-04)', () {
+      expect(lifeShareLine(_cure(share: 0.5)), 'Vita: almeno il 50%');
+      expect(lifeShareLine(_cure(share: 0.79)), 'Vita: almeno il 79%');
+      expect(lifeShareLine(_cure(share: 0.9)), 'Vita: almeno il 90%');
+    });
+
+    test('elides the article where Italian requires it (D-21)', () {
+      expect(lifeShareLine(_cure(share: 0.8)), "Vita: almeno l'80%");
+      expect(lifeShareLine(_cure(share: 0.85)), "Vita: almeno l'85%");
+      expect(lifeShareLine(_cure(share: 0.89)), "Vita: almeno l'89%");
+      expect(lifeShareLine(_cure(share: 0.08)), "Vita: almeno l'8%");
+      expect(lifeShareLine(_cure(share: 0.11)), "Vita: almeno l'11%");
+      expect(lifeShareLine(_cure(share: 0.5)), 'Vita: almeno il 50%');
+    });
+
+    test('a full share reads al massimo (D-04)', () {
+      expect(lifeShareLine(_cure(share: 1)), 'Vita: al massimo');
+    });
+
+    test('a zero share hides the row (D-04)', () {
+      expect(lifeShareLine(_cure(share: 0)), isNull);
+    });
+
+    test('no row without a cure (D-04)', () {
+      expect(lifeShareLine(null), isNull);
+    });
+  });
+
+  group('healedLine', () {
+    test(
+      'lists the healed injuries in lowercase, in the given order (D-06, D-19)',
+      () {
+        expect(
+          healedLine(const [InjuryType.deepCut, InjuryType.contusion]),
+          'Guarite: taglio profondo, contusione',
+        );
+      },
+    );
+
+    test('no line when nothing was healed (D-06)', () {
+      expect(healedLine(const []), isNull);
     });
   });
 }
