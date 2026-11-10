@@ -40,14 +40,14 @@ void main() {
       ]);
     });
 
-    test('aid has its own whole sheets and the torn quest ones', () {
+    test('aid uses its own whole and torn sheets', () {
       expect(questPaperAssetIds(QuestType.aid, isTorn: false), [
         CloudinaryAssets.aidSheet1,
         CloudinaryAssets.aidSheet2,
       ]);
       expect(questPaperAssetIds(QuestType.aid, isTorn: true), [
-        CloudinaryAssets.questSheetTorn1,
-        CloudinaryAssets.questSheetTorn2,
+        CloudinaryAssets.aidTornSheet1,
+        CloudinaryAssets.aidTornSheet2,
       ]);
     });
 
@@ -307,6 +307,14 @@ void main() {
       expect(CloudinaryAssets.bossSheet2, 'v1794331761/bossSheet2_jpfofw.svg');
       expect(CloudinaryAssets.aidSheet1, 'v1794331772/aidSheet1_bv1und.svg');
       expect(CloudinaryAssets.aidSheet2, 'v1794331778/aidSheet2_iuxlwt.svg');
+      expect(
+        CloudinaryAssets.aidTornSheet1,
+        'v1794333401/tornAidSheet1_gbxr9p.svg',
+      );
+      expect(
+        CloudinaryAssets.aidTornSheet2,
+        'v1794333419/tornAidSheet2_t4eep5.svg',
+      );
     });
   });
 }
