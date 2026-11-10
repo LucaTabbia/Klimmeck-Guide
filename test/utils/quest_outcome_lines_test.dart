@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/utils/quest_outcome_lines.dart';
 
-import '../helpers/fixtures/quest_fixtures.dart';
 import '../helpers/fixtures/quest_result_fixtures.dart';
 
 void main() {

@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/lore_lines.dart';
+import 'package:klimmeck_guide/utils/quest_outcome_lines.dart';
 
 /// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
 /// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
@@ -41,6 +42,9 @@ class QuestResultSheet extends StatefulWidget {
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
   static const Key stagesKey = ValueKey('questResult.stages');
+  static const Key arrestKey = ValueKey('questResult.arrest');
+  static const Key confiscatedKey = ValueKey('questResult.confiscated');
+  static const Key guardEncounterKey = ValueKey('questResult.guardEncounter');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
   static const Key healedKey = ValueKey('questResult.healed');
@@ -164,6 +168,12 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._deathIdentity(),
         ..._enemies(),
         ..._line(_stagesText(), QuestResultSheet.stagesKey),
+        ..._line(
+          guardEncounterLine(_result),
+          QuestResultSheet.guardEncounterKey,
+        ),
+        ..._line(arrestLine(_result), QuestResultSheet.arrestKey),
+        ..._confiscated(),
         ..._hp(),
         ..._line(
           healedLine(_result.injuriesHealed),
@@ -369,6 +379,23 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
             key: QuestResultSheet.petRewardKey,
             style: _theme.bodyMedium,
           ),
+      ],
+    );
+  }
+
+  /// Monete confiscate con l'arresto (quick 261110-cgd), dal server.
+  List<Widget> _confiscated() {
+    final coins = confiscatedCoinsOf(_result);
+    if (coins == null) return const [];
+    return _section(
+      key: QuestResultSheet.confiscatedKey,
+      title: confiscatedCoinsTitle,
+      children: [
+        CoinsDisplay(
+          coins: coins,
+          height: _coinsHeight,
+          layout: CoinLayoutType.row,
+        ),
       ],
     );
   }
