@@ -46,21 +46,36 @@ void main() {
       }
     });
 
-    test('job and study have no torn sheet yet', () {
-      for (final type in [QuestType.job, QuestType.study]) {
-        expect(
-          questPaperAssetIds(type, isTorn: true),
-          questPaperAssetIds(type, isTorn: false),
-        );
-      }
+    test('job has a torn variant', () {
       expect(questPaperAssetIds(QuestType.job, isTorn: false), [
         CloudinaryAssets.jobSheet1,
         CloudinaryAssets.jobSheet2,
       ]);
+      expect(questPaperAssetIds(QuestType.job, isTorn: true), [
+        CloudinaryAssets.jobTornSheet1,
+        CloudinaryAssets.jobTornSheet2,
+      ]);
+    });
+
+    test('study uses the announcement sheets, whole and torn', () {
       expect(questPaperAssetIds(QuestType.study, isTorn: false), [
         CloudinaryAssets.announcementSheet1,
         CloudinaryAssets.announcementSheet2,
       ]);
+      expect(questPaperAssetIds(QuestType.study, isTorn: true), [
+        CloudinaryAssets.announcementTornSheet1,
+        CloudinaryAssets.announcementTornSheet2,
+      ]);
+    });
+
+    test('every quest type has a torn sheet of its own family', () {
+      for (final type in QuestType.values) {
+        expect(
+          questPaperAssetIds(type, isTorn: true),
+          isNot(questPaperAssetIds(type, isTorn: false)),
+          reason: type.name,
+        );
+      }
     });
 
     test('hunt uses its own whole and torn sheets', () {
@@ -96,14 +111,14 @@ void main() {
       ]);
     });
 
-    test('a torn heal uses the torn announcement sheets (D-20)', () {
-      expect(questPaperAssetIds(QuestType.heal, isTorn: true), [
-        CloudinaryAssets.announcementTornSheet1,
-        CloudinaryAssets.announcementTornSheet2,
-      ]);
+    test('heal uses its own whole and torn sheets', () {
       expect(questPaperAssetIds(QuestType.heal, isTorn: false), [
-        CloudinaryAssets.announcementSheet1,
-        CloudinaryAssets.announcementSheet2,
+        CloudinaryAssets.healSheet1,
+        CloudinaryAssets.healSheet2,
+      ]);
+      expect(questPaperAssetIds(QuestType.heal, isTorn: true), [
+        CloudinaryAssets.healTornSheet1,
+        CloudinaryAssets.healTornSheet2,
       ]);
     });
 
@@ -224,6 +239,30 @@ void main() {
       expect(
         CloudinaryAssets.huntTornSheet2,
         'v1794324906/tornGameSheet2_j1xtv6.svg',
+      );
+    });
+
+    test('the torn job sheets point to their files', () {
+      expect(
+        CloudinaryAssets.jobTornSheet1,
+        'v1794329019/tornJobSheet1_ivb31s.svg',
+      );
+      expect(
+        CloudinaryAssets.jobTornSheet2,
+        'v1794329024/tornJobSheet2_muovna.svg',
+      );
+    });
+
+    test('the heal sheets point to their files', () {
+      expect(CloudinaryAssets.healSheet1, 'v1794329008/healSheet1_as1rng.svg');
+      expect(CloudinaryAssets.healSheet2, 'v1794329013/healSheet2_yosyxa.svg');
+      expect(
+        CloudinaryAssets.healTornSheet1,
+        'v1794329028/tornHealSheet1_am4kxg.svg',
+      );
+      expect(
+        CloudinaryAssets.healTornSheet2,
+        'v1794329034/tornHealSheet2_cppkog.svg',
       );
     });
   });
