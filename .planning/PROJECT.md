@@ -2,114 +2,100 @@
 
 ## What This Is
 
-Un'app mobile Flutter che trasforma i punti canale Twitch in un RPG: i viewer di un singolo canale spendono punti canale che diventano valuta di gioco (1:1), usata per accettare quest. Un backend NestJS con MongoDB gestisce la logica di combattimento algoritmica, la mappa con spostamenti in tempo reale, e il sistema di ferite. Lo streamer funge da game master per le quest story e worldMission durante le live.
+Un'app mobile Flutter (Android) che trasforma i punti canale Twitch di un singolo canale in un RPG persistente: il viewer entra con il login Twitch mediato dal backend, crea il personaggio, accetta quest con il gesto «strappa foglio», viaggia sulla mappa in tempo server consumando cibo e rischiando imboscate, legge gli esiti dei combattimenti su una pergamena che non va mai persa, equipaggia magie, compra nei negozi di città e sblocca le lore del mondo. Il backend NestJS + MongoDB è la fonte di verità di ogni regola (progressione, combattimento, economia, viaggi, generazione delle quest); l'app è reattiva alle subscription GraphQL. Lo streamer (ruolo `innkeeper`) è il game master dalla Locanda.
 
 ## Core Value
 
 I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
 
-## Current Milestone: v1.0 Core Loop
+_Confermato alla chiusura della v1.0 (2026-11-10): il loop regge sul device senza lo streamer presente (quest generate dal server, viaggi, imboscate, lore) e la Locanda copre la parte live._
 
-**Goal:** Chiudere il loop di gioco base — il viewer si logga via Twitch, riceve punti canale/stato personaggio via subscription, accetta quest con gesture swipe, viaggia con notifiche, vede esiti combattimento, gestisce magie possedute. Lo streamer amministra tutto via admin panel.
+## Current State: v1.0 Core Loop — SHIPPED 2026-11-10
 
-**Target features:**
+- **17 fasi, 180 piani, 131 task**, 10 quick task; archivio in `.planning/milestones/v1.0-ROADMAP.md` e `v1.0-REQUIREMENTS.md`, riepilogo in `.planning/MILESTONES.md`.
+- **Requisiti:** 110/111 completi; CHAR-06 (pre-screen NSFW lato client) rinviato per scelta dell'utente — la moderazione autoritativa è server-side (BE Phase 10) e i suoi codici sono mappati dalla FE.
+- **Codebase:** ~36 000 righe Dart in `lib/` (491 file), ~65 000 righe di test (394 file), 3 704 test verdi, analyzer 0 errori / 0 warning, CI GitHub Actions verde sulla PR #45.
+- **Release:** entry point di produzione `lib/main.dart` senza bypass dev (`lib/main_dev.dart` + `--flavor dev` per lo sviluppo), bundle senza `.env`, firma con keystore fuori VCS, solo TLS, log spenti; esercitata su Samsung + emulatore con il login Twitch reale attraverso un tunnel TLS.
+- **Backend companion:** milestone BE v1.0 chiusa lo stesso giorno (21 fasi, 261 piani, `develop` `9973fcb1`).
 
-- Auth Twitch (OAuth + refresh + logout/switch) e sezione Impostazioni
-- Sync utente real-time via GraphQL subscription (punti canale, stato, progressione)
-- Quest accept gesture (swipe-left "strappa foglio") + quest info sheets per tipo
-- Viaggio con conferma (distanza, durata ed ETA dal backend, nessun costo) e posizione live sulla rotta
-- Notifiche Firebase (FCM/APNs) + in-app per fine viaggio, streamer live, fine quest
-- Magie nel tab diario: lista, equip/disequip, cooldown, utilizzi residui
-- UI esiti combattimento: HP prima/dopo, consumabili + magie usati, ferite, premi, XP
-- Admin panel completo: pendingRequest, teleport, gestione mostri/grado/premi/ferite
-- Negozi per città: pool di oggetti proprio di ogni città secondo la taglia (villaggio / città / capitale), leggendari mai in vendita _(aggiunto 2026-10-29)_
-- Generazione server-side delle quest consumabili (enemy, boss) con il contratto multi-nemico `infos.enemies`; «Genera missioni» nella Locanda _(aggiunto 2026-10-29)_
-- Viaggio e cibo: il viaggio consuma oggetti `hunger` in base al tempo di marcia, i km scoperti costano vita, partenza rifiutata senza cibo sufficiente _(aggiunto 2026-10-29)_
-- Imboscate in viaggio: probabilità per km e notte, nemico della zona, deviazione verso la città più vicina in caso di sconfitta, report sul foglio esito _(aggiunto 2026-10-29)_
-- Lore sbloccabili per personaggio: città visitate, nemici sconfitti, study; Biblioteca filtrata e nemici sconosciuti oscurati _(aggiunto 2026-10-29)_
-- Fase finale di hardening: bug fixing, security audit, gestione concurrency (eseguita per ultima)
+## Next Milestone: v1.1 (da definire con `/gsd-new-milestone`)
+
+Candidati già discussi su branch (i branch toccano `ROADMAP.md`, `REQUIREMENTS.md` e `STATE.md` e vanno ribasati sulla chiusura):
+
+- **Phase 18 — Heal quests by size** (`feat/18-heal-quests-by-size` ↔ BE Phase 18): quest di cura per taglia di città (tetto HP 50/80/100, liste di ferite ≤20/≤40/tutte, 2/5/8 ore, gratuite; a Necrorian solo enemy/boss/dungeon), pozioni dal Diario con ricarica globale `recovery { time, turns }` e lore «Il limite del corpo».
+- **Phase 19 — Model review** (`feat/19-model-review` ↔ BE Phase 19): weaknesses, magie per ref, pet con stato sul personaggio e 10 % xp al compagno, attack/defense piatti, una sola lista di magie, `City.shop`, `Lore.imagePath`.
+- **BE Phase 20 — Cibo e vita progressivi** (solo BE): piano salvato alla partenza, vita incrementale allo sweep, cibo a blocchi.
 
 ## Requirements
 
 ### Validated
 
-- ✓ Modelli dati personaggio, equipaggiamento, ferite, quest — existing
-- ✓ UI equipaggiamento con SVG caching (CachedSvg) — existing
-- ✓ Menu zaino (SatchelMenu) con animazioni — existing
-- ✓ Schermata info equipaggiamento (EquipmentInfoSheetDisplay) — existing
-- ✓ Notifiche push FCM + banner in-app per fine viaggio, streamer live, fine quest (Android; iOS rinviata; prompt del permesso cablato dalla Phase 7) — Phase 5 (2026-10-20)
-- ✓ Accettazione quest con lo swipe-left "strappa foglio" (strappo orizzontale con feedback aptico, il BE resta il giudice: rifiuti mappati per `extensions.code` sul banner in-app, timeout client 15 s) e schede quest per famiglia (combat / narrativa con lore scorrevole / servizio) con indicatori di eleggibilità (titolo, slot per rango D-32, loot consigliato) e riga `Punti canale: saldo / costo`; board raggiungibile solo da un marker di città con le quest della città (worldMission comprese) e la sola story del titolo esatto, quest piene strappate per tutti/per rango, story e worldMission in parallelo alla corsia standard e strappate per il proprietario; foglio della quest standard sulla Map con etichetta di stato server-driven ("In viaggio" / per tipo, nessun countdown); parsing tollerante del catalogo editato a mano — Validated in Phase 6: Quest Accept & Info Sheets (E2E su Android 12/12 il 2026-10-22 contro BE develop con la Phase 8; QUEST-01..07 emendati; PR FE dopo la merge BE PR #11)
-- ✓ Architettura BLoC/Cubit con layer repository — existing
-- ✓ Comunicazione GraphQL (query, mutation, subscription) + REST — existing
-- ✓ Mappa con flutter_map e coordinate LatLng — existing
-- ✓ Sistema enums completo (12 tipi quest, 26 tipi ferite, 10 effetti ferite) — existing
-- ✓ Navigazione a 6 tab (board, journal, library, map, shop, profile) — existing
-- ✓ SVG caching multi-livello (memory, disk, network via Cloudinary) — existing
-- ✓ Enum classi personaggio (ClassType) — existing
-- ✓ UI negozi (shop) per acquisto equipaggiamento, cibo, oggetti — existing
-- ✓ Sezione lore (library) senza link ipertestuali — existing
-- ✓ UI lista quest nel tab board — existing (quasi definitiva, solo layout info per tipo mancanti)
-- ✓ Contratto `AuthTokenService` + stub dev backed da `.env` (bypass dell'autenticazione per sviluppo e QA) — Validated in Phase 1: Dev Auth Stub
-- ✓ Sessione reale contro il backend: login Twitch via browser di sistema mediato dal BE (ticket monouso + challenge S256), refresh token in storage cifrato, refresh single-flight e proattivo, retry trasparente su HTTP/REST, ri-autenticazione WebSocket, logout atomico, `AuthGate` (Splash → SignIn → shell autenticata) — Validated in Phase 11: Auth & Session Bootstrap (login reale su device da verificare all'arrivo delle chiavi Twitch; lo stub dev resta selezionabile fino a Phase 12)
-
-- ✓ Creazione personaggio: pagina post-login (utility screen, scheda-pergamena in landscape) con sesso, ritratto facoltativo da galleria/camera caricato su Cloudinary al submit (default `silhouette.jpeg`), nome, pronome, razza, classe, età limitata per razza dalla query `raceTraits`, background ≤ 500; mutation `createCharacter` e passaggio alla shell con il personaggio reale (id cablato rimosso); `AuthGate` si ricostruisce al cambio di `currentCharacter`; errori inline in italiano; ritratto nel Profilo tramite `CharacterPortrait` — Validated in Phase 2: Character Creation (CHAR-06 pre-screen NSFW rinviato dall'utente; set curato di ritratti rinviato)
-- ✓ Sync utente e personaggio in tempo reale: subscription GraphQL `userUpdated` (consumatore unico che alimenta la sessione) e `characterUpdated` (hardening), socket keep-alive con token corrente a ogni `connection_init`, riconnessione silenziosa con backoff e snapshot, refetch su resume, watchdog del tempo degradato che chiude la sessione dopo ~3 min con "Connessione persa, accedi di nuovo.", FORBIDDEN/NOT_FOUND terminali, shell ricreata al cambio personaggio, teardown pulito — Validated in Phase 3: Real-Time Sync Foundation (E2E approvato su Android il 2026-10-14; `activeTravel`/`activeStoryQuest`/`activeWorldMissionQuest` rinviati alle Phase 6/7 per D-05; PR FE verso develop solo dopo la merge della PR BE Phase 3, D-04)
-- ✓ Sezione Impostazioni: settima voce della borsa (griglia Mappa 1x2 + 2x3, icona `settings_linee3.svg`), tab utility su pergamena con tre toggle notifiche (fine viaggio, streamer live, fine quest) persistiti per utente in `shared_preferences` con toggle ottimistico e rollback all'ultimo valore salvato, logout tramite il dialog di conferma condiviso, eliminazione del personaggio con conferma esplicita via `deleteCharacter` (soft delete lato BE), progress nel bottone, errori inline per codice e passaggio alla pagina di creazione (riuso dello stesso nome ammesso) — Validated in Phase 4: Settings Screen (E2E approvato su Android il 2026-10-18 contro BE develop con la Phase 03.1; i toggle vengono consumati dalla Phase 5)
-- ✓ Viaggio: drag della pedina su una città → foglio di pergamena con distanza, durata ed ETA dal backend (`travelPreview`, nessun costo) e rotta tratteggiata, "Parti"/"Resta"; pedina che avanza sulla rotta interpolata sull'ora del server (offset `serverTime`, l'orologio del telefono non la sposta) con il solo tempo residuo sopra, ricostruzione dopo un kill da `activeTravel`, arrivo con push "Viaggio completato" o banner in-app e scatto su `characterUpdated`, viaggio automatico delle quest senza push, rifiuti `TRAVEL_IN_PROGRESS`/`QUEST_IN_PROGRESS` sul banner per codice, Bacheca e Negozio solo su un marker di città e mai in viaggio — Validated in Phase 7: Travel (E2E su Android il 2026-10-26, passi 1-11 pass, contro il BE con la Phase 8 travel lifecycle; TRAVEL-02/03 emendati)
-- ✓ Sezione Magie nel Diario: lista delle magie conosciute con carta, descrizione e riga compatta «Usi · Recupero/prossimo tra X · Attacco: Fuoco 12», slot guidati da `maxActiveSpells` con segnalibro e contatore a matita, tap = toggle ottimistico con rimbalzo e banner per codice, long-press = foglio di pergamena, countdown dal tempo server su `status.spellStates[].recoveries` (BE 9.1: il recupero non si interrompe mai), filtri a chip per `useType` (magie) ed `effect` (oggetti del Diario e negozio, solo i tipi presenti), label italiane di `EffectType` e riga «Cura: 12» sugli oggetti — Validated in Phase 8: Spells Section (device UAT 12/12 il 2026-10-27)
-- ✓ Foglio esito missione: pergamena a schermo intero con titolo e tipo della quest, nemico, barra vita animata da `hpBefore` a `hpAfter` contro il massimo, ferite con label italiane, consumabili e magie usati, premi, XP, livello/titolo solo se cambiano, magia appresa e «Hai salvato N avventurieri»; un solo widget per i cinque esiti (inchiostro scuro e «Riposa in pace» per la morte), chiusura solo col bottone (scrim, back e swipe ignorati); presentato solo sulla Mappa libera (altrove il banner porta lì), coda FIFO per `resolvedAt` con «1 di N»; tre sorgenti deduplicate per id (subscription, tap del push `questEnd`, `unacknowledgedQuestResults` a cold start/resume/riconnessione) e ack alla chiusura, così nessun esito va perso; foglio di morte prima della pagina di creazione anche a cold start (il BE tiene `currentCharacter` sul morto fino all'ack); stato ferito sulla Mappa («In attesa di soccorso», pedina, Bacheca e Negozio disabilitati) e quest `aid` nella famiglia combattimento; quest avviata strappata fino alla conclusione (posti tenuti dal BE 9.2) — Validated in Phase 9: Combat Result Sheet (device UAT 12/12 il 2026-10-29 contro BE develop `8f30d1d` con la Phase 9.2)
+- ✓ Modelli dati personaggio, equipaggiamento, ferite, quest; architettura BLoC/Cubit con repository; GraphQL (query, mutation, subscription) + REST; mappa `flutter_map`; enum completi; navigazione a 6 tab; SVG caching multi-livello; UI negozi, lore e lista quest — existing (brownfield mappato in `.planning/codebase/`)
+- ✓ Contratto `AuthTokenService` + stub dev backed da `.env` — v1.0 Phase 1 (2026-04-15)
+- ✓ Sessione reale contro il backend: login Twitch via browser di sistema mediato dal BE (ticket monouso + challenge S256), refresh in storage cifrato, refresh single-flight e proattivo, retry trasparente, ri-autenticazione WebSocket, logout atomico, `AuthGate` — v1.0 Phase 11 (2026-10-06; login reale su device provato il 2026-10-20 e sulla release firmata il 2026-11-09)
+- ✓ Creazione personaggio: pagina post-login con sesso, ritratto facoltativo caricato su Cloudinary, nome, pronome, razza, classe, età per razza da `raceTraits`, background; `createCharacter` e passaggio alla shell — v1.0 Phase 2 (2026-10-09; CHAR-06 pre-screen NSFW e set curato di ritratti rinviati)
+- ✓ Sync utente e personaggio in tempo reale: `userUpdated` e `characterUpdated`, keep-alive con token corrente, riconnessione silenziosa con backoff, refetch su resume, watchdog del tempo degradato, FORBIDDEN/NOT_FOUND terminali, teardown pulito — v1.0 Phase 3 (2026-10-14)
+- ✓ Impostazioni come utility screen: toggle notifiche per categoria persistiti per utente, logout con conferma, eliminazione del personaggio via `deleteCharacter` (soft delete BE) — v1.0 Phase 4 (2026-10-18)
+- ✓ Notifiche push FCM data-only + banner in-app per fine viaggio, streamer live, fine quest (poi quest annullata e sconfitta in imboscata), permesso chiesto in contesto, tap verso la Mappa o Twitch — v1.0 Phase 5 (2026-10-20; Android, iOS rinviata)
+- ✓ Accettazione quest con lo swipe-left «strappa foglio», schede per famiglia (combattimento / narrativa / servizio) con eleggibilità, saldo/costo in punti canale, bacheca solo da un marker di città, corsie story e worldMission in parallelo, foglio della quest standard sulla Mappa con etichetta di stato server-driven — v1.0 Phase 6 (2026-10-22)
+- ✓ Viaggio: drag della pedina su una città → pergamena con distanza, durata, ETA, cibo consumato e vita persa dal backend, rotta tratteggiata; pedina interpolata sull'ora del server, ricostruzione dopo kill, arrivo con push o banner, rifiuti per codice (`TRAVEL_IN_PROGRESS`, `QUEST_IN_PROGRESS`, `TRAVEL_STARVING` con requote), bacheca e negozio mai in viaggio — v1.0 Phase 7 (2026-10-26) + Phase 15 Travel Food (2026-11-06)
+- ✓ Sezione Magie nel Diario: magie conosciute con usi e recupero in tempo server (`spellStates`, BE 9.1), slot da `maxActiveSpells` con toggle ottimistico e rollback, filtri a chip per `useType`/`effect`, riga «Cura: …» sugli oggetti — v1.0 Phase 8 (2026-10-27)
+- ✓ Foglio esito missione: pergamena a schermo intero per i cinque esiti con barra vita animata, ferite, consumabili e magie usati, premi, XP, livello/titolo, magia appresa, avventurieri salvati, lore sbloccate; solo sulla Mappa libera, coda FIFO per `resolvedAt` deduplicata da tre sorgenti, ack alla chiusura, foglio di morte prima della creazione; stato ferito e quest `aid` — v1.0 Phase 9 (2026-10-29) + Phase 17 righe lore (2026-11-09)
+- ✓ Locanda dell'innkeeper da Impostazioni: coda live delle richieste story/worldMission come carte per quest (corsia standard occupata nascosta), form di completamento con override per partecipante (nessun rifiuto, nessuna scelta di mostri/premi), teleport dalla coda sulla Mappa, `QUEST_IN_PROGRESS`, «Genera missioni» — v1.0 Phase 10 (2026-11-01) + Phase 14 (2026-11-05)
+- ✓ Negozi per città: il negozio di un marker vende solo il pool della città per taglia via `cityShop(cityId)` (equipaggiamento, loot, compagni; mai leggendari; Necrorian senza negozio), `ITEM_NOT_IN_SHOP` nel fumetto del negoziante, compagni equipaggiati dal dropdown «Compagno» del Diario — v1.0 Phase 13 (2026-11-03)
+- ✓ Companion della generazione quest: contratto multi-nemico `infos.enemies`, quest fisse crime/guard/dungeon con i layout di famiglia, annuncio sulla scheda, use type dei gioielli, tabellone per area riletto al cambio di posizione/titolo/corsia — v1.0 Phase 14 (2026-11-05)
+- ✓ Imboscate in viaggio: categoria push `ambushDefeat` con switch «Imboscate», pedina che riparte dal punto dell'imboscata verso la città più vicina, report delle imboscate di un viaggio in carosello all'arrivo (`QuestResult.kind/ambush`, quest nullable) — v1.0 Phase 16 (2026-11-09)
+- ✓ Lore sbloccabili per personaggio: Biblioteca filtrata su `unlockedLore` con refetch silenzioso e segnalibri «Nuovo» per libro, sagoma nera dei nemici sconosciuti (`known: false`), scheda col solo nome per le città sconosciute, pagina del libro a sliver — v1.0 Phase 17 (2026-11-09)
+- ✓ Hardening: bypass dev solo in `lib/main_dev.dart`, release senza `.env` e senza `DEV_AUTH_` (grep in CI sul bundle), firma con `android/key.properties` e fallback debug, `InsecureTransportScreen` per URL in chiaro, log spenti, CI GitHub Actions (analyze, test, guard grep, build release), harness leak-tracking shell → logout, test di logout atomico, refresh concorrente, transizioni di identità e doppia sessione (`4409`, `SESSION_REVOKED` + reason → avvisi «sostituito da un nuovo login» / «ruolo cambiato»), `BAD_USER_INPUT` e codici di moderazione in tutti gli 11 classificatori, `City.size` per la visibilità dei marker con Talmvere sempre visibile — v1.0 Phase 12 (2026-11-10; E2E su Samsung + emulatore con release firmata e login Twitch reale)
 
 ### Active
 
-**v1.0 Core Loop (in corso):**
+**Post v1.0 (candidati v1.1, da confermare nel `/gsd-new-milestone`):**
 
-- [ ] Admin panel: lista pendingRequest story/worldMission
-- [ ] Admin panel: spostamento istantaneo personaggio su qualsiasi POI
-- [ ] Admin panel: selezione mostri/grado quest, scelta premi, applicazione ferite
-- [ ] Negozi per città con pool per taglia (Phase 13 ↔ BE Phase 12) _(aggiunto 2026-10-29)_
-- [ ] Companion della generazione quest: multi-nemico, «Genera missioni», crime/guard/dungeon fisse (Phase 14 ↔ BE Phase 13) _(aggiunto 2026-10-29)_
-- [ ] Viaggio e cibo: anteprima di cibo e vita, rifiuto per fame (Phase 15 ↔ BE Phase 14) _(aggiunto 2026-10-29)_
-- [ ] Imboscate in viaggio: rotta deviata live, report sul foglio esito (Phase 16 ↔ BE Phase 15) _(aggiunto 2026-10-29)_
-- [ ] Lore sbloccabili: Biblioteca filtrata, nemici sconosciuti oscurati (Phase 17 ↔ BE Phase 16) _(aggiunto 2026-10-29)_
-- [ ] Hardening finale: bug fixing intensivo, security audit, gestione concurrency (Phase 12, eseguita per ultima) _(discuss 2026-11-09: bypass dev in `lib/main_dev.dart`, release senza `.env`, firma + TLS + log spenti, CI GitHub Actions, «l\'ultimo login caccia l\'altro» con la BE Phase 17 companion, follow-up parcheggiati e review per aree)_
-
-**Future (post v1.0):**
-
-- [ ] UI pet/cavalcature come modificatori di velocità di spostamento
-- [ ] Log round-per-round esiti combattimento
+- [ ] Quest di cura per taglia e pozioni dal Diario con ricarica globale (Phase 18 ↔ BE 18, contesto su `feat/18-heal-quests-by-size`)
+- [ ] Revisione dei modelli condivisa FE/BE (Phase 19 ↔ BE 19, contesto su `feat/19-model-review`)
+- [ ] CHAR-06: decidere se mantenere il pre-screen NSFW lato client o chiudere il requisito sulla moderazione server-side
+- [ ] «Esci da tutti i dispositivi» (voce Impostazioni + mutation BE che revoca ogni sessione)
+- [ ] UI pet/cavalcature come modificatori di velocità (FUT-02; il BE già applica `Pet.speedModifier`)
+- [ ] Log round-per-round degli esiti di combattimento (FUT-01)
+- [ ] iOS: push APNs, firma e pubblicazione sugli store
+- [ ] Pass di accessibilità (FUT-04)
 
 ### Out of Scope
 
 - Gilde e arena — v2, richiede sistema sociale complesso
 - Blog gilde — v2, dipende da sistema gilde
-- Negozi per categoria (fabbro, alchimista…) — v2; i pool per città e taglia sono la Phase 13 (2026-10-29)
-- Villaggio visuale con case cliccabili — v2, refactor UI significativo
-- Descrizioni delle quest tramite LLM — v2; la generazione e il posizionamento server-side delle quest enemy/boss è BE Phase 13 con la companion FE Phase 14 (2026-10-29)
+- Negozi per categoria (fabbro, alchimista…) — v2; i pool per città e taglia sono stati consegnati dalla Phase 13
+- Villaggio visuale con case cliccabili — v2, refactor UI significativo (FUT-03)
+- Descrizioni delle quest tramite LLM — v2; la generazione server-side delle quest enemy/boss è stata consegnata (BE 13 ↔ FE 14) con titoli a template
 - Upload e playback audio quest story/worldMission — v2, richiede storage media
 - Speech-to-text per quest audio — v2, dipende da upload audio
-- Sistema allineamento buono/cattivo (crime/guard) — v2, meccanica complessa
-- Lore con link ipertestuali navigabili tra oggetti — v2
+- Sistema allineamento buono/cattivo (crime/guard) — v2; le quest fisse crime/guard esistono senza logica di allineamento
+- Lore con link ipertestuali navigabili — v2
 - Riepilogo quest completate con dettagli — v2
-- UI sistema livelli / progressione HP — backend only, frontend puramente reattivo ai valori calcolati dal server
-- UI apprendimento magie a Valantar — backend only, gestito come outcome di quest study lato server
-- UI sblocco slot magie dopo title "mage" — backend determina disponibilità slot, frontend visualizza stato
+- Logica di progressione, apprendimento magie, slot, ETA, cibo, imboscate, prezzi lato client — mai: il backend è la fonte di verità, il frontend è reattivo (confermato da tutte le 17 fasi)
+- Validazione della sessione a ogni richiesta sul BE (JWT stateless 15 min accettato: il device sostituito perde l'HTTP alla scadenza) — scelta della BE Phase 17
+- Diagnostics badge / log di sync dedicati nell'entry point dev — rifiutati due volte (Phase 12 D-15)
 
 ## Context
 
-- **Codebase esistente:** App Flutter funzionante con architettura BLoC, modelli dati, UI equipaggiamento, mappa, e sistema di caching SVG multi-livello
-- **Backend:** NestJS con MongoDB, già operativo, espone GraphQL (HTTP + WebSocket) e REST
-- **Asset:** Immagini su Cloudinary (equipaggiamento, ferite, quest pawn)
-- **Mappa:** Fissa, con POI gestiti manualmente dallo streamer. Strade con velocità di percorrenza
-- **Canale Twitch:** Singolo canale target, lo streamer è anche l'admin/game master
-- **Titoli personaggio:** adventurer → paladin → mage → hero (progressione tramite quest story)
+- **Stato del codice (2026-11-10):** ~36 000 righe Dart in `lib/` (491 file), ~65 000 righe di test (394 file), 3 704 test, analyzer pulito, CI verde. 1 610 commit, 22 PR mergiate su `develop`.
+- **Stack:** Flutter stable (3.35.x), `flutter_bloc` + `equatable`, `graphql_flutter` 5.2.1 (HTTP + WS con `connection_init` autenticato), `dio`, `flutter_secure_storage`, Firebase Core + Messaging (data-only) + `flutter_local_notifications`, `flutter_map` + `latlong2`, `shared_preferences`, `flutter_cache_manager`, `flutter_dotenv` solo nell'entry point dev.
+- **Backend:** NestJS 11 + MongoDB (Mongoose 8) + Apollo code-first + Bull/Redis; GraphQL HTTP + WS e REST per l'OAuth; repo `Klimmeck-Guide-BE`, handoff per fase in `.planning/phases/NN-<slug>/BACKEND-NOTES.md`.
+- **Dati:** il mondo vive solo nel DB (BE D-36): città, POI, strade, nemici, pet, magie, oggetti, lore e pool dei negozi seminati al boot e curati a DB; asset su Cloudinary (equipaggiamento, ferite, pedine, ritratti dei nemici con pipeline Gemini → BiRefNet → SVG chiusa il 2026-11-08).
+- **Piattaforma:** Android (Samsung fisico + emulatore); iOS non ancora esercitato.
+- **Canale Twitch:** singolo, lo streamer è l'unico `innkeeper`.
+- **Titoli personaggio:** rookie → adventurer → paladin → mage → hero (legend è solo un titolo); progressione via quest story lato backend.
+- **Debito tecnico noto:** baseline non `dart format`-clean (mai formattare directory), semantica degli stream di `graphql_flutter` 5.2.1 al dispose coperta solo dai test (Rule 4), firma dipendente da `android/key.properties` fuori VCS, `adb reverse` e Doze dei device in UAT (note in memoria, non difetti dell'app).
 
 ## Constraints
 
 - **Tech stack:** Flutter (mobile) + NestJS + MongoDB — già in uso, non negoziabile
-- **Auth:** Solo OAuth Twitch, nessun account proprio — l'identità è l'ID Twitch
-- **API Twitch:** Dipendenza esterna per i punti canale, soggetta a rate limit e disponibilità
+- **Auth:** Solo OAuth Twitch mediato dal backend, nessun account proprio — l'identità è l'ID Twitch; l'app non vede mai un token Twitch
+- **API Twitch:** dipendenza esterna per i punti canale (EventSub lato BE), soggetta a rate limit e disponibilità
 - **Mappa:** POI e sfondo gestiti manualmente dallo streamer, non generati
-- **Single channel:** L'app è legata a un solo canale Twitch
+- **Single channel:** l'app è legata a un solo canale Twitch
+- **Regole invalicabili (CLAUDE.md):** nessun chrome app fuori dalle utility screen, nessun loading bloccante in sessione, branch + PR per ogni fase, backend fonte di verità, nessun secret in repo
 
 ## Workflow Conventions
 
@@ -124,31 +110,43 @@ I viewer trasformano il tempo speso a guardare lo stream in progressione di un p
   - `feat/` — fasi che aggiungono nuove capability (es. `feat/dev-auth-stub`)
   - `fix/` — fasi di bug-fix mirato
   - `refactor/` — fasi di refactor/hardening senza nuove feature visibili
+  - `docs/` — chiusure di milestone e sole modifiche a `.planning/`
 - **Slug del branch:** usare lo stesso slug della directory di fase (`.planning/phases/NN-<slug>/`), così Phase 1 → `feat/dev-auth-stub`.
 - **Fine fase:** aprire una **PR verso `develop`** (non verso `main`). La PR è il punto di review prima del merge — ogni fase si chiude con una PR aperta che lo streamer/dev può controllare.
 - **Niente push diretti su `develop` o `main`** durante una fase.
+- **Fasi companion:** ogni fase FE che consuma un contratto BE nuovo ha un gate (`tool/schema_check`) sulla merge della PR BE prima dei piani che selezionano i campi e prima della UAT su device.
 
 ## Key Decisions
 
 | Decision                                        | Rationale                                                                           | Outcome   |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------- | --------- |
-| Conversione punti 1:1                           | Semplicità, trasparenza per i viewer                                                | — Pending |
+| Conversione punti 1:1                           | Semplicità, trasparenza per i viewer                                                | ✓ Good — BE Phase 6 EventSub accredita 1:1 (2026-10-21); la FE mostra `Punti canale: saldo / costo` sulle schede |
 | Backend NestJS + MongoDB                        | Stack già esistente e funzionante                                                   | ✓ Good    |
-| Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo                      | — Pending |
-| Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale                             | — Pending |
-| Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                                           | — Pending |
+| Stats solo da equipaggiamento (no stats innate) | Semplifica bilanciamento, le classi sono solo flavor narrativo                      | ✓ Good — `CombatResolver` BE (Phase 9, 13.1); i non-arma mostrano la protezione, solo le armi sono «consigliate» |
+| Magie sbloccate dopo 3a quest story             | Gate di progressione narrativa, evita overload iniziale                             | — Pending (regola BE sui titoli; non esercitata in una UAT su device) |
+| Morte genera quest aid                          | Meccanica sociale emergente tra giocatori                                           | ✓ Good — Phase 9: quest `aid` nella famiglia combattimento, stato «In attesa di soccorso» sulla Mappa, soccorso visto nelle UAT 14 e 17 |
 | Sync utente via GraphQL subscription            | Real-time di punti canale/stato/progressione senza polling; backend source of truth | ✓ Good — Phase 3 (2026-10-14) |
-| Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | — Pending |
+| Progressione e apprendimento magie lato backend | Frontend puramente reattivo, riduce rischio desync e logica duplicata               | ✓ Good — Phases 8, 9, 17 (quest study dal grado rookie, `spellStates` BE 9.1) |
 | Notifiche Firebase (FCM + APNs)                 | Stack standard cross-platform per push mobile; necessario per notifiche background  | ✓ Validated on Android by Phase 5 (2026-10-20): data-only FCM + local notifications; iOS/APNs deferred |
-| Quest accept via gesture swipe-left             | Feedback tattile "strappa foglio" coerente con tema diario, evita tap accidentali; lo swipe è la conferma (nessun dialog, nessun undo), il BE resta il giudice e gli errori arrivano sul banner in-app per codice | ✓ Good — Phase 6 (2026-10-22): 12 plan + 3 quick task, 1350 test verdi, E2E 12/12 su device; strappo orizzontale deciso in UAT (D-06), worldMission legata alla città (D-11), visuali provvisorie (D-19) |
-| Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme: l'app non può completare l'OAuth da sola. Il BE custodisce il secret ed emette access JWT + refresh token; l'app non vede mai un token Twitch | ✓ Good — Phase 11 (2026-10-06) |
-| Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non sono ancora disponibili: `DEV_AUTH_ENABLED=true` tiene l'app interamente utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06) |
-| Creazione personaggio: pagina unica provvisoria, BE fonte di verità per età/razza e stato iniziale | L'utente ha chiesto un layout provvisorio subito dopo la login; la tabella età per razza (dal lore) e le patrie vivono nel BE ed arrivano via `raceTraits`, il FE non duplica regole | ✓ Good — Phase 2 + BE Phase 02.1 (2026-10-09) |
-| Niente filtro NSFW e niente set curato di ritratti in v1 Phase 2 | Scelta esplicita dell'utente (2026-10-08): velocità del layout provvisorio; CHAR-06 rinviato all'hardening (Cloudinary AI moderation lato BE) | — Pending (debito tracciato in REQUIREMENTS e BE-HARD) |
-| Impostazioni come utility screen: preferenze notifiche solo sul device, cancellazione personaggio come soft delete BE | I toggle sono non sensibili e per utente (`shared_preferences`, nessun contratto BE: la Phase 5 filtra lato client); l'eliminazione resta identity-bound e archiviata dal BE (Phase 03.1) così nome e storico restano consultabili e riutilizzabili | ✓ Good — Phase 4 + BE Phase 03.1 (2026-10-18) |
-| Usi e recuperi delle magie appartengono alla magia conosciuta, non allo slot (BE 9.1); filtri di Diario e negozio solo sui tipi presenti | Regola dell'utente «il timer di recupero non si interrompe mai»; equip/disequip neutri; chip senza risultati vuoti, base per una fase futura | ✓ Good — Phase 8 (2026-10-27) |
-| Estensione v1.0 del 2026-10-29: sei fasi di contenuto e regole (popolamento BE, negozi per città, generazione quest, cibo, imboscate, lore) prima della chiusura; FE 13–17 companion dei contratti BE 12–16, hardening FE eseguito per ultimo | L'utente vuole un mondo che si sostiene da solo con molti giocatori (quest generate, lore e negozi da dati reali) prima dell'audit finale; ogni regola di gioco resta server-side e il FE resta reattivo | — Pending |
-| Esiti mai persi: ack esplicito alla chiusura e `currentCharacter` sul morto fino all'ack (BE 9.2); foglio solo sulla Mappa | Push persi, notifiche disattivate e force-stop non devono far perdere un esito; il foglio di morte deve precedere la creazione anche a cold start senza hold lato FE; la Mappa è il solo luogo sicuro per un foglio a schermo intero | ✓ Good — Phase 9 (2026-10-29): device UAT 12/12; banner sulla Mappa occupata confermato dall'utente |
+| Quest accept via gesture swipe-left             | Feedback tattile «strappa foglio» coerente con tema diario, evita tap accidentali; lo swipe è la conferma, il BE resta il giudice | ✓ Good — Phase 6 (2026-10-22): strappo orizzontale deciso in UAT (D-06), worldMission legata alla città (D-11) |
+| Login Twitch mediato dal backend, sessione propria del BE | Twitch non supporta PKCE, richiede `client_secret` e non accetta redirect con custom scheme; il BE custodisce il secret ed emette access JWT + refresh token | ✓ Good — Phase 11 (2026-10-06), provato con il login reale su device (2026-10-20) e sulla release firmata (2026-11-09) |
+| Dev bypass mantenuto accanto all'auth reale | Le chiavi Twitch non erano disponibili: `DEV_AUTH_ENABLED=true` tiene l'app utilizzabile; rimozione dai build release in Phase 12 | ✓ Good — Phase 11 (2026-10-06); Phase 12 lo confina in `lib/main_dev.dart` e la CI prova che il bundle release non lo contiene |
+| Creazione personaggio: pagina unica provvisoria, BE fonte di verità per età/razza e stato iniziale | Layout provvisorio subito dopo la login; età per razza e patrie vivono nel BE (`raceTraits`) | ✓ Good — Phase 2 + BE Phase 02.1 (2026-10-09) |
+| Niente filtro NSFW e niente set curato di ritratti in v1 Phase 2 | Scelta esplicita dell'utente (2026-10-08): velocità del layout provvisorio | ⚠️ Revisit — la moderazione server-side è arrivata con la BE Phase 10 (Sightengine prima di Cloudinary) e la FE mappa i codici (HARDEN-10); CHAR-06 lato client resta un gap noto da decidere in v1.1 |
+| Impostazioni come utility screen: preferenze notifiche solo sul device, cancellazione personaggio come soft delete BE | Toggle non sensibili e per utente; l'eliminazione resta identity-bound e archiviata dal BE (Phase 03.1) | ✓ Good — Phase 4 + BE Phase 03.1 (2026-10-18) |
+| Usi e recuperi delle magie appartengono alla magia conosciuta, non allo slot (BE 9.1); filtri solo sui tipi presenti | Regola dell'utente «il timer di recupero non si interrompe mai»; equip/disequip neutri | ✓ Good — Phase 8 (2026-10-27) |
+| Esiti mai persi: ack esplicito alla chiusura e `currentCharacter` sul morto fino all'ack (BE 9.2); foglio solo sulla Mappa | Push persi, notifiche disattivate e force-stop non devono far perdere un esito; «prima il foglio, poi la creazione» anche a cold start | ✓ Good — Phase 9 (2026-10-29) |
+| Estensione v1.0 del 2026-10-29: sei fasi di contenuto e regole (BE 11–16 ↔ FE 13–17) prima dell'hardening | L'utente vuole un mondo che si sostiene da solo con molti giocatori prima dell'audit finale; ogni regola resta server-side | ✓ Good — Phases 13–17 consegnate fra il 2026-11-03 e il 2026-11-09, Hardening il 2026-11-10 |
+| Locanda: coda live come carte per quest, form di completamento con override, nessun rifiuto, teleport dalla coda | Lo streamer completa in diretta ciò che ha narrato; mostri, grado e premi restano al BE (Phase 10 discuss) | ✓ Good — Phase 10 (2026-11-01, E2E 10/10 con sei regole fixate in UAT) |
+| Il mondo vive solo nel DB (BE D-36): semina al boot + cura a DB, «la mano vince» | I file di contenuto nel repo erano rumore; lo streamer cura i dati direttamente | ✓ Good — BE 11/12 (2026-11-02); i pool di Ferrion/Necrorian non vengono rigenerati dopo il cambio di taglia |
+| Negozi per città e taglia, Necrorian senza negozio, compagni acquistabili solo per lore | Pool backend-owned; il negozio è un luogo della città, non un catalogo globale | ✓ Good — Phase 13 ↔ BE 12 (2026-11-03) |
+| Generazione quest server-side: boss = nemico singolo di fascia superiore, enemy singolo o branco di deboli, nessuna scadenza, animali fuori, tabellone per area | Quest sempre disponibili senza lo streamer; correzioni dalla UAT (BE 13.1) | ✓ Good — Phase 14 ↔ BE 13 + 13.1 (2026-11-05) |
+| Cibo e vita del viaggio decisi tutti alla partenza, rifiuto per fame con nuova quotazione, nessun costo in monete | Preview onesta prima di «Parti»; il BE sceglie il cibo a scarto minimo | ✓ Good — Phase 15 ↔ BE 14 (2026-11-06); ⚠️ Revisit in BE Phase 20 (consumo progressivo) |
+| Imboscate: rischio per km giorno/notte, più imboscate con risorteggio, report trattenuti all'arrivo in carosello, deviazione senza imboscate | Il viaggio resta silenzioso fino all'arrivo salvo la sconfitta (push); carosello invece di una pila di dialog | ✓ Good — Phase 16 ↔ BE 15 (2026-11-09; affordance del carosello fixata in UAT, D-19) |
+| Lore sbloccate per personaggio (geografia alla nascita e all'arrivo, nemici alla vittoria, studio al 50 %), sagome per i nemici sconosciuti, «Nuovo» su baseline del device | La Biblioteca cresce con il viaggio del personaggio; nulla di «visto» vive sul BE | ✓ Good — Phase 17 ↔ BE 16 (2026-11-09) |
+| «L'ultimo login caccia l'altro» (BE 17): close WS `4409`, `SESSION_REVOKED` + `reason`, JWT stateless 15 min accettato | Niente riconciliazione multi-device lato client; avvisi specifici al sign-in | ✓ Good — Phase 12 ↔ BE 17 (2026-11-10, provato con Samsung + emulatore) |
+| Hardening: entry point splittati, release senza `.env`, firma con `key.properties`, solo TLS, CI con guard grep e build release, review per aree | Il bundle release deve essere dimostrabilmente privo del bypass dev; la CI è il guardiano | ✓ Good — Phase 12 (2026-11-10) |
+| Talmvere villaggio sempre visibile; Ferrion e Necrorian capitali (UAT 12, DB-1) | Regola dell'utente: «Talmvere non è una capitale, ma è sempre visibile»; Necrorian con sole quest enemy/boss/dungeon | ✓ Good — FE flag `CityType.alwaysVisible`, BE PR #28 (2026-11-10); regola delle heal quest per la BE Phase 18 |
 
 ## Evolution
 
@@ -171,4 +169,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-10-22 — after Phase 6 completion (quest accept with the tear gesture, per-type info sheets, lanes and torn-for-everyone rules, server-driven state label on the Map; device E2E 12/12; FE PR to develop opened after the security audit)_ · _Last updated: 2026-10-26 — after Phase 7 completion (travel with the pawn drag, parchment confirmation, server-time interpolation, restart-safe reconstruction; device E2E steps 1-11 pass)_ · _Last updated: 2026-10-27 — after Phase 8 completion (spells section with backend-driven slots, optimistic toggle, server-time recovery countdown, use-type and effect filters, item effect lines; device UAT 12/12; FE PR to develop opened after the security audit)_ · _Last updated: 2026-10-29 — after Phase 9 completion (combat result sheet on the Map with FIFO queue, never-lost results through the BE 9.2 ack, death sheet before creation, wounded state and aid as combat; device UAT 12/12; FE PR to develop after the F1 fix)_
+_Last updated: 2026-11-10 after v1.0 Core Loop milestone (17 phases shipped; full review of What This Is, Core Value, requirements, Out of Scope, Context and Key Decisions; previous footer history in `milestones/v1.0-ROADMAP.md` and git)_
