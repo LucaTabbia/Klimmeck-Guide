@@ -170,6 +170,25 @@ void main() {
     verify(() => characterCubit.refreshCharacter()).called(1);
   });
 
+  testWidgets('an unknown failure rereads the character silently under the '
+      'generic banner (D-11, D-19)', (tester) async {
+    await pumpListener(tester);
+
+    await emit(tester, refused(ItemUseFailure.unknown));
+
+    verify(() => characterCubit.refreshCharacter()).called(1);
+    final notice =
+        verify(
+              () => notices.publishNotice(
+                captureAny(),
+                dedupKey: any(named: 'dedupKey'),
+              ),
+            ).captured.single
+            as KGNotification;
+    expect(notice.title, 'Pozione non bevuta');
+    expect(notice.description, 'Qualcosa è andato storto, riprova');
+  });
+
   testWidgets('a recovery or no-effect refusal does not reread the character '
       '(D-11)', (tester) async {
     await pumpListener(tester);
