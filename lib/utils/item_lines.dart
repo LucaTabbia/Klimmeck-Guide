@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/quest/quest_cure.dart';
 
 // Copy provvisoria (D-19): ogni stringa delle righe oggetto vive qui (D-28).
 
@@ -62,4 +63,46 @@ String? healedInjuriesLine(LootItem item) {
   ];
   if (labels.isEmpty) return null;
   return 'Cura: ${labels.join(', ')}';
+}
+
+/// Riga della cura sul foglio di una quest (D-03): solo le ferite del
+/// personaggio che la quest guarisce, nell'ordine del personaggio, in
+/// minuscolo; nessuna riga se nessuna corrisponde. È un filtro di
+/// visualizzazione: la cura la applica il backend.
+String? curableInjuriesLine(
+  QuestCure? cure,
+  List<InjuryType>? characterInjuries,
+) {
+  if (cure == null || characterInjuries == null) return null;
+  final labels = <String>{
+    for (final injury in characterInjuries)
+      if (cure.canHeal.contains(injury)) injury.label.toLowerCase(),
+  };
+  if (labels.isEmpty) return null;
+  return 'Cura le tue ferite: ${labels.join(', ')}';
+}
+
+/// Riga della vita (D-04): la quota diventa una percentuale, nient'altro;
+/// quota piena «al massimo», quota zero nessuna riga.
+String? lifeShareLine(QuestCure? cure) {
+  if (cure == null) return null;
+  final share = cure.lifePointsShare;
+  if (share <= 0) return null;
+  if (share >= 1) return 'Vita: al massimo';
+  final percent = (share * 100).round();
+  final article = _elidesArticle(percent) ? "l'" : 'il ';
+  return 'Vita: almeno $article$percent%';
+}
+
+/// «l'8%», «l'11%», «l'80%»…«l'89%»: i numeri che in italiano iniziano per
+/// vocale (D-21).
+bool _elidesArticle(int percent) =>
+    percent == 8 || percent == 11 || (percent >= 80 && percent <= 89);
+
+/// Riga «Guarite: …» del foglio esiti e della pozione bevuta (D-06): etichette
+/// in minuscolo nell'ordine ricevuto; nessuna riga senza ferite guarite.
+String? healedLine(List<InjuryType> injuries) {
+  if (injuries.isEmpty) return null;
+  final labels = injuries.map((injury) => injury.label.toLowerCase());
+  return 'Guarite: ${labels.join(', ')}';
 }
