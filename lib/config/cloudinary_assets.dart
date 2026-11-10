@@ -63,6 +63,12 @@ class CloudinaryAssets {
       'v1794313329/tornQuestSheet2_gm4nz0.svg';
   static const String jobSheet1 = 'v1757660765/jobSheet1_osfobz.svg';
   static const String jobSheet2 = 'v1757660773/jobSheet2_dgkg6x.svg';
+  static const String jobTornSheet1 = 'v1794329019/tornJobSheet1_ivb31s.svg';
+  static const String jobTornSheet2 = 'v1794329024/tornJobSheet2_muovna.svg';
+  static const String healSheet1 = 'v1794329008/healSheet1_as1rng.svg';
+  static const String healSheet2 = 'v1794329013/healSheet2_yosyxa.svg';
+  static const String healTornSheet1 = 'v1794329028/tornHealSheet1_am4kxg.svg';
+  static const String healTornSheet2 = 'v1794329034/tornHealSheet2_cppkog.svg';
   static const String announcementSheet1 =
       'v1757660770/announcementSheet1_bmh8f2.svg';
   static const String announcementSheet2 =

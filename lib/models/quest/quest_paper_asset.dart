@@ -42,13 +42,18 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.huntTornSheet2,
           ]
         : const [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2],
-  // Senza foglio strappato finché non arrivano gli asset:
-  // job e study usano il foglio intero anche se strappati.
-  QuestType.job => const [
-    CloudinaryAssets.jobSheet1,
-    CloudinaryAssets.jobSheet2,
-  ],
+  QuestType.job =>
+    isTorn
+        ? const [CloudinaryAssets.jobTornSheet1, CloudinaryAssets.jobTornSheet2]
+        : const [CloudinaryAssets.jobSheet1, CloudinaryAssets.jobSheet2],
   QuestType.heal =>
+    isTorn
+        ? const [
+            CloudinaryAssets.healTornSheet1,
+            CloudinaryAssets.healTornSheet2,
+          ]
+        : const [CloudinaryAssets.healSheet1, CloudinaryAssets.healSheet2],
+  QuestType.study =>
     isTorn
         ? const [
             CloudinaryAssets.announcementTornSheet1,
@@ -58,10 +63,6 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.announcementSheet1,
             CloudinaryAssets.announcementSheet2,
           ],
-  QuestType.study => const [
-    CloudinaryAssets.announcementSheet1,
-    CloudinaryAssets.announcementSheet2,
-  ],
   QuestType.magic =>
     isTorn
         ? const [CloudinaryAssets.magicTornSheet]
