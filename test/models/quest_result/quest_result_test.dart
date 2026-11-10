@@ -548,8 +548,55 @@ void main() {
     });
   });
 
+  group('injuriesHealed (BE Phase 18)', () {
+    test('a result without injuriesHealed has an empty list (D-02)', () {
+      final result = questResult(questResultJson()..remove('injuriesHealed'));
+
+      expect(result.injuriesHealed, isEmpty);
+    });
+
+    test('parses the injuries healed (D-02)', () {
+      final result = questResult(
+        questResultJson(injuriesHealed: ['contusion', 'deepCut']),
+      );
+
+      expect(result.injuriesHealed, [InjuryType.contusion, InjuryType.deepCut]);
+    });
+
+    test('drops unknown names and keeps the result (D-02)', () {
+      final json = questResultJson(injuriesHealed: ['contusion', 'dragonBite']);
+
+      expect(QuestResult.tryFromJson(json), isNotNull);
+      expect(questResult(json).injuriesHealed, [InjuryType.contusion]);
+    });
+
+    test(
+      'a non-list injuriesHealed is an empty list and the result stays (D-02)',
+      () {
+        final json = questResultJson()..['injuriesHealed'] = 'contusion';
+
+        expect(QuestResult.tryFromJson(json), isNotNull);
+        expect(questResult(json).injuriesHealed, isEmpty);
+      },
+    );
+
+    test('toJson writes the injuries healed (D-02)', () {
+      final json = questResult(healResultJson()).toJson();
+
+      expect(json['injuriesHealed'], ['contusion']);
+    });
+
+    test('props include injuriesHealed (D-02)', () {
+      final healed = questResult(healResultJson());
+      final notHealed = questResult(healResultJson(injuriesHealed: const []));
+
+      expect(healed, isNot(notHealed));
+    });
+  });
+
   group('round trip', () {
     final payloads = {
+      'heal': healResultJson(),
       'success': successResultJson(),
       'failure': failureResultJson(),
       'rescued': rescuedResultJson(),

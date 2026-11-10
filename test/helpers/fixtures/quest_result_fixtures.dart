@@ -81,6 +81,7 @@ Map<String, dynamic> questResultJson({
   int hpAfter = 640,
   int maxLifePoints = 1200,
   List<Object?> injuriesAdded = const ['deepCut'],
+  List<Object?> injuriesHealed = const [],
   List<Map<String, dynamic>>? consumablesUsed,
   List<Map<String, dynamic>>? spellsUsed,
   Map<String, dynamic>? coins,
@@ -111,6 +112,7 @@ Map<String, dynamic> questResultJson({
   'hpAfter': hpAfter,
   'maxLifePoints': maxLifePoints,
   'injuriesAdded': injuriesAdded,
+  'injuriesHealed': injuriesHealed,
   'consumablesUsed': consumablesUsed ?? [lootRewardJson()],
   'spellsUsed':
       spellsUsed ??
@@ -140,6 +142,21 @@ Map<String, dynamic> questResultJson({
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
 };
+
+/// Esito di una quest heal vinta (BE Phase 18): vita risalita, una ferita
+/// guarita, nessun nemico.
+Map<String, dynamic> healResultJson({
+  int hpBefore = 3,
+  int hpAfter = 6,
+  List<Object?> injuriesHealed = const ['contusion'],
+}) => questResultJson(
+  questType: 'heal',
+  hpBefore: hpBefore,
+  hpAfter: hpAfter,
+  injuriesAdded: const [],
+  injuriesHealed: injuriesHealed,
+  enemies: const [],
+);
 
 /// Dungeon a tappe (BE Phase 13 D-12): una voce per tappa, nell'ordine; di
 /// default fermata alla seconda tappa di tre.
