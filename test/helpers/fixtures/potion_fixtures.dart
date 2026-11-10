@@ -35,3 +35,21 @@ Map<String, dynamic> ownedHealPotionJson({
   int quantity = 2,
   Map<String, dynamic>? item,
 }) => {'quantity': quantity, 'item': item ?? healPotionJson()};
+
+/// Risposta di `useItem` (BE Phase 18): di default le erbe da campo bevute
+/// alle 10:00 del clock di test, ricarica fino alle 10:30.
+Map<String, dynamic> useItemResultJson({
+  int hpBefore = 4,
+  int hpAfter = 8,
+  List<Object?> injuriesHealed = const ['contusion'],
+  int quantityLeft = 1,
+  Object? recoveryUntil = '2026-10-27T10:30:00.000Z',
+  List<Object?> loreUnlocked = const [],
+}) => {
+  'hpBefore': hpBefore,
+  'hpAfter': hpAfter,
+  'injuriesHealed': injuriesHealed,
+  'quantityLeft': quantityLeft,
+  'recoveryUntil': recoveryUntil,
+  'loreUnlocked': loreUnlocked,
+};
