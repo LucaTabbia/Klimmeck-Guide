@@ -2,11 +2,6 @@ import '../../config/cloudinary_assets.dart';
 import '../enums/quest_type.dart';
 import 'quest.dart';
 
-const _enemyTornSheets = [
-  CloudinaryAssets.enemyTornSheet1,
-  CloudinaryAssets.enemyTornSheet2,
-];
-
 /// Famiglia di asset del foglio sulla board (D-12), riusata dal foglio sulla mappa (D-07).
 List<String> questPaperAssetIds(
   QuestType? type, {
@@ -14,11 +9,17 @@ List<String> questPaperAssetIds(
 }) => switch (type) {
   QuestType.enemy =>
     isTorn
-        ? _enemyTornSheets
+        ? const [
+            CloudinaryAssets.enemyTornSheet1,
+            CloudinaryAssets.enemyTornSheet2,
+          ]
         : const [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2],
   QuestType.boss =>
     isTorn
-        ? _enemyTornSheets
+        ? const [
+            CloudinaryAssets.bossTornSheet1,
+            CloudinaryAssets.bossTornSheet2,
+          ]
         : const [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2],
   QuestType.worldMission =>
     isTorn

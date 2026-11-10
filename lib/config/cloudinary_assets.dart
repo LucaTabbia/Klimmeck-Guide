@@ -107,6 +107,8 @@ class CloudinaryAssets {
       'v1794314149/tornStorySheet2_otpfcb.svg';
   static const String bossSheet1 = 'v1794330835/bossSheet_kmcubi.svg';
   static const String bossSheet2 = 'v1794331761/bossSheet2_jpfofw.svg';
+  static const String bossTornSheet1 = 'v1794346460/tornBossSheet1_aua3ms.svg';
+  static const String bossTornSheet2 = 'v1794346467/tornBossSheet2_oi6v2x.svg';
   static const String aidSheet1 = 'v1794331772/aidSheet1_bv1und.svg';
   static const String aidSheet2 = 'v1794331778/aidSheet2_iuxlwt.svg';
   static const String aidTornSheet1 = 'v1794333401/tornAidSheet1_gbxr9p.svg';
