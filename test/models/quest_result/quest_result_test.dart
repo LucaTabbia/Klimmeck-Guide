@@ -594,6 +594,67 @@ void main() {
     });
   });
 
+  group('arrest and guard encounter (quick 261110-cgd)', () {
+    test('a result without the new fields is neither arrested nor a guard '
+        'encounter (quick 261110-cgd)', () {
+      final result = questResult(questResultJson());
+
+      expect(result.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('parses an arrest with the confiscated coins (quick 261110-cgd)', () {
+      final result = questResult(arrestResultJson());
+
+      expect(result.arrested, isTrue);
+      expect(result.coinsLost, const Coins(silver: 7, copper: 50));
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('parses a guard encounter (quick 261110-cgd)', () {
+      final result = questResult(guardEncounterResultJson());
+
+      expect(result.guardEncounter, isTrue);
+      expect(result.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+    });
+
+    test('malformed fields fall back to free, false and null and the result '
+        'stays (quick 261110-cgd)', () {
+      final json = questResultJson()
+        ..addAll({'arrested': 'yes', 'coinsLost': 12, 'guardEncounter': 1});
+
+      final result = QuestResult.tryFromJson(json);
+
+      expect(result, isNotNull);
+      expect(result!.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('toJson round-trips the new fields (quick 261110-cgd)', () {
+      final arrest = questResult(arrestResultJson());
+
+      expect(questResult(arrest.toJson()), arrest);
+      expect(arrest.toJson()['arrested'], isTrue);
+      expect(arrest.toJson()['guardEncounter'], isFalse);
+    });
+
+    test('props include the new fields (quick 261110-cgd)', () {
+      expect(
+        questResult(arrestResultJson()),
+        isNot(questResult(arrestResultJson(coinsLost: null))),
+      );
+      expect(
+        questResult(guardEncounterResultJson()),
+        isNot(
+          questResult(guardEncounterResultJson()..['guardEncounter'] = false),
+        ),
+      );
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'heal': healResultJson(),

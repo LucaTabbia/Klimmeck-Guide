@@ -17,6 +17,7 @@ Map<String, dynamic> statusJson({
   Object? unlockedLore = _absent,
   Object? injuries = _absent,
   Object? potionRecoveryUntil = _absent,
+  Object? imprisonedUntil = _absent,
 }) => {
   'title': 'rookie',
   'xp': 1,
@@ -28,6 +29,7 @@ Map<String, dynamic> statusJson({
   if (!identical(injuries, _absent)) 'injuries': injuries,
   if (!identical(potionRecoveryUntil, _absent))
     'potionRecoveryUntil': potionRecoveryUntil,
+  if (!identical(imprisonedUntil, _absent)) 'imprisonedUntil': imprisonedUntil,
 };
 
 const Object _absent = Object();
@@ -246,6 +248,46 @@ void main() {
       );
 
       expect(() => status.unlockedLore.add('x'), throwsUnsupportedError);
+    });
+  });
+
+  group('imprisonedUntil (quick 261110-cgd)', () {
+    const releaseWire = '2026-11-10T22:00:00.000Z';
+    final release = DateTime.utc(2026, 11, 10, 22);
+
+    test('a missing, null or malformed imprisonedUntil is null '
+        '(quick 261110-cgd)', () {
+      for (final json in [
+        statusJson(),
+        statusJson(imprisonedUntil: null),
+        statusJson(imprisonedUntil: 'soon'),
+        statusJson(imprisonedUntil: 42),
+      ]) {
+        final status = CharacterStatus.fromJson(json);
+
+        expect(status.imprisonedUntil, isNull);
+        expect(status.location!.id, 'city-marker-1');
+      }
+    });
+
+    test('parses the release as a UTC instant (quick 261110-cgd)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(imprisonedUntil: releaseWire),
+      );
+
+      expect(status.imprisonedUntil, release);
+      expect(status.imprisonedUntil!.isUtc, isTrue);
+    });
+
+    test('toJson, props and copyWith carry imprisonedUntil '
+        '(quick 261110-cgd)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(imprisonedUntil: releaseWire),
+      );
+
+      expect(status.toJson()['imprisonedUntil'], releaseWire);
+      expect(status == CharacterStatus.fromJson(statusJson()), isFalse);
+      expect(status.copyWith(xp: 9).imprisonedUntil, release);
     });
   });
 
