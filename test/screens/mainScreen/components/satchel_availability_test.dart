@@ -78,8 +78,7 @@ void main() {
     );
   });
 
-  test('in prison only the shop closes: the board shows torn sheets '
-      '(quick 261110-cgd)', () {
+  test('in prison the board and the shop close (quick 261110-cgd)', () {
     expect(
       disabledSatchelPages(
         location: poi('city-marker-1'),
@@ -87,7 +86,7 @@ void main() {
         isTravelling: false,
         isImprisoned: true,
       ),
-      {5},
+      boardAndShop,
     );
   });
 

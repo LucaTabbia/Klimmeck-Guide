@@ -793,8 +793,8 @@ void main() {
       expect(controller.page!.round(), 0);
     });
 
-    testWidgets('in prison only the shop cell is disabled: the board shows '
-        'torn sheets (quick 261110-cgd)', (tester) async {
+    testWidgets('in prison the board and shop cells are disabled '
+        '(quick 261110-cgd)', (tester) async {
       await pumpMainScreen(
         tester,
         'city-marker-1',
@@ -803,7 +803,7 @@ void main() {
 
       expect(
         tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
-        {SatchelLayout.shopPageIndex},
+        {SatchelLayout.boardPageIndex, SatchelLayout.shopPageIndex},
       );
     });
 
