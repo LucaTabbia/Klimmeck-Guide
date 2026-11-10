@@ -358,7 +358,9 @@ void _refresh() {
 | A5 | `UseItemResult.loreUnlocked` uses the same `Lore` shape as `QuestResult.loreUnlocked` (`id name type`) [CITED: REPO-RULES contract] | F7 | selection mismatch caught by the schema check in the gated plan |
 | A6 | The BE allows `useItem` during an active travel and with a quest lane pending [CITED: BE D-17 «Consentita in città e in viaggio»] | F4 | a new refusal code would fall under the generic notice |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All closed on 2026-11-10 in `18-CONTEXT.md`: questions 1, 4, 5, 6, 8, 9, 10 → D-19; question 2 → D-17; questions 3, 7 → D-18.
 
 1. **OQ1 = C1 — where `recovery` is selected.** Verified: `simpleFields` does not feed shop/Journal. Recommendation: `LootFragment.fields` + `definition`. Needs the orchestrator's amendment of CONTEXT D-13 and REPO-RULES.
 2. **OQ2 = C2 — the humaniser and the copy.** Verified: `formatGameDuration` → «1 h 30 min», «1 g». Decide (a) reuse as is, (b) hours-only variant, (c) literal copy. User-visible → user/orchestrator.

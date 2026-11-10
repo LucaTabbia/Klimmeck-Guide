@@ -41,8 +41,8 @@ FE names fixed for the plans (the planner may add names, never rename these):
 
 Copy fixed (Italian, user-visible, provisional until the device review; no other new copy without the orchestrator's go):
 
-- Quest sheet: **«Cura le tue ferite: taglio profondo, contusione»** (lowercase labels, character order; no line when nothing matches), **«Vita: almeno il 50%»** (share 1 → **«Vita: al massimo»**; share 0 → row hidden).
-- Result sheet and potion feedback: **«Guarite: …»**; potion lore line **«Nuova pagina delle Conoscenze: <name>»** (same copy as the Phase 17 line).
+- Quest sheet: **«Cura le tue ferite: taglio profondo, contusione»** (lowercase labels, character order; no line when nothing matches), **«Vita: almeno il 50%»**, with the elided article where Italian requires it (**«Vita: almeno l'80%»**: 8, 11, 80–89; D-21) (share 1 → **«Vita: al massimo»**; share 0 → row hidden).
+- Result sheet and potion feedback: **«Guarite: …»**; potion lore line = the same text the Phase 17 result sheet prints for the lore type (**«Conoscenza appresa: <name>»** for a `knowledge` lore), from one shared helper extracted from `quest_result_sheet.dart` (D-21); the string «Nuova pagina delle Conoscenze» is NOT used.
 - Item rows: **«Ricarica: 30 min»**, **«Ricarica: 1 h 30 min»**, **«Ricarica: 1 g»** (output of `formatGameDuration`); countdown on the disabled parchments **«pronta fra 1 h 12 min»**.
 - Confirmation: **«Bevi <nome>?»** on the parchment sheet `PotionSheet` (`PaperSheetModal`), actions **«Bevi»** / **«Non ora»**; the same sheet shows the outcome (D-18). Refusals are `KGNotification` banners titled **«Pozione non bevuta»**: `POTION_RECOVERING` → **«Il tuo corpo non reggerebbe un'altra pozione: pronta fra <remaining>»** (remaining from the server `recoveryUntil`, never the local estimate); `ITEM_NO_EFFECT` → **«Questa pozione non ti farebbe nulla adesso»**; every other refusal → the existing generic **«Qualcosa è andato storto, riprova»**.
 
