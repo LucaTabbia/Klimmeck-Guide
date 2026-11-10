@@ -14,7 +14,11 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.enemyTornSheet2,
           ]
         : const [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2],
-  QuestType.story || QuestType.worldMission =>
+  QuestType.worldMission =>
+    isTorn
+        ? const [CloudinaryAssets.worldMissionTornSheet]
+        : const [CloudinaryAssets.worldMissionSheet],
+  QuestType.story =>
     isTorn
         ? const [
             CloudinaryAssets.storyTornSheet2,

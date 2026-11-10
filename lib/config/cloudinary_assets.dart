@@ -95,6 +95,10 @@ class CloudinaryAssets {
       'v1794321444/tornCrimeSheet1_digaof.svg';
   static const String crimeTornSheet2 =
       'v1794321440/tornCrimeSheet2_z2jugi.svg';
+  static const String worldMissionSheet =
+      'v1794330767/worldMissionSheet_uvximo.svg';
+  static const String worldMissionTornSheet =
+      'v1794330793/tornWorldMissionSheet_xaijpq.svg';
   static const String storySheet1 = 'v1757660783/storySheet1_evrqbp.svg';
   static const String storySheet2 = 'v1757660774/storySheet2_jsq0nv.svg';
   static const String storyTornSheet1 =
