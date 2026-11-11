@@ -4,6 +4,7 @@ import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/spell_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
@@ -51,21 +52,38 @@ void main() {
     );
   });
 
-  test(
-    'statusFields selects spellStates with usages, recoveries, spell id',
-    () {
-      final status = CharacterFragment.statusFields.replaceAll(
-        RegExp(r'\s+'),
-        ' ',
-      );
+  test('statusFields selects spellStates with usages, recoveries, active and '
+      'the full spell (D-05)', () {
+    final status = CharacterFragment.statusFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-      expect(status.trim(), startsWith('status {'));
-      expect(
-        status,
-        contains('spellStates { usages recoveries spell { id } }'),
-      );
-    },
-  );
+    expect(status.trim(), startsWith('status {'));
+    expect(
+      status,
+      contains('spellStates { usages recoveries active spell { $spell } }'),
+    );
+  });
+
+  test('statusFields no longer selects a separate list of known spells '
+      '(D-05)', () {
+    final status = CharacterFragment.statusFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+
+    expect(RegExp(r'(^| )spells \{').hasMatch(status), isFalse);
+  });
+
+  test('assetsFields no longer selects the equipped spell list (D-05)', () {
+    const oldEquippedKey =
+        'active'
+        'Spells';
+
+    expect(CharacterFragment.assetsFields, isNot(contains(oldEquippedKey)));
+  });
 
   test('a recorded characterUpdated payload parses its spellStates', () {
     final character = Character.fromJson(_recordedCharacterUpdated);
@@ -107,9 +125,11 @@ void main() {
   });
 
   test('statusFields selects unlockedLore (D-01)', () {
+    final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
+
     expect(
       CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
-      contains('spellStates { usages recoveries spell { id } } unlockedLore }'),
+      contains('active spell { $spell } } unlockedLore }'),
     );
   });
 
@@ -129,19 +149,17 @@ void main() {
     expect(character.status!.awaitingAid!.since.isUtc, isTrue);
   });
 
-  test(
-    'selects the equipped pet and the owned pets with PetFragment (D-11)',
-    () {
-      final assets = CharacterFragment.assetsFields.replaceAll(
-        RegExp(r'\s+'),
-        ' ',
-      );
-      final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
+  test('selects the equipped pet with PetFragment and the owned pets as '
+      'entries (D-03, D-18)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-      expect(assets, contains('pet { $pet }'));
-      expect(assets, contains('ownedPets { $pet }'));
-    },
-  );
+    expect(assets, contains('pet { $pet }'));
+    expect(assets, contains('ownedPets { xp currentLifePoints pet { $pet } }'));
+  });
 
   group('worn equipment (BE Phase 19)', () {
     final assets = CharacterFragment.assetsFields.replaceAll(

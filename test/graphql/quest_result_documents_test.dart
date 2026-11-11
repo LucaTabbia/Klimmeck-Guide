@@ -120,6 +120,10 @@ void main() {
       );
     });
 
+    test('selects petXpGained after xpAfter (D-03)', () {
+      expect(sharedSelection, contains('xpAfter petXpGained'));
+    });
+
     test('selects the lore unlocked by the outcome (D-04)', () {
       expect(
         sharedSelection,
