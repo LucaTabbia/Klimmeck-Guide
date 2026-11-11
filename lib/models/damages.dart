@@ -9,15 +9,14 @@ class Damages extends Equatable {
   final List<EnergyDamage>? energy;
 
   factory Damages.fromJson(Map<String, dynamic> json) => Damages(
-    base: json['base'] != null
-        ? List<BaseDamage>.from(json['base'].map((x) => BaseDamage.fromJson(x)))
-        : [],
-    energy: json['energy'] != null
-        ? List<EnergyDamage>.from(
-            json['energy'].map((x) => EnergyDamage.fromJson(x)),
-          )
-        : [],
+    base: _entriesFrom(json['base'], BaseDamage.tryFromJson),
+    energy: _entriesFrom(json['energy'], EnergyDamage.tryFromJson),
   );
+
+  static List<T> _entriesFrom<T extends Object>(
+    Object? json,
+    T? Function(Object?) tryParse,
+  ) => json is List ? List<T>.from(json.map(tryParse).nonNulls) : <T>[];
 
   Map<String, dynamic> toJson() => {
     'base': base?.map((s) => s.toJson()).toList(),

@@ -173,4 +173,23 @@ void main() {
       );
     });
   });
+
+  group('totalSeats (quick 261111-enm)', () {
+    const seats = [
+      {'title': 'rookie', 'count': 3},
+    ];
+
+    PendingRequest requestOf(String type) => PendingRequest.fromJson(
+      pendingRequestJson(questType: type, requiredAdventurers: seats),
+    );
+
+    test('an enemy counts one seat whatever it carries '
+        '(quick 261111-enm)', () {
+      expect(requestOf('enemy').quest.totalSeats, 1);
+    });
+
+    test('a boss counts its wire seats (quick 261111-enm)', () {
+      expect(requestOf('boss').quest.totalSeats, 3);
+    });
+  });
 }

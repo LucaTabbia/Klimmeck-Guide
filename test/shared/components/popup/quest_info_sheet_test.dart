@@ -407,6 +407,40 @@ void main() {
       expect(find.text('Eroe: 0 / 5'), findsOneWidget);
       expect(find.text('Paladino: 0 / 4'), findsOneWidget);
     });
+
+    testWidgets('an enemy draws no seats row on either wire shape, only its '
+        'minimum title (quick 261111-enm)', (tester) async {
+      for (final seat in [
+        {'title': null, 'count': 1},
+        {'title': 'paladin', 'count': 1},
+      ]) {
+        await _pump(
+          tester,
+          buildQuest(type: 'enemy', minTitle: 'paladin', slots: [seat]),
+        );
+
+        expect(find.text('Titolo minimo: Paladino'), findsOneWidget);
+        expect(find.textContaining(' / 1'), findsNothing, reason: '$seat');
+        expect(find.textContaining('Qualsiasi rango'), findsNothing);
+      }
+    });
+
+    testWidgets('a boss still draws its rank-exact seats row '
+        '(quick 261111-enm)', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'boss',
+          minTitle: 'paladin',
+          slots: [
+            {'title': 'paladin', 'count': 2},
+          ],
+        ),
+      );
+
+      expect(find.text('Titolo minimo: Paladino'), findsOneWidget);
+      expect(find.text('Paladino: 0 / 2'), findsOneWidget);
+    });
   });
 
   group('announcement', () {

@@ -30,6 +30,7 @@ const _lightImpact = 'HapticFeedbackType.lightImpact';
 Character _character({
   String? equipped = _horse,
   bool owning = true,
+  List<Map<String, dynamic>>? owned,
   Map<String, dynamic>? activeTravel,
 }) => Character.fromJson({
   ...travellingCharacterJson(activeTravel: activeTravel),
@@ -39,7 +40,11 @@ Character _character({
       _cat => catPetJson(),
       _ => null,
     },
-    'ownedPets': owning ? [petJson(), catPetJson()] : const [],
+    'ownedPets':
+        owned ??
+        (owning
+            ? [ownedPetJson(pet: petJson()), ownedPetJson(pet: catPetJson())]
+            : const []),
   },
 });
 
@@ -48,6 +53,8 @@ Finder _slotBox() => find.byKey(const ValueKey('companion-slot-box'));
 Finder _slotCard(String petId) => find.byKey(ValueKey('companion-slot-$petId'));
 
 Finder _ownedPet(String petId) => find.byKey(ValueKey('owned-pet-$petId'));
+
+Finder _xpLine(String petId) => find.byKey(ValueKey('companion-xp-$petId'));
 
 Finder _inSlot(Finder matching) =>
     find.descendant(of: _slotBox(), matching: matching);
@@ -281,5 +288,115 @@ void main() {
     await tapCard(tester, _ownedPet(_cat));
 
     verify(() => companionCubit.toggle(character, _cat)).called(1);
+  });
+
+  group('companion experience (BE Phase 19)', () {
+    Map<String, dynamic> trainedHorse() =>
+        ownedPetJson(pet: petJson(maxXp: 300), xp: 40);
+
+    Map<String, dynamic> newCat() =>
+        ownedPetJson(pet: {...catPetJson(), 'maxXp': 100});
+
+    testWidgets(
+      'the owned row shows the experience over the catalogue maximum (D-03)',
+      (tester) async {
+        await pump(
+          tester,
+          character: _character(equipped: null, owned: [trainedHorse()]),
+        );
+
+        expect(
+          tester.widget<Text>(_xpLine(_horse)).data,
+          'Esperienza: 40 / 300',
+        );
+      },
+    );
+
+    testWidgets('every owned row has its own experience line (D-03)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(
+          equipped: null,
+          owned: [trainedHorse(), newCat()],
+        ),
+      );
+
+      expect(_inRow(_horse, find.text('Esperienza: 40 / 300')), findsOneWidget);
+      expect(tester.widget<Text>(_xpLine(_cat)).data, 'Esperienza: 0 / 100');
+      expect(_inRow(_cat, _xpLine(_cat)), findsOneWidget);
+    });
+
+    testWidgets(
+      'the companion at the side shows the mark and the experience (D-03)',
+      (tester) async {
+        await pump(tester, character: _character(owned: [trainedHorse()]));
+
+        final mark = _inRow(_horse, find.text(companionEquippedMark));
+        final line = _inRow(_horse, _xpLine(_horse));
+        expect(mark, findsOneWidget);
+        expect(line, findsOneWidget);
+        expect(
+          tester.getTopLeft(mark).dy,
+          lessThan(tester.getTopLeft(line).dy),
+        );
+      },
+    );
+
+    testWidgets('no experience line while maxXp is not served (D-15)', (
+      tester,
+    ) async {
+      final character = await pump(
+        tester,
+        character: _character(
+          equipped: null,
+          owned: [ownedPetJson(pet: petJson())],
+        ),
+      );
+
+      expect(_ownedPet(_horse), findsOneWidget);
+      expect(_xpLine(_horse), findsNothing);
+      expect(find.textContaining('Esperienza'), findsNothing);
+
+      await tapCard(tester, _ownedPet(_horse));
+
+      verify(() => companionCubit.toggle(character, _horse)).called(1);
+    });
+
+    testWidgets('the life of the owned companion is shown nowhere (D-18)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(
+          equipped: null,
+          owned: [
+            ownedPetJson(
+              pet: petJson(maxXp: 300),
+              xp: 40,
+              currentLifePoints: 7,
+            ),
+          ],
+        ),
+      );
+
+      expect(_xpLine(_horse), findsOneWidget);
+      expect(find.textContaining('Vita'), findsNothing);
+    });
+
+    testWidgets(
+      'tapping a row with the experience line still toggles the companion (D-03)',
+      (tester) async {
+        final character = await pump(
+          tester,
+          character: _character(equipped: null, owned: [trainedHorse()]),
+        );
+
+        await tapCard(tester, _xpLine(_horse));
+
+        verify(() => companionCubit.toggle(character, _horse)).called(1);
+      },
+    );
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
@@ -11,14 +12,14 @@ import 'package:klimmeck_guide/shared/components/dropdown.dart';
 Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
 
-List<Pet> _ownedPetsOf(Character character) =>
-    character.assets?.ownedPets ?? const <Pet>[];
+List<OwnedPet> _ownedPetsOf(Character character) =>
+    character.assets?.ownedPets ?? const <OwnedPet>[];
 
 /// Il compagno da mostrare: prima tra i posseduti, poi l'equipaggiato.
 Pet? _displayedPet(Character character, String? displayedId) {
   if (displayedId == null) return null;
-  for (final pet in _ownedPetsOf(character)) {
-    if (pet.id == displayedId) return pet;
+  for (final owned in _ownedPetsOf(character)) {
+    if (owned.pet.id == displayedId) return owned.pet;
   }
   final equipped = character.assets?.pet;
   return equipped?.id == displayedId ? equipped : null;

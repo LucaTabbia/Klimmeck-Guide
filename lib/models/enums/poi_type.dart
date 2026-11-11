@@ -28,3 +28,11 @@ enum PoiType {
   mountainTemistos,
   forest,
 }
+
+/// Lista tollerante di tipi di punto d'interesse: un nome che il client non
+/// conosce è scartato, ciò che non è una lista vale `null`.
+List<PoiType>? poiTypesFrom(Object? json) {
+  if (json is! List) return null;
+  final byName = PoiType.values.asNameMap();
+  return List<PoiType>.unmodifiable(json.map((name) => byName[name]).nonNulls);
+}

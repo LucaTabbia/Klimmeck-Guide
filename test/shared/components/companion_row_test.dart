@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
 import '../../helpers/fixtures/shop_fixtures.dart';
@@ -96,5 +98,127 @@ void main() {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
     expect(find.byType(Image), findsNothing);
+  });
+
+  group('rarity (D-20)', () {
+    TextStyle? nameStyle(WidgetTester tester) =>
+        tester.widget<Text>(find.text('Cavallo da viaggio')).style;
+
+    testWidgets('draws the name in the colour of the rarity (D-20)', (
+      tester,
+    ) async {
+      final pet = Pet.fromJson(petJson(rarity: 'legendary'));
+
+      await _pump(tester, CompanionRow(pet: pet, size: _rowSize));
+
+      expect(nameStyle(tester)?.color, RarityType.legendary.color);
+      expect(
+        tester.widget<Text>(find.text('Velocità ×2')).style,
+        KlimmeckGuideTheme.instance.bodyMedium,
+      );
+    });
+
+    testWidgets('a pet without rarity keeps the name style of today (D-20)', (
+      tester,
+    ) async {
+      await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+
+      expect(nameStyle(tester), KlimmeckGuideTheme.instance.bodyMedium);
+    });
+  });
+
+  group('attack and defense (D-13)', () {
+    const attackText = 'Attacco: tagliente 12, fuoco 5';
+    const defenseText = 'Difesa: contundente 4';
+    const noDamages = <String, dynamic>{'base': [], 'energy': []};
+    const attack = <String, dynamic>{
+      'base': [
+        {'type': 'cut', 'power': 12},
+      ],
+      'energy': [
+        {'type': 'fire', 'power': 5},
+      ],
+    };
+    const defense = <String, dynamic>{
+      'base': [
+        {'type': 'blunt', 'power': 4},
+      ],
+      'energy': [],
+    };
+    final attackLine = find.byKey(
+      const ValueKey('companion-attack-pet-travel-horse'),
+    );
+    final defenseLine = find.byKey(
+      const ValueKey('companion-defense-pet-travel-horse'),
+    );
+    final armed = Pet.fromJson(petJson(attack: attack, defense: defense));
+
+    double top(WidgetTester tester, Finder finder) =>
+        tester.getTopLeft(finder).dy;
+
+    testWidgets(
+      'shows the attack and the defense lines with their keys (D-13)',
+      (tester) async {
+        await _pump(tester, CompanionRow(pet: armed, size: _rowSize));
+
+        expect(tester.widget<Text>(attackLine).data, attackText);
+        expect(tester.widget<Text>(defenseLine).data, defenseText);
+      },
+    );
+
+    testWidgets('each line is hidden when its damages are empty (D-13)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        CompanionRow(
+          pet: Pet.fromJson(petJson(attack: attack, defense: noDamages)),
+          size: _rowSize,
+        ),
+      );
+      expect(attackLine, findsOneWidget);
+      expect(defenseLine, findsNothing);
+
+      await _pump(
+        tester,
+        CompanionRow(
+          pet: Pet.fromJson(petJson(attack: noDamages, defense: defense)),
+          size: _rowSize,
+        ),
+      );
+      expect(attackLine, findsNothing);
+      expect(defenseLine, findsOneWidget);
+    });
+
+    testWidgets(
+      'shows neither line when the wire carries no attack, defense, maxXp or rarity (lenient)',
+      (tester) async {
+        await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+
+        expect(find.textContaining('Attacco'), findsNothing);
+        expect(find.textContaining('Difesa'), findsNothing);
+        expect(find.text('Velocità ×2'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'the lines sit between the speed and the equipped mark (D-13)',
+      (tester) async {
+        await _pump(
+          tester,
+          CompanionRow(pet: armed, size: _rowSize, isEquipped: true),
+        );
+
+        final tops = [
+          top(tester, find.text('Cavallo da viaggio')),
+          top(tester, find.text('Velocità ×2')),
+          top(tester, attackLine),
+          top(tester, defenseLine),
+          top(tester, find.text(companionEquippedMark)),
+        ];
+        expect(tops, [...tops]..sort());
+        expect(tops.toSet(), hasLength(5));
+      },
+    );
   });
 }

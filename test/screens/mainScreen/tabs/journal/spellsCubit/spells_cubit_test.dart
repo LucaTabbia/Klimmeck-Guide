@@ -21,11 +21,15 @@ Character _character({
   List<String> active = const [],
 }) => spellbookCharacter(
   maxActiveSpells: maxActiveSpells,
-  spells: [
-    spellJson(id: _spellA),
-    spellJson(id: _spellB),
+  spellStates: [
+    for (final id in const [_spellA, _spellB])
+      spellStateJson(
+        spellId: id,
+        usages: 3,
+        recoveries: const [],
+        active: active.contains(id),
+      ),
   ],
-  activeSpells: [for (final id in active) activeSpellJson(spellId: id)],
 );
 
 void main() {

@@ -161,7 +161,7 @@ bool _isFullForViewer(Quest quest, QuestViewer viewer) {
   final type = quest.infos?.type;
   if (type == null || !registeredQuestTypes.contains(type)) return false;
   return isFullFor(
-    quest.requirements?.requiredAdventurers ?? const [],
+    questSlotsOf(type, quest.requirements?.requiredAdventurers ?? const []),
     quest.registeredAdventurers,
     viewer.title,
   );

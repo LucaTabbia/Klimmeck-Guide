@@ -190,6 +190,29 @@ void main() {
     );
   });
 
+  group('owned pets as entries (Phase 19)', () {
+    testWidgets('a pet owned as an entry is not purchasable (D-03)', (
+      tester,
+    ) async {
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _horsePool);
+      when(
+        () => characterCubit.state,
+      ).thenReturn(_characterInCity(ownedPets: [ownedPetJson(xp: 40)]));
+      await pumpShop(tester);
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester, _cell(CloudinaryAssets.buy));
+      expect(tester.widget<ShopModal>(find.byType(ShopModal)).pets, isEmpty);
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester, _cell(CloudinaryAssets.sell));
+      expect(tester.widget<ShopModal>(find.byType(ShopModal)).pets, [_horse]);
+    });
+  });
+
   group('selection against the owned pets (WR-02)', () {
     Finder completeCell() => _cell(CloudinaryAssets.completeTransaction);
 
@@ -222,7 +245,10 @@ void main() {
       await tester.pumpAndSettle();
       await selectPet(tester, cell: CloudinaryAssets.buy);
 
-      await emitCharacter(tester, _characterInCity(ownedPets: [petJson()]));
+      await emitCharacter(
+        tester,
+        _characterInCity(ownedPets: [ownedPetJson()]),
+      );
 
       expect(completeCell(), findsNothing);
     });
@@ -235,7 +261,7 @@ void main() {
         ).thenAnswer((_) async => _horsePool);
         when(
           () => characterCubit.state,
-        ).thenReturn(_characterInCity(ownedPets: [petJson()]));
+        ).thenReturn(_characterInCity(ownedPets: [ownedPetJson()]));
         await pumpShop(tester);
         await tester.pumpAndSettle();
         await selectPet(tester, cell: CloudinaryAssets.sell);

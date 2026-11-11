@@ -19,13 +19,9 @@ Map<String, dynamic> _spellJson(String letter) =>
 /// Diario con due magie: A attiva, B no.
 Character _spellsCharacter() => journalCharacter(
   spellbook: spellbookCharacterJson(
-    spells: [_spellJson('a'), _spellJson('b')],
-    activeSpells: [
-      activeSpellJson(spellId: 'spell-a', usages: 1, spell: _spellJson('a')),
-    ],
     spellStates: [
-      spellStateJson(spellId: 'spell-a'),
-      spellStateJson(spellId: 'spell-b', usages: 3, recoveries: const []),
+      spellStateJson(active: true, spell: _spellJson('a')),
+      spellStateJson(usages: 3, recoveries: const [], spell: _spellJson('b')),
     ],
   ),
 );

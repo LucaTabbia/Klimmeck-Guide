@@ -1112,4 +1112,57 @@ void main() {
       expect(healedText(tester), 'Guarite: contusione');
     });
   });
+
+  group('companion xp (BE Phase 19)', () {
+    double topOf(WidgetTester tester, Key key) =>
+        tester.getTopLeft(find.byKey(key)).dy;
+
+    testWidgets('shows the companion xp gained (D-03)', (tester) async {
+      await _pump(tester, questResult(questResultJson(petXpGained: 12)));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.companionXpKey)).data,
+        'Il tuo compagno guadagna 12 PE',
+      );
+    });
+
+    testWidgets('the companion line sits right after the xp line (D-03)', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(questResultJson(petXpGained: 12)));
+      await tester.pumpAndSettle();
+
+      final xp = topOf(tester, QuestResultSheet.xpKey);
+      final companion = topOf(tester, QuestResultSheet.companionXpKey);
+      final level = topOf(tester, QuestResultSheet.levelKey);
+      expect(xp, lessThan(companion));
+      expect(companion, lessThan(level));
+    });
+
+    testWidgets('no companion line at zero (D-03)', (tester) async {
+      await _pump(tester, questResult(questResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.companionXpKey), findsNothing);
+      expect(find.textContaining('Il tuo compagno'), findsNothing);
+    });
+
+    testWidgets('the companion line shows without character xp (D-03)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(questResultJson(xpGained: 0, xpAfter: 200, petXpGained: 5)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.xpKey), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(QuestResultSheet.companionXpKey)).data,
+        'Il tuo compagno guadagna 5 PE',
+      );
+    });
+  });
 }

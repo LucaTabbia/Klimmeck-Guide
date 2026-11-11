@@ -29,3 +29,8 @@ String? guardEncounterLine(QuestResult result) {
     _ => null,
   };
 }
+
+/// «Il tuo compagno guadagna N PE» (D-03): il numero servito dal backend,
+/// nessuna riga a zero.
+String? companionXpGainedLine(int petXpGained) =>
+    petXpGained > 0 ? 'Il tuo compagno guadagna $petXpGained PE' : null;

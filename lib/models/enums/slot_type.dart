@@ -90,7 +90,7 @@ enum SlotType {
       addedTop: 0,
     ),
   ),
-  foots(
+  feet(
     label: "Piedi",
     types: [EquipType.boots],
     ratios: EquipRatios(

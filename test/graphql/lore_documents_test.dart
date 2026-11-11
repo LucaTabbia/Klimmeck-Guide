@@ -11,7 +11,8 @@ OperationDefinitionNode _operationOf(String document) => parseString(
   document,
 ).definitions.whereType<OperationDefinitionNode>().single;
 
-const _loreFields = 'id image type name description relatedLore { id name }';
+const _loreFields =
+    'id imagePath type name description relatedLore { id name }';
 
 void _expectLoreQuery({
   required String document,
@@ -25,7 +26,8 @@ void _expectLoreQuery({
     expect(operation.name?.value, operationName);
   });
 
-  test('selects the lore fields without unlocked (BE Phase 11, D-25)', () {
+  test('selects the lore fields with imagePath and without unlocked '
+      '(BE Phase 11, D-25; D-06)', () {
     expect(_collapsed(document), contains('$selection { $_loreFields }'));
     expect(document, isNot(contains('unlocked')));
   });

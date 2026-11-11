@@ -315,7 +315,10 @@ class KlimmeckGraphQl {
       throw Exception('No cities found');
     }
 
-    return citiesData.map((json) => City.fromJson(json)).toList();
+    final cities = citiesData.map(City.tryFromJson).nonNulls.toList();
+    final skipped = citiesData.length - cities.length;
+    if (skipped > 0) appLog('[Cities] skipped $skipped malformed cities');
+    return cities;
   }
 
   Future<List<Quest>> getQuests() async {

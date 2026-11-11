@@ -37,7 +37,7 @@ void main() {
     useLandscapePhone(tester);
     final q = buildQuest(
       id: 'e-1',
-      type: 'enemy',
+      type: 'boss',
       slots: [
         {'title': null, 'count': 3},
       ],
@@ -105,7 +105,7 @@ void main() {
     expect(
       svg.url,
       CloudinaryAssets.url(
-        questPaperAssetId(buildQuest(id: 'e-1', type: 'enemy'), isTorn: false),
+        questPaperAssetId(buildQuest(id: 'e-1', type: 'boss'), isTorn: false),
       ),
     );
     expect(find.text('In combattimento…'), findsOneWidget);

@@ -26,12 +26,11 @@ class SpellRecoveryCubit extends Cubit<SpellRecoveryState>
   /// L'etichetta cambia al minuto: un secondo basta a non mostrarla in ritardo.
   static const Duration defaultTick = Duration(seconds: 1);
 
-  /// Senza stato di recupero gli usi sono al massimo (fallback D-02/D-03).
   static List<SpellRecoveryInput> inputsOf(Spellbook spellbook) => [
     for (final entry in spellbook.entries)
       SpellRecoveryInput(
         spellId: entry.spell.id,
-        usages: entry.usages ?? entry.spell.maxUsages ?? 0,
+        usages: entry.usages,
         maxUsages: entry.spell.maxUsages,
         recoveries: entry.recoveries,
       ),

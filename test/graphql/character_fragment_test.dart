@@ -4,10 +4,12 @@ import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/spell_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 
 import '../helpers/fixtures/travel_fixtures.dart';
 
@@ -51,25 +53,42 @@ void main() {
     );
   });
 
-  test(
-    'statusFields selects spellStates with usages, recoveries, spell id',
-    () {
-      final status = CharacterFragment.statusFields.replaceAll(
-        RegExp(r'\s+'),
-        ' ',
-      );
+  test('statusFields selects spellStates with usages, recoveries, active and '
+      'the full spell (D-05)', () {
+    final status = CharacterFragment.statusFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-      expect(status.trim(), startsWith('status {'));
-      expect(
-        status,
-        contains('spellStates { usages recoveries spell { id } }'),
-      );
-    },
-  );
+    expect(status.trim(), startsWith('status {'));
+    expect(
+      status,
+      contains('spellStates { usages recoveries active spell { $spell } }'),
+    );
+  });
+
+  test('statusFields no longer selects a separate list of known spells '
+      '(D-05)', () {
+    final status = CharacterFragment.statusFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+
+    expect(RegExp(r'(^| )spells \{').hasMatch(status), isFalse);
+  });
+
+  test('assetsFields no longer selects the equipped spell list (D-05)', () {
+    const oldEquippedKey =
+        'active'
+        'Spells';
+
+    expect(CharacterFragment.assetsFields, isNot(contains(oldEquippedKey)));
+  });
 
   test('a recorded characterUpdated payload parses its spellStates', () {
     final character = Character.fromJson(_recordedCharacterUpdated);
-    final states = character.status!.spellStates!;
+    final states = character.status!.spellStates;
 
     expect(states.map((state) => state.spellId), ['spell-a', 'spell-b']);
     expect(states.map((state) => state.usages), [1, 1]);
@@ -82,6 +101,20 @@ void main() {
       states.expand((state) => state.recoveries).every((at) => at.isUtc),
       isTrue,
     );
+  });
+
+  test('a recorded characterUpdated payload parses its active states and '
+      'owned entries (D-03, D-05)', () {
+    final character = Character.fromJson(_recordedCharacterUpdated);
+    final owned = character.assets!.ownedPets.single;
+
+    expect(character.status!.spellStates.map((state) => state.active), [
+      true,
+      false,
+    ]);
+    expect(owned.pet.id, 'pet-a');
+    expect(owned.xp, 40);
+    expect(owned.pet.rarity, RarityType.ultrarare);
   });
 
   test('statusFields selects awaitingAid with quest, aidQuest, since', () {
@@ -107,9 +140,11 @@ void main() {
   });
 
   test('statusFields selects unlockedLore (D-01)', () {
+    final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
+
     expect(
       CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
-      contains('spellStates { usages recoveries spell { id } } unlockedLore }'),
+      contains('active spell { $spell } } unlockedLore }'),
     );
   });
 
@@ -129,19 +164,51 @@ void main() {
     expect(character.status!.awaitingAid!.since.isUtc, isTrue);
   });
 
-  test(
-    'selects the equipped pet and the owned pets with PetFragment (D-11)',
-    () {
-      final assets = CharacterFragment.assetsFields.replaceAll(
-        RegExp(r'\s+'),
-        ' ',
-      );
-      final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
+  test('selects the equipped pet with PetFragment and the owned pets as '
+      'entries (D-03, D-18)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-      expect(assets, contains('pet { $pet }'));
-      expect(assets, contains('ownedPets { $pet }'));
-    },
-  );
+    expect(assets, contains('pet { $pet }'));
+    expect(assets, contains('ownedPets { xp currentLifePoints pet { $pet } }'));
+  });
+
+  group('worn equipment (BE Phase 19)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final equipmentQuery = CharacterQueries.getEquipment.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+
+    test('assetsFields selects wornEquipment with the feet slot (D-04)', () {
+      expect(assets, contains('wornEquipment {'));
+      expect(assets, contains('feet {'));
+    });
+
+    test('the equipment query selects the feet slot (D-04)', () {
+      expect(equipmentQuery, contains('feet {'));
+    });
+
+    test('no document selects the old equipment names (D-04)', () {
+      const oldWornKey =
+          'weared'
+          'Equipment';
+      const oldBootsSlot =
+          'fo'
+          'ots';
+
+      for (final document in [assets, equipmentQuery]) {
+        expect(document, isNot(contains(oldWornKey)));
+        expect(document, isNot(contains(oldBootsSlot)));
+      }
+    });
+  });
 
   test('the Journal assets select accessoryUseTypes on equipment (D-15)', () {
     expect(
@@ -178,43 +245,78 @@ void main() {
   });
 }
 
-/// `characterUpdated` registrato dall'handoff BE 9.1 §3 (id sostituiti).
+/// `characterUpdated` nella forma della BE Phase 19 (id sostituiti): stati
+/// con la magia intera e `active`, compagni posseduti come voci.
 const Map<String, dynamic> _recordedCharacterUpdated = {
   'id': 'character-1',
   'status': {
     'maxActiveSpells': 1,
-    'spells': [
-      {
-        'id': 'spell-a',
-        'name': 'Nome A',
-        'maxUsages': 3,
-        'recoveryTime': 1800000,
-      },
-      {
-        'id': 'spell-b',
-        'name': 'Nome B',
-        'maxUsages': 2,
-        'recoveryTime': 600000,
-      },
-    ],
     'spellStates': [
       {
-        'spell': {'id': 'spell-a'},
+        'spell': {
+          'id': 'spell-a',
+          'name': 'Nome A',
+          'description': 'Descrizione A',
+          'useType': 'attack',
+          'maxUsages': 3,
+          'minXpToLearn': 100,
+          'recoveryTime': 1800000,
+          'requiredLearnTime': 3600000,
+          'energyDamage': {'type': 'fire', 'power': 12},
+        },
         'usages': 1,
         'recoveries': ['2026-10-27T10:02:00.000Z', '2026-10-27T10:30:00.000Z'],
+        'active': true,
       },
       {
-        'spell': {'id': 'spell-b'},
+        'spell': {
+          'id': 'spell-b',
+          'name': 'Nome B',
+          'description': 'Descrizione B',
+          'useType': 'defense',
+          'maxUsages': 2,
+          'minXpToLearn': 200,
+          'recoveryTime': 600000,
+          'requiredLearnTime': 3600000,
+          'energyDamage': null,
+        },
         'usages': 1,
         'recoveries': ['2026-10-27T10:10:00.000Z'],
+        'active': false,
       },
     ],
   },
   'assets': {
-    'activeSpells': [
+    'wornEquipment': <String, dynamic>{},
+    'ownedEquipments': <Object?>[],
+    'ownedItems': <Object?>[],
+    'pet': null,
+    'ownedPets': [
       {
-        'usages': 1,
-        'spell': {'id': 'spell-a'},
+        'xp': 40,
+        'currentLifePoints': 7,
+        'pet': {
+          'id': 'pet-a',
+          'name': 'Compagno A',
+          'speedModifier': 2,
+          'sellable': true,
+          'buyPrice': {'gold': 1, 'silver': 0, 'copper': 0},
+          'sellPrice': {'gold': 0, 'silver': 50, 'copper': 0},
+          'maxXp': 300,
+          'attack': {
+            'base': [
+              {'type': 'blunt', 'power': 4},
+            ],
+            'energy': <Object?>[],
+          },
+          'defense': {
+            'base': [
+              {'type': 'blunt', 'power': 2},
+            ],
+            'energy': <Object?>[],
+          },
+          'rarity': 'ultrarare',
+        },
       },
     ],
   },

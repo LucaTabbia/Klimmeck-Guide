@@ -46,7 +46,6 @@ const TeleportTarget _beaTarget = TeleportTarget(
     type: null,
     location: null,
     city: null,
-    quest: null,
   ),
   sex: SexType.female,
 );

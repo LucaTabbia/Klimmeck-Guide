@@ -39,12 +39,15 @@ void main() {
 
     test('inputsOf maps every spellbook entry in list order', () {
       final character = spellbookCharacter(
-        spells: [
-          spellJson(id: _spellA),
-          spellJson(id: _spellB),
-          spellJson(id: 'spell-c', maxUsages: null),
+        spellStates: [
+          spellStateJson(spellId: _spellA),
+          spellStateJson(spellId: _spellB, usages: 3, recoveries: const []),
+          spellStateJson(
+            usages: 0,
+            recoveries: const [],
+            spell: spellJson(id: 'spell-c', maxUsages: null),
+          ),
         ],
-        spellStates: [spellStateJson(spellId: _spellA)],
       );
 
       final inputs = SpellRecoveryCubit.inputsOf(Spellbook.of(character));

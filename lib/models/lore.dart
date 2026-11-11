@@ -3,7 +3,7 @@ import 'package:klimmeck_guide/models/enums/lore_type.dart';
 
 class Lore extends Equatable {
   const Lore({
-    required this.image,
+    required this.imagePath,
     required this.id,
     required this.type,
     required this.name,
@@ -13,7 +13,7 @@ class Lore extends Equatable {
 
   final String id;
   final LoreType? type;
-  final String? image;
+  final String? imagePath;
   final String? name;
   final String? description;
   final List<Lore>? relatedLore;
@@ -26,7 +26,7 @@ class Lore extends Equatable {
     relatedLore: json['relatedLore'] != null
         ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
         : [],
-    image: json["image"],
+    imagePath: json["imagePath"],
   );
 
   /// Tollerante (D-16): un tipo sconosciuto o assente vale `null` e la voce
@@ -59,11 +59,11 @@ class Lore extends Equatable {
     "name": name,
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "description": description,
-    "image": image,
+    "imagePath": imagePath,
   };
 
   Lore copyWith({
-    String? image,
+    String? imagePath,
     String? id,
     LoreType? type,
     String? name,
@@ -71,7 +71,7 @@ class Lore extends Equatable {
     List<Lore>? relatedLore,
   }) {
     return Lore(
-      image: image ?? this.image,
+      imagePath: imagePath ?? this.imagePath,
       id: id ?? this.id,
       type: type ?? this.type,
       name: name ?? this.name,
@@ -81,5 +81,12 @@ class Lore extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, type, image, name, description, relatedLore];
+  List<Object?> get props => [
+    id,
+    type,
+    imagePath,
+    name,
+    description,
+    relatedLore,
+  ];
 }

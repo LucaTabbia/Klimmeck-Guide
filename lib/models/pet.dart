@@ -2,19 +2,20 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/damages.dart';
 
 import 'coins.dart';
+import 'enums/rarity_type.dart';
 
 class Pet extends Equatable {
   const Pet({
     required this.id,
     required this.name,
-    required this.damages,
     required this.buyPrice,
     required this.sellPrice,
-    required this.xp,
     required this.maxXp,
     required this.imagePath,
-    required this.currentLifePoints,
     required this.maxLifePoints,
+    this.attack,
+    this.defense,
+    this.rarity,
     this.speedModifier,
     this.sellable,
   });
@@ -22,12 +23,12 @@ class Pet extends Equatable {
   final String? imagePath;
   final String id;
   final String? name;
-  final Damages? damages;
+  final Damages? attack;
+  final Damages? defense;
+  final RarityType? rarity;
   final Coins? buyPrice;
   final Coins? sellPrice;
   final int? maxXp;
-  final int? xp;
-  final int? currentLifePoints;
   final int? maxLifePoints;
 
   /// Moltiplicatore servito dal BE: null per un compagno non da sella (D-07); il FE non calcola mai la velocità (D-11).
@@ -37,9 +38,10 @@ class Pet extends Equatable {
   factory Pet.fromJson(Map<String, dynamic> json) => Pet(
     id: json["id"],
     name: json["name"],
-    xp: json["xp"] != null ? (json["xp"] as num).toInt() : null,
     maxXp: json["maxXp"] != null ? (json["maxXp"] as num).toInt() : null,
-    damages: json["damages"] != null ? Damages.fromJson(json["damages"]) : null,
+    attack: _damagesFrom(json['attack']),
+    defense: _damagesFrom(json['defense']),
+    rarity: RarityType.values.asNameMap()[json['rarity']],
     sellPrice: json['sellPrice'] != null
         ? Coins.fromJson(json['sellPrice'])
         : null,
@@ -47,11 +49,13 @@ class Pet extends Equatable {
         ? Coins.fromJson(json['buyPrice'])
         : null,
     imagePath: json["imagePath"],
-    currentLifePoints: json["currentLifePoints"]?.toInt(),
     maxLifePoints: json["maxLifePoints"]?.toInt(),
     speedModifier: (json['speedModifier'] as num?)?.toDouble(),
     sellable: json['sellable'] as bool?,
   );
+
+  static Damages? _damagesFrom(Object? json) =>
+      json is Map<String, dynamic> ? Damages.fromJson(json) : null;
 
   /// Compagno da un riferimento tollerante (premio o ricompensa, D-06/D-07):
   /// null se non è una mappa con un `id` stringa.
@@ -60,15 +64,26 @@ class Pet extends Equatable {
       ? Pet.fromJson(json)
       : null;
 
+  /// Confine di lista o di slot (posseduti, pool del negozio, equipaggiato):
+  /// un compagno che non si legge vale null invece di far fallire chi lo
+  /// contiene.
+  static Pet? tryFromEntryJson(Object? json) {
+    try {
+      return tryFromJson(json);
+    } on Object {
+      return null;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
-    "xp": xp,
     "maxXp": maxXp,
-    "damages": damages?.toJson(),
+    "attack": attack?.toJson(),
+    "defense": defense?.toJson(),
+    "rarity": rarity?.name,
     "buyPrice": buyPrice?.toJson(),
     "sellPrice": sellPrice?.toJson(),
-    "currentLifePoints": currentLifePoints,
     "maxLifePoints": maxLifePoints,
     "imagePath": imagePath,
     "speedModifier": speedModifier,
@@ -79,12 +94,12 @@ class Pet extends Equatable {
     String? imagePath,
     String? id,
     String? name,
-    Damages? damages,
+    Damages? attack,
+    Damages? defense,
+    RarityType? rarity,
     Coins? buyPrice,
     Coins? sellPrice,
     int? maxXp,
-    int? xp,
-    int? currentLifePoints,
     int? maxLifePoints,
     double? speedModifier,
     bool? sellable,
@@ -93,12 +108,12 @@ class Pet extends Equatable {
       imagePath: imagePath ?? this.imagePath,
       id: id ?? this.id,
       name: name ?? this.name,
-      damages: damages ?? this.damages,
+      attack: attack ?? this.attack,
+      defense: defense ?? this.defense,
+      rarity: rarity ?? this.rarity,
       buyPrice: buyPrice ?? this.buyPrice,
       sellPrice: sellPrice ?? this.sellPrice,
       maxXp: maxXp ?? this.maxXp,
-      xp: xp ?? this.xp,
-      currentLifePoints: currentLifePoints ?? this.currentLifePoints,
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
       speedModifier: speedModifier ?? this.speedModifier,
       sellable: sellable ?? this.sellable,
@@ -110,12 +125,12 @@ class Pet extends Equatable {
     imagePath,
     id,
     name,
-    damages,
+    attack,
+    defense,
+    rarity,
     buyPrice,
     sellPrice,
     maxXp,
-    xp,
-    currentLifePoints,
     maxLifePoints,
     speedModifier,
     sellable,

@@ -11,6 +11,7 @@ import 'adventurer_slot.dart';
 import 'quest.dart';
 import 'quest_availability.dart';
 import 'quest_blocked_reason.dart';
+import 'quest_capacity.dart';
 import 'quest_cost_line.dart';
 import 'quest_enemy.dart';
 import 'quest_lane.dart';
@@ -90,7 +91,7 @@ class QuestSheetDetails extends Equatable {
           viewer != null &&
           type != null &&
           !isTitleEligible(type: type, minTitle: minTitle, title: viewer.title),
-      slotLines: type != null && registeredQuestTypes.contains(type)
+      slotLines: _drawsSeats(type)
           ? List.unmodifiable(
               _slotLinesOf(
                 quest.requirements?.requiredAdventurers ?? const [],
@@ -166,6 +167,12 @@ class QuestSheetDetails extends Equatable {
     travelLine,
   ];
 }
+
+/// Una quest a giocatore singolo non disegna posti: resta il titolo minimo.
+bool _drawsSeats(QuestType? type) =>
+    type != null &&
+    registeredQuestTypes.contains(type) &&
+    !isSinglePlayerQuest(type);
 
 /// Copy provvisoria (D-06): solo testo, nessuna immagine.
 String? _petPrizeLine(String? name) =>

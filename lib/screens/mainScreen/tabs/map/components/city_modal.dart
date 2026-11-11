@@ -21,7 +21,8 @@ class _CityModalState extends State<CityModal> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: MediaQuery.of(context).size.height / 7),
-        if (widget.lore.image != null) CachedSvg(url: widget.lore.image!, width: 200, height: 200),
+        if (widget.lore.imagePath != null)
+          CachedSvg(url: widget.lore.imagePath!, width: 200, height: 200),
         AutoSizeText(
           widget.lore.name ?? "",
           maxFontSize: 24,

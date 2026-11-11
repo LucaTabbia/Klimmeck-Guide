@@ -67,12 +67,12 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                     imagePath: widget.sexType.gravesPath,
                     ratios: SlotType.legs.ratios,
                   ),
-                if (widget.equipment.foots != null)
+                if (widget.equipment.feet != null)
                   EquipmentImage(
                     baseHeight: mannequinHeight,
                     baseWidth: mannequinWidth,
                     imagePath: widget.sexType.bootsPath,
-                    ratios: SlotType.foots.ratios,
+                    ratios: SlotType.feet.ratios,
                   ),
                 if (widget.equipment.chest != null)
                   EquipmentImage(
@@ -100,7 +100,7 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                   selectedSlot: widget.selectedSlot,
                   baseHeight: mannequinHeight,
                   baseWidth: mannequinWidth,
-                  slot: SlotType.foots,
+                  slot: SlotType.feet,
                   borderColor: KlimmeckGuideTheme.darkBronze,
                   onTap: (slot) => widget.onTap(slot),
                 ),

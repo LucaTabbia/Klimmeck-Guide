@@ -167,10 +167,10 @@ void main() {
   });
 
   group('cities', () {
-    test('selects the lore image for the confirmation sheet', () {
+    test('selects the lore imagePath for the confirmation sheet (D-06)', () {
       expect(
         _collapsed(CityQueries.getAllCities),
-        contains('relatedLore { id description image }'),
+        contains('relatedLore { id description imagePath }'),
       );
     });
   });

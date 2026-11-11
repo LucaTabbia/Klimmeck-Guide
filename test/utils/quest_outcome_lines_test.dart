@@ -67,4 +67,15 @@ void main() {
       expect(guardEncounterLine(questResult(questResultJson())), isNull);
     });
   });
+
+  group('companionXpGainedLine', () {
+    test('prints the companion xp gained (D-03)', () {
+      expect(companionXpGainedLine(12), 'Il tuo compagno guadagna 12 PE');
+    });
+
+    test('is null at zero and below (D-03)', () {
+      expect(companionXpGainedLine(0), isNull);
+      expect(companionXpGainedLine(-3), isNull);
+    });
+  });
 }

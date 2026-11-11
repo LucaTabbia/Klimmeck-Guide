@@ -21,7 +21,7 @@ class PendingRequestQuest extends Equatable {
   final QuestType? type;
   final List<AdventurerSlot> requiredAdventurers;
 
-  int get totalSeats => totalSlots(requiredAdventurers);
+  int get totalSeats => totalSlots(questSlotsOf(type, requiredAdventurers));
 
   factory PendingRequestQuest.fromJson(Map<String, dynamic> json) =>
       PendingRequestQuest(

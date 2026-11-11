@@ -53,6 +53,17 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     accessoryUseTypes: _accessoryUseTypesFrom(json['accessoryUseTypes']),
   );
 
+  /// Confine di parsing (D-16): un pezzo che non si legge vale `null`, così
+  /// lo slot indossato resta vuoto e gli altri slot sopravvivono.
+  static EquipmentItem? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    try {
+      return EquipmentItem.fromJson(json);
+    } on Object {
+      return null;
+    }
+  }
+
   @override
   Map<String, dynamic> toJson() => {
     'id': id,

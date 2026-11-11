@@ -54,14 +54,12 @@ class CharacterFragment {
       }
       potionRecoveryUntil
       imprisonedUntil
-      spells {
-        ${SpellFragment.fields}
-      }
       spellStates {
         usages
         recoveries
+        active
         spell {
-          id
+          ${SpellFragment.fields}
         }
       }
       unlockedLore
@@ -71,8 +69,8 @@ class CharacterFragment {
   static String get assetsFields =>
       '''
     assets {
-      wearedEquipment {
-        ${WearedEquipmentFragment.withFields(EquipmentFragment.fieldsWithFullSpell)}
+      wornEquipment {
+        ${WornEquipmentFragment.withFields(EquipmentFragment.fieldsWithFullSpell)}
       }
       ownedEquipments {
         quantity
@@ -80,12 +78,6 @@ class CharacterFragment {
           ... on EquipmentItem {
             ${EquipmentFragment.fieldsWithFullSpell}
           }
-        }
-      }
-      activeSpells {
-        usages
-        spell {
-          ${SpellFragment.fields}
         }
       }
       ownedItems {
@@ -100,7 +92,11 @@ class CharacterFragment {
         ${PetFragment.fields}
       }
       ownedPets {
-        ${PetFragment.fields}
+        xp
+        currentLifePoints
+        pet {
+          ${PetFragment.fields}
+        }
       }
     }
   ''';

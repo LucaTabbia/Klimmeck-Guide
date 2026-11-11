@@ -78,7 +78,9 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
     if (graphQl == null) return;
     try {
       final lores = await graphQl.getAllLores();
-      await _warmer.warm(lores.map((lore) => lore.image).whereType<String>());
+      await _warmer.warm(
+        lores.map((lore) => lore.imagePath).whereType<String>(),
+      );
     } catch (e) {
       appLog('[Splash] lore warm-up skipped: ${e.runtimeType}');
     }

@@ -13,6 +13,7 @@ import 'loot_fragment.dart';
 /// `loreUnlocked` è della BE Phase 16 (17-CONTEXT D-04): solo le novità dell'esito.
 /// `injuriesHealed` è della BE Phase 18 (18-CONTEXT D-02); `arrested`,
 /// `coinsLost` e `guardEncounter` sono della quick 261110-cgd (BE §1.6).
+/// `petXpGained` è della BE Phase 19 (19-CONTEXT D-03): i PE del compagno.
 class QuestResultFragment {
   static const String fields =
       '''
@@ -87,6 +88,7 @@ class QuestResultFragment {
     xpBefore
     xpGained
     xpAfter
+    petXpGained
     levelBefore
     levelAfter
     titleBefore

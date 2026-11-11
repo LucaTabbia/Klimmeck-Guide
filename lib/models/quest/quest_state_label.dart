@@ -21,10 +21,16 @@ String questStateLabel(PendingQuest lane, Quest? quest) {
 
 /// Senza posti di gruppo nessuno da attendere: sul marker la quest parte
 /// subito, anche se lo `startDate` del BE arriva un attimo dopo.
-bool _isSolo(Quest? quest) => quest != null && _seatsOf(quest) == 0;
+bool _isSolo(Quest? quest) =>
+    quest != null &&
+    (isSinglePlayerQuest(quest.infos?.type) || _seatsOf(quest) == 0);
 
-int _seatsOf(Quest? quest) =>
-    totalSlots(quest?.requirements?.requiredAdventurers ?? const []);
+int _seatsOf(Quest? quest) => totalSlots(
+  questSlotsOf(
+    quest?.infos?.type,
+    quest?.requirements?.requiredAdventurers ?? const [],
+  ),
+);
 
 /// La quest registrata parte solo col gruppo al completo sul marker (BE 09-19).
 String _waitingLabel(Quest? quest) {

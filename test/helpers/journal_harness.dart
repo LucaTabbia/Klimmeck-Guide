@@ -58,7 +58,7 @@ Character journalCharacter({
   },
   'assets': {
     ...spellbook['assets'] as Map<String, dynamic>,
-    'wearedEquipment': <String, dynamic>{},
+    'wornEquipment': <String, dynamic>{},
     'ownedEquipments': <Map<String, dynamic>>[],
     'ownedItems': ownedItems,
   },

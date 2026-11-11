@@ -104,6 +104,6 @@ Map<String, dynamic> travelCityJson({
   'relatedLore': {
     'id': 'lore-$id',
     'description': 'Lore di $name',
-    'image': image,
+    'imagePath': image,
   },
 };

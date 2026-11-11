@@ -1,9 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/damages.dart';
-import 'package:klimmeck_guide/models/enums/damage_type.dart';
-import 'package:klimmeck_guide/models/enums/energy_type.dart';
 import 'package:klimmeck_guide/models/enums/poi_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/models/weaknesses.dart';
 
 import 'lore.dart';
 
@@ -12,8 +11,7 @@ class Enemy extends Equatable {
     required this.id,
     required this.locations,
     required this.xp,
-    required this.energyWeaknesses,
-    required this.baseWeaknesses,
+    this.weaknesses = const Weaknesses(),
     required this.name,
     required this.spells,
     required this.lifePoints,
@@ -26,8 +24,7 @@ class Enemy extends Equatable {
   final List<PoiType>? locations;
   final String? name;
   final Damages? damages;
-  final List<EnergyType>? energyWeaknesses;
-  final List<DamageType>? baseWeaknesses;
+  final Weaknesses weaknesses;
   final List<Lore>? relatedLore;
   final int? xp;
   final String? imagePath;
@@ -37,19 +34,8 @@ class Enemy extends Equatable {
   factory Enemy.fromJson(Map<String, dynamic> json) => Enemy(
     id: json["id"],
     name: json["name"],
-    locations: json["locations"]?.map(
-      (poiType) => PoiType.values.byName(poiType),
-    ),
-    energyWeaknesses: json['energyWeaknesses'] != null
-        ? List<EnergyType>.from(
-            json["energyWeaknesses"].map((x) => EnergyType.values.byName(x)),
-          )
-        : [],
-    baseWeaknesses: json['baseWeaknesses'] != null
-        ? List<DamageType>.from(
-            json["baseWeaknesses"].map((x) => DamageType.values.byName(x)),
-          )
-        : [],
+    locations: poiTypesFrom(json['locations']),
+    weaknesses: Weaknesses.fromJson(json['weaknesses']),
     relatedLore: json['relatedLore'] != null
         ? List<Lore>.from(json['relatedLore'].map((x) => Lore.fromJson(x)))
         : [],
@@ -67,8 +53,7 @@ class Enemy extends Equatable {
     "name": name,
     "damages": damages?.toJson(),
     "locations": locations?.map((s) => s.name).toList(),
-    "energyWeaknesses": energyWeaknesses?.map((s) => s.name).toList(),
-    "baseWeaknesses": baseWeaknesses?.map((s) => s.name).toList(),
+    "weaknesses": weaknesses.toJson(),
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "xp": xp,
     "spells": spells?.map((s) => s.id).toList(),
@@ -81,8 +66,7 @@ class Enemy extends Equatable {
     List<PoiType>? locations,
     String? name,
     Damages? damages,
-    List<EnergyType>? energyWeaknesses,
-    List<DamageType>? baseWeaknesses,
+    Weaknesses? weaknesses,
     List<Lore>? relatedLore,
     int? xp,
     String? imagePath,
@@ -93,8 +77,7 @@ class Enemy extends Equatable {
       id: id ?? this.id,
       locations: locations ?? this.locations,
       xp: xp ?? this.xp,
-      energyWeaknesses: energyWeaknesses ?? this.energyWeaknesses,
-      baseWeaknesses: baseWeaknesses ?? this.baseWeaknesses,
+      weaknesses: weaknesses ?? this.weaknesses,
       name: name ?? this.name,
       spells: spells ?? this.spells,
       lifePoints: lifePoints ?? this.lifePoints,
@@ -109,8 +92,7 @@ class Enemy extends Equatable {
     id,
     locations,
     xp,
-    energyWeaknesses,
-    baseWeaknesses,
+    weaknesses,
     name,
     spells,
     lifePoints,

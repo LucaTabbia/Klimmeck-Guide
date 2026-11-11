@@ -24,7 +24,7 @@ class CharacterQueries {
       '''
     query equipment(\$id: String!) {
       equipment(id: \$id) {
-        ${WearedEquipmentFragment.withFields(EquipmentFragment.fields)}
+        ${WornEquipmentFragment.withFields(EquipmentFragment.fields)}
       }
     }
   ''';

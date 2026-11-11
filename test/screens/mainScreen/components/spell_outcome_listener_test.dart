@@ -26,7 +26,9 @@ void main() {
 
   final first = spellbookCharacter();
   final equipped = spellbookCharacter(
-    activeSpells: [activeSpellJson(spellId: 'spell-1')],
+    spellStates: [
+      spellStateJson(usages: 3, recoveries: const [], active: true),
+    ],
   );
 
   setUpAll(() {

@@ -165,6 +165,51 @@ void main() {
       final details = QuestSheetDetails.of(buildQuest(type: 'hunt'));
       expect(details.slotLines, isEmpty);
     });
+
+    test('an enemy has no slot lines on either wire shape, only its minimum '
+        'title (quick 261111-enm)', () {
+      for (final seat in [slot(null, 1), slot('paladin', 1)]) {
+        final details = QuestSheetDetails.of(
+          buildQuest(
+            type: 'enemy',
+            minTitle: 'paladin',
+            slots: [seat],
+            registered: [reg('a', 'hero')],
+          ),
+          viewer: buildViewer(title: TitleType.legend),
+        );
+
+        expect(details.slotLines, isEmpty, reason: '$seat');
+        expect(details.requiredTitleText, 'Titolo minimo: Paladino');
+        expect(details.isTitleIneligible, isFalse);
+      }
+    });
+
+    test('an enemy above the viewer rank marks its minimum title '
+        '(quick 261111-enm)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(type: 'enemy', minTitle: 'paladin'),
+        viewer: buildViewer(title: TitleType.rookie),
+      );
+
+      expect(details.requiredTitleText, 'Titolo minimo: Paladino');
+      expect(details.isTitleIneligible, isTrue);
+      expect(details.blockedReason, 'Serve almeno il titolo Paladino');
+    });
+
+    test('a boss keeps its rank-exact slot lines (quick 261111-enm)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          minTitle: 'paladin',
+          slots: [slot('paladin', 2)],
+          registered: [reg('a', 'paladin')],
+        ),
+        viewer: buildViewer(title: TitleType.paladin),
+      );
+
+      expect(details.slotLines.map((l) => l.text), ['Paladino: 1 / 2']);
+    });
   });
 
   group('cost line', () {

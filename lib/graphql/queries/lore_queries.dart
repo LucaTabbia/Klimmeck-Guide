@@ -2,7 +2,7 @@
 class _LoreFields {
   static const String full = '''
     id
-    image
+    imagePath
     type
     name
     description

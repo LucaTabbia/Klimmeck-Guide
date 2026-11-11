@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: phase-complete
-last_updated: "2026-11-11T20:00:00.000Z"
-last_activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E complete, HEAL-01..06 complete)
+last_updated: "2026-11-11T13:10:00.000Z"
+last_activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 13
-  completed_plans: 13
+  completed_phases: 2
+  total_plans: 26
+  completed_plans: 26
   percent: 100
 ---
 
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 18 — Heal Quests by City Size — complete 13/13 on `feat/18-heal-quests-by-size` (device E2E passed 2026-11-11 against BE `develop` 66df2ef2, HEAL-01..06 complete); next: the PR to `develop` opened by the user, then Phase 19 (↔ BE Phase 19)
+**Current focus:** Phase 19 — Model Review (frontend companion) — COMPLETE on `feat/19-model-review` (13/13): device E2E passed on 2026-11-11 against BE Phase 19 (`19-HUMAN-UAT.md`), quick task 261111-enm on the branch, full suite 4239 green; both phases of v1.1 are done
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
-Phase: 18 of 19 (Heal Quests by City Size) — complete 13/13 on `feat/18-heal-quests-by-size`: device E2E 18-13 passed on 2026-11-11 (steps 1–14 pass, optional 15 skipped; extra prison/guard and sheet-family checks E1–E6 pass)
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
+Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
 Plan: 13 of 13
-Status: Phase complete — `18-HUMAN-UAT.md` complete, FE `BACKEND-NOTES.md` written; UAT fixes on the branch (Library «Nuovo» on a never-opened book — Phase 17 D-07 amended by the user; pawn labels on one line; flattened magic sheet); full suite 4031 green, analyzer 47 info / 0 warning / 0 error, 46/46 documents OK.
-Last activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E, requirements closed, FE handoff)
-Next step: the user opens the PR `feat/18-heal-quests-by-size` → `develop` (`GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then Phase 19 Model Review (gated on the BE Phase 19 merge). Still to check on the device: a narrative quest sheet with prizes, a cost line and the Paladin title overflowed by 22 px on the landscape test harness with the test font (pre-existing, A-IN-05) — not exercised in 18-13.
+Status: Phase complete — 13/13 on `feat/19-model-review`. Device E2E passed on 2026-11-11 against BE Phase 19 (BE `develop` `48b20701`, then the BE quick-task branch `fix/enemy-quests-single-player` for the last three checks): steps 1–11 pass (step 7 on the second attempt), optional 12–14 skipped, extra checks A–C pass; MODEL-01..04 complete. Born in the UAT: quick task 261111-enm on both repos (`enemy` quests single-player with a minimum rank; 155 open quests aligned at DB) and the user rule on the pet shops by city size (content at DB). Gates after the quick task: full suite 4239 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK. Security 56/56 closed (`19-SECURITY.md`); handoff in `19-model-review/BACKEND-NOTES.md`. The branch selects names that exist only on a BE with Phase 19 and judges `enemy` quests like the BE of the quick task.
+Last activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
+Next step: PR `feat/19-model-review` → `develop`, opened by the user AFTER the BE quick-task PR `fix/enemy-quests-single-player` is merged (the FE now judges `enemy` quests like the new BE); then the milestone v1.1 close.
 
 ## Current Milestone
 
@@ -55,6 +55,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **CHAR-06** (client-side NSFW pre-screen) — known gap of v1.0; decide in v1.1 whether to drop it on the server-side moderation (BE Phase 10 + HARDEN-10 codes).
 - **Backend rule F2** (Phase 9 UAT): a started quest whose participant is archived is fought as an occupied seat — honoured by the BE 9.2/10 seat holders; keep an eye on it in the Phase 19 model review.
 - **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
+- **Phase 19 device notes** (19-13, not blockers): long «Attacco» lines shrink and the common ink is close to the normal ink (the user found both fine); the abandon button of the map sheet may flash next to «In combattimento…» for a solo quest (pre-existing); pets as quest prizes (BE D-28) not seen on the device yet; the unregistered flags UF-19-01..03 of the security audit accepted as they are; the innkeeper's test character carries two more injuries from this UAT (`missingLeftHand`, `brokenRightLeg`).
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
@@ -79,9 +80,10 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 | 261110-mag | quest type `magic` («Magia», own sheets `magicSheet` / `tornMagicSheet`, treated like a study) and the general rule «every non-acceptable quest is drawn torn, a busy lane excepted»; job, crime and study wait for their torn assets; BE twin on the BE Phase 18 branch | 2026-11-10 | a0c870b | [261110-mag-quest-magic-type](./quick/261110-mag-quest-magic-type/) |
 | 261110-shs2 | every quest type now draws its own sheets, whole and torn (crime, guard, hunt on the «game» files, job, heal, world mission, boss, aid, revised magic; study on the announcement sheets; dungeon on the generic quest sheets); constants renamed after the quest type they draw (`enemySheet…` for boss/enemy files named `huntSheet…` on Cloudinary, `huntSheet…` for the `gameSheet…` files) | 2026-11-10 | 07a753e | commits only, see `quest_paper_asset.dart` |
 | 261110-cgd | prison after a crime arrest (countdown from `imprisonedUntil`, marker «In prigione per: …» over the pawn, board and shop closed, travel blocked, `CHARACTER_IMPRISONED` notices) and guard encounter lines on the result sheet; `prisonRelease` push category («Uscita di prigione»); fragment selections deferred to plan 18-12; BE twins `261110-cgd` and `261110-prp` on the BE Phase 18 branch | 2026-11-10 | 761b73e | [261110-cgd-crime-arrest-guard-encounter](./quick/261110-cgd-crime-arrest-guard-encounter/) |
+| 261111-enm | `enemy` quests («Minaccia») are single-player with a minimum rank: judged with one rank-free seat whatever the wire carries (`questSlotsOf`), acceptable by any rank ≥ `minTitle` while nobody has taken them, no seats row nor party counter on the sheet (only «Titolo minimo: …»); `boss` keeps its rank-exact seats; BE twin `261111-enm` (on the Phase 19 branch, device UAT) | 2026-11-11 | 169daeda | [261111-enm-enemy-quests-single-player](./quick/261111-enm-enemy-quests-single-player/) |
 
 ## Session Continuity
 
-Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
-Stopped at: Completed 18-13-PLAN.md (2026-11-11) — Phase 18 complete, PR to `develop` next
-Resume file: .planning/phases/18-heal-quests-by-size/18-13-SUMMARY.md
+Last session: 2026-11-11 — Phase 19 device E2E and closing documents
+Stopped at: Completed 19-13-PLAN.md (2026-11-11) — Phase 19 complete, PR to `develop` next (after the BE quick-task PR), then the milestone v1.1 close
+Resume file: .planning/phases/19-model-review/19-13-SUMMARY.md

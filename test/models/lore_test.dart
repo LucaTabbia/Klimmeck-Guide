@@ -10,7 +10,7 @@ void main() {
     'type': 'city',
     'name': 'Talmvere',
     'description': 'Un villaggio',
-    'image': null,
+    'imagePath': null,
     'relatedLore': [
       {'id': 'l2', 'name': 'Drustea'},
     ],
@@ -23,6 +23,18 @@ void main() {
     expect(lore.name, 'Talmvere');
     expect(lore.description, 'Un villaggio');
     expect(lore.relatedLore?.single.id, 'l2');
+  });
+
+  test('parses the image from the imagePath key (D-06)', () {
+    final lore = Lore.fromJson({'id': 'l', 'imagePath': 'https://x/y.svg'});
+
+    expect(lore.toJson()['imagePath'], 'https://x/y.svg');
+  });
+
+  test('the old image key is no longer read (D-06)', () {
+    final lore = Lore.fromJson({'id': 'l', 'image': 'https://x/y.svg'});
+
+    expect(lore.toJson()['imagePath'], isNull);
   });
 
   test('ignores an unlocked key left by an older backend', () {

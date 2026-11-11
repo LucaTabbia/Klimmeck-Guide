@@ -6,7 +6,7 @@ class Equipment extends Equatable {
     required this.head,
     required this.chest,
     required this.arms,
-    required this.foots,
+    required this.feet,
     required this.legs,
     required this.leftHand,
     required this.rightHand,
@@ -18,30 +18,22 @@ class Equipment extends Equatable {
   final EquipmentItem? chest;
   final EquipmentItem? arms;
   final EquipmentItem? legs;
-  final EquipmentItem? foots;
+  final EquipmentItem? feet;
   final EquipmentItem? leftHand;
   final EquipmentItem? rightHand;
   final EquipmentItem? firstAccessory;
   final EquipmentItem? secondAccessory;
 
   factory Equipment.fromJson(Map<String, dynamic> json) => Equipment(
-    head: json["head"] != null ? EquipmentItem.fromJson(json["head"]) : null,
-    chest: json["chest"] != null ? EquipmentItem.fromJson(json["chest"]) : null,
-    arms: json["arms"] != null ? EquipmentItem.fromJson(json["arms"]) : null,
-    legs: json["legs"] != null ? EquipmentItem.fromJson(json["legs"]) : null,
-    foots: json["foots"] != null ? EquipmentItem.fromJson(json["foots"]) : null,
-    leftHand: json["leftHand"] != null
-        ? EquipmentItem.fromJson(json["leftHand"])
-        : null,
-    rightHand: json["rightHand"] != null
-        ? EquipmentItem.fromJson(json["rightHand"])
-        : null,
-    firstAccessory: json["firstAccessory"] != null
-        ? EquipmentItem.fromJson(json["firstAccessory"])
-        : null,
-    secondAccessory: json["secondAccessory"] != null
-        ? EquipmentItem.fromJson(json["secondAccessory"])
-        : null,
+    head: EquipmentItem.tryFromJson(json['head']),
+    chest: EquipmentItem.tryFromJson(json['chest']),
+    arms: EquipmentItem.tryFromJson(json['arms']),
+    legs: EquipmentItem.tryFromJson(json['legs']),
+    feet: EquipmentItem.tryFromJson(json['feet']),
+    leftHand: EquipmentItem.tryFromJson(json['leftHand']),
+    rightHand: EquipmentItem.tryFromJson(json['rightHand']),
+    firstAccessory: EquipmentItem.tryFromJson(json['firstAccessory']),
+    secondAccessory: EquipmentItem.tryFromJson(json['secondAccessory']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -49,7 +41,7 @@ class Equipment extends Equatable {
     "chest": chest?.id,
     "arms": arms?.id,
     "legs": legs?.id,
-    "foots": foots?.id,
+    "feet": feet?.id,
     "leftHand": leftHand?.id,
     "rightHand": rightHand?.id,
     "firstAccessory": firstAccessory?.id,
@@ -60,7 +52,7 @@ class Equipment extends Equatable {
     EquipmentItem? head,
     EquipmentItem? chest,
     EquipmentItem? arms,
-    EquipmentItem? foots,
+    EquipmentItem? feet,
     EquipmentItem? legs,
     EquipmentItem? leftHand,
     EquipmentItem? rightHand,
@@ -71,7 +63,7 @@ class Equipment extends Equatable {
       head: head ?? this.head,
       chest: chest ?? this.chest,
       arms: arms ?? this.arms,
-      foots: foots ?? this.foots,
+      feet: feet ?? this.feet,
       legs: legs ?? this.legs,
       leftHand: leftHand ?? this.leftHand,
       rightHand: rightHand ?? this.rightHand,
@@ -85,7 +77,7 @@ class Equipment extends Equatable {
     head,
     chest,
     arms,
-    foots,
+    feet,
     legs,
     leftHand,
     rightHand,
@@ -100,7 +92,7 @@ extension EquipmentValues on Equipment {
     chest,
     arms,
     legs,
-    foots,
+    feet,
     leftHand,
     rightHand,
     firstAccessory,

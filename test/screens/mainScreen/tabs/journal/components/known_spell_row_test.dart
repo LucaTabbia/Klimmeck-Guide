@@ -13,7 +13,7 @@ import '../../../../../helpers/spells_harness.dart';
 final _spellA = Spell.fromJson(spellJson(id: 'spell-a'));
 
 SpellbookEntry _entry({
-  int? usages = 3,
+  int usages = 3,
   bool isActive = false,
   bool isPending = false,
 }) => SpellbookEntry(

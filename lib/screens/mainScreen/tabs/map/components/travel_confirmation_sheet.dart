@@ -86,7 +86,7 @@ class _TravelConfirmationSheetState extends State<TravelConfirmationSheet> {
   }
 
   Widget _content(BuildContext context, TravelState state) {
-    final image = widget.destination.relatedLore?.image;
+    final image = widget.destination.relatedLore?.imagePath;
     final numbers = _numbersOf(state);
     return Column(
       mainAxisSize: MainAxisSize.min,

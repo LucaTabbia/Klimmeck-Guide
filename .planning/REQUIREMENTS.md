@@ -19,10 +19,10 @@ The backend is the source of truth for every rule: each requirement below descri
 
 ### Model Review companion (Phase 19, added 2026-11-09)
 
-- [ ] **MODEL-01**: Enemy, lore and POI follow the cleaned SDL: `Enemy.weaknesses { base, energy }` parsed leniently (unknown names dropped) and read where the two lists were read; `Lore.imagePath` replaces `image`; `PointOfInterest.quest` leaves fragment and model; `Enemy.spells` and `CityShop` unchanged on the wire
-- [ ] **MODEL-02**: `CharacterAssets.ownedPets` parsed as entries `{ pet, xp, currentLifePoints }` (malformed entry dropped), «Compagni» list and «Compagno» slot on the entry's catalogue pet, companion row «Esperienza: N / maxXp», `Pet.attack`/`Pet.defense` instead of `damages` on the companion card (defense shown when not empty), result sheet «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained` when above 0; the catalogue `Pet` no longer carries `xp`/`currentLifePoints`
-- [ ] **MODEL-03**: `wornEquipment` and the `feet` slot replace the old names (fragment, model, `SlotType`, mannequin, equip request); the Journal spells section reads the single `spellStates` list with `active` (known = all, equipped = active, usages and recovery from the same entry), `CharacterStatus.spells` and `CharacterAssets.activeSpells` no longer selected, optimistic rollback adapted; `maxActiveSpells` unchanged
-- [ ] **MODEL-04**: FE-only fixes before the gated plans: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; sweep of the models for the same fragile patterns with a pinned test per fix; schema gate on the merged BE SDL and device E2E (Journal companions, spells and mannequin; a fight with the equipped companion; Map; Library)
+- [x] **MODEL-01**: Enemy, lore and POI follow the cleaned SDL: `Enemy.weaknesses { base, energy }` parsed leniently (unknown names dropped) and read where the two lists were read; `Lore.imagePath` replaces `image`; `PointOfInterest.quest` leaves fragment and model; `Enemy.spells` and `CityShop` unchanged on the wire
+- [x] **MODEL-02**: `CharacterAssets.ownedPets` parsed as entries `{ pet, xp, currentLifePoints }` (malformed entry dropped), «Compagni» list and «Compagno» slot on the entry's catalogue pet, companion row «Esperienza: N / maxXp», `Pet.attack`/`Pet.defense` instead of `damages` on the companion card (defense shown when not empty), result sheet «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained` when above 0; the catalogue `Pet` no longer carries `xp`/`currentLifePoints`
+- [x] **MODEL-03**: `wornEquipment` and the `feet` slot replace the old names (fragment, model, `SlotType`, mannequin, equip request); the Journal spells section reads the single `spellStates` list with `active` (known = all, equipped = active, usages and recovery from the same entry), `CharacterStatus.spells` and `CharacterAssets.activeSpells` no longer selected, optimistic rollback adapted; `maxActiveSpells` unchanged
+- [x] **MODEL-04**: FE-only fixes before the gated plans: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; sweep of the models for the same fragile patterns with a pinned test per fix; schema gate on the merged BE SDL and device E2E (Journal companions, spells and mannequin; a fight with the equipped companion; Map; Library)
 
 ## Future Requirements
 
@@ -54,10 +54,10 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | HEAL-04 | Phase 18 | Complete |
 | HEAL-05 | Phase 18 | Complete |
 | HEAL-06 | Phase 18 | Complete |
-| MODEL-01 | Phase 19 | Pending |
-| MODEL-02 | Phase 19 | Pending |
-| MODEL-03 | Phase 19 | Pending |
-| MODEL-04 | Phase 19 | Pending |
+| MODEL-01 | Phase 19 | Complete |
+| MODEL-02 | Phase 19 | Complete |
+| MODEL-03 | Phase 19 | Complete |
+| MODEL-04 | Phase 19 | Complete |
 
 **Coverage:** 10 / 10 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19). No orphans. No duplicates.
 

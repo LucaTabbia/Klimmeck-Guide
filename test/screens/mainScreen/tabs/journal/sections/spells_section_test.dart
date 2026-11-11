@@ -40,26 +40,27 @@ Character _character({
     '2026-10-27T10:12:00.000Z',
     '2026-10-27T10:42:00.000Z',
   ],
-  bool withSpellStates = true,
 }) => spellbookCharacter(
-  spells: [_spellJson('a'), _spellJson('b')],
-  activeSpells: [
-    activeSpellJson(
-      spellId: 'spell-a',
+  spellStates: [
+    spellStateJson(
       usages: usagesOfA,
+      recoveries: recoveriesOfA,
+      active: true,
       spell: _spellJson('a'),
     ),
+    _fullState(_spellJson('b')),
   ],
-  spellStates: withSpellStates
-      ? [
-          spellStateJson(
-            spellId: 'spell-a',
-            usages: usagesOfA,
-            recoveries: recoveriesOfA,
-          ),
-          spellStateJson(spellId: 'spell-b', usages: 3, recoveries: const []),
-        ]
-      : null,
+);
+
+/// Stato a usi pieni, senza ricariche in corso.
+Map<String, dynamic> _fullState(
+  Map<String, dynamic> spell, {
+  bool active = false,
+}) => spellStateJson(
+  usages: 3,
+  recoveries: const [],
+  active: active,
+  spell: spell,
 );
 
 Finder _row(String letter) => find.byKey(ValueKey('spell-row-spell-$letter'));
@@ -74,9 +75,10 @@ Map<String, dynamic> _untypedSpellJson() =>
 
 /// A attacco, B difesa e attiva, C senza tipo d'uso; due slot.
 Character _mixedUseTypesCharacter() => spellbookCharacter(
-  spells: [_spellJson('a'), _defenseSpellJson(), _untypedSpellJson()],
-  activeSpells: [
-    activeSpellJson(spellId: 'spell-b', usages: 3, spell: _defenseSpellJson()),
+  spellStates: [
+    _fullState(_spellJson('a')),
+    _fullState(_defenseSpellJson(), active: true),
+    _fullState(_untypedSpellJson()),
   ],
 );
 
@@ -192,7 +194,9 @@ void main() {
     testWidgets('no known spells and no slots: no section at all', (
       tester,
     ) async {
-      useCharacter(spellbookCharacter(maxActiveSpells: 0, spells: const []));
+      useCharacter(
+        spellbookCharacter(maxActiveSpells: 0, spellStates: const []),
+      );
       await pumpSection(tester, open: false);
 
       expect(find.text('Magie imparate'), findsNothing);
@@ -221,10 +225,9 @@ void main() {
       expect(slotCard.usages, 1);
     });
 
-    testWidgets('a pre-9.1 payload falls back to «in recupero»', (
-      tester,
-    ) async {
-      useCharacter(_character(withSpellStates: false));
+    testWidgets('a used spell without recovery dates falls back to '
+        '«in recupero»', (tester) async {
+      useCharacter(_character(recoveriesOfA: const []));
       await pumpSection(tester);
 
       expect(
@@ -463,7 +466,12 @@ void main() {
 
       await emitCharacter(
         tester,
-        spellbookCharacter(spells: [_spellJson('a'), _untypedSpellJson()]),
+        spellbookCharacter(
+          spellStates: [
+            _fullState(_spellJson('a')),
+            _fullState(_untypedSpellJson()),
+          ],
+        ),
       );
       await tester.pumpAndSettle();
 

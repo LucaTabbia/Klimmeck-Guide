@@ -1,8 +1,22 @@
 import 'dart:math' show max, min;
 
+import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
 import 'adventurer_slot.dart';
 import 'registered_adventurer.dart';
+
+const List<AdventurerSlot> _soloSlots = [AdventurerSlot(title: null, count: 1)];
+
+/// Una `enemy` la prende un solo giocatore, qualunque posto porti il filo
+/// (quick 261111-enm); il rango minimo lo decide `isTitleEligible`.
+bool isSinglePlayerQuest(QuestType? type) => type == QuestType.enemy;
+
+/// Posti con cui una quest è giudicata (specchio di `questSlotsOf` del BE):
+/// ogni controllo di capienza passa da qui, mai dai posti del filo.
+List<AdventurerSlot> questSlotsOf(
+  QuestType? type,
+  List<AdventurerSlot> wireSlots,
+) => isSinglePlayerQuest(type) ? _soloSlots : wireSlots;
 
 int totalSlots(List<AdventurerSlot> slots) =>
     slots.fold(0, (sum, slot) => sum + slot.count);

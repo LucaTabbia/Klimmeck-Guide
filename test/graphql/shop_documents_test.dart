@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
+import 'package:klimmeck_guide/graphql/fragments/damage_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
@@ -80,12 +81,15 @@ void main() {
     expect(cityShop, isNot(contains('imagePath')));
   });
 
-  test('PetFragment selects id, name, speed, sellable and both prices '
-      '(D-11)', () {
+  test('PetFragment selects id, name, speed, sellable, both prices, maxXp, '
+      'attack, defense and rarity (D-12, D-20)', () {
+    final damages = _collapsed(DamagesFragment.fields);
+
     expect(
       petFields,
       'id name speedModifier sellable '
-      'buyPrice { gold silver copper } sellPrice { gold silver copper }',
+      'buyPrice { gold silver copper } sellPrice { gold silver copper } '
+      'maxXp attack { $damages } defense { $damages } rarity',
     );
   });
 
