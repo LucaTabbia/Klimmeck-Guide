@@ -42,7 +42,7 @@ Out of scope (user decisions of 2026-11-09): merging `ownedEquipments` and `owne
 - **D-18 (Claude):** `OwnedPet.currentLifePoints` selected and parsed, not displayed.
 - **D-19 (Claude):** schema gate with block-anchored checks; `SlotType.feet` is a wire value.
 - Corrections from the research: weaknesses, `PointOfInterest.quest`/`type` and the catalogue pet stats are selected by no FE document («fragments updated» in D-01/D-06 = nothing to update); the spells section widgets do not change (the change is in `Spellbook`, `SpellsCubit._matches`, models, fragment).
-
+- **BE D-25 (user, 2026-11-11):** the BE phase also writes the pet content at DB (`maxXp` and a non-empty `defense` for all 44 pets) after its real boot: at the device E2E every pet shows both «Attacco» (when it has one) and «Difesa»; the «hidden when empty» rule stays as the lenient fallback.
 ### Claude's Discretion
 - Copy of the companion xp lines; whether the companion row shows a small bar or text; fixture reshaping order; whether the spells section refactor lands as one plan or two (model + UI).
 
