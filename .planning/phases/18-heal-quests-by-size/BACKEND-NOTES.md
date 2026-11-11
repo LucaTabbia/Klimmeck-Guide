@@ -71,6 +71,6 @@ BE `develop` `66df2ef2` on the orchestrator's machine, restarted from `develop`,
 - Auto-realignment after a network loss (UAT step 3): after the USB tunnel came back the app had not realigned by itself within about 40 s and was restarted; not reproduced in a controlled way. FE side to investigate (WS reconnection and refetch); the BE is only asked whether the subscriptions need anything on reconnect.
 - Spell draw of `magic` / `study` with `spellDraw`: there is no chance roll — a successful quest always teaches one learnable unknown spell, uniform among the candidates. The user asked what the probability is and has not asked for a change; recorded for awareness.
 - Placeholder combat: the resolver computes the win chance from party power vs enemy life only, current HP not involved (a guard at 1 HP with gear won twice; user: «Ha vinto di nuovo, se non mi sbaglio conta solo la fortuna per vincere al momento»). Known placeholder, recorded for the future combat engine.
-- Board families with the quest types of quick 261110-cgd / 261110-mag were not explicitly confirmed by the user in the UAT (E5); no defect reported.
+- Board families with the quest types of quick 261110-cgd / 261110-mag were confirmed by the user after the UAT record was closed (E5: «E5 pass», 2026-11-11).
 
 Da riportare nella UAT della BE Phase 18 a cura del lato BE (questo repo non modifica il BE).

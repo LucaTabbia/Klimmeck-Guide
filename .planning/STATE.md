@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
-Phase: 18 of 19 (Heal Quests by City Size) — complete 13/13 on `feat/18-heal-quests-by-size`: device E2E 18-13 passed on 2026-11-11 (steps 1–14 pass, optional 15 skipped; extra prison/guard checks pass, E5 not explicitly confirmed)
+Phase: 18 of 19 (Heal Quests by City Size) — complete 13/13 on `feat/18-heal-quests-by-size`: device E2E 18-13 passed on 2026-11-11 (steps 1–14 pass, optional 15 skipped; extra prison/guard and sheet-family checks E1–E6 pass)
 Plan: 13 of 13
 Status: Phase complete — `18-HUMAN-UAT.md` complete, FE `BACKEND-NOTES.md` written; UAT fixes on the branch (Library «Nuovo» on a never-opened book — Phase 17 D-07 amended by the user; pawn labels on one line; flattened magic sheet); full suite 4031 green, analyzer 47 info / 0 warning / 0 error, 46/46 documents OK.
 Last activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E, requirements closed, FE handoff)
@@ -55,7 +55,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **CHAR-06** (client-side NSFW pre-screen) — known gap of v1.0; decide in v1.1 whether to drop it on the server-side moderation (BE Phase 10 + HARDEN-10 codes).
 - **Backend rule F2** (Phase 9 UAT): a started quest whose participant is archived is fought as an occupied seat — honoured by the BE 9.2/10 seat holders; keep an eye on it in the Phase 19 model review.
 - **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
-- **Board families E5** (18-13): quest families per type not explicitly confirmed by the user on the device; no defect reported.
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 

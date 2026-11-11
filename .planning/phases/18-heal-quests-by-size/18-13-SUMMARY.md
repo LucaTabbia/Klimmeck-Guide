@@ -47,7 +47,7 @@ The heal quests by city size are proven on the Android device with a player iden
 | 15 | skipped (optional) | — |
 | E1 | pass after fix (pawn label on one line) | user |
 | E2, E3, E4, E6 | pass (E6: arrest, guard won, guard lost) | user |
-| E5 | not explicitly confirmed by the user; magic sheet asset finding fixed | user |
+| E5 | pass (confirmed by the user after the record: «E5 pass»); magic sheet asset finding fixed | user |
 | extra | `magic` quest: spell learned with enough xp | user |
 
 ## Requirements ticked
@@ -72,7 +72,7 @@ All six are `[x]` and their traceability rows read `Complete`.
 
 None for the HEAL requirements. Open items, recorded in STATE and in the BE notes:
 - **Auto-realignment after a network loss** (step 3): after the network came back, the app did not realign within ~40 s and was restarted. This was not reproduced in a controlled way.
-- **E5 not explicitly confirmed** by the user.
+- **E5** confirmed by the user after the record was written («E5 pass», 2026-11-11).
 - **Pre-existing 22 px overflow** of a narrative sheet in the landscape harness: not exercised in this UAT.
 
 ## Provisional visuals for the user's review
