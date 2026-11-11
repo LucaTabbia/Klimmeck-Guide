@@ -115,6 +115,111 @@ void main() {
     );
   });
 
+  group('companionXpLine', () {
+    test('prints the experience over the catalogue maximum (D-03)', () {
+      expect(companionXpLine(40, 300), 'Esperienza: 40 / 300');
+      expect(companionXpLine(0, 100), 'Esperienza: 0 / 100');
+    });
+
+    test('is null without a maximum (D-03)', () {
+      expect(companionXpLine(40, null), isNull);
+      expect(companionXpLine(40, 0), isNull);
+      expect(companionXpLine(40, -5), isNull);
+    });
+
+    test('prints the served numbers without clamping (D-03)', () {
+      expect(companionXpLine(350, 300), 'Esperienza: 350 / 300');
+    });
+  });
+
+  group('petAttackLine / petDefenseLine', () {
+    Map<String, dynamic> damages({
+      List<Map<String, dynamic>> base = const [],
+      List<Map<String, dynamic>> energy = const [],
+    }) => {'base': base, 'energy': energy};
+
+    test('prints base then energy, lowercase label and power (D-13)', () {
+      final pet = Pet.fromJson(
+        petJson(
+          attack: damages(
+            base: [
+              {'type': 'cut', 'power': 12},
+            ],
+            energy: [
+              {'type': 'fire', 'power': 5},
+            ],
+          ),
+        ),
+      );
+
+      expect(petAttackLine(pet), 'Attacco: tagliente 12, fuoco 5');
+    });
+
+    test('prints the defense in the same format (D-13)', () {
+      final pet = Pet.fromJson(
+        petJson(
+          defense: damages(
+            base: [
+              {'type': 'blunt', 'power': 4},
+            ],
+          ),
+        ),
+      );
+
+      expect(petDefenseLine(pet), 'Difesa: contundente 4');
+    });
+
+    test('keeps the served order inside base and inside energy (D-13)', () {
+      final pet = Pet.fromJson(
+        petJson(
+          attack: damages(
+            base: [
+              {'type': 'pierce', 'power': 3},
+              {'type': 'blunt', 'power': 2},
+            ],
+            energy: [
+              {'type': 'cold', 'power': 1},
+              {'type': 'acid', 'power': 6},
+            ],
+          ),
+        ),
+      );
+
+      expect(
+        petAttackLine(pet),
+        'Attacco: perforante 3, contundente 2, gelo 1, acido 6',
+      );
+    });
+
+    test('is null when the pet has no attack or no defense (D-13)', () {
+      final pet = Pet.fromJson(petJson());
+
+      expect(petAttackLine(pet), isNull);
+      expect(petDefenseLine(pet), isNull);
+    });
+
+    test('is null when both lists are empty (D-13)', () {
+      final pet = Pet.fromJson(petJson(attack: damages(), defense: damages()));
+
+      expect(petAttackLine(pet), isNull);
+      expect(petDefenseLine(pet), isNull);
+    });
+
+    test('an entry without a power prints the label alone (D-13)', () {
+      final pet = Pet.fromJson(
+        petJson(
+          attack: damages(
+            base: [
+              {'type': 'cut'},
+            ],
+          ),
+        ),
+      );
+
+      expect(petAttackLine(pet), 'Attacco: tagliente');
+    });
+  });
+
   group('accessoryUsageLine', () {
     test('a ring for attack reads «Uso: attacco» (D-12)', () {
       expect(
