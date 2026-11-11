@@ -51,6 +51,7 @@ class QuestResult extends Equatable {
     this.arrested = false,
     this.coinsLost,
     this.guardEncounter = false,
+    this.petXpGained = 0,
   });
 
   final String id;
@@ -91,6 +92,10 @@ class QuestResult extends Equatable {
   final int xpBefore;
   final int xpGained;
   final int xpAfter;
+
+  /// PE guadagnati dal compagno al fianco (BE Phase 19, D-03): il guadagno
+  /// effettivo deciso dal backend; assente o illeggibile vale 0.
+  final int petXpGained;
   final int levelBefore;
   final int levelAfter;
 
@@ -163,6 +168,7 @@ class QuestResult extends Equatable {
       xpBefore: (json['xpBefore'] as num).toInt(),
       xpGained: (json['xpGained'] as num).toInt(),
       xpAfter: (json['xpAfter'] as num).toInt(),
+      petXpGained: _nonNegativeInt(json['petXpGained']),
       levelBefore: (json['levelBefore'] as num).toInt(),
       levelAfter: (json['levelAfter'] as num).toInt(),
       titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
@@ -211,6 +217,9 @@ class QuestResult extends Equatable {
 
   static int? _countFrom(Object? json) => json is num ? json.toInt() : null;
 
+  static int _nonNegativeInt(Object? json) =>
+      json is num && json > 0 ? json.toInt() : 0;
+
   static DateTime? _instantFrom(Object? json) =>
       json is String ? DateTime.parse(json).toUtc() : null;
 
@@ -236,6 +245,7 @@ class QuestResult extends Equatable {
     'xpBefore': xpBefore,
     'xpGained': xpGained,
     'xpAfter': xpAfter,
+    'petXpGained': petXpGained,
     'levelBefore': levelBefore,
     'levelAfter': levelAfter,
     'titleBefore': titleBefore?.name,
@@ -280,6 +290,7 @@ class QuestResult extends Equatable {
     xpBefore,
     xpGained,
     xpAfter,
+    petXpGained,
     levelBefore,
     levelAfter,
     titleBefore,
