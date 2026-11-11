@@ -75,9 +75,7 @@ class CharacterStatus extends Equatable {
         currentLifePoints: json["currentLifePoints"]?.toInt(),
         maxLifePoints: json["maxLifePoints"]?.toInt(),
         level: json["level"]?.toInt(),
-        title: json['title'] != null
-            ? TitleType.values.byName(json['title'])
-            : null,
+        title: TitleType.values.asNameMap()[json['title']],
         maxActiveSpells: json['maxActiveSpells']?.toInt(),
         activeTravel: ActiveTravel.tryFromJson(json['activeTravel']),
         spellStates: _spellStatesFrom(json['spellStates']),
