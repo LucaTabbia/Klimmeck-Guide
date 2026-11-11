@@ -13,10 +13,10 @@ class PawnLabel extends StatelessWidget {
   const PawnLabel({super.key, required this.text});
 
   /// Ingombro del marker che ospita l'etichetta sulla mappa.
-  static const double markerWidth = 160;
+  static const double markerWidth = 260;
   static const double markerHeight = 72;
 
-  static const int _maxLines = 2;
+  static const double _fontSize = 12;
   static const double _minFontSize = 8;
 
   final String text;
@@ -36,11 +36,11 @@ class PawnLabel extends StatelessWidget {
           ),
           child: AutoSizeText(
             text,
-            maxLines: _maxLines,
+            maxLines: 1,
             minFontSize: _minFontSize,
-            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: KlimmeckGuideTheme.darkWood,
+              fontSize: _fontSize,
             ),
           ),
         ),
