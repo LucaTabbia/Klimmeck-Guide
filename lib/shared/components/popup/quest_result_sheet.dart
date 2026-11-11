@@ -54,6 +54,7 @@ class QuestResultSheet extends StatefulWidget {
   static const Key rewardsKey = ValueKey('questResult.rewards');
   static const Key petRewardKey = ValueKey('questResult.petReward');
   static const Key xpKey = ValueKey('questResult.xp');
+  static const Key companionXpKey = ValueKey('questResult.companionXp');
   static const Key levelKey = ValueKey('questResult.level');
   static const Key titleKey = ValueKey('questResult.title');
   static const Key spellLearnedKey = ValueKey('questResult.spellLearned');
@@ -185,6 +186,10 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._spells(),
         ..._rewards(),
         ..._line(_xpText(), QuestResultSheet.xpKey),
+        ..._line(
+          companionXpGainedLine(_result.petXpGained),
+          QuestResultSheet.companionXpKey,
+        ),
         ..._line(_levelText(), QuestResultSheet.levelKey),
         ..._line(_titleText(), QuestResultSheet.titleKey),
         ..._line(_spellLearnedText(), QuestResultSheet.spellLearnedKey),
