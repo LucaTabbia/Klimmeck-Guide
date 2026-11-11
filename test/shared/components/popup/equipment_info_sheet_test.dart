@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/popup/equipment_info_sheet.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
@@ -15,6 +16,14 @@ final _helm = EquipmentItem.fromJson(const {
   'name': 'Elmo di ferro',
   'equipType': 'helm',
   'rarity': 'common',
+  'damages': {'base': [], 'energy': []},
+});
+
+final _helmWithoutRarity = EquipmentItem.fromJson(const {
+  'id': 'item-2',
+  'name': 'Elmo senza rango',
+  'equipType': 'helm',
+  'rarity': null,
   'damages': {'base': [], 'energy': []},
 });
 
@@ -174,5 +183,14 @@ void main() {
       expect(find.byKey(EquipmentInfoSheet.usageKey), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('a null rarity falls back to the default ink (D-16)', (
+    tester,
+  ) async {
+    await _pump(tester, item: _helmWithoutRarity);
+
+    final name = tester.widget<Text>(find.text('Elmo senza rango'));
+    expect(name.style?.color, KlimmeckGuideTheme.deepNight);
   });
 }

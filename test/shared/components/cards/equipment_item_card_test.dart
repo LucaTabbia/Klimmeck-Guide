@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
 import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -17,8 +18,17 @@ final _helm = EquipmentItem.fromJson(const {
   'damages': {'base': [], 'energy': []},
 });
 
+final _helmWithoutRarity = EquipmentItem.fromJson(const {
+  'id': 'item-2',
+  'name': 'Elmo senza rango',
+  'equipType': 'helm',
+  'rarity': null,
+  'damages': {'base': [], 'energy': []},
+});
+
 Future<void> _pump(
   WidgetTester tester, {
+  EquipmentItem? item,
   bool? isSelected,
   int? quantity,
 }) async {
@@ -27,7 +37,7 @@ Future<void> _pump(
       home: Scaffold(
         body: Center(
           child: EquipmentItemCard(
-            equipmentItem: _helm,
+            equipmentItem: item ?? _helm,
             size: 120,
             isSelected: isSelected,
             quantity: quantity,
@@ -83,5 +93,14 @@ void main() {
       find.byType(UsagesPencilCounter),
     );
     expect(counter.value, 2);
+  });
+
+  testWidgets('a null rarity falls back to the default ink (D-16)', (
+    tester,
+  ) async {
+    await _pump(tester, item: _helmWithoutRarity);
+
+    final name = tester.widget<Text>(find.text('Elmo senza rango'));
+    expect(name.style?.color, KlimmeckGuideTheme.deepNight);
   });
 }
