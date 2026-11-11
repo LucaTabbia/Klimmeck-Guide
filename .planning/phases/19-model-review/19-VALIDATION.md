@@ -54,8 +54,8 @@ created: 2026-11-11
 | 19-05-01 | 05 | 5 | MODEL-02 | T-19-17, T-19-18 | lines print served numbers, no clamp, no arithmetic | unit | `flutter test test/utils/item_lines_test.dart` | ✅ (add groups) | ✅ green |
 | 19-05-02 | 05 | 5 | MODEL-02 | T-19-17, T-19-19 | experience as text, hidden without a maximum; life shown nowhere | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ (add group) | ✅ green |
 | 19-05-03 | 05 | 5 | MODEL-02 | T-19-18, T-19-20, T-19-56 | attack / defense hidden when empty; rarity = name in `RarityType.color` as on the item cards, unchanged without rarity (D-20); no overflow; copy only in the helpers | widget | `flutter test test/shared/components test/screens/mainScreen/tabs/shop test/screens/mainScreen/tabs/journal` | ✅ (add groups) | ✅ green |
-| 19-06-01 | 06 | 6 | MODEL-02 | T-19-21, T-19-22, T-19-23 | `petXpGained` lenient → 0; no share computed | unit | `flutter test test/models/quest_result test/utils` | ✅ (add groups) | ⬜ pending |
-| 19-06-02 | 06 | 6 | MODEL-02 | T-19-21 | companion line after the xp line, hidden at 0 | widget | `flutter test test/shared/components/popup test/screens/mainScreen/main_screen_quest_results_test.dart` | ✅ (add group) | ⬜ pending |
+| 19-06-01 | 06 | 6 | MODEL-02 | T-19-21, T-19-22, T-19-23 | `petXpGained` lenient → 0; no share computed | unit | `flutter test test/models/quest_result test/utils` | ✅ (add groups) | ✅ green |
+| 19-06-02 | 06 | 6 | MODEL-02 | T-19-21 | companion line after the xp line, hidden at 0 | widget | `flutter test test/shared/components/popup test/screens/mainScreen/main_screen_quest_results_test.dart` | ✅ (add group) | ✅ green |
 | 19-07-01 | 07 | 7 | MODEL-03 | T-19-24, T-19-26 | `active` read from the entry; malformed state dropped; non-null list | unit | `flutter test test/models test/screens/mainScreen/tabs/journal test/screens/innkeeper` | ✅ (rewrite groups) | ⬜ pending |
 | 19-07-02 | 07 | 7 | MODEL-03 | T-19-25, T-19-27 | window reader pure, never throws, not wired | unit | `flutter test test/models` | ❌ W0 (`legacy_spell_states_test.dart`, deleted in 19-11) | ⬜ pending |
 | 19-08-01 | 08 | 8 | MODEL-03 | T-19-28, T-19-29, T-19-30, T-19-31, T-19-32 | view and cubit on the single list; one order rule; window reader wired once; fixtures untouched | unit + cubit + widget | `flutter test test/models test/screens/mainScreen/tabs/journal test/screens/mainScreen/components test/screens/innkeeper test/graphql/character_fragment_test.dart` | ❌ W0 (`character_test.dart`) / ✅ (add group) | ⬜ pending |
@@ -85,7 +85,7 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 - [x] `test/models/damages_test.dart`, `test/models/spell_test.dart` — MODEL-04 (19-02)
 - [x] `test/models/asset_quantity_test.dart`, `test/models/equipment_test.dart`, `test/repository/services/graphql/graphql_get_cities_test.dart` — MODEL-04 (19-03)
 - [x] `test/models/owned_pet_test.dart`; `ownedPetJson` and the `maxXp` / `attack` / `defense` parameters of `petJson` in `test/helpers/fixtures/shop_fixtures.dart` — MODEL-02 (19-04)
-- [ ] `petXpGained` in `questResultJson` (`test/helpers/fixtures/quest_result_fixtures.dart`) — MODEL-02 (19-06)
+- [x] `petXpGained` in `questResultJson` (`test/helpers/fixtures/quest_result_fixtures.dart`) — MODEL-02 (19-06)
 - [ ] `active` / `spell` parameters of `spellStateJson`; `test/models/character/legacy_spell_states_test.dart` (window, deleted in 19-11) — MODEL-03 (19-07)
 - [ ] `test/models/character/character_test.dart` — MODEL-03 (19-08)
 - [ ] single-list `spellbookCharacterJson` / `spellbookCharacter` in `test/helpers/fixtures/spell_fixtures.dart` and its callers — MODEL-03 (19-09)
