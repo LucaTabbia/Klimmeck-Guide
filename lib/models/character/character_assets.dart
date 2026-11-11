@@ -25,16 +25,8 @@ class CharacterAssets extends Equatable {
 
   factory CharacterAssets.fromJson(Map<String, dynamic> json) =>
       CharacterAssets(
-        ownedEquipments: json['ownedEquipments'] != null
-            ? List<AssetQuantity>.from(
-                json['ownedEquipments'].map((x) => AssetQuantity.fromJson(x)),
-              )
-            : [],
-        ownedItems: json['ownedItems'] != null
-            ? List<AssetQuantity>.from(
-                json['ownedItems'].map((x) => AssetQuantity.fromJson(x)),
-              )
-            : [],
+        ownedEquipments: _entriesFrom(json['ownedEquipments']),
+        ownedItems: _entriesFrom(json['ownedItems']),
         activeSpells: json['activeSpells'] != null
             ? List<ActiveSpell>.from(
                 json['activeSpells'].map((x) => ActiveSpell.fromJson(x)),
@@ -52,6 +44,10 @@ class CharacterAssets extends Equatable {
               )
             : const [],
       );
+
+  static List<AssetQuantity> _entriesFrom(Object? json) => json is List
+      ? List<AssetQuantity>.from(json.map(AssetQuantity.tryFromJson).nonNulls)
+      : <AssetQuantity>[];
 
   Map<String, dynamic> toJson() => {
     "ownedEquipments": ownedEquipments?.map((e) => e.toJson()).toList(),

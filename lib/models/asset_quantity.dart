@@ -13,6 +13,17 @@ class AssetQuantity extends Equatable {
         : null,
   );
 
+  /// Confine di parsing (D-16): una voce il cui oggetto non si legge vale
+  /// `null` e viene scartata dalla lista; il personaggio e il negozio restano.
+  static AssetQuantity? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    try {
+      return AssetQuantity.fromJson(json);
+    } on Object {
+      return null;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "item": item?.toJson(),
     "quantity": quantity,

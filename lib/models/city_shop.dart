@@ -22,9 +22,7 @@ class CityShop extends Equatable {
       equipment: _assets(json['equipment']),
       loot: _assets(json['loot']),
       pets: List<Pet>.unmodifiable(
-        ((json['pets'] as List?) ?? const []).map(
-          (x) => Pet.fromJson(x as Map<String, dynamic>),
-        ),
+        _entries(json['pets']).map(Pet.tryFromJson).nonNulls,
       ),
     );
   }
@@ -36,10 +34,11 @@ class CityShop extends Equatable {
 
   static List<AssetQuantity> _assets(Object? raw) =>
       List<AssetQuantity>.unmodifiable(
-        ((raw as List?) ?? const []).map(
-          (x) => AssetQuantity.fromJson(x as Map<String, dynamic>),
-        ),
+        _entries(raw).map(AssetQuantity.tryFromJson).nonNulls,
       );
+
+  static List<Object?> _entries(Object? raw) =>
+      raw is List ? raw : const <Object?>[];
 
   @override
   List<Object?> get props => [cityId, equipment, loot, pets];
