@@ -1,39 +1,39 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Core Loop
-status: completed
-last_updated: "2026-11-10T01:30:00.000Z"
-last_activity: 2026-11-10 -- v1.0 Core Loop milestone completed and archived (17/17 phases, 180/180 plans)
+milestone: v1.1
+milestone_name: Healing & Models
+status: planning
+last_updated: "2026-11-10T12:00:00.000Z"
+last_activity: 2026-11-10 -- Milestone v1.1 Healing & Models started
 progress:
-  total_phases: 17
-  completed_phases: 17
-  total_plans: 180
-  completed_plans: 180
-  percent: 100
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-11-10 after the v1.0 milestone)
+See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Planning the next milestone (v1.1) with `/gsd-new-milestone`
+**Current focus:** Phase 18 — Heal Quests by City Size (context gathered, ready to plan; ↔ BE Phase 18)
 
 ## Current Position
 
-Milestone: **v1.0 Core Loop — SHIPPED 2026-11-10** (archive: `milestones/v1.0-ROADMAP.md`, `milestones/v1.0-REQUIREMENTS.md`; summary: `MILESTONES.md`; retrospective: `RETROSPECTIVE.md`)
-Phase: none active — all 17 phases complete (last: Phase 12 Hardening, device E2E approved 2026-11-10, FE PR #45 merged on `develop` `8d8cc34`)
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
+Phase: 18 of 19 (Heal Quests by City Size) — context gathered on 2026-11-09 (`18-CONTEXT.md` D-01..D-16), ready to plan
 Plan: —
-Status: v1.0 milestone complete — close recorded on `docs/v1-milestone-close` (PR → `develop`); tag `v1.0` to be created on the `develop` merge commit after the PR merge
-Last activity: 2026-11-10 -- v1.0 milestone completed and archived
-Next step: `/gsd-new-milestone` (v1.1). Candidates already discussed: Phase 18 Heal quests by size (+ journal potions, `feat/18-heal-quests-by-size`, ↔ BE 18), Phase 19 Model review (`feat/19-model-review`, ↔ BE 19), BE Phase 20 progressive food and life (BE only). Those branches carry their own edits of `ROADMAP.md`, `REQUIREMENTS.md` and `STATE.md` from before the close and must be rebased: their phase sections go under the v1.1 milestone of the new roadmap, `REQUIREMENTS.md` is recreated by the new milestone.
+Status: Ready to plan
+Last activity: 2026-11-10 -- Milestone v1.1 started (requirements and roadmap defined, phase contexts of 18 and 19 carried over from their discuss branches)
+Next step: `/gsd-plan-phase 18` jointly with the BE Phase 18, on `feat/18-heal-quests-by-size` recreated from `develop` once `docs/v1.1-milestone-start` is merged (the old discuss branches `feat/18-heal-quests-by-size` and `feat/19-model-review` are superseded: their contexts are on this branch, their edits of ROADMAP/REQUIREMENTS/STATE are replaced by the v1.1 files).
 
 ## Current Milestone
 
-None — v1.0 Core Loop shipped. The companion BE milestone v1.0 (21 phases, 261 plans) closed the same day on BE `develop` `9973fcb1`.
+v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..05, ↔ BE 18) → Phase 19 Model Review companion (MODEL-01..04, ↔ BE 19). Companion BE milestone v1.1 «Cura e modelli» (BE Phases 18–20; BE 20 has no FE phase). Research skipped at the milestone start (phases already discussed); per-phase research stays in plan-phase.
 
 ## Accumulated Context
 
@@ -48,6 +48,7 @@ None — v1.0 Core Loop shipped. The companion BE milestone v1.0 (21 phases, 261
 
 - v1.0 Core Loop: 12 phases from the brief (Auth split into Phase 1 stub + Phase 11 real, Settings/Notifications split), extended on 2026-10-29 with Phases 13–17 mirroring BE 11–16, executed 1 → 11 → 2 … 10 → 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Details in `milestones/v1.0-ROADMAP.md`.
 - 2026-11-10: milestone archived; `REQUIREMENTS.md` removed (recreated by `/gsd-new-milestone`).
+- 2026-11-10: milestone v1.1 Healing & Models started with Phases 18–19 (scope confirmed by the user: only the phases discussed on 2026-11-09); `REQUIREMENTS.md` recreated with HEAL-01..05 and MODEL-01..04.
 
 ## Open Questions / Blockers
 
@@ -76,6 +77,6 @@ None — v1.0 Core Loop shipped. The companion BE milestone v1.0 (21 phases, 261
 
 ## Session Continuity
 
-Last session: 2026-11-10 — v1.0 milestone close (FE then BE)
-Stopped at: milestone archived; PR `docs/v1-milestone-close` → `develop` to merge, then tag `v1.0`
-Resume file: .planning/MILESTONES.md
+Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
+Stopped at: milestone initialized on `docs/v1.1-milestone-start` (PR → `develop`); next: plan Phase 18 with the BE Phase 18
+Resume file: .planning/phases/18-heal-quests-by-size/18-CONTEXT.md

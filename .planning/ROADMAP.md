@@ -1,13 +1,13 @@
 # Roadmap: Klimmeck Guide
 
 **Created:** 2026-04-10
-**Last updated:** 2026-11-10 — v1.0 Core Loop shipped and archived to `milestones/v1.0-ROADMAP.md`
-**Milestone:** none active — v1.1 to be defined with `/gsd-new-milestone`
+**Last updated:** 2026-11-10 — milestone v1.1 Healing & Models started (Phases 18–19); v1.0 Core Loop archived in `milestones/v1.0-ROADMAP.md`
+**Milestone:** v1.1 Healing & Models — Phases 18–19 (companion of the BE milestone v1.1 «Cura e modelli», BE Phases 18–20)
 
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 📋 **v1.1** — to be defined. Candidates already discussed on branches: Phase 18 Heal quests by size (+ journal potions with a global recovery) on `feat/18-heal-quests-by-size` ↔ BE Phase 18; Phase 19 Model review on `feat/19-model-review` ↔ BE Phase 19; BE Phase 20 progressive food and life (BE only). Those branches edit this file, `REQUIREMENTS.md` and `STATE.md` and need a rebase on the v1.0 close.
+- 🚧 **v1.1 Healing & Models** — Phases 18–19 (started 2026-11-10) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -36,9 +36,45 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 </details>
 
-### 📋 v1.1 (to be defined)
+### 🚧 v1.1 Healing & Models (Phases 18–19)
 
-Phases 18+ are added here by `/gsd-new-milestone`; numbering continues from 18 (never restarts). Phase 18 and 19 contexts already exist on their branches (see Milestones above).
+**Milestone goal:** the heal quests cure by the size of the city and the heal potions are drunk from the Journal with the backend's global recovery; the app follows the cleaned backend models, with the companion experience as the only visible change. Numbering continues from 18 (never restarts).
+
+- [ ] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_
+- [ ] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_
+
+**Execution order:** 18 → 19. Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
+
+## Phase Details
+
+### Phase 18: Heal Quests by City Size
+**Goal**: Heal quests stop being all alike. The backend owns the cure as an explicit prize of the quest (`prizes.cure { lifePointsShare, canHeal }`: a ceiling on the maximum HP and the list of injuries healed, applied to every won quest that carries it) and the content by city size (village ≤20 / city ≤40 / capital all, lore touches by city type, 2 / 5 / 8 hours, descriptions by size, free). The frontend consumes the field: on the sheet of a quest with a cure it shows only the current character's injuries that the quest heals plus the life row, on the result sheet the injuries actually healed; it computes no game rule (the intersection with the character's injuries is display filtering). In the same phase the heal potions are drunk from the Journal with the backend's global recovery (`LootItem.recovery { time, turns }`, `CharacterStatus.potionRecoveryUntil`, `useItem` → `UseItemResult`), shown as a countdown and a «Ricarica: …» line, and the first potion unlocks the lore «Il limite del corpo» shown by the Library as any new page.
+**Depends on**: Phase 6 (per-type sheets), Phase 9 (result parchment, HP delta, injuries line), Phase 14 (description on the sheet), quick tasks 261109-inj/inj2 (`canHeal` item line, 37 `InjuryType`, tolerant parsing), BE Phase 18 (`QuestPrizes.cure`, `QuestResult.injuriesHealed`, content at DB); **executes after Phase 12 Hardening** (user decision 2026-11-09)
+**Scope**: M
+**Requirements**: HEAL-01, HEAL-02, HEAL-03, HEAL-04, HEAL-05
+**Success Criteria** (what must be TRUE):
+  1. `QuestPrizes.cure` (`lifePointsShare`, `canHeal`) is parsed leniently into the quest model from the shared fragment (unknown injuries dropped, malformed cure → null, the quest stays); on the sheet of any quest with a non-null cure the cure line lists only the current character's injuries present in `canHeal` (lowercase Italian labels, character order) and is absent when none matches; the life row «Vita: almeno il N%» is shown whenever the cure is present (share 1 → «al massimo», share 0 → hidden); a heal without a cure shows neither row.
+  2. The result sheet shows «Guarite: <labels>» from `QuestResult.injuriesHealed` (lenient) after the HP delta and before the injuries added, hidden when empty.
+  3. Device UAT with the player identity after the BE Phase 18 merge and the content write: seeded injuries on the test character, one heal per size (village: one listed and one unlisted injury → one healed, HP to 50%, «Guarite» line; city; capital: everything healed, HP full); the schema gate confirms the names on the merged BE SDL.
+  4. In the Journal «Oggetti» section a heal parchment with a `recovery` is tappable: an in-world confirmation («Bevi <nome>?») calls `useItem`; on success the HP gain animates, «Guarite: …» lists the injuries healed and «Nuova pagina delle Conoscenze: …» appears when `loreUnlocked` is not empty, the state arrives from the character stream; refusals are notices with the backend's remaining time for `POTION_RECOVERING`; the action is available in travel and hidden while awaiting aid; nothing on the FE touches combat.
+  5. While `CharacterStatus.potionRecoveryUntil` is in the future every heal parchment is disabled with a countdown «pronta fra …» from the server date; item rows in the shop and the Journal show «Ricarica: …» from `recovery.time` (`turns` not shown); `LootRecovery` and `potionRecoveryUntil` are parsed leniently; the device E2E drinks a field herb, sees the countdown and the lore line, and gets the `POTION_RECOVERING` notice on a second potion.
+**Decisions of the discuss (2026-11-09, `18-CONTEXT.md` D-01..D-10)**: HP and injuries separated with explicit lists per place (user); ceiling 50/80/100; lists ≤20/≤40/all with lore touches; hours 2/5/8; sheet with only the viewer's curable injuries, no count, no line when none (user, confirmed); life row always; «Guarite: …» on the result; executed after Phase 12; travel food deferred (user). **Amended the same evening (D-11..D-16)**: Journal potions with the global recovery (`recovery { time, turns }`, 30 min–24 h, `turns` data only), confirmation + feedback + countdown, «Ricarica: …» rows, lore «Il limite del corpo» through the Phase 17 Library flow.
+**Backend prerequisite**: BE Phase 18 merged on BE `develop` (itself after the BE Phase 17).
+**Plans**: TBD
+
+### Phase 19: Model Review (frontend companion)
+**Goal**: The frontend consumes the cleaned backend models without changing what the player sees, except the companion xp decided by the user: owned companions carry `xp` and `currentLifePoints` on the character, the companion row shows the experience and the result sheet says how much the companion gained (10 % of the enemies' xp, capped at the catalogue `maxXp`, backend-owned). Shape changes consumed: `Enemy.weaknesses { base, energy }`, `Pet.attack`/`Pet.defense` instead of `damages`, `ownedPets` entries, `wornEquipment` with `feet`, one `spellStates` list with `active` (the Journal spells section reads known = all, equipped = active), `PointOfInterest.quest` removed, `Lore.imagePath`. FE-only: fragile parsers fixed with tests.
+**Depends on**: Phase 8 (spells section), Phase 9 (result sheet), Phase 13 (companions), Phase 14 (non-additive contract pattern), Phase 18 (same branch, executed before), BE Phase 19 (SDL + migrator + handoff table)
+**Scope**: M
+**Requirements**: MODEL-01, MODEL-02, MODEL-03, MODEL-04
+**Success Criteria** (what must be TRUE):
+  1. Enemy, lore and POI models and fragments follow the new SDL: `weaknesses` parsed leniently into `{ base, energy }`, `Lore.imagePath` read everywhere, `PointOfInterest.quest` gone; the Map and the Library behave as before.
+  2. `CharacterAssets.ownedPets` is parsed as entries (`pet`, `xp`, `currentLifePoints`; malformed entry dropped); the «Compagni» list and the «Compagno» slot work on the entry's catalogue pet; the owned companion row shows «Esperienza: N / maxXp»; `Pet.attack`/`Pet.defense` replace `damages` on the companion card; the result sheet shows «Il tuo compagno guadagna N PE» when `petXpGained` > 0.
+  3. `wornEquipment` and the `feet` slot replace the old names in fragment, model, enum and mannequin; the Journal spells section reads the single `spellStates` list (`active` = equipped) with usages and recovery from the same entry, `CharacterStatus.spells` and `CharacterAssets.activeSpells` no longer selected; equip/unequip optimistic rollback adapted; `maxActiveSpells` unchanged.
+  4. FE-only: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; the sweep of the models for the same fragile patterns lands with a pinned test per fix; the schema gate and the device E2E after the BE Phase 19 merge pass (Journal companions, spells, mannequin; a fight with the equipped companion; Map; Library).
+**Decisions of the discuss (2026-11-09, `19-CONTEXT.md` D-01..D-12)**: as above; out of scope the single inventory list, spell `damages`/`requiredLearnTime` (separate session), combat rules.
+**Backend prerequisite**: BE Phase 19 merged on BE `develop` (after the BE Phase 18).
+**Plans**: TBD
 
 ## Progress
 
@@ -61,7 +97,9 @@ Phases 18+ are added here by `/gsd-new-milestone`; numbering continues from 18 (
 | 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
+| 18. Heal Quests by City Size | v1.1 | 0/0 | Not started | - |
+| 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
 
-_Roadmap created: 2026-04-10_ · _v1.0 Core Loop archived: 2026-11-10_
+_Roadmap created: 2026-04-10_ · _v1.0 Core Loop archived: 2026-11-10_ · _v1.1 Healing & Models started: 2026-11-10_

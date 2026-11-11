@@ -18,13 +18,17 @@ _Confermato alla chiusura della v1.0 (2026-11-10): il loop regge sul device senz
 - **Release:** entry point di produzione `lib/main.dart` senza bypass dev (`lib/main_dev.dart` + `--flavor dev` per lo sviluppo), bundle senza `.env`, firma con keystore fuori VCS, solo TLS, log spenti; esercitata su Samsung + emulatore con il login Twitch reale attraverso un tunnel TLS.
 - **Backend companion:** milestone BE v1.0 chiusa lo stesso giorno (21 fasi, 261 piani, `develop` `9973fcb1`).
 
-## Next Milestone: v1.1 (da definire con `/gsd-new-milestone`)
+## Current Milestone: v1.1 Healing & Models
 
-Candidati già discussi su branch (i branch toccano `ROADMAP.md`, `REQUIREMENTS.md` e `STATE.md` e vanno ribasati sulla chiusura):
+**Goal:** le quest di cura smettono di essere tutte uguali e le pozioni si bevono dal Diario, mentre l'app segue i modelli ripuliti del backend senza cambiare ciò che il giocatore vede, tranne l'esperienza del compagno.
 
-- **Phase 18 — Heal quests by size** (`feat/18-heal-quests-by-size` ↔ BE Phase 18): quest di cura per taglia di città (tetto HP 50/80/100, liste di ferite ≤20/≤40/tutte, 2/5/8 ore, gratuite; a Necrorian solo enemy/boss/dungeon), pozioni dal Diario con ricarica globale `recovery { time, turns }` e lore «Il limite del corpo».
-- **Phase 19 — Model review** (`feat/19-model-review` ↔ BE Phase 19): weaknesses, magie per ref, pet con stato sul personaggio e 10 % xp al compagno, attack/defense piatti, una sola lista di magie, `City.shop`, `Lore.imagePath`.
-- **BE Phase 20 — Cibo e vita progressivi** (solo BE): piano salvato alla partenza, vita incrementale allo sweep, cibo a blocchi.
+**Target features:**
+
+- **Phase 18 — Heal quests by size** (↔ BE Phase 18): foglio della quest con le sole ferite del personaggio che la quest cura e la riga della vita («Vita: almeno il N%»), «Guarite: …» sul foglio esito; pozioni bevute dal Diario con conferma in-world, ricarica globale del backend (conto alla rovescia «pronta fra …», riga «Ricarica: …») e lore «Il limite del corpo».
+- **Phase 19 — Model review** (↔ BE Phase 19): `Enemy.weaknesses`, compagni posseduti con esperienza e «Il tuo compagno guadagna N PE», `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, una sola lista di magie con `active`, via `PointOfInterest.quest`, `Lore.imagePath`, parser fragili sistemati.
+- La BE Phase 20 (cibo e vita progressivi in viaggio) non ha una fase FE: nessun cambio sul filo.
+
+**Scope (decisione dell'utente, 2026-11-10):** solo le fasi già discusse il 2026-11-09; il resto del backlog resta dopo la v1.1. Requisiti in `.planning/REQUIREMENTS.md` (HEAL-01..05, MODEL-01..04), fasi in `.planning/ROADMAP.md`.
 
 ## Requirements
 
@@ -50,13 +54,16 @@ Candidati già discussi su branch (i branch toccano `ROADMAP.md`, `REQUIREMENTS.
 
 ### Active
 
-**Post v1.0 (candidati v1.1, da confermare nel `/gsd-new-milestone`):**
+**v1.1 Healing & Models (in corso):**
 
-- [ ] Quest di cura per taglia e pozioni dal Diario con ricarica globale (Phase 18 ↔ BE 18, contesto su `feat/18-heal-quests-by-size`)
-- [ ] Revisione dei modelli condivisa FE/BE (Phase 19 ↔ BE 19, contesto su `feat/19-model-review`)
+- [ ] Quest di cura per taglia e pozioni dal Diario con ricarica globale — HEAL-01..05 (Phase 18 ↔ BE 18)
+- [ ] Companion della revisione dei modelli: debolezze, compagni con esperienza, `attack`/`defense` dei pet, equipaggiamento indossato, una sola lista di magie, parser fragili — MODEL-01..04 (Phase 19 ↔ BE 19)
+
+**Backlog (dopo la v1.1):**
+
 - [ ] CHAR-06: decidere se mantenere il pre-screen NSFW lato client o chiudere il requisito sulla moderazione server-side
 - [ ] «Esci da tutti i dispositivi» (voce Impostazioni + mutation BE che revoca ogni sessione)
-- [ ] UI pet/cavalcature come modificatori di velocità (FUT-02; il BE già applica `Pet.speedModifier`)
+- [ ] Live share della posizione con altri giocatori: le pedine degli altri sulla Mappa in stanze (circa 50 per stanza), con la possibilità di creare una stanza propria (FUT-05)
 - [ ] Log round-per-round degli esiti di combattimento (FUT-01)
 - [ ] iOS: push APNs, firma e pubblicazione sugli store
 - [ ] Pass di accessibilità (FUT-04)
@@ -169,4 +176,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-11-10 after v1.0 Core Loop milestone (17 phases shipped; full review of What This Is, Core Value, requirements, Out of Scope, Context and Key Decisions; previous footer history in `milestones/v1.0-ROADMAP.md` and git)_
+_Last updated: 2026-11-10 — milestone v1.1 Healing & Models started (Phases 18–19; scope: only the phases discussed on 2026-11-09)_
