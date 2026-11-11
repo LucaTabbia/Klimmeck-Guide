@@ -191,7 +191,7 @@ void main() {
     });
 
     testWidgets(
-      'shows neither line for a pet as the BE of today serves it (D-15)',
+      'shows neither line when the wire carries no attack, defense, maxXp or rarity (lenient)',
       (tester) async {
         await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
