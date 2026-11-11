@@ -5,7 +5,7 @@ import 'package:klimmeck_guide/models/pet.dart';
 import '../../helpers/fixtures/shop_fixtures.dart';
 import '../../helpers/fixtures/spell_fixtures.dart';
 
-/// Chiave della lista che la BE di oggi serve ancora negli assets.
+/// Chiave della lista di magie equipaggiate prima della BE Phase 19.
 const _equippedListKey =
     'active'
     'Spells';
