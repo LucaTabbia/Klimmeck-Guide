@@ -1,9 +1,9 @@
 ---
 phase: 19
 slug: model-review
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-11
 ---
 
@@ -67,8 +67,8 @@ created: 2026-11-11
 | 19-11-01 | 11 | 11 | MODEL-02, MODEL-03 | T-19-40, T-19-41, T-19-43 | selections flipped after the gate (incl. `rarity` in `PetFragment`, D-20); 46 × OK; nothing beyond the contract | unit + gate | `flutter test test/graphql test/tool test/models test/repository` + `dump_documents.dart` / `validate_documents.js` | ✅ (pins of RESEARCH §F11) | ✅ green |
 | 19-11-02 | 11 | 11 | MODEL-02 | T-19-42 | a bare pet map is dropped (window branch deleted RED-first) | unit | `flutter test test/models test/graphql test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop test/screens/mainScreen/components` | ✅ | ✅ green |
 | 19-11-03 | 11 | 11 | MODEL-03 | T-19-42 | no legacy spell translation; leftover-name grep empty | unit + grep | `flutter test test/models test/graphql test/tool test/screens/mainScreen/tabs/journal test/screens/mainScreen/components test/screens/innkeeper` | ✅ | ✅ green |
-| 19-12-01 | 12 | 12 | MODEL-04 | T-19-45, T-19-46, T-19-47, T-19-48 | gate, 46 × OK, leftover and product-rule greps empty | gate | gate re-check + schema check + greps (`LEFTOVER_OK`) | ✅ | ⬜ pending |
-| 19-12-02 | 12 | 12 | MODEL-01..04 | T-19-49 | full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ⬜ pending |
+| 19-12-01 | 12 | 12 | MODEL-04 | T-19-45, T-19-46, T-19-47, T-19-48 | gate, 46 × OK, leftover and product-rule greps empty | gate | gate re-check + schema check + greps (`LEFTOVER_OK`) | ✅ | ✅ green |
+| 19-12-02 | 12 | 12 | MODEL-01..04 | T-19-49 | full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ✅ green |
 | 19-13-01 | 13 | 13 | MODEL-04 | T-19-50, T-19-52 | no ids, tokens or URIs in the record; gate re-checked | docs | `test -f .planning/phases/19-model-review/19-HUMAN-UAT.md` + row count 14 | ❌ (created by the task) | ⬜ pending |
 | 19-13-02 | 13 | 13 | MODEL-01..04 | T-19-53 | seeds outside the repo; outcomes only | manual (device checkpoint) | `19-HUMAN-UAT.md` steps 1–14 | — | ⬜ pending |
 | 19-13-03 | 13 | 13 | MODEL-01..04 | T-19-50, T-19-51 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ⬜ pending |
@@ -86,10 +86,10 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 - [x] `test/models/asset_quantity_test.dart`, `test/models/equipment_test.dart`, `test/repository/services/graphql/graphql_get_cities_test.dart` — MODEL-04 (19-03)
 - [x] `test/models/owned_pet_test.dart`; `ownedPetJson` and the `maxXp` / `attack` / `defense` parameters of `petJson` in `test/helpers/fixtures/shop_fixtures.dart` — MODEL-02 (19-04)
 - [x] `petXpGained` in `questResultJson` (`test/helpers/fixtures/quest_result_fixtures.dart`) — MODEL-02 (19-06)
-- [ ] `active` / `spell` parameters of `spellStateJson`; `test/models/character/legacy_spell_states_test.dart` (window, deleted in 19-11) — MODEL-03 (19-07)
-- [ ] `test/models/character/character_test.dart` — MODEL-03 (19-08)
-- [ ] single-list `spellbookCharacterJson` / `spellbookCharacter` in `test/helpers/fixtures/spell_fixtures.dart` and its callers — MODEL-03 (19-09)
-- [ ] `test/models/request/equip_item_request_test.dart` — MODEL-03 (19-10)
+- [x] `active` / `spell` parameters of `spellStateJson`; `test/models/character/legacy_spell_states_test.dart` (window, deleted in 19-11) — MODEL-03 (19-07)
+- [x] `test/models/character/character_test.dart` — MODEL-03 (19-08)
+- [x] single-list `spellbookCharacterJson` / `spellbookCharacter` in `test/helpers/fixtures/spell_fixtures.dart` and its callers — MODEL-03 (19-09)
+- [x] `test/models/request/equip_item_request_test.dart` — MODEL-03 (19-10)
 - No framework install, no new mock, no harness provider needed (`pumpJournalPage` unchanged).
 
 ---
@@ -109,11 +109,13 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s for the per-task runs
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s for the per-task runs
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-11 (automated gates of plan 19-12; the device rows 19-13-01..03 stay pending)
+
+Gate passed on BE `48b20701`: 46/46 OK, full suite 4216 green, analyzer 47 info (0 warning, 0 error).
