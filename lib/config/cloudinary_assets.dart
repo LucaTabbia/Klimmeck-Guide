@@ -155,8 +155,8 @@ class CloudinaryAssets {
   static const String attackUse = 'v1757660802/attackUse_plbzx7.svg';
   static const String controlUse = 'v1757660807/controlUse_ua2bpj.svg';
   static const String illusionUse = 'v1757660809/illusionUse_gxy4x3.svg';
-  static const String charmUse = 'v1757660815/charmUse_fcehsb.svg';
-  static const String confuseUse = 'v1757660811/confuseUse_v9ciyh.svg';
+  static const String charmUse = 'v1794358489/charmUse_koawq4.svg';
+  static const String confuseUse = 'v1794358494/confuseUse_xhvanu.svg';
   static const String enhanceUse = 'v1757660813/enhanceUse_sodazm.svg';
   static const String infuseUse = 'v1757660806/infuseUse_rvzfmm.svg';
   static const String healUse = 'v1793889299/heal_edhg35.svg';
