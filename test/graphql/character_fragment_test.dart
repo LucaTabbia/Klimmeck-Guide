@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 
 import '../helpers/fixtures/travel_fixtures.dart';
 
@@ -100,6 +101,20 @@ void main() {
       states.expand((state) => state.recoveries).every((at) => at.isUtc),
       isTrue,
     );
+  });
+
+  test('a recorded characterUpdated payload parses its active states and '
+      'owned entries (D-03, D-05)', () {
+    final character = Character.fromJson(_recordedCharacterUpdated);
+    final owned = character.assets!.ownedPets.single;
+
+    expect(character.status!.spellStates.map((state) => state.active), [
+      true,
+      false,
+    ]);
+    expect(owned.pet.id, 'pet-a');
+    expect(owned.xp, 40);
+    expect(owned.pet.rarity, RarityType.ultrarare);
   });
 
   test('statusFields selects awaitingAid with quest, aidQuest, since', () {
@@ -230,43 +245,78 @@ void main() {
   });
 }
 
-/// `characterUpdated` registrato dall'handoff BE 9.1 §3 (id sostituiti).
+/// `characterUpdated` nella forma della BE Phase 19 (id sostituiti): stati
+/// con la magia intera e `active`, compagni posseduti come voci.
 const Map<String, dynamic> _recordedCharacterUpdated = {
   'id': 'character-1',
   'status': {
     'maxActiveSpells': 1,
-    'spells': [
-      {
-        'id': 'spell-a',
-        'name': 'Nome A',
-        'maxUsages': 3,
-        'recoveryTime': 1800000,
-      },
-      {
-        'id': 'spell-b',
-        'name': 'Nome B',
-        'maxUsages': 2,
-        'recoveryTime': 600000,
-      },
-    ],
     'spellStates': [
       {
-        'spell': {'id': 'spell-a'},
+        'spell': {
+          'id': 'spell-a',
+          'name': 'Nome A',
+          'description': 'Descrizione A',
+          'useType': 'attack',
+          'maxUsages': 3,
+          'minXpToLearn': 100,
+          'recoveryTime': 1800000,
+          'requiredLearnTime': 3600000,
+          'energyDamage': {'type': 'fire', 'power': 12},
+        },
         'usages': 1,
         'recoveries': ['2026-10-27T10:02:00.000Z', '2026-10-27T10:30:00.000Z'],
+        'active': true,
       },
       {
-        'spell': {'id': 'spell-b'},
+        'spell': {
+          'id': 'spell-b',
+          'name': 'Nome B',
+          'description': 'Descrizione B',
+          'useType': 'defense',
+          'maxUsages': 2,
+          'minXpToLearn': 200,
+          'recoveryTime': 600000,
+          'requiredLearnTime': 3600000,
+          'energyDamage': null,
+        },
         'usages': 1,
         'recoveries': ['2026-10-27T10:10:00.000Z'],
+        'active': false,
       },
     ],
   },
   'assets': {
-    'activeSpells': [
+    'wornEquipment': <String, dynamic>{},
+    'ownedEquipments': <Object?>[],
+    'ownedItems': <Object?>[],
+    'pet': null,
+    'ownedPets': [
       {
-        'usages': 1,
-        'spell': {'id': 'spell-a'},
+        'xp': 40,
+        'currentLifePoints': 7,
+        'pet': {
+          'id': 'pet-a',
+          'name': 'Compagno A',
+          'speedModifier': 2,
+          'sellable': true,
+          'buyPrice': {'gold': 1, 'silver': 0, 'copper': 0},
+          'sellPrice': {'gold': 0, 'silver': 50, 'copper': 0},
+          'maxXp': 300,
+          'attack': {
+            'base': [
+              {'type': 'blunt', 'power': 4},
+            ],
+            'energy': <Object?>[],
+          },
+          'defense': {
+            'base': [
+              {'type': 'blunt', 'power': 2},
+            ],
+            'energy': <Object?>[],
+          },
+          'rarity': 'ultrarare',
+        },
       },
     ],
   },

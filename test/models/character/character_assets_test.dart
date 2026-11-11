@@ -77,6 +77,17 @@ void main() {
       ]);
     });
 
+    test('a bare pet in the owned list is dropped and the entries stay '
+        '(D-03, D-15)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedPets': [ownedPetJson(), petJson(id: 'pet-bare')],
+      });
+
+      expect(assets.ownedPets.map((entry) => entry.pet.id), [
+        'pet-travel-horse',
+      ]);
+    });
+
     test('an owned list that is not a list is empty (D-03)', () {
       expect(CharacterAssets.fromJson({}).ownedPets, isEmpty);
       expect(CharacterAssets.fromJson({'ownedPets': 3}).ownedPets, isEmpty);

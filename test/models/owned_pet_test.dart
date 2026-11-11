@@ -85,16 +85,7 @@ void main() {
     });
   });
 
-  group('window (BE before Phase 19)', () {
-    test(
-      'a bare catalogue pet is read as an entry with xp 0 and life 0 (D-15)',
-      () {
-        final owned = OwnedPet.tryFromJson(petJson());
-
-        expect(owned?.pet.id, 'pet-travel-horse');
-        expect(owned?.xp, 0);
-        expect(owned?.currentLifePoints, 0);
-      },
-    );
+  test('a bare catalogue pet map is dropped (D-03, D-15)', () {
+    expect(OwnedPet.tryFromJson(petJson()), isNull);
   });
 }
