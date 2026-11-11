@@ -42,8 +42,8 @@ created: 2026-11-11
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 19-01-01 | 01 | 1 | MODEL-01, MODEL-04 | T-19-01, T-19-03 | POI type list lenient; location absent / null / first element null → null, any other malformed location strict; no quest back-link | unit | `flutter test test/models/point_of_interest_test.dart test/models/wire_lat_lng_test.dart` | ✅ (add group) | ⬜ pending |
-| 19-01-02 | 01 | 1 | MODEL-01, MODEL-04 | T-19-02 | `Weaknesses.fromJson` never throws, unknown names dropped; enemy locations lenient | unit | `flutter test test/models test/graphql/quest_result_documents_test.dart` | ❌ W0 (`weaknesses_test.dart`, `enemy_test.dart`) | ⬜ pending |
+| 19-01-01 | 01 | 1 | MODEL-01, MODEL-04 | T-19-01, T-19-03 | POI type list lenient; location absent / null / first element null → null, any other malformed location strict; no quest back-link | unit | `flutter test test/models/point_of_interest_test.dart test/models/wire_lat_lng_test.dart` | ✅ (add group) | ✅ green |
+| 19-01-02 | 01 | 1 | MODEL-01, MODEL-04 | T-19-02 | `Weaknesses.fromJson` never throws, unknown names dropped; enemy locations lenient | unit | `flutter test test/models test/graphql/quest_result_documents_test.dart` | ❌ W0 (`weaknesses_test.dart`, `enemy_test.dart`) | ✅ green |
 | 19-02-01 | 02 | 2 | MODEL-04 | T-19-04, T-19-05 | a damage entry with an unknown / missing type is dropped, never nulled | unit | `flutter test test/models test/shared/components` | ❌ W0 (`damages_test.dart`) | ⬜ pending |
 | 19-02-02 | 02 | 2 | MODEL-04 | T-19-06 | unknown spell energy → no energy damage; unknown title → null | unit | `flutter test test/models test/screens/mainScreen/tabs/journal` | ❌ W0 (`spell_test.dart`) / ✅ | ⬜ pending |
 | 19-03-01 | 03 | 3 | MODEL-04 | T-19-07, T-19-08, T-19-11 | an unreadable owned / pool entry is dropped; item parsers stay strict | unit | `flutter test test/models test/screens/mainScreen/tabs/shop` | ❌ W0 (`asset_quantity_test.dart`) / ✅ | ⬜ pending |
@@ -81,7 +81,7 @@ created: 2026-11-11
 
 Test files and helpers that do not exist yet; each is created in the RED step of the task that needs it (no separate Wave 0 plan: every task is TDD).
 
-- [ ] `test/models/weaknesses_test.dart`, `test/models/enemy_test.dart` — MODEL-01 (19-01)
+- [x] `test/models/weaknesses_test.dart`, `test/models/enemy_test.dart` — MODEL-01 (19-01)
 - [ ] `test/models/damages_test.dart`, `test/models/spell_test.dart` — MODEL-04 (19-02)
 - [ ] `test/models/asset_quantity_test.dart`, `test/models/equipment_test.dart`, `test/repository/services/graphql/graphql_get_cities_test.dart` — MODEL-04 (19-03)
 - [ ] `test/models/owned_pet_test.dart`; `ownedPetJson` and the `maxXp` / `attack` / `defense` parameters of `petJson` in `test/helpers/fixtures/shop_fixtures.dart` — MODEL-02 (19-04)
