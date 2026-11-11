@@ -24,7 +24,7 @@ key-files:
 decisions:
   - "User rule during the UAT: a Library book never opened marks every entry «Nuovo», also at the first opening (Phase 17 D-07 amended; fix 4ceae05 / c26de1a)"
   - "User rule during the UAT: pawn labels on one line in a smaller font (fix 36f4238 / 6d0b2c2, after a rejected two-line fix)"
-  - "E5 recorded as «not explicitly confirmed by the user», not as pass"
+  - "E5 first recorded as «not explicitly confirmed», then passed on the user's later «E5 pass»"
 metrics:
   duration: "UAT session 2026-11-11 (record and closing ~25 min)"
   completed: 2026-11-11

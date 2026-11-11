@@ -106,4 +106,4 @@ Gates after the fixes (orchestrator): full FE suite 4031 tests, all passed (run 
 
 ## Verdict
 
-**complete** — steps 1–14 pass, optional 15 skipped. Requirements by the map: HEAL-01 (1, 3, 4, 5), HEAL-02 (2, 3, 4), HEAL-03 (1, 2, 3, 4 + gate of 18-12), HEAL-04 (9, 11, 13, 14), HEAL-05 (8, 10, 12), HEAL-06 (6, 7) — all mandatory steps pass, HEAL-01..06 complete. Open, not gaps: the auto-realignment after a network loss (step 3 note), E5 not explicitly confirmed. After the UAT the test character was restored to its pre-UAT values and the BE restarted with its usual identity.
+**complete** — steps 1–14 pass, optional 15 skipped. Requirements by the map: HEAL-01 (1, 3, 4, 5), HEAL-02 (2, 3, 4), HEAL-03 (1, 2, 3, 4 + gate of 18-12), HEAL-04 (9, 11, 13, 14), HEAL-05 (8, 10, 12), HEAL-06 (6, 7) — all mandatory steps pass, HEAL-01..06 complete. Open, not gaps: the auto-realignment after a network loss (step 3 note). E5 was confirmed by the user after the checks («E5 pass»). After the UAT the test character was restored to its pre-UAT values and the BE restarted with its usual identity.
