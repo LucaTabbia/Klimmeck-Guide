@@ -97,7 +97,7 @@ None was objected to on the device.
 
 ## PR reminder
 
-The user opens the PR with `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop` from `feat/19-model-review`, never `main`, and only AFTER the BE quick-task PR `fix/enemy-quests-single-player` is merged: the FE now judges `enemy` quests like the new BE. It should mention:
+The user opens the PR with `gh pr create --base develop` from `feat/19-model-review` under the personal account (the `GH_TOKEN` of that single command taken from `gh auth token --user LucaTabbia`, as in the PR reminder of `19-13-PLAN.md`), never `main`, and only AFTER the BE quick-task PR `fix/enemy-quests-single-player` is merged: the FE now judges `enemy` quests like the new BE. It should mention:
 - the companion experience, attack and defense lines and the rarity colour
 - the result line of the companion
 - the spells on the single list in learning order
