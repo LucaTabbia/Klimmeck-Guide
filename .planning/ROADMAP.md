@@ -100,7 +100,7 @@ Plans:
 - [ ] 19-06-PLAN.md — `petXpGained` and «Il tuo compagno guadagna N PE» on the result sheet
 - [ ] 19-07-PLAN.md — `SpellState` with `spell` and `active`, pure legacy reader (not wired)
 - [ ] 19-08-PLAN.md — `Spellbook` and `SpellsCubit` on the single list, legacy reader wired in `Character.fromJson`
-- [ ] 19-09-PLAN.md — Model contraction: the two old spell lists and `ActiveSpell` removed
+- [ ] 19-09-PLAN.md — Spell fixtures migrated to the single list (test-only), then model contraction: the two old spell lists and `ActiveSpell` removed
 - [ ] 19-10-PLAN.md — Schema gate, atomic `wornEquipment`/`feet` rename, atomic `Lore.imagePath` rename (gated on the BE Phase 19 merge)
 - [ ] 19-11-PLAN.md — Fragment flip, 46 documents OK, legacy readers deleted RED-first (gated)
 - [ ] 19-12-PLAN.md — Schema check, full suite, analyzer, validation (gated)
