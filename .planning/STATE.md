@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: phase-complete
-last_updated: "2026-11-11T20:00:00.000Z"
-last_activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E complete, HEAL-01..06 complete)
+status: planned
+last_updated: "2026-11-11T23:30:00.000Z"
+last_activity: 2026-11-11 -- Phase 19 planned (13 plans; 19-01..09 before the gate, 19-10..13 gated on the BE Phase 19 merge)
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 13
+  total_plans: 26
   completed_plans: 13
-  percent: 100
+  percent: 50
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 18 — Heal Quests by City Size — complete 13/13 on `feat/18-heal-quests-by-size` (device E2E passed 2026-11-11 against BE `develop` 66df2ef2, HEAL-01..06 complete); next: the PR to `develop` opened by the user, then Phase 19 (↔ BE Phase 19)
+**Current focus:** Phase 19 — Model Review (frontend companion) — planned on `feat/19-model-review` (realigned to `develop` `29c6e0a`): 13 plans, 19-01..19-09 run before the gate against the BE of today, 19-10..19-13 wait for the BE Phase 19 merge (↔ BE Phase 19, planned in the same session)
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
-Phase: 18 of 19 (Heal Quests by City Size) — complete 13/13 on `feat/18-heal-quests-by-size`: device E2E 18-13 passed on 2026-11-11 (steps 1–14 pass, optional 15 skipped; extra prison/guard and sheet-family checks E1–E6 pass)
-Plan: 13 of 13
-Status: Phase complete — `18-HUMAN-UAT.md` complete, FE `BACKEND-NOTES.md` written; UAT fixes on the branch (Library «Nuovo» on a never-opened book — Phase 17 D-07 amended by the user; pawn labels on one line; flattened magic sheet); full suite 4031 green, analyzer 47 info / 0 warning / 0 error, 46/46 documents OK.
-Last activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E, requirements closed, FE handoff)
-Next step: the user opens the PR `feat/18-heal-quests-by-size` → `develop` (`GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then Phase 19 Model Review (gated on the BE Phase 19 merge). Still to check on the device: a narrative quest sheet with prizes, a cost line and the Paladin title overflowed by 22 px on the landscape test harness with the test font (pre-existing, A-IN-05) — not exercised in 18-13.
+Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
+Plan: 0 of 13
+Status: Ready to execute — Phase 18 merged on `develop` (PR #48); Phase 19 planned: pre-gate plans 19-01..19-09 (parsers, pets, companion lines, result line, spells on the single list behind two legacy readers), gated plans 19-10..19-13 (schema gate, atomic renames, fragment flip, full gates, device E2E).
+Last activity: 2026-11-11 -- Phase 19 planned (research, rules, 13 plans, validation map)
+Next step: execute 19-01..19-09 (`/gsd-execute-phase 19`), park at 9/13 until the BE Phase 19 merge on BE `develop`, then 19-10..19-13 (device E2E needs a pet bought or seeded: nobody owns one at DB).
 
 ## Current Milestone
 

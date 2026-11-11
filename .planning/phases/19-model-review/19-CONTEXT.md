@@ -38,7 +38,7 @@ Out of scope (user decisions of 2026-11-09): merging `ownedEquipments` and `owne
 - **D-14 (user, «Ordine di apprendimento»):** equipped spell slots follow the order of `spellStates`.
 - **D-15 (Claude):** window strategy — plain pre-gate model changes where nothing is on the wire; legacy readers only for `ownedPets` and the three spell lists, deleted at the gate; `wornEquipment`/`feet` and `Lore.imagePath` as atomic gated commits.
 - **D-16 (Claude):** MODEL-04 covers all 12 rows of the research sweep (entry dropped at the list boundary).
-- **D-17 (Claude):** POI `location` absent → `null`, malformed → strict.
+- **D-17 (Claude):** POI `location` absent, null or with a null first element → `null` (as today); any other malformed value → strict.
 - **D-18 (Claude):** `OwnedPet.currentLifePoints` selected and parsed, not displayed.
 - **D-19 (Claude):** schema gate with block-anchored checks; `SlotType.feet` is a wire value.
 - Corrections from the research: weaknesses, `PointOfInterest.quest`/`type` and the catalogue pet stats are selected by no FE document («fragments updated» in D-01/D-06 = nothing to update); the spells section widgets do not change (the change is in `Spellbook`, `SpellsCubit._matches`, models, fragment).

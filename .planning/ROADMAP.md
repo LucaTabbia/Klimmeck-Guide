@@ -89,7 +89,22 @@ Plans:
   4. FE-only: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; the sweep of the models for the same fragile patterns lands with a pinned test per fix; the schema gate and the device E2E after the BE Phase 19 merge pass (Journal companions, spells, mannequin; a fight with the equipped companion; Map; Library).
 **Decisions of the discuss (2026-11-09, `19-CONTEXT.md` D-01..D-12)**: as above; out of scope the single inventory list, spell `damages`/`requiredLearnTime` (separate session), combat rules.
 **Backend prerequisite**: BE Phase 19 merged on BE `develop` (after the BE Phase 18).
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — POI and enemy parsers (`type` lenient, `location` guarded, no `quest`), `Weaknesses`
+- [ ] 19-02-PLAN.md — Lenient damage entries, spell energy and `title` (MODEL-04 rows 5–7)
+- [ ] 19-03-PLAN.md — Entry boundaries: `AssetQuantity`, worn slots, shop pool, `getCities` (MODEL-04 rows 8–10, 12)
+- [ ] 19-04-PLAN.md — `Pet.attack`/`defense`, `OwnedPet` with the window branch, consumers on the entries
+- [ ] 19-05-PLAN.md — Companion lines and widgets: «Esperienza», «Attacco», «Difesa» (Journal and shop)
+- [ ] 19-06-PLAN.md — `petXpGained` and «Il tuo compagno guadagna N PE» on the result sheet
+- [ ] 19-07-PLAN.md — `SpellState` with `spell` and `active`, pure legacy reader (not wired)
+- [ ] 19-08-PLAN.md — `Spellbook` and `SpellsCubit` on the single list, legacy reader wired in `Character.fromJson`
+- [ ] 19-09-PLAN.md — Model contraction: the two old spell lists and `ActiveSpell` removed
+- [ ] 19-10-PLAN.md — Schema gate, atomic `wornEquipment`/`feet` rename, atomic `Lore.imagePath` rename (gated on the BE Phase 19 merge)
+- [ ] 19-11-PLAN.md — Fragment flip, 46 documents OK, legacy readers deleted RED-first (gated)
+- [ ] 19-12-PLAN.md — Schema check, full suite, analyzer, validation (gated)
+- [ ] 19-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ## Progress
 
@@ -113,7 +128,7 @@ Plans:
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
+| 19. Model Review (companion) | v1.1 | 0/13 | Planned | - |
 
 ---
 
