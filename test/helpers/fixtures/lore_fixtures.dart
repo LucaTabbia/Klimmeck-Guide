@@ -1,4 +1,4 @@
-/// Lore sul filo come la seleziona `LoreQueries` (`id image type name
+/// Lore sul filo come la seleziona `LoreQueries` (`id imagePath type name
 /// description relatedLore { id name }`); di default una città senza immagine.
 Map<String, dynamic> loreJson({
   String id = 'lore-1',
@@ -11,7 +11,7 @@ Map<String, dynamic> loreJson({
   'type': type,
   'name': name,
   'description': description,
-  'image': image,
+  'imagePath': image,
   'relatedLore': const <Map<String, dynamic>>[],
 };
 

@@ -63,11 +63,11 @@ class LoreCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (lore.image != null)
+                if (lore.imagePath != null)
                   SizedBox(
                     height: 200,
                     width: 200,
-                    child: CachedSvg(url: lore.image!),
+                    child: CachedSvg(url: lore.imagePath!),
                   ),
               ],
             ),

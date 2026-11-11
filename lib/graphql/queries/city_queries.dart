@@ -16,7 +16,7 @@ class CityQueries {
         relatedLore {
           id
           description
-          image
+          imagePath
         }
       }
     }
