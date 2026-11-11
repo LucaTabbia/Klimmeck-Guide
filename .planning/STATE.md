@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: planned
-last_updated: "2026-11-11T23:30:00.000Z"
-last_activity: 2026-11-11 -- Phase 19 planned (13 plans; 19-01..09 before the gate, 19-10..13 gated on the BE Phase 19 merge)
+status: parked
+last_updated: "2026-11-12T03:00:00.000Z"
+last_activity: 2026-11-12 -- Phase 19 parked at 9/13 (pre-gate plans executed, review fixed, full suite 4207 green); waits for the BE Phase 19 merge
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 26
-  completed_plans: 13
-  percent: 50
+  completed_plans: 22
+  percent: 85
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 19 — Model Review (frontend companion) — planned on `feat/19-model-review` (realigned to `develop` `29c6e0a`): 13 plans, 19-01..19-09 run before the gate against the BE of today, 19-10..19-13 wait for the BE Phase 19 merge (↔ BE Phase 19, planned in the same session)
+**Current focus:** Phase 19 — Model Review (frontend companion) — PARKED at 9/13 on `feat/19-model-review`: plans 19-01..19-09 executed (the app still works against the BE of today through two window readers), review fixed; 19-10..19-13 wait for the BE Phase 19 merge on BE `develop` (↔ BE Phase 19, in execution)
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
 Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
 Plan: 9 of 13
-Status: Ready to execute — Phase 18 merged on `develop` (PR #48); Phase 19 planned: pre-gate plans 19-01..19-09 (parsers, pets, companion lines, result line, spells on the single list behind two legacy readers), gated plans 19-10..19-13 (schema gate, atomic renames, fragment flip, full gates, device E2E).
-Last activity: 2026-11-11 -- Phase 19 planned (research, rules, 13 plans, validation map)
-Next step: execute 19-01..19-09 (`/gsd-execute-phase 19`), park at 9/13 until the BE Phase 19 merge on BE `develop`, then 19-10..19-13 (device E2E needs a pet bought or seeded: nobody owns one at DB).
+Status: Parked — pre-gate wave complete: parsers hardened (MODEL-04, 12 rows + the review fixes on null rarity and malformed pets), `Weaknesses`, `OwnedPet`, pet `attack`/`defense`/`rarity`, companion lines («Esperienza», «Attacco», «Difesa», name in the rarity colour), result line «Il tuo compagno guadagna N PE», spells on the single `spellStates` list (slots in learning order). Code review 0 critical / 2 warning / 12 info → 5 fixed, 9 closed by ruling (`19-REVIEW-FIX.md`). Full suite 4207 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK.
+Last activity: 2026-11-12 -- Phase 19 plans 01–09 executed, review fixed, parked at the gate
+Next step: after the BE Phase 19 merge on BE `develop` (and its pet content at DB): schema gate, then 19-10 (atomic `wornEquipment`/`feet` and `Lore.imagePath`), 19-11 (fragment flip, window readers deleted), 19-12 (full gates), 19-13 (device E2E — needs a pet bought; check the legibility of long attack lines and the ink of a common pet name); security audit at the close.
 
 ## Current Milestone
 
