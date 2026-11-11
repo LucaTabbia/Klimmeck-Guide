@@ -6,7 +6,7 @@ class Equipment extends Equatable {
     required this.head,
     required this.chest,
     required this.arms,
-    required this.foots,
+    required this.feet,
     required this.legs,
     required this.leftHand,
     required this.rightHand,
@@ -18,7 +18,7 @@ class Equipment extends Equatable {
   final EquipmentItem? chest;
   final EquipmentItem? arms;
   final EquipmentItem? legs;
-  final EquipmentItem? foots;
+  final EquipmentItem? feet;
   final EquipmentItem? leftHand;
   final EquipmentItem? rightHand;
   final EquipmentItem? firstAccessory;
@@ -29,7 +29,7 @@ class Equipment extends Equatable {
     chest: EquipmentItem.tryFromJson(json['chest']),
     arms: EquipmentItem.tryFromJson(json['arms']),
     legs: EquipmentItem.tryFromJson(json['legs']),
-    foots: EquipmentItem.tryFromJson(json['foots']),
+    feet: EquipmentItem.tryFromJson(json['feet']),
     leftHand: EquipmentItem.tryFromJson(json['leftHand']),
     rightHand: EquipmentItem.tryFromJson(json['rightHand']),
     firstAccessory: EquipmentItem.tryFromJson(json['firstAccessory']),
@@ -41,7 +41,7 @@ class Equipment extends Equatable {
     "chest": chest?.id,
     "arms": arms?.id,
     "legs": legs?.id,
-    "foots": foots?.id,
+    "feet": feet?.id,
     "leftHand": leftHand?.id,
     "rightHand": rightHand?.id,
     "firstAccessory": firstAccessory?.id,
@@ -52,7 +52,7 @@ class Equipment extends Equatable {
     EquipmentItem? head,
     EquipmentItem? chest,
     EquipmentItem? arms,
-    EquipmentItem? foots,
+    EquipmentItem? feet,
     EquipmentItem? legs,
     EquipmentItem? leftHand,
     EquipmentItem? rightHand,
@@ -63,7 +63,7 @@ class Equipment extends Equatable {
       head: head ?? this.head,
       chest: chest ?? this.chest,
       arms: arms ?? this.arms,
-      foots: foots ?? this.foots,
+      feet: feet ?? this.feet,
       legs: legs ?? this.legs,
       leftHand: leftHand ?? this.leftHand,
       rightHand: rightHand ?? this.rightHand,
@@ -77,7 +77,7 @@ class Equipment extends Equatable {
     head,
     chest,
     arms,
-    foots,
+    feet,
     legs,
     leftHand,
     rightHand,
@@ -92,7 +92,7 @@ extension EquipmentValues on Equipment {
     chest,
     arms,
     legs,
-    foots,
+    feet,
     leftHand,
     rightHand,
     firstAccessory,

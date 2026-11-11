@@ -172,7 +172,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
             EquipmentMannequin(
               selectedSlot: _selectedSlot,
               sexType: character.infos!.sex!,
-              equipment: character.assets!.wearedEquipment!,
+              equipment: character.assets!.wornEquipment!,
               onTap: (slotType) => _selectSlot(slotType, character),
             ),
             const SizedBox(width: 20),
@@ -275,7 +275,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     if (_selectedSlot == slotType) {
       setState(() {
         _selectedSlot = null;
-        _filteredItems = character.assets!.wearedEquipment!.values
+        _filteredItems = character.assets!.wornEquipment!.values
             .whereType<EquipmentItem>()
             .toList();
       });
@@ -313,7 +313,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   SlotType? _findEquippedSlot(EquipmentItem item, Character character) {
-    final equipment = character.assets?.wearedEquipment;
+    final equipment = character.assets?.wornEquipment;
     if (equipment == null) return null;
     final equipmentMap = equipment.toJson();
     for (final slot in SlotType.values) {
@@ -378,7 +378,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
         if (state is CharacterLoaded) {
           Character character = state.character;
 
-          _equippedItems = (character.assets?.wearedEquipment?.values ?? [])
+          _equippedItems = (character.assets?.wornEquipment?.values ?? [])
               .whereType<EquipmentItem>()
               .toList();
 

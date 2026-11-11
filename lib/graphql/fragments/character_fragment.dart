@@ -71,8 +71,8 @@ class CharacterFragment {
   static String get assetsFields =>
       '''
     assets {
-      wearedEquipment {
-        ${WearedEquipmentFragment.withFields(EquipmentFragment.fieldsWithFullSpell)}
+      wornEquipment {
+        ${WornEquipmentFragment.withFields(EquipmentFragment.fieldsWithFullSpell)}
       }
       ownedEquipments {
         quantity

@@ -7,7 +7,7 @@ import 'package:klimmeck_guide/models/pet.dart';
 class CharacterAssets extends Equatable {
   const CharacterAssets({
     required this.ownedItems,
-    required this.wearedEquipment,
+    required this.wornEquipment,
     required this.ownedEquipments,
     required this.pet,
     this.ownedPets = const [],
@@ -15,7 +15,7 @@ class CharacterAssets extends Equatable {
 
   final List<AssetQuantity>? ownedEquipments;
   final List<AssetQuantity>? ownedItems;
-  final Equipment? wearedEquipment;
+  final Equipment? wornEquipment;
 
   /// Compagno equipaggiato (quello del viaggio); i posseduti sono [ownedPets] (D-10).
   final Pet? pet;
@@ -28,8 +28,8 @@ class CharacterAssets extends Equatable {
       CharacterAssets(
         ownedEquipments: _entriesFrom(json['ownedEquipments']),
         ownedItems: _entriesFrom(json['ownedItems']),
-        wearedEquipment: json['wearedEquipment'] != null
-            ? Equipment.fromJson(json['wearedEquipment'])
+        wornEquipment: json['wornEquipment'] != null
+            ? Equipment.fromJson(json['wornEquipment'])
             : null,
         pet: Pet.tryFromEntryJson(json['pet']),
         ownedPets: _ownedPetsFrom(json['ownedPets']),
@@ -46,7 +46,7 @@ class CharacterAssets extends Equatable {
   Map<String, dynamic> toJson() => {
     "ownedEquipments": ownedEquipments?.map((e) => e.toJson()).toList(),
     "ownedItems": ownedItems?.map((e) => e.toJson()).toList(),
-    "wearedEquipment": wearedEquipment?.toJson(),
+    "wornEquipment": wornEquipment?.toJson(),
     "pet": pet?.id,
     "ownedPets": [for (final owned in ownedPets) owned.toJson()],
   };
@@ -55,7 +55,7 @@ class CharacterAssets extends Equatable {
   List<Object?> get props => [
     ownedItems,
     ownedEquipments,
-    wearedEquipment,
+    wornEquipment,
     pet,
     ownedPets,
   ];

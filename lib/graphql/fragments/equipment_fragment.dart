@@ -81,8 +81,8 @@ class EquipmentFragment {
   ''';
 }
 
-class WearedEquipmentFragment {
-  static const String name = 'WearedEquipmentFields';
+class WornEquipmentFragment {
+  static const String name = 'WornEquipmentFields';
 
   static const List<String> slots = [
     'head',
@@ -93,7 +93,7 @@ class WearedEquipmentFragment {
     'rightHand',
     'firstAccessory',
     'secondAccessory',
-    'foots',
+    'feet',
   ];
 
   static String withFragment(String fragmentName) {
