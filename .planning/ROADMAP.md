@@ -98,7 +98,7 @@ Plans:
 - [x] 19-04-PLAN.md — `Pet.attack`/`defense`, `OwnedPet` with the window branch, consumers on the entries
 - [x] 19-05-PLAN.md — Companion lines and widgets: «Esperienza», «Attacco», «Difesa» (Journal and shop)
 - [x] 19-06-PLAN.md — `petXpGained` and «Il tuo compagno guadagna N PE» on the result sheet
-- [ ] 19-07-PLAN.md — `SpellState` with `spell` and `active`, pure legacy reader (not wired)
+- [x] 19-07-PLAN.md — `SpellState` with `spell` and `active`, pure legacy reader (not wired)
 - [ ] 19-08-PLAN.md — `Spellbook` and `SpellsCubit` on the single list, legacy reader wired in `Character.fromJson`
 - [ ] 19-09-PLAN.md — Spell fixtures migrated to the single list (test-only), then model contraction: the two old spell lists and `ActiveSpell` removed
 - [ ] 19-10-PLAN.md — Schema gate, atomic `wornEquipment`/`feet` rename, atomic `Lore.imagePath` rename (gated on the BE Phase 19 merge)
@@ -128,7 +128,7 @@ Plans:
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 19. Model Review (companion) | v1.1 | 6/13 | In Progress | - |
+| 19. Model Review (companion) | v1.1 | 7/13 | In Progress | - |
 
 ---
 
