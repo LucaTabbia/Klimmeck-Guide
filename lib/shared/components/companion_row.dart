@@ -5,9 +5,10 @@ import '../../theme/kg_theme.dart';
 import '../../utils/item_lines.dart';
 import 'coins_display.dart';
 
-/// Riga di un compagno (negozio e Diario): nome, prezzo, velocità solo per
-/// un compagno da sella, marcatore se equipaggiato. Solo testo, nessuna
-/// immagine (D-13). Visual provvisorio.
+/// Riga di un compagno (negozio e Diario): nome nel colore della rarità,
+/// prezzo, velocità solo per un compagno da sella, attacco e difesa quando
+/// serviti, marcatore se equipaggiato. Solo testo, nessuna immagine (D-13).
+/// Visual provvisorio.
 class CompanionRow extends StatelessWidget {
   const CompanionRow({
     super.key,
@@ -59,14 +60,32 @@ class CompanionRow extends StatelessWidget {
 
   Widget _buildTexts() {
     final speed = companionSpeedLabel(pet);
+    final attack = petAttackLine(pet);
+    final defense = petDefenseLine(pet);
+    final rarity = pet.rarity;
     final style = KlimmeckGuideTheme.instance.bodyMedium;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(pet.name ?? '', style: style),
+        Text(
+          pet.name ?? '',
+          style: rarity == null ? style : style.copyWith(color: rarity.color),
+        ),
         if (speed != null)
           Text(speed, key: ValueKey('companion-speed-${pet.id}'), style: style),
+        if (attack != null)
+          Text(
+            attack,
+            key: ValueKey('companion-attack-${pet.id}'),
+            style: style,
+          ),
+        if (defense != null)
+          Text(
+            defense,
+            key: ValueKey('companion-defense-${pet.id}'),
+            style: style,
+          ),
         if (isEquipped)
           Text(
             companionEquippedMark,
