@@ -42,7 +42,6 @@ class TeleportPawnLayer extends StatefulWidget {
 
 class _TeleportPawnLayerState extends State<TeleportPawnLayer>
     with PawnDragging<TeleportPawnLayer> {
-
   @override
   MapController get pawnMapController => widget.mapController;
 

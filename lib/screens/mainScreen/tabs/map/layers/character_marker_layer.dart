@@ -56,7 +56,6 @@ class CharacterMarkerLayer extends StatefulWidget {
 
 class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     with PawnDragging<CharacterMarkerLayer> {
-
   @override
   MapController get pawnMapController => widget.mapController;
 

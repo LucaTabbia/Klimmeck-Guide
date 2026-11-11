@@ -16,6 +16,9 @@ class PawnLabel extends StatelessWidget {
   static const double markerWidth = 160;
   static const double markerHeight = 72;
 
+  static const int _maxLines = 2;
+  static const double _minFontSize = 8;
+
   final String text;
 
   @override
@@ -33,7 +36,9 @@ class PawnLabel extends StatelessWidget {
           ),
           child: AutoSizeText(
             text,
-            maxLines: 1,
+            maxLines: _maxLines,
+            minFontSize: _minFontSize,
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: KlimmeckGuideTheme.darkWood,
             ),
