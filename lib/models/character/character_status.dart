@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
-import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_state.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 
@@ -13,7 +12,6 @@ class CharacterStatus extends Equatable {
   const CharacterStatus({
     required this.location,
     required this.xp,
-    required this.spells,
     required this.coins,
     required this.injuries,
     required this.currentLifePoints,
@@ -34,7 +32,6 @@ class CharacterStatus extends Equatable {
   final PointOfInterest? location;
   final TitleType? title;
   final List<InjuryType>? injuries;
-  final List<Spell>? spells;
   final Coins? coins;
   final int? currentLifePoints;
   final int? maxLifePoints;
@@ -69,9 +66,6 @@ class CharacterStatus extends Equatable {
             : null,
         xp: json["xp"]?.toInt(),
         coins: json['coins'] != null ? Coins.fromJson(json["coins"]) : null,
-        spells: json['spells'] != null
-            ? List<Spell>.from(json['spells'].map((x) => Spell.fromJson(x)))
-            : [],
         injuries: injuryTypesFrom(json['injuries']),
         currentLifePoints: json["currentLifePoints"]?.toInt(),
         maxLifePoints: json["maxLifePoints"]?.toInt(),
@@ -106,7 +100,6 @@ class CharacterStatus extends Equatable {
     "location": location?.toJson(),
     "xp": xp,
     "level": level,
-    "spells": spells?.map((s) => s.id).toList(),
     "coins": coins?.toJson(),
     "injuries": injuries?.map((e) => e.name).toList(),
     "currentLifePoints": currentLifePoints,
@@ -127,7 +120,6 @@ class CharacterStatus extends Equatable {
     int? level,
     TitleType? title,
     List<InjuryType>? injuries,
-    List<Spell>? spells,
     Coins? coins,
     int? currentLifePoints,
     int? maxLifePoints,
@@ -139,7 +131,6 @@ class CharacterStatus extends Equatable {
       level: level ?? this.level,
       title: title ?? this.title,
       injuries: injuries ?? this.injuries,
-      spells: spells ?? this.spells,
       coins: coins ?? this.coins,
       currentLifePoints: currentLifePoints ?? this.currentLifePoints,
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
@@ -160,7 +151,6 @@ class CharacterStatus extends Equatable {
     level,
     title,
     injuries,
-    spells,
     coins,
     currentLifePoints,
     maxLifePoints,
