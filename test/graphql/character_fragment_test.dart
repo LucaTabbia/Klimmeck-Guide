@@ -143,6 +143,40 @@ void main() {
     },
   );
 
+  group('worn equipment (BE Phase 19)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final equipmentQuery = CharacterQueries.getEquipment.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+
+    test('assetsFields selects wornEquipment with the feet slot (D-04)', () {
+      expect(assets, contains('wornEquipment {'));
+      expect(assets, contains('feet {'));
+    });
+
+    test('the equipment query selects the feet slot (D-04)', () {
+      expect(equipmentQuery, contains('feet {'));
+    });
+
+    test('no document selects the old equipment names (D-04)', () {
+      const oldWornKey =
+          'weared'
+          'Equipment';
+      const oldBootsSlot =
+          'fo'
+          'ots';
+
+      for (final document in [assets, equipmentQuery]) {
+        expect(document, isNot(contains(oldWornKey)));
+        expect(document, isNot(contains(oldBootsSlot)));
+      }
+    });
+  });
+
   test('the Journal assets select accessoryUseTypes on equipment (D-15)', () {
     expect(
       EquipmentFragment.fieldsWithFullSpell.replaceAll(RegExp(r'\s+'), ' '),

@@ -10,6 +10,19 @@ const _equippedListKey =
     'active'
     'Spells';
 
+/// Chiave dell'equipaggiamento indossato prima della BE Phase 19.
+const _oldWornKey =
+    'weared'
+    'Equipment';
+
+Map<String, dynamic> _helmJson() => {
+  'id': 'e-helm',
+  'name': 'Elmo',
+  'description': 'Un elmo',
+  'equipType': 'helm',
+  'rarity': 'common',
+};
+
 void main() {
   group('CharacterAssets', () {
     test('toJson writes no equipped spell list (D-05)', () {
@@ -187,6 +200,24 @@ void main() {
 
       expect(assets.ownedItems, isEmpty);
       expect(assets.ownedEquipments, isEmpty);
+    });
+  });
+
+  group('worn equipment (BE Phase 19)', () {
+    test('parses the worn equipment from the wornEquipment key (D-04)', () {
+      final assets = CharacterAssets.fromJson({
+        'wornEquipment': {'head': _helmJson()},
+      });
+
+      expect(assets.toJson()['wornEquipment'], isNotNull);
+    });
+
+    test('the old assets key is no longer read (D-04)', () {
+      final assets = CharacterAssets.fromJson({
+        _oldWornKey: {'head': _helmJson()},
+      });
+
+      expect(assets.toJson()['wornEquipment'], isNull);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 
@@ -14,6 +15,11 @@ Map<String, dynamic> _itemJson(
   'equipType': equipType,
   'rarity': rarity,
 };
+
+/// Nome dello slot degli stivali prima della BE Phase 19.
+const _oldBootsSlot =
+    'fo'
+    'ots';
 
 void main() {
   group('Equipment.fromJson', () {
@@ -65,5 +71,31 @@ void main() {
     );
     expect(EquipmentItem.tryFromJson('helmet'), isNull);
     expect(EquipmentItem.tryFromJson(null), isNull);
+  });
+
+  group('feet slot (BE Phase 19)', () {
+    test('parses the boots from the feet key (D-04)', () {
+      final equipment = Equipment.fromJson({
+        'feet': _itemJson('e-boots', equipType: 'boots'),
+      });
+
+      expect(equipment.toJson()['feet'], 'e-boots');
+    });
+
+    test('every SlotType name is a key of Equipment.toJson (D-04)', () {
+      final keys = Equipment.fromJson({}).toJson();
+
+      for (final slot in SlotType.values) {
+        expect(keys.containsKey(slot.name), isTrue, reason: slot.name);
+      }
+    });
+
+    test('SlotType has the feet member and not the old boots name '
+        '(D-04, D-19)', () {
+      final names = SlotType.values.asNameMap().keys;
+
+      expect(names, contains('feet'));
+      expect(names, isNot(contains(_oldBootsSlot)));
+    });
   });
 }
