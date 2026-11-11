@@ -23,13 +23,14 @@ void main() {
     return tester.renderObject<RenderParagraph>(find.byType(RichText));
   }
 
-  testWidgets('the longest prison line is shown whole, unit included', (
+  testWidgets('the longest prison line stays whole on a single line', (
     tester,
   ) async {
     final line = prisonMarkerLine(const Duration(hours: 9, minutes: 59));
 
     final paragraph = await pumpLabel(tester, line);
 
+    expect(paragraph.maxLines, 1);
     expect(paragraph.didExceedMaxLines, isFalse);
     expect(tester.takeException(), isNull);
   });
