@@ -158,7 +158,7 @@ class CloudinaryAssets {
   static const String charmUse = 'v1794358489/charmUse_koawq4.svg';
   static const String confuseUse = 'v1794358494/confuseUse_xhvanu.svg';
   static const String enhanceUse = 'v1757660813/enhanceUse_sodazm.svg';
-  static const String infuseUse = 'v1757660806/infuseUse_rvzfmm.svg';
+  static const String infuseUse = 'v1794359037/infuseUse_mfz3cu.svg';
   static const String healUse = 'v1793889299/heal_edhg35.svg';
 
   // ============== Injury Effects ==============
