@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest_capacity.dart';
@@ -181,6 +182,78 @@ void main() {
         }
       }
       expect(admitted, isEmpty);
+    });
+  });
+
+  group('questSlotsOf (quick 261111-enm)', () {
+    const solo = [AdventurerSlot(title: null, count: 1)];
+
+    test('an enemy is judged with one rank-free seat on both wire shapes '
+        '(quick 261111-enm)', () {
+      const rankFree = [AdventurerSlot(title: null, count: 1)];
+      const rankExact = [AdventurerSlot(title: TitleType.rookie, count: 1)];
+
+      expect(questSlotsOf(QuestType.enemy, rankFree), solo);
+      expect(questSlotsOf(QuestType.enemy, rankExact), solo);
+    });
+
+    test('an enemy ignores the number of seats it carries '
+        '(quick 261111-enm)', () {
+      const handWritten = [
+        AdventurerSlot(title: TitleType.paladin, count: 2),
+        AdventurerSlot(title: null, count: 3),
+      ];
+
+      expect(questSlotsOf(QuestType.enemy, handWritten), solo);
+      expect(questSlotsOf(QuestType.enemy, const []), solo);
+    });
+
+    test('every other type is judged with its wire seats '
+        '(quick 261111-enm)', () {
+      const seats = [
+        AdventurerSlot(title: TitleType.hero, count: 2),
+        AdventurerSlot(title: null, count: 1),
+      ];
+
+      for (final type in QuestType.values) {
+        if (type == QuestType.enemy) continue;
+        expect(questSlotsOf(type, seats), seats, reason: type.name);
+      }
+      expect(questSlotsOf(null, seats), seats);
+    });
+
+    test('a legend takes the rookie seat of an enemy, never of a boss '
+        '(quick 261111-enm)', () {
+      const rookieSeat = [AdventurerSlot(title: TitleType.rookie, count: 1)];
+
+      expect(
+        isFullFor(
+          questSlotsOf(QuestType.enemy, rookieSeat),
+          const [],
+          TitleType.legend,
+        ),
+        isFalse,
+      );
+      expect(
+        isFullFor(
+          questSlotsOf(QuestType.boss, rookieSeat),
+          const [],
+          TitleType.legend,
+        ),
+        isTrue,
+      );
+    });
+
+    test('an enemy is full for everyone once one player is registered '
+        '(quick 261111-enm)', () {
+      const twoSeats = [AdventurerSlot(title: TitleType.rookie, count: 2)];
+      final slots = questSlotsOf(QuestType.enemy, twoSeats);
+      final registered = regs([TitleType.legend]);
+
+      expect(isFullForEveryone(slots, registered), isTrue);
+      for (final title in TitleType.values) {
+        expect(isFullFor(slots, registered, title), isTrue, reason: title.name);
+      }
     });
   });
 }

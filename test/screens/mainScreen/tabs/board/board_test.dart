@@ -45,6 +45,7 @@ Quest _boardQuest(
   String markerId = 'poi-1',
   String? minTitle = 'rookie',
   List<Object> registered = const [],
+  List<Map<String, dynamic>>? slots,
   Map<String, dynamic>? prizes,
   bool? noEffect,
 }) => buildQuest(
@@ -53,6 +54,7 @@ Quest _boardQuest(
   markerId: markerId,
   minTitle: minTitle,
   registered: registered,
+  slots: slots,
   prizes: prizes,
   noEffect: noEffect,
 );
@@ -235,6 +237,60 @@ void main() {
     expect(isTorn(tester, 's-paladin'), isTrue);
     expect(isTorn(tester, 'b-full'), isTrue);
     expect(isTorn(tester, 'h-1'), isFalse);
+  });
+
+  testWidgets('an enemy is whole for a higher rank on both wire shapes, torn '
+      'above the rank and torn once taken (quick 261111-enm)', (tester) async {
+    const rookieSeat = [
+      {'title': 'rookie', 'count': 1},
+    ];
+    await pumpBoard(
+      tester,
+      quests: loaded([
+        _boardQuest('e-free', 'enemy'),
+        _boardQuest('e-exact', 'enemy', slots: rookieSeat),
+        _boardQuest('e-hero', 'enemy', minTitle: 'hero'),
+        _boardQuest(
+          'e-taken',
+          'enemy',
+          slots: rookieSeat,
+          registered: [
+            {'character': 'c-9', 'title': 'legend'},
+          ],
+        ),
+      ]),
+    );
+
+    expect(isTorn(tester, 'e-free'), isFalse);
+    expect(isTorn(tester, 'e-exact'), isFalse);
+    expect(isTorn(tester, 'e-hero'), isTrue);
+    expect(isTorn(tester, 'e-taken'), isTrue);
+  });
+
+  testWidgets('a boss with a seat of another rank stays torn '
+      '(quick 261111-enm)', (tester) async {
+    await pumpBoard(
+      tester,
+      quests: loaded([
+        _boardQuest(
+          'b-rookie',
+          'boss',
+          slots: [
+            {'title': 'rookie', 'count': 2},
+          ],
+        ),
+        _boardQuest(
+          'b-paladin',
+          'boss',
+          slots: [
+            {'title': 'paladin', 'count': 2},
+          ],
+        ),
+      ]),
+    );
+
+    expect(isTorn(tester, 'b-rookie'), isTrue);
+    expect(isTorn(tester, 'b-paladin'), isFalse);
   });
 
   testWidgets(

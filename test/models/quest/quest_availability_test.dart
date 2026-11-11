@@ -577,4 +577,102 @@ void main() {
       );
     });
   });
+
+  group('enemy quests are single-player with a minimum rank '
+      '(quick 261111-enm)', () {
+    const seatShapes = <String, List<Map<String, dynamic>>>{
+      'rank-free seat': [
+        {'title': null, 'count': 1},
+      ],
+      'rank-exact seat written before the rule': [
+        {'title': 'rookie', 'count': 1},
+      ],
+    };
+
+    for (final MapEntry(key: shape, value: slots) in seatShapes.entries) {
+      test('a legend can take a rookie enemy with the $shape '
+          '(quick 261111-enm)', () {
+        final standing = standingOf(
+          buildQuest(type: 'enemy', minTitle: 'rookie', slots: slots),
+          buildViewer(title: TitleType.legend),
+        );
+
+        expect(standing.availability, QuestAvailability.available);
+        expect(standing.isTorn, isFalse);
+      });
+
+      test('an enemy with the $shape is full and torn once one player is '
+          'registered (quick 261111-enm)', () {
+        final taken = buildQuest(
+          type: 'enemy',
+          minTitle: 'rookie',
+          slots: slots,
+          registered: [
+            {'character': 'c-2', 'title': 'legend'},
+          ],
+        );
+
+        for (final title in TitleType.values) {
+          final standing = standingOf(taken, buildViewer(title: title));
+          expect(
+            standing.availability,
+            QuestAvailability.full,
+            reason: title.name,
+          );
+          expect(standing.isTorn, isTrue, reason: title.name);
+        }
+      });
+    }
+
+    test('a rookie sees a paladin enemy torn for the title '
+        '(quick 261111-enm)', () {
+      final standing = standingOf(
+        buildQuest(
+          type: 'enemy',
+          minTitle: 'paladin',
+          slots: [
+            {'title': 'paladin', 'count': 1},
+          ],
+        ),
+        buildViewer(title: TitleType.rookie),
+      );
+
+      expect(standing.availability, QuestAvailability.titleMismatch);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('a hand-written enemy with more seats is full after one player '
+        '(quick 261111-enm)', () {
+      final taken = buildQuest(
+        type: 'enemy',
+        slots: [
+          {'title': null, 'count': 3},
+        ],
+        registered: [
+          {'character': 'c-2', 'title': 'rookie'},
+        ],
+      );
+
+      expect(availabilityOf(taken, buildViewer()), QuestAvailability.full);
+    });
+
+    test('a boss keeps its rank-exact seats: a legend never takes a paladin '
+        'seat (quick 261111-enm)', () {
+      final boss = buildQuest(
+        type: 'boss',
+        minTitle: 'paladin',
+        slots: [
+          {'title': 'paladin', 'count': 2},
+        ],
+      );
+
+      final legend = standingOf(boss, buildViewer(title: TitleType.legend));
+      expect(legend.availability, QuestAvailability.full);
+      expect(legend.isTorn, isTrue);
+      expect(
+        availabilityOf(boss, buildViewer(title: TitleType.paladin)),
+        QuestAvailability.available,
+      );
+    });
+  });
 }

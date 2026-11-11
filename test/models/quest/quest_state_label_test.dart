@@ -43,6 +43,44 @@ void main() {
     expect(questStateLabel(waiting(), boss), 'In attesa del gruppo 2/3');
   });
 
+  test('an enemy on the marker never waits for a party, whatever seats it '
+      'carries (quick 261111-enm)', () {
+    for (final seat in [
+      {'title': null, 'count': 1},
+      {'title': 'rookie', 'count': 1},
+      {'title': 'rookie', 'count': 3},
+    ]) {
+      final enemy = buildQuest(
+        type: 'enemy',
+        slots: [seat],
+        registered: [
+          {'character': 'c-1', 'title': 'legend'},
+        ],
+      );
+
+      expect(
+        questStateLabel(waiting(), enemy),
+        'In combattimento…',
+        reason: '$seat',
+      );
+    }
+  });
+
+  test('a single-seat boss on the marker still waits for its party '
+      '(quick 261111-enm)', () {
+    final boss = buildQuest(
+      type: 'boss',
+      slots: [
+        {'title': 'paladin', 'count': 2},
+      ],
+      registered: [
+        {'character': 'c-1', 'title': 'paladin'},
+      ],
+    );
+
+    expect(questStateLabel(waiting(), boss), 'In attesa del gruppo 1/2');
+  });
+
   test('waiting without the quest drops the count', () {
     expect(questStateLabel(waiting(), null), 'In attesa del gruppo');
   });
