@@ -33,6 +33,16 @@ Out of scope (user decisions of 2026-11-09): merging `ownedEquipments` and `owne
 - **D-10 (user, «Coppia 19 dopo la 18»):** executes after Phase 18 (and the BE Phase 19 merge); branch stacked on `feat/18-heal-quests-by-size`, PR after the Phase 18 PR; reconcile the shared planning docs at the merges.
 - **D-11 (user):** out of scope as listed in the boundary.
 
+### After the research (2026-11-11)
+- **D-13 (user, «Diario e negozio»):** pet attack and defense shown on the owned companion (Journal) and on the shop pets: «Attacco: tagliente 12, fuoco 5», «Difesa: contundente 4», each hidden when empty (new copy: no widget printed pet damages before).
+- **D-14 (user, «Ordine di apprendimento»):** equipped spell slots follow the order of `spellStates`.
+- **D-15 (Claude):** window strategy — plain pre-gate model changes where nothing is on the wire; legacy readers only for `ownedPets` and the three spell lists, deleted at the gate; `wornEquipment`/`feet` and `Lore.imagePath` as atomic gated commits.
+- **D-16 (Claude):** MODEL-04 covers all 12 rows of the research sweep (entry dropped at the list boundary).
+- **D-17 (Claude):** POI `location` absent → `null`, malformed → strict.
+- **D-18 (Claude):** `OwnedPet.currentLifePoints` selected and parsed, not displayed.
+- **D-19 (Claude):** schema gate with block-anchored checks; `SlotType.feet` is a wire value.
+- Corrections from the research: weaknesses, `PointOfInterest.quest`/`type` and the catalogue pet stats are selected by no FE document («fragments updated» in D-01/D-06 = nothing to update); the spells section widgets do not change (the change is in `Spellbook`, `SpellsCubit._matches`, models, fragment).
+
 ### Claude's Discretion
 - Copy of the companion xp lines; whether the companion row shows a small bar or text; fixture reshaping order; whether the spells section refactor lands as one plan or two (model + UI).
 
