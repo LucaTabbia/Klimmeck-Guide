@@ -47,7 +47,6 @@ const TeleportTarget bea = TeleportTarget(
     type: null,
     location: aldheimMarker,
     city: null,
-    quest: null,
   ),
   sex: SexType.female,
 );

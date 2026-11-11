@@ -654,7 +654,6 @@ void main() {
             type: null,
             location: LatLng(1, 2),
             city: null,
-            quest: null,
           ),
           sex: SexType.female,
         );

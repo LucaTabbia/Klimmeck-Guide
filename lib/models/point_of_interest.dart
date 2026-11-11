@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/wire_lat_lng.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -12,25 +11,29 @@ class PointOfInterest extends Equatable {
     required this.type,
     required this.location,
     required this.city,
-    required this.quest,
   });
 
   final String id;
   final List<PoiType>? type;
   final LatLng? location;
   final City? city;
-  final Quest? quest;
 
   factory PointOfInterest.fromJson(Map<String, dynamic> json) {
     return PointOfInterest(
       id: json["id"] as String,
-      type: json["type"]?.map((poiType) => PoiType.values.byName(poiType)),
-      location: json["location"][0] != null
-          ? latLngFromWire(json["location"] as List<dynamic>)
-          : null,
+      type: poiTypesFrom(json['type']),
+      location: _locationFrom(json['location']),
       city: json["city"] != null ? City.fromJson(json['city']) : null,
-      quest: json["quest"] != null ? Quest.fromJson(json['quest']) : null,
     );
+  }
+
+  /// Posizione assente, nulla o con la prima coordinata nulla: `null`. Ogni
+  /// altra forma passa dal lettore stretto (un POI rotto deve emergere).
+  static LatLng? _locationFrom(Object? json) {
+    if (json == null) return null;
+    final wire = json as List<dynamic>;
+    if (wire.isNotEmpty && wire.first == null) return null;
+    return latLngFromWire(wire);
   }
 
   Map<String, dynamic> toJson() => {
@@ -40,7 +43,6 @@ class PointOfInterest extends Equatable {
         ? [location?.latitude, location?.longitude]
         : null,
     "city": city?.toJson(),
-    "quest": quest?.toJson(),
   };
 
   PointOfInterest copyWith({
@@ -48,17 +50,15 @@ class PointOfInterest extends Equatable {
     List<PoiType>? type,
     LatLng? location,
     dynamic city,
-    dynamic quest,
   }) {
     return PointOfInterest(
       id: id ?? this.id,
       type: type ?? this.type,
       location: location ?? this.location,
       city: city ?? this.city,
-      quest: quest ?? this.quest,
     );
   }
 
   @override
-  List<Object?> get props => [id, type, location, city, quest];
+  List<Object?> get props => [id, type, location, city];
 }
