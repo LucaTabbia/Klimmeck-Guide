@@ -56,8 +56,6 @@ class CharacterMarkerLayer extends StatefulWidget {
 
 class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     with PawnDragging<CharacterMarkerLayer> {
-  static const double _labelWidth = 160;
-  static const double _labelHeight = 72;
 
   @override
   MapController get pawnMapController => widget.mapController;
@@ -141,8 +139,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
   /// tempo del viaggio).
   static Marker _labelMarker(LatLng point, Widget label) => Marker(
     point: point,
-    width: _labelWidth,
-    height: _labelHeight,
+    width: PawnLabel.markerWidth,
+    height: PawnLabel.markerHeight,
     alignment: Alignment.topCenter,
     child: Align(alignment: Alignment.topCenter, child: label),
   );

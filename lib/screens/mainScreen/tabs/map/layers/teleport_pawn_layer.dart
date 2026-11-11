@@ -42,8 +42,6 @@ class TeleportPawnLayer extends StatefulWidget {
 
 class _TeleportPawnLayerState extends State<TeleportPawnLayer>
     with PawnDragging<TeleportPawnLayer> {
-  static const double _labelWidth = 160;
-  static const double _labelHeight = 72;
 
   @override
   MapController get pawnMapController => widget.mapController;
@@ -74,8 +72,8 @@ class _TeleportPawnLayerState extends State<TeleportPawnLayer>
         ),
         Marker(
           point: point,
-          width: _labelWidth,
-          height: _labelHeight,
+          width: PawnLabel.markerWidth,
+          height: PawnLabel.markerHeight,
           alignment: Alignment.topCenter,
           child: Align(
             alignment: Alignment.topCenter,
