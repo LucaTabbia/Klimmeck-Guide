@@ -22,7 +22,7 @@ class CharacterStatus extends Equatable {
     required this.level,
     required this.maxActiveSpells,
     this.activeTravel,
-    this.spellStates,
+    this.spellStates = const [],
     this.awaitingAid,
     this.unlockedLore = const [],
     this.potionRecoveryUntil,
@@ -43,8 +43,9 @@ class CharacterStatus extends Equatable {
   /// Viaggio in corso (BE Phase 8); `null` = fermo. Un viaggio malformato vale `null`.
   final ActiveTravel? activeTravel;
 
-  /// Stato per magia conosciuta (BE 9.1); `null` = campo assente (backend pre-9.1 o fragment non ancora esteso, D-03).
-  final List<SpellState>? spellStates;
+  /// Unica fonte delle magie conosciute (BE Phase 19, D-05): magia, usi,
+  /// ricariche e `active` per voce; vuota se il campo è assente.
+  final List<SpellState> spellStates;
 
   /// Ferito in attesa di soccorso (D-16); `null` = libero o campo assente.
   final AwaitingAid? awaitingAid;
@@ -85,8 +86,8 @@ class CharacterStatus extends Equatable {
         imprisonedUntil: _instantOrNull(json['imprisonedUntil']),
       );
 
-  static List<SpellState>? _spellStatesFrom(Object? json) {
-    if (json is! List) return null;
+  static List<SpellState> _spellStatesFrom(Object? json) {
+    if (json is! List) return const [];
     return List<SpellState>.unmodifiable(
       json.map(SpellState.tryFromJson).whereType<SpellState>(),
     );
@@ -113,7 +114,7 @@ class CharacterStatus extends Equatable {
     "title": title?.name,
     "maxActiveSpells": maxActiveSpells,
     "activeTravel": activeTravel?.toJson(),
-    "spellStates": spellStates?.map((state) => state.toJson()).toList(),
+    "spellStates": spellStates.map((state) => state.toJson()).toList(),
     "awaitingAid": awaitingAid?.toJson(),
     "unlockedLore": unlockedLore,
     "potionRecoveryUntil": potionRecoveryUntil?.toUtc().toIso8601String(),

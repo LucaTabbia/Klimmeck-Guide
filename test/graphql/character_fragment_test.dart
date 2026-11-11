@@ -69,7 +69,7 @@ void main() {
 
   test('a recorded characterUpdated payload parses its spellStates', () {
     final character = Character.fromJson(_recordedCharacterUpdated);
-    final states = character.status!.spellStates!;
+    final states = character.status!.spellStates;
 
     expect(states.map((state) => state.spellId), ['spell-a', 'spell-b']);
     expect(states.map((state) => state.usages), [1, 1]);
