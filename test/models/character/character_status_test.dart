@@ -520,6 +520,29 @@ void main() {
     });
   });
 
+  group('lenient title (Phase 19)', () {
+    test('an unknown title is null and the status survives (D-16)', () {
+      final status = CharacterStatus.fromJson({
+        'title': 'archmageOfNowhere',
+        'level': 3,
+      });
+
+      expect(status.title, isNull);
+      expect(status.level, 3);
+    });
+
+    test('a title that is not a string is null (D-16)', () {
+      expect(CharacterStatus.fromJson({'title': 7}).title, isNull);
+    });
+
+    test('a known title still parses (D-16)', () {
+      expect(
+        CharacterStatus.fromJson({'title': 'paladin'}).title,
+        TitleType.paladin,
+      );
+    });
+  });
+
   test('spellbookCharacter has one known spell, none active, no states', () {
     final character = spellbookCharacter();
 
