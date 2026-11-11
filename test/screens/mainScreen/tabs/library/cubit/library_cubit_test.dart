@@ -322,6 +322,7 @@ void main() {
     blocTest<LibraryCubit, LibraryState>(
       'a failed refresh keeps the page and emits nothing (D-05)',
       setUp: () {
+        seedBaseline(LibraryBook.places, {andogan.id});
         answerWith([andogan]);
         answers.add(() async => throw StateError('offline'));
         answerWith([andogan, bosa]);
@@ -379,6 +380,7 @@ void main() {
     test(
       'a refresh completing after another book opened is dropped (D-05, D-19)',
       () async {
+        seedBaseline(LibraryBook.bestiary, {goblin.id});
         answerWith([andogan, goblin]);
         final held = holdNextAnswer();
         answerWith([andogan, goblin]);
@@ -410,6 +412,7 @@ void main() {
     test(
       'a set change during the opening fetch is applied once the book is shown (D-05)',
       () async {
+        seedBaseline(LibraryBook.places, {andogan.id});
         final held = holdNextAnswer();
         answerWith([andogan, bosa]);
         final cubit = buildCubit();
@@ -442,6 +445,7 @@ void main() {
     test(
       'changes during a refresh in flight run one trailing refresh (D-05)',
       () async {
+        seedBaseline(LibraryBook.places, {andogan.id});
         answerWith([andogan]);
         final held = holdNextAnswer();
         answerWith([andogan, bosa, valtorre]);
