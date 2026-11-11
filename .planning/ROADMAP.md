@@ -103,7 +103,7 @@ Plans:
 - [x] 19-09-PLAN.md — Spell fixtures migrated to the single list (test-only), then model contraction: the two old spell lists and `ActiveSpell` removed
 - [x] 19-10-PLAN.md — Schema gate, atomic `wornEquipment`/`feet` rename, atomic `Lore.imagePath` rename (gated on the BE Phase 19 merge)
 - [x] 19-11-PLAN.md — Fragment flip, 46 documents OK, legacy readers deleted RED-first (gated)
-- [ ] 19-12-PLAN.md — Schema check, full suite, analyzer, validation (gated)
+- [x] 19-12-PLAN.md — Schema check, full suite, analyzer, validation (gated)
 - [ ] 19-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ## Progress
@@ -128,7 +128,7 @@ Plans:
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 19. Model Review (companion) | v1.1 | 11/13 | In Progress | - |
+| 19. Model Review (companion) | v1.1 | 12/13 | In Progress | - |
 
 ---
 

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: parked
-last_updated: "2026-11-12T03:00:00.000Z"
-last_activity: 2026-11-12 -- Phase 19 parked at 9/13 (pre-gate plans executed, review fixed, full suite 4207 green); waits for the BE Phase 19 merge
+status: executing
+last_updated: "2026-11-11T12:00:00.000Z"
+last_activity: 2026-11-11 -- Phase 19 plan 12 executed (gate plan: schema gate and 46/46 documents OK on BE `48b20701`, full suite 4216 green, analyzer 47 info, validation approved); the device E2E 19-13 is next
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 26
-  completed_plans: 22
-  percent: 85
+  completed_plans: 25
+  percent: 96
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 19 — Model Review (frontend companion) — PARKED at 9/13 on `feat/19-model-review`: plans 19-01..19-09 executed (the app still works against the BE of today through two window readers), review fixed; 19-10..19-13 wait for the BE Phase 19 merge on BE `develop` (↔ BE Phase 19, in execution)
+**Current focus:** Phase 19 — Model Review (frontend companion) — EXECUTING at 12/13 on `feat/19-model-review`: the gated wave is done (19-10 atomic renames, 19-11 fragment flip and window readers deleted, 19-12 gates) except the device E2E 19-13; BE Phase 19 is merged on BE `develop` (PR #33, `48b20701`) and the BE on this machine runs the Phase 19 code with migrated data and the pet content
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
 Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
-Plan: 11 of 13
-Status: Parked — pre-gate wave complete: parsers hardened (MODEL-04, 12 rows + the review fixes on null rarity and malformed pets), `Weaknesses`, `OwnedPet`, pet `attack`/`defense`/`rarity`, companion lines («Esperienza», «Attacco», «Difesa», name in the rarity colour), result line «Il tuo compagno guadagna N PE», spells on the single `spellStates` list (slots in learning order). Code review 0 critical / 2 warning / 12 info → 5 fixed, 9 closed by ruling (`19-REVIEW-FIX.md`). Full suite 4207 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK.
-Last activity: 2026-11-12 -- Phase 19 plan 11 executed (schema gate green on BE `48b20701`, three fragments flipped to the Phase 19 selections, 46 documents OK, both window readers deleted, no removed wire name left); the branch needs a BE with Phase 19
-Next step: after the BE Phase 19 merge on BE `develop` (and its pet content at DB): schema gate, then 19-10 (atomic `wornEquipment`/`feet` and `Lore.imagePath`), 19-11 (fragment flip, window readers deleted), 19-12 (full gates), 19-13 (device E2E — needs a pet bought; check the legibility of long attack lines and the ink of a common pet name); security audit at the close.
+Plan: 12 of 13
+Status: Executing — every automated gate is green against the merged BE (`48b20701`): schema gate `GATE_OK`, 46/46 documents OK, full suite 4216 green, analyzer 47 info / 0 warning / 0 error, added files format-clean, `hardening_check` OK, no removed wire name nor window reader left (`19-VALIDATION.md` approved, device rows pending). Delivered: parsers hardened (MODEL-04, 12 rows + the review fixes), `Weaknesses`, `OwnedPet` entries, pet `attack`/`defense`/`rarity`, companion lines («Esperienza», «Attacco», «Difesa», name in the rarity colour), result line «Il tuo compagno guadagna N PE», spells on the single `spellStates` list with `active` (slots in learning order), `wornEquipment`/`feet`, `Lore.imagePath`. Code review 0 critical / 2 warning / 12 info → 5 fixed, 9 closed by ruling (`19-REVIEW-FIX.md`). The branch selects names that exist only on a BE with Phase 19.
+Last activity: 2026-11-11 -- Phase 19 plan 12 executed (gate plan: schema gate and 46/46 documents OK on BE `48b20701`, full suite 4216 green, analyzer 47 info, leftover and product-rule greps clean, `19-VALIDATION.md` approved)
+Next step: 19-13 (device E2E, human checkpoint — needs a pet bought; check the legibility of long attack lines and the ink of a common pet name; requirements MODEL-01..04 closed there); security audit at the close, then the PR to `develop`.
 
 ## Current Milestone
 
