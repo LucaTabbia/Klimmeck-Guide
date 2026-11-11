@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:equatable/equatable.dart';
-import 'package:klimmeck_guide/models/active_spell.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_state.dart';
@@ -39,7 +38,7 @@ class SpellSlot extends Equatable {
   List<Object?> get props => [spell, usages, isPending];
 }
 
-/// Una magia conosciuta nella lista, nell'ordine del BE (D-14, D-15).
+/// Una magia conosciuta nella lista, nell'ordine degli stati del BE.
 class SpellbookEntry extends Equatable {
   const SpellbookEntry({
     required this.spell,
@@ -74,55 +73,45 @@ class Spellbook extends Equatable {
     Character? character, {
     Map<String, SpellOperation> pending = const {},
   }) {
-    final spells = character?.status?.spells ?? const <Spell>[];
+    final states = _firstStatePerSpell(character?.status?.spellStates);
     final slotCount = max(0, character?.status?.maxActiveSpells ?? 0);
-    final statesById = {
-      for (final state
-          in character?.status?.spellStates ?? const <SpellState>[])
-        state.spellId: state,
+
+    bool isActive(SpellState state) => switch (pending[state.spellId]) {
+      SpellOperation.equip => true,
+      SpellOperation.unequip => false,
+      null => state.active,
     };
-    final serverActiveById = _serverActiveById(character);
-    final optimisticById = _optimisticActiveById(
-      serverActiveById: serverActiveById,
-      knownById: {for (final spell in spells) spell.id: spell},
-      pending: pending,
-    );
-    final active = optimisticById.values.toList();
+    final active = [
+      for (final state in states)
+        if (isActive(state)) state,
+    ];
 
     SpellSlot slotAt(int index) {
       if (index >= active.length) return const SpellSlot.empty();
-      final spell = active[index];
+      final state = active[index];
       return SpellSlot.filled(
-        spell: spell,
-        usages: _usagesOf(
-          spell,
-          statesById[spell.id],
-          serverActiveById[spell.id],
-        ),
-        isPending: pending.containsKey(spell.id),
+        spell: state.spell,
+        usages: state.usages,
+        isPending: pending.containsKey(state.spellId),
       );
     }
 
     return Spellbook._(
-      isVisible: spells.isNotEmpty || slotCount > 0,
+      isVisible: states.isNotEmpty || slotCount > 0,
       slotCount: slotCount,
       slots: List.unmodifiable(List.generate(slotCount, slotAt)),
       entries: List.unmodifiable(
-        spells.map(
-          (spell) => SpellbookEntry(
-            spell: spell,
-            usages: _usagesOf(
-              spell,
-              statesById[spell.id],
-              serverActiveById[spell.id],
-            ),
-            isActive: optimisticById.containsKey(spell.id),
-            isPending: pending.containsKey(spell.id),
-            recoveries: statesById[spell.id]?.recoveries ?? const [],
+        states.map(
+          (state) => SpellbookEntry(
+            spell: state.spell,
+            usages: state.usages,
+            isActive: isActive(state),
+            isPending: pending.containsKey(state.spellId),
+            recoveries: state.recoveries,
           ),
         ),
       ),
-      activeSpellIds: List.unmodifiable(optimisticById.keys),
+      activeSpellIds: List.unmodifiable(active.map((state) => state.spellId)),
       pending: Map.unmodifiable(pending),
     );
   }
@@ -132,7 +121,8 @@ class Spellbook extends Equatable {
   final List<SpellSlot> slots;
   final List<SpellbookEntry> entries;
 
-  /// Ordine ottimistico degli slot (server − unequip in attesa + equip in attesa).
+  /// Slot nell'ordine degli stati (apprendimento), per il server e per
+  /// l'overlay: stati `active` − unequip in attesa + equip in attesa.
   final List<String> activeSpellIds;
   final Map<String, SpellOperation> pending;
 
@@ -154,40 +144,14 @@ class Spellbook extends Equatable {
     return SpellToggleIntent.equip;
   }
 
-  /// Magie attive lato server con `spell` valorizzata, nell'ordine del BE (F6).
-  static Map<String, ActiveSpell> _serverActiveById(Character? character) {
-    final byId = <String, ActiveSpell>{};
-    for (final active in character?.assets?.activeSpells ?? const []) {
-      final spell = active.spell;
-      if (spell == null) continue;
-      byId.putIfAbsent(spell.id, () => active);
+  /// Una magia compare una volta sola: a parità di id vale il primo stato.
+  static List<SpellState> _firstStatePerSpell(List<SpellState>? states) {
+    final byId = <String, SpellState>{};
+    for (final state in states ?? const <SpellState>[]) {
+      byId.putIfAbsent(state.spellId, () => state);
     }
-    return byId;
+    return byId.values.toList();
   }
-
-  /// Server − unequip in attesa + equip in attesa (nell'ordine dei tap): stesso
-  /// ordine che il BE conferma (`$push` / `$pull`).
-  static Map<String, Spell> _optimisticActiveById({
-    required Map<String, ActiveSpell> serverActiveById,
-    required Map<String, Spell> knownById,
-    required Map<String, SpellOperation> pending,
-  }) {
-    final byId = <String, Spell>{
-      for (final MapEntry(key: id, value: active) in serverActiveById.entries)
-        if (pending[id] != SpellOperation.unequip)
-          if (active.spell case final spell?) id: spell,
-    };
-    for (final MapEntry(key: id, value: operation) in pending.entries) {
-      final spell = knownById[id];
-      if (operation != SpellOperation.equip || spell == null) continue;
-      byId.putIfAbsent(id, () => spell);
-    }
-    return byId;
-  }
-
-  /// Tabella di fallback (D-03): stato 9.1, poi usi attivi, poi catalogo.
-  static int? _usagesOf(Spell spell, SpellState? state, ActiveSpell? active) =>
-      state?.usages ?? active?.usages ?? spell.maxUsages;
 
   @override
   List<Object?> get props => [

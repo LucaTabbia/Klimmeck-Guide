@@ -230,11 +230,11 @@ class SpellsCubit extends Cubit<SpellsState> with SafeEmit<SpellsState> {
     String spellId,
     SpellOperation operation,
   ) {
-    final serverActiveIds = {
-      for (final active in character.assets?.activeSpells ?? const [])
-        if (active.spell case final spell?) spell.id,
-    };
-    final isActive = serverActiveIds.contains(spellId);
+    final isActive =
+        character.status?.spellStates.any(
+          (state) => state.spellId == spellId && state.active,
+        ) ??
+        false;
     return operation == SpellOperation.equip ? isActive : !isActive;
   }
 }

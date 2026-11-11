@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/character/character_assets.dart';
 import 'character_infos.dart';
 import 'character_quests.dart';
 import 'character_status.dart';
+import 'legacy_spell_states.dart';
 
 class Character extends Equatable {
   const Character({
@@ -25,9 +26,14 @@ class Character extends Equatable {
     infos: json['infos'] != null
         ? CharacterInfos.fromJson(json['infos'])
         : null,
-    status: json['status'] != null
-        ? CharacterStatus.fromJson(json['status'])
-        : null,
+    status: switch (json['status']) {
+      null => null,
+      final Map<String, dynamic> status => CharacterStatus.fromJson(
+        // Finestra (BE prima della Phase 19): tolto al gate (piano 19-11).
+        statusJsonWithLegacySpellStates(status, json['assets']),
+      ),
+      final status => CharacterStatus.fromJson(status),
+    },
     quests: json['quests'] != null
         ? CharacterQuests.fromJson(json['quests'])
         : null,
