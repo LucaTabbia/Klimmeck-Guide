@@ -48,14 +48,14 @@ class CompanionContent extends StatelessWidget {
               style: KlimmeckGuideTheme.instance.bodyMedium,
             ),
           ),
-        for (final OwnedPet(:pet) in owned)
+        for (final entry in owned)
           OwnedCompanionRow(
-            key: ValueKey(pet.id),
-            pet: pet,
-            isDisplayed: pet.id == displayed?.id,
-            isPending: pet.id == pendingPetId,
+            key: ValueKey(entry.pet.id),
+            owned: entry,
+            isDisplayed: entry.pet.id == displayed?.id,
+            isPending: entry.pet.id == pendingPetId,
             cardSize: cardSize,
-            onTap: () => onToggle(pet.id),
+            onTap: () => onToggle(entry.pet.id),
           ),
       ],
     ),
