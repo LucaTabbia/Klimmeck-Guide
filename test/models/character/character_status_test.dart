@@ -200,6 +200,26 @@ void main() {
       );
     });
 
+    test('toJson writes the spell states and no separate list of known spells '
+        '(D-05)', () {
+      final keys = CharacterStatus.fromJson(
+        statusJson(spellStates: [spellStateJson()]),
+      ).toJson().keys;
+
+      expect(keys, contains('spellStates'));
+      expect(keys, isNot(contains('spells')));
+    });
+
+    test('a served list of known spells beside the states is ignored by the '
+        'status (D-05)', () {
+      final status = CharacterStatus.fromJson({
+        'spells': [spellJson()],
+        'spellStates': <Object?>[],
+      });
+
+      expect(status.spellStates, isEmpty);
+    });
+
     test('props include spellStates', () {
       expect(
         CharacterStatus.fromJson(statusJson(spellStates: [spellStateJson()])) ==

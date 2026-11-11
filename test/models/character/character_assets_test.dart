@@ -3,9 +3,38 @@ import 'package:klimmeck_guide/models/character/character_assets.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 
 import '../../helpers/fixtures/shop_fixtures.dart';
+import '../../helpers/fixtures/spell_fixtures.dart';
+
+/// Chiave della lista che la BE di oggi serve ancora negli assets.
+const _equippedListKey =
+    'active'
+    'Spells';
 
 void main() {
   group('CharacterAssets', () {
+    test('toJson writes no equipped spell list (D-05)', () {
+      final keys = CharacterAssets.fromJson({'ownedPets': []}).toJson().keys;
+
+      expect(keys, contains('ownedPets'));
+      expect(keys, isNot(contains(_equippedListKey)));
+    });
+
+    test('the assets parse without the equipped spell list (D-05)', () {
+      final without = CharacterAssets.fromJson({
+        'ownedPets': [ownedPetJson()],
+      });
+      final withIt = CharacterAssets.fromJson({
+        'ownedPets': [ownedPetJson()],
+        _equippedListKey: [
+          {'usages': 3, 'spell': spellJson()},
+        ],
+      });
+
+      expect(without.ownedPets, hasLength(1));
+      expect(withIt, without);
+      expect(withIt.toJson(), without.toJson());
+    });
+
     test('parses the owned pets as entries (D-03)', () {
       final assets = CharacterAssets.fromJson({
         'ownedPets': [
