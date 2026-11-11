@@ -655,6 +655,51 @@ void main() {
     });
   });
 
+  group('petXpGained (BE Phase 19)', () {
+    test('parses the companion xp gained (D-03)', () {
+      final result = questResult(questResultJson(petXpGained: 12));
+
+      expect(result.petXpGained, 12);
+    });
+
+    test('an absent companion xp is 0 (D-03)', () {
+      final json = questResultJson(petXpGained: 12)..remove('petXpGained');
+
+      expect(QuestResult.tryFromJson(json), isNotNull);
+      expect(questResult(json).petXpGained, 0);
+    });
+
+    test('a companion xp that is not a number is 0 (D-03)', () {
+      for (final malformed in <Object?>['12', null, <Object?>[]]) {
+        final json = questResultJson()..['petXpGained'] = malformed;
+
+        expect(QuestResult.tryFromJson(json), isNotNull, reason: '$malformed');
+        expect(questResult(json).petXpGained, 0, reason: '$malformed');
+      }
+    });
+
+    test('a negative companion xp is 0 (D-03)', () {
+      final json = questResultJson(petXpGained: -4);
+
+      expect(QuestResult.tryFromJson(json), isNotNull);
+      expect(questResult(json).petXpGained, 0);
+    });
+
+    test('toJson round-trips the companion xp (D-03)', () {
+      final result = questResult(questResultJson(petXpGained: 12));
+
+      expect(result.toJson()['petXpGained'], 12);
+      expect(questResult(result.toJson()), result);
+    });
+
+    test('the companion xp is part of the props (D-03)', () {
+      expect(
+        questResult(questResultJson(petXpGained: 12)),
+        isNot(questResult(questResultJson(petXpGained: 5))),
+      );
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'heal': healResultJson(),
