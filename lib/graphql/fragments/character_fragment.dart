@@ -54,14 +54,12 @@ class CharacterFragment {
       }
       potionRecoveryUntil
       imprisonedUntil
-      spells {
-        ${SpellFragment.fields}
-      }
       spellStates {
         usages
         recoveries
+        active
         spell {
-          id
+          ${SpellFragment.fields}
         }
       }
       unlockedLore
@@ -82,12 +80,6 @@ class CharacterFragment {
           }
         }
       }
-      activeSpells {
-        usages
-        spell {
-          ${SpellFragment.fields}
-        }
-      }
       ownedItems {
         quantity
         item {
@@ -100,7 +92,11 @@ class CharacterFragment {
         ${PetFragment.fields}
       }
       ownedPets {
-        ${PetFragment.fields}
+        xp
+        currentLifePoints
+        pet {
+          ${PetFragment.fields}
+        }
       }
     }
   ''';
