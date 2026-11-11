@@ -18,15 +18,28 @@ import '../../../../../helpers/spells_harness.dart';
 Map<String, dynamic> _spellJson(String letter) =>
     spellJson(id: 'spell-$letter', name: 'Magia $letter');
 
+/// Stato senza ricariche in corso; `usages` = usi rimasti.
+Map<String, dynamic> _fullState(
+  Map<String, dynamic> spell, {
+  int usages = 3,
+  bool active = false,
+}) => spellStateJson(
+  usages: usages,
+  recoveries: const [],
+  active: active,
+  spell: spell,
+);
+
 final _spellA = Spell.fromJson(_spellJson('a'));
 final _spellB = Spell.fromJson(_spellJson('b'));
 
 /// Magie [C, A, B], A attiva con un uso su tre, due slot.
 Spellbook _threeSpellsOneActive() => Spellbook.of(
   spellbookCharacter(
-    spells: [_spellJson('c'), _spellJson('a'), _spellJson('b')],
-    activeSpells: [
-      activeSpellJson(spellId: 'spell-a', usages: 1, spell: _spellJson('a')),
+    spellStates: [
+      _fullState(_spellJson('c')),
+      _fullState(_spellJson('a'), usages: 1, active: true),
+      _fullState(_spellJson('b')),
     ],
   ),
 );
@@ -34,17 +47,13 @@ Spellbook _threeSpellsOneActive() => Spellbook.of(
 /// A attacco, B difesa e attiva, C senza tipo d'uso; due slot.
 Spellbook _mixedUseTypes() => Spellbook.of(
   spellbookCharacter(
-    spells: [
-      _spellJson('a'),
-      spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense'),
-      spellJson(id: 'spell-c', name: 'Magia c', useType: null),
-    ],
-    activeSpells: [
-      activeSpellJson(
-        spellId: 'spell-b',
-        usages: 3,
-        spell: spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense'),
+    spellStates: [
+      _fullState(_spellJson('a')),
+      _fullState(
+        spellJson(id: 'spell-b', name: 'Magia b', useType: 'defense'),
+        active: true,
       ),
+      _fullState(spellJson(id: 'spell-c', name: 'Magia c', useType: null)),
     ],
   ),
 );
@@ -237,7 +246,10 @@ void main() {
   testWidgets('slots without known spells show the empty-list line', (
     tester,
   ) async {
-    await _pump(tester, Spellbook.of(spellbookCharacter(spells: const [])));
+    await _pump(
+      tester,
+      Spellbook.of(spellbookCharacter(spellStates: const [])),
+    );
     await tester.pumpAndSettle();
 
     expect(_slotBoxes(), findsNWidgets(2));
@@ -251,7 +263,10 @@ void main() {
     await _pump(
       tester,
       Spellbook.of(
-        spellbookCharacter(maxActiveSpells: 0, spells: [_spellJson('a')]),
+        spellbookCharacter(
+          maxActiveSpells: 0,
+          spellStates: [_fullState(_spellJson('a'))],
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -320,7 +335,10 @@ void main() {
     });
 
     testWidgets('no known spells: no chips', (tester) async {
-      await _pump(tester, Spellbook.of(spellbookCharacter(spells: const [])));
+      await _pump(
+        tester,
+        Spellbook.of(spellbookCharacter(spellStates: const [])),
+      );
       await tester.pumpAndSettle();
 
       expect(_useTypeFilter(), findsNothing);
@@ -331,7 +349,11 @@ void main() {
         tester,
         Spellbook.of(
           spellbookCharacter(
-            spells: [spellJson(id: 'spell-c', name: 'Magia c', useType: null)],
+            spellStates: [
+              _fullState(
+                spellJson(id: 'spell-c', name: 'Magia c', useType: null),
+              ),
+            ],
           ),
         ),
       );

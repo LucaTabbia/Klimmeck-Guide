@@ -593,12 +593,12 @@ void main() {
     });
   });
 
-  test('spellbookCharacter has one known spell, none active, one inactive '
-      'state built by the window reader (D-15)', () {
-    final character = spellbookCharacter();
+  test('spellbookCharacter has one known spell as a single inactive state at '
+      'full usages (D-05)', () {
+    final state = spellbookCharacter().status!.spellStates.single;
 
-    expect(character.status!.spells, hasLength(1));
-    expect(character.assets!.activeSpells, isEmpty);
-    expect(character.status!.spellStates.single.active, isFalse);
+    expect(state.active, isFalse);
+    expect(state.usages, state.spell.maxUsages);
+    expect(state.recoveries, isEmpty);
   });
 }

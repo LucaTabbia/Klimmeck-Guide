@@ -107,9 +107,13 @@ Map<String, dynamic> participantCharacterJson({
       'maxLifePoints': maxLifePoints,
       'injuries': injuries,
       'maxActiveSpells': 2,
-      'spells': [fireball],
       'spellStates': [
-        spellStateJson(spellId: fireballSpellId, usages: 2, recoveries: []),
+        spellStateJson(
+          usages: 2,
+          recoveries: [],
+          active: true,
+          spell: fireball,
+        ),
       ],
       'location': {
         'id': locationId,
@@ -130,9 +134,6 @@ Map<String, dynamic> participantCharacterJson({
           'quantity': 1,
           'item': {'id': 'eq-sword', 'name': 'Spada', 'equipType': 'weapon'},
         },
-      ],
-      'activeSpells': [
-        activeSpellJson(spellId: fireballSpellId, usages: 3, spell: fireball),
       ],
     },
   };

@@ -28,12 +28,6 @@ Map<String, dynamic> spellJson({
   'energyDamage': energy == null ? null : {'type': energy, 'power': power},
 };
 
-Map<String, dynamic> activeSpellJson({
-  String spellId = 'spell-1',
-  int usages = 3,
-  Map<String, dynamic>? spell,
-}) => {'usages': usages, 'spell': spell ?? spellJson(id: spellId)};
-
 Map<String, dynamic> spellStateJson({
   String spellId = 'spell-1',
   int usages = 1,
@@ -50,35 +44,30 @@ Map<String, dynamic> spellStateJson({
   'active': active,
 };
 
-/// `spellStates == null` = payload pre-9.1 (campo assente).
+/// Personaggio nella forma della BE Phase 19: le magie conosciute sono gli
+/// stati, quelle equipaggiate hanno `active` (D-05).
 Map<String, dynamic> spellbookCharacterJson({
   String id = 'c-1',
   int? maxActiveSpells = 2,
-  List<Map<String, dynamic>>? spells,
-  List<Map<String, dynamic>> activeSpells = const [],
   List<Map<String, dynamic>>? spellStates,
 }) => {
   'id': id,
   'status': {
     'maxActiveSpells': maxActiveSpells,
-    'spells': spells ?? [spellJson()],
-    if (spellStates != null) 'spellStates': spellStates,
+    'spellStates':
+        spellStates ?? [spellStateJson(usages: 3, recoveries: const [])],
   },
-  'assets': {'activeSpells': activeSpells},
+  'assets': <String, dynamic>{},
 };
 
 Character spellbookCharacter({
   String id = 'c-1',
   int? maxActiveSpells = 2,
-  List<Map<String, dynamic>>? spells,
-  List<Map<String, dynamic>> activeSpells = const [],
   List<Map<String, dynamic>>? spellStates,
 }) => Character.fromJson(
   spellbookCharacterJson(
     id: id,
     maxActiveSpells: maxActiveSpells,
-    spells: spells,
-    activeSpells: activeSpells,
     spellStates: spellStates,
   ),
 );

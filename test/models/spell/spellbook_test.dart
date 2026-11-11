@@ -12,20 +12,21 @@ const _c = 'spell-c';
 final _spellA = Spell.fromJson(spellJson(id: _a));
 final _spellB = Spell.fromJson(spellJson(id: _b));
 
+/// Magie conosciute nell'ordine di [known], a usi pieni e senza ricariche;
+/// [active] sono le equipaggiate.
 Character _character({
   int? maxActiveSpells = 2,
   List<String> known = const [_a, _b, _c],
-  List<Map<String, dynamic>> activeSpells = const [],
-  List<Map<String, dynamic>>? spellStates,
-}) => spellbookCharacter(
-  maxActiveSpells: maxActiveSpells,
-  spells: [for (final id in known) spellJson(id: id)],
-  activeSpells: activeSpells,
-  spellStates: spellStates,
-);
-
-Map<String, dynamic> _active(String id, {int usages = 3}) =>
-    activeSpellJson(spellId: id, usages: usages);
+  List<String> active = const [],
+}) => _single([
+  for (final id in known)
+    spellStateJson(
+      spellId: id,
+      usages: 3,
+      recoveries: const [],
+      active: active.contains(id),
+    ),
+], slots: maxActiveSpells);
 
 List<String> _entryIds(Spellbook spellbook) =>
     spellbook.entries.map((entry) => entry.spell.id).toList();
@@ -35,11 +36,7 @@ const _s2 = 's-2';
 const _s3 = 's-3';
 
 Character _single(List<Map<String, dynamic>> states, {int? slots = 2}) =>
-    Character.fromJson({
-      'id': 'c-1',
-      'status': {'maxActiveSpells': slots, 'spellStates': states},
-      'assets': <String, dynamic>{},
-    });
+    spellbookCharacter(maxActiveSpells: slots, spellStates: states);
 
 Map<String, dynamic> _state(String id, {bool active = false, int usages = 1}) =>
     spellStateJson(spellId: id, usages: usages, active: active);
@@ -48,7 +45,7 @@ List<String?> _slotIds(Spellbook spellbook) =>
     spellbook.slots.map((slot) => slot.spell?.id).toList();
 
 void main() {
-  group('join', () {
+  group('view', () {
     test('a null character is not visible and has nothing to render', () {
       final spellbook = Spellbook.of(null);
 
@@ -95,7 +92,7 @@ void main() {
 
     test('the slot row has maxActiveSpells slots filled in order', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 4, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 4, active: const [_a]),
       );
 
       expect(spellbook.slots, hasLength(4));
@@ -103,26 +100,9 @@ void main() {
       expect(spellbook.slots.skip(1).every((slot) => slot.isEmpty), isTrue);
     });
 
-    test('an active entry with a null spell is skipped', () {
-      final spellbook = Spellbook.of(
-        _character(
-          activeSpells: [
-            {'usages': 3, 'spell': null},
-            _active(_a),
-          ],
-        ),
-      );
-
-      expect(spellbook.slots[0].spell, _spellA);
-      expect(spellbook.slots[1].isEmpty, isTrue);
-    });
-
     test('active spells past the slot count stay only in the list', () {
       final spellbook = Spellbook.of(
-        _character(
-          maxActiveSpells: 1,
-          activeSpells: [_active(_a), _active(_b)],
-        ),
+        _character(maxActiveSpells: 1, active: const [_a, _b]),
       );
 
       expect(spellbook.slots, hasLength(1));
@@ -130,12 +110,9 @@ void main() {
       expect(spellbook.entryFor(_b)?.isActive, isTrue);
     });
 
-    test('entries keep the order of status.spells', () {
+    test('entries keep the order of the states', () {
       final spellbook = Spellbook.of(
-        _character(
-          known: const [_c, _a, _b],
-          activeSpells: [_active(_b), _active(_a)],
-        ),
+        _character(known: const [_c, _a, _b], active: const [_b, _a]),
       );
 
       expect(_entryIds(spellbook), [_c, _a, _b]);
@@ -148,10 +125,7 @@ void main() {
 
     test('usages and recoveries come from the spell state when present', () {
       final spellbook = Spellbook.of(
-        _character(
-          activeSpells: [_active(_a, usages: 3)],
-          spellStates: [spellStateJson(spellId: _a, usages: 1)],
-        ),
+        _single([spellStateJson(spellId: _a, usages: 1, active: true)]),
       );
 
       final entry = spellbook.entryFor(_a);
@@ -163,35 +137,6 @@ void main() {
       ]);
     });
 
-    test('without spell states an active spell uses ActiveSpell.usages', () {
-      final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a, usages: 2)]),
-      );
-
-      expect(spellbook.entryFor(_a)?.usages, 2);
-      expect(spellbook.slots[0].usages, 2);
-    });
-
-    test('an inactive spell without state uses the catalog maxUsages', () {
-      final entry = Spellbook.of(_character()).entryFor(_b);
-
-      expect(entry?.usages, _spellB.maxUsages);
-      expect(entry?.usages, 3);
-      expect(entry?.recoveries, isEmpty);
-    });
-
-    test('spell states without the spell fall back to the active usages', () {
-      final spellbook = Spellbook.of(
-        _character(
-          activeSpells: [_active(_a, usages: 2)],
-          spellStates: [spellStateJson(spellId: _b, usages: 0)],
-        ),
-      );
-
-      expect(spellbook.entryFor(_a)?.usages, 2);
-      expect(spellbook.slots[0].usages, 2);
-    });
-
     test('entryFor returns the entry or null for an unknown id', () {
       final spellbook = Spellbook.of(_character());
 
@@ -200,35 +145,34 @@ void main() {
     });
 
     test('equal inputs give equal spellbooks', () {
-      Spellbook build() => Spellbook.of(
-        _character(
-          activeSpells: [_active(_a)],
-          spellStates: [spellStateJson(spellId: _a)],
-        ),
-      );
+      Spellbook build() =>
+          Spellbook.of(_single([spellStateJson(spellId: _a, active: true)]));
 
       expect(build(), build());
     });
   });
 
   group('overlay', () {
-    test('a pending equip is appended to the slots and marked pending', () {
-      final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a)]),
-        pending: const {_b: SpellOperation.equip},
-      );
+    test(
+      'a pending equip takes the next slot in list order and is marked pending',
+      () {
+        final spellbook = Spellbook.of(
+          _character(active: const [_a]),
+          pending: const {_b: SpellOperation.equip},
+        );
 
-      expect(spellbook.activeSpellIds, [_a, _b]);
-      expect(spellbook.slots[1].spell, _spellB);
-      expect(spellbook.slots[1].isPending, isTrue);
-      expect(spellbook.slots[0].isPending, isFalse);
-      expect(spellbook.entryFor(_b)?.isActive, isTrue);
-      expect(spellbook.entryFor(_b)?.isPending, isTrue);
-    });
+        expect(spellbook.activeSpellIds, [_a, _b]);
+        expect(spellbook.slots[1].spell, _spellB);
+        expect(spellbook.slots[1].isPending, isTrue);
+        expect(spellbook.slots[0].isPending, isFalse);
+        expect(spellbook.entryFor(_b)?.isActive, isTrue);
+        expect(spellbook.entryFor(_b)?.isPending, isTrue);
+      },
+    );
 
     test('a pending unequip leaves the slot and compacts the row', () {
       final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a), _active(_b)]),
+        _character(active: const [_a, _b]),
         pending: const {_a: SpellOperation.unequip},
       );
 
@@ -241,7 +185,7 @@ void main() {
 
     test('pending equips follow the list order, not the tap order (D-14)', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 3, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 3, active: const [_a]),
         pending: const {_c: SpellOperation.equip, _b: SpellOperation.equip},
       );
 
@@ -250,7 +194,7 @@ void main() {
 
     test('a pending equip of a spell active server-side is not duplicated', () {
       final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a)]),
+        _character(active: const [_a]),
         pending: const {_a: SpellOperation.equip},
       );
 
@@ -260,7 +204,7 @@ void main() {
 
     test('a pending equip of an unknown spell is ignored', () {
       final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a)]),
+        _character(active: const [_a]),
         pending: const {'spell-unknown': SpellOperation.equip},
       );
 
@@ -271,28 +215,19 @@ void main() {
 
     test('a pending equip slot takes its usages from the spell state', () {
       final spellbook = Spellbook.of(
-        _character(spellStates: [spellStateJson(spellId: _b, usages: 1)]),
+        _single([_state(_a), _state(_b, usages: 1)]),
         pending: const {_b: SpellOperation.equip},
       );
 
       expect(spellbook.slots[0].spell, _spellB);
       expect(spellbook.slots[0].usages, 1);
     });
-
-    test('a pending equip slot without state uses the catalog maxUsages', () {
-      final spellbook = Spellbook.of(
-        _character(),
-        pending: const {_b: SpellOperation.equip},
-      );
-
-      expect(spellbook.slots[0].usages, _spellB.maxUsages);
-    });
   });
 
   group('intentFor', () {
     test('a pending spell is ignored', () {
       final spellbook = Spellbook.of(
-        _character(activeSpells: [_active(_a)]),
+        _character(active: const [_a]),
         pending: const {_a: SpellOperation.unequip},
       );
 
@@ -300,20 +235,20 @@ void main() {
     });
 
     test('an active spell is unequipped', () {
-      final spellbook = Spellbook.of(_character(activeSpells: [_active(_a)]));
+      final spellbook = Spellbook.of(_character(active: const [_a]));
 
       expect(spellbook.intentFor(_a), SpellToggleIntent.unequip);
     });
 
     test('an inactive spell with a free slot is equipped', () {
-      final spellbook = Spellbook.of(_character(activeSpells: [_active(_a)]));
+      final spellbook = Spellbook.of(_character(active: const [_a]));
 
       expect(spellbook.intentFor(_b), SpellToggleIntent.equip);
     });
 
     test('slots full on the optimistic count block the equip', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 2, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 2, active: const [_a]),
         pending: const {_c: SpellOperation.equip},
       );
 
@@ -322,7 +257,7 @@ void main() {
 
     test('slots full on the server count block the equip', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 1, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 1, active: const [_a]),
       );
 
       expect(spellbook.intentFor(_b), SpellToggleIntent.blockedSlotsFull);
@@ -336,7 +271,7 @@ void main() {
 
     test('no slots still allow the unequip of a legacy active spell', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 0, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 0, active: const [_a]),
       );
 
       expect(spellbook.intentFor(_a), SpellToggleIntent.unequip);
@@ -353,7 +288,7 @@ void main() {
 
     test('a pending unequip frees the slot for another equip', () {
       final spellbook = Spellbook.of(
-        _character(maxActiveSpells: 1, activeSpells: [_active(_a)]),
+        _character(maxActiveSpells: 1, active: const [_a]),
         pending: const {_a: SpellOperation.unequip},
       );
 
