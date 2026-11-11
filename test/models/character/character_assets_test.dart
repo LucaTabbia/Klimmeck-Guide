@@ -150,6 +150,35 @@ void main() {
       ]);
     });
 
+    test('a malformed owned pet is dropped (D-16)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedPets': [
+          ownedPetJson(pet: petJson()..['name'] = 7),
+          ownedPetJson(pet: catPetJson()),
+          ownedPetJson(pet: petJson()..['buyPrice'] = 'un oro'),
+        ],
+      });
+
+      expect(assets.ownedPets.map((entry) => entry.pet.id), ['pet-cat']);
+    });
+
+    test('a malformed equipped pet is null (D-16)', () {
+      for (final pet in <Object>[
+        petJson()..['name'] = 7,
+        petJson()..['maxXp'] = 'trecento',
+        <String, dynamic>{'name': 'senza id'},
+        'pet-travel-horse',
+      ]) {
+        final assets = CharacterAssets.fromJson({
+          'pet': pet,
+          'ownedPets': [ownedPetJson()],
+        });
+
+        expect(assets.pet, isNull, reason: '$pet');
+        expect(assets.ownedPets, hasLength(1));
+      }
+    });
+
     test('owned lists that are not lists are empty (D-16)', () {
       final assets = CharacterAssets.fromJson({
         'ownedItems': 'x',

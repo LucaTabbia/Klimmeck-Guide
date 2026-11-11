@@ -65,6 +65,22 @@ void main() {
       expect(shop.equipment, hasLength(1));
     });
 
+    test('a malformed pool pet is dropped (D-16)', () {
+      final shop = CityShop.fromJson(
+        cityShopJson(
+          pets: [
+            petJson()..['name'] = 7,
+            catPetJson(),
+            petJson()..['sellPrice'] = [50],
+            petJson()..['speedModifier'] = 'doppia',
+          ],
+        ),
+      );
+
+      expect(shop.pets.map((pet) => pet.id), ['pet-cat']);
+      expect(shop.equipment, hasLength(1));
+    });
+
     test('drops a pool equipment entry with an unknown rarity (D-16)', () {
       final shop = CityShop.fromJson(
         cityShopJson(

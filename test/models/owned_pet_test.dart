@@ -63,6 +63,28 @@ void main() {
     });
   });
 
+  group('entry boundary (Phase 19)', () {
+    const malformedFields = <String, Object>{
+      'name': 7,
+      'buyPrice': 'un oro',
+      'sellPrice': [50],
+      'maxXp': 'trecento',
+      'speedModifier': 'doppia',
+    };
+
+    for (final MapEntry(key: field, value: value) in malformedFields.entries) {
+      test('an entry whose pet has a malformed $field is null (D-16)', () {
+        final pet = petJson()..[field] = value;
+
+        expect(OwnedPet.tryFromJson(ownedPetJson(pet: pet)), isNull);
+      });
+    }
+
+    test('a bare pet with a malformed name is null (D-15, D-16)', () {
+      expect(OwnedPet.tryFromJson(petJson()..['name'] = 7), isNull);
+    });
+  });
+
   group('window (BE before Phase 19)', () {
     test(
       'a bare catalogue pet is read as an entry with xp 0 and life 0 (D-15)',
