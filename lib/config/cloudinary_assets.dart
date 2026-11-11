@@ -20,7 +20,7 @@ class CloudinaryAssets {
   static const String bookmarkBlue = 'v1757683915/bookmarkBlue_shxrk6.svg';
 
   // ============== Icons ==============
-  static const String arrowDown = 'v1757683903/arrowDown_byudlt.svg';
+  static const String arrowDown = 'v1794355792/arrowDown_iqsrzb.svg';
   static const String healEffect = 'v1757660480/healEffect_jc9bsg.svg';
   static const String completeTransaction =
       'v1757683133/completeTransaction_kptwjx.svg';
