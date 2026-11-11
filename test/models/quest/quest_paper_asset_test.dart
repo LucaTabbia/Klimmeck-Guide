@@ -217,7 +217,7 @@ void main() {
     });
 
     test('the magic sheets point to their revised files', () {
-      expect(CloudinaryAssets.magicSheet, 'v1794321047/magicSheet_inikhm.svg');
+      expect(CloudinaryAssets.magicSheet, 'v1794357947/magicSheet_lkkqp3.svg');
       expect(
         CloudinaryAssets.magicTornSheet,
         'v1794321051/tornMagicSheet_f8gu75.svg',
