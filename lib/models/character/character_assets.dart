@@ -31,7 +31,7 @@ class CharacterAssets extends Equatable {
         wearedEquipment: json['wearedEquipment'] != null
             ? Equipment.fromJson(json['wearedEquipment'])
             : null,
-        pet: json['pet'] != null ? Pet.fromJson(json['pet']) : null,
+        pet: Pet.tryFromEntryJson(json['pet']),
         ownedPets: _ownedPetsFrom(json['ownedPets']),
       );
 

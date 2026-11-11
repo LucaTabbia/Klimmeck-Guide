@@ -22,7 +22,7 @@ class CityShop extends Equatable {
       equipment: _assets(json['equipment']),
       loot: _assets(json['loot']),
       pets: List<Pet>.unmodifiable(
-        _entries(json['pets']).map(Pet.tryFromJson).nonNulls,
+        _entries(json['pets']).map(Pet.tryFromEntryJson).nonNulls,
       ),
     );
   }

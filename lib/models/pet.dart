@@ -64,6 +64,17 @@ class Pet extends Equatable {
       ? Pet.fromJson(json)
       : null;
 
+  /// Confine di lista o di slot (posseduti, pool del negozio, equipaggiato):
+  /// un compagno che non si legge vale null invece di far fallire chi lo
+  /// contiene.
+  static Pet? tryFromEntryJson(Object? json) {
+    try {
+      return tryFromJson(json);
+    } on Object {
+      return null;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,

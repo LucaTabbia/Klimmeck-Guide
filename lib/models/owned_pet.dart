@@ -12,7 +12,7 @@ class OwnedPet extends Equatable {
 
   static OwnedPet? tryFromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
-    final pet = Pet.tryFromJson(json['pet']);
+    final pet = Pet.tryFromEntryJson(json['pet']);
     final xp = json['xp'];
     final life = json['currentLifePoints'];
     if (pet != null && xp is num && life is num) {
@@ -24,7 +24,7 @@ class OwnedPet extends Equatable {
     }
     // Finestra (BE prima della Phase 19): un compagno a catalogo nudo.
     // Ramo cancellato al gate (piano 19-11).
-    final bare = Pet.tryFromJson(json);
+    final bare = Pet.tryFromEntryJson(json);
     return bare == null
         ? null
         : OwnedPet(pet: bare, xp: 0, currentLifePoints: 0);
