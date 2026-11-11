@@ -8,11 +8,6 @@ class EnergyDamage extends Equatable {
   final EnergyType? type;
   final int? power;
 
-  factory EnergyDamage.fromJson(Map<String, dynamic> json) => EnergyDamage(
-    type: json['type'] != null ? EnergyType.values.byName(json['type']) : null,
-    power: json['power'] != null ? (json['power'] as num).toInt() : null,
-  );
-
   /// Confine di parsing: una voce senza un tipo che il client conosce vale
   /// `null` e viene scartata dalla lista (i lettori indicizzano `type!`).
   static EnergyDamage? tryFromJson(Object? json) {
