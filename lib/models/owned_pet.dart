@@ -10,24 +10,15 @@ class OwnedPet extends Equatable {
     required this.currentLifePoints,
   });
 
+  /// Una voce è `{ pet, xp, currentLifePoints }`: qualsiasi altra forma vale
+  /// null e chi la contiene la scarta.
   static OwnedPet? tryFromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
     final pet = Pet.tryFromEntryJson(json['pet']);
     final xp = json['xp'];
     final life = json['currentLifePoints'];
-    if (pet != null && xp is num && life is num) {
-      return OwnedPet(
-        pet: pet,
-        xp: xp.toInt(),
-        currentLifePoints: life.toInt(),
-      );
-    }
-    // Finestra (BE prima della Phase 19): un compagno a catalogo nudo.
-    // Ramo cancellato al gate (piano 19-11).
-    final bare = Pet.tryFromEntryJson(json);
-    return bare == null
-        ? null
-        : OwnedPet(pet: bare, xp: 0, currentLifePoints: 0);
+    if (pet == null || xp is! num || life is! num) return null;
+    return OwnedPet(pet: pet, xp: xp.toInt(), currentLifePoints: life.toInt());
   }
 
   final Pet pet;
