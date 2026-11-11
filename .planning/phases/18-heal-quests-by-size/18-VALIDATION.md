@@ -66,9 +66,9 @@ created: 2026-11-10
 | 18-12-01 | 12 | 12 | HEAL-03 | T-18-41, T-18-42, T-18-43, T-18-45 | BE read-only; gate stops and parks; no rename | gate | the eleven `grep -cF` (seven + four of quick 261110-cgd) on `origin/develop:src/schema.gql` (`GATE_OK`) | ✅ | ✅ green |
 | 18-12-02 | 12 | 12 | HEAL-01, HEAL-02, HEAL-04, HEAL-05, HEAL-06 | T-18-43 | 46/46 documents valid on the merged schema | unit + gate | `flutter test test/graphql test/tool test/models test/repository` + `dump_documents.dart` / `validate_documents.js` | ✅ (pins of RESEARCH §F13) | ✅ green |
 | 18-12-03 | 12 | 12 | HEAL-03 | T-18-44 | product-rule greps empty; full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ✅ green |
-| 18-13-01 | 13 | 13 | HEAL-03 | T-18-46 | no ids, tokens or URIs in the record | docs | `test -f .planning/phases/18-heal-quests-by-size/18-HUMAN-UAT.md` + row count 15 | ❌ (created by the task) | ⬜ pending |
-| 18-13-02 | 13 | 13 | HEAL-01..06 | T-18-48 | probe outside the repo; outcomes only | manual (device checkpoint) | `18-HUMAN-UAT.md` steps 1–15 | — | ⬜ pending |
-| 18-13-03 | 13 | 13 | HEAL-01..06 | T-18-46, T-18-47 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ⬜ pending |
+| 18-13-01 | 13 | 13 | HEAL-03 | T-18-46 | no ids, tokens or URIs in the record | docs | `test -f .planning/phases/18-heal-quests-by-size/18-HUMAN-UAT.md` + row count 15 | ❌ (created by the task) | ✅ green |
+| 18-13-02 | 13 | 13 | HEAL-01..06 | T-18-48 | probe outside the repo; outcomes only | manual (device checkpoint) | `18-HUMAN-UAT.md` steps 1–15 | — | ✅ green |
+| 18-13-03 | 13 | 13 | HEAL-01..06 | T-18-46, T-18-47 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -115,6 +115,8 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 - [x] Feedback latency < 60s for the per-task runs
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-11-11 (plan 18-12; the 18-13 device rows stay pending)
+**Approval:** approved 2026-11-11 (plan 18-12 gate; device rows closed by plan 18-13)
 
 Gate passed on BE `66df2ef2`: 46/46 OK, full suite 4029 green, analyzer 47 info.
+
+Device E2E passed on 2026-11-11 (`18-HUMAN-UAT.md`, steps 1–14 pass — step 11 after the in-UAT fix — optional step 15 skipped, step 12 by the orchestrator probe). After the UAT fixes: full suite 4031 green (asset tests 25/25 after the magic-sheet commits), analyzer 47 info / 0 warning / 0 error, 46/46 documents OK.
