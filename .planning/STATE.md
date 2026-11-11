@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
 Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
-Plan: 1 of 13
+Plan: 2 of 13
 Status: Ready to execute — Phase 18 merged on `develop` (PR #48); Phase 19 planned: pre-gate plans 19-01..19-09 (parsers, pets, companion lines, result line, spells on the single list behind two legacy readers), gated plans 19-10..19-13 (schema gate, atomic renames, fragment flip, full gates, device E2E).
 Last activity: 2026-11-11 -- Phase 19 planned (research, rules, 13 plans, validation map)
 Next step: execute 19-01..19-09 (`/gsd-execute-phase 19`), park at 9/13 until the BE Phase 19 merge on BE `develop`, then 19-10..19-13 (device E2E needs a pet bought or seeded: nobody owns one at DB).
