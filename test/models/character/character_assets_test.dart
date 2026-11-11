@@ -1,35 +1,91 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character_assets.dart';
+import 'package:klimmeck_guide/models/pet.dart';
 
 import '../../helpers/fixtures/shop_fixtures.dart';
 
 void main() {
   group('CharacterAssets', () {
-    test('parses ownedPets beside the equipped pet (D-10)', () {
+    test('parses the owned pets as entries (D-03)', () {
       final assets = CharacterAssets.fromJson({
-        'pet': petJson(),
-        'ownedPets': [petJson(), catPetJson()],
+        'ownedPets': [
+          ownedPetJson(pet: petJson(), xp: 40),
+          ownedPetJson(pet: catPetJson()),
+        ],
       });
 
-      expect(assets.pet?.id, 'pet-travel-horse');
-      expect(assets.ownedPets.map((p) => p.id), [
+      expect(assets.ownedPets.map((entry) => entry.pet.id), [
         'pet-travel-horse',
         'pet-cat',
       ]);
+      expect(assets.ownedPets.first.xp, 40);
     });
 
-    test('defaults ownedPets to an empty list when absent (D-11)', () {
+    test('drops a malformed owned entry and keeps the others (D-03, D-16)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedPets': [
+          ownedPetJson(),
+          'x',
+          <String, dynamic>{'pet': null},
+        ],
+      });
+
+      expect(assets.ownedPets.map((entry) => entry.pet.id), [
+        'pet-travel-horse',
+      ]);
+    });
+
+    test('an owned list that is not a list is empty (D-03)', () {
       expect(CharacterAssets.fromJson({}).ownedPets, isEmpty);
+      expect(CharacterAssets.fromJson({'ownedPets': 3}).ownedPets, isEmpty);
+      expect(
+        CharacterAssets.fromJson({'ownedPets': ownedPetJson()}).ownedPets,
+        isEmpty,
+      );
     });
 
-    test('lists ownedPets in props so a sale re-renders (D-08)', () {
+    test('ownedCatalogPets gives the catalogue pets of the entries in order '
+        '(D-03)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedPets': [
+          ownedPetJson(pet: catPetJson(), xp: 3),
+          ownedPetJson(pet: petJson()),
+        ],
+      });
+
+      expect(assets.ownedCatalogPets, [
+        Pet.fromJson(catPetJson()),
+        Pet.fromJson(petJson()),
+      ]);
+    });
+
+    test('the equipped pet stays a catalogue pet (D-03)', () {
+      final assets = CharacterAssets.fromJson({
+        'pet': petJson(),
+        'ownedPets': [ownedPetJson(pet: petJson(), xp: 40)],
+      });
+
+      expect(assets.pet, Pet.fromJson(petJson()));
+    });
+
+    test('the owned entries are part of the props (D-03)', () {
       expect(
         CharacterAssets.fromJson({
-          'ownedPets': [petJson(), catPetJson()],
+          'ownedPets': [ownedPetJson(xp: 40)],
         }),
         isNot(
           CharacterAssets.fromJson({
-            'ownedPets': [petJson()],
+            'ownedPets': [ownedPetJson(xp: 41)],
+          }),
+        ),
+      );
+      expect(
+        CharacterAssets.fromJson({
+          'ownedPets': [ownedPetJson(), ownedPetJson(pet: catPetJson())],
+        }),
+        isNot(
+          CharacterAssets.fromJson({
+            'ownedPets': [ownedPetJson()],
           }),
         ),
       );

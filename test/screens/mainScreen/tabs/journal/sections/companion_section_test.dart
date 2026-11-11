@@ -39,7 +39,9 @@ Character _character({
       _cat => catPetJson(),
       _ => null,
     },
-    'ownedPets': owning ? [petJson(), catPetJson()] : const [],
+    'ownedPets': owning
+        ? [ownedPetJson(pet: petJson()), ownedPetJson(pet: catPetJson())]
+        : const [],
   },
 });
 

@@ -29,6 +29,17 @@ Map<String, dynamic> petJson({
   if (rarity != null) 'rarity': rarity,
 };
 
+/// Compagno posseduto nella forma della BE Phase 19 (D-03).
+Map<String, dynamic> ownedPetJson({
+  Map<String, dynamic>? pet,
+  int xp = 0,
+  int currentLifePoints = 10,
+}) => {
+  'pet': pet ?? petJson(),
+  'xp': xp,
+  'currentLifePoints': currentLifePoints,
+};
+
 /// Compagno non da sella (gatto): nessuna velocità (D-07).
 Map<String, dynamic> catPetJson() => petJson(
   id: 'pet-cat',

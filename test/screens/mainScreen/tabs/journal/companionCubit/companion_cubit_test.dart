@@ -19,7 +19,12 @@ Character _character({String? equipped}) => Character.fromJson({
   'id': 'c-1',
   'assets': {
     'pet': equipped == null ? null : petJson(id: equipped),
-    'ownedPets': [petJson(id: _horse), petJson(id: _camel, name: 'Cammello')],
+    'ownedPets': [
+      ownedPetJson(pet: petJson(id: _horse)),
+      ownedPetJson(
+        pet: petJson(id: _camel, name: 'Cammello'),
+      ),
+    ],
   },
 });
 
