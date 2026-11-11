@@ -907,7 +907,7 @@ void main() {
         QuestLoaded([
           buildQuest(
             id: 'e-1',
-            type: 'enemy',
+            type: 'boss',
             slots: [
               {'title': null, 'count': 3},
             ],
