@@ -24,7 +24,7 @@ class SpellSlot extends Equatable {
 
   const SpellSlot.filled({
     required Spell this.spell,
-    required this.usages,
+    required int this.usages,
     required this.isPending,
   });
 
@@ -49,7 +49,7 @@ class SpellbookEntry extends Equatable {
   });
 
   final Spell spell;
-  final int? usages;
+  final int usages;
   final bool isActive;
   final bool isPending;
   final List<DateTime> recoveries;

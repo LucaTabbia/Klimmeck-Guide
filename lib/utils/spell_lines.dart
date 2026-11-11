@@ -15,7 +15,8 @@ const String noSpellSlotsLine = 'Nessuno slot per le magie: cresci di rango';
 /// Slot presenti ma nessuna magia conosciuta (D-12).
 const String noKnownSpellsLine = 'Non hai ancora imparato nessuna magia';
 
-/// Usi correnti; senza `usages` (backend pre-9.1) vale il massimo.
+/// Usi correnti; senza `usages` (magia fuori dal libro del personaggio) vale
+/// il massimo.
 String? spellUsagesLabel({required int? usages, required int? maxUsages}) {
   final shown = usages ?? maxUsages;
   if (shown == null) return null;
