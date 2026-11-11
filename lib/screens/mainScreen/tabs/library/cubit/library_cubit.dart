@@ -44,9 +44,9 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
       return;
     }
     final shown = _idsOf(lore);
-    final baseline = await _readBaseline(book);
+    final reference = await _referenceOf(book, unreadable: shown);
     if (generation != _generation) return;
-    _reference = baseline ?? shown;
+    _reference = reference;
     emit(
       LibraryLoadData(
         book: book,
@@ -115,12 +115,17 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     await _writeBaseline(shown.book, ids);
   }
 
-  Future<Set<String>?> _readBaseline(LibraryBook book) async {
+  /// Un libro mai aperto non ha nulla di già visto: ogni voce è nuova. Se la
+  /// lettura fallisce non si segna nulla, per non riempire il libro di segnalibri.
+  Future<Set<String>> _referenceOf(
+    LibraryBook book, {
+    required Set<String> unreadable,
+  }) async {
     try {
-      return await _bookmarks.readSeen(_characterId, book);
+      return await _bookmarks.readSeen(_characterId, book) ?? const {};
     } on Object catch (e) {
       appLog('LibraryCubit baseline read error: ${e.runtimeType}');
-      return null;
+      return unreadable;
     }
   }
 

@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -23,6 +24,7 @@ void main() {
   late MockTravelCubit travel;
   late MockCharacterCubit characterCubit;
   late MockInAppNotificationsCubit notices;
+  late MockPrisonCubit prison;
   late StreamController<TravelState> travelStates;
   late StreamController<CharacterState> characterStates;
 
@@ -58,6 +60,12 @@ void main() {
     travel = MockTravelCubit();
     characterCubit = MockCharacterCubit();
     notices = MockInAppNotificationsCubit();
+    prison = MockPrisonCubit();
+    whenListen(
+      prison,
+      const Stream<PrisonState>.empty(),
+      initialState: const PrisonState(Duration(hours: 10)),
+    );
     travelStates = StreamController<TravelState>.broadcast();
     characterStates = StreamController<CharacterState>.broadcast();
     addTearDown(travelStates.close);
@@ -77,6 +85,7 @@ void main() {
             BlocProvider<TravelCubit>.value(value: travel),
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<InAppNotificationsCubit>.value(value: notices),
+            BlocProvider<PrisonCubit>.value(value: prison),
           ],
           child: const TravelOutcomeListener(child: SizedBox()),
         ),
@@ -99,6 +108,33 @@ void main() {
   void verifyNoNotice() => verifyNever(
     () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
   );
+
+  testWidgets('a prison refusal feeds the prison and announces the release '
+      '(quick 261110-cgd)', (tester) async {
+    final release = DateTime.utc(2026, 11, 10, 22);
+    await pumpListener(tester, character: resting);
+
+    await emitTravel(
+      tester,
+      TravelFailed(
+        destination: valdoria,
+        failure: TravelFailure.imprisoned,
+        stage: TravelStage.preview,
+        imprisonedUntil: release,
+      ),
+    );
+
+    verify(() => prison.learnRelease(release)).called(1);
+    verify(
+      () => notices.publishNotice(
+        const KGNotification(
+          title: 'Viaggio non partito',
+          description: 'Sei in prigione: uscirai fra 10 h',
+        ),
+        dedupKey: any(named: 'dedupKey'),
+      ),
+    ).called(1);
+  });
 
   testWidgets('a rejection publishes the catalogue banner once and resets', (
     tester,

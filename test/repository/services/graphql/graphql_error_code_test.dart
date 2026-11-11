@@ -108,6 +108,57 @@ void main() {
     });
   });
 
+  group('graphQlErrorExtension', () {
+    const recoveryUntil = '2026-10-27T10:30:00.000Z';
+    final extensions = {
+      'code': 'POTION_RECOVERING',
+      'recoveryUntil': recoveryUntil,
+    };
+
+    test('reads another extension of the coded graphql error (D-19)', () {
+      final exception = OperationException(
+        graphqlErrors: [
+          GraphQLError(message: 'server text', extensions: extensions),
+        ],
+      );
+
+      expect(graphQlErrorExtension(exception, 'recoveryUntil'), recoveryUntil);
+    });
+
+    test('reads it from an error answered with HTTP 400 (D-19)', () {
+      final exception = OperationException(
+        linkException: ServerException(
+          statusCode: 400,
+          parsedResponse: Response(
+            response: const {},
+            errors: [
+              GraphQLError(message: 'server text', extensions: extensions),
+            ],
+          ),
+        ),
+      );
+
+      expect(graphQlErrorExtension(exception, 'recoveryUntil'), recoveryUntil);
+    });
+
+    test('returns null without the key, without a coded error or without an '
+        'exception (D-19)', () {
+      final withoutKey = _graphqlError('POTION_RECOVERING');
+      final uncoded = OperationException(
+        graphqlErrors: [
+          GraphQLError(
+            message: 'x',
+            extensions: {'recoveryUntil': recoveryUntil},
+          ),
+        ],
+      );
+
+      expect(graphQlErrorExtension(withoutKey, 'recoveryUntil'), isNull);
+      expect(graphQlErrorExtension(uncoded, 'recoveryUntil'), isNull);
+      expect(graphQlErrorExtension(null, 'recoveryUntil'), isNull);
+    });
+  });
+
   group('isAccessDeniedError', () {
     test('accessDeniedCodes are FORBIDDEN and NOT_FOUND', () {
       expect(accessDeniedCodes, {'FORBIDDEN', 'NOT_FOUND'});

@@ -29,6 +29,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
@@ -128,6 +129,7 @@ class _ShellProbeState extends State<_ShellProbe> {
     context.read<TravelCubit>(),
     context.read<SpellsCubit>(),
     context.read<CompanionCubit>(),
+    context.read<PotionCubit>(),
     context.read<ServerClockService>(),
   ];
 
@@ -381,7 +383,7 @@ void main() {
       (tester) async {
         await pumpSession(tester);
         expect(find.text('main $testCharacterId'), findsOneWidget);
-        expect(references, hasLength(24));
+        expect(references, hasLength(25));
 
         await logOut(tester);
 

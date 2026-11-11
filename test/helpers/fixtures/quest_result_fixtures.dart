@@ -81,6 +81,7 @@ Map<String, dynamic> questResultJson({
   int hpAfter = 640,
   int maxLifePoints = 1200,
   List<Object?> injuriesAdded = const ['deepCut'],
+  List<Object?> injuriesHealed = const [],
   List<Map<String, dynamic>>? consumablesUsed,
   List<Map<String, dynamic>>? spellsUsed,
   Map<String, dynamic>? coins,
@@ -111,6 +112,7 @@ Map<String, dynamic> questResultJson({
   'hpAfter': hpAfter,
   'maxLifePoints': maxLifePoints,
   'injuriesAdded': injuriesAdded,
+  'injuriesHealed': injuriesHealed,
   'consumablesUsed': consumablesUsed ?? [lootRewardJson()],
   'spellsUsed':
       spellsUsed ??
@@ -140,6 +142,58 @@ Map<String, dynamic> questResultJson({
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
 };
+
+/// Esito di una quest heal vinta (BE Phase 18): vita risalita, una ferita
+/// guarita, nessun nemico.
+Map<String, dynamic> healResultJson({
+  int hpBefore = 3,
+  int hpAfter = 6,
+  List<Object?> injuriesHealed = const ['contusion'],
+}) => questResultJson(
+  questType: 'heal',
+  hpBefore: hpBefore,
+  hpAfter: hpAfter,
+  injuriesAdded: const [],
+  injuriesHealed: injuriesHealed,
+  enemies: const [],
+);
+
+/// Crime vinta e poi arresto (quick 261110-cgd, BE §1.6): sconfitta senza
+/// premi né esperienza, monete confiscate.
+Map<String, dynamic> arrestResultJson({
+  Object? coinsLost = const {'gold': 0, 'silver': 7, 'copper': 50},
+}) => questResultJson(
+  id: 'result-arrest',
+  outcome: 'failure',
+  questType: 'crime',
+  questTitle: 'Il borsello del mercante',
+  hpAfter: 900,
+  injuriesAdded: const [],
+  enemies: const [],
+  coins: _zeroCoins,
+  rewardItems: const [],
+  xpGained: 0,
+  xpAfter: 200,
+  levelAfter: 1,
+)..addAll({'arrested': true, 'coinsLost': coinsLost, 'guardEncounter': false});
+
+/// Guard con scontro (quick 261110-cgd, BE §1.6): vinta con la paga già
+/// raddoppiata dal server, persa con 1 di vita e senza premi.
+Map<String, dynamic> guardEncounterResultJson({String outcome = 'success'}) {
+  final isWon = outcome == 'success';
+  return questResultJson(
+    id: 'result-guard',
+    outcome: outcome,
+    questType: 'guard',
+    questTitle: 'Ronda alle mura',
+    hpAfter: isWon ? 640 : 1,
+    coins: isWon ? const {'gold': 0, 'silver': 6, 'copper': 40} : _zeroCoins,
+    rewardItems: isWon ? null : const [],
+    xpGained: isWon ? 60 : 0,
+    xpAfter: isWon ? 260 : 200,
+    levelAfter: isWon ? 2 : 1,
+  )..addAll({'arrested': false, 'coinsLost': null, 'guardEncounter': true});
+}
 
 /// Dungeon a tappe (BE Phase 13 D-12): una voce per tappa, nell'ordine; di
 /// default fermata alla seconda tappa di tre.

@@ -18,6 +18,11 @@ void main() {
       expect(QuestType.guard.label, 'Guardia');
     });
 
+    test('the magic quest is labelled Magia (quick 261110-mag)', () {
+      expect(QuestType.magic.label, 'Magia');
+      expect(QuestType.values.byName('magic'), QuestType.magic);
+    });
+
     test('every quest type has a non-empty label', () {
       for (final type in QuestType.values) {
         expect(type.label, isNotEmpty, reason: type.name);

@@ -72,7 +72,7 @@ class TravelRepository {
     try {
       return await call().timeout(timeout);
     } on OperationException catch (error) {
-      throw TravelException(travelFailureFrom(error));
+      throw travelExceptionFrom(error);
     } on TimeoutException {
       throw const TravelException(TravelFailure.timedOut);
     } on Object {

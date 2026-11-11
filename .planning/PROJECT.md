@@ -28,7 +28,7 @@ _Confermato alla chiusura della v1.0 (2026-11-10): il loop regge sul device senz
 - **Phase 19 — Model review** (↔ BE Phase 19): `Enemy.weaknesses`, compagni posseduti con esperienza e «Il tuo compagno guadagna N PE», `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, una sola lista di magie con `active`, via `PointOfInterest.quest`, `Lore.imagePath`, parser fragili sistemati.
 - La BE Phase 20 (cibo e vita progressivi in viaggio) non ha una fase FE: nessun cambio sul filo.
 
-**Scope (decisione dell'utente, 2026-11-10):** solo le fasi già discusse il 2026-11-09; il resto del backlog resta dopo la v1.1. Requisiti in `.planning/REQUIREMENTS.md` (HEAL-01..05, MODEL-01..04), fasi in `.planning/ROADMAP.md`.
+**Scope (decisione dell'utente, 2026-11-10):** solo le fasi già discusse il 2026-11-09; il resto del backlog resta dopo la v1.1. Requisiti in `.planning/REQUIREMENTS.md` (HEAL-01..06, MODEL-01..04), fasi in `.planning/ROADMAP.md`.
 
 ## Requirements
 
@@ -56,7 +56,7 @@ _Confermato alla chiusura della v1.0 (2026-11-10): il loop regge sul device senz
 
 **v1.1 Healing & Models (in corso):**
 
-- [ ] Quest di cura per taglia e pozioni dal Diario con ricarica globale — HEAL-01..05 (Phase 18 ↔ BE 18)
+- [ ] Quest di cura per taglia e pozioni dal Diario con ricarica globale — HEAL-01..06 (Phase 18 ↔ BE 18)
 - [ ] Companion della revisione dei modelli: debolezze, compagni con esperienza, `attack`/`defense` dei pet, equipaggiamento indossato, una sola lista di magie, parser fragili — MODEL-01..04 (Phase 19 ↔ BE 19)
 
 **Backlog (dopo la v1.1):**

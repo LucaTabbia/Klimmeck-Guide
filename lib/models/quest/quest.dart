@@ -11,6 +11,7 @@ class Quest extends Equatable {
     required this.requirements,
     required this.registeredAdventurers,
     required this.prizes,
+    this.noEffect = false,
   });
 
   final String id;
@@ -18,6 +19,11 @@ class Quest extends Equatable {
   final QuestRequirements? requirements;
   final QuestPrizes? prizes;
   final List<RegisteredAdventurer> registeredAdventurers;
+
+  /// Per chi guarda (BE Phase 18, D-20): `true` se accettare questa quest non
+  /// cambierebbe nulla al personaggio corrente. Lo decide il backend; il FE lo
+  /// legge soltanto. Assente o malformato vale `false`.
+  final bool noEffect;
 
   factory Quest.fromJson(Map<String, dynamic> json) => Quest(
     id: json["id"],
@@ -31,6 +37,7 @@ class Quest extends Equatable {
     registeredAdventurers: RegisteredAdventurer.listFrom(
       json['registeredAdventurers'],
     ),
+    noEffect: json['noEffect'] == true,
   );
 
   /// Confine di parsing del catalogo (editato a mano a DB): tipo, titolo o slot
@@ -52,6 +59,7 @@ class Quest extends Equatable {
     "registeredAdventurers": registeredAdventurers
         .map((r) => r.toJson())
         .toList(),
+    "noEffect": noEffect,
   };
 
   Quest copyWith({
@@ -60,6 +68,7 @@ class Quest extends Equatable {
     QuestRequirements? requirements,
     QuestPrizes? prizes,
     List<RegisteredAdventurer>? registeredAdventurers,
+    bool? noEffect,
   }) {
     return Quest(
       id: id ?? this.id,
@@ -68,6 +77,7 @@ class Quest extends Equatable {
       prizes: prizes ?? this.prizes,
       registeredAdventurers:
           registeredAdventurers ?? this.registeredAdventurers,
+      noEffect: noEffect ?? this.noEffect,
     );
   }
 
@@ -78,5 +88,6 @@ class Quest extends Equatable {
     requirements,
     prizes,
     registeredAdventurers,
+    noEffect,
   ];
 }

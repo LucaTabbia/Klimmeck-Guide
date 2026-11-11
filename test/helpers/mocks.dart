@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
+import 'package:klimmeck_guide/repository/item_use_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
@@ -29,11 +30,13 @@ import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_gene
 import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -103,6 +106,8 @@ class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockCompanionRepository extends Mock implements CompanionRepository {}
 
+class MockItemUseRepository extends Mock implements ItemUseRepository {}
+
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
 
 class MockInnkeeperRepository extends Mock implements InnkeeperRepository {}
@@ -158,6 +163,10 @@ class MockSpellsCubit extends MockCubit<SpellsState> implements SpellsCubit {}
 
 class MockCompanionCubit extends MockCubit<CompanionState>
     implements CompanionCubit {}
+
+class MockPotionCubit extends MockCubit<PotionState> implements PotionCubit {}
+
+class MockPrisonCubit extends MockCubit<PrisonState> implements PrisonCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
     implements TravelProgressCubit {}

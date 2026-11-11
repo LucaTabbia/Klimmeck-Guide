@@ -9,6 +9,8 @@ import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_l
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/prison_status_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_acceptance_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_result_presenter.dart';
@@ -18,6 +20,7 @@ import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/teleport_mode_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/travel_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -137,24 +140,32 @@ class _MainScreenState extends State<MainScreen>
             return BlocSelector<CharacterCubit, CharacterState, _SatchelInputs>(
               selector: _satchelInputsOf,
               builder: (context, inputs) {
+                final isImprisoned = context.select<PrisonCubit, bool>(
+                  (cubit) => cubit.state.isImprisoned,
+                );
                 final disabledPages = disabledSatchelPages(
                   location: inputs.location,
                   cities: state.cities,
                   isTravelling: inputs.isTravelling,
                   isAwaitingAid: inputs.isAwaitingAid,
+                  isImprisoned: isImprisoned,
                 );
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
                   child: QuestScopeListener(
                     cities: state.cities,
-                    child: PartyWatchListener(
-                      child: TravelOutcomeListener(
-                        child: TransactionOutcomeListener(
-                          child: SpellOutcomeListener(
-                            child: CompanionOutcomeListener(
-                              child: _buildPagesWithSatchel(
-                                state.cities,
-                                disabledPages,
+                    child: PrisonStatusListener(
+                      child: PartyWatchListener(
+                        child: TravelOutcomeListener(
+                          child: TransactionOutcomeListener(
+                            child: SpellOutcomeListener(
+                              child: CompanionOutcomeListener(
+                                child: PotionOutcomeListener(
+                                  child: _buildPagesWithSatchel(
+                                    state.cities,
+                                    disabledPages,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -272,6 +283,7 @@ class _MainScreenState extends State<MainScreen>
       cities: screen.cities,
       isTravelling: inputs.isTravelling,
       isAwaitingAid: inputs.isAwaitingAid,
+      isImprisoned: context.read<PrisonCubit>().state.isImprisoned,
     ).contains(index);
   }
 

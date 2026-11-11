@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_notice.dart';
 
@@ -49,6 +50,7 @@ class TravelOutcomeListener extends StatelessWidget {
         context,
         failure: state.failure,
         destination: state.destination,
+        imprisonedFor: _learnPrison(context, state),
       );
       context.read<TravelCubit>().reset();
       return;
@@ -58,12 +60,22 @@ class TravelOutcomeListener extends StatelessWidget {
     }
   }
 
+  /// Un rifiuto per prigione corregge un client stantio (quick 261110-cgd):
+  /// il banner dice il tempo che manca secondo il PrisonCubit aggiornato.
+  Duration? _learnPrison(BuildContext context, TravelFailed state) {
+    if (state.failure != TravelFailure.imprisoned) return null;
+    final prison = context.read<PrisonCubit>()
+      ..learnRelease(state.imprisonedUntil);
+    return prison.state.remaining;
+  }
+
   void _announce(
     BuildContext context, {
     required TravelFailure failure,
     required City destination,
+    Duration? imprisonedFor,
   }) {
-    final notice = travelNoticeFor(failure);
+    final notice = travelNoticeFor(failure, imprisonedFor: imprisonedFor);
     if (notice == null) return;
     context.read<InAppNotificationsCubit>().publishNotice(
       notice,

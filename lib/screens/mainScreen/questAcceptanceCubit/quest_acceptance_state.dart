@@ -30,11 +30,19 @@ final class QuestAccepted extends QuestAcceptanceState {
 }
 
 final class QuestAcceptanceFailed extends QuestAcceptanceState {
-  const QuestAcceptanceFailed(this.questId, this.failure);
+  const QuestAcceptanceFailed(
+    this.questId,
+    this.failure, {
+    this.imprisonedUntil,
+  });
 
   final String questId;
   final QuestAcceptanceFailure failure;
 
+  /// Fine della prigione detta dal server (quick 261110-cgd); solo per
+  /// [QuestAcceptanceFailure.imprisoned].
+  final DateTime? imprisonedUntil;
+
   @override
-  List<Object?> get props => [questId, failure];
+  List<Object?> get props => [questId, failure, imprisonedUntil];
 }

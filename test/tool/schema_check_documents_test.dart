@@ -29,8 +29,8 @@ void main() {
     expect(schemaCheckDocuments.keys.toSet(), _declaredOperationNames());
   });
 
-  test('the registry lists 45 documents (D-12)', () {
-    expect(schemaCheckDocuments.length, 45);
+  test('the registry lists 46 documents (D-12)', () {
+    expect(schemaCheckDocuments.length, 46);
   });
 
   test('each document holds one operation named like its key', () {

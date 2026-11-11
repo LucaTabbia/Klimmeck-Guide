@@ -260,6 +260,40 @@ void main() {
     });
   });
 
+  group('CHARACTER_IMPRISONED (quick 261110-cgd)', () {
+    final imprisoned = OperationException(
+      graphqlErrors: [
+        GraphQLError(
+          message: 'server text',
+          extensions: {
+            'code': 'CHARACTER_IMPRISONED',
+            'imprisonedUntil': '2026-11-10T22:00:00.000Z',
+          },
+        ),
+      ],
+    );
+    final release = DateTime.utc(2026, 11, 10, 22);
+    final failsImprisoned = throwsA(
+      isA<TravelException>()
+          .having((e) => e.failure, 'failure', TravelFailure.imprisoned)
+          .having((e) => e.imprisonedUntil, 'imprisonedUntil', release),
+    );
+
+    test('preview and start carry the release (quick 261110-cgd)', () async {
+      when(() => graphQl.previewTravel(any())).thenThrow(imprisoned);
+      when(() => graphQl.startTravel(any())).thenThrow(imprisoned);
+
+      await expectLater(
+        repository.preview(characterId: 'c-1', poiId: 'city-marker-2'),
+        failsImprisoned,
+      );
+      await expectLater(
+        repository.start(characterId: 'c-1', poiId: 'city-marker-2'),
+        failsImprisoned,
+      );
+    });
+  });
+
   group('start', () {
     test('sends the character and marker ids to the service', () async {
       when(() => graphQl.startTravel(any())).thenAnswer((_) async => true);

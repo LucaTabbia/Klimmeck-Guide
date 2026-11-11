@@ -12,6 +12,13 @@ double pawnScaleForZoom(double zoom) =>
 class PawnLabel extends StatelessWidget {
   const PawnLabel({super.key, required this.text});
 
+  /// Ingombro del marker che ospita l'etichetta sulla mappa.
+  static const double markerWidth = 260;
+  static const double markerHeight = 72;
+
+  static const double _fontSize = 12;
+  static const double _minFontSize = 8;
+
   final String text;
 
   @override
@@ -30,8 +37,10 @@ class PawnLabel extends StatelessWidget {
           child: AutoSizeText(
             text,
             maxLines: 1,
+            minFontSize: _minFontSize,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: KlimmeckGuideTheme.darkWood,
+              fontSize: _fontSize,
             ),
           ),
         ),

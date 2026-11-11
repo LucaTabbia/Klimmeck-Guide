@@ -53,6 +53,17 @@ void main() {
       );
     });
 
+    test('maps QUEST_NO_EFFECT to noEffect (D-20)', () {
+      expect(
+        questAcceptanceFailureFrom(_withCode('QUEST_NO_EFFECT')),
+        QuestAcceptanceFailure.noEffect,
+      );
+      expect(
+        questAcceptanceFailureFrom(_fromHttp400('QUEST_NO_EFFECT')),
+        QuestAcceptanceFailure.noEffect,
+      );
+    });
+
     test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
       expect(
         questAcceptanceFailureFrom(_withCode('BAD_USER_INPUT')),

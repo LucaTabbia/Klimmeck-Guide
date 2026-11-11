@@ -20,7 +20,7 @@ class CloudinaryAssets {
   static const String bookmarkBlue = 'v1757683915/bookmarkBlue_shxrk6.svg';
 
   // ============== Icons ==============
-  static const String arrowDown = 'v1757683903/arrowDown_byudlt.svg';
+  static const String arrowDown = 'v1794355792/arrowDown_iqsrzb.svg';
   static const String healEffect = 'v1757660480/healEffect_jc9bsg.svg';
   static const String completeTransaction =
       'v1757683133/completeTransaction_kptwjx.svg';
@@ -58,27 +58,65 @@ class CloudinaryAssets {
   static const String questSheet1 = 'v1757660768/questSheet1_c0hswz.svg';
   static const String questSheet2 = 'v1757660778/questSheet2_ekuuzv.svg';
   static const String questSheetTorn1 =
-      'v1757660760/questSheetTorn1_ds3oyp.svg';
+      'v1794313623/tornQuestSheet1_jo92rm.svg';
   static const String questSheetTorn2 =
-      'v1757660756/questSheetTorn2_guqkvh.svg';
+      'v1794313329/tornQuestSheet2_gm4nz0.svg';
   static const String jobSheet1 = 'v1757660765/jobSheet1_osfobz.svg';
   static const String jobSheet2 = 'v1757660773/jobSheet2_dgkg6x.svg';
+  static const String jobTornSheet1 = 'v1794329019/tornJobSheet1_ivb31s.svg';
+  static const String jobTornSheet2 = 'v1794329024/tornJobSheet2_muovna.svg';
+  static const String healSheet1 = 'v1794329008/healSheet1_as1rng.svg';
+  static const String healSheet2 = 'v1794329013/healSheet2_yosyxa.svg';
+  static const String healTornSheet1 = 'v1794329028/tornHealSheet1_am4kxg.svg';
+  static const String healTornSheet2 = 'v1794329034/tornHealSheet2_cppkog.svg';
   static const String announcementSheet1 =
       'v1757660770/announcementSheet1_bmh8f2.svg';
   static const String announcementSheet2 =
       'v1757660776/announcementSheet2_tpub5j.svg';
+  static const String announcementTornSheet1 =
+      'v1794303769/tornAnnouncementSheet1_ez2vyw.svg';
+  static const String announcementTornSheet2 =
+      'v1794303777/tornAnnouncementSheet2_ayfvwu.svg';
+  static const String magicSheet = 'v1794357947/magicSheet_lkkqp3.svg';
+  static const String magicTornSheet = 'v1794321051/tornMagicSheet_f8gu75.svg';
+  static const String huntSheet1 = 'v1794324911/gameSheet1_togp4w.svg';
+  static const String huntSheet2 = 'v1794324912/gameSheet2_zrmzpe.svg';
+  static const String huntTornSheet1 = 'v1794324905/tornGameSheet1_ruztfx.svg';
+  static const String huntTornSheet2 = 'v1794324906/tornGameSheet2_j1xtv6.svg';
+  static const String guardSheet1 = 'v1794322926/guardSheet1_yfzvwp.svg';
+  static const String guardSheet2 = 'v1794322931/guardSheet2_g7rlqv.svg';
+  static const String guardTornSheet1 =
+      'v1794322936/tornGuardSheet1_tsxzu5.svg';
+  static const String guardTornSheet2 =
+      'v1794322939/tornGuardSheet2_aqqbsj.svg';
   static const String crimeSheet1 = 'v1757660763/crimeSheet1_yhl3tp.svg';
-  static const String crimeSheet2 = 'v1757660761/crimeSheet2_q0aysa.svg';
+  static const String crimeSheet2 = 'v1794314260/crimeSheet2_kenql4.svg';
+  static const String crimeTornSheet1 =
+      'v1794321444/tornCrimeSheet1_digaof.svg';
+  static const String crimeTornSheet2 =
+      'v1794321440/tornCrimeSheet2_z2jugi.svg';
+  static const String worldMissionSheet =
+      'v1794330767/worldMissionSheet_uvximo.svg';
+  static const String worldMissionTornSheet =
+      'v1794330793/tornWorldMissionSheet_xaijpq.svg';
   static const String storySheet1 = 'v1757660783/storySheet1_evrqbp.svg';
   static const String storySheet2 = 'v1757660774/storySheet2_jsq0nv.svg';
   static const String storyTornSheet1 =
-      'v1757660766/storyTornSheet1_sxqcw0.svg';
+      'v1794312688/tornStorySheet1_jyoucq.svg';
   static const String storyTornSheet2 =
-      'v1757660754/storyTornSheet2_bhl8um.svg';
-  static const String huntSheet1 = 'v1757660781/huntSheet1_ufnh7p.svg';
-  static const String huntSheet2 = 'v1757660779/huntSheet2_to0gfr.svg';
-  static const String huntTornSheet1 = 'v1757660753/huntTornSheet1_j8irp4.svg';
-  static const String huntTornSheet2 = 'v1757660749/huntTornSheet2_kqqouj.svg';
+      'v1794314149/tornStorySheet2_otpfcb.svg';
+  static const String bossSheet1 = 'v1794330835/bossSheet_kmcubi.svg';
+  static const String bossSheet2 = 'v1794331761/bossSheet2_jpfofw.svg';
+  static const String bossTornSheet1 = 'v1794346460/tornBossSheet1_aua3ms.svg';
+  static const String bossTornSheet2 = 'v1794346467/tornBossSheet2_oi6v2x.svg';
+  static const String aidSheet1 = 'v1794331772/aidSheet1_bv1und.svg';
+  static const String aidSheet2 = 'v1794331778/aidSheet2_iuxlwt.svg';
+  static const String aidTornSheet1 = 'v1794333401/tornAidSheet1_gbxr9p.svg';
+  static const String aidTornSheet2 = 'v1794333419/tornAidSheet2_t4eep5.svg';
+  static const String enemySheet1 = 'v1757660781/huntSheet1_ufnh7p.svg';
+  static const String enemySheet2 = 'v1757660779/huntSheet2_to0gfr.svg';
+  static const String enemyTornSheet1 = 'v1794313032/tornHuntSheet1_tk1xqh.svg';
+  static const String enemyTornSheet2 = 'v1794312697/tornHuntSheet2_kf1oy7.svg';
 
   // ============== Pawns ==============
   static const String adventurerFemalePawn =
@@ -117,10 +155,10 @@ class CloudinaryAssets {
   static const String attackUse = 'v1757660802/attackUse_plbzx7.svg';
   static const String controlUse = 'v1757660807/controlUse_ua2bpj.svg';
   static const String illusionUse = 'v1757660809/illusionUse_gxy4x3.svg';
-  static const String charmUse = 'v1757660815/charmUse_fcehsb.svg';
-  static const String confuseUse = 'v1757660811/confuseUse_v9ciyh.svg';
+  static const String charmUse = 'v1794358489/charmUse_koawq4.svg';
+  static const String confuseUse = 'v1794358494/confuseUse_xhvanu.svg';
   static const String enhanceUse = 'v1757660813/enhanceUse_sodazm.svg';
-  static const String infuseUse = 'v1757660806/infuseUse_rvzfmm.svg';
+  static const String infuseUse = 'v1794359037/infuseUse_mfz3cu.svg';
   static const String healUse = 'v1793889299/heal_edhg35.svg';
 
   // ============== Injury Effects ==============

@@ -9,6 +9,7 @@ void main() {
       NotificationCategory.questEnd,
       NotificationCategory.questCancelled,
       NotificationCategory.ambushDefeat,
+      NotificationCategory.prisonRelease,
     ]);
   });
 
@@ -20,6 +21,7 @@ void main() {
       expect(NotificationCategory.questEnd.storageKey, 'quest_end');
       expect(NotificationCategory.questCancelled.storageKey, 'quest_cancelled');
       expect(NotificationCategory.ambushDefeat.storageKey, 'ambush_defeat');
+      expect(NotificationCategory.prisonRelease.storageKey, 'prison_release');
     },
   );
 
@@ -31,6 +33,7 @@ void main() {
       expect(NotificationCategory.questEnd.wireType, 'questEnd');
       expect(NotificationCategory.questCancelled.wireType, 'questCancelled');
       expect(NotificationCategory.ambushDefeat.wireType, 'ambushDefeat');
+      expect(NotificationCategory.prisonRelease.wireType, 'prisonRelease');
     });
   });
 
@@ -55,6 +58,10 @@ void main() {
       expect(
         NotificationCategory.fromWireType('ambushDefeat'),
         NotificationCategory.ambushDefeat,
+      );
+      expect(
+        NotificationCategory.fromWireType('prisonRelease'),
+        NotificationCategory.prisonRelease,
       );
     });
 

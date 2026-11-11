@@ -38,6 +38,7 @@ void main() {
         QuestType.heal,
         QuestType.job,
         QuestType.study,
+        QuestType.magic,
         QuestType.crime,
         QuestType.guard,
         null,
@@ -58,6 +59,33 @@ void main() {
         expect(crime.slotLines, isEmpty);
       },
     );
+  });
+
+  group('prison (quick 261110-cgd)', () {
+    test('an imprisoned viewer reads the prison reason and the flag the '
+        'sheet completes with the release time (quick 261110-cgd)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(type: 'hunt'),
+        viewer: buildViewer(imprisonedFor: const Duration(hours: 9)),
+      );
+
+      expect(details.isImprisoned, isTrue);
+      expect(details.blockedReason, 'Sei in prigione');
+    });
+
+    test('a free viewer or no viewer is not imprisoned (quick 261110-cgd)', () {
+      expect(
+        QuestSheetDetails.of(
+          buildQuest(type: 'hunt'),
+          viewer: buildViewer(),
+        ).isImprisoned,
+        isFalse,
+      );
+      expect(
+        QuestSheetDetails.of(buildQuest(type: 'hunt')).isImprisoned,
+        isFalse,
+      );
+    });
   });
 
   group('required title', () {

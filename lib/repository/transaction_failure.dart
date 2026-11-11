@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/character_imprisoned.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -37,6 +38,9 @@ enum TransactionFailure {
 
   /// Vendita di un compagno non più posseduto (BE D-14).
   petNotOwned,
+
+  /// Il personaggio è in prigione (quick 261110-cgd).
+  imprisoned,
   notFound,
   forbidden,
 
@@ -65,6 +69,7 @@ TransactionFailure transactionFailureFrom(OperationException exception) {
     itemNotInShopCode => TransactionFailure.itemNotInShop,
     petAlreadyOwnedCode => TransactionFailure.petAlreadyOwned,
     petNotOwnedCode => TransactionFailure.petNotOwned,
+    characterImprisonedCode => TransactionFailure.imprisoned,
     notFoundCode => TransactionFailure.notFound,
     forbiddenCode => TransactionFailure.forbidden,
     badUserInputCode => TransactionFailure.badUserInput,

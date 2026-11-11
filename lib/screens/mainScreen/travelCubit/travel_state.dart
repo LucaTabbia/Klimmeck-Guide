@@ -146,12 +146,17 @@ final class TravelFailed extends TravelState {
     required this.destination,
     required this.failure,
     required this.stage,
+    this.imprisonedUntil,
   });
 
   final City destination;
   final TravelFailure failure;
   final TravelStage stage;
 
+  /// Fine della prigione detta dal server (quick 261110-cgd); solo per
+  /// [TravelFailure.imprisoned].
+  final DateTime? imprisonedUntil;
+
   @override
-  List<Object?> get props => [destination, failure, stage];
+  List<Object?> get props => [destination, failure, stage, imprisonedUntil];
 }

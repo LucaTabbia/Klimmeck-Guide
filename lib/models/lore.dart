@@ -34,6 +34,25 @@ class Lore extends Equatable {
   static LoreType? _typeFrom(Object? wire) =>
       wire is String ? LoreType.values.asNameMap()[wire] : null;
 
+  /// Riferimenti a lore `{ id name type }` letti voce per voce: una voce senza
+  /// id o senza nome è scartata, ciò che non è una lista vale una lista vuota.
+  static List<Lore> lenientRefsFrom(Object? json) {
+    if (json is! List) return const [];
+    return List<Lore>.unmodifiable(
+      json.whereType<Map<String, dynamic>>().map(_refOrNull).nonNulls,
+    );
+  }
+
+  static Lore? _refOrNull(Map<String, dynamic> json) {
+    try {
+      final lore = Lore.fromJson(json);
+      final name = lore.name;
+      return name == null || name.isEmpty ? null : lore;
+    } on Object {
+      return null;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "type": type?.name,

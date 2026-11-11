@@ -53,6 +53,24 @@ void main() {
       );
     });
 
+    test('imprisoned shows the release time from the server date '
+        '(quick 261110-cgd)', () {
+      expect(
+        travelNoticeFor(
+          TravelFailure.imprisoned,
+          imprisonedFor: const Duration(hours: 10),
+        ),
+        const KGNotification(
+          title: 'Viaggio non partito',
+          description: 'Sei in prigione: uscirai fra 10 h',
+        ),
+      );
+      expect(
+        travelNoticeFor(TravelFailure.imprisoned)!.description,
+        'Sei in prigione',
+      );
+    });
+
     test('unauthenticated shows no banner', () {
       expect(travelNoticeFor(TravelFailure.unauthenticated), isNull);
     });

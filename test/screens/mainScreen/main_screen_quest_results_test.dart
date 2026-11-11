@@ -19,6 +19,7 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/notificationIntentCubit/notification_intent_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
@@ -27,6 +28,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -38,6 +40,7 @@ import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/fake_server_clock_service.dart';
 import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_pending_quest_results.dart';
 import '../../helpers/fakes/recording_quest_result_acknowledger.dart';
@@ -93,6 +96,11 @@ class _MainScreenHarness {
       initialState: const CompanionState(),
     );
     whenListen(
+      potion,
+      const Stream<PotionState>.empty(),
+      initialState: const PotionIdle(),
+    );
+    whenListen(
       preferences,
       const Stream<NotificationPreferencesState>.empty(),
       initialState: NotificationPreferencesState(),
@@ -140,6 +148,7 @@ class _MainScreenHarness {
   final MockTravelCubit travel = MockTravelCubit();
   final MockSpellsCubit spells = MockSpellsCubit();
   final MockCompanionCubit companion = MockCompanionCubit();
+  final MockPotionCubit potion = MockPotionCubit();
   final MockTransactionCubit transactions = MockTransactionCubit();
   final MockNotificationPreferencesCubit preferences =
       MockNotificationPreferencesCubit();
@@ -180,6 +189,11 @@ class _MainScreenHarness {
         home: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: character),
+            BlocProvider<PrisonCubit>(
+              create: (_) => PrisonCubit(
+                clock: FakeServerClockService(DateTime.utc(2026, 11, 10)),
+              ),
+            ),
             BlocProvider<QuestCubit>.value(value: quests),
             BlocProvider<MainScreenCubit>.value(value: mainScreen),
             BlocProvider<NotificationIntentCubit>.value(value: intents),
@@ -188,6 +202,7 @@ class _MainScreenHarness {
             BlocProvider<TravelCubit>.value(value: travel),
             BlocProvider<SpellsCubit>.value(value: spells),
             BlocProvider<CompanionCubit>.value(value: companion),
+            BlocProvider<PotionCubit>.value(value: potion),
             BlocProvider<TransactionCubit>.value(value: transactions),
             BlocProvider<MapAvailabilityCubit>.value(value: availability),
             BlocProvider<QuestResultsCubit>.value(value: results),

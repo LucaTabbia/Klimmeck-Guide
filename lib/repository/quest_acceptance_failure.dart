@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/character_imprisoned.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -12,6 +13,7 @@ const String questTitleMismatchCode = 'QUEST_TITLE_MISMATCH';
 const String questNotInCityCode = 'QUEST_NOT_IN_CITY';
 const String questNotAcceptableCode = 'QUEST_NOT_ACCEPTABLE';
 const String insufficientPointsCode = 'INSUFFICIENT_POINTS';
+const String questNoEffectCode = 'QUEST_NO_EFFECT';
 
 /// Esiti di dominio del rifiuto di `acceptQuest`; la UI li traduce in copy (D-04).
 enum QuestAcceptanceFailure {
@@ -35,6 +37,14 @@ enum QuestAcceptanceFailure {
   /// vivo; il foglio si ricompone e l'anteprima si rinnova (15-CONTEXT D-05).
   starving,
 
+  /// BE Phase 18 D-25: la heal non cambierebbe nulla al personaggio; arriva
+  /// solo con una lista stantia (il foglio è già strappato, D-20).
+  noEffect,
+
+  /// Il personaggio è in prigione (quick 261110-cgd): la fine viaggia
+  /// sull'eccezione.
+  imprisoned,
+
   /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
   /// server (Phase 12 D-13a).
   badUserInput,
@@ -48,9 +58,12 @@ enum QuestAcceptanceFailure {
 }
 
 class QuestAcceptanceException implements Exception {
-  const QuestAcceptanceException(this.failure);
+  const QuestAcceptanceException(this.failure, {this.imprisonedUntil});
 
   final QuestAcceptanceFailure failure;
+
+  /// Fine della prigione detta dal server, solo per [QuestAcceptanceFailure.imprisoned].
+  final DateTime? imprisonedUntil;
 
   @override
   String toString() => 'QuestAcceptanceException(${failure.name})';
@@ -75,6 +88,8 @@ QuestAcceptanceFailure questAcceptanceFailureFrom(
     travelInProgressCode => QuestAcceptanceFailure.travelInProgress,
     awaitingAidCode => QuestAcceptanceFailure.awaitingAid,
     travelStarvingCode => QuestAcceptanceFailure.starving,
+    questNoEffectCode => QuestAcceptanceFailure.noEffect,
+    characterImprisonedCode => QuestAcceptanceFailure.imprisoned,
     notFoundCode => QuestAcceptanceFailure.notFound,
     forbiddenCode => QuestAcceptanceFailure.forbidden,
     badUserInputCode => QuestAcceptanceFailure.badUserInput,
@@ -82,3 +97,11 @@ QuestAcceptanceFailure questAcceptanceFailureFrom(
     _ => QuestAcceptanceFailure.unknown,
   };
 }
+
+/// Il rifiuto con la fine della prigione quando il personaggio è in prigione.
+QuestAcceptanceException questAcceptanceExceptionFrom(
+  OperationException exception,
+) => QuestAcceptanceException(
+  questAcceptanceFailureFrom(exception),
+  imprisonedUntil: imprisonedUntilFrom(exception),
+);

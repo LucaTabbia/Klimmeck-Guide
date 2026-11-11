@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -23,12 +24,14 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
   final Widget child;
 
   /// Dopo questi rifiuti la lista può essere cambiata sul server; `timedOut`
-  /// perché il BE può aver accettato la quest dopo la scadenza client.
+  /// perché il BE può aver accettato la quest dopo la scadenza client;
+  /// `noEffect` perché la lista non sapeva ancora che la cura è inutile (D-20).
   static const Set<QuestAcceptanceFailure> _staleListFailures = {
     QuestAcceptanceFailure.full,
     QuestAcceptanceFailure.alreadyTaken,
     QuestAcceptanceFailure.notFound,
     QuestAcceptanceFailure.timedOut,
+    QuestAcceptanceFailure.noEffect,
   };
 
   @override
@@ -59,12 +62,22 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
     final notice = questAcceptanceNoticeFor(
       state.failure,
       type: _questById(context, state.questId)?.infos?.type,
+      imprisonedFor: _learnPrison(context, state),
     );
     if (notice == null) return;
     context.read<InAppNotificationsCubit>().publishNotice(
       notice,
       dedupKey: 'quest-acceptance|${state.failure.name}|${state.questId}',
     );
+  }
+
+  /// Un rifiuto per prigione corregge un client stantio (quick 261110-cgd):
+  /// il banner dice il tempo che manca secondo il PrisonCubit aggiornato.
+  Duration? _learnPrison(BuildContext context, QuestAcceptanceFailed state) {
+    if (state.failure != QuestAcceptanceFailure.imprisoned) return null;
+    final prison = context.read<PrisonCubit>()
+      ..learnRelease(state.imprisonedUntil);
+    return prison.state.remaining;
   }
 
   String? _currentCityId(BuildContext context) {

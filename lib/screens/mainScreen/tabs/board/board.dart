@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 import 'package:klimmeck_guide/models/quest/quest_lane.dart';
@@ -13,6 +14,8 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_selectors.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/components/sheet.dart';
@@ -108,11 +111,19 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
         _ => null,
       },
     );
+    final imprisonedFor = context.select<PrisonCubit, Duration?>(
+      (cubit) => cubit.state.remaining,
+    );
 
     return BlocBuilder<CharacterCubit, CharacterState>(
       builder: (context, characterState) => BlocBuilder<QuestCubit, QuestState>(
         builder: (context, questState) {
-          final viewer = _viewerOf(characterState, questState, twitchPoints);
+          final viewer = _viewerOf(
+            characterState,
+            questState,
+            twitchPoints,
+            imprisonedFor,
+          );
           final listed = viewer == null || questState is! QuestLoaded
               ? const <Quest>[]
               : boardQuestsFor(questState.quests, viewer);
@@ -122,11 +133,13 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     );
   }
 
-  /// Viewer live (personaggio + saldo + POI della città); null fuori da un marker (D-11).
+  /// Viewer live (personaggio + saldo + POI della città + prigione); null
+  /// fuori da un marker (D-11).
   QuestViewer? _viewerOf(
     CharacterState characterState,
     QuestState questState,
     int? twitchPoints,
+    Duration? imprisonedFor,
   ) {
     if (characterState is! CharacterLoaded || questState is! QuestLoaded) {
       return null;
@@ -140,6 +153,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       cityPointIds: questState.cityId == city.id
           ? questState.cityPointIds
           : null,
+      imprisonedFor: imprisonedFor,
     );
   }
 
@@ -315,14 +329,19 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       canTear:
           standingOf(selected, viewer).canAccept &&
           travelPreview?.arrivesAlive != false,
-      isEnabled: isIdle,
+      // D-20: un foglio già strappato dal backend non si trascina né si accetta.
+      isEnabled: isIdle && !selected.noEffect,
       onTorn: () => _accept(viewer, selected),
       child: ColoredBox(
         color: Colors.transparent,
-        child: QuestInfoSheet(
-          quest: selected,
-          viewer: viewer,
-          travelPreview: travelPreview,
+        child: BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
+          selector: characterInjuriesOf,
+          builder: (context, injuries) => QuestInfoSheet(
+            quest: selected,
+            viewer: viewer,
+            travelPreview: travelPreview,
+            characterInjuries: injuries,
+          ),
         ),
       ),
     ),

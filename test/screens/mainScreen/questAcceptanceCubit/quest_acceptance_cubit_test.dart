@@ -53,6 +53,26 @@ void main() {
   );
 
   blocTest<QuestAcceptanceCubit, QuestAcceptanceState>(
+    'a prison refusal carries the server release (quick 261110-cgd)',
+    setUp: () => stubAccept().thenThrow(
+      QuestAcceptanceException(
+        QuestAcceptanceFailure.imprisoned,
+        imprisonedUntil: DateTime.utc(2026, 11, 10, 22),
+      ),
+    ),
+    build: build,
+    act: (cubit) => cubit.accept(characterId: 'c-1', questId: 'q-1'),
+    expect: () => [
+      const QuestAccepting('q-1'),
+      QuestAcceptanceFailed(
+        'q-1',
+        QuestAcceptanceFailure.imprisoned,
+        imprisonedUntil: DateTime.utc(2026, 11, 10, 22),
+      ),
+    ],
+  );
+
+  blocTest<QuestAcceptanceCubit, QuestAcceptanceState>(
     'maps an unexpected error to unknown',
     setUp: () => stubAccept().thenThrow(StateError('boom')),
     build: build,

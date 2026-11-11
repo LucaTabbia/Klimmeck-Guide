@@ -19,6 +19,8 @@ class ItemRow extends StatelessWidget {
     required this.size,
     this.quantity,
     this.onLongTap,
+    this.isDisabled = false,
+    this.statusLine,
   });
 
   final int? quantity;
@@ -30,32 +32,44 @@ class ItemRow extends StatelessWidget {
   final Function(AssetItem)? onSelect;
   final Function(EquipmentItem)? onLongTap;
 
+  /// Riga spenta (D-12): la carta sbiadisce; chi chiama non passa `onSelect`.
+  final bool isDisabled;
+
+  /// Riga di stato sotto le altre (D-12), es. il conto alla rovescia.
+  final String? statusLine;
+
   @override
   Widget build(BuildContext context) {
     final lootItem = assetItem.asLoot;
     final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
     final injuriesLine = lootItem == null ? null : healedInjuriesLine(lootItem);
+    final recovery = lootItem == null ? null : recoveryLine(lootItem.recovery);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
         children: [
-          assetItem.isEquipment
-              ? EquipmentItemCard(
-                  key: ValueKey(assetItem.id),
-                  onLongPress: (equip) => onLongTap?.call(equip),
-                  onTap: (item) => onSelect?.call(item),
-                  quantity: quantity,
-                  isSelected: isSelected,
-                  size: size,
-                  equipmentItem: assetItem.asEquipment!,
-                )
-              : LootItemCard(
-                  key: ValueKey(assetItem.id),
-                  onTap: (item) => onSelect?.call(item),
-                  quantity: quantity,
-                  size: size,
-                  lootItem: assetItem.asLoot!,
-                ),
+          AnimatedOpacity(
+            key: ValueKey('item-card-opacity-${assetItem.id}'),
+            opacity: isDisabled ? KlimmeckGuideTheme.pendingInkOpacity : 1,
+            duration: KlimmeckGuideTheme.pendingInkDuration,
+            child: assetItem.isEquipment
+                ? EquipmentItemCard(
+                    key: ValueKey(assetItem.id),
+                    onLongPress: (equip) => onLongTap?.call(equip),
+                    onTap: (item) => onSelect?.call(item),
+                    quantity: quantity,
+                    isSelected: isSelected,
+                    size: size,
+                    equipmentItem: assetItem.asEquipment!,
+                  )
+                : LootItemCard(
+                    key: ValueKey(assetItem.id),
+                    onTap: (item) => onSelect?.call(item),
+                    quantity: quantity,
+                    size: size,
+                    lootItem: assetItem.asLoot!,
+                  ),
+          ),
           if (showCoins)
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
@@ -67,7 +81,7 @@ class ItemRow extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: _buildTexts(effectLine, injuriesLine),
+              child: _buildTexts(effectLine, injuriesLine, recovery),
             ),
           ),
         ],
@@ -75,7 +89,11 @@ class ItemRow extends StatelessWidget {
     );
   }
 
-  Widget _buildTexts(String? effectLine, String? injuriesLine) {
+  Widget _buildTexts(
+    String? effectLine,
+    String? injuriesLine,
+    String? recoveryText,
+  ) {
     final style = KlimmeckGuideTheme.instance.bodyMedium;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,6 +110,18 @@ class ItemRow extends StatelessWidget {
           Text(
             injuriesLine,
             key: ValueKey('item-injuries-${assetItem.id}'),
+            style: style,
+          ),
+        if (recoveryText != null)
+          Text(
+            recoveryText,
+            key: ValueKey('item-recovery-${assetItem.id}'),
+            style: style,
+          ),
+        if (statusLine case final status?)
+          Text(
+            status,
+            key: ValueKey('item-status-${assetItem.id}'),
             style: style,
           ),
       ],

@@ -58,7 +58,7 @@ void main() {
 
   group('openBook', () {
     blocTest<LibraryCubit, LibraryState>(
-      'opening a book for the first time marks nothing and records what it shows (D-07)',
+      'opening a book for the first time marks every entry and records what it shows (D-07)',
       setUp: () => answerWith([andogan, bosa, valtorre, drustea, goblin]),
       build: buildCubit,
       act: (cubit) => cubit.openBook(LibraryBook.places),
@@ -67,7 +67,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa, valtorre, drustea],
-          newLoreIds: const {},
+          newLoreIds: _ids([andogan, bosa, valtorre, drustea]),
         ),
       ],
       verify: (_) => expect(
@@ -86,7 +86,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.bestiary,
           lore: [goblin],
-          newLoreIds: const {},
+          newLoreIds: {goblin.id},
         ),
       ],
     );
@@ -170,7 +170,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: const {},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
@@ -230,7 +230,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: {bosa.id},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
@@ -293,7 +293,7 @@ void main() {
     );
 
     blocTest<LibraryCubit, LibraryState>(
-      'without a previous baseline a live arrival is marked against the first shown set (D-07)',
+      'without a previous baseline a live arrival is marked like every other entry (D-07)',
       setUp: () {
         answerWith([andogan]);
         answerWith([andogan, bosa]);
@@ -309,12 +309,12 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan],
-          newLoreIds: const {},
+          newLoreIds: {andogan.id},
         ),
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: {bosa.id},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
@@ -322,6 +322,7 @@ void main() {
     blocTest<LibraryCubit, LibraryState>(
       'a failed refresh keeps the page and emits nothing (D-05)',
       setUp: () {
+        seedBaseline(LibraryBook.places, {andogan.id});
         answerWith([andogan]);
         answers.add(() async => throw StateError('offline'));
         answerWith([andogan, bosa]);
@@ -379,6 +380,7 @@ void main() {
     test(
       'a refresh completing after another book opened is dropped (D-05, D-19)',
       () async {
+        seedBaseline(LibraryBook.bestiary, {goblin.id});
         answerWith([andogan, goblin]);
         final held = holdNextAnswer();
         answerWith([andogan, goblin]);
@@ -410,6 +412,7 @@ void main() {
     test(
       'a set change during the opening fetch is applied once the book is shown (D-05)',
       () async {
+        seedBaseline(LibraryBook.places, {andogan.id});
         final held = holdNextAnswer();
         answerWith([andogan, bosa]);
         final cubit = buildCubit();
@@ -442,6 +445,7 @@ void main() {
     test(
       'changes during a refresh in flight run one trailing refresh (D-05)',
       () async {
+        seedBaseline(LibraryBook.places, {andogan.id});
         answerWith([andogan]);
         final held = holdNextAnswer();
         answerWith([andogan, bosa, valtorre]);

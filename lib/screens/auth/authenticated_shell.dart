@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
+import 'package:klimmeck_guide/repository/item_use_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
@@ -32,12 +33,14 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_abandon_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
@@ -98,6 +101,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Navigator radice, FUORI da questi provider: passare i Cubit con
 /// `BlocProvider.value` o leggerli prima di aprire la route.
 /// La Locanda (Phase 10) legge `InnkeeperRepository` e `ServerClockService` da qui con `openInnkeeperPanel`.
+///
+/// Prigione (quick 261110-cgd): sull'ora del server, qui perché mappa,
+/// Bacheca, borsa e banner la leggono tutti.
 ///
 /// Modalità teletrasporto del GM (Phase 10): a livello di shell perché il pannello (route radice) la avvia e la Mappa la mostra.
 class AuthenticatedShell extends StatelessWidget {
@@ -250,6 +256,10 @@ class AuthenticatedShell extends StatelessWidget {
             permissionGate: context.read<NotificationPermissionGate>(),
           ),
         ),
+        BlocProvider<PrisonCubit>(
+          create: (context) =>
+              PrisonCubit(clock: context.read<ServerClockService>()),
+        ),
         BlocProvider<TravelCubit>(
           create: (context) => TravelCubit(
             context.read<TravelRepository>(),
@@ -261,6 +271,9 @@ class AuthenticatedShell extends StatelessWidget {
         ),
         BlocProvider<CompanionCubit>(
           create: (_) => CompanionCubit(CompanionRepository(graphQl: graphQl)),
+        ),
+        BlocProvider<PotionCubit>(
+          create: (_) => PotionCubit(ItemUseRepository(graphQl: graphQl)),
         ),
       ],
       child: Stack(
