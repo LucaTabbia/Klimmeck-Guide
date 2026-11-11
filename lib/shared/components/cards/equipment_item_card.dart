@@ -31,7 +31,9 @@ class EquipmentItemCard extends StatefulWidget {
 }
 
 class _EquipmentItemCardState extends State<EquipmentItemCard> {
-  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
+  static final _cardBackgroundUrl = CloudinaryAssets.url(
+    CloudinaryAssets.emptyCardSheet,
+  );
   late bool? _isSelected;
 
   @override
@@ -99,7 +101,9 @@ class _EquipmentItemCardState extends State<EquipmentItemCard> {
                         maxLines: 2,
                         textAlign: TextAlign.center,
                         style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-                          color: widget.equipmentItem.rarity!.color,
+                          color:
+                              widget.equipmentItem.rarity?.color ??
+                              KlimmeckGuideTheme.deepNight,
                           fontWeight: FontWeight.w800,
                           shadows: [
                             Shadow(

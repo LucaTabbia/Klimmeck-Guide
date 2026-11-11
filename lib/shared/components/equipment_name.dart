@@ -6,7 +6,11 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import '../../theme/kg_theme.dart';
 
 class EquipmentName extends StatelessWidget {
-  const EquipmentName({super.key, required this.equipmentItem, required this.height});
+  const EquipmentName({
+    super.key,
+    required this.equipmentItem,
+    required this.height,
+  });
 
   final EquipmentItem equipmentItem;
   final double height;
@@ -27,7 +31,8 @@ class EquipmentName extends StatelessWidget {
             minFontSize: 20,
             equipmentItem.name?.toString() ?? "",
             style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-              color: equipmentItem.rarity!.color,
+              color:
+                  equipmentItem.rarity?.color ?? KlimmeckGuideTheme.deepNight,
               fontWeight: FontWeight.w800,
             ),
           ),

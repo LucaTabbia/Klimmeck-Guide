@@ -76,7 +76,9 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                               widget.equipmentItem.name!.toString(),
                               style: KlimmeckGuideTheme.instance.bodyLarge
                                   .copyWith(
-                                    color: widget.equipmentItem.rarity!.color,
+                                    color:
+                                        widget.equipmentItem.rarity?.color ??
+                                        KlimmeckGuideTheme.deepNight,
                                     fontWeight: FontWeight.w800,
                                     shadows: [
                                       Shadow(
