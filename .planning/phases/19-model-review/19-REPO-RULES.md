@@ -73,6 +73,7 @@ Written on 2026-11-11. Where this section and the rest of the file diverge, this
 - **D-17:** `PointOfInterest.location` absent, null or with a null first element → `null` (as today, refined on 2026-11-11); any other present-but-malformed value → strict as today (`latLngFromWire`).
 - **D-18:** `OwnedPet.currentLifePoints` is selected and parsed, displayed nowhere.
 - **D-19 (gate amended):** `feet` is also a value of `enum SlotType` sent by `EquipItemRequest`; the schema gate adds block-anchored checks (`awk '/^type <T> /,/^}/'` on the saved SDL): `type Lore` has `imagePath` and no `image:` line, `type SpellState` has `active: Boolean!`, `type CharacterStatus` has no `spells:` line, `enum SlotType` has `feet` and no `foots`, `type CharacterAssets` has `ownedPets: [OwnedPet!]!`, `type Pet` has `defense: Damages!`; the bare grep `imagePath ≥ 1` is dropped (already true today).
+- **D-20 (user, 2026-11-11):** `Pet.rarity` (additive, nullable): model field in 19-04 (lenient → `null`), gated selection in `PetFragment`, shown on companion card/rows with the existing rarity presentation of the item cards, hidden when `null`; gate check `type Pet` has `rarity: RarityType`.
 
 ### From the research
 
