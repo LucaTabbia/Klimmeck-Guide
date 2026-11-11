@@ -58,7 +58,7 @@ void main() {
 
   group('openBook', () {
     blocTest<LibraryCubit, LibraryState>(
-      'opening a book for the first time marks nothing and records what it shows (D-07)',
+      'opening a book for the first time marks every entry and records what it shows (D-07)',
       setUp: () => answerWith([andogan, bosa, valtorre, drustea, goblin]),
       build: buildCubit,
       act: (cubit) => cubit.openBook(LibraryBook.places),
@@ -67,7 +67,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa, valtorre, drustea],
-          newLoreIds: const {},
+          newLoreIds: _ids([andogan, bosa, valtorre, drustea]),
         ),
       ],
       verify: (_) => expect(
@@ -86,7 +86,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.bestiary,
           lore: [goblin],
-          newLoreIds: const {},
+          newLoreIds: {goblin.id},
         ),
       ],
     );
@@ -170,7 +170,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: const {},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
@@ -230,7 +230,7 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: {bosa.id},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
@@ -293,7 +293,7 @@ void main() {
     );
 
     blocTest<LibraryCubit, LibraryState>(
-      'without a previous baseline a live arrival is marked against the first shown set (D-07)',
+      'without a previous baseline a live arrival is marked like every other entry (D-07)',
       setUp: () {
         answerWith([andogan]);
         answerWith([andogan, bosa]);
@@ -309,12 +309,12 @@ void main() {
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan],
-          newLoreIds: const {},
+          newLoreIds: {andogan.id},
         ),
         LibraryLoadData(
           book: LibraryBook.places,
           lore: [andogan, bosa],
-          newLoreIds: {bosa.id},
+          newLoreIds: _ids([andogan, bosa]),
         ),
       ],
     );
