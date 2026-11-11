@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/companion_slot.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/owned_companion_row.dart';
@@ -17,7 +18,7 @@ class CompanionContent extends StatelessWidget {
     required this.onToggle,
   });
 
-  final List<Pet> owned;
+  final List<OwnedPet> owned;
 
   /// Compagno nello slot: quello al fianco, o quello in attesa nell'overlay.
   final Pet? displayed;
@@ -47,7 +48,7 @@ class CompanionContent extends StatelessWidget {
               style: KlimmeckGuideTheme.instance.bodyMedium,
             ),
           ),
-        for (final pet in owned)
+        for (final OwnedPet(:pet) in owned)
           OwnedCompanionRow(
             key: ValueKey(pet.id),
             pet: pet,

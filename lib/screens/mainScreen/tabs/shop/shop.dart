@@ -393,7 +393,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
       );
 
   List<Pet> _ownedPetsOf(Character character) =>
-      character.assets?.ownedPets ?? const [];
+      character.assets?.ownedCatalogPets ?? const [];
 
   Set<String> _ownedPetIdsOf(Character character) => {
     for (final pet in _ownedPetsOf(character)) pet.id,
