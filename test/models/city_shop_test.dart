@@ -51,4 +51,55 @@ void main() {
       );
     });
   });
+
+  group('entry boundaries (Phase 19)', () {
+    test('drops a pool loot entry with an unknown effect (D-16)', () {
+      final broken = lootAssetJson(id: 'l-broken');
+      (broken['item'] as Map<String, dynamic>)['effect'] = 'teleport';
+
+      final shop = CityShop.fromJson(
+        cityShopJson(loot: [broken, lootAssetJson()]),
+      );
+
+      expect(shop.loot.map((entry) => entry.item?.id), ['l-potion']);
+      expect(shop.equipment, hasLength(1));
+    });
+
+    test('drops a pool equipment entry with an unknown rarity (D-16)', () {
+      final shop = CityShop.fromJson(
+        cityShopJson(
+          equipment: [
+            equipmentAssetJson(),
+            equipmentAssetJson(id: 'e-broken', rarity: 'mythic'),
+          ],
+        ),
+      );
+
+      expect(shop.equipment.map((entry) => entry.item?.id), ['e-sword']);
+    });
+
+    test('drops a pool pet that is not a map or has no id (D-16)', () {
+      final shop = CityShop.fromJson({
+        ...cityShopJson(),
+        'pets': [
+          petJson(),
+          'x',
+          {'name': 'senza id'},
+        ],
+      });
+
+      expect(shop.pets.map((pet) => pet.id), ['pet-travel-horse']);
+    });
+
+    test('a pool without a city id still throws (D-16)', () {
+      expect(
+        () => CityShop.fromJson({
+          'equipment': [equipmentAssetJson()],
+          'loot': [lootAssetJson()],
+          'pets': [petJson()],
+        }),
+        throwsFormatException,
+      );
+    });
+  });
 }

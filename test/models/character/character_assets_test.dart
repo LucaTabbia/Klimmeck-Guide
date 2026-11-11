@@ -35,4 +35,44 @@ void main() {
       );
     });
   });
+
+  group('entry boundaries (Phase 19)', () {
+    test(
+      'drops an owned item with an unknown effect and keeps the others (D-16)',
+      () {
+        final broken = lootAssetJson(id: 'l-broken');
+        (broken['item'] as Map<String, dynamic>)['effect'] = 'teleport';
+
+        final assets = CharacterAssets.fromJson({
+          'ownedItems': [broken, lootAssetJson()],
+        });
+
+        expect(assets.ownedItems?.map((entry) => entry.item?.id), ['l-potion']);
+      },
+    );
+
+    test('drops an owned equipment with an unknown equip type and keeps '
+        'the others (D-16)', () {
+      final broken = equipmentAssetJson(id: 'e-broken');
+      (broken['item'] as Map<String, dynamic>)['equipType'] = 'cape';
+
+      final assets = CharacterAssets.fromJson({
+        'ownedEquipments': [equipmentAssetJson(), broken],
+      });
+
+      expect(assets.ownedEquipments?.map((entry) => entry.item?.id), [
+        'e-sword',
+      ]);
+    });
+
+    test('owned lists that are not lists are empty (D-16)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedItems': 'x',
+        'ownedEquipments': 3,
+      });
+
+      expect(assets.ownedItems, isEmpty);
+      expect(assets.ownedEquipments, isEmpty);
+    });
+  });
 }
