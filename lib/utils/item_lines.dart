@@ -1,3 +1,6 @@
+import 'package:klimmeck_guide/models/base_damage.dart';
+import 'package:klimmeck_guide/models/damages.dart';
+import 'package:klimmeck_guide/models/energy_damage.dart';
 import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
@@ -36,6 +39,36 @@ String? companionSpeedLabel(Pet pet) {
       ? modifier.toInt().toString()
       : modifier.toString().replaceAll('.', ',');
   return 'Velocità ×$digits';
+}
+
+/// Riga dell'esperienza del compagno posseduto (D-03): numeri serviti dal
+/// backend, mai un tetto calcolato qui; senza massimo nessuna riga.
+String? companionXpLine(int xp, int? maxXp) {
+  if (maxXp == null || maxXp <= 0) return null;
+  return 'Esperienza: $xp / $maxXp';
+}
+
+/// Riga «Attacco: …» di un compagno (D-13): danni base poi energie,
+/// etichetta in minuscolo e potenza; nessuna riga senza danni.
+String? petAttackLine(Pet pet) => _damagesLine('Attacco', pet.attack);
+
+/// Riga «Difesa: …» di un compagno (D-13), stesso formato dell'attacco.
+String? petDefenseLine(Pet pet) => _damagesLine('Difesa', pet.defense);
+
+String? _damagesLine(String title, Damages? damages) {
+  final parts = [
+    for (final BaseDamage(:type, :power) in damages?.base ?? const [])
+      if (type != null) _damagePart(type.label, power),
+    for (final EnergyDamage(:type, :power) in damages?.energy ?? const [])
+      if (type != null) _damagePart(type.label, power),
+  ];
+  if (parts.isEmpty) return null;
+  return '$title: ${parts.join(', ')}';
+}
+
+String _damagePart(String label, int? power) {
+  final name = label.toLowerCase();
+  return power == null ? name : '$name $power';
 }
 
 /// Riga «Uso» dei gioielli (D-12): solo anelli e collane con usi serviti dal
