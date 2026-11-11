@@ -12,6 +12,10 @@ Map<String, dynamic> petJson({
   bool? sellable = true,
   Map<String, dynamic>? buyPrice,
   Map<String, dynamic>? sellPrice,
+  int? maxXp,
+  Map<String, dynamic>? attack,
+  Map<String, dynamic>? defense,
+  String? rarity,
 }) => {
   'id': id,
   'name': name,
@@ -19,6 +23,10 @@ Map<String, dynamic> petJson({
   'sellable': sellable,
   'buyPrice': buyPrice ?? coinsJson(gold: 1),
   'sellPrice': sellPrice ?? coinsJson(silver: 50),
+  if (maxXp != null) 'maxXp': maxXp,
+  if (attack != null) 'attack': attack,
+  if (defense != null) 'defense': defense,
+  if (rarity != null) 'rarity': rarity,
 };
 
 /// Compagno non da sella (gatto): nessuna velocità (D-07).
