@@ -46,9 +46,9 @@ created: 2026-11-11
 | 19-01-02 | 01 | 1 | MODEL-01, MODEL-04 | T-19-02 | `Weaknesses.fromJson` never throws, unknown names dropped; enemy locations lenient | unit | `flutter test test/models test/graphql/quest_result_documents_test.dart` | ❌ W0 (`weaknesses_test.dart`, `enemy_test.dart`) | ✅ green |
 | 19-02-01 | 02 | 2 | MODEL-04 | T-19-04, T-19-05 | a damage entry with an unknown / missing type is dropped, never nulled | unit | `flutter test test/models test/shared/components` | ❌ W0 (`damages_test.dart`) | ✅ green |
 | 19-02-02 | 02 | 2 | MODEL-04 | T-19-06 | unknown spell energy → no energy damage; unknown title → null | unit | `flutter test test/models test/screens/mainScreen/tabs/journal` | ❌ W0 (`spell_test.dart`) / ✅ | ✅ green |
-| 19-03-01 | 03 | 3 | MODEL-04 | T-19-07, T-19-08, T-19-11 | an unreadable owned / pool entry is dropped; item parsers stay strict | unit | `flutter test test/models test/screens/mainScreen/tabs/shop` | ❌ W0 (`asset_quantity_test.dart`) / ✅ | ⬜ pending |
-| 19-03-02 | 03 | 3 | MODEL-04 | T-19-09 | an unreadable worn item is an empty slot | unit | `flutter test test/models test/screens/mainScreen/tabs/journal` | ❌ W0 (`equipment_test.dart`) | ⬜ pending |
-| 19-03-03 | 03 | 3 | MODEL-04 | T-19-10, T-19-12 | a city of an unknown type is dropped alone; nothing logged | unit | `flutter test test/models test/repository test/screens/mainScreen/cubit` | ❌ W0 (`graphql_get_cities_test.dart`) / ✅ | ⬜ pending |
+| 19-03-01 | 03 | 3 | MODEL-04 | T-19-07, T-19-08, T-19-11 | an unreadable owned / pool entry is dropped; item parsers stay strict | unit | `flutter test test/models test/screens/mainScreen/tabs/shop` | ❌ W0 (`asset_quantity_test.dart`) / ✅ | ✅ green |
+| 19-03-02 | 03 | 3 | MODEL-04 | T-19-09 | an unreadable worn item is an empty slot | unit | `flutter test test/models test/screens/mainScreen/tabs/journal` | ❌ W0 (`equipment_test.dart`) | ✅ green |
+| 19-03-03 | 03 | 3 | MODEL-04 | T-19-10, T-19-12 | a city of an unknown type is dropped alone; nothing logged | unit | `flutter test test/models test/repository test/screens/mainScreen/cubit` | ❌ W0 (`graphql_get_cities_test.dart`) / ✅ | ✅ green |
 | 19-04-01 | 04 | 4 | MODEL-02 | T-19-14, T-19-55 | catalogue pet with attack / defense, no per-character field; rarity lenient (unknown → null, D-20); no wire change | unit | `flutter test test/models test/screens/mainScreen/tabs/shop test/shared/components` | ✅ (rewrite) | ⬜ pending |
 | 19-04-02 | 04 | 4 | MODEL-02 | T-19-13, T-19-15, T-19-16 | malformed owned entry dropped; one window branch; xp in the props | unit + widget | `flutter test test/models test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop test/screens/mainScreen/components test/graphql/character_fragment_test.dart` | ❌ W0 (`owned_pet_test.dart`, `ownedPetJson`) / ✅ | ⬜ pending |
 | 19-05-01 | 05 | 5 | MODEL-02 | T-19-17, T-19-18 | lines print served numbers, no clamp, no arithmetic | unit | `flutter test test/utils/item_lines_test.dart` | ✅ (add groups) | ⬜ pending |
@@ -83,7 +83,7 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 
 - [x] `test/models/weaknesses_test.dart`, `test/models/enemy_test.dart` — MODEL-01 (19-01)
 - [x] `test/models/damages_test.dart`, `test/models/spell_test.dart` — MODEL-04 (19-02)
-- [ ] `test/models/asset_quantity_test.dart`, `test/models/equipment_test.dart`, `test/repository/services/graphql/graphql_get_cities_test.dart` — MODEL-04 (19-03)
+- [x] `test/models/asset_quantity_test.dart`, `test/models/equipment_test.dart`, `test/repository/services/graphql/graphql_get_cities_test.dart` — MODEL-04 (19-03)
 - [ ] `test/models/owned_pet_test.dart`; `ownedPetJson` and the `maxXp` / `attack` / `defense` parameters of `petJson` in `test/helpers/fixtures/shop_fixtures.dart` — MODEL-02 (19-04)
 - [ ] `petXpGained` in `questResultJson` (`test/helpers/fixtures/quest_result_fixtures.dart`) — MODEL-02 (19-06)
 - [ ] `active` / `spell` parameters of `spellStateJson`; `test/models/character/legacy_spell_states_test.dart` (window, deleted in 19-11) — MODEL-03 (19-07)

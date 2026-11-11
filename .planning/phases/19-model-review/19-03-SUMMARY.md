@@ -133,7 +133,7 @@ None that needed a rule — plan executed as written. Notes:
 - `Equipment.fromJson` still takes a `Map<String, dynamic>` and `CharacterAssets` still guards `wearedEquipment` with `!= null` only: a non-map `wearedEquipment` value still throws (outside rows 8–12).
 - 19-10 (boots slot rename): `test/models/equipment_test.dart` never names the boots slot; in `lib/models/equipment.dart` the slot line is now `foots: EquipmentItem.tryFromJson(json['foots']),` (single quotes) — adjust any grep anchored to the old double-quoted form.
 - `graphql_get_cities_test.dart` builds its cities from `travelCityJson` (the lore `image` key comes from that funnel only): the `Lore.imagePath` flip needs no edit in this file.
-- `City.tryFromJson` is used only by `getCities`; other `City.fromJson` call sites (quests, character payload) are unchanged.
+- `City.tryFromJson` is used only by `getCities`; the only other `City.fromJson` call site (`PointOfInterest.city`, `point_of_interest.dart:26`) is unchanged and still strict.
 - No file under `lib/graphql` was touched; the registry stays at 46 documents.
 
 ## Known Stubs

@@ -94,7 +94,7 @@ Plans:
 Plans:
 - [x] 19-01-PLAN.md — POI and enemy parsers (`type` lenient, `location` guarded, no `quest`), `Weaknesses`
 - [x] 19-02-PLAN.md — Lenient damage entries, spell energy and `title` (MODEL-04 rows 5–7)
-- [ ] 19-03-PLAN.md — Entry boundaries: `AssetQuantity`, worn slots, shop pool, `getCities` (MODEL-04 rows 8–10, 12)
+- [x] 19-03-PLAN.md — Entry boundaries: `AssetQuantity`, worn slots, shop pool, `getCities` (MODEL-04 rows 8–10, 12)
 - [ ] 19-04-PLAN.md — `Pet.attack`/`defense`, `OwnedPet` with the window branch, consumers on the entries
 - [ ] 19-05-PLAN.md — Companion lines and widgets: «Esperienza», «Attacco», «Difesa» (Journal and shop)
 - [ ] 19-06-PLAN.md — `petXpGained` and «Il tuo compagno guadagna N PE» on the result sheet
@@ -128,7 +128,7 @@ Plans:
 | 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 19. Model Review (companion) | v1.1 | 2/13 | In Progress | - |
+| 19. Model Review (companion) | v1.1 | 3/13 | In Progress | - |
 
 ---
 
