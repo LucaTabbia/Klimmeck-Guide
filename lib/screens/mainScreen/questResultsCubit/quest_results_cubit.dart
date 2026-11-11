@@ -115,8 +115,8 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
   }
 
   /// Tap su `questEnd` (D-11): solo l'id del payload, filtrato, e il risultato
-  /// sempre riletto dal BE. NOT_FOUND/FORBIDDEN diventano un avviso; gli
-  /// errori di rete restano muti (li copre la rilettura al resume).
+  /// sempre riletto dal BE. NOT_FOUND/FORBIDDEN/BAD_USER_INPUT diventano un
+  /// avviso; gli errori di rete restano muti (li copre la rilettura al resume).
   Future<void> requestFromTap(String? id) async {
     final resultId = validBackendIdentifier(id);
     if (resultId == null || _isKnown(resultId)) return;
@@ -262,8 +262,8 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
     }
   }
 
-  /// Accesso negato e parsing (deterministico) non cambiano riprovando
-  /// (09-REVIEW IN-04).
+  /// Accesso negato, parsing e validazione (deterministici) non cambiano
+  /// riprovando (09-REVIEW IN-04, Phase 12 D-13a).
   static bool _isTransient(Object error) =>
       error is! QuestResultException ||
       !const {
@@ -271,11 +271,14 @@ class QuestResultsCubit extends Cubit<QuestResultsState>
         QuestResultFailure.unauthenticated,
         QuestResultFailure.notFound,
         QuestResultFailure.malformed,
+        QuestResultFailure.badUserInput,
       }.contains(error.failure);
 
-  static bool _isNoticeWorthy(QuestResultFailure failure) =>
-      failure == QuestResultFailure.notFound ||
-      failure == QuestResultFailure.forbidden;
+  static bool _isNoticeWorthy(QuestResultFailure failure) => const {
+    QuestResultFailure.notFound,
+    QuestResultFailure.forbidden,
+    QuestResultFailure.badUserInput,
+  }.contains(failure);
 
   void _subscribe() {
     _subscription = _repository

@@ -71,6 +71,7 @@ Map<String, dynamic> travellingCharacterJson({
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? awaitingAid,
+  String? imprisonedUntil,
 }) => {
   'id': id,
   'infos': {'name': 'Aldo', 'sex': 'male'},
@@ -79,6 +80,7 @@ Map<String, dynamic> travellingCharacterJson({
     'location': {'id': locationId, 'location': location},
     'activeTravel': activeTravel,
     if (awaitingAid != null) 'awaitingAid': awaitingAid,
+    if (imprisonedUntil != null) 'imprisonedUntil': imprisonedUntil,
   },
   'quests': {
     'completedQuests': const [],

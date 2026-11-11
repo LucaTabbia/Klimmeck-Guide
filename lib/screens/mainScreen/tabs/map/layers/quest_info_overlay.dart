@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../models/enums/injury_type.dart';
 import '../../../../../models/quest/quest.dart';
 import '../../../../../shared/components/popup/quest_info_sheet.dart';
 
@@ -10,6 +11,7 @@ class QuestInfoOverlay extends StatelessWidget {
     required this.selectedQuest,
     this.stateLabel,
     this.onAbandon,
+    this.characterInjuries,
   });
 
   final AnimationController animationController;
@@ -20,6 +22,9 @@ class QuestInfoOverlay extends StatelessWidget {
 
   /// Abbandono del gruppo in attesa, solo dal foglio della corsia (BE 09-19).
   final VoidCallback? onAbandon;
+
+  /// Ferite del personaggio per la riga della cura (D-19).
+  final List<InjuryType>? characterInjuries;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +55,7 @@ class QuestInfoOverlay extends StatelessWidget {
                         quest: selectedQuest,
                         stateLabel: stateLabel,
                         onAbandon: onAbandon,
+                        characterInjuries: characterInjuries,
                       ),
                     )
                   : null,

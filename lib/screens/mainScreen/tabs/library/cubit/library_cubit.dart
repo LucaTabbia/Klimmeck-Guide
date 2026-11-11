@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../../../../models/lore.dart';
 import '../../../../../repository/services/graphql/graphql.dart';
@@ -38,14 +39,14 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       lore = _loreOf(book, await graphQl.getAllLores());
     } catch (e) {
-      debugPrint('LibraryCubit.openBook error: $e');
+      appLog('LibraryCubit.openBook error: ${e.runtimeType}');
       if (generation == _generation) emit(LibraryError(book, e.toString()));
       return;
     }
     final shown = _idsOf(lore);
-    final baseline = await _readBaseline(book);
+    final reference = await _referenceOf(book, unreadable: shown);
     if (generation != _generation) return;
-    _reference = baseline ?? shown;
+    _reference = reference;
     emit(
       LibraryLoadData(
         book: book,
@@ -99,7 +100,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       lore = _loreOf(shown.book, await graphQl.getAllLores());
     } catch (e) {
-      debugPrint('LibraryCubit refresh error: $e');
+      appLog('LibraryCubit refresh error: ${e.runtimeType}');
       return;
     }
     if (generation != _generation) return;
@@ -114,12 +115,17 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     await _writeBaseline(shown.book, ids);
   }
 
-  Future<Set<String>?> _readBaseline(LibraryBook book) async {
+  /// Un libro mai aperto non ha nulla di già visto: ogni voce è nuova. Se la
+  /// lettura fallisce non si segna nulla, per non riempire il libro di segnalibri.
+  Future<Set<String>> _referenceOf(
+    LibraryBook book, {
+    required Set<String> unreadable,
+  }) async {
     try {
-      return await _bookmarks.readSeen(_characterId, book);
+      return await _bookmarks.readSeen(_characterId, book) ?? const {};
     } on Object catch (e) {
-      debugPrint('LibraryCubit baseline read error: $e');
-      return null;
+      appLog('LibraryCubit baseline read error: ${e.runtimeType}');
+      return unreadable;
     }
   }
 
@@ -127,7 +133,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     try {
       await _bookmarks.writeSeen(_characterId, book, ids);
     } on Object catch (e) {
-      debugPrint('LibraryCubit baseline write error: $e');
+      appLog('LibraryCubit baseline write error: ${e.runtimeType}');
     }
   }
 

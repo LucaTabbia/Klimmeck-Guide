@@ -34,6 +34,7 @@ Map<String, dynamic> questJson({
   Map<String, dynamic>? prizes,
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
+  bool? noEffect,
 }) => {
   'id': id,
   'infos': {
@@ -60,7 +61,14 @@ Map<String, dynamic> questJson({
   },
   if (prizes != null) 'prizes': prizes,
   'registeredAdventurers': registered,
+  if (noEffect != null) 'noEffect': noEffect,
 };
+
+/// `prizes.cure` sul filo (BE Phase 18): quota di vita e ferite guarite.
+Map<String, dynamic> questCureJson({
+  Object? share = 0.5,
+  Object? canHeal = const ['contusion', 'deepCut'],
+}) => {'lifePointsShare': share, 'canHeal': canHeal};
 
 /// Forma Phase 7 oggi su `develop`: capienza Int e id dei registrati.
 Map<String, dynamic> legacyQuestJson({
@@ -101,6 +109,9 @@ Map<String, dynamic> characterWithLanesJson({
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? activeStoryQuest,
   Map<String, dynamic>? activeWorldMissionQuest,
+  int? currentLifePoints,
+  int? maxLifePoints,
+  List<String>? injuries,
 }) => {
   'id': id,
   'status': {
@@ -109,6 +120,9 @@ Map<String, dynamic> characterWithLanesJson({
       'id': locationId,
       'location': [1.0, 2.0],
     },
+    if (currentLifePoints != null) 'currentLifePoints': currentLifePoints,
+    if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
+    if (injuries != null) 'injuries': injuries,
   },
   'quests': {
     'completedQuests': [
@@ -135,6 +149,7 @@ Quest buildQuest({
   Map<String, dynamic>? prizes,
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
+  bool? noEffect,
 }) => Quest.fromJson(
   questJson(
     id: id,
@@ -151,6 +166,7 @@ Quest buildQuest({
     prizes: prizes,
     lore: lore,
     recommendedLoot: recommendedLoot,
+    noEffect: noEffect,
   ),
 );
 
@@ -160,12 +176,14 @@ QuestViewer buildViewer({
   CharacterQuests? quests,
   Set<String>? cityPointIds = const {'poi-1'},
   int? twitchPoints = 5000,
+  Duration? imprisonedFor,
 }) => QuestViewer(
   characterId: characterId,
   title: title,
   quests: quests,
   cityPointIds: cityPointIds,
   twitchPoints: twitchPoints,
+  imprisonedFor: imprisonedFor,
 );
 
 CharacterQuests buildLanes({

@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/auth/auth_session.dart';
 import 'package:klimmeck_guide/models/auth/login_challenge.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/storage/session_store.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 
 import 'access_token_lifetime.dart';
@@ -90,6 +91,7 @@ class SessionAuthTokenService extends AuthTokenService
   Completer<String>? _refreshInFlight;
   Future<void>? _logoutInFlight;
   Future<void>? _terminationInFlight;
+  Future<void>? _endInFlight;
   int _epoch = 0;
   Timer? _proactiveRefreshTimer;
   Timer? _bootstrapRetryTimer;
@@ -301,7 +303,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       return await _store.readRefreshToken();
     } catch (error) {
-      debugPrint('[SessionAuth] session read failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session read failed: ${error.runtimeType}');
       return null;
     }
   }
@@ -313,7 +315,7 @@ class SessionAuthTokenService extends AuthTokenService
       return;
     } catch (error) {
       if (epoch != _epoch) return;
-      debugPrint('[SessionAuth] session resolve failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session resolve failed: ${error.runtimeType}');
       _scheduleBootstrapRetry(epoch);
       return;
     }
@@ -367,7 +369,7 @@ class SessionAuthTokenService extends AuthTokenService
       completer.complete(session.accessToken);
     } on SessionRejected catch (error) {
       if (epoch != _epoch) return completer.completeError(_superseded);
-      await _endSession(UnauthenticatedReason.sessionExpired);
+      await _endSession(_unauthenticatedReasonOf(error));
       completer.completeError(error);
     } catch (error) {
       completer.completeError(error);
@@ -376,11 +378,26 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
+  /// D-12: avviso dedicato solo per i motivi noti di `SESSION_REVOKED`; il
+  /// resto è «sessione scaduta».
+  static UnauthenticatedReason _unauthenticatedReasonOf(
+    SessionRejected rejection,
+  ) {
+    if (rejection.code != sessionRevokedCode) {
+      return UnauthenticatedReason.sessionExpired;
+    }
+    return switch (rejection.reason) {
+      sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
+      sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
+      _ => UnauthenticatedReason.sessionExpired,
+    };
+  }
+
   Future<void> _persistRefreshToken(String refreshToken) async {
     try {
       await _store.writeRefreshToken(refreshToken);
     } catch (error) {
-      debugPrint(
+      appLog(
         '[SessionAuth] refresh token persist failed: ${error.runtimeType}',
       );
     }
@@ -434,9 +451,7 @@ class SessionAuthTokenService extends AuthTokenService
       return;
     } catch (error) {
       if (epoch != _epoch || _refreshToken == null) return;
-      debugPrint(
-        '[SessionAuth] proactive refresh failed: ${error.runtimeType}',
-      );
+      appLog('[SessionAuth] proactive refresh failed: ${error.runtimeType}');
       _scheduleProactiveRefresh(
         exponentialBackoff(_proactiveRetryAttempt++, max: _proactiveRetryCap),
       );
@@ -492,7 +507,7 @@ class SessionAuthTokenService extends AuthTokenService
       if (accessToken == null) return;
       await _api.logout(accessToken);
     } catch (error) {
-      debugPrint('[SessionAuth] backend logout failed: ${error.runtimeType}');
+      appLog('[SessionAuth] backend logout failed: ${error.runtimeType}');
     }
   }
 
@@ -516,12 +531,18 @@ class SessionAuthTokenService extends AuthTokenService
     }
   }
 
-  void _logLogoutTimeout() => debugPrint(
+  void _logLogoutTimeout() => appLog(
     '[SessionAuth] backend logout timed out, continuing local teardown',
   );
 
   /// Teardown D-12 senza chiamata al backend: l'access JWT è scartato subito.
-  Future<void> _endSession(UnauthenticatedReason reason) async {
+  /// Single-flight fra rifiuto della rotazione, `terminateSession` e
+  /// `handleRevocation`: vince il primo motivo, una chiamata durante il
+  /// teardown lo condivide senza un secondo stato terminale.
+  Future<void> _endSession(UnauthenticatedReason reason) => _endInFlight ??=
+      _performEndSession(reason).whenComplete(() => _endInFlight = null);
+
+  Future<void> _performEndSession(UnauthenticatedReason reason) async {
     _supersedeSession();
     _forgetSession();
     await _runTeardown();
@@ -533,7 +554,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       await _onSessionTeardown();
     } catch (error) {
-      debugPrint('[SessionAuth] session teardown failed: ${error.runtimeType}');
+      appLog('[SessionAuth] session teardown failed: ${error.runtimeType}');
     }
   }
 
@@ -541,9 +562,7 @@ class SessionAuthTokenService extends AuthTokenService
     try {
       await _store.clear();
     } catch (error) {
-      debugPrint(
-        '[SessionAuth] session store clear failed: ${error.runtimeType}',
-      );
+      appLog('[SessionAuth] session store clear failed: ${error.runtimeType}');
     }
   }
 }

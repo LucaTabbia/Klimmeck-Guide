@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:developer' as developer;
+
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import 'sync_health.dart';
 
@@ -106,7 +107,7 @@ class SyncWatchdog implements SyncHealth {
     _isLatched = true;
     unawaited(
       Future<void>.sync(_onExpired).catchError((Object error) {
-        developer.log('watchdog teardown failed: ${error.runtimeType}');
+        appLog('[SyncWatchdog] watchdog teardown failed: ${error.runtimeType}');
       }),
     );
   }

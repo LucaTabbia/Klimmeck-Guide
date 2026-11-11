@@ -61,6 +61,9 @@ class AuthGate extends StatelessWidget {
         UnauthenticatedReason.signedOut => SignInNotice.none,
         UnauthenticatedReason.sessionExpired => SignInNotice.sessionExpired,
         UnauthenticatedReason.syncLost => SignInNotice.connectionLost,
+        UnauthenticatedReason.replacedByNewLogin =>
+          SignInNotice.replacedByNewLogin,
+        UnauthenticatedReason.roleChanged => SignInNotice.roleChanged,
       };
 
   static bool _leavesSession(AuthState previous, AuthState current) =>

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import 'auth_state_channel.dart';
 import 'backend_auth_api.dart';
@@ -27,7 +28,9 @@ import 'session_terminator.dart';
 /// `DEV_AUTH_USER_ID` resta solo fallback offline.
 ///
 /// Nessuna guardia `kReleaseMode` (D-30): il backend è il confine di
-/// sicurezza. Lo stub viene rimosso in Phase 12.
+/// sicurezza. Lo stub resta: lo compone solo `lib/main_dev.dart` tramite
+/// `buildDevAuthComposition` (Phase 12 D-01); l'entry point di produzione
+/// non lo compone e lo split degli entry point lo toglie dalla release.
 ///
 /// Variabili `.env`:
 /// - `DEV_AUTH_ACCESS_TOKEN` — token di accesso dev
@@ -60,7 +63,7 @@ class DevAuthTokenService extends AuthTokenService
   /// Da chiamare esattamente una volta da `AuthCubit.start()` (cold start).
   @override
   Future<void> initialize() async {
-    debugPrint(
+    appLog(
       '[DevAuth] WARNING: dev auth bypass is ACTIVE (DEV_AUTH_ENABLED=true). '
       'Never ship this configuration.',
     );
@@ -143,7 +146,7 @@ class DevAuthTokenService extends AuthTokenService
     try {
       await _onSessionTeardown?.call();
     } catch (error) {
-      debugPrint('[DevAuth] session teardown failed: ${error.runtimeType}');
+      appLog('[DevAuth] session teardown failed: ${error.runtimeType}');
     }
     _isSignedIn = false;
     _channel.emit(AuthUnauthenticated(reason: reason));
@@ -157,7 +160,7 @@ class DevAuthTokenService extends AuthTokenService
     try {
       return await meSource.fetchMe(token).timeout(_meTimeout);
     } catch (error) {
-      debugPrint(
+      appLog(
         '[DevAuth] me alignment failed (${error.runtimeType}), '
         'using .env identity',
       );
@@ -187,7 +190,7 @@ class DevAuthTokenService extends AuthTokenService
       return RoleType.values.byName(normalized);
     } catch (_) {
       if (kDebugMode) {
-        debugPrint('[DevAuth] unknown role "$raw", falling back to adventurer');
+        appLog('[DevAuth] unknown role "$raw", falling back to adventurer');
       }
       return RoleType.adventurer;
     }

@@ -10,6 +10,18 @@ OperationException _withCode(String code) => OperationException(
   ],
 );
 
+OperationException _fromHttp400(String code) => OperationException(
+  linkException: ServerException(
+    statusCode: 400,
+    parsedResponse: Response(
+      response: const {},
+      errors: [
+        GraphQLError(message: 'server text', extensions: {'code': code}),
+      ],
+    ),
+  ),
+);
+
 void main() {
   group('questAcceptanceFailureFrom', () {
     final byCode = {
@@ -38,6 +50,45 @@ void main() {
       expect(
         questAcceptanceFailureFrom(_withCode('TRAVEL_STARVING')),
         QuestAcceptanceFailure.starving,
+      );
+    });
+
+    test('maps QUEST_NO_EFFECT to noEffect (D-20)', () {
+      expect(
+        questAcceptanceFailureFrom(_withCode('QUEST_NO_EFFECT')),
+        QuestAcceptanceFailure.noEffect,
+      );
+      expect(
+        questAcceptanceFailureFrom(_fromHttp400('QUEST_NO_EFFECT')),
+        QuestAcceptanceFailure.noEffect,
+      );
+    });
+
+    test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
+      expect(
+        questAcceptanceFailureFrom(_withCode('BAD_USER_INPUT')),
+        QuestAcceptanceFailure.badUserInput,
+      );
+    });
+
+    test(
+      'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
+      () {
+        expect(
+          questAcceptanceFailureFrom(_fromHttp400('BAD_USER_INPUT')),
+          QuestAcceptanceFailure.badUserInput,
+        );
+      },
+    );
+
+    test('an HTTP error without a code stays connection (D-13)', () {
+      final exception = OperationException(
+        linkException: ServerException(statusCode: 500),
+      );
+
+      expect(
+        questAcceptanceFailureFrom(exception),
+        QuestAcceptanceFailure.connection,
       );
     });
 

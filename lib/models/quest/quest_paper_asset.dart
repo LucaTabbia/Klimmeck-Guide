@@ -7,33 +7,82 @@ List<String> questPaperAssetIds(
   QuestType? type, {
   required bool isTorn,
 }) => switch (type) {
-  QuestType.boss || QuestType.enemy =>
+  QuestType.enemy =>
     isTorn
         ? const [
-            CloudinaryAssets.huntTornSheet1,
-            CloudinaryAssets.huntTornSheet2,
+            CloudinaryAssets.enemyTornSheet1,
+            CloudinaryAssets.enemyTornSheet2,
           ]
-        : const [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2],
-  QuestType.story || QuestType.worldMission =>
+        : const [CloudinaryAssets.enemySheet1, CloudinaryAssets.enemySheet2],
+  QuestType.boss =>
+    isTorn
+        ? const [
+            CloudinaryAssets.bossTornSheet1,
+            CloudinaryAssets.bossTornSheet2,
+          ]
+        : const [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2],
+  QuestType.worldMission =>
+    isTorn
+        ? const [CloudinaryAssets.worldMissionTornSheet]
+        : const [CloudinaryAssets.worldMissionSheet],
+  QuestType.story =>
     isTorn
         ? const [
             CloudinaryAssets.storyTornSheet2,
             CloudinaryAssets.storyTornSheet1,
           ]
         : const [CloudinaryAssets.storySheet1, CloudinaryAssets.storySheet2],
-  QuestType.crime => const [
-    CloudinaryAssets.crimeSheet1,
-    CloudinaryAssets.crimeSheet2,
-  ],
-  QuestType.guard || QuestType.hunt || QuestType.job => const [
-    CloudinaryAssets.jobSheet1,
-    CloudinaryAssets.jobSheet2,
-  ],
-  QuestType.heal || QuestType.study => const [
-    CloudinaryAssets.announcementSheet1,
-    CloudinaryAssets.announcementSheet2,
-  ],
-  QuestType.dungeon || QuestType.aid || null =>
+  QuestType.crime =>
+    isTorn
+        ? const [
+            CloudinaryAssets.crimeTornSheet1,
+            CloudinaryAssets.crimeTornSheet2,
+          ]
+        : const [CloudinaryAssets.crimeSheet1, CloudinaryAssets.crimeSheet2],
+  QuestType.guard =>
+    isTorn
+        ? const [
+            CloudinaryAssets.guardTornSheet1,
+            CloudinaryAssets.guardTornSheet2,
+          ]
+        : const [CloudinaryAssets.guardSheet1, CloudinaryAssets.guardSheet2],
+  QuestType.hunt =>
+    isTorn
+        ? const [
+            CloudinaryAssets.huntTornSheet1,
+            CloudinaryAssets.huntTornSheet2,
+          ]
+        : const [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2],
+  QuestType.job =>
+    isTorn
+        ? const [CloudinaryAssets.jobTornSheet1, CloudinaryAssets.jobTornSheet2]
+        : const [CloudinaryAssets.jobSheet1, CloudinaryAssets.jobSheet2],
+  QuestType.heal =>
+    isTorn
+        ? const [
+            CloudinaryAssets.healTornSheet1,
+            CloudinaryAssets.healTornSheet2,
+          ]
+        : const [CloudinaryAssets.healSheet1, CloudinaryAssets.healSheet2],
+  QuestType.study =>
+    isTorn
+        ? const [
+            CloudinaryAssets.announcementTornSheet1,
+            CloudinaryAssets.announcementTornSheet2,
+          ]
+        : const [
+            CloudinaryAssets.announcementSheet1,
+            CloudinaryAssets.announcementSheet2,
+          ],
+  QuestType.magic =>
+    isTorn
+        ? const [CloudinaryAssets.magicTornSheet]
+        : const [CloudinaryAssets.magicSheet],
+  QuestType.aid =>
+    isTorn
+        ? const [CloudinaryAssets.aidTornSheet1, CloudinaryAssets.aidTornSheet2]
+        : const [CloudinaryAssets.aidSheet1, CloudinaryAssets.aidSheet2],
+  QuestType.dungeon || null =>
     isTorn
         ? const [
             CloudinaryAssets.questSheetTorn1,

@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
@@ -27,6 +28,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/auth_fixtures.dart';
+import '../../../../helpers/fakes/fake_server_clock_service.dart';
 import '../../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../helpers/haptic_recorder.dart';
@@ -62,10 +64,10 @@ void main() {
   setUp(() {
     seedSvgCache([
       CloudinaryAssets.emptySheet,
-      CloudinaryAssets.huntSheet1,
-      CloudinaryAssets.huntSheet2,
-      CloudinaryAssets.huntTornSheet1,
-      CloudinaryAssets.huntTornSheet2,
+      CloudinaryAssets.enemySheet1,
+      CloudinaryAssets.enemySheet2,
+      CloudinaryAssets.enemyTornSheet1,
+      CloudinaryAssets.enemyTornSheet2,
       CloudinaryAssets.storySheet1,
       CloudinaryAssets.storySheet2,
       CloudinaryAssets.storyTornSheet1,
@@ -157,6 +159,11 @@ void main() {
             BlocProvider<AuthCubit>.value(value: authCubit),
             BlocProvider<QuestAcceptanceCubit>.value(value: acceptance),
             BlocProvider<InAppNotificationsCubit>.value(value: notices),
+            BlocProvider<PrisonCubit>(
+              create: (_) => PrisonCubit(
+                clock: FakeServerClockService(DateTime.utc(2026, 11, 10)),
+              ),
+            ),
           ],
           child: Scaffold(
             body: Board(cities: _cities, onQuestAccepted: () => accepted++),

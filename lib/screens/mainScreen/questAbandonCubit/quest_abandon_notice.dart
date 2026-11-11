@@ -12,6 +12,7 @@ KGNotification? questAbandonNoticeFor(QuestAbandonFailure failure) {
     QuestAbandonFailure.notFound => 'Non sei più in questa missione',
     QuestAbandonFailure.connection ||
     QuestAbandonFailure.timedOut ||
+    QuestAbandonFailure.badUserInput ||
     QuestAbandonFailure.unknown => 'Impossibile abbandonare ora, riprova',
     QuestAbandonFailure.forbidden ||
     QuestAbandonFailure.unauthenticated => null,

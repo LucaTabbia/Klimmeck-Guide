@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -34,6 +35,7 @@ final City cityA = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 final City cityB = City.fromJson({
@@ -45,6 +47,7 @@ final City cityB = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 const LatLng home = LatLng(10, 20);
@@ -98,6 +101,8 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockTravelCubit travelCubit;
   late MockTravelProgressCubit progressCubit;
+  late MockPrisonCubit prisonCubit;
+  late StreamController<PrisonState> prisonStates;
   late StreamController<CharacterState> characterStates;
   late StreamController<TravelState> travelStates;
   late StreamController<TravelProgressState> progressStates;
@@ -108,6 +113,8 @@ void main() {
     characterCubit = MockCharacterCubit();
     travelCubit = MockTravelCubit();
     progressCubit = MockTravelProgressCubit();
+    prisonCubit = MockPrisonCubit();
+    prisonStates = StreamController<PrisonState>.broadcast();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
     progressStates = StreamController<TravelProgressState>.broadcast();
@@ -120,6 +127,7 @@ void main() {
     await characterStates.close();
     await travelStates.close();
     await progressStates.close();
+    await prisonStates.close();
   });
 
   Future<void> pumpLayer(
@@ -127,8 +135,10 @@ void main() {
     required CharacterState character,
     TravelState travel = const TravelIdle(),
     TravelProgressState progress = const TravelProgressIdle(),
+    PrisonState prison = const PrisonState(null),
   }) async {
     useLandscapePhone(tester);
+    whenListen(prisonCubit, prisonStates.stream, initialState: prison);
     whenListen(characterCubit, characterStates.stream, initialState: character);
     whenListen(travelCubit, travelStates.stream, initialState: travel);
     whenListen(progressCubit, progressStates.stream, initialState: progress);
@@ -139,6 +149,7 @@ void main() {
           BlocProvider<CharacterCubit>.value(value: characterCubit),
           BlocProvider<TravelCubit>.value(value: travelCubit),
           BlocProvider<TravelProgressCubit>.value(value: progressCubit),
+          BlocProvider<PrisonCubit>.value(value: prisonCubit),
         ],
         child: mapHarness([
           CharacterMarkerLayer(
@@ -241,6 +252,61 @@ void main() {
         findsNothing,
       );
       expect(pawnDraggable(tester).maxSimultaneousDrags, isNull);
+    });
+  });
+
+  group('prison (quick 261110-cgd)', () {
+    const imprisoned = PrisonState(Duration(hours: 9));
+
+    testWidgets('«In prigione» floats over the pawn and the drag is blocked '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpLayer(tester, character: characterLoaded(), prison: imprisoned);
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.prisonLabelKey),
+          matching: find.text('In prigione per: 9 h'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.prisonLabelKey),
+          matching: find.byType(IgnorePointer),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the marker follows the remaining time', (tester) async {
+      await pumpLayer(tester, character: characterLoaded(), prison: imprisoned);
+
+      prisonStates.add(const PrisonState(Duration(hours: 8, minutes: 59)));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('In prigione per: 8 h 59 min'), findsOneWidget);
+    });
+
+    testWidgets('at the release the marker goes and the pawn drags again '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpLayer(tester, character: characterLoaded(), prison: imprisoned);
+
+      prisonStates.add(const PrisonState(null));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byKey(CharacterMarkerLayer.prisonLabelKey), findsNothing);
+      expect(pawnDraggable(tester).maxSimultaneousDrags, isNull);
+    });
+
+    testWidgets('a free character shows no prison marker (quick 261110-cgd)', (
+      tester,
+    ) async {
+      await pumpLayer(tester, character: characterLoaded());
+
+      expect(find.byKey(CharacterMarkerLayer.prisonLabelKey), findsNothing);
     });
   });
 

@@ -86,6 +86,40 @@ void main() {
       );
     });
 
+    test('a CHARACTER_IMPRISONED refusal carries the release '
+        '(quick 261110-cgd)', () async {
+      when(() => graphQl.acceptQuest(any())).thenThrow(
+        OperationException(
+          graphqlErrors: [
+            GraphQLError(
+              message: 'server text',
+              extensions: {
+                'code': 'CHARACTER_IMPRISONED',
+                'imprisonedUntil': '2026-11-10T22:00:00.000Z',
+              },
+            ),
+          ],
+        ),
+      );
+
+      await expectLater(
+        repository.accept(characterId: 'c-1', questId: 'q-1'),
+        throwsA(
+          isA<QuestAcceptanceException>()
+              .having(
+                (e) => e.failure,
+                'failure',
+                QuestAcceptanceFailure.imprisoned,
+              )
+              .having(
+                (e) => e.imprisonedUntil,
+                'imprisonedUntil',
+                DateTime.utc(2026, 11, 10, 22),
+              ),
+        ),
+      );
+    });
+
     test('maps a FormatException to unknown', () async {
       when(
         () => graphQl.acceptQuest(any()),

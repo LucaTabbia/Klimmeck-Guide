@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 part 'notification_permission_state.dart';
 
@@ -27,9 +27,7 @@ class NotificationPermissionCubit extends Cubit<NotificationPermissionState>
     try {
       emit(NotificationPermissionState(status: await _permission.status()));
     } on Object catch (error) {
-      debugPrint(
-        '[NotificationPermission] status failed: ${error.runtimeType}',
-      );
+      appLog('[NotificationPermission] status failed: ${error.runtimeType}');
     }
   }
 
@@ -37,7 +35,7 @@ class NotificationPermissionCubit extends Cubit<NotificationPermissionState>
     try {
       await _permission.openSettings();
     } on Object catch (error) {
-      debugPrint(
+      appLog(
         '[NotificationPermission] settings not opened: ${error.runtimeType}',
       );
     }

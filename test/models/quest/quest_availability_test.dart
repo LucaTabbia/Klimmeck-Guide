@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
+import 'package:klimmeck_guide/models/quest/quest_lane.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
 
@@ -97,6 +99,19 @@ void main() {
       );
       expect(
         availabilityOf(buildQuest(type: 'hunt'), viewer),
+        QuestAvailability.available,
+      );
+    });
+
+    test('magic is a repeatable standard-lane quest (quick 261110-mag)', () {
+      expect(laneOf(QuestType.magic), QuestLane.standard);
+      expect(nonRepeatableQuestTypes, isNot(contains(QuestType.magic)));
+      expect(registeredQuestTypes, isNot(contains(QuestType.magic)));
+      final viewer = buildViewer(
+        quests: buildLanes(completedQuestIds: ['q-1']),
+      );
+      expect(
+        availabilityOf(buildQuest(type: 'magic'), viewer),
         QuestAvailability.available,
       );
     });
@@ -287,6 +302,243 @@ void main() {
       expect(
         availabilityOf(buildQuest(type: 'enemy', minTitle: 'hero'), viewer),
         QuestAvailability.alreadyDone,
+      );
+    });
+  });
+
+  group('prison (quick 261110-cgd)', () {
+    const nineHours = Duration(hours: 9);
+
+    test('an imprisoned viewer cannot accept and every sheet is torn '
+        '(quick 261110-cgd)', () {
+      for (final type in ['hunt', 'crime', 'study', 'heal']) {
+        final standing = standingOf(
+          buildQuest(type: type),
+          buildViewer(imprisonedFor: nineHours),
+        );
+
+        expect(
+          standing.availability,
+          QuestAvailability.imprisoned,
+          reason: type,
+        );
+        expect(standing.canAccept, isFalse, reason: type);
+        expect(standing.isTorn, isTrue, reason: type);
+      }
+    });
+
+    test('prison comes before a busy lane or a missing requirement '
+        '(quick 261110-cgd)', () {
+      final viewer = buildViewer(
+        imprisonedFor: nineHours,
+        title: TitleType.rookie,
+        twitchPoints: 0,
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+
+      expect(
+        availabilityOf(buildQuest(type: 'hunt'), viewer),
+        QuestAvailability.imprisoned,
+      );
+      expect(
+        availabilityOf(buildQuest(type: 'guard', minTitle: 'paladin'), viewer),
+        QuestAvailability.imprisoned,
+      );
+    });
+
+    test('the own lane quest stays the owner\'s (quick 261110-cgd)', () {
+      final viewer = buildViewer(
+        imprisonedFor: nineHours,
+        quests: buildLanes(activeStoryQuest: laneJson(questId: 'q-1')),
+      );
+
+      expect(
+        availabilityOf(buildQuest(type: 'story', requiredPoints: 3000), viewer),
+        QuestAvailability.tornForOwner,
+      );
+    });
+
+    test('a free viewer is unaffected (quick 261110-cgd)', () {
+      expect(
+        availabilityOf(buildQuest(type: 'hunt'), buildViewer()),
+        QuestAvailability.available,
+      );
+    });
+  });
+
+  group('torn sheet rule (quick 261110-mag)', () {
+    // (torn with its own requirements met, torn with one of them failing)
+    const expected = {
+      QuestAvailability.available: (false, false),
+      QuestAvailability.tornForOwner: (true, true),
+      QuestAvailability.notAcceptable: (true, true),
+      QuestAvailability.alreadyDone: (true, true),
+      QuestAvailability.titleMismatch: (true, true),
+      QuestAvailability.laneBusy: (false, true),
+      QuestAvailability.full: (true, true),
+      QuestAvailability.notInCity: (true, true),
+      QuestAvailability.insufficientPoints: (true, true),
+      QuestAvailability.noEffect: (true, true),
+      QuestAvailability.imprisoned: (true, true),
+    };
+
+    test('every availability has a torn decision (quick 261110-mag)', () {
+      expect(expected.keys.toSet(), QuestAvailability.values.toSet());
+      expected.forEach((availability, torn) {
+        expect(
+          isSheetTorn(availability, failsOwnRequirements: false),
+          torn.$1,
+          reason: '${availability.name} with its requirements met',
+        );
+        expect(
+          isSheetTorn(availability, failsOwnRequirements: true),
+          torn.$2,
+          reason: '${availability.name} with a requirement failing',
+        );
+      });
+    });
+
+    test('a quest above the viewer title is torn (quick 261110-mag)', () {
+      final standing = standingOf(
+        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildViewer(title: TitleType.paladin),
+      );
+      expect(standing.availability, QuestAvailability.titleMismatch);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('the same quest is whole once the title is reached '
+        '(quick 261110-mag)', () {
+      final standing = standingOf(
+        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildViewer(title: TitleType.mage),
+      );
+      expect(standing.availability, QuestAvailability.available);
+      expect(standing.isTorn, isFalse);
+    });
+
+    test('every other refusal is torn (quick 261110-mag)', () {
+      final done = standingOf(
+        buildQuest(type: 'boss', registered: ['c-1']),
+        buildViewer(),
+      );
+      final defect = standingOf(buildQuest(type: 'story'), buildViewer());
+      final away = standingOf(
+        buildQuest(type: 'hunt', markerId: 'poi-9'),
+        buildViewer(),
+      );
+      final poor = standingOf(
+        buildQuest(type: 'story', requiredPoints: 3000),
+        buildViewer(twitchPoints: 1200),
+      );
+      expect(done.availability, QuestAvailability.alreadyDone);
+      expect(defect.availability, QuestAvailability.notAcceptable);
+      expect(away.availability, QuestAvailability.notInCity);
+      expect(poor.availability, QuestAvailability.insufficientPoints);
+      for (final standing in [done, defect, away, poor]) {
+        expect(standing.isTorn, isTrue, reason: '${standing.availability}');
+      }
+    });
+
+    test('a busy lane alone leaves the sheet whole (quick 261110-mag)', () {
+      final viewer = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+      final standing = standingOf(buildQuest(type: 'magic'), viewer);
+      expect(standing.availability, QuestAvailability.laneBusy);
+      expect(standing.isTorn, isFalse);
+    });
+
+    test('a busy lane with too few points for the quest is torn '
+        '(quick 261110-mag)', () {
+      final quest = buildQuest(type: 'worldMission', requiredPoints: 3000);
+      final viewer = buildViewer(
+        twitchPoints: 1200,
+        quests: buildLanes(activeWorldMissionQuest: laneJson(questId: 'other')),
+      );
+      final standing = standingOf(quest, viewer);
+      expect(standing.availability, QuestAvailability.laneBusy);
+      expect(standing.isTorn, isTrue);
+      expect(
+        standingOf(
+          quest,
+          buildViewer(
+            twitchPoints: 5000,
+            quests: buildLanes(
+              activeWorldMissionQuest: laneJson(questId: 'other'),
+            ),
+          ),
+        ).isTorn,
+        isFalse,
+      );
+    });
+  });
+
+  group('noEffect (D-20)', () {
+    test('a quest with noEffect is torn and cannot be accepted (D-20)', () {
+      final standing = standingOf(
+        buildQuest(type: 'heal', noEffect: true),
+        buildViewer(),
+      );
+      expect(standing.availability, QuestAvailability.noEffect);
+      expect(standing.isTorn, isTrue);
+      expect(standing.canAccept, isFalse);
+    });
+
+    test('without the flag the same heal is available and whole (D-20)', () {
+      final standing = standingOf(buildQuest(type: 'heal'), buildViewer());
+      expect(standing.availability, QuestAvailability.available);
+      expect(standing.isTorn, isFalse);
+      expect(standing.canAccept, isTrue);
+    });
+
+    test(
+      'a more specific block keeps its reason and the sheet stays torn (D-20)',
+      () {
+        final viewer = buildViewer(
+          quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+        );
+        final standing = standingOf(
+          buildQuest(type: 'heal', noEffect: true),
+          viewer,
+        );
+        expect(standing.availability, QuestAvailability.laneBusy);
+        expect(standing.isTorn, isTrue);
+      },
+    );
+
+    test("the lane owner's heal stays tornForOwner (D-20)", () {
+      final viewer = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questId: 'q-1')),
+      );
+      final standing = standingOf(
+        buildQuest(type: 'heal', noEffect: true),
+        viewer,
+      );
+      expect(standing.availability, QuestAvailability.tornForOwner);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('the flag is read for any type, no rule on the type (D-20)', () {
+      final standing = standingOf(
+        buildQuest(type: 'job', noEffect: true),
+        buildViewer(),
+      );
+      expect(standing.availability, QuestAvailability.noEffect);
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('a quest with noEffect asks for no travel preview (D-20)', () {
+      expect(
+        needsTravelPreview(buildQuest(type: 'heal'), buildViewer()),
+        isTrue,
+      );
+      expect(
+        needsTravelPreview(
+          buildQuest(type: 'heal', noEffect: true),
+          buildViewer(),
+        ),
+        isFalse,
       );
     });
   });

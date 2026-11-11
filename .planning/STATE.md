@@ -1,77 +1,64 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: planning
-last_updated: "2026-11-09T19:40:00.000Z"
-last_activity: 2026-11-09 -- Phase 19 (Model Review companion) context gathered in a joint discuss with the BE Phase 19, same session as the Phase 18; branch feat/19-model-review stacked on feat/18-heal-quests-by-size (worktree); executes after Phase 18
+milestone: v1.1
+milestone_name: Healing & Models
+status: phase-complete
+last_updated: "2026-11-11T20:00:00.000Z"
+last_activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E complete, HEAL-01..06 complete)
 progress:
-  total_phases: 19
-  completed_phases: 16
-  total_plans: 153
-  completed_plans: 152
-  percent: 99
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
 
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
+
+**Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
+**Current focus:** Phase 18 — Heal Quests by City Size — complete 13/13 on `feat/18-heal-quests-by-size` (device E2E passed 2026-11-11 against BE `develop` 66df2ef2, HEAL-01..06 complete); next: the PR to `develop` opened by the user, then Phase 19 (↔ BE Phase 19)
+
 ## Current Position
 
-Phase: 19 (Model Review companion) — CONTEXT GATHERED 2026-11-09 on `feat/19-model-review` (stacked on `feat/18-heal-quests-by-size`, worktree): joint interactive discuss from this repo with the BE Phase 19 «Revisione dei modelli», right after the Phase 18 discuss; `19-CONTEXT.md` D-01..D-12 (weaknesses, owned pets with xp and the companion xp line, pet attack/defense, worn equipment, single spell list, no POI back-link, lore imagePath, fragile parsers; gated plans after the BE merge); the Phase 18 (D-01..D-16, HEAL-01..05) stays CONTEXT GATHERED on its branch; both planned next, executed after the Phase 12 Hardening in order 18 → 19
-Plan: 0 of TBD
-Completed phases: 16 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17)
-Next Phase: plan Phase 18 (`/gsd-plan-phase 18`, BE `18-REPO-RULES.md` first) then Phase 19 (`/gsd-plan-phase 19`, BE `19-REPO-RULES.md` with the new names first) alongside the BE plans; execution after the Phase 12 Hardening merge on `develop` and the BE Phase 17 → 18 → 19 merges on BE `develop`; the Phase 12 (`refactor/12-hardening`) is planned in another session; reconcile STATE/ROADMAP/REQUIREMENTS/PROJECT at the merges
-Status: Phases 18 and 19 context gathered — ready to plan in order (discuss 2026-11-09: 18 with 4 + 3 questions + 1 confirmation and the evening extension; 19 with 4 multi-select + 3 questions and two chat additions); Phases 16 and 17 merged on `develop` (PR #42 `a80e93c`, PR #43), quick tasks 261109-inj/inj2 merged (PR #44 `ac75702`); Phase 12 Hardening on `refactor/12-hardening` (other session); BE Phases 15/16 and the twin quick tasks merged on BE `develop` (`31dba96`), BE Phase 17 on its branch
-Last activity: 2026-11-09 -- Phase 19 discuss: `19-CONTEXT.md` D-01..D-12 and `19-DISCUSSION-LOG.md`; BE Phase 19 added as companion with its CONTEXT; ROADMAP/REQUIREMENTS/PROJECT amended (MODEL-01..04)
-Quick task 261109-inj (2026-11-09): `LootItem.canHeal` (campo già a DB, riusato su correzione dell'utente) letto dalla FE e mostrato come riga «Cura: …» sugli oggetti heal (negozio e Diario); gemello BE sullo stesso nome di branch; contenuto dei 25 oggetti heal a DB dopo la revisione dell'utente.
-Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette, gravità ed effetti; lettura tollerante delle ferite del personaggio; gemello BE con gli effetti provvisori.
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
+Phase: 18 of 19 (Heal Quests by City Size) — complete 13/13 on `feat/18-heal-quests-by-size`: device E2E 18-13 passed on 2026-11-11 (steps 1–14 pass, optional 15 skipped; extra prison/guard and sheet-family checks E1–E6 pass)
+Plan: 13 of 13
+Status: Phase complete — `18-HUMAN-UAT.md` complete, FE `BACKEND-NOTES.md` written; UAT fixes on the branch (Library «Nuovo» on a never-opened book — Phase 17 D-07 amended by the user; pawn labels on one line; flattened magic sheet); full suite 4031 green, analyzer 47 info / 0 warning / 0 error, 46/46 documents OK.
+Last activity: 2026-11-11 -- Phase 18 plan 18-13 executed (device E2E, requirements closed, FE handoff)
+Next step: the user opens the PR `feat/18-heal-quests-by-size` → `develop` (`GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`, never `main`), then Phase 19 Model Review (gated on the BE Phase 19 merge). Still to check on the device: a narrative quest sheet with prizes, a cost line and the Paladin title overflowed by 22 px on the landscape test harness with the test font (pre-existing, A-IN-05) — not exercised in 18-13.
 
 ## Current Milestone
 
-**v1.0 Core Loop** — Chiudere il loop di gioco base: auth Twitch, sync utente real-time, quest accept gesture, viaggio con notifiche, esiti combattimento, magie (tab diario), admin panel, hardening finale.
+v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18) → Phase 19 Model Review companion (MODEL-01..04, ↔ BE 19). Companion BE milestone v1.1 «Cura e modelli» (BE Phases 18–20; BE 20 has no FE phase). Research skipped at the milestone start (phases already discussed); per-phase research stays in plan-phase.
 
 ## Accumulated Context
 
-- Codebase brownfield già mappato in `.planning/codebase/`
-- Stack: Flutter (mobile) + NestJS + MongoDB + GraphQL (HTTP + WS) + REST
-- Asset su Cloudinary, mappa POI manuale, single channel Twitch
-- Titoli personaggio: adventurer → paladin → mage → hero
-- Progressione livelli, apprendimento magie, sblocco slot magie: gestiti lato backend (frontend reattivo)
-- Shop e sezione lore già esistenti e funzionanti
-- Lista quest nel tab board quasi definitiva; mancano layout info sheet per tipo
+- Stack: Flutter (mobile) + NestJS + MongoDB + GraphQL (HTTP + WS) + REST; `graphql_flutter` 5.2.1, `flutter_bloc`, FCM data-only, `flutter_map`.
+- Entry points: `lib/main.dart` (prod, `--dart-define-from-file=env/prod.json`) and `lib/main_dev.dart` (`--flavor dev`, `.env` with `DEV_AUTH_ENABLED=true` for the bypass); release signed with `android/key.properties` outside VCS.
+- The world lives only in the DB (BE D-36); asset on Cloudinary; single Twitch channel, the streamer is the only `innkeeper`.
+- Backend is the source of truth for every rule; the FE maps `extensions.code` to Italian banners (`BAD_USER_INPUT` generic copy in all 11 classifiers).
+- Device UAT setup (adb reverse, Doze, tunnel for the release build) is recorded in the orchestrator's memory, not a product concern.
+- Formatting baseline is not `dart format`-clean: format only the touched files, never a directory.
 
 ### Roadmap Evolution
 
-- Phases 13–17 added 2026-10-29 (user request, before closing v1.0): 13 City Shops ↔ BE 12, 14 Quest Generation companion ↔ BE 13 (`infos.enemies` replaces `infos.enemy`), 15 Travel Food ↔ BE 14, 16 Travel Ambushes ↔ BE 15, 17 Unlockable Lore ↔ BE 16; BE Phase 11 World Content (data-only, from `World building.docx`) is the data prerequisite of every device UAT. Execution order 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Each FE phase waits for the BE companion merge on BE `develop` (gate pattern 08-12/09-12). Contracts decided in the discuss of 2026-10-29 are recorded in the ROADMAP phase details; the BE roadmap carries the server rules.
-- 2026-11-07: Phase 17 discussed while Phase 16 waits for its device UAT (phone unavailable); the two phases run on separate branches from `develop` as two separate features (user decision); both device UATs (16-08 and the Phase 17 one) run at the end of Phase 17, then the two PRs land in sequence.
+- v1.0 Core Loop: 12 phases from the brief (Auth split into Phase 1 stub + Phase 11 real, Settings/Notifications split), extended on 2026-10-29 with Phases 13–17 mirroring BE 11–16, executed 1 → 11 → 2 … 10 → 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Details in `milestones/v1.0-ROADMAP.md`.
+- 2026-11-10: milestone archived; `REQUIREMENTS.md` removed (recreated by `/gsd-new-milestone`).
+- 2026-11-10: milestone v1.1 Healing & Models started with Phases 18–19 (scope confirmed by the user: only the phases discussed on 2026-11-09); `REQUIREMENTS.md` recreated with HEAL-01..06 and MODEL-01..04.
 
 ## Open Questions / Blockers
 
-- ~~Scelta libreria push notification Flutter (firebase_messaging è standard)~~ — risolta nel discuss di Phase 5 (2026-10-19): `firebase_core` + `firebase_messaging` + `flutter_local_notifications` già in pubspec; `firebase_auth` rimosso; iOS rinviato.
-- ~~Scelta client GraphQL subscription~~ — risolta in Phase 3 discuss (2026-10-14): resta `graphql_flutter` 5.2.1 (WebSocketLink + WsReconnectPolicy di Phase 11)
-- ~~Flusso OAuth Twitch: webview in-app vs deep link / universal link~~ — **risolto in Phase 11:** login mediato dal backend via browser di sistema + deep link `klimmeck://auth` (Twitch non supporta PKCE né redirect con custom scheme; l'app non possiede chiavi Twitch).
-- ~~Chiavi Twitch non ancora disponibili~~ — **risolto:** chiavi presenti nel `.env` del BE; il login Twitch reale su device (browser di sistema + deep link `klimmeck://auth`) è stato esercitato con successo il 2026-10-20 nella UAT di Phase 5. Il dev bypass resta disponibile per i test (`DEV_AUTH_ENABLED=true`).
-- **Backend:** dalla sua Phase 2 richiede un'identità su ogni chiamata; `DEV_AUTH_ACCESS_TOKEN` deve coincidere con quello del BE (≥ 16 caratteri). Contratto in `Klimmeck-Guide-BE/.planning/phases/02-auth-identity-foundation/BACKEND-NOTES.md`. Decisione BE D-26 (finestra di grazia del refresh) in attesa dell'utente.
-- ~~Entry point del logout~~ — **risolto in Phase 4** (Settings → Esci; PR #28). Dalla Phase 5 `AuthCubit.logout()` fa prima `unregisterPushDevice` (tetto 2 s) e poi il logout del servizio.
-- ~~Cancellazione personaggio (SET-05)~~ — **risolto:** `deleteCharacter` consegnato dal BE (Phase 03.1, BE PR #6) e consumato dalla Phase 4 FE (PR #28).
-- ~~BE/ops — topic FCM `streamer-live`~~ — **risolto il 2026-10-20:** `firebase-admin` 14.5 iscrive ai topic con l'API FCM v1 (permesso `cloudmessaging.topicSubscriptions.create`); il ruolo **Firebase Cloud Messaging API Admin** (`roles/firebasecloudmessaging.admin`) è stato aggiunto al service account e la subscribe v1 sul token reale riesce. Dettagli in `phases/05-notifications-infrastructure/BACKEND-NOTES.md` §5.1.
-- **Formattazione:** il baseline non è allineato a `dart format`; mai lanciarlo su directory (Phase 11 CONTEXT D-38).
-- **Eventi WS persi durante una riconnessione** (chiusura 4401 ogni ~15 min): refetch-on-reconnect da progettare in Phase 3.
-- ~~**QUEST-03 confirmation flow** — oltre al redirect su Map tab + immagine del foglio in cima allo stack, manca da definire: c'è un dialog di conferma con costo prima dello swipe? undo window dopo l'accept? anteprima del costo (twitchPoints / coins / consumabili consigliati) dove? — da definire in UI phase.~~ — **risolto nel discuss di Phase 6 (2026-10-21):** lo swipe è la conferma, nessun dialog né undo, costo solo per story/worldMission (CONTEXT D-01/D-02/D-03).
-- ~~**TRAVEL-02 confirmation dialog**~~ — **risolto nel discuss di Phase 7 (2026-10-24):** drag della pedina sulla città → foglio di pergamena con distanza, durata ed ETA da `travelPreview`, rotta disegnata dietro, "Parti"/"Resta", nessun costo (CONTEXT D-01..D-05).
-- ~~**feat/party-waiting**~~ — merged (PR #32, 2026-10-26).
-- ~~**BE Phase 9.1 (Spell State and Recovery Contract):** inserted 2026-10-27 from the Phase 8 discuss; the FE plan that selects `status.spellStates { spell usages recoveries }` runs only after the BE PR is merged on BE `develop`.~~ — **resolved 2026-10-27:** merged on BE `develop` (PR #14, `10e5f43`), consumed by plan 08-12 and proven by the device E2E (outcome in `phases/08-spells-section-journal-tab/BACKEND-NOTES.md` §7).
-- ~~**BE Phase 9.2 (Quest Result Delivery Contract):** inserted 2026-10-27 from the Phase 9 discuss (`unacknowledgedQuestResults`, `acknowledgeQuestResult`, `QuestResult.acknowledgedAt`, seats of started quests kept by the archive); the FE plans that select `acknowledgedAt`, register the two new documents and run the device E2E wait for the BE PR merge on BE `develop` (09-CONTEXT D-09/D-18/D-21). — **BE PR #15 open (2026-10-28, `feat/09.2-quest-result-delivery-contract` → `develop`, 7/7 plans, handoff `BACKEND-NOTES.md` of the BE phase)**: the gated FE plans 09-12/09-13 run after its merge. **Note for 09-12 (review fix IN-04, 2026-10-28):** the real `PendingQuestResults` adapter must parse the unacknowledged list item by item (`QuestResult.tryFromJson` per element, skip malformed entries and orphan items), mapping only a list-level shape error to `malformed`, because `malformed` is no longer retried by the cubit; RED adapter test: one malformed + one valid item → the valid one. Also stub `getUnacknowledgedQuestResults` in `authenticated_shell_test.dart` (the cubit refetches at `start()`).~~ — **resolved 2026-10-29:** merged on BE `develop` (PR #15, `8f30d1d`), consumed by plan 09-12 and proven by the device E2E (outcome in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5).
-- **F2 — BE rule change from the Phase 9 UAT (2026-10-29):** a started quest whose participant is archived should be fought as if the seat were still occupied (user: «Per quello lasciamo il posto pieno»); today the BE fights with the remaining members (BE 9.2 D-07). Routed in `phases/09-combat-result-sheet/BACKEND-NOTES.md` §5.2; BE Phase 10 or a 9.3 companion — decision pending.
-- **F1 / F3 — FE items from the Phase 9 UAT:** F1 party counter / torn state of the own quest not live during the own travel (fix on `feat/09-combat-result-sheet` before the PR); F3 «In attesa del gruppo» on a due solo quest (minor, to check).
-- ~~**BE Phase 10 (hardening) — BE-HARD-08 for the FE Phase 10 (2026-10-29):** **FE parked at 10/11 (2026-10-29): plans 10-01..10-10 done, reviewed, fixed, verified and audited on `feat/10-admin-panel`; 10-11 starts after the BE PR merge.** **BE PR #16 (`feat/10-hardening` → `develop`) opened as DRAFT on 2026-10-30: `pendingQuest: ID` + `QUEST_IN_PROGRESS` are in; ready after the user runs the ref migration in production (BE runbook).** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied; the FE Phase 10 plan that selects the field and the device E2E run after the BE Phase 10 PR merges (proposal in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §2).~~ — **resolved 2026-11-01:** merged on BE `develop` (`4dc7e89`), consumed by plan 10-11 and proven by the device E2E (outcome in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6).
-- **FE Phase 10 UAT (2026-11-01) — to clarify with the user:** the app logged «Failed host lookup: 'localhost'» (WebSocket closed) a few times with the adb tunnel and the BE up (Wi-Fi / airplane mode?); no step failed. BE-side observations (audit target of `teleportCharacter`, list queries on unpopulated ids, rookie vs 100 HP enemy) routed in `phases/10-admin-panel-innkeeper/BACKEND-NOTES.md` §6.4.
-- **BE Phase 10 (hardening) FE follow-ups:** map `BAD_USER_INPUT` in every classifier and `IMAGE_REJECTED` / `IMAGE_MODERATION_UNAVAILABLE` in character creation once the BE PR lands (quick task or Phase 12).
-- ~~FE Phase 13: from plan 13-02 the branch `feat/13-city-shops` needs BE Phase 12 on the device (cities select size/hasShop, character fragment selects pet/ownedPets); no device run before 13-11 (D-16).~~ — **resolved 2026-11-03:** BE Phase 12 merged on BE `develop` (`0585b2e`, PR #18), consumed by 13-10 and proven by the device E2E of 13-11 (outcome in `phases/13-city-shops/BACKEND-NOTES.md` §4; the latent BE defect on unpopulated nested refs under `me.currentCharacter` is routed in §5.1, no app impact).
+- **CHAR-06** (client-side NSFW pre-screen) — known gap of v1.0; decide in v1.1 whether to drop it on the server-side moderation (BE Phase 10 + HARDEN-10 codes).
+- **Backend rule F2** (Phase 9 UAT): a started quest whose participant is archived is fought as an occupied seat — honoured by the BE 9.2/10 seat holders; keep an eye on it in the Phase 19 model review.
+- **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
+- **iOS** never exercised (push, signing, store) — post-v1.0.
+- **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
-- ~~**FE Phase 16 / BE Phase 15 (2026-11-06):** the plans that select `QuestResult.kind`, the nullable `quest`, `ambush { at, nearCity, reachedCity }` and the defeat push category, and the device E2E, run after the BE Phase 15 PR merges on BE `develop` (gate pattern 15-08); names fixed in the BE `15-REPO-RULES.md`; the BE holds the ambush reports until the arrival, so the carousel never opens mid-travel. **Update 2026-11-06 evening:** BE Phase 15 executed 12/12 and PR #24 opened towards BE `develop`; FE 16-07/16-08 run after its merge.~~ — **resolved 2026-11-09:** merged on BE `develop` (`9103440`, PR #24), consumed by plan 16-07 and proven by the device E2E of 16-08 against BE `develop` `6be50d2` (outcome in `phases/16-travel-ambushes/BACKEND-NOTES.md` §4; questions §5, among them the user's detour-safety rule already honoured by BE D-03).
-
-### Quick Tasks Completed
+### Quick Tasks Completed (v1.0)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
@@ -86,3 +73,15 @@ Quick task 261109-inj2 (2026-11-09): nove `InjuryType` nuovi (37) con etichette,
 | 261105-hea | `heal` as ninth spell use type («Cura», provisional icon) and tolerant parsing of unknown use types (BE quick task twin on the same branch name; branch fix/spell-heal-use-type from develop) | 2026-11-05 | 250c9f0 | [261105-hea-spell-heal-use-type](./quick/261105-hea-spell-heal-use-type/) |
 | 261105-lgd | legends take the hero seats after the legend seats, before the wildcards (BE 13.1 D-08 mirror in `canRegisterWithTitle`; branch feat/quests-per-area-follow-ups stacked on fix/spell-heal-use-type) | 2026-11-05 | 6508fed | [261105-lgd-legend-hero-seat](./quick/261105-lgd-legend-hero-seat/) |
 | 261105-scp | `QuestScopeListener`: reread `quests` when `characterUpdated` changes location, title or a lane's quest (BE 13.1 D-05 `quests` per area; same branch) | 2026-11-05 | d677a24 | [261105-scp-quest-scope-reread](./quick/261105-scp-quest-scope-reread/) |
+| 261109-inj | `LootItem.canHeal` read by the FE and shown as «Cura: …» on heal items (shop and Journal); BE twin on the same branch name | 2026-11-09 | branch gemello `fix/…` | [261109-inj-loot-effected-injuries](./quick/261109-inj-loot-effected-injuries/) |
+| 261109-inj2 | nine new `InjuryType`s (37) with labels, severity and effects; tolerant parsing of the character injuries; BE twin | 2026-11-09 | branch gemello `fix/…` | [261109-inj2-new-injury-types](./quick/261109-inj2-new-injury-types/) |
+| 261110-shs | seven quest sheet ids re-uploaded on Cloudinary (old ones 404) and the two new torn announcement sheets for a torn heal (on the Phase 18 branch) | 2026-11-10 | 9c0b175 | [261110-shs-quest-sheet-assets](./quick/261110-shs-quest-sheet-assets/) |
+| 261110-mag | quest type `magic` («Magia», own sheets `magicSheet` / `tornMagicSheet`, treated like a study) and the general rule «every non-acceptable quest is drawn torn, a busy lane excepted»; job, crime and study wait for their torn assets; BE twin on the BE Phase 18 branch | 2026-11-10 | a0c870b | [261110-mag-quest-magic-type](./quick/261110-mag-quest-magic-type/) |
+| 261110-shs2 | every quest type now draws its own sheets, whole and torn (crime, guard, hunt on the «game» files, job, heal, world mission, boss, aid, revised magic; study on the announcement sheets; dungeon on the generic quest sheets); constants renamed after the quest type they draw (`enemySheet…` for boss/enemy files named `huntSheet…` on Cloudinary, `huntSheet…` for the `gameSheet…` files) | 2026-11-10 | 07a753e | commits only, see `quest_paper_asset.dart` |
+| 261110-cgd | prison after a crime arrest (countdown from `imprisonedUntil`, marker «In prigione per: …» over the pawn, board and shop closed, travel blocked, `CHARACTER_IMPRISONED` notices) and guard encounter lines on the result sheet; `prisonRelease` push category («Uscita di prigione»); fragment selections deferred to plan 18-12; BE twins `261110-cgd` and `261110-prp` on the BE Phase 18 branch | 2026-11-10 | 761b73e | [261110-cgd-crime-arrest-guard-encounter](./quick/261110-cgd-crime-arrest-guard-encounter/) |
+
+## Session Continuity
+
+Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
+Stopped at: Completed 18-13-PLAN.md (2026-11-11) — Phase 18 complete, PR to `develop` next
+Resume file: .planning/phases/18-heal-quests-by-size/18-13-SUMMARY.md

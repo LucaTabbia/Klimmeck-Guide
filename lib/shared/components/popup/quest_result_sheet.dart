@@ -6,8 +6,6 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/column_layout_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
-import 'package:klimmeck_guide/models/enums/lore_type.dart';
-import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
@@ -17,6 +15,9 @@ import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
+import 'package:klimmeck_guide/utils/lore_lines.dart';
+import 'package:klimmeck_guide/utils/quest_outcome_lines.dart';
 
 /// Foglio esiti a tutto schermo (09-CONTEXT D-01..D-05, D-14; report
 /// d'imboscata 16-CONTEXT D-04): un solo widget per i cinque esiti, sezioni
@@ -41,8 +42,12 @@ class QuestResultSheet extends StatefulWidget {
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
   static const Key stagesKey = ValueKey('questResult.stages');
+  static const Key arrestKey = ValueKey('questResult.arrest');
+  static const Key confiscatedKey = ValueKey('questResult.confiscated');
+  static const Key guardEncounterKey = ValueKey('questResult.guardEncounter');
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
+  static const Key healedKey = ValueKey('questResult.healed');
   static const Key reachedCityKey = ValueKey('questResult.reachedCity');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
@@ -57,8 +62,6 @@ class QuestResultSheet extends StatefulWidget {
   /// Righe delle lore sbloccate (D-10): una per voce, dopo «Magia appresa».
   static Key loreUnlockedKeyOf(String loreId) =>
       ValueKey('questResult.loreUnlocked.$loreId');
-  static const String bestiaryPagePrefix = 'Nuova pagina del Bestiario: ';
-  static const String knowledgePrefix = 'Conoscenza appresa: ';
   static const Key counterKey = ValueKey('questResult.counter');
   static const Key continueKey = ValueKey('questResult.continue');
   static const Key acknowledgeErrorKey = ValueKey(
@@ -165,7 +168,17 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._deathIdentity(),
         ..._enemies(),
         ..._line(_stagesText(), QuestResultSheet.stagesKey),
+        ..._line(
+          guardEncounterLine(_result),
+          QuestResultSheet.guardEncounterKey,
+        ),
+        ..._line(arrestLine(_result), QuestResultSheet.arrestKey),
+        ..._confiscated(),
         ..._hp(),
+        ..._line(
+          healedLine(_result.injuriesHealed),
+          QuestResultSheet.healedKey,
+        ),
         ..._injuries(),
         ..._line(_reachedCityText(), QuestResultSheet.reachedCityKey),
         ..._consumables(),
@@ -370,6 +383,23 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     );
   }
 
+  /// Monete confiscate con l'arresto (quick 261110-cgd), dal server.
+  List<Widget> _confiscated() {
+    final coins = confiscatedCoinsOf(_result);
+    if (coins == null) return const [];
+    return _section(
+      key: QuestResultSheet.confiscatedKey,
+      title: confiscatedCoinsTitle,
+      children: [
+        CoinsDisplay(
+          coins: coins,
+          height: _coinsHeight,
+          layout: CoinLayoutType.row,
+        ),
+      ],
+    );
+  }
+
   List<Widget> _itemRows(List<AssetQuantity> entries) => [
     for (final entry in entries)
       if (entry.item != null)
@@ -464,17 +494,10 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
   List<Widget> _loreUnlockedLines() => [
     for (final lore in _result.loreUnlocked)
       ..._line(
-        _loreUnlockedText(lore),
+        loreUnlockedLine(lore),
         QuestResultSheet.loreUnlockedKeyOf(lore.id),
       ),
   ];
-
-  String _loreUnlockedText(Lore lore) {
-    final prefix = lore.type?.isBestiary ?? false
-        ? QuestResultSheet.bestiaryPagePrefix
-        : QuestResultSheet.knowledgePrefix;
-    return '$prefix${lore.name}';
-  }
 
   String? _rescuedText() {
     final count = _result.rescuedCharacters.length;

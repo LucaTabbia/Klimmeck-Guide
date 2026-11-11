@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/services/push/link_opener.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_intent_sink.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Unica azione per ogni tap (notifica di sistema o banner, D-15/D-16/D-17): i
 /// tipi personali atterrano sul tab Mappa via [NotificationIntentSink];
@@ -24,7 +24,7 @@ class NotificationTapRouter {
       return;
     }
     if (!await _links.open(TwitchChannel.uri)) {
-      debugPrint('Twitch channel not opened');
+      appLog('Twitch channel not opened');
     }
   }
 }

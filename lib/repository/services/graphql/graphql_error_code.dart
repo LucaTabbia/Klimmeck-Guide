@@ -4,21 +4,25 @@ import 'graphql_sync_exceptions.dart';
 
 const String forbiddenCode = 'FORBIDDEN';
 const String notFoundCode = 'NOT_FOUND';
+const String badUserInputCode = 'BAD_USER_INPUT';
 
 /// Codici terminali sui percorsi di sync: lo stream non va ri-sottoscritto
 /// (niente hot loop) e in una sessione già caricata la reazione è silenziosa.
 const Set<String> accessDeniedCodes = {forbiddenCode, notFoundCode};
 
 /// Estrae `extensions.code` dall'eccezione. La forma reale del backend è un
-/// `next` con `errors` (-> `graphqlErrors`); la forma con `SubscriptionError`
-/// (payload lista) è interpretata in modo difensivo.
+/// `next` con `errors` (-> `graphqlErrors`) e il `parsedResponse` di un
+/// `ServerException` (risposta HTTP ≥ 300, Phase 12 D-13a); la forma con
+/// `SubscriptionError` (payload lista) è interpretata in modo difensivo.
 String? graphQlErrorCode(OperationException? exception) {
   if (exception == null) return null;
-  for (final error in exception.graphqlErrors) {
-    final code = error.extensions?['code'];
-    if (code is String) return code;
-  }
-  final original = exception.linkException?.originalException;
+  final link = exception.linkException;
+  final code = _firstCodeOf([
+    ...exception.graphqlErrors,
+    if (link is ServerException) ...?link.parsedResponse?.errors,
+  ]);
+  if (code != null) return code;
+  final original = link?.originalException;
   if (original is SubscriptionError && original.payload is List) {
     for (final item in original.payload as List) {
       final code = _codeOfPayloadItem(item);
@@ -27,6 +31,33 @@ String? graphQlErrorCode(OperationException? exception) {
   }
   return null;
 }
+
+/// Un'altra chiave di `extensions` dell'errore che porta il codice (stesse due
+/// fonti di [graphQlErrorCode]): `null` se manca la chiave o l'errore.
+Object? graphQlErrorExtension(OperationException? exception, String key) {
+  if (exception == null) return null;
+  final link = exception.linkException;
+  final errors = [
+    ...exception.graphqlErrors,
+    if (link is ServerException) ...?link.parsedResponse?.errors,
+  ];
+  return errors
+      .where((error) => error.extensions?['code'] is String)
+      .map((error) => error.extensions?[key])
+      .firstOrNull;
+}
+
+/// Un istante ISO 8601 in `extensions` (es. la fine di una ricarica o della
+/// prigione), in UTC; `null` se manca o è illeggibile.
+DateTime? graphQlErrorInstant(OperationException? exception, String key) {
+  final wire = graphQlErrorExtension(exception, key);
+  return wire is String ? DateTime.tryParse(wire)?.toUtc() : null;
+}
+
+String? _firstCodeOf(List<GraphQLError> errors) => errors
+    .map((error) => error.extensions?['code'])
+    .whereType<String>()
+    .firstOrNull;
 
 String? _codeOfPayloadItem(Object? item) {
   if (item is! Map) return null;

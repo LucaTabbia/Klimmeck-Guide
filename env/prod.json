@@ -1,0 +1,5 @@
+{
+  "BASE_URL": "https://api.klimmeck.invalid/",
+  "GRAPHQL_HTTP_URL": "https://api.klimmeck.invalid/api/graphql",
+  "GRAPHQL_WS_URL": "wss://api.klimmeck.invalid/api/graphql"
+}

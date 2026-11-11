@@ -10,10 +10,10 @@ import '../../../../helpers/landscape.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
 
-const _huntIntact = [CloudinaryAssets.huntSheet1, CloudinaryAssets.huntSheet2];
-const _huntTorn = [
-  CloudinaryAssets.huntTornSheet1,
-  CloudinaryAssets.huntTornSheet2,
+const _bossIntact = [CloudinaryAssets.bossSheet1, CloudinaryAssets.bossSheet2];
+const _bossTorn = [
+  CloudinaryAssets.bossTornSheet1,
+  CloudinaryAssets.bossTornSheet2,
 ];
 
 Future<void> _pump(
@@ -42,18 +42,36 @@ String _url(WidgetTester tester) =>
     tester.widget<CachedSvg>(find.byType(CachedSvg)).url;
 
 void main() {
-  setUp(() => seedSvgCache([..._huntIntact, ..._huntTorn]));
+  setUp(
+    () => seedSvgCache([
+      ..._bossIntact,
+      ..._bossTorn,
+      CloudinaryAssets.magicSheet,
+      CloudinaryAssets.magicTornSheet,
+    ]),
+  );
 
-  testWidgets('a torn boss shows a torn hunt paper', (tester) async {
-    await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);
+  testWidgets('a magic quest shows its own sheet (quick 261110-mag)', (
+    tester,
+  ) async {
+    final magic = buildQuest(id: 'm-1', type: 'magic');
+    await _pump(tester, magic, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
 
-    expect(_url(tester), isIn(_huntTorn.map(CloudinaryAssets.url)));
+    await _pump(tester, magic, isTorn: true);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicTornSheet));
   });
 
-  testWidgets('an intact boss shows an intact hunt paper', (tester) async {
+  testWidgets('a torn boss shows a torn boss paper', (tester) async {
+    await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);
+
+    expect(_url(tester), isIn(_bossTorn.map(CloudinaryAssets.url)));
+  });
+
+  testWidgets('an intact boss shows an intact boss paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: false);
 
-    expect(_url(tester), isIn(_huntIntact.map(CloudinaryAssets.url)));
+    expect(_url(tester), isIn(_bossIntact.map(CloudinaryAssets.url)));
   });
 
   testWidgets('the paper does not change across rebuilds', (tester) async {

@@ -14,6 +14,10 @@ class FakeGraphQlWsServer {
 
   void Function(WebSocket ws, Map<String, dynamic> subscribe)? onSubscribe;
 
+  /// Hook della `connection_init` (payload con `Authorization: Bearer …`):
+  /// ritorna false se ha chiuso il socket, e allora non arriva l'ack.
+  bool Function(WebSocket ws, Map<String, dynamic>? payload)? onConnectionInit;
+
   Future<void> start() async {
     _http = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     _http.listen(_accept);
@@ -35,7 +39,9 @@ class FakeGraphQlWsServer {
     received.add(msg);
     switch (msg['type']) {
       case 'connection_init':
-        _send(ws, {'type': 'connection_ack'});
+        final payload = msg['payload'] as Map<String, dynamic>?;
+        final accepted = onConnectionInit?.call(ws, payload) ?? true;
+        if (accepted) _send(ws, {'type': 'connection_ack'});
       case 'ping':
         _send(ws, {'type': 'pong'});
       case 'subscribe':
@@ -72,9 +78,13 @@ class FakeGraphQlWsServer {
   void complete(WebSocket ws, String id) =>
       _send(ws, {'type': 'complete', 'id': id});
 
-  /// Chiude l'ultimo socket con [code]. Usare 4401/4403/1001, mai 1006
+  /// Chiude l'ultimo socket con [code]. Usare 4401/4403/4409/1001, mai 1006
   /// (riservato: `close` lancia).
   Future<void> dropWith(int code) => sockets.last.close(code, 'test');
+
+  /// Chiude [ws] con [code] e [reason] (es. 4409 `newLogin`, BE Phase 17).
+  Future<void> closeSocket(WebSocket ws, int code, String reason) =>
+      ws.close(code, reason);
 
   List<Map<String, dynamic>> framesOf(String type) =>
       received.where((m) => m['type'] == type).toList();

@@ -32,7 +32,7 @@ class QuestAcceptanceRepository {
           .acceptQuest(AcceptQuestRequest(id: characterId, questId: questId))
           .timeout(timeout);
     } on OperationException catch (error) {
-      throw QuestAcceptanceException(questAcceptanceFailureFrom(error));
+      throw questAcceptanceExceptionFrom(error);
     } on TimeoutException {
       throw const QuestAcceptanceException(QuestAcceptanceFailure.timedOut);
     } on Object {

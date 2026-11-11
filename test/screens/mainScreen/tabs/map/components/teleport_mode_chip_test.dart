@@ -38,6 +38,13 @@ void main() {
         );
       }
     });
+
+    test('BAD_USER_INPUT keeps the teleport generic line (D-13)', () {
+      expect(
+        teleportFailureTextOf(InnkeeperFailure.badUserInput),
+        'Teletrasporto non riuscito, riprova',
+      );
+    });
   });
 
   group('TeleportModeChip (D-16)', () {

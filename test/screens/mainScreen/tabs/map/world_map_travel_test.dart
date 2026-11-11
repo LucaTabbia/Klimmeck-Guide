@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/abandon_party_sheet.dart';
@@ -53,6 +54,7 @@ final City cityA = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 final City cityB = City.fromJson({
@@ -64,6 +66,7 @@ final City cityB = City.fromJson({
     image: null,
   ),
   'type': 'drusteaCapital',
+  'size': 'capital',
 });
 
 /// Viaggio della fixture: 10:00 → 12:40 UTC.
@@ -138,6 +141,11 @@ Future<void> pumpWorldMap(
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
+            BlocProvider<PrisonCubit>(
+              create: (_) => PrisonCubit(
+                clock: FakeServerClockService(DateTime.utc(2026, 11, 10)),
+              ),
+            ),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<WorldMapCubit>.value(value: worldMapCubit),
             BlocProvider<TravelCubit>.value(value: travelCubit),
@@ -678,6 +686,47 @@ void main() {
       expectCentreAt(tester, const LatLng(0, 0));
     });
   });
+  group('cure rows on the lane sheet (BE Phase 18)', () {
+    testWidgets(
+      "the lane sheet on the Map lists the character's curable injuries (D-19)",
+      (tester) async {
+        final heal = buildQuest(
+          id: 'he-1',
+          type: 'heal',
+          prizes: {'cure': questCureJson()},
+        );
+        seedSvgCache([
+          questPaperAssetId(heal, isTorn: false),
+          CloudinaryAssets.emptySheet,
+        ]);
+        final json = travellingCharacterJson(
+          pendingQuest: laneJson(
+            questId: 'he-1',
+            arrivedAt: '2026-10-25T09:30:00.000Z',
+          ),
+        );
+        await pumpWorldMap(
+          tester,
+          character: CharacterLoaded(
+            Character.fromJson({
+              ...json,
+              'status': {
+                ...json['status'] as Map<String, dynamic>,
+                'injuries': ['contusion'],
+              },
+            }),
+          ),
+          quests: [heal],
+        );
+
+        await tester.tap(find.byKey(QuestPaperLayer.paperKey));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Cura le tue ferite: contusione'), findsOneWidget);
+      },
+    );
+  });
+
   group('abandon the waiting party (quick 261025-grp)', () {
     final enemy = buildQuest(id: 'e-1', type: 'enemy');
     const arrival = '2026-10-25T09:30:00.000Z';

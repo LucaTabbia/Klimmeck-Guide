@@ -191,3 +191,13 @@ extension InjuryTypeExtension on InjuryType {
     }
   }
 }
+
+/// Lettura tollerante di una lista di ferite dal filo: un nome che il client
+/// non conosce è scartato, ciò che non è una lista vale una lista vuota.
+List<InjuryType> injuryTypesFrom(Object? json) {
+  if (json is! List) return const [];
+  final byName = InjuryType.values.asNameMap();
+  return List<InjuryType>.unmodifiable(
+    json.map((name) => byName[name]).nonNulls,
+  );
+}

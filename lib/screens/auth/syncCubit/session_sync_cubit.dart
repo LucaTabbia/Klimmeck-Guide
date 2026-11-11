@@ -14,6 +14,7 @@ import 'package:klimmeck_guide/repository/services/sync/connection_restored_even
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/sync_watchdog.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 import 'package:klimmeck_guide/utils/silent_retry.dart';
 
@@ -140,7 +141,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
   bool _adopt(User user) {
     final isAdopted = _auth.adoptUser(user);
     if (!isAdopted) {
-      debugPrint('[Sync] dropped userUpdated of another identity');
+      appLog('[Sync] dropped userUpdated of another identity');
     }
     return isAdopted;
   }
@@ -166,7 +167,7 @@ class SessionSyncCubit extends Cubit<SessionSyncState>
     final code = error is SubscriptionStreamException
         ? error.code
         : error.runtimeType;
-    debugPrint('[Sync] userUpdated rejected: $code');
+    appLog('[Sync] userUpdated rejected: $code');
     unawaited(refreshUser(force: true));
   }
 

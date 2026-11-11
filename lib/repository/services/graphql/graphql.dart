@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
@@ -44,13 +43,15 @@ import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
+import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:klimmeck_guide/repository/storage/storage_manager.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 class KlimmeckGraphQl {
-  /// Il client arriva dal composition root (`main.dart`) o dal test: il
+  /// Il client arriva dal composition root (`lib/bootstrap/`) o dal test: il
   /// service non conosce l'albero dei widget né il `navigatorKey`.
   KlimmeckGraphQl({required GraphQLClient Function() resolveClient})
     : _resolveClient = resolveClient;
@@ -258,7 +259,7 @@ class KlimmeckGraphQl {
         .toList();
     final skipped = json.length - parsed.length;
     if (skipped > 0) {
-      debugPrint('[Innkeeper] skipped $skipped malformed queue entries');
+      appLog('[Innkeeper] skipped $skipped malformed queue entries');
     }
     return List.unmodifiable(parsed);
   }
@@ -333,7 +334,7 @@ class KlimmeckGraphQl {
     for (final json in questsData) {
       final quest = Quest.tryFromJson(json);
       if (quest == null) {
-        debugPrint('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
+        appLog('Quest skipped: ${json is Map ? json['id'] : 'unknown'}');
         continue;
       }
       quests.add(quest);
@@ -728,6 +729,27 @@ class KlimmeckGraphQl {
     'unequipPet',
     request.toJson(),
   );
+
+  /// Beve una pozione (BE Phase 18, D-11): la risposta serve solo al
+  /// riscontro, lo stato arriva da `characterUpdated`. Lancia
+  /// [OperationException] o [FormatException] per una risposta malformata.
+  Future<UseItemResult> useItem(String itemId) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: CharacterMutations.useItem,
+        variables: {'itemId': itemId},
+      ),
+    );
+    final result = data['useItem'];
+    if (result is! Map<String, dynamic>) {
+      throw const FormatException('useItem without a result');
+    }
+    try {
+      return UseItemResult.fromJson(result);
+    } on Object {
+      throw const FormatException('useItem with a malformed result');
+    }
+  }
 
   Future<bool> _successfulMutation(
     String document,

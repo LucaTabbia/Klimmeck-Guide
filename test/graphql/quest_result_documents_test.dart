@@ -87,6 +87,21 @@ void main() {
       expect(sharedSelection, isNot(contains('locations')));
     });
 
+    test('selects injuriesHealed after injuriesAdded (D-02)', () {
+      expect(sharedSelection, contains('injuriesAdded injuriesHealed'));
+    });
+
+    test('selects arrested, coinsLost and guardEncounter after '
+        'injuriesHealed (quick 261110-cgd)', () {
+      expect(
+        sharedSelection,
+        contains(
+          'injuriesHealed arrested coinsLost { gold silver copper } '
+          'guardEncounter',
+        ),
+      );
+    });
+
     test('selects the BE 9.2 acknowledgedAt right after resolvedAt', () {
       expect(sharedSelection, contains('resolvedAt acknowledgedAt'));
     });

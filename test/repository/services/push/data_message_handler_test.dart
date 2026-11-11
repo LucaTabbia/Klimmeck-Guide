@@ -36,6 +36,14 @@ void main() {
     'id': '6712a0c4e1b2c3d4e5f60718',
   };
 
+  const prisonReleaseData = <String, Object?>{
+    'type': 'prisonRelease',
+    'title': 'Di nuovo libero',
+    'body': "La prigionia è finita: torna all'avventura.",
+    'sentAt': '2026-11-10T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60718',
+  };
+
   late InMemoryActiveUserStore activeUser;
   late InMemoryNotificationPreferencesStore preferences;
   late RecordingLocalNotificationsPort notifier;
@@ -66,6 +74,7 @@ void main() {
       questEndData,
       streamerLiveData,
       ambushDefeatData,
+      prisonReleaseData,
     ]) {
       test('shows one notification for ${data['type']} by default', () async {
         await handle(data);

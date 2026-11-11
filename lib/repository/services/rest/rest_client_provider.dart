@@ -7,7 +7,7 @@ import 'package:klimmeck_guide/repository/services/rest/auth_interceptor.dart';
 /// Client HTTP basato su Dio con auth injection.
 ///
 /// Il singleton statico è stato rimosso: ogni istanza è owned dalla
-/// `KlimmeckRest` che la riceve tramite DI costruttore da `main.dart`.
+/// `KlimmeckRest` che la riceve tramite DI costruttore dal bootstrap.
 /// L'`AuthInterceptor` riceve il `Dio` del client e l'eventuale
 /// [UnauthorizedRecovery] per il retry-once dopo un 401.
 class RestClient {

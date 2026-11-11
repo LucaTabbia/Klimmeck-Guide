@@ -56,4 +56,46 @@ void main() {
       }
     },
   );
+
+  group('lenientRefsFrom', () {
+    test('keeps the entries with an id and a name (D-16)', () {
+      final refs = Lore.lenientRefsFrom([
+        loreRefJson(
+          id: 'lore-limit',
+          name: 'Il limite del corpo',
+          type: 'knowledge',
+        ),
+      ]);
+
+      expect(refs, hasLength(1));
+      expect(refs.single.id, 'lore-limit');
+      expect(refs.single.name, 'Il limite del corpo');
+      expect(refs.single.type, LoreType.knowledge);
+    });
+
+    test('drops entries without id or without name and non-maps (D-16)', () {
+      final refs = Lore.lenientRefsFrom([
+        {'name': 'x'},
+        {'id': 'a'},
+        {'id': 'b', 'name': ''},
+        42,
+        loreRefJson(),
+      ]);
+
+      expect(refs, [Lore.fromJson(loreRefJson())]);
+    });
+
+    test('anything but a list is an empty list (D-16)', () {
+      expect(Lore.lenientRefsFrom(null), isEmpty);
+      expect(Lore.lenientRefsFrom('lore'), isEmpty);
+      expect(Lore.lenientRefsFrom(<String, dynamic>{}), isEmpty);
+    });
+
+    test('an unknown type is kept with a null type (D-16)', () {
+      final refs = Lore.lenientRefsFrom([loreRefJson(type: 'dragon')]);
+
+      expect(refs.single.id, 'lore-goblin');
+      expect(refs.single.type, isNull);
+    });
+  });
 }

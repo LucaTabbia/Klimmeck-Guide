@@ -18,7 +18,7 @@ void main() {
       final others = QuestType.values.where(
         (t) => t != QuestType.story && t != QuestType.worldMission,
       );
-      expect(others, hasLength(10));
+      expect(others, hasLength(11));
       for (final type in others) {
         expect(laneOf(type), QuestLane.standard, reason: type.name);
       }

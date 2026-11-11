@@ -40,6 +40,9 @@ CharacterLoaded _character({
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? activeStoryQuest,
   List<String> completedQuestIds = const [],
+  int? currentLifePoints,
+  int? maxLifePoints,
+  List<String>? injuries,
 }) => CharacterLoaded(
   Character.fromJson(
     characterWithLanesJson(
@@ -48,6 +51,9 @@ CharacterLoaded _character({
       pendingQuest: pendingQuest,
       activeStoryQuest: activeStoryQuest,
       completedQuestIds: completedQuestIds,
+      currentLifePoints: currentLifePoints,
+      maxLifePoints: maxLifePoints,
+      injuries: injuries,
     ),
   ),
 );
@@ -179,5 +185,104 @@ void main() {
     await emit(tester, const CharacterUnavailable());
 
     verifyNoReread();
+  });
+
+  group('vitals (D-20)', () {
+    testWidgets(
+      'a change of life points in a city rereads the quests of that city (D-20)',
+      (tester) async {
+        await pumpListener(
+          tester,
+          initial: _character(currentLifePoints: 10, maxLifePoints: 20),
+        );
+
+        await emit(tester, _character(currentLifePoints: 6, maxLifePoints: 20));
+
+        verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      },
+    );
+
+    testWidgets(
+      'a change of maximum life points in a city rereads the quests (D-20)',
+      (tester) async {
+        await pumpListener(
+          tester,
+          initial: _character(currentLifePoints: 10, maxLifePoints: 20),
+        );
+
+        await emit(
+          tester,
+          _character(currentLifePoints: 10, maxLifePoints: 24),
+        );
+
+        verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      },
+    );
+
+    testWidgets('a change of injuries in a city rereads the quests (D-20)', (
+      tester,
+    ) async {
+      await pumpListener(tester, initial: _character(injuries: const []));
+
+      await emit(tester, _character(injuries: const ['contusion']));
+      await emit(tester, _character(injuries: const ['deepCut']));
+
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(2);
+    });
+
+    testWidgets('the same vitals in a new character do not reread (D-20)', (
+      tester,
+    ) async {
+      await pumpListener(
+        tester,
+        initial: _character(
+          currentLifePoints: 10,
+          maxLifePoints: 20,
+          injuries: ['contusion'],
+        ),
+      );
+
+      await emit(
+        tester,
+        _character(
+          currentLifePoints: 10,
+          maxLifePoints: 20,
+          injuries: ['contusion'],
+          completedQuestIds: const ['q-9'],
+        ),
+      );
+
+      verifyNoReread();
+    });
+
+    testWidgets('the same injuries in another order do not reread (D-20)', (
+      tester,
+    ) async {
+      await pumpListener(
+        tester,
+        initial: _character(injuries: const ['contusion', 'deepCut']),
+      );
+
+      await emit(tester, _character(injuries: const ['deepCut', 'contusion']));
+
+      verifyNoReread();
+    });
+
+    testWidgets(
+      'outside a city a change of life points does not reread (D-20)',
+      (tester) async {
+        await pumpListener(
+          tester,
+          initial: _character(locationId: 'road-1', currentLifePoints: 10),
+        );
+
+        await emit(
+          tester,
+          _character(locationId: 'road-1', currentLifePoints: 6),
+        );
+
+        verifyNoReread();
+      },
+    );
   });
 }

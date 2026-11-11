@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:graphql_flutter/graphql_flutter.dart' hide Response;
 import 'package:klimmeck_guide/models/enums/class_type.dart';
 import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
@@ -31,6 +31,20 @@ OperationException _graphqlCode(String code) => OperationException(
   graphqlErrors: [
     GraphQLError(message: 'server text', extensions: {'code': code}),
   ],
+);
+
+DioException _uploadRefused(int statusCode, String code) => DioException(
+  requestOptions: RequestOptions(),
+  response: Response(
+    requestOptions: RequestOptions(),
+    statusCode: statusCode,
+    data: {
+      'statusCode': statusCode,
+      'code': code,
+      'message': 'Immagine non ammessa',
+      'reasons': <String>[],
+    },
+  ),
 );
 
 Matcher _failsWith(CharacterCreationFailure failure) => throwsA(
@@ -158,6 +172,33 @@ void main() {
         );
       });
     });
+  });
+
+  group('uploadPortrait moderation', () {
+    test('a 422 IMAGE_REJECTED upload maps to imageRejected (D-13)', () {
+      when(
+        () => rest.uploadImage(any()),
+      ).thenThrow(_uploadRefused(422, 'IMAGE_REJECTED'));
+
+      expect(
+        repository.uploadPortrait('/tmp/p.jpg'),
+        _failsWith(CharacterCreationFailure.imageRejected),
+      );
+    });
+
+    test(
+      'a 503 IMAGE_MODERATION_UNAVAILABLE upload maps to moderationUnavailable (D-13)',
+      () {
+        when(
+          () => rest.uploadImage(any()),
+        ).thenThrow(_uploadRefused(503, 'IMAGE_MODERATION_UNAVAILABLE'));
+
+        expect(
+          repository.uploadPortrait('/tmp/p.jpg'),
+          _failsWith(CharacterCreationFailure.moderationUnavailable),
+        );
+      },
+    );
   });
 
   group('createCharacter', () {

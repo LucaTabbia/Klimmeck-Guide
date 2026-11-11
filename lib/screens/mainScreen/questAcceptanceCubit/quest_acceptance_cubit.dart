@@ -25,7 +25,13 @@ class QuestAcceptanceCubit extends Cubit<QuestAcceptanceState>
       await _repository.accept(characterId: characterId, questId: questId);
       emit(QuestAccepted(questId));
     } on QuestAcceptanceException catch (error) {
-      emit(QuestAcceptanceFailed(questId, error.failure));
+      emit(
+        QuestAcceptanceFailed(
+          questId,
+          error.failure,
+          imprisonedUntil: error.imprisonedUntil,
+        ),
+      );
     } catch (_) {
       emit(QuestAcceptanceFailed(questId, QuestAcceptanceFailure.unknown));
     }

@@ -367,6 +367,38 @@ void main() {
       });
     });
 
+    test('waits for every overlapped registration before removing '
+        '(Phase 5 D-08)', () {
+      fakeAsync((async) {
+        final harness = _Harness();
+        final firstRegistration = Completer<void>();
+        var calls = 0;
+        when(
+          () => harness.repository.register(
+            deviceId: any(named: 'deviceId'),
+            token: any(named: 'token'),
+          ),
+        ).thenAnswer(
+          (_) => calls++ == 0 ? firstRegistration.future : Future<void>.value(),
+        );
+        harness.emit(async, _authenticated('u-1'));
+        harness.refreshToken(async, 'token-2');
+        expect(harness.registrationCalls(), 2);
+        var completed = false;
+        harness.coordinator.unregister().then((_) => completed = true);
+        async.flushMicrotasks();
+
+        verifyNever(() => harness.repository.unregister(any()));
+        expect(completed, isFalse);
+
+        firstRegistration.complete();
+        async.flushMicrotasks();
+
+        verify(() => harness.repository.unregister('device-1')).called(1);
+        expect(completed, isTrue);
+      });
+    });
+
     test('a stuck registration delays the removal within the budget', () {
       fakeAsync((async) {
         final harness = _Harness()..holdRegistration(Completer<void>());

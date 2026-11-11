@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
@@ -222,6 +223,19 @@ void main() {
       final slotTop = tester.getTopLeft(find.byType(CompanionSection)).dy;
       expect(slotTop, greaterThan(tester.getTopLeft(find.text('Armatura')).dy));
       expect(slotTop, lessThan(tester.getTopLeft(find.text('Oggetti')).dy));
+    },
+  );
+
+  testWidgets(
+    'the Journal page hosts the items section with the potion providers (D-11)',
+    (tester) async {
+      await pumpJournalPage(
+        tester,
+        characterCubit: characterCubit,
+        spellsCubit: spellsCubit,
+      );
+
+      expect(find.byType(ItemsSection), findsOneWidget);
     },
   );
 }

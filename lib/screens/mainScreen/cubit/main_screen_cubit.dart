@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 part 'main_screen_state.dart';
 
@@ -62,7 +63,7 @@ class MainScreenCubit extends Cubit<MainScreenState>
       if (listEquals(current.cities, cities)) return;
       emit(MainScreenLoadData(cities));
     } catch (e) {
-      debugPrint('MainScreenCubit.refreshCities error: $e');
+      appLog('MainScreenCubit.refreshCities error: ${e.runtimeType}');
     }
   }
 }

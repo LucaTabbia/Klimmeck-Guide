@@ -17,7 +17,9 @@ void main() {
 
     test('every other failure stays in the shopkeeper bubble', () {
       final others = TransactionFailure.values.where(
-        (failure) => failure != TransactionFailure.shopNotInCity,
+        (failure) =>
+            failure != TransactionFailure.shopNotInCity &&
+            failure != TransactionFailure.imprisoned,
       );
       for (final failure in others) {
         expect(transactionNoticeFor(failure), isNull, reason: failure.name);
@@ -36,25 +38,50 @@ void main() {
         }
       },
     );
+    test('the prison refusal becomes a banner with the release time '
+        '(quick 261110-cgd)', () {
+      expect(
+        transactionNoticeFor(
+          TransactionFailure.imprisoned,
+          imprisonedFor: const Duration(hours: 9, minutes: 12),
+        ),
+        const KGNotification(
+          title: 'Negozio non disponibile',
+          description: 'Sei in prigione: uscirai fra 9 h 12 min',
+        ),
+      );
+      expect(
+        transactionNoticeFor(TransactionFailure.imprisoned)!.description,
+        'Sei in prigione',
+      );
+    });
+
+    test('BAD_USER_INPUT raises no banner (D-13)', () {
+      expect(transactionNoticeFor(TransactionFailure.badUserInput), isNull);
+    });
   });
 
   group('shopkeeperRefusalLine', () {
-    test(
-      'only the off-city refusal has no bubble line: it is the banner (Phase 9 D-16)',
-      () {
-        expect(shopkeeperRefusalLine(TransactionFailure.shopNotInCity), isNull);
-        final others = TransactionFailure.values.where(
-          (failure) => failure != TransactionFailure.shopNotInCity,
-        );
-        for (final failure in others) {
-          expect(
-            shopkeeperRefusalLine(failure),
-            isNotNull,
-            reason: failure.name,
-          );
-        }
-      },
-    );
+    test("BAD_USER_INPUT keeps the shopkeeper's generic line (D-13)", () {
+      expect(
+        shopkeeperRefusalLine(TransactionFailure.badUserInput),
+        genericRefusalLine,
+      );
+    });
+
+    test('only the off-city and prison refusals have no bubble line: they are '
+        'banners (Phase 9 D-16, quick 261110-cgd)', () {
+      expect(shopkeeperRefusalLine(TransactionFailure.shopNotInCity), isNull);
+      expect(shopkeeperRefusalLine(TransactionFailure.imprisoned), isNull);
+      final others = TransactionFailure.values.where(
+        (failure) =>
+            failure != TransactionFailure.shopNotInCity &&
+            failure != TransactionFailure.imprisoned,
+      );
+      for (final failure in others) {
+        expect(shopkeeperRefusalLine(failure), isNotNull, reason: failure.name);
+      }
+    });
 
     test(
       'an item outside the pool reads «Questa merce non la tratto» (D-05)',

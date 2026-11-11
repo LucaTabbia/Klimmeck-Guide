@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../repository/cache/svg_cache.dart';
 import '../../repository/cache/svg_cache_manager.dart';
@@ -58,7 +59,7 @@ class _CachedSvgState extends State<CachedSvg> {
       SvgCache().add(widget.url, file);
       if (mounted) setState(() => _file = file);
     } catch (e) {
-      debugPrint('CachedSvg: failed to load $e');
+      appLog('CachedSvg: failed to load ${e.runtimeType}');
     }
   }
 

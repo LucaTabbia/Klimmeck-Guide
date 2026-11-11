@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/transaction_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,6 +18,7 @@ import '../../../../../helpers/test_app.dart';
 void main() {
   late MockTransactionCubit transaction;
   late MockInAppNotificationsCubit notices;
+  late MockPrisonCubit prison;
   late StreamController<TransactionState> transactionStates;
 
   setUpAll(() {
@@ -26,6 +28,12 @@ void main() {
   setUp(() {
     transaction = MockTransactionCubit();
     notices = MockInAppNotificationsCubit();
+    prison = MockPrisonCubit();
+    whenListen(
+      prison,
+      const Stream<PrisonState>.empty(),
+      initialState: const PrisonState(Duration(hours: 9, minutes: 12)),
+    );
     transactionStates = StreamController<TransactionState>.broadcast();
     addTearDown(transactionStates.close);
     whenListen(
@@ -41,6 +49,7 @@ void main() {
         providers: [
           BlocProvider<TransactionCubit>.value(value: transaction),
           BlocProvider<InAppNotificationsCubit>.value(value: notices),
+          BlocProvider<PrisonCubit>.value(value: prison),
         ],
         child: const TransactionOutcomeListener(child: SizedBox()),
       ),
@@ -72,6 +81,28 @@ void main() {
           description: 'Il negozio è disponibile solo in città',
         ),
         dedupKey: 'transaction|shopNotInCity',
+      ),
+    ).called(1);
+  });
+
+  testWidgets('a prison refusal feeds the prison and announces the release '
+      '(quick 261110-cgd)', (tester) async {
+    final release = DateTime.utc(2026, 11, 10, 22);
+    await pumpListener(tester);
+
+    await emitTransaction(
+      tester,
+      TransactionError(TransactionFailure.imprisoned, imprisonedUntil: release),
+    );
+
+    verify(() => prison.learnRelease(release)).called(1);
+    verify(
+      () => notices.publishNotice(
+        const KGNotification(
+          title: 'Negozio non disponibile',
+          description: 'Sei in prigione: uscirai fra 9 h 12 min',
+        ),
+        dedupKey: 'transaction|imprisoned',
       ),
     ).called(1);
   });

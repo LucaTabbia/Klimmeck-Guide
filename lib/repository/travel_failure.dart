@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/character_imprisoned.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -30,8 +31,16 @@ enum TravelFailure {
   /// BE Phase 14 D-11: il personaggio non arriverebbe vivo (cibo
   /// insufficiente); stesso codice su `startTravel` e `acceptQuest`.
   starving,
+
+  /// Il personaggio è in prigione (quick 261110-cgd): la fine viaggia
+  /// sull'eccezione.
+  imprisoned,
   notFound,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -46,9 +55,12 @@ enum TravelFailure {
 }
 
 class TravelException implements Exception {
-  const TravelException(this.failure);
+  const TravelException(this.failure, {this.imprisonedUntil});
 
   final TravelFailure failure;
+
+  /// Fine della prigione detta dal server, solo per [TravelFailure.imprisoned].
+  final DateTime? imprisonedUntil;
 
   @override
   String toString() => 'TravelException(${failure.name})';
@@ -68,9 +80,18 @@ TravelFailure travelFailureFrom(OperationException exception) {
     questInProgressCode => TravelFailure.questInProgress,
     awaitingAidCode => TravelFailure.awaitingAid,
     travelStarvingCode => TravelFailure.starving,
+    characterImprisonedCode => TravelFailure.imprisoned,
     notFoundCode => TravelFailure.notFound,
     forbiddenCode => TravelFailure.forbidden,
+    badUserInputCode => TravelFailure.badUserInput,
     unauthenticatedCode => TravelFailure.unauthenticated,
     _ => TravelFailure.unknown,
   };
 }
+
+/// Il rifiuto con la fine della prigione quando il personaggio è in prigione.
+TravelException travelExceptionFrom(OperationException exception) =>
+    TravelException(
+      travelFailureFrom(exception),
+      imprisonedUntil: imprisonedUntilFrom(exception),
+    );

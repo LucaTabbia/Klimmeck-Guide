@@ -5,7 +5,8 @@ import 'package:klimmeck_guide/repository/quest_result_failure.dart';
 const String questResultNoticeTitle = 'Risultato non disponibile';
 
 /// Esito negativo della lettura per id dopo un tap (D-11): solo
-/// NOT_FOUND/FORBIDDEN. Il `serial` crescente rende distinti due avvisi uguali.
+/// NOT_FOUND/FORBIDDEN e BAD_USER_INPUT (Phase 12 D-13a). Il `serial`
+/// crescente rende distinti due avvisi uguali.
 class QuestResultNotice extends Equatable {
   const QuestResultNotice({
     required this.resultId,
@@ -27,7 +28,12 @@ KGNotification? questResultNoticeFor(QuestResultFailure failure) {
   final description = switch (failure) {
     QuestResultFailure.notFound => 'Questo risultato non esiste più',
     QuestResultFailure.forbidden => 'Questo risultato non ti appartiene',
-    _ => null,
+    QuestResultFailure.badUserInput => 'Qualcosa è andato storto, riprova',
+    QuestResultFailure.connection ||
+    QuestResultFailure.timedOut ||
+    QuestResultFailure.malformed ||
+    QuestResultFailure.unknown ||
+    QuestResultFailure.unauthenticated => null,
   };
   if (description == null) return null;
   return KGNotification(

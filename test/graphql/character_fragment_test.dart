@@ -91,6 +91,21 @@ void main() {
     );
   });
 
+  test('statusFields selects potionRecoveryUntil after awaitingAid (D-12)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('awaitingAid { quest aidQuest since } potionRecoveryUntil'),
+    );
+  });
+
+  test('statusFields selects imprisonedUntil after potionRecoveryUntil '
+      '(quick 261110-cgd)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('potionRecoveryUntil imprisonedUntil'),
+    );
+  });
+
   test('statusFields selects unlockedLore (D-01)', () {
     expect(
       CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),

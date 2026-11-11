@@ -1,562 +1,81 @@
-# Roadmap: Klimmeck Guide — v1.0 Core Loop
+# Roadmap: Klimmeck Guide
 
 **Created:** 2026-04-10
-**Last updated:** 2026-10-29 — v1.0 extended with five phases (13 City Shops, 14 Quest Generation companion, 15 Travel Food, 16 Travel Ambushes, 17 Unlockable Lore) mirroring BE Phases 11–16 (BE Phase 11 World Content is data-only); Phase 12 Hardening stays the last phase to execute. _(2026-11-01 — Phase 10 complete (11/11 plans, Android device E2E 10/10, ADMIN-01..08).)_ _(2026-10-29 — Phase 10 discuss: goal, requirements (ADMIN-01..08) and success criteria amended; BE-HARD-08 added to the backend prerequisites.)_ _(2026-10-29 — Phase 9 complete (13/13 plans, Android device E2E 12/12, COMBAT-01..10).)_ _(2026-10-27 — Phase 9 discuss: goal, requirements (COMBAT-08..10) and success criteria amended; BE Phase 9.2 added to the backend prerequisites.)_ _(2026-04-14 — split Auth into a Phase 1 dev stub + a full OAuth phase deferred to Phase 11 (pre-hardening); Hardening shifted to Phase 12.)_
-**Milestone:** v1.0 Core Loop
-**Granularity:** Standard (17 phases)
-**Coverage:** 95/95 v1 requirements mapped (79 + 16 added 2026-10-29)
+**Last updated:** 2026-11-10 — milestone v1.1 Healing & Models started (Phases 18–19); v1.0 Core Loop archived in `milestones/v1.0-ROADMAP.md`
+**Milestone:** v1.1 Healing & Models — Phases 18–19 (companion of the BE milestone v1.1 «Cura e modelli», BE Phases 18–20)
 
-## Phase Ordering Rationale
+## Milestones
 
-L'ordine originale del brief è adottato con due deviazioni:
-
-1. **Settings + Notifications sono split** in due fasi adiacenti (erano fuse). Notifications ha preoccupazioni cross-cutting (FCM init, tap routing via `NotificationRouter`, tre app states) la cui scope è molto maggiore di Settings (schermata + `PreferencesCubit`). Mantenere separate permette a Settings di shippare veloce come quick win, mentre Notifications possiede il wiring Firebase non banale. Entrambe precedono Quest/Travel perché queste fasi consumano permission prompts, FCM tokens e tap-routing.
-2. **Auth è split in due fasi**: una stub iniziale (Phase 1, "Dev Auth Stub") che fornisce `AuthTokenService` con token e identità hardcoded da `.env` — così le fasi gameplay 2–10 possono essere sviluppate e testate manualmente senza attrito OAuth — e una fase di auth reale (Phase 11, "Auth & Session Bootstrap") che sostituisce l'implementazione concreta dello stub con OAuth PKCE, secure storage, refresh mutex, logout atomico e detection della revoca esterna. La sostituzione è per costruzione trasparente: Phase 11 cambia solo l'implementazione di `AuthTokenService`, non il contratto pubblico né i consumer. Auth reale atterra prima di Hardening (che diventa Phase 12) così Phase 12 può auditare l'auth reale insieme al resto.
-
-Dependency shape:
-
-```
-Phase 1 (Dev Auth Stub)       ← foundational; fornisce AuthTokenService stub + identità di test
-   |
-Phase 2 (Character Creation)  ← needs identity token
-   |
-Phase 3 (Real-Time Sync)      ← needs identity token; foundation for all reactive features
-   |
-   +-- Phase 4 (Settings)     ← parallel quick win
-   +-- Phase 5 (Notifications)← needs identity + Sync for FCM token sync + in-app banner model
-   |
-   +-- Phase 6 (Quest Accept) ← needs Sync; needs BE prereq QUEST-04
-   +-- Phase 7 (Travel)       ← needs Sync + Notifications; needs BE prereq TRAVEL-01
-   +-- Phase 8 (Spells)       ← needs Sync; self-contained, parallelizable with 6/7
-   |
-Phase 9 (Combat Result)       ← needs Sync + Notifications + Spells
-   |
-Phase 10 (Admin Panel)        ← needs Sync; built after quests/travel flowing
-   |
-Phase 11 (Auth & Session)     ← sostituisce l'implementazione di AuthTokenService con OAuth reale
-   |
-Phase 12 (Hardening)          ← always last; auditing include auth reale
-```
-
-3. **Estensione del 2026-10-29 (Phases 13–17).** Prima di chiudere la v1.0 l'utente ha aggiunto sei fasi di contenuto e regole di gioco, specchiate sul backend (BE Phases 11–16): negozi con pool per città e taglia, generazione server-side delle quest consumabili con il contratto multi-nemico, cibo consumato dal viaggio, imboscate lungo la strada, lore sbloccabili per personaggio, e il popolamento del mondo dal documento di world building (solo BE, dati per le UAT). Le fasi FE 13–17 sono **companion**: consumano contratti e dati del backend e non calcolano nulla. **Ordine di esecuzione: 13 → 14 → 15 → 16 → 17 → 12**: l'hardening resta l'ultima fase eseguita anche se il numero è più basso (come già la Phase 11, completata prima della 10). Ogni fase FE parte solo dopo la merge della fase BE corrispondente su BE `develop` (gate pattern 08-12 / 09-12).
-
-## UX Principles (non-phase, cross-cutting)
-
-- **Klimmeck Guide is a videogame.** Phases touching gameplay screens (Sync, Quest, Travel, Spells, Combat) must not introduce app-style chrome: no reconnection banners, no "loading" scaffolding, no status indicators outside Login, Character Creation, Settings, Admin.
-- **Accessibility is out of scope for v1.0.** Do not add a11y work to any phase.
-- **Brownfield discipline.** The app already has BLoC, GraphQL client, Cloudinary SVG caching, board/journal/library/map/shop/profile tabs, and a partial Spells section. Phases only add what's missing; they verify existing coverage before writing new code.
-
-## Backend Prerequisites
-
-Two v1.0 requirements require a backend schema change **before** the corresponding frontend phase can start:
-
-- **QUEST-04** — `activeStoryQuest` / `activeWorldMissionQuest` fields on `Character` (or `CharacterQuests`). Blocks Phase 6 (Quest Accept).
-- **TRAVEL-01** — `status.activeTravel { road, startTime, endTime, duration }` on `Character`. Blocks Phase 7 (Travel).
-- **SPELL-05** — `status.spellStates { spell usages recoveries }` on `Character` (BE Phase 9.1, added 2026-10-27). Blocks only the schema-gated final plan of Phase 8 (Spells Section).
-- **COMBAT-09 / COMBAT-10** — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` (additive) and the seats of a started quest kept by the archive (BE Phase 9.2, added 2026-10-27). Blocks only the schema-gated plans and the device E2E of Phase 9 (Combat Result Sheet); the BE Phase 9 contract (`questResultReceived`, `questResult`, push `questEnd`) is already on BE `develop`.
-- **ADMIN-02 / ADMIN-03 (BE-HARD-08)** — `PendingRequestCharacter.pendingQuest` (additive) and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied (BE Phase 10, added 2026-10-29). Blocks only the schema-gated plan and the device E2E of Phase 10 (Admin Panel); the queue, the completion and the teleport are already on BE `develop`.
-
-- **SHOP-02 / SHOP-03 / SHOP-04 (BE Phase 12, added 2026-10-29, amended 2026-11-02)** — `City.size` / `City.hasShop`, the city pool through `cityShop(cityId)` (equipment, loot, pets), `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet` and the refusal codes `ITEM_NOT_IN_SHOP` / `PET_ALREADY_OWNED` / `PET_NOT_OWNED`; originally: `City.size`, the city pool (`City.shopItems` or a dedicated query) and the refusal code for an item outside the pool. Blocks Phase 13 (City Shops); BE Phase 11 seeds the pools.
-- **QGEN-01..04 (BE Phase 13, added 2026-10-29)** — `QuestInfos.enemies: [{ enemy, quantity }]` **replaces** `infos.enemy` (declared non-additive change), `generateQuests` innkeeper mutation. Blocks Phase 14 (Quest Generation companion): the gated FE plans align the documents before the BE merge.
-- **FOOD-01..04 (BE Phase 14, added 2026-10-29)** — additive food/HP fields on `travelPreview`, an acceptance preview for the quest automatic travel, the starvation refusal code. Blocks Phase 15 (Travel Food).
-- **AMBUSH-01..03 (BE Phase 15, added 2026-10-29)** — `activeTravel` rewritten on a lost ambush, ambush outcome on `QuestResult`. Blocks Phase 16 (Travel Ambushes).
-- **LORE-01..03 (BE Phase 16, added 2026-10-29)** — lore queries filtered per character, `known` flag on quest/result enemies. Blocks Phase 17 (Unlockable Lore); BE Phase 11 seeds the lore.
-
-Both are tracked inside their respective frontend phases (QUEST-04 in Phase 6, TRAVEL-01 in Phase 7) as **prerequisite callouts**, not as a separate "Phase 0". The frontend phases cannot start until the BE schema, resolvers, and subscription payloads are shipped and visible in the staging environment.
+- ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
+- 🚧 **v1.1 Healing & Models** — Phases 18–19 (started 2026-11-10) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
-- [x] **Phase 1: Dev Auth Stub** — `AuthTokenService` stub con contratto invariante; token, user id, role letti da `.env`. Sblocca tutte le fasi downstream per sviluppo e test manuali senza OAuth reale.
-- [x] **Phase 2: Character Creation** — New users reach a creation flow when `currentCharacter == null` and complete it end-to-end into the main tab shell. (completed 2026-10-09)
-- [x] **Phase 3: Real-Time Sync Foundation** — Live `User` and `Character` GraphQL subscriptions with silent auto-reconnect and clean teardown on logout. (completed 2026-10-14)
-- [x] **Phase 4: Settings Screen** — Settings surface with logout, notification category toggles, persistence, and explicit character deletion (SET-05, added 2026-10-15; BE companion Phase 03.1). (completed 2026-10-18)
-- [x] **Phase 5: Notifications Infrastructure** — FCM registration, permission gate (prompt call site wired by Phase 7), three-state push handling, in-app banner dedup, taps → Map tab / Twitch (Android only; iOS deferred). (completed 2026-10-20)
-- [x] **Phase 6: Quest Accept & Info Sheets** — Per-type quest info layouts, swipe-left accept gesture with tear-paper artifact, server-driven state label on the standard-lane paper (no countdown, D-15), parallel story/worldMission lanes torn-for-owner. (completed 2026-10-22) (completed 2026-10-22)
-- [x] **Phase 7: Travel** — Confirmation surface with server-provided ETA, live position interpolation along `road.coordinates`, restart-safe reconstruction from `activeTravel`. (completed 2026-10-26)
-- [x] **Phase 8: Spells Section (Journal Tab)** — Complete the partial Spells section: owned list, tap equip/disequip into backend-driven slots, usages + recovery display with optimistic rollback. (completed 2026-10-27)
-- [x] **Phase 9: Combat Result Sheet** — Full-screen parchment with the quest outcome (HP delta animation, consumables/spells used, injuries, rewards, XP, level/title, spell learned), shown only on the Map tab (the banner leads there), queued by `resolvedAt`, never lost (BE Phase 9.2 unacknowledged results + ack); death sheet before the creation page (the BE keeps `currentCharacter` until the acknowledgement, no FE hold), wounded state on the Map, `aid` as a combat sheet. (completed 2026-10-29)
-- [x] **Phase 10: Admin Panel (innkeeper)** — Role-gated utility route from Settings («Locanda»): live queue of the pending story/worldMission requests as cards per quest (busy standard lane hidden, free travellers greyed), completion form with per-participant overrides (HP, injuries, consumables, spells) and explicit confirmation, teleport of a queued character by dragging its pawn on the Map. No reject, no grade (BE Phase 9). BE companion: BE-HARD-08 in BE Phase 10. _(amended 2026-10-29)_ (completed 2026-11-01)
-- [x] **Phase 11: Auth & Session Bootstrap** — Login Twitch mediato dal backend, secure token storage, refresh/logout, `AuthTokenService` reale affiancato allo stub di Phase 1 dietro lo stesso contratto (bypass dev mantenuto finché non arrivano le chiavi Twitch). Plan di aprile superati: ripianificata il 2026-10-06. (completed 2026-10-06)
-- [ ] **Phase 12: Hardening** — Intensive bug-fix + security + concurrency audit: token hygiene, logout atomicity, refresh mutex, subscription lifetimes, multi-device identity transitions.
+<details>
+<summary>✅ v1.0 Core Loop (Phases 1–17) — SHIPPED 2026-11-10</summary>
 
-- [x] **Phase 13: City Shops** — The shop on a city marker sells only that city's pool (equipment, loot and companions; size, pool and refusals backend-owned, never legendary) through the new `cityShop` query; `ITEM_NOT_IN_SHOP` goes to the shopkeeper bubble; the Shop cell is disabled where the city has no shop; sell anywhere, infinite stock; «Compagni» list in the shop sheets and «Compagno» slot in the Journal (owned vs equipped pet, `equipPet` / `unequipPet`). BE companion: BE Phase 12. _(added 2026-10-29, amended 2026-11-02)_ (completed 2026-11-03)
-- [x] **Phase 14: Quest Generation (frontend companion)** — Quest and result sheets speak the multi-enemy contract (`infos.enemies` replaces `infos.enemy`), the Locanda gets «Genera missioni», fixed `crime`/`guard`/`dungeon` quests render with the existing families. BE companion: BE Phase 13. _(added 2026-10-29)_ (completed 2026-11-05)
-- [x] **Phase 15: Travel Food** — The confirmation sheet and the quest sheet show the food the backend will consume and the HP lost on the uncovered kilometres; the starvation refusal is explained on the banner; inventory and HP change only via subscription. BE companion: BE Phase 14. _(added 2026-10-29)_ (completed 2026-11-06)
-- [x] **Phase 16: Travel Ambushes** — The pawn restarts from the ambush point towards the nearest city after a lost ambush (push + banner of a new category); the ambush reports of a travel open at arrival in a carousel of result sheets delivered through the never-lost pipeline; the confirmation sheet never reveals an ambush. BE companion: BE Phase 15. _(added 2026-10-29, discussed 2026-11-06)_ (completed 2026-11-09)
-- [x] **Phase 17: Unlockable Lore** — The Library shows only the character's unlocked lore (home city + its regions + its state at creation and on every arrival at a city marker, enemies on victory, study rolls at 50 %), refreshes live and marks new pages with a «Nuovo» bookmark; unknown enemies (never defeated, exact enemy) show a black silhouette with the name; the result sheet lists the lore unlocked by the outcome; an unknown city opens a name-only modal on the Map — all unlock state owned by the backend (BE Phase 16). Discussed 2026-11-07. (completed 2026-11-09)
-- [ ] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_
+- [x] Phase 1: Dev Auth Stub (3/3 plans) — completed 2026-04-15
+- [x] Phase 2: Character Creation (11/11 plans) — completed 2026-10-09
+- [x] Phase 3: Real-Time Sync Foundation (9/9 plans) — completed 2026-10-14
+- [x] Phase 4: Settings Screen (7/7 plans) — completed 2026-10-18
+- [x] Phase 5: Notifications Infrastructure (9/9 plans) — completed 2026-10-20
+- [x] Phase 6: Quest Accept & Info Sheets (12/12 plans) — completed 2026-10-22
+- [x] Phase 7: Travel (11/11 plans) — completed 2026-10-26
+- [x] Phase 8: Spells Section (Journal Tab) (14/14 plans) — completed 2026-10-27
+- [x] Phase 9: Combat Result Sheet (13/13 plans) — completed 2026-10-29
+- [x] Phase 10: Admin Panel (innkeeper) (11/11 plans) — completed 2026-11-01
+- [x] Phase 11: Auth & Session Bootstrap (11/11 plans) — completed 2026-10-06
+- [x] Phase 12: Hardening (17/17 plans) — completed 2026-11-10 (executed last)
+- [x] Phase 13: City Shops (11/11 plans) — completed 2026-11-03
+- [x] Phase 14: Quest Generation (frontend companion) (11/11 plans) — completed 2026-11-05
+- [x] Phase 15: Travel Food (9/9 plans) — completed 2026-11-06
+- [x] Phase 16: Travel Ambushes (9/9 plans) — completed 2026-11-09
+- [x] Phase 17: Unlockable Lore (12/12 plans) — completed 2026-11-09
+
+Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 13 → 14 → 15 → 16 → 17 → 12. Every content phase was gated on the merge of its BE companion (BE Phases 2–17 with 2.1, 3.1, 9.1, 9.2, 13.1). Full goals, success criteria, plans and traceability: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md).
+
+</details>
+
+### 🚧 v1.1 Healing & Models (Phases 18–19)
+
+**Milestone goal:** the heal quests cure by the size of the city and the heal potions are drunk from the Journal with the backend's global recovery; the app follows the cleaned backend models, with the companion experience as the only visible change. Numbering continues from 18 (never restarts).
+
+- [x] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_ (completed 2026-11-11)
 - [ ] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_
 
-**Execution order (2026-10-29):** 10 (parked at 10/11) → 13 → 14 → 15 → 16 → 17 → 12 Hardening last. **Amended 2026-11-09:** … → 17 → 12 Hardening → 18 Heal Quests by City Size (planned on 2026-11-09, executed after the Phase 12 merge; user decision) → 19 Model Review companion (added 2026-11-09, after Phase 18).
+**Execution order:** 18 → 19. Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Phase Details
-
-### Phase 1: Dev Auth Stub
-**Goal**: Fornire un `AuthTokenService` stub con la stessa public surface del servizio finale (vedi Phase 11), backed da `.env`. Ogni fase downstream consuma l'auth service reale-per-contratto; Phase 11 atterrerà sostituendo solo l'implementazione.
-**Depends on**: Nothing (foundational)
-**Scope**: S
-**Requirements**: DEV-AUTH-01, DEV-AUTH-02, DEV-AUTH-03, DEV-AUTH-04, DEV-AUTH-05
-**Success Criteria** (what must be TRUE):
-  1. `AuthTokenService` espone `Stream<AuthState>`, `getAccessToken()`, `login()`, `logout()`, `handleRevocation()` identici al contratto finale di Phase 11.
-  2. Al cold start lo stub legge `.env` e emette immediatamente `Authenticated` con il test user; `getAccessToken()` ritorna il token hardcoded.
-  3. Cambiare `DEV_AUTH_ROLE` in `.env` (tra `guard`, `adventurer`, `innkeeper`) e rilanciare l'app produce un User con quel role, permettendo il test di fasi role-gated (Admin Panel).
-  4. `login()` e `logout()` sono no-op (log di warning in debug builds solamente); nessun sign-in screen viene mostrato in questa fase.
-  5. `AuthTokenService` è wire-ato via `RepositoryProvider` sopra il `BlocProvider` tree; il GraphQL client e il `dio` interceptor consumano il token tramite `getAccessToken()` — stesso pattern di Phase 11.
-**Decisions to make during discuss step**:
-  - Scelta package `.env` (dotenv / flutter_dotenv) — probabilmente `flutter_dotenv`, già uso comune.
-  - Naming finale del service class (`AuthTokenService` è il contratto; la concrete stub class può chiamarsi `DevAuthTokenService` e essere la sola registrata quando `DEV_AUTH_ENABLED=true`).
-**Plans**: 3 plans
-  - [x] 01-01-PLAN.md — Wave 0: install flutter_dotenv + bloc_test + mocktail, register .env asset, scaffold RED test stubs
-  - [x] 01-02-PLAN.md — AuthTokenService contract + AuthState sealed + DevAuthTokenService (.env-backed stub) + EnvConfig.devAuthEnabled flag
-  - [x] 01-03-PLAN.md — Wiring: RepositoryProvider + dio AuthInterceptor + graphql AuthLink + main.dart dotenv.load
-**Replacement**: Phase 11 sostituisce `DevAuthTokenService` con una concrete class OAuth-backed senza cambiare il contratto né i consumer.
-
-### Phase 2: Character Creation
-**Goal**: A logged-in user with no character is routed to a single-page character sheet and exits into the main tab shell with a valid `currentCharacter`.
-**Depends on**: Phase 1 (requires an authenticated User, stub or real)
-**Scope**: M
-**Requirements**: CHAR-01, CHAR-02, CHAR-03, CHAR-04, CHAR-05, CHAR-06 (DEFERRED — D-17), CHAR-07, CHAR-08, CHAR-09
-**Success Criteria** (what must be TRUE):
-  1. When a logged-in user has `currentCharacter == null`, the app routes to the creation flow instead of the main shell.
-  2. The user can enter name/sex/pronoun/race/class/age/background and either pick a curated portrait or upload one from gallery/camera. (curated portrait set deferred — D-15; gallery/camera upload ships).
-  3. ~~Uploaded images are pre-screened on-device for explicit content and rejected client-side when flagged, with a clear message.~~ **DEFERRED (D-17)** — no NSFW pre-screen in this phase.
-  4. On successful submission, `User.currentCharacter` is populated via mutation and the app transitions into the main tab shell.
-  5. Server/validation/NSFW rejection errors surface using the existing error-display pattern (shop flow) without losing entered data; back navigation between steps preserves data. (NSFW rejection deferred with CHAR-06; "back navigation" is satisfied by the single page, D-04).
-**Decisions to make during discuss step**:
-  - Choice of on-device NSFW classifier (Google ML Kit Image Labeling vs TensorFlow Lite NSFW model) and its integration footprint.
-  - Onboarding layout is a utility surface (UI chrome allowed).
-**Plans**: 11 plans
-  - [x] 02-01-PLAN.md — Wave 0: CHAR-06 deferral in docs, image_picker 1.2.2 + native targets (D-31), shared test helpers
-  - [x] 02-02-PLAN.md — Session handover: AuthTokenService/AuthCubit.adoptUser + AuthGate rebuild on character gain (D-26)
-  - [x] 02-03-PLAN.md — Models (RaceTraits, CreateCharacterRequest, SexType.label) + pure CharacterDraft validation
-  - [x] 02-04-PLAN.md — Theme tokens for fields/chips/spacing + CharacterPortrait silhouette resolver (D-14)
-  - [x] 02-05-PLAN.md — Fixed Cloudinary upload (D-28) + injectable PortraitPicker (D-30)
-  - [x] 02-06-PLAN.md — CreateCharacter/GetRaceTraits documents, error-code mapper, KlimmeckGraphQl methods (D-29)
-  - [x] 02-07-PLAN.md — CharacterCreationRepository + cubit editing (traits, fields, portrait)
-  - [x] 02-08-PLAN.md — Cubit submit: upload-then-mutation, URL reuse, CHARACTER_ALREADY_EXISTS recovery
-  - [x] 02-09-PLAN.md — CharacterCreationScreen: parchment sheet, inline errors, Crea progress, Esci
-  - [x] 02-10-PLAN.md — SessionHome branch, real character id into shell/MainScreen (D-27), main.dart wiring
-  - [x] 02-11-PLAN.md — Schema check vs BE 02.1 (D-33), validation sign-off, manual E2E checkpoint
-**UI hint**: yes
-
-### Phase 3: Real-Time Sync Foundation
-**Goal**: Live `User` and `Character` GraphQL subscriptions are established session-wide so that every downstream feature consumes authoritative state reactively, with silent reconnect and clean teardown.
-**Depends on**: Phase 1 (needs an auth token for `connection_init`, stub or real), Phase 2 (needs a real `currentCharacter.id` for the Character subscription)
-**Scope**: M
-**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, SYNC-06, SYNC-07
-**Success Criteria** (what must be TRUE):
-  1. After login, the User subscription is open and `twitchPoints`/`role`/`currentCharacter` changes emitted by the backend appear live in the UI with no polling.
-  2. After the character is known, the Character subscription delivers live updates to `infos`, `status` (including `activeTravel`), `quests` (including `activeStoryQuest` / `activeWorldMissionQuest`), and `assets` (including `activeSpells`).
-  3. Network drop or app resume silently reopens both subscriptions and each re-queries its full payload; no reconnection UI is shown to the user.
-  4. On logout, on character swap, and on character deletion, both subscriptions are closed cleanly with no leaked streams into the next session/identity.
-  5. The WebSocket `connection_init` payload carries the current auth token and is updated after token refresh.
-**Decisions to make during discuss step**:
-  - GraphQL subscription client choice (`graphql_flutter` already in use vs `ferry`) — open question from STATE.md.
-  - Backend contract for `connection_init` auth header (confirm with BE before implementation).
-**Notes (Phase 3 decisions)**: SC#2 fields `activeTravel` / `activeStoryQuest` / `activeWorldMissionQuest` are not in the backend schema yet — they join `CharacterFragment` in Phases 6/7 (D-05, fragment-only change). SC#4 "character swap": the admin never reassigns characters (D-08) — the shell is nevertheless keyed by character id. SC#3 re-query happens on resume; on reconnect the backend snapshot-on-subscribe recovers the payload (D-03/D-12). FE PR waits for the BE Phase 3 PR (D-04).
-**Plans**: 9 plans
-
-Plans:
-- [x] 03-01-PLAN.md — Wave 0: fake graphql-ws server, sync fixtures, schema-check tooling, SYNC-05 wording (D-08)
-- [x] 03-02-PLAN.md — Flutter-free sync primitives: SyncHealth/SyncWatchdog (degraded-time clock), lifecycle + user-refresh buses, silentRetry
-- [x] 03-03-PLAN.md — GraphQL boundary: OnUserChanged, FORBIDDEN/NOT_FOUND codes, subscribeToUser, typed stream failures
-- [x] 03-04-PLAN.md — Session end: UnauthenticatedReason.syncLost, SessionTerminator, "Connessione persa" notice, AuthGate pop on character change (D-10)
-- [x] 03-05-PLAN.md — Transport: keep-alive connect, socket monitor, real-socket tests for resubscribe/token rotation/reset
-- [x] 03-06-PLAN.md — SessionSyncCubit: single userUpdated consumer, resume/request me refetch, watchdog feeding
-- [x] 03-07-PLAN.md — CharacterCubit hardening (silent resubscribe, terminal FORBIDDEN, resume refetch) + shell wiring
-- [x] 03-08-PLAN.md — Wiring: SessionSyncScope, shell keyed by character id, AppLifecycleBridge, main.dart
-- [x] 03-09-PLAN.md — Cross-repo gate: schema check vs BE schema, validation sign-off, manual E2E, BACKEND-NOTES (checkpoint)
-
-### Phase 4: Settings Screen
-**Goal**: User has a settings surface from which to log out and control per-category notification toggles, and those preferences persist across app restarts.
-**Depends on**: Phase 1 (logout wiring — in Phase 1 è no-op; Phase 11 sostituirà con logout reale), Phase 3 (not strictly required, but SET shares infra with NOTIF), **BE Phase 03.1 Character Deletion Contract** (`deleteCharacter`; BE PR merges before the FE PR — added 2026-10-15)
-**Scope**: S
-**Requirements**: SET-01, SET-02, SET-03, SET-04, SET-05
-**Success Criteria** (what must be TRUE):
-  1. User can reach a Settings screen from the main menu.
-  2. User can individually toggle travel-end, streamer-live, and quest-end notification categories.
-  3. User can log out from Settings and is returned to sign-in (in Phase 1 stub: no-op + log; con Phase 11 atterrato: logout atomico reale).
-  4. Notification preferences survive app kill/restart.
-  5. User can delete the current character from Settings after confirming; the app returns to character creation (backend `deleteCharacter`, soft delete, BE Phase 03.1). *(added 2026-10-15, SET-05)*
-**Decisions to make during discuss step**:
-  - Storage backend for preferences (shared_preferences is acceptable here — these are non-sensitive).
-  - Settings is a utility surface (UI chrome allowed).
-**Plans**: 7 plans
-
-Plans:
-- [x] 04-01-PLAN.md — Satchel menu rework: SatchelLayout table (Mappa 1x2, 2x3 grid, Impostazioni = page 6), MenuBackground/MenuItem/SatchelMenu driven by the table, CloudinaryAssets.settings (real asset)
-- [x] 04-02-PLAN.md — Theme tokens (switchTheme, destructive button styles) + shared DestructiveConfirmationDialog extracted from the logout dialog
-- [x] 04-03-PLAN.md — Notification preferences: NotificationCategory enum, Flutter-free store on SharedPreferencesAsync keyed per user, NotificationPreferencesCubit (optimistic toggle, revert on failed write)
-- [x] 04-04-PLAN.md — Character deletion data path: DeleteCharacter document (+ schema-check listing), KlimmeckGraphQl.deleteCharacter, CharacterDeletionFailure/Repository, CharacterDeletionCubit
-- [x] 04-05-PLAN.md — Session wiring: adoptUser accepts currentCharacter null (both services), AuthenticatedShell provides both cubits + hand-over listener, main.dart composition root
-- [x] 04-06-PLAN.md — Settings tab UI: Notifiche section (3 themed switches), Account section (Elimina personaggio + Esci via confirmLogout), parchment tab, MainScreen page 6
-- [x] 04-07-PLAN.md — Cross-repo gate: schema check vs BE develop schema, phase gates, validation sign-off, manual E2E on device (checkpoint), BACKEND-NOTES, REQUIREMENTS traceability
-**UI hint**: yes
-
-### Phase 5: Notifications Infrastructure
-**Goal**: The app receives and displays push + in-app notifications for travel end, streamer live, and quest end across all three app states, with permission requested contextually and taps routed uniformly to the Map tab.
-**Depends on**: Phase 1 (auth token for FCM token sync), Phase 3 (backend identifies the device/user; in-app banner feeds off the Character subscription where applicable), Phase 4 (respects per-category toggles)
-**Scope**: M
-**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08
-**Success Criteria** (what must be TRUE):
-  1. After login, the FCM token is registered and synced to the backend per-device; token refresh is handled.
-  2. Notification permission is requested in-context at the first travel confirmation, not at cold launch.
-  3. Travel-end, streamer-live, and quest-end push notifications are delivered and handled in killed, background, and foreground app states.
-  4. Tapping any notification routes the app to the Map tab and surfaces the correct context popup (travel-end, streamer-live, quest-end, death), uniformly across the three app states. _(Amended 2026-10-19 in the Phase 5 discuss: a `streamerLive` tap opens the Twitch channel directly; personal types land on the Map tab and their context popups arrive with Phases 7/9.)_
-  5. When an event would trigger both an FCM push and an in-app banner, only one is shown (foreground suppresses the duplicate push); foreground banners use the existing `KGNotification` model.
-**Decisions to make during discuss step**:
-  - Push library confirmation (`firebase_messaging` + `flutter_local_notifications` — open question from STATE.md).
-  - `NotificationRouter` / `NavigationService` GlobalKey pattern.
-**Backend/platform prerequisites**:
-  - Firebase project configured, `google-services.json` in place locally (not committed). _(Platform note 2026-10-19, user decision: Phase 5 is **Android only**; `GoogleService-Info.plist`, APNs Auth Key and the iOS wiring are deferred to a later phase.)_
-  - BE Phase 5 (FCM) merged in BE PR #8 on 2026-10-18.
-**Plans**: TBD
-
-### Phase 6: Quest Accept & Info Sheets
-**Goal**: Users can view per-type quest details in the info sheet and accept a quest via the swipe-left tear-paper gesture; the accepted standard-lane quest stays on the Map as a paper with a server-driven state label (no countdown, CONTEXT D-15), and story/worldMission quests run in parallel to the standard pendingQuest.
-**Depends on**: Phase 3 (live `pendingQuest`, `activeStoryQuest`, `activeWorldMissionQuest`, coins, twitchPoints), Phase 1 (authenticated mutation)
-**Scope**: L
-**Backend prerequisite**: **QUEST-04 is a backend prerequisite.** Character must expose `activeStoryQuest` and `activeWorldMissionQuest` (or equivalent) on the GraphQL schema and emit them via the Character subscription before this phase can start. Frontend work in this phase is blocked until that ships to staging.
-**Requirements**: QUEST-01, QUEST-02, QUEST-03, QUEST-04, QUEST-05, QUEST-06, QUEST-07
-**Success Criteria** (what must be TRUE):
-  1. The `QuestInfoSheet` above the board shows per-type layout variants for `hunt`, `enemy`, `boss`, `dungeon`, `story`, `worldMission`, `heal`, `aid`, `job`, `study` — surfacing the fields relevant to each type.
-  2. Swiping left on the `QuestInfoSheet` (not on the board list) with the tear-paper animation + haptic feedback triggers accept; on success the app navigates to the Map tab with the torn quest paper shown on top of the stack.
-  3. ~~A quest of type `story` or `worldMission` is hidden from the board as soon as its corresponding active field is populated, without blocking acceptance of other quest types.~~ **Superseded (CONTEXT D-08/D-12):** an accepted `story`/`worldMission` stays on the board torn for its owner; the other lanes stay acceptable.
-  4. ~~While `pendingQuest` is populated, the board shows a live countdown driven by `startDate + waitingTime`, anchored to server timestamps (not device clock).~~ **Superseded (CONTEXT D-15):** no countdown; the standard-lane paper on the Map carries a server-driven state label ("In viaggio" while `startDate` is null, a per-type label afterwards).
-  5. On acceptance failure (insufficient balance, quest already taken, server error), optimistic state rolls back and the error surfaces via the existing shop-flow error pattern. **Amended (CONTEXT D-04, C3):** the error surface is the Phase 5 in-app banner with copy chosen by `extensions.code`.
-**Decisions to make during discuss step**:
-  - **QUEST-03 confirmation flow** (open question from STATE.md): dialog with cost preview before swipe? undo window after swipe? cost surface location? Must be resolved during this phase's discuss step.
-  - Gesture arena disambiguation (custom `GestureDetector` with drag threshold — NOT `Dismissible`).
-  - _Resolved in the Phase 6 discuss (2026-10-21): swipe = confirmation, no dialog, no undo (D-01); cost line for story/worldMission only (D-02); custom `GestureDetector` (D-01/D-06)._
-**Plans**: 12 plans
-  - [x] 06-01-PLAN.md — Wave 1: REQUIREMENTS/ROADMAP amendments; rank slots, registrations with rank, D-32 capacity, tolerant quest parsing; three lanes in models + fragment; fixtures
-  - [x] 06-02-PLAN.md — Wave 2: pure availability layer (lanes, classifier in BE order, board policy, cost line, state label, blocked reasons, title labels)
-  - [x] 06-03-PLAN.md — Wave 2: AcceptQuest slice (document, service, failures by extensions.code, repository, QuestAcceptanceCubit, banner copy, shell provider)
-  - [x] 06-04-PLAN.md — Wave 1: in-app banner publishNotice for local domain notices (D-20 C1)
-  - [x] 06-05-PLAN.md — Wave 1: TearablePaper (pure gesture model, jagged clipper, haptics, spring back, recompose)
-  - [x] 06-06-PLAN.md — Wave 3: QuestInfoSheet families (combat/narrative/service) + indicators + cost line via a pure view-model
-  - [x] 06-07-PLAN.md — Wave 3: board data (GetCity, interim quest requirements, tolerant getQuests, silent refreshQuests)
-  - [x] 06-08-PLAN.md — Wave 3: satchel Board entry disabled outside a city marker
-  - [x] 06-09-PLAN.md — Wave 4: Board listing by city/lane/title with deterministic torn papers
-  - [x] 06-10-PLAN.md — Wave 5: swipe-to-accept on the Board sheet, Map on success, rollback + banner + refresh on failure
-  - [x] 06-11-PLAN.md — Wave 5: Map quest paper with the state label, read-only overlay
-  - [x] 06-12-PLAN.md — Wave 6 (BE Phase 8 gated): quests document flip + schema_check vs BE origin/develop + device E2E (checkpoint)
-**UI hint**: no (CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
-
-### Phase 7: Travel
-**Goal**: Users can initiate travel to a POI with an explicit confirmation showing backend-provided ETA, then watch their character move along the road in real time, with accurate reconstruction after an app kill mid-travel.
-**Depends on**: Phase 3 (live `activeTravel` in the Character subscription), Phase 5 (travel-end push + in-context permission prompt), Phase 6 (some quests trigger travel)
-**Scope**: M
-**Backend prerequisite**: **TRAVEL-01 is a backend prerequisite.** Character must expose `status.activeTravel { road, startTime, endTime, duration }` on the GraphQL schema and emit it via the Character subscription before this phase can start. Frontend work in this phase is blocked until that ships to staging.
-**Requirements**: TRAVEL-01, TRAVEL-02, TRAVEL-03, TRAVEL-04
-**Success Criteria** (what must be TRUE):
-  1. Initiating travel to a POI opens an explicit confirmation surface showing destination + ETA exactly as received from the backend (no client-side ETA math) before the mutation fires. **Amended (07-CONTEXT D-01..D-03, C4):** the free travel targets a city marker chosen by dragging the pawn; the parchment sheet shows backend distance, duration and ETA (`serverNow + preview.duration`: arithmetic on server values, no client ETA from distance or speed), no cost.
-  2. Once `activeTravel` is populated, the character visibly moves along `road.coordinates`, interpolated from `(now - startTime) / duration` anchored to server timestamps.
-  3. When the backend clears `activeTravel` and updates `location`, the UI snaps to the new location via the subscription stream with no frontend-side completion logic.
-  4. If the app is killed mid-travel, relaunching reconstructs the travel state from `activeTravel` and the character resumes at the correct interpolated position on the road.
-**Decisions to make during discuss step**:
-  - **TRAVEL-02 confirmation dialog** (open question from STATE.md): exact dialog content/style, button copy, cost display. Must be resolved during this phase's discuss step.
-  - Gameplay surface — NO app-style chrome in the map/travel UI.
-  - _Resolved in the Phase 7 discuss (2026-10-24): pawn-drag trigger, parchment sheet with backend distance/duration/ETA, "Parti"/"Resta", no cost (D-01..D-05)._
-**Plans**: 11 plans
-  - [x] 07-01-PLAN.md — Wave 1: doc amendments (no cost, C3); shared wire→LatLng helper (C1); ActiveTravel/TravelPath/TravelPreview models; `activeTravel` on CharacterStatus and in the fragment; travel fixtures
-  - [x] 07-02-PLAN.md — Wave 1: pure route geometry (cumulative length, interpolation, split), server-time progress, Italian duration/distance/ETA strings, drag destination rule (D-02)
-  - [x] 07-03-PLAN.md — Wave 1: ServerClockService (serverTime offset, RTT, resync on resume) + fake; TravelFailure by `extensions.code` + banner catalogue (D-14)
-  - [x] 07-04-PLAN.md — Wave 2: Board and Shop only on a city marker and never while travelling (D-12); MapFocusCubit + `travelEnd` popup entry (D-15)
-  - [x] 07-05-PLAN.md — Wave 2: GetServerTime/GetTravelPreview/StartTravel documents + registry (29 → 32), cities lore image, KlimmeckGraphQl methods, TravelRepository with the permission gate after success (D-05)
-  - [x] 07-06-PLAN.md — Wave 2: TravelProgressCubit (route memoised per startTime, 1 s tick on server time, arrival hold, silent refetch requests)
-  - [x] 07-07-PLAN.md — Wave 3: TravelCubit (preview → confirm → start), TravelOutcomeListener (banner, settle on activeTravel), shell providers
-  - [x] 07-08-PLAN.md — Wave 4: TravelRouteLayer (dashed preview, two-tone live route) + TravelConfirmationSheet (parchment, Parti/Resta) + map test harness
-  - [x] 07-09-PLAN.md — Wave 5: WorldMap wiring (progress cubit, route layer, one-shot framing, travelEnd focus, refetch, drag end → preview sheet + camera fit); drop the teleport stub
-  - [x] 07-10-PLAN.md — Wave 6: pawn modes (drag only when free, spring back, travelling pawn with the floating remaining-time label, reconstruction after kill)
-  - [x] 07-11-PLAN.md — Wave 7: schema_check vs BE origin/develop, phase gates, device E2E (BE handoff §11 d + C1 probe, checkpoint), traceability and BACKEND-NOTES
-**UI hint**: no (07-CONTEXT: no UI phase, every visual is provisional and reworked by the user)
-
-### Phase 8: Spells Section (Journal Tab)
-**Goal**: The partial Spells section in the Journal tab is completed: users can view owned spells, tap to equip/disequip into backend-driven active slots, and see remaining usages and recovery per active spell, all with optimistic UI and rollback.
-**Depends on**: Phase 3 (live `Character.status.spells`, `Character.assets.activeSpells`, `Character.status.maxActiveSpells`), **BE Phase 9.1 Spell State and Recovery Contract** (`CharacterStatus.spellStates { spell usages recoveries }`, additive; the BE PR merges before the FE plan that selects it — added 2026-10-27)
-**Scope**: M
-**Requirements**: SPELL-01, SPELL-02, SPELL-03, SPELL-04, SPELL-05, SPELL-06, SPELL-07, SPELL-08, SPELL-09, ITEM-01, ITEM-02, SHOP-01 (the last five added on 2026-10-27, extension after the device UAT)
-**Success Criteria** (what must be TRUE):
-  1. The Journal tab shows the list of owned spells with `name`, `description`, `maxUsages`, `recoveryTime`, and `energyDamage` summary.
-  2. Tapping a spell assigns it to an available active slot (slot count = `maxActiveSpells`, backend-driven); tapping an active slot disequips it; UI updates optimistically and rolls back on backend failure.
-  3. Every known spell below its maximum shows the remaining `usages` and a live «prossimo tra X» countdown from `status.spellStates[].recoveries` against server time (static «in recupero» without an instant); the slot card shows the usages only. _(Amended 2026-10-27 after the Phase 8 research, per the SPELL-05 amendment.)_
-  4. Slot availability reflects `maxActiveSpells` changes from the subscription (e.g. new slot appearing after a title change) with no frontend slot logic.
-  5. (extension 2026-10-27) The known-spell list and the Journal «Oggetti» section can be filtered by use type / effect type with the shop's icon chips limited to the types present (the shop chips follow the same rule); the spell line reads «Attacco: Fuoco 12» and every loot row «Cura: 12».
-**Decisions to make during discuss step**:
-  - Audit what the existing partial Spells section already provides vs what must be built.
-  - Gameplay surface — NO app-style chrome.
-**Backend prerequisite**: BE Phase 9.1 — per-spell state `spellStates { spell usages recoveries }` that outlives equip/disequip (user rule 2026-10-27); proposed in `.planning/phases/08-spells-section-journal-tab/BACKEND-NOTES.md`, fixed in the BE `09.1-CONTEXT.md`. Only the schema-gated final plan waits for it.
-**Plans**: 14 plans
-  - [x] 08-01-PLAN.md — Wave 1: SpellState + optional spellStates, spell fixtures, shared formatGameDuration
-  - [x] 08-02-PLAN.md — Wave 1: EquipSpell/UnequipSpell (no usages), service, SpellEquipFailure, SpellsRepository
-  - [x] 08-03-PLAN.md — Wave 2: shared BookmarkRibbon + pencil counter, SpellCard bookmark, pending-ink tokens
-  - [x] 08-04-PLAN.md — Wave 2: recovery status on server time + Italian spell lines
-  - [x] 08-05-PLAN.md — Wave 2: pure Spellbook view (slots, fallback, optimistic overlay, intents)
-  - [x] 08-06-PLAN.md — Wave 3: SpellsCubit pending overlay (15 s settle, tokens)
-  - [x] 08-07-PLAN.md — Wave 3: SpellRecoveryCubit countdown ticker
-  - [x] 08-08-PLAN.md — Wave 3: SpellInfo extended + SpellInfoSheet (bookmark toggle)
-  - [x] 08-09-PLAN.md — Wave 3: slot row, known-spell rows, shake, SpellbookContent
-  - [x] 08-10-PLAN.md — Wave 4: spell notices, SpellOutcomeListener, shell provider + MainScreen mount
-  - [x] 08-11-PLAN.md — Wave 5: SpellsSection + Journal wiring + spell sheet, SpellRow removed
-  - [x] 08-12-PLAN.md — Wave 6 (BE 9.1 gated): spellStates fragment, schema_check vs BE origin/develop, device E2E (checkpoint), closure
-  - [x] 08-13-PLAN.md — Wave 7 (extension 2026-10-27): present-types helper, «Attacco: Fuoco 12» line, UseType chips in the spells section, shop chips limited to the present types
-  - [x] 08-14-PLAN.md — Wave 8 (extension 2026-10-27): EffectType labels, «Cura: 12» line in the shared ItemRow, EffectType chips in the Journal «Oggetti» section
-**UI hint**: yes
-
-### Phase 9: Combat Result Sheet
-**Goal**: When a quest resolves, the user sees a full-screen parchment with the outcome — HP before/after animated against the maximum, consumables and spells used, injuries, rewards, XP with level and title changes, spell learned, adventurers saved — dismissed only with an explicit button and presented only on the Map tab (the in-app banner leads there from anywhere); results queue by `resolvedAt`, arrive from the subscription in foreground, the `questEnd` push in background and the BE Phase 9.2 unacknowledged-results query at cold start/resume so none is ever lost, and each closed sheet is acknowledged. The phase also closes the three outcome consequences left to it: the death flow (sheet first, then character creation), the «in attesa di soccorso» state on the Map, and the `aid` quest as a combat sheet. _(Amended 2026-10-27 in the Phase 9 discuss, CONTEXT D-01..D-22.)_
-**Depends on**: Phase 3 (subscription delivers the result), Phase 5 (push `questEnd` and the banner/tap router), Phase 7 (pawn label and disabled pages pattern), Phase 8 (spells in place so "spells used" lines resolve), **BE Phase 9** (`QuestResult`, `questResultReceived`, `questResult`, push `questEnd` — merged), **BE Phase 9.2 Quest Result Delivery Contract** (unacknowledged results + ack + seats kept on started quests; the BE PR merges before the FE schema-gated plans — inserted 2026-10-27)
-**Scope**: M
-**Requirements**: COMBAT-01, COMBAT-02, COMBAT-03, COMBAT-04, COMBAT-05, COMBAT-06, COMBAT-07, COMBAT-08, COMBAT-09, COMBAT-10 (the last three added on 2026-10-27)
-**Success Criteria** (what must be TRUE):
-  1. When a quest resolves while the Map tab is visible and free, the full-screen parchment appears at once; from any other tab the in-app banner «Missione conclusa» appears and its tap lands on the Map and opens the sheet; a `questEnd` push tap does the same from background or killed state (`questResult(id)`). **Amended 2026-10-27 (D-06/D-07/D-11, user rule: «Il foglio risultati si vede solo una volta entrati nel tab mappa»).**
-  2. The sheet shows `hpBefore` vs `hpAfter` against `maxLifePoints` with a life bar and counting numbers (D-02).
-  3. The sheet lists consumables used, spells used, `InjuryType` values received with Italian labels, rewards (coins and items), XP earned, level and title changes, the spell learned and the number of adventurers saved; one widget with a header and ink colour per outcome (D-03/D-04).
-  4. The sheet is dismissed only with its button; scrim, back and swipe do nothing (D-05).
-  5. Several results are queued FIFO by `resolvedAt` and shown one at a time, only when the Map is free (no sheet/dialog open, no pawn drag); results pending in the queue open when the player enters the Map (D-07/D-08).
-  6. A result produced while the app was closed, with the push lost or notifications disabled, still appears at the next cold start or resume (BE 9.2 `unacknowledgedQuestResults`), and a sheet closed with the button never comes back (`acknowledgeQuestResult`, D-09/D-10).
-  7. On `death` the sheet opens on any tab (unlocking the queue ahead of it) and the character-creation page appears only after its acknowledgement, because the BE keeps `currentCharacter` on the dead character until then (D-13/D-14, BE 9.2 D-12; no FE hold, cold start included); on `rescued` the sheet reads «Sei stato salvato» and the pawn is already in the city (D-15).
-  8. With `status.awaitingAid` set, the Map shows «In attesa di soccorso» over the pawn and pawn drag, Board and Shop are disabled as during a travel (D-16); the `aid` quest uses the combat sheet family on the Board and a started quest stays torn until it concludes (D-17/D-18, BE 9.2).
-**Decisions to make during discuss step**:
-  - ~~Subscription contract: does `combatResult` carry the full payload or a result ID requiring follow-up query? Confirm with backend before implementation.~~ **Resolved by the BE Phase 9 handoff:** the subscription carries the full `QuestResult`, the push only the result id; no `combatResult` type exists.
-  - _Resolved in the Phase 9 discuss (2026-10-27): Map-only presentation with the banner as the gateway, FIFO queue, explicit button, death exception (sheet on any tab; the BE keeps `currentCharacter` until the acknowledgement, no FE hold), BE 9.2 companion for never-lost results, wounded state and `aid` family (D-01..D-22)._
-**Backend prerequisite**: BE Phase 9.2 — `unacknowledgedQuestResults`, `acknowledgeQuestResult(id)`, `QuestResult.acknowledgedAt` and the seats of started quests kept by the archive; proposed in `.planning/phases/09-combat-result-sheet/BACKEND-NOTES.md`, fixed in the BE `09.2-CONTEXT.md`. Only the schema-gated plans and the device E2E wait for it.
-**Plans**: 13 plans
-  - [x] 09-01-PLAN.md — Wave 1: QuestResult model family + fixtures, QuestType labels, injury label pinning, questEnd event copy
-  - [x] 09-02-PLAN.md — Wave 1: AwaitingAid on the status + fragment, aid in the combat family, D-22 Boy Scout notes
-  - [x] 09-03-PLAN.md — Wave 2: result fragment, OnQuestResultReceived/GetQuestResult (36/36), QuestResultRepository, delivery ports + null objects
-  - [x] 09-04-PLAN.md — Wave 1: AWAITING_AID in travel/acceptance, TransactionFailure + typed TransactionCubit, SHOP_NOT_IN_CITY banner
-  - [x] 09-05-PLAN.md — Wave 1: MapAvailabilityCubit, ConnectionRestoredBus, InAppNotificationsCubit.suppress
-  - [x] 09-06-PLAN.md — Wave 3: QuestResultsCubit (FIFO queue, three sources, refetch triggers, acks, death ack)
-  - [x] 09-07-PLAN.md — Wave 2: QuestResultSheet for the five outcomes + animated HpDeltaBar + healGreen token
-  - [x] 09-08-PLAN.md — Wave 2: CharacterUnavailable (death cold start), Board/Shop disabled and pawn label/drag gate while awaiting aid
-  - [x] 09-09-PLAN.md — Wave 3: MapAvailabilityCubit in the shell, page/quest-sheet/drag writers
-  - [x] 09-10-PLAN.md — Wave 4: QuestResultPresenter (Map gating, banner vs suppress, button-only dialog, death anywhere)
-  - [x] 09-11-PLAN.md — Wave 5: QuestResultsCubit in the shell, questEnd popup, presenter mounted in MainScreen
-  - [x] 09-12-PLAN.md — Wave 6 (BE 9.2 gated): 9.2 documents + acknowledgedAt, 38/38 schema check, repository ports live
-  - [x] 09-13-PLAN.md — Wave 7 (BE 9.2 gated): phase gates, device E2E (checkpoint), traceability and closure
-**UI hint**: no (09-CONTEXT D-19: no UI phase, every visual is provisional and reworked by the user)
-
-### Phase 10: Admin Panel (innkeeper)
-**Goal**: When `User.role == innkeeper`, the streamer opens from Settings a dedicated admin surface («Locanda») with the live queue of the pending story/worldMission requests, completes each request after the live session through a form that tells what happened to every participant (HP, injuries, consumables, spells) with an explicit confirmation, and teleports a queued character by dragging its pawn on the Map — with every mutation enforced server-side and audit-logged (BE Phases 3, 8, 9). _(Amended 2026-10-29 in the discuss: no reject and no grade/monster/reward selection exist on the BE — BE Phase 9 user decision.)_
-**Depends on**: Phase 1 (auth, stub o reale), Phase 3 (`role` and real-time pending request data), Phase 6 (real quest data flowing), Phase 7 (`activeTravel` filtering, pawn drag reused by the teleport mode), Phase 9 (`QuestType.label`, `MapAvailabilityCubit`, result parsing); BE Phase 10 BE-HARD-08 for the gated plan
-**Scope**: L
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
-**Success Criteria** (what must be TRUE):
-  1. A «Locanda» section in Settings is visible only when `role == innkeeper` (live with `userUpdated`) and opens the admin panel as a full-screen utility route; nothing changes in the satchel. _(amended 2026-10-29)_
-  2. The innkeeper sees the live queue of the pending `story` and `worldMission` requests as one card per quest with its participants and seats; a participant whose standard lane is occupied is not shown (BE-HARD-08 field), a participant on a free travel is greyed with the remaining time and the card cannot be completed until everyone has arrived; the empty state reads «Nessuna richiesta in attesa». _(amended 2026-10-29)_
-  3. The innkeeper completes a request through the completion form (HP slider, injury chips, consumables and spells with quantities, defaults = no change) and an explicit confirmation dialog; only the changed participants are sent as overrides; the returned results are recapped per character; `NOT_FOUND`, `QUEST_IN_PROGRESS`, `OUTCOME_*` and `FORBIDDEN` are mapped inline. There is no reject. _(amended 2026-10-29)_
-  4. From a queue row the innkeeper teleports the character by dragging its pawn on the Map (own pawn hidden) onto a city marker, with no confirmation; the backend atomically overrides `location` and clears any `activeTravel`, the panel reopens on success and the frontend reacts via subscription/refetch only. _(amended 2026-10-29)_
-  5. Every admin mutation is rejected server-side without the `innkeeper` role and audit-logged on the backend (BE Phases 3, 8, 9): the FE pins the hidden section for a non-innkeeper and the device UAT verifies `FORBIDDEN` on `pendingRequests` as an adventurer. _(amended 2026-10-29)_
-**Decisions made in the discuss step (2026-10-29)**:
-  - Placement: Settings → full-screen route on the root Navigator (no eighth satchel entry); the panel is only the queue («Solo la coda»); the innkeeper always has a character.
-  - Admin is a utility surface (UI chrome allowed); the Map in teleport mode stays a gameplay screen.
-**Backend prerequisite**:
-  - `@Roles(innkeeper)` guard + audit logging (BE Phase 3), `completePendingRequest` and the queue (BE Phase 9), `teleportCharacter` (BE Phase 8): already on BE `develop`.
-  - **BE-HARD-08 (BE Phase 10, added 2026-10-29):** additive `PendingRequestCharacter.pendingQuest` and `QUEST_IN_PROGRESS` on `completePendingRequest` while a participant's standard lane is occupied. Blocks only the schema-gated plan and the device E2E (gate pattern of 08-12/09-12).
-**Plans**: 11 plans (11 sequential waves; 10-11 gated on the BE Phase 10 PR)
-- [x] 10-01-PLAN.md — Pure models: queue entry, presence on the server clock, cards (grouping, seats, hiding, can-complete), participant draft, override diff, completion input, fixtures
-- [x] 10-02-PLAN.md — Queue fragment + GetPendingRequests/OnPendingRequestsUpdated/CompletePendingRequest/TeleportCharacter (registry 42, schema check 42/42), service methods, InnkeeperFailure, InnkeeperRepository
-- [x] 10-03-PLAN.md — Route-scoped PendingRequestsCubit: snapshot replace, silent resubscribe, terminal FORBIDDEN, tick, endTime+5/+65 s rereads, resume refetch, optimistic hide
-- [x] 10-04-PLAN.md — TeleportTarget + TeleportModeCubit state machine (read first, same-city no-op, cancel guard) and the isTeleportMode availability flag
-- [x] 10-05-PLAN.md — Panel screen (loader, empty state, cards, greyed rows), openInnkeeperPanel root route, shell InnkeeperRepository, FORBIDDEN/lost-role close, role-gated «Locanda» section in Settings
-- [x] 10-06-PLAN.md — RequestCompletionCubit (parallel reads, clamped edits, single submit with only changed participants, typed failures) and the neutral confirm style on the dialog
-- [x] 10-07-PLAN.md — Completion UI: «Completa» on the card, form route (HP slider, injury chips, steppers), confirmation recap, per-code outcomes, results recap
-- [x] 10-08-PLAN.md — Map pieces: shared drop rule and PawnDragging mixin (Phase 7 unchanged), PawnLabel, TeleportPawnLayer, in-style «Annulla» control
-- [x] 10-09-PLAN.md — Shell TeleportModeCubit, optional city lore tap, WorldMap layer swap in teleport mode with drop/cancel wiring and availability sync
-- [x] 10-10-PLAN.md — TeleportModeLanding (jump to the Map, cancel off-Map or on lost role, panel re-push on success) and «Teletrasporta» on queue rows
-- [x] 10-11-PLAN.md — ⛔ GATED on the BE Phase 10 PR (BE-HARD-08): pendingQuest selected, full gates 42/42, VALIDATION, device E2E checkpoint, traceability and BACKEND-NOTES §6
-**UI hint**: yes (no UI phase, Phases 4–9 precedent)
-
-### Phase 11: Auth & Session Bootstrap
-**Goal**: Affiancare al `DevAuthTokenService` di Phase 1 un'implementazione reale basata sulla sessione del backend: login Twitch via system browser mediato dal BE, secure token storage, refresh mutex, logout atomico, detection della revoca di sessione. Il contratto pubblico di `AuthTokenService` è invariato: nessun consumer downstream cambia. Lo stub resta selezionabile (`DEV_AUTH_ENABLED=true`) finché le chiavi Twitch non sono disponibili. _(Emendato 2026-10-06: Twitch non supporta PKCE; vedi 11-CONTEXT.md.)_
-**Depends on**: Phase 1 (fornisce il contratto che questa fase soddisfa con l'implementazione reale). Tutte le fasi 2–10 si devono essere integrate con `AuthTokenService` via lo stub, in modo che la sostituzione sia drop-in.
-**Scope**: M
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
-**Success Criteria** (what must be TRUE):
-  1. A new user can complete the Twitch login via the system browser (backend-mediated, no WebView) and land in the app authenticated. _(Real-device verification pending until the Twitch keys exist; covered by automated tests with fakes meanwhile.)_
-  2. After killing and relaunching the app, the previous session resumes without re-prompting for Twitch credentials.
-  3. Logging out returns the user to sign-in, and no tokens, GraphQL cache entries, or subscriptions from the previous session survive.
-  4. Logging in with a different Twitch account after logout cleanly swaps the identity with no bleed-through from the previous account.
-  5. When the backend rejects the session as revoked or expired, the app detects the invalidation and returns the user to sign-in with a clear message.
-  6. Passare da `DevAuthTokenService` all'`AuthTokenService` reale (flag `DEV_AUTH_ENABLED`) non richiede modifiche ai consumer (GraphQL client, dio interceptor, AuthCubit, SignInScreen nuovo, AuthGate). Verificato da diff di codice sui file consumer.
-  7. Con `DEV_AUTH_ENABLED=true` l'app è interamente utilizzabile senza chiavi Twitch: cold start diretto nel main shell, e dopo un logout il pulsante di login rientra con l'identità dev.
-**Decisions to make during discuss step**:
-  - OAuth flow choice: `flutter_web_auth_2` + system browser + `klimmeck://auth` deep link vs alternative (open question from STATE.md) — già pre-deciso nei plan esistenti, da confermare.
-  - Secure storage wrapper (`flutter_secure_storage` wrapper service shape) — già pre-deciso nei plan esistenti, da confermare.
-**Plans**: 11 plans (ripianificati il 2026-10-06 sul login mediato dal backend; esecuzione sequenziale, una wave per plan)
-  - [x] 11-01-PLAN.md — Wave 0: dipendenze (flutter_web_auth_2, flutter_secure_storage 10, crypto, fake_async), AGP 8.9.1, manifest Android, .env.example, helper di test
-  - [x] 11-02-PLAN.md — Primitive di dominio: AuthSession, LoginChallenge S256, durata JWT, parser callback, browser authenticator, AuthUnauthenticated.reason, UnauthorizedRecovery, AuthStateChannel
-  - [x] 11-03-PLAN.md — SessionStore cifrato + documenti GraphQL auth + BackendAuthApi su client dedicato con mapping errori
-  - [x] 11-04-PLAN.md — Dev stub: transizioni login/logout/revoca, DEV_AUTH_START_SIGNED_OUT, allineamento via `me`
-  - [x] 11-05-PLAN.md — SessionAuthTokenService: bootstrap cold start, refresh single-flight + proattivo, revoca sul refresh, login via browser + ticket
-  - [x] 11-06-PLAN.md — SessionAuthTokenService: recoverFromUnauthorized, handleRevocation, logout atomico best-effort
-  - [x] 11-07-PLAN.md — AuthAuthLink e AuthInterceptor con retry-once dopo UNAUTHENTICATED/401
-  - [x] 11-08-PLAN.md — WsReconnectPolicy (token corrente, 4401/4403) + GraphQLClientHolder + buildGraphQLConnection
-  - [x] 11-09-PLAN.md — AuthCubit + SignInCubit/SignInScreen + LogoutConfirmationDialog
-  - [x] 11-10-PLAN.md — Splash gate (hint 10 s) + AuthGate + AuthenticatedShell + composition root in main.dart
-  - [x] 11-11-PLAN.md — Riallineamento al contratto BE, gate di fase, BACKEND-NOTES.md e UAT pendente
-
-### Phase 12: Hardening
-**Goal**: Close v1.0 with an intensive pass on bugs, security, and concurrency so the shipped app survives real users and real streams without leaking state, double-refreshing, or breaking under multi-device pressure.
-**Depends on**: All prior phases feature-complete (incluso Phase 11 che rimpiazza lo stub con auth reale)
-**Scope**: L
-**Requirements**: HARDEN-01, HARDEN-02, HARDEN-03, HARDEN-04, HARDEN-05, HARDEN-06
-**Success Criteria** (what must be TRUE):
-  1. An audit (code review + automated grep in CI) confirms no access or refresh token is ever written to shared_preferences, logs, or any unencrypted disk path.
-  2. Integration tests confirm every admin endpoint returns 403 when called with a non-innkeeper JWT.
-  3. An automated test demonstrates that logout is atomic end-to-end: Twitch token revoked, secure storage cleared, GraphQL cache reset, subscriptions cancelled, cubits reset, navigation to sign-in — all verified in a single flow.
-  4. A concurrency test confirms that two simultaneous 401 responses produce exactly one refresh call (mutex-guarded), with no silent logout.
-  5. A memory profiler run after logout shows no retained subscriptions or owning blocs; a dual-device test (same Twitch account on two devices) shows graceful identity/subscription conflict handling with no state corruption on the client.
-  6. Audit aggiuntivo: nessun riferimento residuo a `DevAuthTokenService` / `DEV_AUTH_*` nel codice di produzione; il flag `DEV_AUTH_ENABLED` in `.env` è rimosso dai build release.
-**Decisions to make during discuss step**:
-  - Concrete test harness(es) for memory profiling and dual-device simulation.
-**Plans**: TBD
-
-### Phase 13: City Shops
-**Goal**: The shop a player opens on a city marker sells only that city's own pool of items — equipment, loot and companions (pets) — with the pool, the city size (`City.size`, derived by the BE from the `CityType`) and every refusal owned by the backend (BE Phase 12: pool seeded at boot and curated in the database, D-36); the frontend adapts the existing shop to the `cityShop(cityId)` query, keeps selling possible everywhere with infinite stock and catalogue prices, disables the Shop cell where the city has no shop, and adds what the companions require: a «Compagni» list in the buy/sell sheets and a «Compagno» slot in the Journal that equips one of the owned pets (`assets.ownedPets`, new) into the equipped slot (`assets.pet`, the one the travel speed uses), never automatically on purchase. _(amended 2026-11-02: user — «bisogna solo chiamare la chiamata al BE per adattarla alla nuova forma»; no city name on the sheet; pets added)_
-**Depends on**: Phase 7 (shop only on a city marker), Phase 8 (shop filters, `ItemRow`, Journal equip pattern), Phase 9 (refusal routing bubble vs banner), BE Phase 11 (catalogue, pets and cities in the DB), BE Phase 12 (`City.size` / `City.hasShop`, `cityShop`, `ITEM_NOT_IN_SHOP`, `assets.ownedPets`, `petAssets`, `equipPet` / `unequipPet`)
-**Scope**: M
-**Requirements**: SHOP-02, SHOP-03, SHOP-04
-**Success Criteria** (what must be TRUE):
-  1. On a city marker the shop lists only the items of that city's pool (equipment, loot and companions) as served by `cityShop`; an item outside the pool never appears and cannot be bought; the frontend never filters by rarity, size or price itself and shows no city name (D-02).
-  2. `ITEM_NOT_IN_SHOP` (and `PET_ALREADY_OWNED`) are mapped in the transaction classifier and shown in the shopkeeper bubble like the other transaction refusals (only `SHOP_NOT_IN_CITY` stays a banner, Phase 9 D-16); after the refusal the pool is reloaded.
-  3. Where `City.hasShop` is false (Necrorian, or a city the user emptied in the DB) the Shop satchel cell is disabled exactly like off-city / travel / awaiting aid.
-  4. The buy sheet shows the city's companions («Compagni»: name, price, speed only when the pet is a mount) hiding the ones already owned; the sell sheet lists the owned pets with the equipped one marked; buying never equips; selling the equipped pet empties the Journal slot through the subscription; legendary owned items stay sellable.
-  5. The Journal equipment section has a «Compagno» slot showing the equipped pet; tapping it lists the owned pets and equips / unequips through `equipPet` / `unequipPet` with the Phase 8 optimistic pattern.
-  6. Selling works in every city as today; the device UAT visits a village, a city and a capital and sees three different pools with the expected rarities and no legendary item, buys a companion where it is sold, equips it, sells it elsewhere, and finds the Shop cell disabled on Necrorian.
-**Decisions made (2026-10-29)**: explicit `size` on `City` (BE), hand-curated pools, sell anywhere, infinite stock, legendary never sold, catalogue prices everywhere.
-**Decisions made (2026-11-02, `13-CONTEXT.md` D-01..D-13)**: pure adaptation of the shop call; no city name; `ITEM_NOT_IN_SHOP` in the bubble; Shop cell disabled where `hasShop` is false; companions as a third list in the same sheets; «Compagno» slot in the Journal; buying never equips; legendary items sellable.
-**Decisions made (2026-11-03, `13-CONTEXT.md` D-17, device UAT)**: the «Compagno» section is a dropdown like «Magie imparate» (equipped companion in a slot on top, owned companions as parchment cards; a tap equips, a tap on the one in the slot unequips) — supersedes the «tapping it lists the owned pets» interaction of criterion 5; user decision during the device E2E, fixed in TDD on the branch.
-**Backend prerequisite**: BE Phase 12 merged on BE `develop` (schema-gated plans and device E2E); BE Phase 11 data for the UAT.
-**Plans**: 11 plans (planned 2026-11-02; 13-01..13-09 run before the BE Phase 12 merge on mocks, 13-10 and 13-11 are gated by it)
-- [x] 13-01-PLAN.md — Models: `Pet.speedModifier`/`sellable`, `CharacterAssets.ownedPets`, `City.size`/`hasShop`, `CityShop`, `TransactionItems.petAssets`, `EquipPetRequest`/`UnequipPetRequest`, shop fixtures
-- [x] 13-02-PLAN.md — Documents + service: `PetFragment`, character fragment `pet`/`ownedPets`, `cities` with `size hasShop`, `GetCityShop`, `EquipPet`/`UnequipPet`, registry, `KlimmeckGraphQl.getCityShop`/`equipPet`/`unequipPet`
-- [x] 13-03-PLAN.md — Classifiers + companion repository: `TransactionFailure` +3 codes, `shopkeeperRefusalLine`, `PetEquipFailure`, `CompanionRepository`
-- [x] 13-04-PLAN.md — Satchel gate: `disabledSatchelPages` with `City.hasShop` (Shop cell only, Board stays open)
-- [x] 13-05-PLAN.md — Shop call: `ShopCubit.getData(cityId)` last-request-wins, `ShopPoolLoader`, `Shop(cities:)`, bubble lines, catalogue queries removed
-- [x] 13-06-PLAN.md — `TradeSelection` (assets + pets, totals, `purchasablePets`, `retainPurchasable`), `companionSpeedLabel`, text-only `CompanionRow`
-- [x] 13-07-PLAN.md — Shop sheets with «Compagni» (buy: pool minus owned; sell: owned, equipped marked), pets in the totals, `canAfford` fix (D-14), legendary sellable
-- [x] 13-08-PLAN.md — `CompanionCubit` (single slot, optimistic, rollback, timeout), `CompanionOutcomeListener`, shell provider, harness updates
-- [x] 13-09-PLAN.md — Journal «Compagno» slot: `CompanionSection` after «Armatura», owned-pets sheet, equip/unequip, interactive during a travel
-- [x] 13-10-PLAN.md — Schema gate (after the BE Phase 12 merge): contract names proved on `origin/develop:src/schema.gql`, 43/43 documents OK, full suite, analyzer, VALIDATION filled
-- [x] 13-11-PLAN.md — Device E2E (`13-HUMAN-UAT.md`, 11 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
-
-### Phase 14: Quest Generation (frontend companion)
-**Goal**: The board and the result sheet speak the new multi-enemy contract (`infos.enemies: [{ enemy, quantity }]` replaces `infos.enemy`, BE Phase 13) and the innkeeper can force the generator from the «Locanda»; generated quests look like any other quest and the frontend never generates anything itself.
-**Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 10 (Locanda panel), BE Phase 13
-**Scope**: M
-**Requirements**: QGEN-01, QGEN-02, QGEN-03, QGEN-04, QGEN-05, QGEN-06
-**Success Criteria** (what must be TRUE):
-  1. Combat quest sheets list every enemy with its quantity («3x Goblin, 1x Capo goblin»); eligibility and recommended loot unchanged; the single `enemy` selection is gone from every document and model (registry and schema check green against the BE schema).
-  2. The result sheet shows the enemies fought, for standard-lane and ambush outcomes.
-  3. From the Locanda the innkeeper triggers «Genera missioni» (BE `generateQuests`) with explicit confirmation and sees the outcome (how many quests, or none); `FORBIDDEN` mapped inline.
-  4. Fixed `crime` and `guard` quests (BE Phase 11) render with the service family layout without any alignment mechanic; `dungeon` renders as combat.
-  5. Every quest sheet shows the announcement (`infos.description`) under the title when present; combat sheets show «Consigliati» under the enemies; the enemy portrait loads from the network and stays hidden when missing (IN-03 closed).
-  6. Rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` on the item sheet; the companion prize and reward appear as a line.
-**Decisions made (2026-10-29)**: hard replacement of `enemy` (gated plans align before the BE merge, pattern 08-12/09-12); `hunt` and `dungeon` are fixed quests, never generated.
-**Decisions made (2026-11-04, `14-CONTEXT.md` D-01..D-13, joint discuss with the BE Phase 13)**: one portrait of the strongest enemy + «Nx nome» lines per type; portrait loaded from the network and hidden when missing; «Consigliati» in the combat body; announcement `infos.description` under the title in every family; result sheet with the enemies fought and «Esplorazione: tappa k di N» for a dungeon; «Genera missioni» button at the top of the Locanda list with the shared confirmation dialog, outcome in SnackBar and `FORBIDDEN` closing the panel (Phase 10 D-04); rings and necklaces show «Uso: attacco / difesa / attacco e difesa» from `accessoryUseTypes` (user rule of 2026-11-04); companion prize/reward lines (technical default). The BE contract also replaces `QuestResult.enemy` with `enemies` + `stagesCleared`/`stagesTotal` and adds `prizes.pet`, `rewards.pet`, `accessoryUseTypes`.
-**Backend prerequisite**: BE Phase 13 merged on BE `develop`.
-**Plans**: 11 plans (planned 2026-11-04; 14-01..14-09 run before the BE Phase 13 merge on fixtures and mocks with the contract names of `14-REPO-RULES.md`, 14-10 and 14-11 are gated by it)
-- [x] 14-01-PLAN.md — Quest-side models: `QuestEnemy` (strict + lenient list parsers), `QuestInfos.enemies` replaces `enemy`, `description`, `QuestPrizes.pet`, `QuestSheetDetails` enemy lines / strongest enemy / pet prize line, fixtures
-- [x] 14-02-PLAN.md — Result-side models: `QuestResult.enemies` (bad entries dropped), `stagesCleared`/`stagesTotal`, `QuestRewards.pet` counted by `isEmpty`, dungeon result fixture
-- [x] 14-03-PLAN.md — Fragments: `QuestFragment` (`description`, `enemies { quantity enemy { id name imagePath xp } }`, `prizes.pet`) and `QuestResultFragment` (`enemies`, stage counters, `rewards.pet`); the old `enemy` selection removed in the same commit
-- [x] 14-04-PLAN.md — `enemyPortraitUrl` resolver (`https` or Cloudinary `v<n>/…`, else hidden) + shared `EnemyPortrait` widget (`CachedSvg` / `CachedNetworkImage`, empty box on failure)
-- [x] 14-05-PLAN.md — Quest sheet: strongest portrait + «Nx nome» lines + «Consigliati» in the combat body, announcement under the title in all families, «Compagno in premio», QGEN-04 proof (tests only)
-- [x] 14-06-PLAN.md — Result sheet: enemies fought list (`enemyKey` kept), «Esplorazione: tappa k di N», «Compagno ottenuto», dungeon-as-combat proof
-- [x] 14-07-PLAN.md — `GenerateQuests` document + registry (44), `KlimmeckGraphQl.generateQuests`, `InnkeeperRepository.generateQuests`, `QuestGenerationCubit` (sealed states, failure serial), mocks
-- [x] 14-08-PLAN.md — Locanda: `GenerateQuestsButton` outside the queue `BlocBuilder`, neutral confirmation dialog, SnackBar outcomes, `FORBIDDEN` closes the panel, disabled in flight
-- [x] 14-09-PLAN.md — Jewels: `AccessoryUseType`, `EquipmentItem.accessoryUseTypes`, equipment fragments, «Uso: attacco / difesa / attacco e difesa» on `EquipmentInfoSheet`
-- [x] 14-10-PLAN.md — Schema gate (after the BE Phase 13 merge): contract names proved on `origin/develop:src/schema.gql`, 44/44 documents OK, full suite, analyzer, VALIDATION filled; parks itself when the gate fails
-- [x] 14-11-PLAN.md — Device E2E (`14-HUMAN-UAT.md`, 9 steps, human checkpoint) + handoff `BACKEND-NOTES.md` + requirements/ROADMAP/STATE closure
-
-### Phase 15: Travel Food
-**Goal**: Travelling costs food: before «Parti» (and on the quest sheet for the automatic travel) the player sees the food the backend will consume and the life lost on the uncovered part of the road; a departure refused for lack of food is explained on the banner; inventory and HP change only through the subscription.
-**Depends on**: Phase 7 (confirmation sheet, travel cubit), Phase 6 (quest sheet cost line), Phase 8 (journal items), BE Phase 14
-**Scope**: M
-**Requirements**: FOOD-01, FOOD-02, FOOD-03, FOOD-04
-**Success Criteria** (what must be TRUE):
-  1. The travel confirmation sheet shows, from `travelPreview`, the food that will be eaten (items and quantities) and the HP lost on the uncovered kilometres (0 when covered) before «Parti»; when the backend says the character would not arrive alive the «Vita» row turns red («Non hai cibo a sufficienza per il viaggio») and «Parti» is disabled; nothing is computed on the client.
-  2. Combat and service quest sheets show the food cost of the automatic travel to the marker as a «Viaggio» line in the costs block (where the narrative family shows the channel-points line; combat and service sheets have none), from a backend owner-only preview (absent without a travel); when the preview says the character would not arrive alive the line turns red and the swipe is disabled; the backend starvation code stays the defence, mapped on the banner.
-  3. `startTravel` refused with the starvation code → banner and the confirmation sheet stays open with a refreshed preview (every other refusal closes it as in Phase 7); `acceptQuest` refused → banner, quest sheet recomposed; after a departure the Journal shows the reduced food and HP («Punti vita») through `characterUpdated` (the Map renders no HP).
-  4. Teleport and instant jump unaffected; device UAT: trip fully covered, trip partially covered (HP lost), trip refused.
-**Decisions made (2026-10-29)**: 1 power = 3 minutes of march (500 m at base speed on a standard road), terrain + pet + injuries count through the duration; minimum-waste selection by the BE; uncovered km n costs n HP; applied at departure; applies to the quest automatic travel too.
-**Decisions made (2026-11-05, joint discuss with the BE Phase 14)**: two rows «Cibo»/«Vita» under «Arrivo» on the confirmation sheet; one compact «Viaggio:» line in the costs block of the combat/service sheets; the phrase «Non hai cibo a sufficienza per il viaggio» everywhere (red rows, both banners); «Parti» and the swipe disabled on `arrivesAlive: false`; the confirmation sheet stays open with a refreshed preview only on the starvation refusal; no feedback after the departure; the quest preview is a dedicated owner-only query returning a nullable `TravelPreview`. Details in `15-CONTEXT.md` (D-01..D-09).
-**Backend prerequisite**: BE Phase 14 merged on BE `develop`; BE Phase 11 food items for the UAT.
-**Plans**: 9 plans
-- [x] 15-01-PLAN.md — `TravelFoodItem` (tolerant), `TravelPreview.food/hpLost/arrivesAlive`, `TravelPreviewFragment` and the `GetTravelPreview` selection in the same commit, shared `quantityLine`, `starvingPhrase`/`foodText`/`lifeText` (U+2212), fixtures
-- [x] 15-02-PLAN.md — `GetQuestTravelPreview` document, registry 44 → 45 (count tests go RED first), `KlimmeckGraphQl.previewQuestTravel` returning a nullable preview
-- [x] 15-03-PLAN.md — `TravelFailure.starving` / `QuestAcceptanceFailure.starving` ← `TRAVEL_STARVING`, both banners with the user phrase, no board reread, `TravelRepository.previewQuest`
-- [x] 15-04-PLAN.md — `TravelRequoting` state machine (Starting → Requoting → Confirming), one banner without `reset()`, route and pawn kept, camera refit narrowed
-- [x] 15-05-PLAN.md — «Cibo»/«Vita» rows on the confirmation sheet, red phrase and «Parti» disabled on `arrivesAlive: false`, sheet kept open through the requote, «nessun costo» notes fixed (D-13)
-- [x] 15-06-PLAN.md — pure `QuestTravelLine` and `QuestSheetDetails.travelLine`, the «Viaggio» line in the combat and service bodies of `QuestInfoSheet`
-- [x] 15-07-PLAN.md — `QuestTravelPreviewCubit` + `needsTravelPreview`, shell `RepositoryProvider<TravelRepository>` (with the Board harness for Wave 0), Board wiring (request on open, `canTear: false` when starving, refresh after a starving refusal)
-- [x] 15-08-PLAN.md — ⛔ GATED on the BE Phase 14 merge: schema gate (`TravelFoodItem` on `origin/develop`), `TRAVEL_STARVING` checked in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off
-- [x] 15-09-PLAN.md — ⛔ GATED: device E2E `15-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff, `mark-complete` FOOD-01..04, ROADMAP/STATE/REQUIREMENTS closure
-
-### Phase 16: Travel Ambushes
-**Goal**: A journey can be ambushed, more than once: the frontend renders the server's decision — the pawn keeps going after a victory, or restarts from the ambush point towards the nearest city after a defeat (push and banner «Imboscata!») — and at arrival shows the ambush reports of the travel in a carousel of result sheets, never lost (unacknowledged pipeline).
-**Depends on**: Phase 5 (push categories), Phase 7 (route rendering from `activeTravel`), Phase 9 (result sheet + ack), Phase 15 (travel preview flow), BE Phase 15
-**Scope**: M
-**Requirements**: AMBUSH-01, AMBUSH-02, AMBUSH-03
-**Success Criteria** (what must be TRUE):
-  1. When the backend rewrites `activeTravel` after a lost ambush (new road from the ambush point, new `startTime`, `to` and `endTime`) the pawn, the dashed route and the remaining time follow the new polyline live; no client-side guessing; the defeat push (new category, settings toggle) and its in-app banner «Imboscata! Sei stato sconfitto: la via torna verso <città>» lead to the Map.
-  2. The ambush reports (`QuestResult` with `kind: ambush`) are result-sheet variants — «Imboscata presso <città>», enemies, HP bar, injuries; won: coins and XP; lost: «Portato a <città>» — opened at arrival in one carousel per travel (one parchment per ambush, chronological), acknowledged together on «Continua», shown on the free Map like the other sheets; quest results stay one at a time.
-  3. The travel confirmation sheet and the quest «Viaggio» line never reveal an ambush; the arrival banner/push (`travelEnd`) leads to the Map where the carousel appears; no extra push at arrival.
-**Decisions made (2026-10-29)**: probability by km + night share (22–06 Europe/Rome), enemy by zone ≤ Medio band, resolution at ambush time (job), loss → HP ≥ 1 + injuries + reroute to the nearest city + standard-lane quest abandoned, food not refunded.
-**Decisions made (2026-11-06)**: soft calibration (0,2%/0,6% per km, 10 km threshold), several ambushes per travel with a redraw after every victory, nearest-POI zone with animals, [Facile, Medio] band per level, rewards as a generated enemy quest, HP applied at once, nearest city by road (destination included) with no extra cost, push on every defeat, reports held until arrival, `travelEnd` only, carousel of reports (FE CONTEXT D-01..D-09, BE CONTEXT D-01..D-16).
-**Backend prerequisite**: BE Phase 15 merged on BE `develop`.
-**Plans**: 9 plans (sequential waves; 16-07 and 16-08 gated by the BE Phase 15 merge; 16-09 inserted on 2026-11-09 from the device E2E finding D-19)
-- [x] 16-01-PLAN.md — `QuestResultKind`, `AmbushCity`, `AmbushReport`, `QuestResult.kind/ambush/isAmbush` with nullable `quest`; fragment gains `kind` and `ambush { … }` with the null-safe sheet header in the same commit; ambush fixtures; registry stays at 45
-- [x] 16-02-PLAN.md — `NotificationCategory.ambushDefeat` end to end: «Imboscate» toggle, BE `title`/`body` shown verbatim, popup → Map with the camera on the pawn; pinned tests RED first
-- [x] 16-03-PLAN.md — ambush result sheet: header «Imboscata presso <città>» + date, «Portato a <città>» after «Ferite», won/lost proofs with no client branch on rewards
-- [x] 16-04-PLAN.md — `QuestResultsCubit` group API (`showingGroup`, `presentable`, group-wide present/acknowledge/requeue, dedup over the group) and live batch settling (`isSettlingAmbushes`, one chained re-read)
-- [x] 16-05-PLAN.md — `AmbushReportCarousel` (`PageView` of result sheets, «k di N», swipe only, «Continua» closes from any page) and the presenter branch (waits while settling, no «Missione conclusa» banner, external pop requeues the group)
-- [x] 16-06-PLAN.md — reroute proof on `TravelProgressCubit` and the real `WorldMap`, D-07/D-17 pins on the confirmation sheet and the quest «Viaggio» line (tests only)
-- [x] 16-07-PLAN.md — ⛔ gated by the BE Phase 15 merge: schema gate (`AmbushReport` on BE `origin/develop`, names on the merged SDL, `ambushDefeat` payload in the BE handoff, dump + validate 45/45, full suite, analyzer/format/trailer/sanity gates, VALIDATION sign-off)
-- [x] 16-08-PLAN.md — ⛔ gated by the BE Phase 15 merge: device E2E `16-HUMAN-UAT.md` (7 steps, human checkpoint), `BACKEND-NOTES.md` handoff (two-travel merge note), `mark-complete` AMBUSH-01..03, ROADMAP/STATE/REQUIREMENTS closure
-- [x] 16-09-PLAN.md — device UAT finding (D-19): the ambush carousel pages peek in from the edges (`PageController(viewportFraction: 0.62)` with several reports so the centred parchment of the neighbour shows ≈ 7% of the width, full width with one) and the carousel nudges once at opening with a translate animation that keeps taps alive; still swipe-only, no programmatic page turn
-### Phase 17: Unlockable Lore
-**Goal**: The Library shows only what the character has discovered (home city, its regions and its state at creation; the same geography on every arrival at a city marker; enemies on victory; study rolls) and unknown enemies appear as a black silhouette with their name only on quest and result sheets — all unlock state owned by the backend (BE Phase 16); the FE renders ids, flags and lists and computes nothing.
-**Depends on**: Phase 3 (character subscription), Phase 6 and Phase 9 (sheets), Phase 14 (`enemies` entries, `EnemyPortrait`), BE Phase 11 (lore seeded), BE Phase 16
-**Scope**: M
-**Requirements**: LORE-01, LORE-02, LORE-03
-**Success Criteria** (what must be TRUE):
-  1. The Library lists only the unlocked lore of the current character (backend-filtered `lores`), refreshes itself while a book is open when `CharacterStatus.unlockedLore` (ids on the subscription) changes, hides the sections with nothing unlocked, shows one status line for an empty book and marks the entries unlocked since the last opening of that book with a «Nuovo» bookmark (per character, on the device); locked lore is never rendered.
-  2. On quest and result sheets an enemy the character has never defeated (`QuestEnemy.known == false`, exact enemy) shows its portrait as a full black silhouette and the «Nx nome» lines unchanged; known enemies render as today; after a victory the result sheet shows the defeated enemies in clear and lists the lore unlocked by the outcome («Conoscenza appresa: <name>» for a study roll, «Nuova pagina del Bestiario: <name>» for a first victory) from `QuestResult.loreUnlocked`.
-  3. A new character sees exactly the home-city lore, its regions and its state; a city not yet visited opens a name-only modal on the Map («Non conosci ancora questa città.», `City.relatedLore` null from the BE) instead of crashing; device UAT with a player identity (the dev bypass is the innkeeper and sees everything): travel to a new city → its page appears live with «Nuovo»; win against an enemy → portrait in clear + «Nuova pagina del Bestiario»; delete and recreate → reset. The Phase 16 device E2E (16-08) runs in the same session.
-**Decisions made (2026-10-29)**: per-character unlock, no cascade on `relatedLore`, enemy lore only on victory for all winners, study without spell → chance on a random locked lore among the study types, locked lore hidden.
-**Decisions of the discuss (2026-11-07, `17-CONTEXT.md` D-01..D-14)**: ids on the wire (`CharacterStatus.unlockedLore: [ID!]!`); geography = city + regions + state at birth and at every arrival on a city marker (territory POIs do not count); «known» = the exact enemy defeated (not the species); study roll at 50 % (BE env); result sheet lines from `QuestResult.loreUnlocked`; Map shows only the name of an unknown city, quest narrative stays whole; black silhouette; «Nuovo» bookmark per book; gated plans after the BE Phase 16 merge (pattern 16-07).
-**Backend prerequisite**: BE Phase 16 merged on BE `develop`.
-**Plans**: 12 plans (sequential waves; 17-09 and 17-10 gated by the BE Phase 16 merge; 17-11 and 17-12 added on 2026-11-08 from the device UAT findings, executed while the device E2E of 17-10 runs)
-- [x] 17-01-PLAN.md — `LoreType.label` (rename of the shadowing `name`) + `isBestiary`, tolerant `Lore.type`, lore fixtures, Italian section titles pinned, `CharacterStatus.unlockedLore` + `statusFields` selection (D-01, D-15, D-16)
-- [x] 17-02-PLAN.md — `QuestEnemy.known` end to end in one GREEN commit (strict/lenient parsing, `toJson`, both fragments, `questEnemyJson` default `true`, pinned document tests) + `strongestEntryOf` / `QuestSheetDetails.isStrongestEnemyKnown` (D-03)
-- [x] 17-03-PLAN.md — `QuestResult.loreUnlocked` (lenient, `loreUnlocked { id name type }`, round trip) + the «Nuova pagina del Bestiario» / «Conoscenza appresa» lines after «Magia appresa» (D-04, D-10)
-- [x] 17-04-PLAN.md — black silhouette: `EnemyPortrait.known` («Sagoma del nemico»), passed from the quest sheet and the result sheet following the strongest enemy's own `known` (D-08, D-09, D-17)
-- [x] 17-05-PLAN.md — `LibraryBook` enum + `LibraryBookmarksStore` (`SharedPreferencesAsync` implementation, `FakeSharedPreferencesAsync` string lists, `InMemoryLibraryBookmarksStore`) (D-07, D-12)
-- [x] 17-06-PLAN.md — `LibraryCubit` (`openBook`, silent single-flight `syncUnlockedLore` with stale-completion drop, `goToInitial`, «Nuovo» marks vs the baseline), `LibraryLoadData(book, lore, newLoreIds)`, shell wiring, `BlocListener<CharacterCubit>` in `Library` (D-05, D-07)
-- [x] 17-07-PLAN.md — `LibraryDataPage` redraw: hidden empty sections, «Le pagine di questo libro sono ancora bianche.», «Nuovo» ribbon on `LoreCard`, `ValueKey(type)`, live recompute (D-06, D-07)
-- [x] 17-08-PLAN.md — Map: `UnknownCityModal` («Non conosci ancora questa città.») replaces the `relatedLore!` crash; silent `MainScreenCubit.refreshCities()` on an `unlockedLore` set change (D-11)
-- [x] 17-09-PLAN.md — ⛔ gated by the BE Phase 16 merge: schema gate (`loreUnlocked` on BE `origin/develop`, names on the merged SDL, BE handoff read, dump + validate 45/45, full suite, analyzer, format/trailer/sanity gates, VALIDATION approved) (D-13)
-- [x] 17-10-PLAN.md — ⛔ gated by the BE Phase 16 merge: device E2E `17-HUMAN-UAT.md` (8 steps, player identity, human checkpoint), `mark-complete` LORE-01..03 only for passed steps, `BACKEND-NOTES.md` handoff, ROADMAP/STATE/VALIDATION closed; the FE 16 UAT runs in the same session outside this plan
-- [x] 17-11-PLAN.md — device UAT finding (D-20..D-22): the Library book page as slivers with `SliverList.builder` per open section (only on-screen cards decode their image; shared `DropdownHeader`), `CachedSvg` without spinner, `ImageWarmer` (bounded concurrency) warming the viewer's lore images at the cold start and the board's enemy portraits in the background, `SvgCacheManager` cap 2000
-- [x] 17-12-PLAN.md — device UAT findings (D-23, D-24): the unknown-city paper sheet stretched to the paper width (name and line centred); a tap on the idle pawn opens the sheet of the city it stands on through the same city-tap path (the pawn covers the marker of the current city); drag and teleport pawn unchanged
 
 ### Phase 18: Heal Quests by City Size
 **Goal**: Heal quests stop being all alike. The backend owns the cure as an explicit prize of the quest (`prizes.cure { lifePointsShare, canHeal }`: a ceiling on the maximum HP and the list of injuries healed, applied to every won quest that carries it) and the content by city size (village ≤20 / city ≤40 / capital all, lore touches by city type, 2 / 5 / 8 hours, descriptions by size, free). The frontend consumes the field: on the sheet of a quest with a cure it shows only the current character's injuries that the quest heals plus the life row, on the result sheet the injuries actually healed; it computes no game rule (the intersection with the character's injuries is display filtering). In the same phase the heal potions are drunk from the Journal with the backend's global recovery (`LootItem.recovery { time, turns }`, `CharacterStatus.potionRecoveryUntil`, `useItem` → `UseItemResult`), shown as a countdown and a «Ricarica: …» line, and the first potion unlocks the lore «Il limite del corpo» shown by the Library as any new page.
 **Depends on**: Phase 6 (per-type sheets), Phase 9 (result parchment, HP delta, injuries line), Phase 14 (description on the sheet), quick tasks 261109-inj/inj2 (`canHeal` item line, 37 `InjuryType`, tolerant parsing), BE Phase 18 (`QuestPrizes.cure`, `QuestResult.injuriesHealed`, content at DB); **executes after Phase 12 Hardening** (user decision 2026-11-09)
 **Scope**: M
-**Requirements**: HEAL-01, HEAL-02, HEAL-03, HEAL-04, HEAL-05
+**Requirements**: HEAL-01, HEAL-02, HEAL-03, HEAL-04, HEAL-05, HEAL-06
 **Success Criteria** (what must be TRUE):
   1. `QuestPrizes.cure` (`lifePointsShare`, `canHeal`) is parsed leniently into the quest model from the shared fragment (unknown injuries dropped, malformed cure → null, the quest stays); on the sheet of any quest with a non-null cure the cure line lists only the current character's injuries present in `canHeal` (lowercase Italian labels, character order) and is absent when none matches; the life row «Vita: almeno il N%» is shown whenever the cure is present (share 1 → «al massimo», share 0 → hidden); a heal without a cure shows neither row.
   2. The result sheet shows «Guarite: <labels>» from `QuestResult.injuriesHealed` (lenient) after the HP delta and before the injuries added, hidden when empty.
   3. Device UAT with the player identity after the BE Phase 18 merge and the content write: seeded injuries on the test character, one heal per size (village: one listed and one unlisted injury → one healed, HP to 50%, «Guarite» line; city; capital: everything healed, HP full); the schema gate confirms the names on the merged BE SDL.
-  4. In the Journal «Oggetti» section a heal parchment with a `recovery` is tappable: an in-world confirmation («Bevi <nome>?») calls `useItem`; on success the HP gain animates, «Guarite: …» lists the injuries healed and «Nuova pagina delle Conoscenze: …» appears when `loreUnlocked` is not empty, the state arrives from the character stream; refusals are notices with the backend's remaining time for `POTION_RECOVERING`; the action is available in travel and hidden while awaiting aid; nothing on the FE touches combat.
-  5. While `CharacterStatus.potionRecoveryUntil` is in the future every heal parchment is disabled with a countdown «pronta fra …» from the server date; item rows in the shop and the Journal show «Ricarica: …» from `recovery.time` (`turns` not shown); `LootRecovery` and `potionRecoveryUntil` are parsed leniently; the device E2E drinks a field herb, sees the countdown and the lore line, and gets the `POTION_RECOVERING` notice on a second potion.
+  4. In the Journal «Oggetti» section a heal parchment with a `recovery` is tappable: an in-world confirmation («Bevi <nome>?») calls `useItem`; on success the HP gain animates, «Guarite: …» lists the injuries healed and the Phase 17 lore line («Conoscenza appresa: …») appears when `loreUnlocked` is not empty, the state arrives from the character stream; refusals are notices with the backend's remaining time for `POTION_RECOVERING`; the action is available in travel and hidden while awaiting aid; nothing on the FE touches combat.
+  5. While `CharacterStatus.potionRecoveryUntil` is in the future every heal parchment is disabled with a countdown «pronta fra …» from the server date; item rows in the shop and the Journal show «Ricarica: …» from `recovery.time` (`turns` not shown); `LootRecovery` and `potionRecoveryUntil` are parsed leniently; the device E2E drinks a field herb, sees the countdown and the lore line; the `POTION_RECOVERING` notice on a second potion is proved by tests and by the orchestrator's GraphQL probe, the parchments being disabled during the countdown (D-19).
 **Decisions of the discuss (2026-11-09, `18-CONTEXT.md` D-01..D-10)**: HP and injuries separated with explicit lists per place (user); ceiling 50/80/100; lists ≤20/≤40/all with lore touches; hours 2/5/8; sheet with only the viewer's curable injuries, no count, no line when none (user, confirmed); life row always; «Guarite: …» on the result; executed after Phase 12; travel food deferred (user). **Amended the same evening (D-11..D-16)**: Journal potions with the global recovery (`recovery { time, turns }`, 30 min–24 h, `turns` data only), confirmation + feedback + countdown, «Ricarica: …» rows, lore «Il limite del corpo» through the Phase 17 Library flow.
 **Backend prerequisite**: BE Phase 18 merged on BE `develop` (itself after the BE Phase 17).
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+- [x] 18-01-PLAN.md — Quest cure models (`QuestCure`, `QuestPrizes.cure`, `QuestResult.injuriesHealed`, lenient injury reader)
+- [x] 18-02-PLAN.md — Potion models (`LootRecovery`, `potionRecoveryUntil`, `UseItemResult`, fixtures)
+- [x] 18-03-PLAN.md — Lines (`curableInjuriesLine`, `lifeShareLine`, `healedLine`, `recoveryLine`, `potionReadyInLine`)
+- [x] 18-04-PLAN.md — Quest sheet: cure line and life row, `characterInjuries` from Board and Map
+- [x] 18-05-PLAN.md — Result sheet «Guarite» and `ItemRow` «Ricarica» / disabled look / status line
+- [x] 18-06-PLAN.md — `useItem` plumbing (document + registry 46, extension reader, `ItemUseFailure`, `ItemUseRepository`)
+- [x] 18-07-PLAN.md — Potion cubits (`PotionCubit`, `PotionRecoveryCubit`)
+- [x] 18-08-PLAN.md — Potion notices and wiring (`potionNoticeFor`, `PotionOutcomeListener`)
+- [x] 18-09-PLAN.md — Shared lore line and Journal potion flow (`PotionSheet`, `ItemsSection`, countdown, travel, awaiting aid)
+- [x] 18-10-PLAN.md — Heal with no effect: `Quest.noEffect`, torn inert sheet, vitals reread
+- [x] 18-11-PLAN.md — Heal with no effect: `QUEST_NO_EFFECT` refusal, notice, list reread
+- [x] 18-12-PLAN.md — Schema gate, fragment selections, document validation, full suite (gated on the BE Phase 18 merge)
+- [x] 18-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ### Phase 19: Model Review (frontend companion)
 **Goal**: The frontend consumes the cleaned backend models without changing what the player sees, except the companion xp decided by the user: owned companions carry `xp` and `currentLifePoints` on the character, the companion row shows the experience and the result sheet says how much the companion gained (10 % of the enemies' xp, capped at the catalogue `maxXp`, backend-owned). Shape changes consumed: `Enemy.weaknesses { base, energy }`, `Pet.attack`/`Pet.defense` instead of `damages`, `ownedPets` entries, `wornEquipment` with `feet`, one `spellStates` list with `active` (the Journal spells section reads known = all, equipped = active), `PointOfInterest.quest` removed, `Lore.imagePath`. FE-only: fragile parsers fixed with tests.
@@ -572,157 +91,30 @@ Plans:
 **Backend prerequisite**: BE Phase 19 merged on BE `develop` (after the BE Phase 18).
 **Plans**: TBD
 
-## Progress Table
+## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Dev Auth Stub | 3/3 | Complete | 2026-04-15 |
-| 2. Character Creation | 11/11 | Complete    | 2026-10-09 |
-| 3. Real-Time Sync Foundation | 9/9 | Complete    | 2026-10-14 |
-| 4. Settings Screen | 7/7 | Complete    | 2026-10-18 |
-| 5. Notifications Infrastructure | 9/9 | Complete    | 2026-10-20 |
-| 6. Quest Accept & Info Sheets | 12/12 | Complete    | 2026-10-22 |
-| 7. Travel | 11/11 | Complete | 2026-10-26 |
-| 8. Spells Section (Journal Tab) | 14/14 | Complete | 2026-10-27 |
-| 9. Combat Result Sheet | 13/13 | Complete | 2026-10-29 |
-| 10. Admin Panel (innkeeper) | 11/11 | Complete | 2026-11-01 |
-| 11. Auth & Session Bootstrap | 11/11 | Complete    | 2026-10-06 |
-| 12. Hardening | 0/0 | Not started (executes last) | - |
-| 13. City Shops | 11/11 | Complete | 2026-11-03 |
-| 14. Quest Generation (companion) | 11/11 | Complete | 2026-11-05 |
-| 15. Travel Food | 9/9 | Complete | 2026-11-06 |
-| 16. Travel Ambushes | 9/9 | Complete | 2026-11-09 |
-| 17. Unlockable Lore | 12/12 | Complete | 2026-11-09 |
-| 18. Heal Quests by City Size | 0/0 | Not started (after Phase 12) | - |
-| 19. Model Review (companion) | 0/0 | Not started (after Phase 18) | - |
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| DEV-AUTH-01 | Phase 1 | Pending |
-| DEV-AUTH-02 | Phase 1 | Pending |
-| DEV-AUTH-03 | Phase 1 | Pending |
-| DEV-AUTH-04 | Phase 1 | Pending |
-| DEV-AUTH-05 | Phase 1 | Pending |
-| CHAR-01 | Phase 2 | Pending |
-| CHAR-02 | Phase 2 | Pending |
-| CHAR-03 | Phase 2 | Pending |
-| CHAR-04 | Phase 2 | Pending |
-| CHAR-05 | Phase 2 | Pending |
-| CHAR-06 | Phase 2 | Deferred (D-17) |
-| CHAR-07 | Phase 2 | Pending |
-| CHAR-08 | Phase 2 | Pending |
-| CHAR-09 | Phase 2 | Pending |
-| SYNC-01 | Phase 3 | Pending |
-| SYNC-02 | Phase 3 | Pending |
-| SYNC-03 | Phase 3 | Pending |
-| SYNC-04 | Phase 3 | Pending |
-| SYNC-05 | Phase 3 | Pending |
-| SYNC-06 | Phase 3 | Pending |
-| SYNC-07 | Phase 3 | Pending |
-| SET-01 | Phase 4 | Complete |
-| SET-02 | Phase 4 | Complete |
-| SET-03 | Phase 4 | Complete |
-| SET-04 | Phase 4 | Complete |
-| SET-05 | Phase 4 | Complete |
-| NOTIF-01 | Phase 5 | Pending |
-| NOTIF-02 | Phase 5 | Pending |
-| NOTIF-03 | Phase 5 | Pending |
-| NOTIF-04 | Phase 5 | Pending |
-| NOTIF-05 | Phase 5 | Pending |
-| NOTIF-06 | Phase 5 | Pending |
-| NOTIF-07 | Phase 5 | Pending |
-| NOTIF-08 | Phase 5 | Pending |
-| QUEST-01 | Phase 6 | Pending |
-| QUEST-02 | Phase 6 | Pending |
-| QUEST-03 | Phase 6 | Pending |
-| QUEST-04 | Phase 6 (BE prereq) | Pending |
-| QUEST-05 | Phase 6 | Pending |
-| QUEST-06 | Phase 6 | Pending |
-| QUEST-07 | Phase 6 | Pending |
-| TRAVEL-01 | Phase 7 (BE prereq) | Complete |
-| TRAVEL-02 | Phase 7 | Complete |
-| TRAVEL-03 | Phase 7 | Complete |
-| TRAVEL-04 | Phase 7 | Complete |
-| SPELL-01 | Phase 8 | Complete |
-| SPELL-02 | Phase 8 | Complete |
-| SPELL-03 | Phase 8 | Complete |
-| SPELL-04 | Phase 8 | Complete |
-| SPELL-05 | Phase 8 | Complete |
-| SPELL-06 | Phase 8 | Complete |
-| SPELL-07 | Phase 8 | Complete |
-| SPELL-08 | Phase 8 | Complete |
-| SPELL-09 | Phase 8 | Complete |
-| ITEM-01 | Phase 8 | Complete |
-| ITEM-02 | Phase 8 | Complete |
-| SHOP-01 | Phase 8 | Complete |
-| COMBAT-01 | Phase 9 | Complete |
-| COMBAT-02 | Phase 9 | Complete |
-| COMBAT-03 | Phase 9 | Complete |
-| COMBAT-04 | Phase 9 | Complete |
-| COMBAT-05 | Phase 9 | Complete |
-| COMBAT-06 | Phase 9 | Complete |
-| COMBAT-07 | Phase 9 | Complete |
-| COMBAT-08 | Phase 9 | Complete |
-| COMBAT-09 | Phase 9 | Complete |
-| COMBAT-10 | Phase 9 | Complete |
-| ADMIN-01 | Phase 10 | Complete |
-| ADMIN-02 | Phase 10 | Complete |
-| ADMIN-03 | Phase 10 | Complete |
-| ADMIN-04 | Phase 10 | Complete |
-| ADMIN-05 | Phase 10 | Complete |
-| ADMIN-06 | Phase 10 | Complete |
-| ADMIN-07 | Phase 10 | Complete |
-| ADMIN-08 | Phase 10 | Complete |
-| AUTH-01 | Phase 11 | Pending |
-| AUTH-02 | Phase 11 | Pending |
-| AUTH-03 | Phase 11 | Pending |
-| AUTH-04 | Phase 11 | Pending |
-| AUTH-05 | Phase 11 | Pending |
-| AUTH-06 | Phase 11 | Pending |
-| AUTH-07 | Phase 11 | Pending |
-| HARDEN-01 | Phase 12 | Pending |
-| HARDEN-02 | Phase 12 | Pending |
-| HARDEN-03 | Phase 12 | Pending |
-| HARDEN-04 | Phase 12 | Pending |
-| HARDEN-05 | Phase 12 | Pending |
-| HARDEN-06 | Phase 12 | Pending |
-| SHOP-02 | Phase 13 | Complete |
-| SHOP-03 | Phase 13 | Complete |
-| SHOP-04 | Phase 13 | Complete |
-| QGEN-01 | Phase 14 | Complete |
-| QGEN-02 | Phase 14 | Complete |
-| QGEN-03 | Phase 14 | Complete |
-| QGEN-04 | Phase 14 | Complete |
-| QGEN-05 | Phase 14 | Complete |
-| QGEN-06 | Phase 14 | Complete |
-| FOOD-01 | Phase 15 | Complete |
-| FOOD-02 | Phase 15 | Complete |
-| FOOD-03 | Phase 15 | Complete |
-| FOOD-04 | Phase 15 | Complete |
-| AMBUSH-01 | Phase 16 | Complete |
-| AMBUSH-02 | Phase 16 | Complete |
-| AMBUSH-03 | Phase 16 | Complete |
-| LORE-01 | Phase 17 | Complete |
-| LORE-02 | Phase 17 | Complete |
-| LORE-03 | Phase 17 | Complete |
-| HEAL-01 | Phase 18 | Pending |
-| HEAL-02 | Phase 18 | Pending |
-| HEAL-03 | Phase 18 | Pending |
-| HEAL-04 | Phase 18 | Pending |
-| HEAL-05 | Phase 18 | Pending |
-| MODEL-01 | Phase 19 | Pending |
-| MODEL-02 | Phase 19 | Pending |
-| MODEL-03 | Phase 19 | Pending |
-| MODEL-04 | Phase 19 | Pending |
-
-**Coverage:** 104 / 104 v1 requirements mapped (79 + 16 added 2026-10-29 + 5 HEAL + 4 MODEL added 2026-11-09). No orphans. No duplicates.
+| Phase | Milestone | Plans Complete | Status | Completed |
+| ----- | --------- | -------------- | ------ | --------- |
+| 1. Dev Auth Stub | v1.0 | 3/3 | Complete | 2026-04-15 |
+| 2. Character Creation | v1.0 | 11/11 | Complete | 2026-10-09 |
+| 3. Real-Time Sync Foundation | v1.0 | 9/9 | Complete | 2026-10-14 |
+| 4. Settings Screen | v1.0 | 7/7 | Complete | 2026-10-18 |
+| 5. Notifications Infrastructure | v1.0 | 9/9 | Complete | 2026-10-20 |
+| 6. Quest Accept & Info Sheets | v1.0 | 12/12 | Complete | 2026-10-22 |
+| 7. Travel | v1.0 | 11/11 | Complete | 2026-10-26 |
+| 8. Spells Section (Journal Tab) | v1.0 | 14/14 | Complete | 2026-10-27 |
+| 9. Combat Result Sheet | v1.0 | 13/13 | Complete | 2026-10-29 |
+| 10. Admin Panel (innkeeper) | v1.0 | 11/11 | Complete | 2026-11-01 |
+| 11. Auth & Session Bootstrap | v1.0 | 11/11 | Complete | 2026-10-06 |
+| 12. Hardening | v1.0 | 17/17 | Complete | 2026-11-10 |
+| 13. City Shops | v1.0 | 11/11 | Complete | 2026-11-03 |
+| 14. Quest Generation (companion) | v1.0 | 11/11 | Complete | 2026-11-05 |
+| 15. Travel Food | v1.0 | 9/9 | Complete | 2026-11-06 |
+| 16. Travel Ambushes | v1.0 | 9/9 | Complete | 2026-11-09 |
+| 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
+| 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
+| 19. Model Review (companion) | v1.1 | 0/0 | Not started | - |
 
 ---
 
-_Roadmap created: 2026-04-10_
-_Last restructured: 2026-04-14 — Auth split in Phase 1 (Dev Auth Stub) + Phase 11 (full OAuth); Hardening shifted to Phase 12_
-_Last extended: 2026-10-29 — Phases 13–17 appended (City Shops, Quest Generation companion, Travel Food, Travel Ambushes, Unlockable Lore), mirrors of BE Phases 12–16 with BE Phase 11 World Content as data prerequisite; Phase 12 Hardening executes last_
-_Last extended: 2026-11-09 — Phase 18 appended (Heal Quests by City Size, mirror of BE Phase 18); planned now, executed after Phase 12 Hardening (user decision)_
-_Last extended: 2026-11-09 — Phase 19 appended (Model Review companion of BE Phase 19: weaknesses, owned pets with xp, pet attack/defense, worn equipment, single spell list, no POI back-link, lore imagePath, fragile parsers); executes after Phase 18_
+_Roadmap created: 2026-04-10_ · _v1.0 Core Loop archived: 2026-11-10_ · _v1.1 Healing & Models started: 2026-11-10_

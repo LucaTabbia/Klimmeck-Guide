@@ -41,6 +41,37 @@ void main() {
     test('simpleFields stay without canHeal', () {
       expect(LootFragment.simpleFields, isNot(contains('canHeal')));
     });
+
+    test(
+      'fields and definition select recovery { time turns } (D-13, D-19)',
+      () {
+        for (final selection in [
+          LootFragment.fields,
+          LootFragment.definition,
+        ]) {
+          expect(
+            _collapsed(selection),
+            contains(
+              'sellPrice { gold silver copper } recovery { time turns }',
+            ),
+          );
+        }
+      },
+    );
+
+    test('simpleFields stay without recovery (D-19)', () {
+      expect(LootFragment.simpleFields, isNot(contains('recovery')));
+    });
+
+    test('no fragment selects the related lore of an item (D-16)', () {
+      for (final selection in [
+        LootFragment.fields,
+        LootFragment.definition,
+        LootFragment.simpleFields,
+      ]) {
+        expect(selection, isNot(contains('relatedLore')));
+      }
+    });
   });
 
   group('QuestFragment', () {
@@ -56,8 +87,9 @@ void main() {
       );
     });
 
-    test('the recommended and random loot keep the simple fields', () {
-      expect(RegExp(r'\bcanHeal\b').allMatches(fields), hasLength(1));
+    test('the recommended and random loot keep the simple fields '
+        'and the cure (D-01)', () {
+      expect(RegExp(r'\bcanHeal\b').allMatches(fields), hasLength(2));
     });
   });
 
@@ -74,6 +106,12 @@ void main() {
       });
     }
 
+    for (final entry in _fullLootDocuments.entries) {
+      test('the full loot documents select recovery (D-13): ${entry.key}', () {
+        expect(_collapsed(entry.value), contains('recovery { time turns }'));
+      });
+    }
+
     test('the quests query parses as one operation', () {
       expect(
         parseString(
@@ -83,8 +121,8 @@ void main() {
       );
     });
 
-    test('the registry stays at 45 documents', () {
-      expect(schemaCheckDocuments.length, 45);
+    test('the registry stays at 46 documents', () {
+      expect(schemaCheckDocuments.length, 46);
     });
   });
 }

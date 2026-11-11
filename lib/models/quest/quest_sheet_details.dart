@@ -60,6 +60,7 @@ class QuestSheetDetails extends Equatable {
     required this.slotLines,
     required this.costLine,
     required this.blockedReason,
+    this.isImprisoned = false,
     required this.recommendedLootLines,
     required this.loreParagraphs,
     required this.enemyLines,
@@ -79,6 +80,9 @@ class QuestSheetDetails extends Equatable {
     final minTitle = quest.requirements?.minTitle;
     final enemies = quest.infos?.enemies ?? const <QuestEnemy>[];
     final strongest = strongestEntryOf(enemies);
+    final availability = viewer == null
+        ? null
+        : standingOf(quest, viewer).availability;
     return QuestSheetDetails(
       family: family,
       requiredTitleText: _requiredTitleText(type, minTitle),
@@ -96,13 +100,10 @@ class QuestSheetDetails extends Equatable {
             )
           : const [],
       costLine: costLineOf(quest, viewer?.twitchPoints),
-      blockedReason: viewer == null
+      blockedReason: availability == null
           ? null
-          : questBlockedReasonOf(
-              standingOf(quest, viewer).availability,
-              minTitle: minTitle,
-              type: type,
-            ),
+          : questBlockedReasonOf(availability, minTitle: minTitle, type: type),
+      isImprisoned: availability == QuestAvailability.imprisoned,
       recommendedLootLines: List.unmodifiable([
         for (final entry in quest.requirements?.recommendedLoot ?? const [])
           if (entry.item?.name?.isNotEmpty ?? false)
@@ -128,6 +129,10 @@ class QuestSheetDetails extends Equatable {
   final List<QuestSlotLine> slotLines;
   final QuestCostLine? costLine;
   final String? blockedReason;
+
+  /// Rifiuto per prigione (quick 261110-cgd): il foglio completa la riga con
+  /// il tempo che manca.
+  final bool isImprisoned;
   final List<String> recommendedLootLines;
   final List<String> loreParagraphs;
 
@@ -151,6 +156,7 @@ class QuestSheetDetails extends Equatable {
     slotLines,
     costLine,
     blockedReason,
+    isImprisoned,
     recommendedLootLines,
     loreParagraphs,
     enemyLines,

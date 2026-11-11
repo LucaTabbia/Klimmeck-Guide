@@ -27,6 +27,10 @@ extension CharacterCreationFailureMessage on CharacterCreationFailure {
   String get message => switch (this) {
     CharacterCreationFailure.uploadFailed =>
       'Caricamento del ritratto non riuscito, riprova',
+    CharacterCreationFailure.imageRejected =>
+      'Immagine non ammessa, scegline un\'altra.',
+    CharacterCreationFailure.moderationUnavailable =>
+      'Controllo dell\'immagine non disponibile: riprova o procedi senza immagine.',
     CharacterCreationFailure.nameInvalid =>
       'Il nome non è accettato dalle cronache, scegline un altro',
     CharacterCreationFailure.nameTaken => 'Nome già in uso',
@@ -38,6 +42,7 @@ extension CharacterCreationFailureMessage on CharacterCreationFailure {
     CharacterCreationFailure.connection => 'Errore di connessione, riprova',
     CharacterCreationFailure.handoverRejected =>
       'Personaggio creato, ma la sessione non lo riconosce: esci e rientra',
+    CharacterCreationFailure.badUserInput ||
     CharacterCreationFailure.unknown => 'Qualcosa è andato storto, riprova',
   };
 }

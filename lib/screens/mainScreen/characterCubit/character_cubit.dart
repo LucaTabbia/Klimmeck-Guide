@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dar
 import 'package:klimmeck_guide/repository/services/sync/sync_health.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/backoff.dart';
 import 'package:klimmeck_guide/utils/silent_retry.dart';
 
@@ -140,7 +141,7 @@ class CharacterCubit extends Cubit<CharacterState>
     final code = error is SubscriptionStreamException
         ? error.code
         : error.runtimeType;
-    debugPrint('[Sync] characterUpdated rejected: $code');
+    appLog('[Sync] characterUpdated rejected: $code');
     _markCharacterGone();
   }
 

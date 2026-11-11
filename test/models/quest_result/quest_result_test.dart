@@ -548,8 +548,116 @@ void main() {
     });
   });
 
+  group('injuriesHealed (BE Phase 18)', () {
+    test('a result without injuriesHealed has an empty list (D-02)', () {
+      final result = questResult(questResultJson()..remove('injuriesHealed'));
+
+      expect(result.injuriesHealed, isEmpty);
+    });
+
+    test('parses the injuries healed (D-02)', () {
+      final result = questResult(
+        questResultJson(injuriesHealed: ['contusion', 'deepCut']),
+      );
+
+      expect(result.injuriesHealed, [InjuryType.contusion, InjuryType.deepCut]);
+    });
+
+    test('drops unknown names and keeps the result (D-02)', () {
+      final json = questResultJson(injuriesHealed: ['contusion', 'dragonBite']);
+
+      expect(QuestResult.tryFromJson(json), isNotNull);
+      expect(questResult(json).injuriesHealed, [InjuryType.contusion]);
+    });
+
+    test(
+      'a non-list injuriesHealed is an empty list and the result stays (D-02)',
+      () {
+        final json = questResultJson()..['injuriesHealed'] = 'contusion';
+
+        expect(QuestResult.tryFromJson(json), isNotNull);
+        expect(questResult(json).injuriesHealed, isEmpty);
+      },
+    );
+
+    test('toJson writes the injuries healed (D-02)', () {
+      final json = questResult(healResultJson()).toJson();
+
+      expect(json['injuriesHealed'], ['contusion']);
+    });
+
+    test('props include injuriesHealed (D-02)', () {
+      final healed = questResult(healResultJson());
+      final notHealed = questResult(healResultJson(injuriesHealed: const []));
+
+      expect(healed, isNot(notHealed));
+    });
+  });
+
+  group('arrest and guard encounter (quick 261110-cgd)', () {
+    test('a result without the new fields is neither arrested nor a guard '
+        'encounter (quick 261110-cgd)', () {
+      final result = questResult(questResultJson());
+
+      expect(result.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('parses an arrest with the confiscated coins (quick 261110-cgd)', () {
+      final result = questResult(arrestResultJson());
+
+      expect(result.arrested, isTrue);
+      expect(result.coinsLost, const Coins(silver: 7, copper: 50));
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('parses a guard encounter (quick 261110-cgd)', () {
+      final result = questResult(guardEncounterResultJson());
+
+      expect(result.guardEncounter, isTrue);
+      expect(result.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+    });
+
+    test('malformed fields fall back to free, false and null and the result '
+        'stays (quick 261110-cgd)', () {
+      final json = questResultJson()
+        ..addAll({'arrested': 'yes', 'coinsLost': 12, 'guardEncounter': 1});
+
+      final result = QuestResult.tryFromJson(json);
+
+      expect(result, isNotNull);
+      expect(result!.arrested, isFalse);
+      expect(result.coinsLost, isNull);
+      expect(result.guardEncounter, isFalse);
+    });
+
+    test('toJson round-trips the new fields (quick 261110-cgd)', () {
+      final arrest = questResult(arrestResultJson());
+
+      expect(questResult(arrest.toJson()), arrest);
+      expect(arrest.toJson()['arrested'], isTrue);
+      expect(arrest.toJson()['guardEncounter'], isFalse);
+    });
+
+    test('props include the new fields (quick 261110-cgd)', () {
+      expect(
+        questResult(arrestResultJson()),
+        isNot(questResult(arrestResultJson(coinsLost: null))),
+      );
+      expect(
+        questResult(guardEncounterResultJson()),
+        isNot(
+          questResult(guardEncounterResultJson()..['guardEncounter'] = false),
+        ),
+      );
+    });
+  });
+
   group('round trip', () {
     final payloads = {
+      'heal': healResultJson(),
       'success': successResultJson(),
       'failure': failureResultJson(),
       'rescued': rescuedResultJson(),

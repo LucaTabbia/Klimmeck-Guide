@@ -247,4 +247,80 @@ void main() {
       expect(json.containsKey('enemy'), isFalse);
     });
   });
+
+  group('prizes.cure (BE Phase 18)', () {
+    test('a quest carries its cure (D-01)', () {
+      final quest = buildQuest(
+        type: 'heal',
+        prizes: {'cure': questCureJson(share: 0.8)},
+      );
+      expect(quest.prizes?.cure?.lifePointsShare, 0.8);
+    });
+
+    test('a quest without cure has cure null (D-01)', () {
+      expect(buildQuest(prizes: {}).prizes?.cure, isNull);
+      expect(buildQuest().prizes?.cure, isNull);
+    });
+
+    test('a malformed cure keeps the quest with cure null (D-01)', () {
+      final wrongType = Quest.tryFromJson(
+        questJson(prizes: {'cure': 'everything'}),
+      );
+      expect(wrongType, isNotNull);
+      expect(wrongType!.prizes?.cure, isNull);
+
+      final wrongShare = Quest.tryFromJson(
+        questJson(
+          prizes: {
+            'cure': {'lifePointsShare': 'half', 'canHeal': []},
+          },
+        ),
+      );
+      expect(wrongShare, isNotNull);
+      expect(wrongShare!.prizes?.cure, isNull);
+    });
+
+    test('QuestPrizes writes, copies and compares its cure (D-01)', () {
+      final prizes = buildQuest(prizes: {'cure': questCureJson()}).prizes!;
+      final cure = prizes.cure!;
+      expect(prizes.toJson()['cure'], cure.toJson());
+      expect(prizes.copyWith(xpPrize: 3).cure, cure);
+
+      final withoutCure = buildQuest(prizes: {}).prizes!;
+      expect(withoutCure, isNot(prizes));
+    });
+  });
+
+  group('noEffect (BE Phase 18)', () {
+    test('a quest reads its per-viewer noEffect flag (D-20)', () {
+      expect(buildQuest(type: 'heal', noEffect: true).noEffect, isTrue);
+    });
+
+    test(
+      'a missing or malformed noEffect is false and the quest stays (D-20)',
+      () {
+        final absent = Quest.tryFromJson(questJson(type: 'heal'));
+        expect(absent, isNotNull);
+        expect(absent!.noEffect, isFalse);
+        for (final malformed in <Object?>[null, 'true', 1]) {
+          final quest = Quest.tryFromJson({
+            ...questJson(type: 'heal'),
+            'noEffect': malformed,
+          });
+          expect(quest, isNotNull, reason: '$malformed');
+          expect(quest!.noEffect, isFalse, reason: '$malformed');
+        }
+      },
+    );
+
+    test('toJson, copyWith and props carry noEffect (D-20)', () {
+      final quest = buildQuest(type: 'heal', noEffect: true);
+      expect(quest.toJson()['noEffect'], isTrue);
+      expect(Quest.fromJson(quest.toJson()).noEffect, isTrue);
+      expect(quest.copyWith(id: 'q-2').noEffect, isTrue);
+      expect(quest.copyWith(noEffect: false).noEffect, isFalse);
+      expect(quest, isNot(quest.copyWith(noEffect: false)));
+      expect(quest, buildQuest(type: 'heal', noEffect: true));
+    });
+  });
 }

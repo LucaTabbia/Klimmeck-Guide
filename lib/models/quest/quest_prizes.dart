@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/quest/quest_cure.dart';
 
 import '../asset_quantity.dart';
 import '../coins.dart';
@@ -12,6 +13,7 @@ class QuestPrizes extends Equatable {
     required this.xpPrize,
     required this.randomLoot,
     this.pet,
+    this.cure,
   });
 
   final List<AssetQuantity>? randomLoot;
@@ -21,6 +23,9 @@ class QuestPrizes extends Equatable {
 
   /// Compagno in premio (BE Phase 13 D-21): solo sui boss, raro (D-06).
   final Pet? pet;
+
+  /// Cura della quest (BE Phase 18, D-01); `null` = la quest non cura nulla.
+  final QuestCure? cure;
 
   factory QuestPrizes.fromJson(Map<String, dynamic> json) => QuestPrizes(
     prizeCoins: json["prizeCoins"] != null
@@ -34,6 +39,7 @@ class QuestPrizes extends Equatable {
           )
         : null,
     pet: Pet.tryFromJson(json['pet']),
+    cure: QuestCure.tryFromJson(json['cure']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -42,6 +48,7 @@ class QuestPrizes extends Equatable {
     "prizeItem": prizeItem?.toJson(),
     "randomLoot": randomLoot,
     "pet": pet?.id,
+    "cure": cure?.toJson(),
   };
 
   QuestPrizes copyWith({
@@ -50,6 +57,7 @@ class QuestPrizes extends Equatable {
     int? xpPrize,
     AssetItem? prizeItem,
     Pet? pet,
+    QuestCure? cure,
   }) {
     return QuestPrizes(
       randomLoot: randomLoot ?? this.randomLoot,
@@ -57,11 +65,19 @@ class QuestPrizes extends Equatable {
       xpPrize: xpPrize ?? this.xpPrize,
       prizeItem: prizeItem ?? this.prizeItem,
       pet: pet ?? this.pet,
+      cure: cure ?? this.cure,
     );
   }
 
   @override
-  List<Object?> get props => [randomLoot, prizeCoins, xpPrize, prizeItem, pet];
+  List<Object?> get props => [
+    randomLoot,
+    prizeCoins,
+    xpPrize,
+    prizeItem,
+    pet,
+    cure,
+  ];
 }
 
 /// Sul filo `prizeItem` è un `AssetQuantity { quantity item }` (SDL BE);

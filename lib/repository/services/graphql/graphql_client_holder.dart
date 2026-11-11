@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/graphql/socket_connection_monitor.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 /// Possiede il client GraphQL corrente.
 ///
@@ -13,7 +14,7 @@ import 'package:klimmeck_guide/repository/services/graphql/socket_connection_mon
 /// sostituito resta senza `dispose`.
 ///
 /// `GraphQLProvider(client: holder.client)` resta sopra `MaterialApp` per i
-/// widget di `graphql_flutter`; `KlimmeckGraphQl` riceve da `main.dart` un
+/// widget di `graphql_flutter`; `KlimmeckGraphQl` riceve dal bootstrap un
 /// resolver `() => holder.client.value`, così legge sempre il client corrente.
 class GraphQLClientHolder {
   GraphQLClientHolder({required GraphQLConnection Function() connect})
@@ -44,7 +45,7 @@ class GraphQLClientHolder {
     try {
       await _webSocketLink.dispose();
     } catch (error) {
-      debugPrint(
+      appLog(
         '[GraphQLClientHolder] websocket dispose failed: ${error.runtimeType}',
       );
     }

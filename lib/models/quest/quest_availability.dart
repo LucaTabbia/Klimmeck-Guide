@@ -19,6 +19,12 @@ enum QuestAvailability {
   full,
   notInCity,
   insufficientPoints,
+
+  /// Il backend dice che la quest non avrebbe effetto (D-20): foglio strappato.
+  noEffect,
+
+  /// Il personaggio è in prigione (quick 261110-cgd): nessuna quest.
+  imprisoned,
 }
 
 class QuestStanding extends Equatable {
@@ -26,7 +32,7 @@ class QuestStanding extends Equatable {
 
   final QuestAvailability availability;
 
-  /// Foglio strappato sulla board: corsia del proprietario o posti esauriti (D-12).
+  /// Foglio strappato sulla board: vedi [isSheetTorn].
   final bool isTorn;
 
   bool get canAccept => availability == QuestAvailability.available;
@@ -51,11 +57,38 @@ QuestStanding standingOf(Quest quest, QuestViewer viewer) {
   final availability = _availabilityOf(quest, viewer);
   return QuestStanding(
     availability: availability,
-    isTorn:
-        availability == QuestAvailability.tornForOwner ||
-        _isFullForViewer(quest, viewer),
+    isTorn: isSheetTorn(
+      availability,
+      failsOwnRequirements: _failsOwnRequirements(quest, viewer),
+    ),
   );
 }
+
+/// Ogni quest non accettabile ha il foglio strappato (quick 261110-mag); la sola
+/// corsia occupata lo lascia intero, a meno che fallisca un requisito della
+/// quest stessa (posto, effetto, punti).
+bool isSheetTorn(
+  QuestAvailability availability, {
+  required bool failsOwnRequirements,
+}) => switch (availability) {
+  QuestAvailability.available => false,
+  QuestAvailability.laneBusy => failsOwnRequirements,
+  QuestAvailability.tornForOwner ||
+  QuestAvailability.notAcceptable ||
+  QuestAvailability.alreadyDone ||
+  QuestAvailability.titleMismatch ||
+  QuestAvailability.full ||
+  QuestAvailability.notInCity ||
+  QuestAvailability.insufficientPoints ||
+  QuestAvailability.noEffect ||
+  QuestAvailability.imprisoned => true,
+};
+
+/// Requisiti della quest indipendenti dalla corsia, letti anche a corsia occupata.
+bool _failsOwnRequirements(Quest quest, QuestViewer viewer) =>
+    quest.noEffect ||
+    _isFullForViewer(quest, viewer) ||
+    _lacksPoints(quest, viewer);
 
 QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
   final type = quest.infos?.type;
@@ -66,6 +99,7 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
   if (laneQuestOf(viewer.quests, lane)?.quest?.id == quest.id) {
     return QuestAvailability.tornForOwner;
   }
+  if (viewer.imprisonedFor != null) return QuestAvailability.imprisoned;
   if (_isCatalogueDefect(type, lane, quest)) {
     return QuestAvailability.notAcceptable;
   }
@@ -88,13 +122,10 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
           false)) {
     return QuestAvailability.notInCity;
   }
-  final balance = viewer.twitchPoints;
-  if (lane != QuestLane.standard &&
-      balance != null &&
-      balance < (requirements?.requiredPoints ?? 0)) {
-    return QuestAvailability.insufficientPoints;
-  }
-  return QuestAvailability.available;
+  if (_lacksPoints(quest, viewer)) return QuestAvailability.insufficientPoints;
+  return quest.noEffect
+      ? QuestAvailability.noEffect
+      : QuestAvailability.available;
 }
 
 /// Con la forma Phase 7 (`Int`) una capienza 0 non è un difetto: decide il BE.
@@ -115,6 +146,15 @@ bool _isDone(Quest quest, QuestType type, QuestViewer viewer) {
       quest.registeredAdventurers.any(
         (registered) => registered.characterId == viewer.characterId,
       );
+}
+
+/// La corsia standard non paga punti (BE Phase 7); un saldo ignoto non blocca.
+bool _lacksPoints(Quest quest, QuestViewer viewer) {
+  final type = quest.infos?.type;
+  final balance = viewer.twitchPoints;
+  if (type == null || balance == null) return false;
+  return laneOf(type) != QuestLane.standard &&
+      balance < (quest.requirements?.requiredPoints ?? 0);
 }
 
 bool _isFullForViewer(Quest quest, QuestViewer viewer) {

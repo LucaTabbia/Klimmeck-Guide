@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persistenza degli artefatti di sessione. Solo il refresh token è persistito
@@ -57,7 +57,7 @@ class SecureSessionStore implements SessionStore {
     try {
       return await _storage.read(key: refreshTokenKey);
     } catch (error) {
-      debugPrint('[SessionStore] session read failed: ${error.runtimeType}');
+      appLog('[SessionStore] session read failed: ${error.runtimeType}');
       return null;
     }
   }
@@ -84,9 +84,7 @@ class SecureSessionStore implements SessionStore {
       if (prefs.getBool(firstLaunchDoneKey) ?? false) return false;
       return await prefs.setBool(firstLaunchDoneKey, true);
     } catch (error) {
-      debugPrint(
-        '[SessionStore] first launch check failed: ${error.runtimeType}',
-      );
+      appLog('[SessionStore] first launch check failed: ${error.runtimeType}');
       return false;
     }
   }

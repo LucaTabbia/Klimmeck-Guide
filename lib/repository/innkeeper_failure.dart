@@ -18,6 +18,10 @@ enum InnkeeperFailure {
   overrideInvalid,
   notParticipant,
   forbidden,
+
+  /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
+  /// server (Phase 12 D-13a).
+  badUserInput,
   unauthenticated,
   connection,
 
@@ -51,6 +55,7 @@ InnkeeperFailure innkeeperFailureFrom(OperationException exception) {
     outcomeOverrideInvalidCode => InnkeeperFailure.overrideInvalid,
     outcomeNotParticipantCode => InnkeeperFailure.notParticipant,
     forbiddenCode => InnkeeperFailure.forbidden,
+    badUserInputCode => InnkeeperFailure.badUserInput,
     unauthenticatedCode => InnkeeperFailure.unauthenticated,
     _ => InnkeeperFailure.unknown,
   };

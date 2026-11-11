@@ -9,9 +9,12 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 
 import 'fakes/fake_server_clock_service.dart';
@@ -30,9 +33,15 @@ const _healEffectUrl =
 ///
 /// [spellbook] è una mappa di `spellbookCharacterJson(...)`; [ownedItems] sono
 /// le voci `{'item': …, 'quantity': …}` della sezione «Oggetti».
+/// [potionRecoveryUntil], [awaitingAid] e [activeTravel] entrano nello status
+/// solo se passati.
 Character journalCharacter({
   required Map<String, dynamic> spellbook,
   List<Map<String, dynamic>> ownedItems = const [],
+  List<String> injuries = const [],
+  String? potionRecoveryUntil,
+  Map<String, dynamic>? awaitingAid,
+  Map<String, dynamic>? activeTravel,
 }) => Character.fromJson({
   ...spellbook,
   'infos': {'name': 'Aria', 'sex': 'male'},
@@ -42,7 +51,10 @@ Character journalCharacter({
     'currentLifePoints': 10,
     'maxLifePoints': 12,
     'coins': {'gold': 1, 'silver': 2, 'copper': 3},
-    'injuries': <String>[],
+    'injuries': injuries,
+    'potionRecoveryUntil': ?potionRecoveryUntil,
+    'awaitingAid': ?awaitingAid,
+    'activeTravel': ?activeTravel,
   },
   'assets': {
     ...spellbook['assets'] as Map<String, dynamic>,
@@ -64,6 +76,7 @@ void seedJournalSvgs() {
     CloudinaryAssets.hungerEffect,
     CloudinaryAssets.munitionEffect,
     CloudinaryAssets.explorationEffect,
+    CloudinaryAssets.bottomEmptySheet,
   ]);
   final svg =
       File('${Directory.systemTemp.createTempSync('kg_svg').path}/j.svg')
@@ -85,19 +98,35 @@ CompanionCubit idleCompanionCubit() {
   return cubit;
 }
 
+/// Nessuna bevuta in corso.
+PotionCubit idlePotionCubit() {
+  final cubit = MockPotionCubit();
+  whenListen(
+    cubit,
+    const Stream<PotionState>.empty(),
+    initialState: const PotionIdle(),
+  );
+  return cubit;
+}
+
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
+/// Come in produzione, il Diario sta sotto PotionOutcomeListener: i banner dei
+/// rifiuti vanno a [notices].
 Future<void> pumpJournalPage(
   WidgetTester tester, {
   required CharacterCubit characterCubit,
   required SpellsCubit spellsCubit,
   CompanionCubit? companionCubit,
+  PotionCubit? potionCubit,
+  InAppNotificationsCubit? notices,
+  FakeServerClockService? clock,
 }) async {
   useLandscapePhone(tester);
   seedJournalSvgs();
   await tester.pumpWidget(
     buildTestApp(
       home: RepositoryProvider<ServerClockService>.value(
-        value: FakeServerClockService(spellFixtureNow),
+        value: clock ?? FakeServerClockService(spellFixtureNow),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
@@ -105,8 +134,14 @@ Future<void> pumpJournalPage(
             BlocProvider<CompanionCubit>.value(
               value: companionCubit ?? idleCompanionCubit(),
             ),
+            BlocProvider<PotionCubit>.value(
+              value: potionCubit ?? idlePotionCubit(),
+            ),
+            BlocProvider<InAppNotificationsCubit>.value(
+              value: notices ?? MockInAppNotificationsCubit(),
+            ),
           ],
-          child: const Scaffold(body: Journal()),
+          child: const PotionOutcomeListener(child: Scaffold(body: Journal())),
         ),
       ),
     ),

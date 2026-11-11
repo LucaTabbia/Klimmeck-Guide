@@ -1,0 +1,50 @@
+name: CI
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: ['feat/**', 'fix/**', 'refactor/**']
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      # The dev flavor declares `.env` as an asset (pubspec `flavors: [dev]`): the analyzer reports
+      # `asset_does_not_exist` as a warning when the file is missing, and warnings are fatal here.
+      # CI has no `.env` (secrets never reach the runner): an empty placeholder satisfies the analyzer;
+      # the prod release bundles no `.env` by construction and the bundle guard below proves it.
+      - name: Create the empty dev .env placeholder
+        run: touch .env
+
+      - name: Analyze (0 error / 0 warning, infos tolerated)
+        run: flutter analyze --no-fatal-infos
+      - name: Test
+        run: flutter test
+      - name: Guard greps
+        run: bash tool/hardening_check.sh
+      # The release build installs the NDK the project pins (`ndkVersion`), which the runner image
+      # does not ship pre-accepted: Gradle fails with LicenceNotAcceptedException otherwise.
+      - name: Accept the Android SDK licenses
+        run: yes 2>/dev/null | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+
+      - name: Release build (no .env, no key.properties, no google-services.json)
+        run: flutter build apk --release --dart-define-from-file=env/prod.json
+      - name: Bundle greps
+        run: bash tool/hardening_check.sh build/app/outputs/flutter-apk/app-prod-release.apk

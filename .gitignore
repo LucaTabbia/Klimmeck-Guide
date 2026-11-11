@@ -73,6 +73,7 @@ unlinked_spec.ds
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
 *.jks
+*.keystore
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -150,6 +151,9 @@ app.*.map.json
 .env
 .env.local
 !.env.example
+
+# Phase 12 D-17: dart-define locali (tunnel della UAT), mai in VCS
+env/*.local.json
 
 # Firebase config files: provided locally, never committed (Phase 5 D-02)
 android/app/google-services.json

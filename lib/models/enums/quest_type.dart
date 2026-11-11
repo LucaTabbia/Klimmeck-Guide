@@ -9,6 +9,7 @@ enum QuestType {
   dungeon(imageId: CloudinaryAssets.dungeonPawn),
   story(imageId: CloudinaryAssets.storyPawn),
   study(imageId: ''),
+  magic(imageId: ''),
   heal(imageId: ''),
   job(imageId: ''),
   crime(imageId: ''),
@@ -16,7 +17,8 @@ enum QuestType {
 
   final String _imageId;
 
-  String get imagePath => _imageId.isEmpty ? '' : CloudinaryAssets.url(_imageId);
+  String get imagePath =>
+      _imageId.isEmpty ? '' : CloudinaryAssets.url(_imageId);
 
   /// Tipo di missione per il giocatore (09-CONTEXT D-03, C2), copy provvisoria (D-19).
   String get label => switch (this) {
@@ -28,6 +30,7 @@ enum QuestType {
     QuestType.dungeon => 'Dungeon',
     QuestType.story => 'Storia',
     QuestType.study => 'Studio',
+    QuestType.magic => 'Magia',
     QuestType.heal => 'Cura',
     QuestType.job => 'Lavoro',
     QuestType.crime => 'Crimine',

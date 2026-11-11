@@ -5,7 +5,9 @@ import 'loot_fragment.dart';
 
 /// Selezione di una quest condivisa dalla lista e dalla subscription
 /// `questUpdated`: una sola forma, un solo parser. Nemici con quantità e xp
-/// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06).
+/// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06). La cura
+/// in premio e `noEffect` per il viewer sono della BE Phase 18 (18-CONTEXT
+/// D-01, D-20).
 class QuestFragment {
   static const String fields =
       '''
@@ -57,6 +59,7 @@ class QuestFragment {
         }
       }
     }
+    noEffect
     prizes {
       prizeCoins {
         ${CoinsFragment.fields}
@@ -91,6 +94,10 @@ class QuestFragment {
       pet {
         id
         name
+      }
+      cure {
+        lifePointsShare
+        canHeal
       }
     }
   ''';

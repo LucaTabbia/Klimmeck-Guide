@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 part 'notification_preferences_state.dart';
 
@@ -29,7 +29,7 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
       });
       emit(NotificationPreferencesState(enabled: _persisted, isLoaded: true));
     } catch (error) {
-      debugPrint('[NotificationPreferences] read failed: ${error.runtimeType}');
+      appLog('[NotificationPreferences] read failed: ${error.runtimeType}');
       emit(NotificationPreferencesState(isLoaded: true));
     }
   }
@@ -47,9 +47,7 @@ class NotificationPreferencesCubit extends Cubit<NotificationPreferencesState>
       await _store.setEnabled(_userId, category, enabled: enabled);
       _persisted = {..._persisted, category: enabled};
     } catch (error) {
-      debugPrint(
-        '[NotificationPreferences] write failed: ${error.runtimeType}',
-      );
+      appLog('[NotificationPreferences] write failed: ${error.runtimeType}');
       if (state.isEnabled(category) != enabled) return;
       emit(
         state.withCategory(category, enabled: _persisted[category] ?? !enabled),

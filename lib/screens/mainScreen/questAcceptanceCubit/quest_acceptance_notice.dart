@@ -1,15 +1,19 @@
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/quest/quest_blocked_reason.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/travel/travel_cost_text.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
+import 'package:klimmeck_guide/utils/prison_lines.dart';
 
 const String questAcceptanceNoticeTitle = 'Missione non accettata';
 
 /// Copy di dominio del banner (D-04), provvisoria (D-19). Nessun banner per
 /// UNAUTHENTICATED: il flusso di sessione sta già agendo.
+/// [imprisonedFor] è il tempo che manca alla fine della prigione.
 KGNotification? questAcceptanceNoticeFor(
   QuestAcceptanceFailure failure, {
   QuestType? type,
+  Duration? imprisonedFor,
 }) {
   final description = switch (failure) {
     QuestAcceptanceFailure.slotBusy => switch (type) {
@@ -35,10 +39,13 @@ KGNotification? questAcceptanceNoticeFor(
     QuestAcceptanceFailure.awaitingAid =>
       'Sei in attesa di soccorso: non puoi accettare missioni',
     QuestAcceptanceFailure.starving => starvingPhrase,
+    QuestAcceptanceFailure.noEffect => questNoEffectLine,
+    QuestAcceptanceFailure.imprisoned => prisonReleaseLine(imprisonedFor),
     QuestAcceptanceFailure.connection => 'Connessione assente, riprova',
     QuestAcceptanceFailure.timedOut =>
       'Il server non ha risposto in tempo: '
           'controlla la bacheca prima di riprovare',
+    QuestAcceptanceFailure.badUserInput ||
     QuestAcceptanceFailure.unknown => 'Qualcosa è andato storto, riprova',
     QuestAcceptanceFailure.unauthenticated => null,
   };

@@ -30,15 +30,19 @@ import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_l
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/prison_status_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_scope_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_menu.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/spell_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/main_screen.dart';
+import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -298,6 +302,7 @@ void main() {
     late MockSpellsCubit spellsCubit;
     late StreamController<SpellsState> spellsStates;
     late MockCompanionCubit companionCubit;
+    late MockPotionCubit potionCubit;
     late MockTransactionCubit transactionCubit;
     late StreamController<TransactionState> transactionStates;
     late MapAvailabilityCubit availability;
@@ -337,6 +342,12 @@ void main() {
         const Stream<CompanionState>.empty(),
         initialState: const CompanionState(),
       );
+      potionCubit = MockPotionCubit();
+      whenListen(
+        potionCubit,
+        const Stream<PotionState>.empty(),
+        initialState: const PotionIdle(),
+      );
       transactionCubit = MockTransactionCubit();
       transactionStates = StreamController<TransactionState>.broadcast();
       addTearDown(transactionStates.close);
@@ -368,8 +379,15 @@ void main() {
       Map<String, dynamic>? awaitingAid,
       CharacterState? character,
       Stream<CharacterState>? characterStream,
+      PrisonState prison = const PrisonState(null),
     }) async {
       useLandscapePhone(tester);
+      final prisonCubit = MockPrisonCubit();
+      whenListen(
+        prisonCubit,
+        const Stream<PrisonState>.empty(),
+        initialState: prison,
+      );
       final authStates = StreamController<AuthState>.broadcast();
       final intentCubit = NotificationIntentCubit(authStates.stream);
       addTearDown(() async {
@@ -406,6 +424,7 @@ void main() {
               BlocProvider<TravelCubit>.value(value: travelCubit),
               BlocProvider<SpellsCubit>.value(value: spellsCubit),
               BlocProvider<CompanionCubit>.value(value: companionCubit),
+              BlocProvider<PotionCubit>.value(value: potionCubit),
               BlocProvider<TransactionCubit>.value(value: transactionCubit),
               BlocProvider<MapAvailabilityCubit>.value(value: availability),
               BlocProvider<QuestResultsCubit>.value(value: questResultsCubit),
@@ -414,6 +433,7 @@ void main() {
               ),
               BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
               BlocProvider<AuthCubit>.value(value: authCubit),
+              BlocProvider<PrisonCubit>.value(value: prisonCubit),
             ],
             child: MainScreen(
               characterId: 'c-1',
@@ -476,6 +496,27 @@ void main() {
       );
     });
 
+    testWidgets('mounts the potion outcome listener in the session chain '
+        '(D-18)', (tester) async {
+      await pumpMainScreen(tester, 'city-marker-1');
+
+      expect(find.byType(PotionOutcomeListener), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(CompanionOutcomeListener),
+          matching: find.byType(PotionOutcomeListener),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('mounts the prison status listener in the session chain '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpMainScreen(tester, 'city-marker-1');
+
+      expect(find.byType(PrisonStatusListener), findsOneWidget);
+    });
+
     group('cities refresh', () {
       late StreamController<CharacterState> characterStates;
 
@@ -484,6 +525,10 @@ void main() {
         addTearDown(characterStates.close);
         when(() => mainScreenCubit.loadData()).thenAnswer((_) async {});
         when(() => mainScreenCubit.refreshCities()).thenAnswer((_) async {});
+        // D-20: un cambio di vita in città rilegge anche le quest.
+        when(
+          () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+        ).thenAnswer((_) async {});
       });
 
       CharacterLoaded characterKnowing(
@@ -746,6 +791,20 @@ void main() {
 
       await tapItem(tester, SatchelLayout.shopPageIndex);
       expect(controller.page!.round(), 0);
+    });
+
+    testWidgets('in prison the board and shop cells are disabled '
+        '(quick 261110-cgd)', (tester) async {
+      await pumpMainScreen(
+        tester,
+        'city-marker-1',
+        prison: const PrisonState(Duration(hours: 9)),
+      );
+
+      expect(
+        tester.widget<SatchelMenu>(find.byType(SatchelMenu)).disabledPages,
+        {SatchelLayout.boardPageIndex, SatchelLayout.shopPageIndex},
+      );
     });
 
     testWidgets('awaiting aid the board and shop cells look disabled', (

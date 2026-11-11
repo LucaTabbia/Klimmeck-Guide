@@ -1,18 +1,16 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
-import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
-import 'package:klimmeck_guide/shared/components/items_filter.dart';
-import 'package:klimmeck_guide/utils/filter_values.dart';
+import 'package:klimmeck_guide/utils/app_log.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
@@ -45,7 +43,6 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   SpellRecoveryCubit? _selectedSpellRecovery;
   List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
-  EffectType? _selectedEffect;
 
   late AnimationController _animationController;
   late Animation<double> _positionAnimation;
@@ -224,56 +221,6 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
-  List<AssetQuantity> _ownedItemsOf(Character character) =>
-      character.assets?.ownedItems ?? const <AssetQuantity>[];
-
-  /// Un effetto sparito dagli oggetti riporta i chip a «Tutti» (D-23).
-  void _dropVanishedEffectFilter(CharacterState state) {
-    if (state is! CharacterLoaded) return;
-    final retained = retainedFilterSelection(
-      _selectedEffect,
-      presentEffectTypes(_ownedItemsOf(state.character)),
-    );
-    if (retained != _selectedEffect) setState(() => _selectedEffect = retained);
-  }
-
-  Widget _buildOwnedItemsSection(Character character, double lootSize) {
-    final ownedItems = _ownedItemsOf(character);
-    final effectTypes = presentEffectTypes(ownedItems);
-    final selectedEffect = retainedFilterSelection(
-      _selectedEffect,
-      effectTypes,
-    );
-    final shownItems = selectedEffect == null
-        ? ownedItems
-        : ownedItems.where(
-            (owned) => owned.item?.asLoot?.effect == selectedEffect,
-          );
-    return Dropdown(
-      sectionName: "Oggetti",
-      data: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (effectTypes.isNotEmpty)
-            ItemsFilter<EffectType>(
-              values: effectTypes,
-              current: selectedEffect,
-              onTap: (effect) => setState(() => _selectedEffect = effect),
-              getImage: (effect) => effect.imagePath,
-            ),
-          for (final owned in shownItems)
-            if (owned.item case final item?)
-              ItemRow(
-                assetItem: item,
-                quantity: owned.quantity,
-                showCoins: false,
-                size: lootSize,
-              ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildInfoSheet(double screenWidth) {
     return AnimatedBuilder(
       animation: _animationController,
@@ -388,7 +335,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       itemIdToSend = null;
     } else {
       if (_selectedSlot == null) {
-        debugPrint("Impossibile equipaggiare: Selezionare prima uno slot.");
+        appLog("Impossibile equipaggiare: Selezionare prima uno slot.");
         return;
       }
       targetSlot = _selectedSlot;
@@ -396,7 +343,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     }
 
     if (targetSlot == null) {
-      debugPrint("Errore: Impossibile determinare lo slot target per l'azione.");
+      appLog("Errore: Impossibile determinare lo slot target per l'azione.");
       return;
     }
 
@@ -412,12 +359,13 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _positionAnimation = Tween<double>(
-      begin: MediaQuery.of(context).size.height,
-      end: 0.0,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
+    _positionAnimation =
+        Tween<double>(
+          begin: MediaQuery.of(context).size.height,
+          end: 0.0,
+        ).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+        );
   }
 
   @override
@@ -425,8 +373,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocConsumer<CharacterCubit, CharacterState>(
-      listener: (context, state) => _dropVanishedEffectFilter(state),
+    return BlocBuilder<CharacterCubit, CharacterState>(
       builder: (context, state) {
         if (state is CharacterLoaded) {
           Character character = state.character;
@@ -477,7 +424,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                 lootSize,
                               ),
                               CompanionSection(size: lootSize),
-                              _buildOwnedItemsSection(character, lootSize),
+                              ItemsSection(size: lootSize),
                               const SizedBox(height: 120),
                             ],
                           ),
