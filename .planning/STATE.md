@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: executing
-last_updated: "2026-11-11T12:00:00.000Z"
-last_activity: 2026-11-11 -- Phase 19 plan 12 executed (gate plan: schema gate and 46/46 documents OK on BE `48b20701`, full suite 4216 green, analyzer 47 info, validation approved); the device E2E 19-13 is next
+status: phase-complete
+last_updated: "2026-11-11T13:10:00.000Z"
+last_activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 26
-  completed_plans: 25
-  percent: 96
+  completed_plans: 26
+  percent: 100
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 19 — Model Review (frontend companion) — EXECUTING at 12/13 on `feat/19-model-review`: the gated wave is done (19-10 atomic renames, 19-11 fragment flip and window readers deleted, 19-12 gates) except the device E2E 19-13; BE Phase 19 is merged on BE `develop` (PR #33, `48b20701`) and the BE on this machine runs the Phase 19 code with migrated data and the pet content
+**Current focus:** Phase 19 — Model Review (frontend companion) — COMPLETE on `feat/19-model-review` (13/13): device E2E passed on 2026-11-11 against BE Phase 19 (`19-HUMAN-UAT.md`), quick task 261111-enm on the branch, full suite 4239 green; both phases of v1.1 are done
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
 Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
-Plan: 12 of 13
-Status: Executing — every automated gate is green against the merged BE (`48b20701`): schema gate `GATE_OK`, 46/46 documents OK, full suite 4216 green, analyzer 47 info / 0 warning / 0 error, added files format-clean, `hardening_check` OK, no removed wire name nor window reader left (`19-VALIDATION.md` approved, device rows pending). Delivered: parsers hardened (MODEL-04, 12 rows + the review fixes), `Weaknesses`, `OwnedPet` entries, pet `attack`/`defense`/`rarity`, companion lines («Esperienza», «Attacco», «Difesa», name in the rarity colour), result line «Il tuo compagno guadagna N PE», spells on the single `spellStates` list with `active` (slots in learning order), `wornEquipment`/`feet`, `Lore.imagePath`. Code review 0 critical / 2 warning / 12 info → 5 fixed, 9 closed by ruling (`19-REVIEW-FIX.md`). The branch selects names that exist only on a BE with Phase 19.
-Last activity: 2026-11-11 -- Phase 19 plan 12 executed (gate plan: schema gate and 46/46 documents OK on BE `48b20701`, full suite 4216 green, analyzer 47 info, leftover and product-rule greps clean, `19-VALIDATION.md` approved)
-Next step: 19-13 (device E2E, human checkpoint — needs a pet bought; check the legibility of long attack lines and the ink of a common pet name; requirements MODEL-01..04 closed there); security audit at the close, then the PR to `develop`.
+Plan: 13 of 13
+Status: Phase complete — 13/13 on `feat/19-model-review`. Device E2E passed on 2026-11-11 against BE Phase 19 (BE `develop` `48b20701`, then the BE quick-task branch `fix/enemy-quests-single-player` for the last three checks): steps 1–11 pass (step 7 on the second attempt), optional 12–14 skipped, extra checks A–C pass; MODEL-01..04 complete. Born in the UAT: quick task 261111-enm on both repos (`enemy` quests single-player with a minimum rank; 155 open quests aligned at DB) and the user rule on the pet shops by city size (content at DB). Gates after the quick task: full suite 4239 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK. Security 56/56 closed (`19-SECURITY.md`); handoff in `19-model-review/BACKEND-NOTES.md`. The branch selects names that exist only on a BE with Phase 19 and judges `enemy` quests like the BE of the quick task.
+Last activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
+Next step: PR `feat/19-model-review` → `develop`, opened by the user AFTER the BE quick-task PR `fix/enemy-quests-single-player` is merged (the FE now judges `enemy` quests like the new BE); then the milestone v1.1 close.
 
 ## Current Milestone
 
@@ -55,6 +55,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **CHAR-06** (client-side NSFW pre-screen) — known gap of v1.0; decide in v1.1 whether to drop it on the server-side moderation (BE Phase 10 + HARDEN-10 codes).
 - **Backend rule F2** (Phase 9 UAT): a started quest whose participant is archived is fought as an occupied seat — honoured by the BE 9.2/10 seat holders; keep an eye on it in the Phase 19 model review.
 - **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
+- **Phase 19 device notes** (19-13, not blockers): long «Attacco» lines shrink and the common ink is close to the normal ink (the user found both fine); the abandon button of the map sheet may flash next to «In combattimento…» for a solo quest (pre-existing); pets as quest prizes (BE D-28) not seen on the device yet; the unregistered flags UF-19-01..03 of the security audit accepted as they are; the innkeeper's test character carries two more injuries from this UAT (`missingLeftHand`, `brokenRightLeg`).
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
@@ -83,6 +84,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-10 — v1.1 milestone start (FE and BE)
-Stopped at: Completed 18-13-PLAN.md (2026-11-11) — Phase 18 complete, PR to `develop` next
-Resume file: .planning/phases/18-heal-quests-by-size/18-13-SUMMARY.md
+Last session: 2026-11-11 — Phase 19 device E2E and closing documents
+Stopped at: Completed 19-13-PLAN.md (2026-11-11) — Phase 19 complete, PR to `develop` next (after the BE quick-task PR), then the milestone v1.1 close
+Resume file: .planning/phases/19-model-review/19-13-SUMMARY.md

@@ -6,16 +6,16 @@ status: secured
 asvs_level: 1
 block_on: high
 threats_total: 56
-threats_mitigated: 52
+threats_mitigated: 54
 threats_accepted: 2
 threats_transferred: 0
 threats_open: 0
 threats_open_blocking: 0
-threats_deferred: 2
+threats_deferred: 0
 open_ids: []
-deferred_ids: [T-19-50, T-19-51]
+deferred_ids: []
 unregistered_flags: 3
-updated: 2026-11-11T11:58:00Z
+updated: 2026-11-11T13:10:00Z
 ---
 
 # Phase 19 - Security (Model Review, frontend companion)
@@ -80,8 +80,8 @@ Status legend: CLOSED = mitigation found in code and pinned by a test (or accept
 | T-19-47 | Tampering | rule, chrome, bar or extra selection slipping in | mitigate | CLOSED | `19-12-SUMMARY.md` product-rule greps (one explained hit); checks C and D re-run here | |
 | T-19-48 | Tampering / Info disclosure | BE working tree, `.env` | mitigate | CLOSED | `19-12-SUMMARY.md:92` | process evidence |
 | T-19-49 | Repudiation | forbidden trailers | mitigate | CLOSED | check I re-run here: 0 over the 89 commits | |
-| T-19-50 | Info disclosure | `19-HUMAN-UAT.md`, `BACKEND-NOTES.md` | mitigate | PENDING the device E2E | half done: `19-HUMAN-UAT.md` (commit `7897713c`) -> grep for a Mongo URI scheme, `token=`, `password` = 0, no 24-hex id; `BACKEND-NOTES.md` and the recorded results do not exist yet (19-13 Task 3) | re-run the grep on both files after Task 3 |
-| T-19-51 | Repudiation | requirement traceability | mitigate | PENDING the device E2E | 19-13 Task 3 (`mark-complete` only after steps 1-11 per the requirement <-> step map); UAT is `status: in-progress`, every Result cell empty | |
+| T-19-50 | Info disclosure | `19-HUMAN-UAT.md`, `BACKEND-NOTES.md` | mitigate | CLOSED (after the device E2E) | both files written by 19-13 Task 3 (`f91b8d10`, `66ef3472`): the grep for a Mongo URI scheme, a query-string credential, a credential word or a numeric twitch id prints 0 on each; no 24-hex id in either | see «After the device E2E» |
+| T-19-51 | Repudiation | requirement traceability | mitigate | CLOSED (after the device E2E) | `19-HUMAN-UAT.md` `status: complete`: steps 1–11 `pass` in the user's words before `mark-complete`; `REQUIREMENTS.md` MODEL-01..04 `[x]` / `Complete` in the same commit `f91b8d10` | see «After the device E2E» |
 | T-19-52 | DoS | APK against a BE without Phase 19 / non-migrated DB | mitigate | CLOSED | `19-HUMAN-UAT.md:12` (gate re-checked, `GATE_OK` on `48b20701`), `:16,36` (boot runbook as a prerequisite owned by the orchestrator) | the «done» cells are filled at the device run |
 | T-19-53 | Tampering | BE repo and DB seeds | accept | CLOSED | accepted risk AR-19-02 | |
 
@@ -120,9 +120,22 @@ The SUMMARYs of plans 01-12 raise no `## Threat Flags` entry. The review fixes (
 
 None.
 
-## Pending the device E2E (plan 19-13)
+## Pending the device E2E (plan 19-13) — closed, see «After the device E2E»
 
 - T-19-50: Task 3 — after the results are recorded and `BACKEND-NOTES.md` is written, the grep for a Mongo URI scheme, `token=`, `password` must print 0 on both files (today 0 on `19-HUMAN-UAT.md`, the other file does not exist).
 - T-19-51: Task 3 — `mark-complete` only for the MODEL ids whose mandatory steps passed in the user's words (MODEL-01: 9, 10, 11; MODEL-02: 1, 2, 3, 7, 8; MODEL-03: 4, 5, 6; MODEL-04: 9 + gates).
 
 Closed threats that the device run also observes on the real wire (not a condition of their status): T-19-01 (step 9), T-19-17 / T-19-21 (steps 3, 7, 8), T-19-20 (steps 1, 3: legibility of a long attack line), T-19-28 / T-19-41 (steps 4, 5), T-19-38 (step 6).
+
+## After the device E2E (2026-11-11)
+
+Plan 19-13 Task 3 ran after the device run (`19-HUMAN-UAT.md`, `status: complete`). The two threats left pending are closed; totals **56 / 56 closed** (54 mitigated, 2 accepted, 0 open, 0 deferred).
+
+| ID | Closing evidence |
+|----|------------------|
+| T-19-50 | `19-HUMAN-UAT.md` (results, findings, extra checks) and `BACKEND-NOTES.md` (FE handoff) re-checked after they were written: the acceptance grep (Mongo URI scheme, query-string credential, credential word, numeric twitch id) prints `0` on both; no 24-hex id; identities are described by role (innkeeper, non-innkeeper rookie) and by character name only, the identity switch by its mechanism only; seeds and DB readings are reported as outcomes (counts, field names), never as scripts or connection data |
+| T-19-51 | `mark-complete` ran only after every mandatory step passed in the user's words: MODEL-01 (9, 10, 11), MODEL-02 (1, 2, 3, 7, 8 — step 7 on the second attempt, step 2 completed by check A), MODEL-03 (4, 5, 6), MODEL-04 (9 + the gates of 19-10 / 19-12); optional steps 12–14 are recorded as skipped and tick nothing |
+
+Surface added after the audit: the quick task 261111-enm (`a29360bd`, `169daeda`) changes how the FE JUDGES an `enemy` quest (one rank-free seat, minimum rank as a display pre-check); it adds no selection, variable, log line or dependency, and the backend still decides the acceptance (BE twin on `fix/enemy-quests-single-player`). Gates after it: full suite 4239 green, analyzer 47 info / 0 warning / 0 error, `hardening_check: OK`.
+
+Unregistered flags UF-19-01, UF-19-02, UF-19-03: accepted as they are at the close of the phase (none is a blocker under `block_on: high`); no code change.

@@ -69,9 +69,9 @@ created: 2026-11-11
 | 19-11-03 | 11 | 11 | MODEL-03 | T-19-42 | no legacy spell translation; leftover-name grep empty | unit + grep | `flutter test test/models test/graphql test/tool test/screens/mainScreen/tabs/journal test/screens/mainScreen/components test/screens/innkeeper` | ✅ | ✅ green |
 | 19-12-01 | 12 | 12 | MODEL-04 | T-19-45, T-19-46, T-19-47, T-19-48 | gate, 46 × OK, leftover and product-rule greps empty | gate | gate re-check + schema check + greps (`LEFTOVER_OK`) | ✅ | ✅ green |
 | 19-12-02 | 12 | 12 | MODEL-01..04 | T-19-49 | full suite, analyzer, format, trailers | gate | `flutter test` (full, foreground) | ✅ | ✅ green |
-| 19-13-01 | 13 | 13 | MODEL-04 | T-19-50, T-19-52 | no ids, tokens or URIs in the record; gate re-checked | docs | `test -f .planning/phases/19-model-review/19-HUMAN-UAT.md` + row count 14 | ❌ (created by the task) | ⬜ pending |
-| 19-13-02 | 13 | 13 | MODEL-01..04 | T-19-53 | seeds outside the repo; outcomes only | manual (device checkpoint) | `19-HUMAN-UAT.md` steps 1–14 | — | ⬜ pending |
-| 19-13-03 | 13 | 13 | MODEL-01..04 | T-19-50, T-19-51 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ⬜ pending |
+| 19-13-01 | 13 | 13 | MODEL-04 | T-19-50, T-19-52 | no ids, tokens or URIs in the record; gate re-checked | docs | `test -f .planning/phases/19-model-review/19-HUMAN-UAT.md` + row count 14 | ✅ | ✅ green |
+| 19-13-02 | 13 | 13 | MODEL-01..04 | T-19-53 | seeds outside the repo; outcomes only | manual (device checkpoint) | `19-HUMAN-UAT.md` steps 1–14 | — | ✅ green |
+| 19-13-03 | 13 | 13 | MODEL-01..04 | T-19-50, T-19-51 | requirements ticked only on passed steps | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -116,6 +116,8 @@ Test files and helpers that do not exist yet; each is created in the RED step of
 - [x] Feedback latency < 60s for the per-task runs
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** approved 2026-11-11 (automated gates of plan 19-12; the device rows 19-13-01..03 stay pending)
+**Approval:** approved 2026-11-11 (automated gates of plan 19-12 and the device E2E of plan 19-13)
 
 Gate passed on BE `48b20701`: 46/46 OK, full suite 4216 green, analyzer 47 info (0 warning, 0 error).
+
+Device E2E passed on 2026-11-11 (`19-HUMAN-UAT.md`, steps 1–11 pass, step 7 on the second attempt, optional steps 12–14 skipped, extra checks A, B, C pass). After the quick task 261111-enm born in the UAT: full suite 4239 green, analyzer 47 info (0 warning, 0 error), `hardening_check` OK.
