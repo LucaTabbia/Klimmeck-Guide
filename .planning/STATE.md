@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`)
 Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
-Plan: 9 of 13
+Plan: 10 of 13
 Status: Parked — pre-gate wave complete: parsers hardened (MODEL-04, 12 rows + the review fixes on null rarity and malformed pets), `Weaknesses`, `OwnedPet`, pet `attack`/`defense`/`rarity`, companion lines («Esperienza», «Attacco», «Difesa», name in the rarity colour), result line «Il tuo compagno guadagna N PE», spells on the single `spellStates` list (slots in learning order). Code review 0 critical / 2 warning / 12 info → 5 fixed, 9 closed by ruling (`19-REVIEW-FIX.md`). Full suite 4207 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK.
-Last activity: 2026-11-12 -- Phase 19 plans 01–09 executed, review fixed, parked at the gate
+Last activity: 2026-11-12 -- Phase 19 plan 10 executed after the BE Phase 19 merge (schema gate green on BE `48b20701`, `wornEquipment`/`feet` and `Lore.imagePath` renamed); the branch now needs a BE with Phase 19
 Next step: after the BE Phase 19 merge on BE `develop` (and its pet content at DB): schema gate, then 19-10 (atomic `wornEquipment`/`feet` and `Lore.imagePath`), 19-11 (fragment flip, window readers deleted), 19-12 (full gates), 19-13 (device E2E — needs a pet bought; check the legibility of long attack lines and the ink of a common pet name); security audit at the close.
 
 ## Current Milestone
