@@ -107,54 +107,96 @@ void main() {
       expect(status.xp, 1);
     }
 
-    test('a missing spellStates is null (pre-9.1 payload)', () {
+    test('spellStates is an empty list when the field is absent (D-05)', () {
       final status = CharacterStatus.fromJson(statusJson());
 
-      expect(status.spellStates, isNull);
+      expect(status.spellStates, isEmpty);
       expectOtherFieldsParsed(status);
     });
 
-    test('an empty spellStates is an empty list, not null', () {
+    test(
+      'spellStates is an empty list when the field is not a list (D-05)',
+      () {
+        for (final Object malformed in [
+          'spell-states',
+          7,
+          <String, Object?>{},
+        ]) {
+          final status = CharacterStatus.fromJson(
+            statusJson(spellStates: malformed),
+          );
+
+          expect(
+            status.spellStates,
+            isEmpty,
+            reason: 'spellStates: $malformed',
+          );
+          expectOtherFieldsParsed(status);
+        }
+      },
+    );
+
+    test('an empty spellStates is an empty list', () {
       final status = CharacterStatus.fromJson(statusJson(spellStates: []));
 
       expect(status.spellStates, isEmpty);
-      expect(status.spellStates, isNotNull);
     });
 
-    test('malformed entries are skipped and the status survives', () {
+    test('a malformed state entry is dropped and the others stay (D-05)', () {
       final status = CharacterStatus.fromJson(
         statusJson(
           spellStates: [
             spellStateJson(),
             {'usages': 1},
+            'not-a-state',
+            spellStateJson(spellId: 'spell-2', active: true),
           ],
         ),
       );
 
-      expect(status.spellStates, [SpellState.fromJson(spellStateJson())]);
+      expect(status.spellStates, [
+        SpellState.fromJson(spellStateJson()),
+        SpellState.fromJson(spellStateJson(spellId: 'spell-2', active: true)),
+      ]);
       expectOtherFieldsParsed(status);
     });
 
-    test('a non-list spellStates is null and the status survives', () {
+    test('parses active states with their full spell (D-05)', () {
       final status = CharacterStatus.fromJson(
-        statusJson(spellStates: 'spell-states'),
+        statusJson(
+          spellStates: [
+            spellStateJson(
+              spellId: 's-1',
+              spell: spellJson(id: 's-1', name: 'Scudo'),
+              active: true,
+            ),
+            spellStateJson(
+              spellId: 's-2',
+              spell: spellJson(id: 's-2', name: 'Dardo'),
+            ),
+          ],
+        ),
       );
 
-      expect(status.spellStates, isNull);
-      expectOtherFieldsParsed(status);
+      expect(status.spellStates.map((state) => state.spellId), ['s-1', 's-2']);
+      expect(status.spellStates.map((state) => state.active), [true, false]);
+      expect(status.spellStates.map((state) => state.spell.name), [
+        'Scudo',
+        'Dardo',
+      ]);
     });
 
-    test('toJson emits the spell states, or null when absent', () {
+    test('toJson writes the spell states (D-05)', () {
       final status = CharacterStatus.fromJson(
-        statusJson(spellStates: [spellStateJson()]),
+        statusJson(spellStates: [spellStateJson(active: true)]),
       );
 
       expect(status.toJson()['spellStates'], [
-        SpellState.fromJson(spellStateJson()).toJson(),
+        SpellState.fromJson(spellStateJson(active: true)).toJson(),
       ]);
       expect(
         CharacterStatus.fromJson(statusJson()).toJson()['spellStates'],
-        isNull,
+        isEmpty,
       );
     });
 
@@ -164,17 +206,25 @@ void main() {
             CharacterStatus.fromJson(statusJson()),
         isFalse,
       );
+      expect(
+        CharacterStatus.fromJson(statusJson(spellStates: [spellStateJson()])) ==
+            CharacterStatus.fromJson(
+              statusJson(spellStates: [spellStateJson(active: true)]),
+            ),
+        isFalse,
+      );
     });
 
-    test('copyWith keeps the current spellStates', () {
+    test('copyWith keeps the spell states (D-05)', () {
       final status = CharacterStatus.fromJson(
-        statusJson(spellStates: [spellStateJson()]),
+        statusJson(spellStates: [spellStateJson(active: true)]),
       );
 
       final copy = status.copyWith(xp: 5);
 
       expect(copy.xp, 5);
       expect(copy.spellStates, status.spellStates);
+      expect(copy.spellStates.single.active, isTrue);
     });
   });
 
@@ -548,6 +598,6 @@ void main() {
 
     expect(character.status!.spells, hasLength(1));
     expect(character.assets!.activeSpells, isEmpty);
-    expect(character.status!.spellStates, isNull);
+    expect(character.status!.spellStates, isEmpty);
   });
 }

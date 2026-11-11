@@ -41,10 +41,13 @@ Map<String, dynamic> spellStateJson({
     '2026-10-27T10:12:00.000Z',
     '2026-10-27T10:42:00.000Z',
   ],
+  bool active = false,
+  Map<String, dynamic>? spell,
 }) => {
-  'spell': {'id': spellId},
+  'spell': spell ?? spellJson(id: spellId),
   'usages': usages,
   'recoveries': recoveries,
+  'active': active,
 };
 
 /// `spellStates == null` = payload pre-9.1 (campo assente).
