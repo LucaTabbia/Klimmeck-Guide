@@ -55,6 +55,17 @@ class City extends Equatable {
     );
   }
 
+  /// Confine di parsing (D-16): una città che non si legge (tipo sconosciuto
+  /// a questo client) vale `null` e viene scartata; le altre restano in Mappa.
+  static City? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    try {
+      return City.fromJson(json);
+    } on Object {
+      return null;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
     "id": id,
     "type": type?.name,

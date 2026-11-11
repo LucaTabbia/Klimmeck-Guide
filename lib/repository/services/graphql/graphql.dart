@@ -315,7 +315,7 @@ class KlimmeckGraphQl {
       throw Exception('No cities found');
     }
 
-    return citiesData.map((json) => City.fromJson(json)).toList();
+    return citiesData.map(City.tryFromJson).nonNulls.toList();
   }
 
   Future<List<Quest>> getQuests() async {
