@@ -1,7 +1,7 @@
 # Phase 20: Rank-Specific Prizes for Group Quests - Context
 
 **Gathered:** 2026-11-12
-**Status:** Ready for planning (needs a BE companion phase on the BE roadmap — see «Backend companion»)
+**Status:** Ready for planning — BE companion: **BE Phase 21 «Premi per rango e soccorsi»** (BE-RANKP-01..06, branch `feat/21-premi-per-rango-e-soccorsi`)
 
 <domain>
 ## Phase Boundary
@@ -110,7 +110,7 @@ Group quests reward every participant with a prize block suited to **their own r
 - Innkeeper's view and choice of prizes per character — Phase 21.
 
 ### Backend companion
-- A BE phase must be added on the BE roadmap (after BE Phase 20 «Cibo e vita progressivi»): rank blocks on group quests (model, generator incl. mixed bosses, resolution per participant, aid clone), aid fixes D-09/D-12..D-16. Not written in this discuss: to be opened in the BE repo.
+- Opened on 2026-11-12 as **BE Phase 21 «Premi per rango e soccorsi»** (`Klimmeck-Guide-BE/.planning/phases/21-premi-per-rango-e-soccorsi/21-CONTEXT.md`, same decisions, BE-RANKP-01..06). FE plans that read the new wire shape are gated on its merge.
 
 </deferred>
 
