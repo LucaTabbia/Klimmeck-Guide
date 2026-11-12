@@ -133,7 +133,7 @@ Plans:
 **Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE Phase 22 «Completamento guidato delle missioni» (BE-GMFLOW-01..07, opened 2026-11-12: enemy list by rank/POI type, dry-run simulation, draft, completion with manual outcome and per-character prizes)
 **Scope**: TBD
 **Requirements**: TBD
-**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `21-CONTEXT.md` (D-01..D-10, discuss 2026-11-12): teleport to cities and inner POIs, one or several fights with enemies filtered by POI and rank («Mostra tutti»), simulation without writes, corrections, prizes prefilled from the rank block, backend draft, players locked with a «Missione in corso» notice until the result, always completed
+**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `21-CONTEXT.md` (D-01..D-10, discuss 2026-11-12): teleport to cities and inner POIs, one or several fights with enemies filtered by POI and rank («Mostra tutti»), simulation without writes, corrections, prizes prefilled from the rank block, backend draft, players locked with a «Missione in corso» notice until the result (the same lock for every mission from its effective start, D-12), always completed
 **Plans**: 0 plans
 
 Plans:
