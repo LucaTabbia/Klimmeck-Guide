@@ -2,12 +2,12 @@
 
 **Created:** 2026-04-10
 **Last updated:** 2026-11-11 — Phase 19 Model Review (companion) complete: both phases of v1.1 Healing & Models are done, the milestone close is next; v1.0 Core Loop archived in `milestones/v1.0-ROADMAP.md`
-**Milestone:** v1.1 Healing & Models — Phases 18–19 (companion of the BE milestone v1.1 «Cura e modelli», BE Phases 18–20)
+**Milestone:** v1.1 Healing & Models — Phases 18–21 (companion of the BE milestone v1.1 «Cura e modelli», BE Phases 18–20)
 
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 🚧 **v1.1 Healing & Models** — Phases 18–19 (started 2026-11-10; both phases complete 2026-11-11, milestone close pending) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
+- 🚧 **v1.1 Healing & Models** — Phases 18–21 (started 2026-11-10; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11, not planned yet) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -36,14 +36,16 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 </details>
 
-### 🚧 v1.1 Healing & Models (Phases 18–19)
+### 🚧 v1.1 Healing & Models (Phases 18–21)
 
 **Milestone goal:** the heal quests cure by the size of the city and the heal potions are drunk from the Journal with the backend's global recovery; the app follows the cleaned backend models, with the companion experience as the only visible change. Numbering continues from 18 (never restarts).
 
 - [x] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_ (completed 2026-11-11)
 - [x] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_ (completed 2026-11-11)
+- [ ] **Phase 20: Rank-Specific Prizes for Group Quests** — A group quest carries a prize for each rank that can join it: the adventurer gets a prize fit for an adventurer, the mage in the same quest a prize fit for a mage; backend-owned, the sheets show the viewer the prize of their own rank. Needs a BE companion phase. _(added 2026-11-11)_
+- [ ] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11)_
 
-**Execution order:** 18 → 19. Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
+**Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Phase Details
 
@@ -106,6 +108,28 @@ Plans:
 - [x] 19-12-PLAN.md — Schema check, full suite, analyzer, validation (gated)
 - [x] 19-13-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
+### Phase 20: Rank-Specific Prizes for Group Quests
+**Goal**: A group quest rewards every participant with a prize suited to their own rank: if an adventurer can join, the quest carries a prize fit for an adventurer, and the mage who joins the same quest gets a prize fit for a mage. Prizes are defined per rank among the ranks admitted by the quest and resolved by the backend for each participant; the app shows each viewer the prize of their own rank on the quest sheet and on the result sheet.
+**Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 14 (quest generation, pools by rank), BE companion phase (to be added on the BE roadmap: prizes per rank on group quests, generation and resolution per participant). Executed before Phase 21, whose prize step reuses the prizes by rank (user decision, 2026-11-11).
+**Scope**: TBD
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE): TBD (run /gsd-discuss-phase 20)
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 20 to break down)
+
+### Phase 21: Innkeeper Mission Completion Flow
+**Goal**: The innkeeper completes a story or worldMission quest from the Inn through a guided flow instead of the current plain form: (1) teleport the participants to a POI/city; (2) pick the enemies from a list — quantity and kind — filtered by the rank of the mission and the type of the POI; (3) run a combat simulation with the backend combat engine that does **not** write its outcome on the characters; (4) fix the outcome by hand where needed (remove the injuries in excess, set each character's life with a slider); (5) choose the prizes per character (coins, xp, items, pets, spells) from a list already filtered to the prizes suited to that character's rank (Phase 20); (6) complete the quest, which updates the playing characters. The backend stays the source of truth: simulation, enemy lists and the final write are server-side, the app only drives the steps.
+**Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE companion phase (to be added on the BE roadmap: enemy list by rank/POI type, dry-run simulation, completion with manual outcome and per-character prizes)
+**Scope**: TBD
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE): TBD (run /gsd-discuss-phase 21)
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 21 to break down)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -129,6 +153,8 @@ Plans:
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
+| 20. Rank-Specific Prizes for Group Quests | v1.1 | 0/0 | Not planned | — |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
 
 ---
 

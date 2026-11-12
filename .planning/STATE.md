@@ -2,11 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: phase-complete
-last_updated: "2026-11-11T13:10:00.000Z"
-last_activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
+status: completed
+stopped_at: Phase 20 context gathered
+last_updated: "2026-11-12T17:34:45.584Z"
+last_activity: "2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next"
 progress:
-  total_phases: 2
+  total_phases: 4
   completed_phases: 2
   total_plans: 26
   completed_plans: 26
@@ -49,6 +50,9 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - v1.0 Core Loop: 12 phases from the brief (Auth split into Phase 1 stub + Phase 11 real, Settings/Notifications split), extended on 2026-10-29 with Phases 13–17 mirroring BE 11–16, executed 1 → 11 → 2 … 10 → 13 → 14 → 15 → 16 → 17 → 12 (Hardening last). Details in `milestones/v1.0-ROADMAP.md`.
 - 2026-11-10: milestone archived; `REQUIREMENTS.md` removed (recreated by `/gsd-new-milestone`).
 - 2026-11-10: milestone v1.1 Healing & Models started with Phases 18–19 (scope confirmed by the user: only the phases discussed on 2026-11-09); `REQUIREMENTS.md` recreated with HEAL-01..06 and MODEL-01..04.
+- 2026-11-11: Phase 20 added (Rank-Specific Prizes for Group Quests): a group quest carries a prize suited to each rank that can join (adventurer and mage in the same quest each get a prize of their rank). Needs a BE companion phase; not discussed nor planned yet.
+- 2026-11-11: Phase 21 added (Innkeeper Mission Completion Flow): guided completion of story/worldMission quests — teleport → enemies by mission rank and POI type → simulated combat (no write on the characters) → manual fixes (injuries, life slider) → prizes per character → completion. Needs a BE companion phase; not discussed nor planned yet.
+- 2026-11-11: the two new phases were swapped right after being added (user decision): prizes by rank first (20), so that the innkeeper's prize step (21) offers a list already filtered by the character's rank.
 
 ## Open Questions / Blockers
 
@@ -84,6 +88,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-11 — Phase 19 device E2E and closing documents
-Stopped at: Completed 19-13-PLAN.md (2026-11-11) — Phase 19 complete, PR to `develop` next (after the BE quick-task PR), then the milestone v1.1 close
-Resume file: .planning/phases/19-model-review/19-13-SUMMARY.md
+Last session: 2026-11-12T17:34:45.579Z
+Stopped at: Phase 20 context gathered
+Resume file: .planning/phases/20-rank-specific-prizes-for-group-quests/20-CONTEXT.md
