@@ -49,3 +49,7 @@ Turn-based dungeon engine (user); innkeeper prize step (Phase 21); BE companion 
 
 ## Note from the user (2026-11-12)
 «Tieni da conto che in una quest dungeon puoi venire sconfitto anche in un turno di esplorazione, non necessariamente in uno scontro» → D-12..D-14 rewritten on turns (exploration or fight) instead of encounters.
+
+## Notes from the user (2026-11-12, after the merges)
+- Spells shared only for ranks ≥ mage; lower ranks lose the spell → D-05 amended; BE gap (no rank gate on learning) → D-05b.
+- Crime defeat = 10 h prison, no aid (UAT memory) → verified in code (arrest event, no aid) → D-09b, no change.
