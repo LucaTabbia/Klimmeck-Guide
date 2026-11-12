@@ -35,7 +35,8 @@ The innkeeper completes a `story` or `worldMission` request from the Locanda thr
 
 ### Draft and visibility
 - **D-09:** The flow is a **draft saved on the backend** on the request (step reached, place, fights and enemies, simulation results, corrections, prizes): reopening the Locanda, also from another device, resumes it. The teleport is real as soon as it is done.
-- **D-10:** Players see **only the teleport** (their pawn moves) **and the final result**; simulations, corrections and the draft are invisible to them.
+- **D-10:** Players see the teleport (their pawn moves), a **«Missione in corso» notice** and the final result; simulations, corrections and the draft stay invisible to them (user, 2026-11-12, overriding the first answer).
+- **D-11:** From the moment the innkeeper **starts the flow** (draft created) until the **result arrives**, the participants are **locked**: no travel start and no quest acceptance (backend-enforced refusal with its own code, FE shows the notice and hides/disables the actions) — user: «Vorrei che avessero anche l'avviso "Missione in corso" e che fossero bloccati (così non rischio che inizino viaggi o quest mentre eseguo la loro quest) fino all'arrivo del risultato». The lock is released at completion or when the innkeeper discards the draft. Whether shop purchases, equipment changes and potions (which change the state the simulation uses) are also locked: to confirm with the user before the plan (recommended: yes).
 
 ### Claude's Discretion
 - Wizard layout (stepper, pages, back navigation between steps), copy, loaders (explicit actions: allowed), how the fights list is edited, recap content.

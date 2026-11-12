@@ -16,5 +16,8 @@
 | Draft | saved on the backend / start over | saved on the backend |
 | Players | only teleport and final result / plus «in progress» label | only teleport and final result |
 
+## Change from the user (2026-11-12)
+«Vorrei che avessero anche l'avviso "Missione in corso" e che fossero bloccati… fino all'arrivo del risultato» → D-10 amended, D-11 (lock from the start of the flow to the result).
+
 ## Claude's Discretion
 Wizard layout, re-simulation after enemy changes, wire shapes.
