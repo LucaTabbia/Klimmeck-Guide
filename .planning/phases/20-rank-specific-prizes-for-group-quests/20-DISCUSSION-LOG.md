@@ -53,3 +53,6 @@ Turn-based dungeon engine (user); innkeeper prize step (Phase 21); BE companion 
 ## Notes from the user (2026-11-12, after the merges)
 - Spells shared only for ranks ≥ mage; lower ranks lose the spell → D-05 amended; BE gap (no rank gate on learning) → D-05b.
 - Crime defeat = 10 h prison, no aid (UAT memory) → verified in code (arrest event, no aid) → D-09b, no change.
+
+## Correction from the user (2026-11-12)
+Pet, cure and spell go by rank too (no prize too strong for the rank); pet drawn with the usual rule once per rank block; cures and spells only in the solo heal/magic quests → D-05 rewritten, D-05a, D-05c.

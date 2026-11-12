@@ -113,7 +113,7 @@ Plans:
 **Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 14 (quest generation, pools by rank), BE Phase 21 «Premi per rango e soccorsi» (BE-RANKP-01..06, opened 2026-11-12). Executed before Phase 21, whose prize step reuses the prizes by rank (user decision, 2026-11-11).
 **Scope**: TBD
 **Requirements**: TBD
-**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `20-CONTEXT.md` (D-01..D-17, discuss 2026-11-12): rank blocks on group quests by the character's title, solo prize on `minTitle`, spell only for ranks ≥ mage, mixed bosses with lower-rank seats, aid only from enemy/boss/hunt/dungeon/aid, dungeon aid by turns up to the turn of the defeat with proportional prize
+**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `20-CONTEXT.md` (D-01..D-17, discuss 2026-11-12): rank blocks on group quests by the character's title, solo prize on `minTitle`, pet/cure/spell by rank too (pet drawn once per rank block), spell only for ranks ≥ mage, mixed bosses with lower-rank seats, aid only from enemy/boss/hunt/dungeon/aid, dungeon aid by turns up to the turn of the defeat with proportional prize
 **Plans**: 0 plans
 
 Plans:
