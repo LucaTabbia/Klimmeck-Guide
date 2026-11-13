@@ -700,6 +700,76 @@ void main() {
     });
   });
 
+  group('dungeon turns (Phase 20)', () {
+    test('reads the four turn fields of a dungeon result (D-22)', () {
+      final json = QuestResult.fromJson(
+        dungeonResultJson(
+          turnsTotal: 8,
+          turnsCompleted: 3,
+          lastTurn: 4,
+          lastTurnKind: 'exploration',
+        ),
+      ).toJson();
+
+      expect(json['turnsTotal'], 8);
+      expect(json['turnsCompleted'], 3);
+      expect(json['lastTurn'], 4);
+      expect(json['lastTurnKind'], 'exploration');
+    });
+
+    test('reads a fight as the last turn kind (D-22)', () {
+      final json = QuestResult.fromJson(aidDungeonResultJson()).toJson();
+
+      expect(json['lastTurnKind'], 'fight');
+    });
+
+    test('the turn fields are part of the props (D-22)', () {
+      expect(
+        questResult(dungeonResultJson(turnsTotal: 8, lastTurn: 4)),
+        isNot(questResult(dungeonResultJson(turnsTotal: 8, lastTurn: 5))),
+      );
+    });
+
+    test('absent turn fields read as null (D-22)', () {
+      final json = QuestResult.fromJson(successResultJson()).toJson();
+
+      expect(json['turnsTotal'], isNull);
+      expect(json['turnsCompleted'], isNull);
+      expect(json['lastTurn'], isNull);
+      expect(json['lastTurnKind'], isNull);
+    });
+
+    test('an unknown turn kind is null and keeps the result (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(turnsTotal: 8, lastTurn: 4, lastTurnKind: 'teleport'),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.toJson()['lastTurnKind'], isNull);
+    });
+
+    test('a non-number turn count is null and keeps the result (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(turnsTotal: '8', lastTurn: true),
+      );
+
+      expect(result, isNotNull);
+      final json = result!.toJson();
+      expect(json['turnsTotal'], isNull);
+      expect(json['turnsCompleted'], isNull);
+      expect(json['lastTurn'], isNull);
+    });
+
+    test('a non-string turn kind is null (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(turnsTotal: 8, lastTurnKind: 1),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.toJson()['lastTurnKind'], isNull);
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'heal': healResultJson(),
