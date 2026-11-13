@@ -1,4 +1,4 @@
-import 'dart:math' show max, min;
+import 'dart:math' show min;
 
 import 'package:equatable/equatable.dart';
 
@@ -96,7 +96,7 @@ class QuestSheetDetails extends Equatable {
               _slotLinesOf(
                 quest.requirements?.requiredAdventurers ?? const [],
                 quest.registeredAdventurers,
-                viewer?.title,
+                viewer,
               ),
             )
           : const [],
@@ -186,41 +186,52 @@ String? _requiredTitleText(QuestType? type, TitleType? minTitle) {
 }
 
 /// Stessa regola di `canRegisterWithTitle`: gli slot esatti si riempiono prima
-/// del jolly, l'eccedenza (e i registrati di rango ignoto) occupa il jolly.
+/// del jolly, l'eccedenza (e i registrati di rango ignoto) occupa il jolly; i
+/// legend oltre i posti legend contano sui posti hero (BE 13.1 D-08).
 List<QuestSlotLine> _slotLinesOf(
   List<AdventurerSlot> slots,
   List<RegisteredAdventurer> registered,
-  TitleType? viewerTitle,
+  QuestViewer? viewer,
 ) {
-  int exact(TitleType? t) =>
-      slots.where((s) => s.title == t).fold(0, (sum, s) => sum + s.count);
-  int reg(TitleType t) => registered.where((r) => r.title == t).length;
+  final counts = foldedCountsOf(slots, registered);
+  final viewerSeat = _viewerSeatTitleOf(slots, registered, viewer);
 
   final titles = <TitleType>[];
   for (final slot in slots) {
     final title = slot.title;
     if (title != null && !titles.contains(title)) titles.add(title);
   }
-  final anyCount = exact(null);
-  final overflow = TitleType.values.fold(
-    registered.where((r) => r.title == null).length,
-    (sum, t) => sum + max(0, reg(t) - exact(t)),
-  );
+  final anyCount = exactSeatsOf(slots, null);
 
   return [
     for (final title in titles)
       QuestSlotLine(
         title: title,
-        registered: min(reg(title), exact(title)),
-        count: exact(title),
-        isViewerRank: title == viewerTitle,
+        registered: min(counts[title]!, exactSeatsOf(slots, title)),
+        count: exactSeatsOf(slots, title),
+        isViewerRank: title == viewerSeat,
       ),
     if (anyCount > 0)
       QuestSlotLine(
         title: null,
-        registered: min(overflow, anyCount),
+        registered: min(anyRankOverflowOf(slots, registered), anyCount),
         count: anyCount,
         isViewerRank: false,
       ),
   ];
+}
+
+/// Il posto che il viewer occupa o occuperebbe accanto agli altri registrati.
+TitleType? _viewerSeatTitleOf(
+  List<AdventurerSlot> slots,
+  List<RegisteredAdventurer> registered,
+  QuestViewer? viewer,
+) {
+  final title = viewer?.title;
+  if (title == null) return null;
+  final others = [
+    for (final r in registered)
+      if (r.characterId != viewer!.characterId) r,
+  ];
+  return seatTitleOf(slots, others, title);
 }

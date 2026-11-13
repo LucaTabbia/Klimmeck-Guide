@@ -35,28 +35,26 @@ bool canRegisterWithTitle(
   List<RegisteredAdventurer> registered,
   TitleType title,
 ) {
-  int exact(TitleType? t) =>
-      slots.where((s) => s.title == t).fold(0, (sum, s) => sum + s.count);
-  final legendSeats = exact(TitleType.legend);
-  final counts = _foldedCountsOf(registered, legendSeats: legendSeats);
-  final own = _seatTitleOf(title, registered, legendSeats: legendSeats);
-  final anyRank = exact(null);
-  final unknownRank = registered.where((r) => r.title == null).length;
-  final overflow = TitleType.values.fold(
-    unknownRank,
-    (sum, t) => sum + max(0, counts[t]! - exact(t)),
-  );
-  return counts[own]! < exact(own) || overflow < anyRank;
+  final counts = foldedCountsOf(slots, registered);
+  final own = seatTitleOf(slots, registered, title);
+  return counts[own]! < exactSeatsOf(slots, own) ||
+      anyRankOverflowOf(slots, registered) < exactSeatsOf(slots, null);
 }
+
+/// Posti esatti per titolo; `null` sono i posti di qualsiasi rango.
+int exactSeatsOf(List<AdventurerSlot> slots, TitleType? title) =>
+    slots.where((s) => s.title == title).fold(0, (sum, s) => sum + s.count);
 
 int _countOf(List<RegisteredAdventurer> registered, TitleType title) =>
     registered.where((r) => r.title == title).length;
 
-/// I legend oltre i posti legend contano sui posti hero (BE 13.1 D-08).
-Map<TitleType, int> _foldedCountsOf(
-  List<RegisteredAdventurer> registered, {
-  required int legendSeats,
-}) {
+/// I legend oltre i posti legend contano sui posti hero (specchio di
+/// `foldedCountsOf` del BE, 13.1 D-08).
+Map<TitleType, int> foldedCountsOf(
+  List<AdventurerSlot> slots,
+  List<RegisteredAdventurer> registered,
+) {
+  final legendSeats = exactSeatsOf(slots, TitleType.legend);
   final counts = {
     for (final title in TitleType.values) title: _countOf(registered, title),
   };
@@ -66,15 +64,29 @@ Map<TitleType, int> _foldedCountsOf(
   return counts;
 }
 
+/// Registrati sui posti di qualsiasi rango: l'eccedenza dei posti esatti
+/// (sui conteggi piegati) più i registrati di rango ignoto (BE Phase 8 D-32).
+int anyRankOverflowOf(
+  List<AdventurerSlot> slots,
+  List<RegisteredAdventurer> registered,
+) {
+  final counts = foldedCountsOf(slots, registered);
+  return TitleType.values.fold(
+    registered.where((r) => r.title == null).length,
+    (sum, t) => sum + max(0, counts[t]! - exactSeatsOf(slots, t)),
+  );
+}
+
 /// Un legend siede sui posti legend finché ce n'è uno libero, poi su quelli
 /// hero (specchio di `seatTitleOf` del BE).
-TitleType _seatTitleOf(
+TitleType seatTitleOf(
+  List<AdventurerSlot> slots,
+  List<RegisteredAdventurer> registered,
   TitleType title,
-  List<RegisteredAdventurer> registered, {
-  required int legendSeats,
-}) =>
+) =>
     title == TitleType.legend &&
-        _countOf(registered, TitleType.legend) >= legendSeats
+        _countOf(registered, TitleType.legend) >=
+            exactSeatsOf(slots, TitleType.legend)
     ? TitleType.hero
     : title;
 
