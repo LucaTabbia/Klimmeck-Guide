@@ -579,19 +579,49 @@ void main() {
     }
 
     test('the lock wins over the viewer-dependent refusals, so every viewer '
-        'reads the same reason (quick 261113-aql)', () {
-      final quest = buildQuest(type: 'dungeon', awaitingRescue: true);
-      final viewers = [
-        buildViewer(
-          quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+        'reads the same reason (IN-02, quick 261113-aql)', () {
+      // Hunt e dungeon sono di corsia standard: nessun saldo da provare.
+      final cases = [
+        (
+          'rookie',
+          buildViewer(
+            quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+          ),
+          QuestAvailability.laneBusy,
         ),
-        buildViewer(cityPointIds: const {'poi-9'}),
-        buildViewer(cityPointIds: null),
-        buildViewer(twitchPoints: 0),
-        buildViewer(title: null, twitchPoints: null),
+        (
+          'rookie',
+          buildViewer(cityPointIds: const {'poi-9'}),
+          QuestAvailability.notInCity,
+        ),
+        (
+          'rookie',
+          buildViewer(cityPointIds: null),
+          QuestAvailability.notInCity,
+        ),
+        (
+          'hero',
+          buildViewer(title: TitleType.rookie),
+          QuestAvailability.titleMismatch,
+        ),
+        (
+          'rookie',
+          buildViewer(title: null, twitchPoints: null),
+          QuestAvailability.titleMismatch,
+        ),
       ];
-      for (final viewer in viewers) {
-        final standing = standingOf(quest, viewer);
+      for (final (minTitle, viewer, refusalWithoutLock) in cases) {
+        Quest dungeon({required bool awaitingRescue}) => buildQuest(
+          type: 'dungeon',
+          minTitle: minTitle,
+          awaitingRescue: awaitingRescue,
+        );
+
+        expect(
+          availabilityOf(dungeon(awaitingRescue: false), viewer),
+          refusalWithoutLock,
+        );
+        final standing = standingOf(dungeon(awaitingRescue: true), viewer);
         expect(standing.availability, QuestAvailability.awaitingRescue);
         expect(standing.isTorn, isTrue);
       }
