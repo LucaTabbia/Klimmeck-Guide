@@ -288,6 +288,46 @@ void main() {
       expect(ownSeat.slotLines.map((l) => l.isViewerRank), [true, false]);
     });
 
+    test('with two legends the first registered holds the legend seat and the '
+        'second the hero seat (WR-03, BE 13.1 D-08, D-25)', () {
+      Quest twoLegends(List<String> order) => buildQuest(
+        type: 'boss',
+        slots: legendAndHero,
+        registered: [for (final id in order) reg(id, 'legend')],
+      );
+      final legendViewer = buildViewer(title: TitleType.legend);
+
+      final first = QuestSheetDetails.of(
+        twoLegends(['c-1', 'b']),
+        viewer: legendViewer,
+      );
+      final second = QuestSheetDetails.of(
+        twoLegends(['b', 'c-1']),
+        viewer: legendViewer,
+      );
+
+      expect(first.slotLines.map((l) => l.isViewerRank), [true, false]);
+      expect(second.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
+    test('a registered viewer is highlighted on the seat of its stored '
+        'registration title (WR-03, BE 13.1 D-08, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: legendAndHero,
+          registered: [reg('c-1', 'hero')],
+        ),
+        viewer: buildViewer(title: TitleType.legend),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Leggenda: 0 / 1',
+        'Eroe: 1 / 1',
+      ]);
+      expect(details.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
     test('a legend beyond every exact seat overflows onto the any-rank line '
         '(BE 13.1 D-08, D-25)', () {
       final details = QuestSheetDetails.of(
