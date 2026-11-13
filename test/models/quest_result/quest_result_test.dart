@@ -724,10 +724,26 @@ void main() {
     });
 
     test('the turn fields are part of the props (D-22)', () {
-      expect(
-        questResult(dungeonResultJson(turnsTotal: 8, lastTurn: 4)),
-        isNot(questResult(dungeonResultJson(turnsTotal: 8, lastTurn: 5))),
+      QuestResult turns({
+        Object total = 8,
+        Object completed = 3,
+        Object last = 4,
+        Object kind = 'fight',
+      }) => questResult(
+        dungeonResultJson(
+          turnsTotal: total,
+          turnsCompleted: completed,
+          lastTurn: last,
+          lastTurnKind: kind,
+        ),
       );
+      final base = turns();
+
+      expect(turns(), base);
+      expect(turns(total: 9), isNot(base));
+      expect(turns(completed: 2), isNot(base));
+      expect(turns(last: 5), isNot(base));
+      expect(turns(kind: 'exploration'), isNot(base));
     });
 
     test('absent turn fields read as null (D-22)', () {
@@ -791,6 +807,7 @@ void main() {
         outcome: 'success',
         stagesCleared: 3,
       ),
+      'dungeon aid with turns': aidDungeonResultJson(),
       'ambush won': ambushWonResultJson(),
       'ambush lost': ambushLostResultJson(),
       'lore unlocked': questResultJson(
