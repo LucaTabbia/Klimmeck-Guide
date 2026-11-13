@@ -7,7 +7,7 @@
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 🚧 **v1.1 Healing & Models** — Phases 18–21 (started 2026-11-10; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11, not planned yet) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
+- 🚧 **v1.1 Healing & Models** — Phases 18–21 (started 2026-11-10; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned 2026-11-13, Phase 21 not planned yet) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -111,13 +111,22 @@ Plans:
 ### Phase 20: Rank-Specific Prizes for Group Quests
 **Goal**: A group quest rewards every participant with a prize suited to their own rank: if an adventurer can join, the quest carries a prize fit for an adventurer, and the mage who joins the same quest gets a prize fit for a mage. Prizes are defined per rank among the ranks admitted by the quest and resolved by the backend for each participant; the app shows each viewer the prize of their own rank on the quest sheet and on the result sheet.
 **Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 14 (quest generation, pools by rank), BE Phase 21 «Premi per rango e soccorsi» (BE-RANKP-01..06, opened 2026-11-12). Executed before Phase 21, whose prize step reuses the prizes by rank (user decision, 2026-11-11).
-**Scope**: TBD
+**Scope**: FE side of the rank blocks. The contract change is additive (D-22): `Quest.prizes` keeps its shape and is resolved by the BE for the viewer, so the quest sheet needs contract pins only; the result sheet gains one dungeon-turn line (dungeon and dungeon aid) with the stages line as fallback; mixed-rank bosses are pinned by tests. Schema gate and device E2E wait for the BE Phase 21 merge.
 **Requirements**: RANKP-01, RANKP-02, RANKP-03, RANKP-04
-**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `20-CONTEXT.md` (D-01..D-17, discuss 2026-11-12): rank blocks on group quests by the character's title, solo prize on `minTitle`, pet/cure/spell by rank too (pet drawn once per rank block), spell only for ranks ≥ mage, mixed bosses with lower-rank seats, aid only from enemy/boss/hunt/dungeon/aid, dungeon aid by turns up to the turn of the defeat with proportional prize
-**Plans**: 0 plans
+**Success Criteria** (what must be TRUE):
+  1. On a group quest the sheet (Board and Map) prints the prize block the BE serves for the viewer with today's rows (coins, prize item, pet line, cure lines); the app never chooses a block, and a rank-up rereads the quests.
+  2. A mixed-rank boss shows one seat line per title; registration and the party counter are judged per seat title as the BE does.
+  3. The result sheet of a dungeon and of a dungeon aid prints one turn line from the BE fields («Turni superati: C di T», «Ferito raggiunto al turno L di T», «Caduto al turno L di T, in esplorazione / in uno scontro»), nothing on `rescued`, `death` and `gmCompleted`; without the turn fields it falls back to «Esplorazione: tappa N di M»; a malformed new field never drops the result.
+  4. Schema check green against the merged BE SDL with the four turn fields selected; device E2E passed (rank block, mixed boss, dungeon aid by turns with the real share on the aid sheet, dungeon won, lost fight without aid).
+**Decisions**: `20-CONTEXT.md` D-01..D-17 (discuss 2026-11-12) and D-18..D-25 (after the research, 2026-11-13).
+**Backend prerequisite**: BE Phase 21 merged on BE `develop` for plans 20-03 and 20-04 (the phase parks at 2/4).
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 20 to break down)
+- [ ] 20-01-PLAN.md — Contract pins for the served prize block and mixed-rank bosses (test-only)
+- [ ] 20-02-PLAN.md — Dungeon turn fields on the result, one turn line in the stages slot with fallback, backend notes
+- [ ] 20-03-PLAN.md — Schema gate, turn-field selection, 46 documents OK, full suite (gated on the BE Phase 21 merge)
+- [ ] 20-04-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ### Phase 21: Innkeeper Mission Completion Flow
 **Goal**: The innkeeper completes a story or worldMission quest from the Inn through a guided flow instead of the current plain form: (1) teleport the participants to a POI/city; (2) pick the enemies from a list — quantity and kind — filtered by the rank of the mission and the type of the POI; (3) run a combat simulation with the backend combat engine that does **not** write its outcome on the characters; (4) fix the outcome by hand where needed (remove the injuries in excess, set each character's life with a slider); (5) choose the prizes per character (coins, xp, items, pets, spells) from a list already filtered to the prizes suited to that character's rank (Phase 20); (6) complete the quest, which updates the playing characters. The backend stays the source of truth: simulation, enemy lists and the final write are server-side, the app only drives the steps.
@@ -153,7 +162,7 @@ Plans:
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 20. Rank-Specific Prizes for Group Quests | v1.1 | 0/0 | Not planned | — |
+| 20. Rank-Specific Prizes for Group Quests | v1.1 | 0/4 | Planned | — |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
 
 ---

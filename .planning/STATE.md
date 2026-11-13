@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: completed
-stopped_at: Phase 20 context gathered
+status: executing
+stopped_at: "Phase 20 planned (4 plans, 2026-11-13) — next step /gsd-execute-phase 20"
 last_updated: "2026-11-12T17:34:45.584Z"
-last_activity: "2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next"
+last_activity: "2026-11-13 -- Phase 20 planned (research, repo rules, validation, 4 plans; plan-checker passed)"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 26
+  total_plans: 30
   completed_plans: 26
-  percent: 100
+  percent: 87
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 19 — Model Review (frontend companion) — COMPLETE on `feat/19-model-review` (13/13): device E2E passed on 2026-11-11 against BE Phase 19 (`19-HUMAN-UAT.md`), quick task 261111-enm on the branch, full suite 4239 green; both phases of v1.1 are done
+**Current focus:** Phase 20 — Rank-Specific Prizes for Group Quests (↔ BE Phase 21) — PLANNED on 2026-11-13 on `feat/20-rank-specific-prizes` (from `develop`): 4 plans in a chain, ready to execute; plans 20-03 and 20-04 are gated on the BE Phase 21 merge
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
-Phase: 19 of 19 (Model Review, frontend companion) — context of 2026-11-09 extended on 2026-11-11 (D-13..D-19: «Attacco»/«Difesa» on Journal and shop, slots in learning order, window strategy, MODEL-04 on 12 rows), research and 13 plans written on 2026-11-11
-Plan: 13 of 13
-Status: Phase complete — 13/13 on `feat/19-model-review`. Device E2E passed on 2026-11-11 against BE Phase 19 (BE `develop` `48b20701`, then the BE quick-task branch `fix/enemy-quests-single-player` for the last three checks): steps 1–11 pass (step 7 on the second attempt), optional 12–14 skipped, extra checks A–C pass; MODEL-01..04 complete. Born in the UAT: quick task 261111-enm on both repos (`enemy` quests single-player with a minimum rank; 155 open quests aligned at DB) and the user rule on the pet shops by city size (content at DB). Gates after the quick task: full suite 4239 green, analyzer 47 info / 0 warning / 0 error, `hardening_check` OK. Security 56/56 closed (`19-SECURITY.md`); handoff in `19-model-review/BACKEND-NOTES.md`. The branch selects names that exist only on a BE with Phase 19 and judges `enemy` quests like the BE of the quick task.
-Last activity: 2026-11-11 -- Phase 19 plan 13 executed (device E2E passed against BE Phase 19: steps 1–11 pass, optional 12–14 skipped, extra checks A–C pass; quick task 261111-enm on the branch; MODEL-01..04 complete); Phase 19 complete, PR to `develop` next
-Next step: PR `feat/19-model-review` → `develop`, opened by the user AFTER the BE quick-task PR `fix/enemy-quests-single-player` is merged (the FE now judges `enemy` quests like the new BE); then the milestone v1.1 close.
+Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
+Plan: 0 of 4
+Status: Phase 20 planned — ready to execute (4 chained plans: contract pins, turn line on the result sheet, gated schema gate, gated device E2E); the plans passed the plan-checker after one revision
+Last activity: 2026-11-13 -- Phase 20 planned (research, repo rules, validation, 4 plans; plan-checker passed)
+Next step: `/gsd-execute-phase 20` with sequential executors on the main tree for 20-01 and 20-02, then park at 2/4 until the BE Phase 21 PR is merged on BE `develop`; then 20-03 (schema gate) and 20-04 (device E2E with the user). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
 
 ## Current Milestone
 

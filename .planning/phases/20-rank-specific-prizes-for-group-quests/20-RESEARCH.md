@@ -341,7 +341,7 @@ else
 4. **Is the FE change non-additive?** RESOLVED for the recommended shape: additive (only new `QuestResult` selections); non-additive only under the alternative.
 5. **Where does the turn line go?** RESOLVED: the stages slot `quest_result_sheet.dart:171`, one line, fallback to stages (copy: PQ3).
 6. **Does the FE compute the proportional prize?** RESOLVED: no; `rewards`/`xpGained` carry it; the aid sheet shows whatever `prizes` the BE stores (PQ2).
-7. Open for the user: PQ1, PQ2, PQ3. Open for the BE research: final names and nullability of the turn fields, the fallback block, `minTitle` of mixed bosses, the `questCancelled` push on the archiver path.
+7. Open for the user: PQ1, PQ2, PQ3. Open for the BE research: final names and nullability of the turn fields, the fallback block, `minTitle` of mixed bosses, the `questCancelled` push on the archiver path. RESOLVED: CONTEXT D-18, D-20, D-21, D-22, D-25 (BE D-18..D-27).
 
 ## Environment Availability
 
