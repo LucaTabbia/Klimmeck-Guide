@@ -1199,6 +1199,12 @@ void main() {
             tester.getBottomLeft(find.byKey(QuestResultSheet.enemyKey)).dy,
           ),
         );
+        expect(
+          tester.getBottomLeft(find.byKey(turnsKey)).dy,
+          lessThanOrEqualTo(
+            tester.getTopLeft(find.byKey(QuestResultSheet.hpKey)).dy,
+          ),
+        );
       },
     );
 
