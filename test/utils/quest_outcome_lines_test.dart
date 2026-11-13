@@ -93,7 +93,7 @@ void main() {
             lastTurnKind: 'exploration',
           ),
         ),
-        'Caduto al turno 4 di 8, in esplorazione',
+        'Caduto al 4° piano su 8, in esplorazione',
       );
     });
 
@@ -107,7 +107,7 @@ void main() {
             lastTurnKind: 'fight',
           ),
         ),
-        'Caduto al turno 4 di 8, in uno scontro',
+        'Caduto al 4° piano su 8, in uno scontro',
       );
     });
 
@@ -121,14 +121,14 @@ void main() {
             lastTurnKind: 'teleport',
           ),
         ),
-        'Caduto al turno 4 di 8',
+        'Caduto al 4° piano su 8',
       );
     });
 
     test('the rescuer who saves the wounded reads the reached turn (D-21)', () {
       expect(
         lineOf(aidDungeonResultJson()),
-        'Ferito raggiunto al turno 4 di 8',
+        'Soccorso effettuato al raggiungimento del 4° piano su 8',
       );
     });
 
@@ -143,7 +143,7 @@ void main() {
             stagesCleared: 1,
           ),
         ),
-        'Caduto al turno 3 di 8, in esplorazione',
+        'Caduto al 3° piano su 8, in esplorazione',
       );
     });
 
@@ -159,7 +159,7 @@ void main() {
             lastTurnKind: 'fight',
           ),
         ),
-        'Turni superati: 8 di 8',
+        'Piani superati: 8 su 8',
       );
     });
 
@@ -168,14 +168,14 @@ void main() {
         dungeonResultJson(turnsTotal: 8, turnsCompleted: 3, lastTurn: 4),
       );
 
-      expect(line, contains('turno 4'));
-      expect(line, isNot(contains('turno 5')));
+      expect(line, contains('4° piano'));
+      expect(line, isNot(contains('5° piano')));
     });
 
     test('without the last turn a fall reads the completed turns (D-21)', () {
       expect(
         lineOf(dungeonResultJson(turnsTotal: 8, turnsCompleted: 3)),
-        'Turni superati: 3 di 8',
+        'Piani superati: 3 su 8',
       );
     });
 
@@ -183,14 +183,14 @@ void main() {
         '(D-21)', () {
       expect(
         lineOf(aidDungeonResultJson(lastTurn: null)),
-        'Turni superati: 4 di 8',
+        'Piani superati: 4 su 8',
       );
     });
 
     test('missing completed turns read as zero (D-21)', () {
       expect(
         lineOf(dungeonResultJson(turnsTotal: 8)),
-        'Turni superati: 0 di 8',
+        'Piani superati: 0 su 8',
       );
     });
 

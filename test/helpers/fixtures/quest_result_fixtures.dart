@@ -243,7 +243,7 @@ Map<String, dynamic> dungeonResultJson({
 );
 
 /// Soccorritore di un'aid di dungeon (BE Phase 21, D-21): salva il ferito al
-/// turno 4 di 8, uno scontro; le tappe contano gli scontri del cammino.
+/// 4° piano su 8, uno scontro; le tappe contano gli scontri del cammino.
 Map<String, dynamic> aidDungeonResultJson({
   String id = 'result-aid-dungeon',
   String outcome = 'success',

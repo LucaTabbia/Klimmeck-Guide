@@ -1190,7 +1190,7 @@ void main() {
 
         expect(
           textOf(tester, turnsKey),
-          'Caduto al turno 4 di 8, in esplorazione',
+          'Caduto al 4° piano su 8, in esplorazione',
         );
         expect(find.byKey(QuestResultSheet.stagesKey), findsNothing);
         expect(
@@ -1214,7 +1214,10 @@ void main() {
         await _pump(tester, questResult(aidDungeonResultJson()));
         await tester.pumpAndSettle();
 
-        expect(textOf(tester, turnsKey), 'Ferito raggiunto al turno 4 di 8');
+        expect(
+          textOf(tester, turnsKey),
+          'Soccorso effettuato al raggiungimento del 4° piano su 8',
+        );
         expect(find.byKey(QuestResultSheet.stagesKey), findsNothing);
         expect(
           textOf(tester, QuestResultSheet.rescuedKey),
