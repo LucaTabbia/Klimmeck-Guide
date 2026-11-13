@@ -23,7 +23,9 @@ String formatGameDuration(Duration duration) {
 /// minuti, secondi) invece delle sigle di [formatGameDuration]: è lo stile
 /// storico di quella riga. Unisce solo le parti non nulle; i secondi compaiono
 /// solo sotto il minuto, perché da quick 261113-aql un soccorso dura una quota
-/// del dungeon e può valere pochi secondi. Arrotonda per eccesso al secondo.
+/// del dungeon e può valere pochi secondi. Arrotonda sempre per eccesso, al
+/// secondo sotto il minuto e al minuto da lì in su: come [formatGameDuration],
+/// un tempo non si legge mai più breve di quello reale (WR-04).
 String formatQuestDuration(Duration duration) {
   final ms = duration.inMilliseconds;
   if (ms <= 0) return '0 minuti';
@@ -31,7 +33,7 @@ String formatQuestDuration(Duration duration) {
   if (seconds < Duration.secondsPerMinute) {
     return _countOf(seconds, 'secondo', 'secondi');
   }
-  final minutes = seconds ~/ Duration.secondsPerMinute;
+  final minutes = (ms / Duration.millisecondsPerMinute).ceil();
   final hours = minutes ~/ _minutesPerHour;
   final rest = minutes % _minutesPerHour;
   return [
