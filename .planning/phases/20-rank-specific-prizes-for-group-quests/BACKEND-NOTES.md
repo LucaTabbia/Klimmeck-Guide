@@ -80,3 +80,14 @@ Planned on BE branch `feat/21-…` (BE plans 21-08..21-10, not yet merged), turn
 - a lost fight without aid (D-19) carries outcome `failure`, the same value as a lost guard encounter (answers the first half of question 6; `awaitingAid` still open).
 
 Da riportare nella UAT della BE Phase 21 a cura del lato BE (questo repo non modifica il BE).
+
+## Update 2026-11-13 — quick 261113-aql
+
+User rule (2026-11-13), verbatim: «Quando un personaggio attiva una aid a partire da una hunt o da un dungeon (quindi le uniche quest ripetibili che possono creare una aid) la quest che le ha generate deve risultare strappata e quindi non accettable, finché il soccorso non va a buon fine.» Locked for everyone; free again whenever the aid closes (rescue done, wounded dead by timeout, wounded archived); a lost rescue opens a new aid from the same quest and the lock continues. **Supersedes D-15.**
+
+What the app consumes (BE twin `feat/quick-aid-locks-source-quest`):
+
+- `Quest.awaitingRescue: Boolean!` — selected in `QuestFragment` (`quests` and `OnQuestUpdated`); `true` → the sheet is torn for every viewer, not acceptable, reason «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.». The same value for every viewer; never null (the FE reads absent/malformed as `false`).
+- `acceptQuest` on a locked quest → `QUEST_NOT_ACCEPTABLE` (already mapped to `QuestAcceptanceFailure.notAcceptable`; no new code).
+- `questUpdated` must republish the source quest **when the aid is born and when it closes** (every closing path: rescue done, timeout death, archiver): the FE has no other trigger to lift the lock (it never reads the aid quests and does not reread `quests` for this).
+- Schema check (46 documents) to be run by the orchestrator after the BE twin is merged on `develop`: until then the FE fragment selects a field the BE SDL does not have.
