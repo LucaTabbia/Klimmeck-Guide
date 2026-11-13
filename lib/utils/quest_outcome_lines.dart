@@ -46,10 +46,10 @@ String? dungeonTurnLine(QuestResult result) {
   final last = result.lastTurn;
   return switch (result.outcome) {
     QuestOutcome.success when _isAid(result) && last != null =>
-      'Ferito raggiunto al turno $last di $total',
+      'Soccorso effettuato al raggiungimento del $last° piano su $total',
     QuestOutcome.success => _completedTurnsLine(result, total),
     QuestOutcome.failure when last != null =>
-      'Caduto al turno $last di $total${_turnKindSuffix(result.lastTurnKind)}',
+      'Caduto al $last° piano su $total${_turnKindSuffix(result.lastTurnKind)}',
     QuestOutcome.failure => _completedTurnsLine(result, total),
     QuestOutcome.rescued ||
     QuestOutcome.death ||
@@ -58,7 +58,7 @@ String? dungeonTurnLine(QuestResult result) {
 }
 
 String _completedTurnsLine(QuestResult result, int total) =>
-    'Turni superati: ${result.turnsCompleted ?? 0} di $total';
+    'Piani superati: ${result.turnsCompleted ?? 0} su $total';
 
 bool _isAid(QuestResult result) => result.quest?.type == QuestType.aid;
 
