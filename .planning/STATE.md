@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: paused
+status: executing
 stopped_at: "Phase 20 parked at 2/4 (2026-11-13) — plans 20-03 and 20-04 wait for the BE Phase 21 merge"
 last_updated: "2026-11-12T17:34:45.584Z"
 last_activity: "2026-11-13 -- Phase 20 planned (research, repo rules, validation, 4 plans; plan-checker passed)"
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
 Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
 Plan: 02 of 4
-Status: Phase 20 paused at 2/4 — plans 20-01 and 20-02 executed, pre-gate review fixed (8 findings: 6 fixed, 2 closed by ruling, `20-REVIEW.md`, `20-REVIEW-FIX.md`); plans 20-03 (schema gate) and 20-04 (device E2E) wait for the BE Phase 21 merge on BE `develop`. Expected full suite 4288 (not run yet: the 20-03 gate runs it); analyzer 47 info / 0 warning / 0 error
-Last activity: 2026-11-13 -- Phase 20 plans 01–02 executed and reviewed; parked at 2/4 until the BE Phase 21 merge
+Status: Phase 20 executing — BE Phase 21 merged on BE `develop` (`7f3506ac`, 2026-11-13) and rebooted; plan 20-03 (schema gate) running, then 20-04 (device E2E)
+Last activity: 2026-11-13 -- BE Phase 21 merged; Phase 20 resumed at plan 20-03
 Next step: after the BE Phase 21 PR is merged on BE `develop` and the BE is rebooted from it, run 20-03 (schema gate, turn-field selection, full suite) and 20-04 (device E2E with the user, orchestrator-guided). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
 
 ## Current Milestone
