@@ -221,17 +221,23 @@ List<QuestSlotLine> _slotLinesOf(
   ];
 }
 
-/// Il posto che il viewer occupa o occuperebbe accanto agli altri registrati.
+/// Il posto che il viewer occupa o occuperebbe. Registrato, conta chi si è
+/// registrato prima (il BE li serve in ordine di iscrizione) col titolo della
+/// sua iscrizione; altrimenti si siederebbe dopo tutti col titolo attuale.
 TitleType? _viewerSeatTitleOf(
   List<AdventurerSlot> slots,
   List<RegisteredAdventurer> registered,
   QuestViewer? viewer,
 ) {
-  final title = viewer?.title;
+  if (viewer == null) return null;
+  final ownIndex = registered.indexWhere(
+    (r) => r.characterId == viewer.characterId,
+  );
+  if (ownIndex < 0) {
+    final title = viewer.title;
+    return title == null ? null : seatTitleOf(slots, registered, title);
+  }
+  final title = registered[ownIndex].title ?? viewer.title;
   if (title == null) return null;
-  final others = [
-    for (final r in registered)
-      if (r.characterId != viewer!.characterId) r,
-  ];
-  return seatTitleOf(slots, others, title);
+  return seatTitleOf(slots, registered.sublist(0, ownIndex), title);
 }
