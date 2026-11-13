@@ -323,4 +323,30 @@ void main() {
       expect(quest, buildQuest(type: 'heal', noEffect: true));
     });
   });
+
+  group('served prize block (Phase 20)', () {
+    test('reads the served block and ignores rankPrizes (D-22)', () {
+      final json =
+          questJson(
+              type: 'boss',
+              prizes: {
+                'prizeCoins': {'gold': 2, 'silver': 0, 'copper': 0},
+                'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+              },
+            )
+            ..['rankPrizes'] = [
+              {
+                'title': 'mage',
+                'prizes': {
+                  'pet': {'id': 'pet-drake', 'name': 'Draghetto'},
+                },
+              },
+            ];
+
+      final quest = Quest.fromJson(json);
+
+      expect(quest.prizes?.pet?.name, 'Gufo reale');
+      expect(Quest.tryFromJson(json), isNotNull);
+    });
+  });
 }
