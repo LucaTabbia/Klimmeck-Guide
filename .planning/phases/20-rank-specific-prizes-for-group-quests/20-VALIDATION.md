@@ -75,7 +75,7 @@ Test helpers that do not exist yet; each is created in the RED step of the task 
 |----------|-------------|------------|-------------------|
 | Each viewer sees the block of their own rank, the sheet switches silently on a title change, the D-18 fallback for a hero | RANKP-01 | per-viewer resolution on HTTP and per subscriber on WS is a BE rule the FE cannot detect (research Pitfall 1) | `20-HUMAN-UAT.md` steps 1–4 |
 | Mixed boss seats and minimum title on real generated / seeded content | RANKP-02 | BE D-23 writes `minTitle` and the seat order | `20-HUMAN-UAT.md` steps 1, 2 |
-| Turn line on a real dungeon defeat, on a cleared dungeon and on the rescuer's result; the aid's share on the sheet; the wounded freed | RANKP-03 | turn counters, the saved turn and the share are BE rules on a real resolution | `20-HUMAN-UAT.md` steps 5–9 |
+| Turn line on a real dungeon defeat, on a cleared dungeon and on the rescuer's result («Caduto al N° piano su M, …», «Piani superati: M su M», «Soccorso effettuato al raggiungimento del N° piano su M»; copy amended in `20-UAT-FIX-02.md`); the aid's share on the sheet; the wounded freed | RANKP-03 | turn counters, the saved turn and the share are BE rules on a real resolution | `20-HUMAN-UAT.md` steps 5–9 |
 | Lost fight in a quest that opens no rescue: 1 HP, in town, lane free, no aid | RANKP-04 | BE rule D-19 on a real resolution | `20-HUMAN-UAT.md` step 10 |
 | Boss win by block, archiver release push (D-16, covered by the BE suite), non-caster spell | — (optional) | BE-only rules (D-08, D-16, D-05b) needing a full party or extra seeds | `20-HUMAN-UAT.md` steps 11–13 |
 

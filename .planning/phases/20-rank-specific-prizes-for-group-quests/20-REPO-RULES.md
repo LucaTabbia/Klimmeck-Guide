@@ -45,14 +45,14 @@ FE names fixed for the plans (a plan may add private names, never rename these):
 |----------------------------------------------|------|
 | `turnsTotal` null or ≤ 0 | no turn line → today's «Esplorazione: tappa N di M» (or nothing when `stagesTotal` is null) |
 | `outcome` = `rescued`, `death` or `gmCompleted` | no turn line (fallback as above), even when the turn fields are filled (orchestrator ruling W2: `death` is the wounded character's result on the aid) |
-| `outcome` = `success`, quest type ≠ `aid` (dungeon cleared) | «Turni superati: C di T» (`C` = `turnsCompleted ?? 0`) |
-| `outcome` = `success`, quest type = `aid`, `lastTurn` present (rescuer saved the wounded) | «Ferito raggiunto al turno L di T» |
-| `outcome` = `failure`, `lastTurn` present, `lastTurnKind` = `exploration` | «Caduto al turno L di T, in esplorazione» |
-| same, `lastTurnKind` = `fight` | «Caduto al turno L di T, in uno scontro» |
-| same, `lastTurnKind` null/unknown | «Caduto al turno L di T» |
-| `lastTurn` absent where the rows above need it | «Turni superati: C di T» |
+| `outcome` = `success`, quest type ≠ `aid` (dungeon cleared) | «Piani superati: C su T» (`C` = `turnsCompleted ?? 0`) |
+| `outcome` = `success`, quest type = `aid`, `lastTurn` present (rescuer saved the wounded) | «Soccorso effettuato al raggiungimento del L° piano su T» |
+| `outcome` = `failure`, `lastTurn` present, `lastTurnKind` = `exploration` | «Caduto al L° piano su T, in esplorazione» |
+| same, `lastTurnKind` = `fight` | «Caduto al L° piano su T, in uno scontro» |
+| same, `lastTurnKind` null/unknown | «Caduto al L° piano su T» |
+| `lastTurn` absent where the rows above need it | «Piani superati: C su T» |
 
-  `L` is `lastTurn` as served (**the FE never adds 1**), `T` is `turnsTotal`, `C` is `turnsCompleted ?? 0`. No «prize in proportion» line (D-20, D-21: the reduced prize already shows under «Ricompense»). No other new copy.
+  `L` is `lastTurn` as served (**the FE never adds 1**), written as the number followed by `°` (e.g. `2°`), `T` is `turnsTotal`, `C` is `turnsCompleted ?? 0`. Copy amended by the user during the device UAT on 2026-11-13 (`20-UAT-FIX-02.md`): the word «piano» replaces «turno» in every line. No «prize in proportion» line (D-20, D-21: the reduced prize already shows under «Ricompense»). No other new copy.
 
 **Gate on the BE Phase 21 merge** (plans 20-03 and 20-04 only). Read the SDL with `git -C <BE> show origin/develop:src/schema.gql` saved in a `mktemp -d` directory outside the repo; never `fetch`. Block-anchored checks (`blk() { awk "/^$1 /,/^}/" "$S"; }`):
 - `blk 'type Quest'` has `^ +prizes: QuestPrizes!$` and `^ +rankPrizes: \[QuestRankPrizes!\]!$`;
