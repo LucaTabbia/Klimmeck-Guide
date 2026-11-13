@@ -130,6 +130,26 @@ void main() {
         contains('spellLearned { id name } loreUnlocked { id name type }'),
       );
     });
+
+    test('selects the four turn fields right after the stages (D-22)', () {
+      expect(
+        sharedSelection,
+        contains(
+          'stagesCleared stagesTotal turnsTotal turnsCompleted lastTurn '
+          'lastTurnKind rescuedCharacters',
+        ),
+      );
+    });
+
+    test('every result document carries the turn fields (D-22)', () {
+      for (final document in [
+        QuestResultSubscriptions.questResultReceived,
+        QuestResultQueries.getQuestResult,
+        QuestResultQueries.listUnacknowledgedQuestResults,
+      ]) {
+        expect(_collapsed(document), contains('lastTurnKind'));
+      }
+    });
   });
 
   group('OnQuestResultReceived', () {
