@@ -42,6 +42,7 @@ class QuestResultSheet extends StatefulWidget {
   static const Key enemyKey = ValueKey('questResult.enemy');
   static const Key enemyPortraitKey = ValueKey('questResult.enemyPortrait');
   static const Key stagesKey = ValueKey('questResult.stages');
+  static const Key turnsKey = ValueKey('questResult.turns');
   static const Key arrestKey = ValueKey('questResult.arrest');
   static const Key confiscatedKey = ValueKey('questResult.confiscated');
   static const Key guardEncounterKey = ValueKey('questResult.guardEncounter');
@@ -168,7 +169,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._header(),
         ..._deathIdentity(),
         ..._enemies(),
-        ..._line(_stagesText(), QuestResultSheet.stagesKey),
+        ..._turnsOrStages(),
         ..._line(
           guardEncounterLine(_result),
           QuestResultSheet.guardEncounterKey,
@@ -455,7 +456,17 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     return 'Portato a ${city.name}';
   }
 
-  /// Contatori del BE per una dungeon (BE D-12): il FE li stampa, non li calcola.
+  /// Una sola riga nello spazio delle tappe (D-21, D-24): i turni del BE
+  /// quando ci sono, altrimenti la riga delle tappe di oggi.
+  List<Widget> _turnsOrStages() {
+    final turns = dungeonTurnLine(_result);
+    return turns != null
+        ? _line(turns, QuestResultSheet.turnsKey)
+        : _line(_stagesText(), QuestResultSheet.stagesKey);
+  }
+
+  /// Contatori del BE per una dungeon o un'aid di dungeon (BE D-12, D-22): il
+  /// FE li stampa, non li calcola.
   String? _stagesText() {
     final total = _result.stagesTotal;
     if (total == null) return null;

@@ -35,6 +35,7 @@ Map<String, dynamic> questJson({
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
   bool? noEffect,
+  bool? awaitingRescue,
 }) => {
   'id': id,
   'infos': {
@@ -62,6 +63,7 @@ Map<String, dynamic> questJson({
   if (prizes != null) 'prizes': prizes,
   'registeredAdventurers': registered,
   if (noEffect != null) 'noEffect': noEffect,
+  if (awaitingRescue != null) 'awaitingRescue': awaitingRescue,
 };
 
 /// `prizes.cure` sul filo (BE Phase 18): quota di vita e ferite guarite.
@@ -150,6 +152,7 @@ Quest buildQuest({
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
   bool? noEffect,
+  bool? awaitingRescue,
 }) => Quest.fromJson(
   questJson(
     id: id,
@@ -167,8 +170,33 @@ Quest buildQuest({
     lore: lore,
     recommendedLoot: recommendedLoot,
     noEffect: noEffect,
+    awaitingRescue: awaitingRescue,
   ),
 );
+
+/// Boss misto (BE D-23, FE D-25): posti del rango del boss e poi del rango
+/// inferiore, mai un posto a titolo nullo; il minimo è il titolo più basso.
+Map<String, dynamic> mixedBossJson({
+  String id = 'boss-mixed',
+  List<Object> registered = const [],
+  Map<String, dynamic>? prizes,
+}) => questJson(
+  id: id,
+  type: 'boss',
+  title: 'Il drago delle paludi',
+  minTitle: 'adventurer',
+  slots: const [
+    {'title': 'paladin', 'count': 2},
+    {'title': 'adventurer', 'count': 1},
+  ],
+  registered: registered,
+  prizes: prizes,
+);
+
+Quest buildMixedBoss({
+  List<Object> registered = const [],
+  Map<String, dynamic>? prizes,
+}) => Quest.fromJson(mixedBossJson(registered: registered, prizes: prizes));
 
 QuestViewer buildViewer({
   String characterId = 'c-1',

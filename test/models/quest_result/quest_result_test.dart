@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/enums/dungeon_turn_kind.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/lore_type.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
@@ -700,6 +701,104 @@ void main() {
     });
   });
 
+  group('dungeon turns (Phase 20)', () {
+    test('reads the four turn fields of a dungeon result (D-22)', () {
+      final result = QuestResult.fromJson(
+        dungeonResultJson(
+          turnsTotal: 8,
+          turnsCompleted: 3,
+          lastTurn: 4,
+          lastTurnKind: 'exploration',
+        ),
+      );
+
+      expect(result.turnsTotal, 8);
+      expect(result.turnsCompleted, 3);
+      expect(result.lastTurn, 4);
+      expect(result.lastTurnKind, DungeonTurnKind.exploration);
+      expect(
+        result.toJson(),
+        allOf(
+          containsPair('turnsTotal', 8),
+          containsPair('turnsCompleted', 3),
+          containsPair('lastTurn', 4),
+          containsPair('lastTurnKind', 'exploration'),
+        ),
+      );
+    });
+
+    test('reads a fight as the last turn kind (D-22)', () {
+      final result = QuestResult.fromJson(aidDungeonResultJson());
+
+      expect(result.lastTurnKind, DungeonTurnKind.fight);
+    });
+
+    test('the turn fields are part of the props (D-22)', () {
+      QuestResult turns({
+        Object total = 8,
+        Object completed = 3,
+        Object last = 4,
+        Object kind = 'fight',
+      }) => questResult(
+        dungeonResultJson(
+          turnsTotal: total,
+          turnsCompleted: completed,
+          lastTurn: last,
+          lastTurnKind: kind,
+        ),
+      );
+      final base = turns();
+
+      expect(turns(), base);
+      expect(turns(total: 9), isNot(base));
+      expect(turns(completed: 2), isNot(base));
+      expect(turns(last: 5), isNot(base));
+      expect(turns(kind: 'exploration'), isNot(base));
+    });
+
+    test('absent turn fields read as null (D-22)', () {
+      final result = QuestResult.fromJson(successResultJson());
+
+      expect(result.turnsTotal, isNull);
+      expect(result.turnsCompleted, isNull);
+      expect(result.lastTurn, isNull);
+      expect(result.lastTurnKind, isNull);
+    });
+
+    test('an unknown turn kind is null and keeps the result (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(turnsTotal: 8, lastTurn: 4, lastTurnKind: 'teleport'),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.lastTurnKind, isNull);
+    });
+
+    test('a non-number turn count is null and keeps the result (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(
+          turnsTotal: '8',
+          turnsCompleted: const [3],
+          lastTurn: true,
+        ),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.turnsTotal, isNull);
+      expect(result.turnsCompleted, isNull);
+      expect(result.lastTurn, isNull);
+    });
+
+    test('a non-string turn kind is null (D-22)', () {
+      final result = QuestResult.tryFromJson(
+        dungeonResultJson(turnsTotal: 8, lastTurnKind: 1),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.lastTurnKind, isNull);
+    });
+  });
+
   group('round trip', () {
     final payloads = {
       'heal': healResultJson(),
@@ -721,6 +820,7 @@ void main() {
         outcome: 'success',
         stagesCleared: 3,
       ),
+      'dungeon aid with turns': aidDungeonResultJson(),
       'ambush won': ambushWonResultJson(),
       'ambush lost': ambushLostResultJson(),
       'lore unlocked': questResultJson(

@@ -6,9 +6,9 @@ import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
-import 'package:klimmeck_guide/utils/utils.dart';
 
 import '../../../models/enums/injury_type.dart';
 import '../../../models/quest/quest.dart';
@@ -327,7 +327,7 @@ class QuestInfoSheet extends StatelessWidget {
     if (millis == null) return const [];
     return [
       Text(
-        'Tempo richiesto: ${getStringToShowFromDuration(Duration(milliseconds: millis))}',
+        'Tempo richiesto: ${formatQuestDuration(Duration(milliseconds: millis))}',
         style: KlimmeckGuideTheme.instance.bodyLarge,
       ),
     ];

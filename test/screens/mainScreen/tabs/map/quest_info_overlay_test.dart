@@ -84,4 +84,25 @@ void main() {
     expect(find.byType(QuestInfoSheet), findsOneWidget);
     expect(find.byKey(QuestInfoSheet.stateLabelKey), findsOneWidget);
   });
+
+  testWidgets('the map sheet prints the served block with no viewer (D-07)', (
+    tester,
+  ) async {
+    await pumpOverlay(
+      tester,
+      quest: buildQuest(
+        id: 'b-1',
+        type: 'boss',
+        slots: [
+          {'title': 'paladin', 'count': 2},
+        ],
+        prizes: {
+          'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+        },
+      ),
+    );
+
+    final line = tester.widget<Text>(find.byKey(QuestInfoSheet.petPrizeKey));
+    expect(line.data, 'Compagno in premio: Gufo reale');
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/enums/dungeon_turn_kind.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/lore.dart';
@@ -52,6 +53,10 @@ class QuestResult extends Equatable {
     this.coinsLost,
     this.guardEncounter = false,
     this.petXpGained = 0,
+    this.turnsTotal,
+    this.turnsCompleted,
+    this.lastTurn,
+    this.lastTurnKind,
   });
 
   final String id;
@@ -111,9 +116,18 @@ class QuestResult extends Equatable {
   /// Nemici affrontati, nell'ordine del BE (D-07); una voce malformata è scartata.
   final List<QuestEnemy> enemies;
 
-  /// Solo per una dungeon (BE D-12): tappe superate e totali.
+  /// Solo per una dungeon o un'aid di dungeon (BE D-12, D-22): tappe superate
+  /// e totali.
   final int? stagesCleared;
   final int? stagesTotal;
+
+  /// Solo per una dungeon o un'aid di dungeon (BE Phase 21, D-21): turni
+  /// totali, completati, ultimo turno giocato (da 1) e il suo tipo; `null`
+  /// altrove.
+  final int? turnsTotal;
+  final int? turnsCompleted;
+  final int? lastTurn;
+  final DungeonTurnKind? lastTurnKind;
   final List<String> rescuedCharacters;
 
   /// Quest o imboscata (D-01); un BE più vecchio vale `quest`.
@@ -178,6 +192,10 @@ class QuestResult extends Equatable {
       enemies: QuestEnemy.lenientListFrom(json['enemies']),
       stagesCleared: _countFrom(json['stagesCleared']),
       stagesTotal: _countFrom(json['stagesTotal']),
+      turnsTotal: _countFrom(json['turnsTotal']),
+      turnsCompleted: _countFrom(json['turnsCompleted']),
+      lastTurn: _countFrom(json['lastTurn']),
+      lastTurnKind: DungeonTurnKind.fromWire(json['lastTurnKind']),
       rescuedCharacters: List.unmodifiable(
         (json['rescuedCharacters'] as List).cast<String>(),
       ),
@@ -261,6 +279,10 @@ class QuestResult extends Equatable {
     'enemies': enemies.map((entry) => entry.toJson()).toList(),
     'stagesCleared': stagesCleared,
     'stagesTotal': stagesTotal,
+    'turnsTotal': turnsTotal,
+    'turnsCompleted': turnsCompleted,
+    'lastTurn': lastTurn,
+    'lastTurnKind': lastTurnKind?.name,
     'rescuedCharacters': rescuedCharacters,
     'ambush': ambush?.toJson(),
     if (acknowledgedAt != null)
@@ -300,6 +322,10 @@ class QuestResult extends Equatable {
     enemies,
     stagesCleared,
     stagesTotal,
+    turnsTotal,
+    turnsCompleted,
+    lastTurn,
+    lastTurnKind,
     rescuedCharacters,
     ambush,
     acknowledgedAt,

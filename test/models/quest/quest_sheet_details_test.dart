@@ -212,6 +212,157 @@ void main() {
     });
   });
 
+  group('legend on hero seats (BE 13.1 D-08, D-25)', () {
+    final heroAndMage = [slot('hero', 1), slot('mage', 1)];
+    final legendAndHero = [slot('legend', 1), slot('hero', 1)];
+
+    test('a legend beyond the legend seats counts on the hero line '
+        '(BE 13.1 D-08, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: heroAndMage,
+          registered: [reg('a', 'legend')],
+        ),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Eroe: 1 / 1',
+        'Mago: 0 / 1',
+      ]);
+    });
+
+    test('a legend viewer without a legend seat reads the hero line as its '
+        'rank line (BE 13.1 D-08, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(type: 'boss', slots: heroAndMage),
+        viewer: buildViewer(title: TitleType.legend),
+      );
+
+      expect(details.slotLines.map((l) => l.isViewerRank), [true, false]);
+    });
+
+    test('a legend counts on a free legend seat before the hero seats '
+        '(BE 13.1 D-08, D-25)', () {
+      final oneLegend = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: legendAndHero,
+          registered: [reg('a', 'legend')],
+        ),
+      );
+      final twoLegends = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: legendAndHero,
+          registered: [reg('a', 'legend'), reg('b', 'legend')],
+        ),
+      );
+
+      expect(oneLegend.slotLines.map((l) => l.text), [
+        'Leggenda: 1 / 1',
+        'Eroe: 0 / 1',
+      ]);
+      expect(twoLegends.slotLines.map((l) => l.text), [
+        'Leggenda: 1 / 1',
+        'Eroe: 1 / 1',
+      ]);
+    });
+
+    test('a legend viewer keeps the legend line while a legend seat is free '
+        'or is its own (BE 13.1 D-08, D-25)', () {
+      final free = QuestSheetDetails.of(
+        buildQuest(type: 'boss', slots: legendAndHero),
+        viewer: buildViewer(title: TitleType.legend),
+      );
+      final ownSeat = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: legendAndHero,
+          registered: [reg('c-1', 'legend')],
+        ),
+        viewer: buildViewer(title: TitleType.legend),
+      );
+
+      expect(free.slotLines.map((l) => l.isViewerRank), [true, false]);
+      expect(ownSeat.slotLines.map((l) => l.isViewerRank), [true, false]);
+    });
+
+    test('with two legends the first registered holds the legend seat and the '
+        'second the hero seat (WR-03, BE 13.1 D-08, D-25)', () {
+      Quest twoLegends(List<String> order) => buildQuest(
+        type: 'boss',
+        slots: legendAndHero,
+        registered: [for (final id in order) reg(id, 'legend')],
+      );
+      final legendViewer = buildViewer(title: TitleType.legend);
+
+      final first = QuestSheetDetails.of(
+        twoLegends(['c-1', 'b']),
+        viewer: legendViewer,
+      );
+      final second = QuestSheetDetails.of(
+        twoLegends(['b', 'c-1']),
+        viewer: legendViewer,
+      );
+
+      expect(first.slotLines.map((l) => l.isViewerRank), [true, false]);
+      expect(second.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
+    test('a registered viewer is highlighted on the seat of its stored '
+        'registration title (WR-03, BE 13.1 D-08, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: legendAndHero,
+          registered: [reg('c-1', 'hero')],
+        ),
+        viewer: buildViewer(title: TitleType.legend),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Leggenda: 0 / 1',
+        'Eroe: 1 / 1',
+      ]);
+      expect(details.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
+    test('a legend beyond every exact seat overflows onto the any-rank line '
+        '(BE 13.1 D-08, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: [slot('hero', 1), slot(null, 1)],
+          registered: [reg('a', 'hero'), reg('b', 'legend')],
+        ),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Eroe: 1 / 1',
+        'Qualsiasi rango: 1 / 1',
+      ]);
+    });
+
+    test('non-legend titles keep their exact lines (guard, BE 13.1 D-08, '
+        'D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildQuest(
+          type: 'boss',
+          slots: heroAndMage,
+          registered: [reg('a', 'mage'), reg('b', 'paladin')],
+        ),
+        viewer: buildViewer(title: TitleType.mage),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Eroe: 0 / 1',
+        'Mago: 1 / 1',
+      ]);
+      expect(details.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+  });
+
   group('cost line', () {
     test('story shows it with the live balance', () {
       final details = QuestSheetDetails.of(
@@ -415,6 +566,42 @@ void main() {
 
     test('travelLine is null without a preview (D-04)', () {
       expect(QuestSheetDetails.of(buildQuest(type: 'hunt')).travelLine, isNull);
+    });
+  });
+
+  group('mixed boss (Phase 20)', () {
+    test('draws one line per seat title in wire order (D-03, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildMixedBoss(registered: [reg('c-2', 'paladin')]),
+        viewer: buildViewer(title: TitleType.adventurer),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Paladino: 1 / 2',
+        'Avventuriero: 0 / 1',
+      ]);
+      expect(details.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
+    test('has no any-rank line (D-02, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildMixedBoss(),
+        viewer: buildViewer(title: TitleType.adventurer),
+      );
+
+      expect(details.slotLines.where((l) => l.title == null), isEmpty);
+    });
+
+    test('shows the lowest seat title as the minimum (D-25)', () {
+      QuestSheetDetails detailsFor(TitleType title) => QuestSheetDetails.of(
+        buildMixedBoss(),
+        viewer: buildViewer(title: title),
+      );
+
+      final adventurer = detailsFor(TitleType.adventurer);
+      expect(adventurer.requiredTitleText, 'Titolo minimo: Avventuriero');
+      expect(adventurer.isTitleIneligible, isFalse);
+      expect(detailsFor(TitleType.rookie).isTitleIneligible, isTrue);
     });
   });
 }

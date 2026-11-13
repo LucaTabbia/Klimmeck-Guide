@@ -25,13 +25,16 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
 
   /// Dopo questi rifiuti la lista può essere cambiata sul server; `timedOut`
   /// perché il BE può aver accettato la quest dopo la scadenza client;
-  /// `noEffect` perché la lista non sapeva ancora che la cura è inutile (D-20).
+  /// `noEffect` perché la lista non sapeva ancora che la cura è inutile (D-20);
+  /// `notAcceptable` perché la lista non sapeva ancora del soccorso aperto
+  /// sulla quest (quick 261113-aql): la Board non segue `questUpdated`.
   static const Set<QuestAcceptanceFailure> _staleListFailures = {
     QuestAcceptanceFailure.full,
     QuestAcceptanceFailure.alreadyTaken,
     QuestAcceptanceFailure.notFound,
     QuestAcceptanceFailure.timedOut,
     QuestAcceptanceFailure.noEffect,
+    QuestAcceptanceFailure.notAcceptable,
   };
 
   @override

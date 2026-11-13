@@ -100,6 +100,10 @@ Map<String, dynamic> questResultJson({
   List<Object?>? enemies,
   Object? stagesCleared,
   Object? stagesTotal,
+  Object? turnsTotal,
+  Object? turnsCompleted,
+  Object? lastTurn,
+  Object? lastTurnKind,
   List<String> rescuedCharacters = const [],
   String? acknowledgedAt,
 }) => {
@@ -141,6 +145,10 @@ Map<String, dynamic> questResultJson({
   'enemies': enemies ?? [questEnemyJson(imagePath: 'enemies/wolf.png')],
   'stagesCleared': stagesCleared,
   'stagesTotal': stagesTotal,
+  if (turnsTotal != null) 'turnsTotal': turnsTotal,
+  if (turnsCompleted != null) 'turnsCompleted': turnsCompleted,
+  if (lastTurn != null) 'lastTurn': lastTurn,
+  if (lastTurnKind != null) 'lastTurnKind': lastTurnKind,
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
 };
@@ -198,12 +206,17 @@ Map<String, dynamic> guardEncounterResultJson({String outcome = 'success'}) {
 }
 
 /// Dungeon a tappe (BE Phase 13 D-12): una voce per tappa, nell'ordine; di
-/// default fermata alla seconda tappa di tre.
+/// default fermata alla seconda tappa di tre. I turni (BE Phase 21, D-21)
+/// sono scritti solo se valorizzati.
 Map<String, dynamic> dungeonResultJson({
   String id = 'result-dungeon',
   String outcome = 'failure',
   int stagesCleared = 1,
   int stagesTotal = 3,
+  Object? turnsTotal,
+  Object? turnsCompleted,
+  Object? lastTurn,
+  Object? lastTurnKind,
 }) => questResultJson(
   id: id,
   outcome: outcome,
@@ -221,8 +234,37 @@ Map<String, dynamic> dungeonResultJson({
   ],
   stagesCleared: stagesCleared,
   stagesTotal: stagesTotal,
+  turnsTotal: turnsTotal,
+  turnsCompleted: turnsCompleted,
+  lastTurn: lastTurn,
+  lastTurnKind: lastTurnKind,
   coins: outcome == 'success' ? null : _zeroCoins,
   rewardItems: outcome == 'success' ? null : const [],
+);
+
+/// Soccorritore di un'aid di dungeon (BE Phase 21, D-21): salva il ferito al
+/// 4° piano su 8, uno scontro; le tappe contano gli scontri del cammino.
+Map<String, dynamic> aidDungeonResultJson({
+  String id = 'result-aid-dungeon',
+  String outcome = 'success',
+  Object? turnsTotal = 8,
+  Object? turnsCompleted = 4,
+  Object? lastTurn = 4,
+  Object? lastTurnKind = 'fight',
+  Object? stagesCleared = 2,
+  Object? stagesTotal = 4,
+}) => questResultJson(
+  id: id,
+  outcome: outcome,
+  questType: 'aid',
+  questTitle: 'Soccorso nelle grotte di Bosa',
+  stagesCleared: stagesCleared,
+  stagesTotal: stagesTotal,
+  turnsTotal: turnsTotal,
+  turnsCompleted: turnsCompleted,
+  lastTurn: lastTurn,
+  lastTurnKind: lastTurnKind,
+  rescuedCharacters: outcome == 'success' ? const ['c-2'] : const [],
 );
 
 Map<String, dynamic> successResultJson({

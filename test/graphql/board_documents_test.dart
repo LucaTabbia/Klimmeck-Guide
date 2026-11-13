@@ -94,9 +94,32 @@ void main() {
       );
     });
 
+    test('the quest fragment keeps the served prizes and does not select '
+        'rankPrizes (D-07, D-22)', () {
+      final selection = _collapsed(QuestFragment.fields);
+      expect(selection, contains('prizes {'));
+      expect(
+        selection,
+        isNot(
+          contains(
+            'rank'
+            'Prizes',
+          ),
+        ),
+      );
+    });
+
     test('the quest selection asks for the per-viewer noEffect (D-20)', () {
       expect(
         RegExp(r'\bnoEffect\b').allMatches(QuestFragment.fields),
+        hasLength(1),
+      );
+    });
+
+    test('the quest selection asks for the served rescue lock '
+        '(quick 261113-aql)', () {
+      expect(
+        RegExp(r'\bawaitingRescue\b').allMatches(QuestFragment.fields),
         hasLength(1),
       );
     });

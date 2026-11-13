@@ -69,4 +69,18 @@ void main() {
       'Il tempio non può fare nulla per te adesso',
     );
   });
+
+  test('a quest awaiting its rescue explains itself in the world '
+      '(quick 261113-aql)', () {
+    for (final type in [QuestType.hunt, QuestType.dungeon]) {
+      expect(
+        questBlockedReasonOf(
+          QuestAvailability.awaitingRescue,
+          minTitle: null,
+          type: type,
+        ),
+        'Soccorso in corso: la missione riapre quando il soccorso si conclude.',
+      );
+    }
+  });
 }

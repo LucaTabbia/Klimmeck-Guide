@@ -1165,4 +1165,130 @@ void main() {
       );
     });
   });
+
+  group('dungeon turns (Phase 20)', () {
+    const turnsKey = QuestResultSheet.turnsKey;
+
+    String? textOf(WidgetTester tester, Key key) =>
+        tester.widget<Text>(find.byKey(key)).data;
+
+    testWidgets(
+      'a dungeon with turns shows one turn line in the stages slot (D-21)',
+      (tester) async {
+        await _pump(
+          tester,
+          questResult(
+            dungeonResultJson(
+              turnsTotal: 8,
+              turnsCompleted: 3,
+              lastTurn: 4,
+              lastTurnKind: 'exploration',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          textOf(tester, turnsKey),
+          'Caduto al 4° piano su 8, in esplorazione',
+        );
+        expect(find.byKey(QuestResultSheet.stagesKey), findsNothing);
+        expect(
+          tester.getTopLeft(find.byKey(turnsKey)).dy,
+          greaterThanOrEqualTo(
+            tester.getBottomLeft(find.byKey(QuestResultSheet.enemyKey)).dy,
+          ),
+        );
+        expect(
+          tester.getBottomLeft(find.byKey(turnsKey)).dy,
+          lessThanOrEqualTo(
+            tester.getTopLeft(find.byKey(QuestResultSheet.hpKey)).dy,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'a won dungeon aid shows the reached turn and the rescued count (D-21)',
+      (tester) async {
+        await _pump(tester, questResult(aidDungeonResultJson()));
+        await tester.pumpAndSettle();
+
+        expect(
+          textOf(tester, turnsKey),
+          'Soccorso effettuato al raggiungimento del 4° piano su 8',
+        );
+        expect(find.byKey(QuestResultSheet.stagesKey), findsNothing);
+        expect(
+          textOf(tester, QuestResultSheet.rescuedKey),
+          'Hai salvato 1 avventuriero',
+        );
+      },
+    );
+
+    testWidgets(
+      'no prize-share line: the share is only in the rewards (D-20, D-21)',
+      (tester) async {
+        await _pump(tester, questResult(aidDungeonResultJson()));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('proporzione'), findsNothing);
+      },
+    );
+
+    testWidgets('without turns the stages line stays (D-24)', (tester) async {
+      await _pump(tester, questResult(dungeonResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        textOf(tester, QuestResultSheet.stagesKey),
+        'Esplorazione: tappa 1 di 3',
+      );
+      expect(find.byKey(turnsKey), findsNothing);
+    });
+
+    final gatedOutcomes = {
+      'rescued': (
+        aidDungeonResultJson(outcome: 'rescued'),
+        'Esplorazione: tappa 2 di 4',
+      ),
+      'death': (
+        aidDungeonResultJson(outcome: 'death'),
+        'Esplorazione: tappa 2 di 4',
+      ),
+      'gmCompleted': (
+        dungeonResultJson(
+          outcome: 'gmCompleted',
+          stagesCleared: 3,
+          turnsTotal: 8,
+          turnsCompleted: 8,
+          lastTurn: 8,
+          lastTurnKind: 'fight',
+        ),
+        'Esplorazione: tappa 3 di 3',
+      ),
+    };
+
+    for (final MapEntry(key: outcome, value: (json, stagesLine))
+        in gatedOutcomes.entries) {
+      testWidgets(
+        'a $outcome result with turns shows the stages line, no turn line '
+        '(D-21, D-24)',
+        (tester) async {
+          await _pump(tester, questResult(json));
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(turnsKey), findsNothing);
+          expect(textOf(tester, QuestResultSheet.stagesKey), stagesLine);
+        },
+      );
+    }
+
+    testWidgets('no turn line outside a dungeon (D-21)', (tester) async {
+      await _pump(tester, questResult(successResultJson()));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(turnsKey), findsNothing);
+    });
+  });
 }

@@ -323,4 +323,70 @@ void main() {
       expect(quest, buildQuest(type: 'heal', noEffect: true));
     });
   });
+
+  group('awaitingRescue (quick 261113-aql)', () {
+    test('a quest reads the served rescue lock (quick 261113-aql)', () {
+      expect(
+        buildQuest(type: 'dungeon', awaitingRescue: true).awaitingRescue,
+        isTrue,
+      );
+      expect(
+        buildQuest(type: 'dungeon', awaitingRescue: false).awaitingRescue,
+        isFalse,
+      );
+    });
+
+    test('a missing or malformed awaitingRescue is false and the quest stays '
+        '(quick 261113-aql)', () {
+      final absent = Quest.tryFromJson(questJson(type: 'hunt'));
+      expect(absent, isNotNull);
+      expect(absent!.awaitingRescue, isFalse);
+      for (final malformed in <Object?>[null, 'true', 1, <String, Object>{}]) {
+        final quest = Quest.tryFromJson({
+          ...questJson(type: 'hunt'),
+          'awaitingRescue': malformed,
+        });
+        expect(quest, isNotNull, reason: '$malformed');
+        expect(quest!.awaitingRescue, isFalse, reason: '$malformed');
+      }
+    });
+
+    test('toJson, copyWith and props carry awaitingRescue '
+        '(quick 261113-aql)', () {
+      final quest = buildQuest(type: 'dungeon', awaitingRescue: true);
+      expect(quest.toJson()['awaitingRescue'], isTrue);
+      expect(Quest.fromJson(quest.toJson()).awaitingRescue, isTrue);
+      expect(Quest.fromJson(quest.toJson()), quest);
+      expect(quest.copyWith(id: 'q-2').awaitingRescue, isTrue);
+      expect(quest.copyWith(awaitingRescue: false).awaitingRescue, isFalse);
+      expect(quest, isNot(quest.copyWith(awaitingRescue: false)));
+      expect(quest, buildQuest(type: 'dungeon', awaitingRescue: true));
+    });
+  });
+
+  group('served prize block (Phase 20)', () {
+    test('reads the served block and ignores rankPrizes (D-22)', () {
+      final json =
+          questJson(
+              type: 'boss',
+              prizes: {
+                'prizeCoins': {'gold': 2, 'silver': 0, 'copper': 0},
+                'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+              },
+            )
+            ..['rankPrizes'] = [
+              {
+                'title': 'mage',
+                'prizes': {
+                  'pet': {'id': 'pet-drake', 'name': 'Draghetto'},
+                },
+              },
+            ];
+
+      final quest = Quest.fromJson(json);
+
+      expect(quest.prizes?.pet?.name, 'Gufo reale');
+      expect(Quest.tryFromJson(json), isNotNull);
+    });
+  });
 }

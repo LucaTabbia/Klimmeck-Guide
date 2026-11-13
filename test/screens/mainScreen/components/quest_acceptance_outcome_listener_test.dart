@@ -231,6 +231,25 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a not-acceptable refusal rereads the list so a sheet locked by a rescue '
+    'turns torn (WR-01, quick 261113-aql)',
+    (tester) async {
+      await pumpListener(tester);
+
+      await emit(
+        tester,
+        const QuestAcceptanceFailed(
+          'd-1',
+          QuestAcceptanceFailure.notAcceptable,
+        ),
+      );
+
+      verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      verify(() => acceptance.reset()).called(1);
+    },
+  );
+
   testWidgets('insufficient points do not refresh the list', (tester) async {
     await pumpListener(tester);
 

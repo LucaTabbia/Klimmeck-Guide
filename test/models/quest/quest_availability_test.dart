@@ -380,6 +380,7 @@ void main() {
       QuestAvailability.insufficientPoints: (true, true),
       QuestAvailability.noEffect: (true, true),
       QuestAvailability.imprisoned: (true, true),
+      QuestAvailability.awaitingRescue: (true, true),
     };
 
     test('every availability has a torn decision (quick 261110-mag)', () {
@@ -543,6 +544,122 @@ void main() {
     });
   });
 
+  group('awaitingRescue (quick 261113-aql)', () {
+    const sources = ['hunt', 'dungeon'];
+    const titles = <TitleType?>[...TitleType.values, null];
+
+    for (final type in sources) {
+      test('a $type with an open rescue is torn and not acceptable for every '
+          'viewer (quick 261113-aql)', () {
+        final quest = buildQuest(type: type, awaitingRescue: true);
+        for (final title in titles) {
+          final standing = standingOf(quest, buildViewer(title: title));
+          expect(
+            standing.availability,
+            QuestAvailability.awaitingRescue,
+            reason: '$title',
+          );
+          expect(standing.isTorn, isTrue, reason: '$title');
+          expect(standing.canAccept, isFalse, reason: '$title');
+        }
+      });
+
+      test('a $type without the lock is judged as before '
+          '(quick 261113-aql)', () {
+        for (final flag in <bool?>[false, null]) {
+          final standing = standingOf(
+            buildQuest(type: type, awaitingRescue: flag),
+            buildViewer(),
+          );
+          expect(standing.availability, QuestAvailability.available);
+          expect(standing.isTorn, isFalse);
+          expect(standing.canAccept, isTrue);
+        }
+      });
+    }
+
+    test('the lock wins over the viewer-dependent refusals, so every viewer '
+        'reads the same reason (IN-02, quick 261113-aql)', () {
+      // Hunt e dungeon sono di corsia standard: nessun saldo da provare.
+      final cases = [
+        (
+          'rookie',
+          buildViewer(
+            quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+          ),
+          QuestAvailability.laneBusy,
+        ),
+        (
+          'rookie',
+          buildViewer(cityPointIds: const {'poi-9'}),
+          QuestAvailability.notInCity,
+        ),
+        (
+          'rookie',
+          buildViewer(cityPointIds: null),
+          QuestAvailability.notInCity,
+        ),
+        (
+          'hero',
+          buildViewer(title: TitleType.rookie),
+          QuestAvailability.titleMismatch,
+        ),
+        (
+          'rookie',
+          buildViewer(title: null, twitchPoints: null),
+          QuestAvailability.titleMismatch,
+        ),
+      ];
+      for (final (minTitle, viewer, refusalWithoutLock) in cases) {
+        Quest dungeon({required bool awaitingRescue}) => buildQuest(
+          type: 'dungeon',
+          minTitle: minTitle,
+          awaitingRescue: awaitingRescue,
+        );
+
+        expect(
+          availabilityOf(dungeon(awaitingRescue: false), viewer),
+          refusalWithoutLock,
+        );
+        final standing = standingOf(dungeon(awaitingRescue: true), viewer);
+        expect(standing.availability, QuestAvailability.awaitingRescue);
+        expect(standing.isTorn, isTrue);
+      }
+    });
+
+    test("the lane owner and a prisoner keep their own reason "
+        "(quick 261113-aql)", () {
+      final quest = buildQuest(type: 'hunt', awaitingRescue: true);
+      expect(
+        availabilityOf(
+          quest,
+          buildViewer(
+            quests: buildLanes(pendingQuest: laneJson(questId: 'q-1')),
+          ),
+        ),
+        QuestAvailability.tornForOwner,
+      );
+      expect(
+        availabilityOf(
+          quest,
+          buildViewer(imprisonedFor: const Duration(hours: 1)),
+        ),
+        QuestAvailability.imprisoned,
+      );
+    });
+
+    test('a quest awaiting its rescue asks for no travel preview '
+        '(quick 261113-aql)', () {
+      expect(
+        needsTravelPreview(
+          buildQuest(type: 'dungeon', awaitingRescue: true),
+          buildViewer(),
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('isTitleEligible', () {
     test('story requires the exact title', () {
       expect(
@@ -672,6 +789,32 @@ void main() {
       expect(
         availabilityOf(boss, buildViewer(title: TitleType.paladin)),
         QuestAvailability.available,
+      );
+    });
+  });
+
+  group('mixed boss (Phase 20)', () {
+    test('an adventurer is available on a mixed boss (D-25)', () {
+      expect(
+        availabilityOf(
+          buildMixedBoss(),
+          buildViewer(title: TitleType.adventurer),
+        ),
+        QuestAvailability.available,
+      );
+    });
+
+    test('a rookie is below the minimum title (D-25)', () {
+      expect(
+        availabilityOf(buildMixedBoss(), buildViewer(title: TitleType.rookie)),
+        QuestAvailability.titleMismatch,
+      );
+    });
+
+    test('a hero finds the mixed boss full (D-25)', () {
+      expect(
+        availabilityOf(buildMixedBoss(), buildViewer(title: TitleType.hero)),
+        QuestAvailability.full,
       );
     });
   });

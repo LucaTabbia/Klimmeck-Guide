@@ -114,6 +114,10 @@ class QuestResultFragment {
     }
     stagesCleared
     stagesTotal
+    turnsTotal
+    turnsCompleted
+    lastTurn
+    lastTurnKind
     rescuedCharacters
     ambush {
       at

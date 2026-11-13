@@ -48,6 +48,7 @@ Quest _boardQuest(
   List<Map<String, dynamic>>? slots,
   Map<String, dynamic>? prizes,
   bool? noEffect,
+  bool? awaitingRescue,
 }) => buildQuest(
   id: id,
   type: type,
@@ -57,6 +58,7 @@ Quest _boardQuest(
   slots: slots,
   prizes: prizes,
   noEffect: noEffect,
+  awaitingRescue: awaitingRescue,
 );
 
 Map<String, dynamic> _injuredCharacterJson(List<String> injuries) {
@@ -572,5 +574,93 @@ void main() {
         expect(openSheet(tester).isEnabled, isTrue);
       },
     );
+  });
+
+  group('quest awaiting its rescue (quick 261113-aql)', () {
+    final locked = _boardQuest('d-1', 'dungeon', awaitingRescue: true);
+
+    Future<void> openLocked(WidgetTester tester) async {
+      await tester.ensureVisible(paper('d-1'));
+      await tester.tap(paper('d-1'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    TearablePaper openSheet(WidgetTester tester) =>
+        tester.widget<TearablePaper>(find.byType(TearablePaper));
+
+    testWidgets('a dungeon awaiting its rescue is drawn torn, an unlocked one '
+        'stays whole (quick 261113-aql)', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: loaded([
+          locked,
+          _boardQuest('d-2', 'dungeon', awaitingRescue: false),
+          _boardQuest('h-1', 'hunt', awaitingRescue: true),
+        ]),
+      );
+
+      expect(isTorn(tester, 'd-1'), isTrue);
+      expect(isTorn(tester, 'h-1'), isTrue);
+      expect(isTorn(tester, 'd-2'), isFalse);
+    });
+
+    testWidgets('its open sheet says why and has no accept action '
+        '(quick 261113-aql)', (tester) async {
+      await pumpBoard(tester, quests: loaded([locked]));
+      await openLocked(tester);
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.blockedReasonKey)).data,
+        'Soccorso in corso: la missione riapre quando il soccorso si conclude.',
+      );
+
+      final visibleCenter = Offset(
+        tester.getCenter(find.byType(TearablePaper)).dx,
+        180,
+      );
+      await tester.dragFrom(visibleCenter, const Offset(-600, 0));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(openSheet(tester).canTear, isFalse);
+      expect(openSheet(tester).isEnabled, isFalse);
+      verifyNever(
+        () => acceptanceCubit.accept(
+          characterId: any(named: 'characterId'),
+          questId: any(named: 'questId'),
+        ),
+      );
+    });
+
+    testWidgets('when a reread list brings the lock the open sheet tears and '
+        'says why (WR-01, quick 261113-aql)', (tester) async {
+      await pumpBoard(tester, quests: loaded([_boardQuest('d-1', 'dungeon')]));
+      await openLocked(tester);
+      expect(openSheet(tester).isEnabled, isTrue);
+
+      questStates.add(loaded([locked]));
+      await tester.pump();
+      await tester.pump();
+
+      expect(isTorn(tester, 'd-1'), isTrue);
+      expect(openSheet(tester).isEnabled, isFalse);
+      expect(openSheet(tester).canTear, isFalse);
+      expect(find.byKey(QuestInfoSheet.blockedReasonKey), findsOneWidget);
+    });
+
+    testWidgets('when a reread list drops the lock the sheet is whole and '
+        'tearable again (WR-01, quick 261113-aql)', (tester) async {
+      await pumpBoard(tester, quests: loaded([locked]));
+      await openLocked(tester);
+      expect(openSheet(tester).isEnabled, isFalse);
+
+      questStates.add(loaded([_boardQuest('d-1', 'dungeon')]));
+      await tester.pump();
+      await tester.pump();
+
+      expect(isTorn(tester, 'd-1'), isFalse);
+      expect(openSheet(tester).isEnabled, isTrue);
+      expect(find.byKey(QuestInfoSheet.blockedReasonKey), findsNothing);
+    });
   });
 }

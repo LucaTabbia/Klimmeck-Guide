@@ -909,6 +909,10 @@ void main() {
     testWidgets(
       'a rejection answered away from the Board still shows the banner',
       (tester) async {
+        // WR-01: il rifiuto rilegge la lista anche lontano dalla Board.
+        when(
+          () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+        ).thenAnswer((_) async {});
         final controller = await pumpOpenSatchel(tester, 'city-marker-1');
         await tapItem(tester, 5);
         expect(controller.page!.round(), 5);
@@ -920,6 +924,10 @@ void main() {
           ),
         );
         await tester.pump();
+
+        verify(
+          () => questCubit.refreshQuests(cityId: any(named: 'cityId')),
+        ).called(1);
 
         verify(
           () => noticesCubit.publishNotice(

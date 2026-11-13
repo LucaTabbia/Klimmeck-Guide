@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
+import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -1185,4 +1186,137 @@ void main() {
       expect(cureTop.dy, lessThan(lifeTop.dy));
     });
   });
+
+  group('served prize block (Phase 20)', () {
+    const owl = {'id': 'pet-owl', 'name': 'Gufo reale'};
+    const servedPrizes = {
+      'prizeCoins': {'gold': 2, 'silver': 0, 'copper': 0},
+      'pet': owl,
+    };
+    const paladinSeats = [
+      {'title': 'paladin', 'count': 2},
+    ];
+
+    void seedCoins() => seedSvgCache([
+      CloudinaryAssets.goldCoin,
+      CloudinaryAssets.silverCoin,
+      CloudinaryAssets.copperCoin,
+    ]);
+
+    testWidgets(
+      "prints the served block whatever the viewer's title (D-07, D-18)",
+      (tester) async {
+        seedCoins();
+        final quest = buildQuest(
+          type: 'boss',
+          slots: paladinSeats,
+          prizes: servedPrizes,
+        );
+        final viewers = <QuestViewer?>[
+          buildViewer(title: TitleType.paladin),
+          buildViewer(title: TitleType.adventurer),
+          buildViewer(title: TitleType.hero),
+          null,
+        ];
+
+        for (final viewer in viewers) {
+          await _pump(tester, quest, viewer: viewer);
+
+          expect(
+            _textOf(tester, QuestInfoSheet.petPrizeKey),
+            'Compagno in premio: Gufo reale',
+            reason: '${viewer?.title}',
+          );
+          expect(
+            find.byType(CoinsDisplay),
+            findsOneWidget,
+            reason: '${viewer?.title}',
+          );
+        }
+      },
+    );
+
+    testWidgets(
+      'a rankPrizes list on the payload changes nothing on the sheet (D-22)',
+      (tester) async {
+        seedCoins();
+        final json =
+            questJson(type: 'boss', slots: paladinSeats, prizes: servedPrizes)
+              ..['rankPrizes'] = [
+                {
+                  'title': 'paladin',
+                  'prizes': {
+                    'pet': {'id': 'pet-drake', 'name': 'Draghetto'},
+                  },
+                },
+              ];
+
+        await _pump(
+          tester,
+          Quest.fromJson(json),
+          viewer: buildViewer(title: TitleType.paladin),
+        );
+
+        expect(find.text('Compagno in premio: Draghetto'), findsNothing);
+        expect(find.text('Compagno in premio: Gufo reale'), findsOneWidget);
+      },
+    );
+
+    testWidgets('no spell row: a served spell prints nothing (D-23)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(
+          type: 'boss',
+          slots: paladinSeats,
+          prizes: {
+            'xpPrize': 10,
+            'spell': {'id': 'sp-1', 'name': 'Palla di fuoco'},
+          },
+        ),
+        viewer: buildViewer(title: TitleType.paladin),
+      );
+
+      expect(find.textContaining('Palla di fuoco'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the served cure lines stay as served (D-07, D-23)', (
+      tester,
+    ) async {
+      for (final title in [TitleType.paladin, TitleType.adventurer]) {
+        await _pump(
+          tester,
+          _cureQuest(),
+          viewer: buildViewer(title: title),
+          characterInjuries: const [InjuryType.contusion],
+        );
+
+        expect(
+          _textOf(tester, QuestInfoSheet.cureLineKey),
+          'Cura le tue ferite: contusione',
+          reason: '$title',
+        );
+        expect(
+          _textOf(tester, QuestInfoSheet.lifeLineKey),
+          'Vita: almeno il 50%',
+          reason: '$title',
+        );
+      }
+    });
+  });
+
+  group(
+    'time line (quick 261113-aql, user: «Su Tempo richiesto vedo ",7" secondi»)',
+    () {
+      testWidgets('a quest lasting 15 minutes reads exactly "15 minuti"', (
+        tester,
+      ) async {
+        await _pump(tester, buildQuest(type: 'hunt', timeToComplete: 900000));
+
+        expect(find.text('Tempo richiesto: 15 minuti'), findsOneWidget);
+      });
+    },
+  );
 }

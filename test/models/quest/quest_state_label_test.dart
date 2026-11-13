@@ -136,4 +136,14 @@ void main() {
       'Cacciando…',
     );
   });
+
+  test('a mixed boss counts the party against every seat (D-25)', () {
+    final boss = buildMixedBoss(
+      registered: [
+        {'character': 'c-1', 'title': 'paladin'},
+      ],
+    );
+
+    expect(questStateLabel(waiting(), boss), 'In attesa del gruppo 1/3');
+  });
 }

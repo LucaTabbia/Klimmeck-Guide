@@ -256,4 +256,62 @@ void main() {
       }
     });
   });
+
+  group('mixed boss seats (Phase 20)', () {
+    const mixed = [
+      AdventurerSlot(title: TitleType.paladin, count: 2),
+      AdventurerSlot(title: TitleType.adventurer, count: 1),
+    ];
+
+    test(
+      'paladin seats full: an adventurer can join, a paladin cannot (D-03, D-25)',
+      () {
+        final registered = regs([TitleType.paladin, TitleType.paladin]);
+
+        expect(
+          canRegisterWithTitle(mixed, registered, TitleType.adventurer),
+          isTrue,
+        );
+        expect(isFullFor(mixed, registered, TitleType.adventurer), isFalse);
+        expect(
+          canRegisterWithTitle(mixed, registered, TitleType.paladin),
+          isFalse,
+        );
+        expect(isFullFor(mixed, registered, TitleType.paladin), isTrue);
+      },
+    );
+
+    test(
+      'adventurer seat full: a paladin can join, an adventurer cannot (D-03, D-25)',
+      () {
+        final registered = regs([TitleType.adventurer]);
+
+        expect(
+          canRegisterWithTitle(mixed, registered, TitleType.paladin),
+          isTrue,
+        );
+        expect(isFullFor(mixed, registered, TitleType.paladin), isFalse);
+        expect(
+          canRegisterWithTitle(mixed, registered, TitleType.adventurer),
+          isFalse,
+        );
+        expect(isFullFor(mixed, registered, TitleType.adventurer), isTrue);
+      },
+    );
+
+    test('a paladin never takes the adventurer seat (D-03)', () {
+      final registered = regs([TitleType.paladin, TitleType.paladin]);
+
+      expect(isFullForEveryone(mixed, registered), isFalse);
+      expect(
+        canRegisterWithTitle(mixed, registered, TitleType.paladin),
+        isFalse,
+      );
+    });
+
+    test('a hero finds no seat (D-25)', () {
+      expect(isFullFor(mixed, const [], TitleType.hero), isTrue);
+      expect(canRegisterWithTitle(mixed, const [], TitleType.hero), isFalse);
+    });
+  });
 }
