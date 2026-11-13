@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: executing
-stopped_at: "Completed 20-03-PLAN.md (2026-11-13) — schema gate passed on BE 7f3506ac, 46/46 OK, full suite 4291 green; next 20-04 (device E2E)"
-last_updated: "2026-11-12T17:34:45.584Z"
-last_activity: "2026-11-13 -- Plan 20-03 complete (schema gate, turn fields selected, phase gate green)"
+status: phase-complete
+stopped_at: "Completed 20-04-PLAN.md (2026-11-13) — Phase 20 complete: device E2E passed, gate re-run on BE 697d40a1 (46/46 OK, full suite 4339 green), RANKP-01..04 complete; next the PR feat/20-rank-specific-prizes → develop"
+last_updated: "2026-11-13T00:00:00.000Z"
+last_activity: "2026-11-13 -- Plan 20-04 complete (device E2E recorded, Phase 20 closed)"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 30
-  completed_plans: 26
-  percent: 87
+  completed_plans: 27
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 20 — Rank-Specific Prizes for Group Quests (↔ BE Phase 21) — PLANNED on 2026-11-13 on `feat/20-rank-specific-prizes` (from `develop`): 4 plans in a chain, ready to execute; plans 20-03 and 20-04 are gated on the BE Phase 21 merge
+**Current focus:** Phase 20 — Rank-Specific Prizes for Group Quests (↔ BE Phase 21) — COMPLETE on 2026-11-13 on `feat/20-rank-specific-prizes` (from `develop`): 4/4 plans, device E2E passed; PR to `develop` next
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 not planned; milestone close pending
 Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
-Plan: 03 of 4
-Status: Phase 20 executing — BE Phase 21 merged on BE `develop` (`7f3506ac`, 2026-11-13); plan 20-03 complete (gate OK, `QuestResultFragment` selects the four turn fields, 46/46 OK, full suite 4291 green); next 20-04 (device E2E). The branch now needs a BE with Phase 21
-Last activity: 2026-11-13 -- Plan 20-03 complete (schema gate on BE `7f3506ac`, turn fields selected, phase gate green)
-Next step: run 20-04 (device E2E with the user, orchestrator-guided, against the BE rebooted from `develop` with Phase 21). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
+Plan: 04 of 4
+Status: Phase 20 complete — device E2E passed on 2026-11-13 (`20-HUMAN-UAT.md`: 12 executed steps pass, three FE fixes and the quick task 261113-aql born during the UAT); gate re-run on BE `develop` `697d40a1` (Phase 21 + quick 261113-aql): `GATE_OK`, 46/46 OK, full suite 4339 green, analyzer 47 info / 0 warning / 0 error; RANKP-01..04 complete. The branch needs a BE with Phase 21 and `Quest.awaitingRescue`
+Last activity: 2026-11-13 -- Plan 20-04 complete (device E2E recorded, requirements, ROADMAP, VALIDATION and BACKEND-NOTES closed)
+Next step: the PR `feat/20-rank-specific-prizes` → `develop` (opened by the orchestrator; the BE Phase 21 PR and the BE quick PR #37 are already merged), then Phase 21 discuss / plan (context on `feat/21-innkeeper-mission-completion`, with the BE Phase 22).
 
 ## Current Milestone
 
@@ -60,6 +60,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **Backend rule F2** (Phase 9 UAT): a started quest whose participant is archived is fought as an occupied seat — honoured by the BE 9.2/10 seat holders; keep an eye on it in the Phase 19 model review.
 - **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
 - **Phase 19 device notes** (19-13, not blockers): long «Attacco» lines shrink and the common ink is close to the normal ink (the user found both fine); the abandon button of the map sheet may flash next to «In combattimento…» for a solo quest (pre-existing); pets as quest prizes (BE D-28) not seen on the device yet; the unregistered flags UF-19-01..03 of the security audit accepted as they are; the innkeeper's test character carries two more injuries from this UAT (`missingLeftHand`, `brokenRightLeg`).
+- **Phase 20 device notes** (20-04, not blockers): the «Soccorso in corso» lock of quick 261113-aql is NOT live on an open Board (declared limit: it shows at the next read of `quests` or right after a refused accept); open questions for the user — the banner copy on a refused locked quest (today the shared «Missione non disponibile, avvisa il locandiere»), and `Quest.rankPrizes` readable by every authenticated user (BE). Not seen on the device, covered by tests: the Map sheet of a rank-block quest, a result without turns, the wounded's «Sei stato salvato» (DB only).
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
@@ -85,10 +86,10 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 | 261110-shs2 | every quest type now draws its own sheets, whole and torn (crime, guard, hunt on the «game» files, job, heal, world mission, boss, aid, revised magic; study on the announcement sheets; dungeon on the generic quest sheets); constants renamed after the quest type they draw (`enemySheet…` for boss/enemy files named `huntSheet…` on Cloudinary, `huntSheet…` for the `gameSheet…` files) | 2026-11-10 | 07a753e | commits only, see `quest_paper_asset.dart` |
 | 261110-cgd | prison after a crime arrest (countdown from `imprisonedUntil`, marker «In prigione per: …» over the pawn, board and shop closed, travel blocked, `CHARACTER_IMPRISONED` notices) and guard encounter lines on the result sheet; `prisonRelease` push category («Uscita di prigione»); fragment selections deferred to plan 18-12; BE twins `261110-cgd` and `261110-prp` on the BE Phase 18 branch | 2026-11-10 | 761b73e | [261110-cgd-crime-arrest-guard-encounter](./quick/261110-cgd-crime-arrest-guard-encounter/) |
 | 261111-enm | `enemy` quests («Minaccia») are single-player with a minimum rank: judged with one rank-free seat whatever the wire carries (`questSlotsOf`), acceptable by any rank ≥ `minTitle` while nobody has taken them, no seats row nor party counter on the sheet (only «Titolo minimo: …»); `boss` keeps its rank-exact seats; BE twin `261111-enm` (on the Phase 19 branch, device UAT) | 2026-11-11 | 169daeda | [261111-enm-enemy-quests-single-player](./quick/261111-enm-enemy-quests-single-player/) |
-| 261113-aql | a hunt or a dungeon with an open rescue born from it (`Quest.awaitingRescue`, served the same for every viewer) is drawn torn and not acceptable for everyone until the aid closes; reason «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.»; supersedes Phase 20 D-15; BE twin `feat/quick-aid-locks-source-quest` (on the Phase 20 branch) | 2026-11-13 | 93cb09fd | [261113-aql-aid-locks-source-quest](./quick/261113-aql-aid-locks-source-quest/) |
+| 261113-aql | a hunt or a dungeon with an open rescue born from it (`Quest.awaitingRescue`, served the same for every viewer) is drawn torn and not acceptable for everyone until the aid closes; reason «Soccorso in corso: la missione riapre quando il soccorso si conclude.» (amended after the review); not live on an open Board (shows at the next list read or after a refused accept); supersedes Phase 20 D-15; BE twin `feat/quick-aid-locks-source-quest` (on the Phase 20 branch) | 2026-11-13 | 93cb09fd | [261113-aql-aid-locks-source-quest](./quick/261113-aql-aid-locks-source-quest/) |
 
 ## Session Continuity
 
-Last session: 2026-11-12T17:34:45.579Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-rank-specific-prizes-for-group-quests/20-CONTEXT.md
+Last session: 2026-11-13
+Stopped at: Completed 20-04-PLAN.md (Phase 20 complete)
+Resume file: .planning/phases/20-rank-specific-prizes-for-group-quests/20-04-SUMMARY.md

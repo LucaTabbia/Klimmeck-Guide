@@ -23,13 +23,13 @@ BE twin: quick `261113-aql`, BE branch `feat/quick-aid-locks-source-quest` (not 
 
 - `Quest.awaitingRescue: Boolean!` (additive, the same for every viewer), selected once in `QuestFragment.fields` → `quests` and `OnQuestUpdated`.
 - Refusal of `acceptQuest`: the existing `QUEST_NOT_ACCEPTABLE` → `QuestAcceptanceFailure.notAcceptable` (no new code, no new mapping).
-- `questUpdated` republishes the source quest at aid birth and closing: the Board rereads its sheet from the list, so the lock appears and disappears live. Nothing in `QuestScopeListener` (the change does not travel on `characterUpdated`).
+- `questUpdated` republishes the source quest at aid birth and closing, but the app follows `questUpdated` only for the viewer's own lane quest, so the lock is **not live on an open Board** (WR-01 of `20-REVIEW-UAT.md`): it shows at the next read of `quests` (Board opening, scope change of the viewer, map reread) or right after a refused accept, which now rereads `quests` silently (`QUEST_NOT_ACCEPTABLE` → `notAcceptable`, `5e8536b4`). Nothing in `QuestScopeListener` (the change does not travel on `characterUpdated`).
 
 ## Where the rule lives
 
 - `lib/models/quest/quest.dart`: `awaitingRescue` (`json['awaitingRescue'] == true`: absent, `null`, `'true'`, `1`, `{}` → `false`, the quest stays) in `fromJson`, `toJson`, `copyWith`, `props`.
 - `lib/models/quest/quest_availability.dart`: `QuestAvailability.awaitingRescue`, torn in `isSheetTorn`, not acceptable (so no travel preview either).
-- `lib/models/quest/quest_blocked_reason.dart`: `questAwaitingRescueLine` = «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.» (orchestrator's technical default).
+- `lib/models/quest/quest_blocked_reason.dart`: `questAwaitingRescueLine` = «Soccorso in corso: la missione riapre quando il soccorso si conclude.» (amended after the review, IN-03, `a30195c1`; the first text «… quando il ferito è stato raggiunto.» was the orchestrator's technical default).
 - `lib/screens/mainScreen/tabs/board/board.dart`: the open sheet is not draggable (`isEnabled` false), like a `noEffect` sheet.
 
 ### Precedence (in `_availabilityOf`)
@@ -50,7 +50,7 @@ The app never inspects aid quests: the lock is only the served boolean (CLAUDE.m
 ## New tests (15, all titled `(quick 261113-aql)`)
 
 - `test/models/quest/quest_test.dart` (3): true/false read; absent/malformed → false, quest kept; `toJson` round trip, `copyWith`, `props`.
-- `test/models/quest/quest_availability_test.dart` (7): hunt and dungeon locked for every title and with no title (2); hunt and dungeon unchanged with `false`/absent (2); the lock wins over busy lane, other city, unknown city, no points, no title/no balance; lane owner and prisoner keep their reason; no travel preview. The torn-sheet table gets the new value (existing test).
+- `test/models/quest/quest_availability_test.dart` (7): hunt and dungeon locked for every title and with no title (2); hunt and dungeon unchanged with `false`/absent (2); the lock wins over busy lane, other city, unknown city, a rank too low and no title — each viewer first proved refused without the lock (IN-02, `9c10ff00`; the «no points» viewer was dropped: hunt and dungeon pay no points); lane owner and prisoner keep their reason; no travel preview. The torn-sheet table gets the new value (existing test).
 - `test/models/quest/quest_blocked_reason_test.dart` (1): the reason text for hunt and dungeon.
 - `test/screens/mainScreen/tabs/board/board_test.dart` (3): locked dungeon and hunt torn, unlocked dungeon whole; open sheet prints the reason, `canTear` and `isEnabled` false, swipe never calls accept; when `questUpdated` clears the flag the sheet is whole, tearable, no reason line.
 - `test/graphql/board_documents_test.dart` (1): `awaitingRescue` selected exactly once in `QuestFragment.fields`.
@@ -68,3 +68,7 @@ Fixture: `questJson` / `buildQuest` take `awaitingRescue` (key omitted when `nul
 ## Deviations
 
 None. The map sheet (`QuestInfoOverlay`) is not touched: it shows the character's own lane quest with no viewer, so it prints no availability reason.
+
+## Amendments after the review (2026-11-13)
+
+The three sentences above on the live lock, the reason copy and the precedence test were corrected by plan 20-04 to match `20-REVIEW-UAT-FIX.md` and the notes at the bottom of `261113-aql-PLAN.md`. Review commits on the FE: `6596807b`, `5e8536b4`, `fee3690a`, `9c10ff00`, `2c1e0714`, `a30195c1`, `f13a542e`, `c0ebdd4b`. BE twin merged into BE `develop` (PR #37, `697d40a1`); the schema check then ran: `awaitingRescue` present, 46 × OK.

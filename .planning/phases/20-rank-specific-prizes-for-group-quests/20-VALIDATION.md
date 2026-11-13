@@ -1,9 +1,9 @@
 ---
 phase: 20
 slug: rank-specific-prizes-for-group-quests
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-13
 ---
 
@@ -50,9 +50,9 @@ created: 2026-11-13
 | 20-03-01 | 03 | 3 | RANKP-04 | T-20-10, T-20-11, T-20-12, T-20-13 | BE read-only; gate stops and parks; no rename by the executor | gate | block-anchored `awk` checks on `origin/develop:src/schema.gql` (`GATE_OK`) | ✅ | ✅ green |
 | 20-03-02 | 03 | 3 | RANKP-03, RANKP-04 | T-20-10, T-20-14 | the four turn fields selected after `stagesTotal` in the three result documents; `QuestFragment` unchanged, `rankPrizes` not selected; 46 × OK (D-22) | unit (document) + gate | `flutter test test/graphql test/tool test/models/quest_result test/shared/components/popup test/screens/mainScreen/main_screen_quest_results_test.dart` + `dump_documents.dart` / `validate_documents.js` | ✅ (add pins) | ✅ green |
 | 20-03-03 | 03 | 3 | RANKP-04 | T-20-14 | full suite, analyzer, format, trailers, subject length, product-rule greps, `hardening_check.sh` | gate | `flutter test` (full, foreground) + greps | ✅ | ✅ green |
-| 20-04-01 | 04 | 4 | RANKP-04 | T-20-15, T-20-17 | gate re-checked; UAT record with 13 steps, no ids / tokens / URIs | docs | `test -f …/20-HUMAN-UAT.md` + row count 13 | ❌ (created) | ⬜ pending |
-| 20-04-02 | 04 | 4 | RANKP-01..04 | T-20-18, T-20-19 | seeds outside the repo; outcomes only from the user's words | manual (device checkpoint) | `20-HUMAN-UAT.md` steps 1–13 | — | ⬜ pending |
-| 20-04-03 | 04 | 4 | RANKP-01..04 | T-20-15, T-20-16 | requirements ticked only on passed steps; BE handoff §3 written | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ⬜ pending |
+| 20-04-01 | 04 | 4 | RANKP-04 | T-20-15, T-20-17 | gate re-checked; UAT record with 13 steps, no ids / tokens / URIs | docs | `test -f …/20-HUMAN-UAT.md` + row count 13 | ❌ (created) | ✅ green (gate re-run on BE `697d40a1`; 12 executed rows mapped to the 13 planned steps, sanctioned) |
+| 20-04-02 | 04 | 4 | RANKP-01..04 | T-20-18, T-20-19 | seeds outside the repo; outcomes only from the user's words | manual (device checkpoint) | `20-HUMAN-UAT.md` steps 1–13 | — | ✅ green (12 executed steps pass; P3, P8 by test) |
+| 20-04-03 | 04 | 4 | RANKP-01..04 | T-20-15, T-20-16 | requirements ticked only on passed steps; BE handoff §3 written | docs | `grep` checks of the task on UAT / BACKEND-NOTES / STATE | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -90,6 +90,8 @@ Test helpers that do not exist yet; each is created in the RED step of the task 
 - [x] Feedback latency < 60s for the per-task runs
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending (automated gates of plan 20-03 and the device E2E of plan 20-04)
+**Approval:** approved 2026-11-13
 
 Gate passed on BE `7f3506ac`: 46/46 OK, full suite 4291 green, analyzer 47 issues found (47 info / 0 warning / 0 error).
+
+Device E2E passed on 2026-11-13 (`20-HUMAN-UAT.md`, executed steps 1–12, covering planned steps P1, P2, P4, P5, P6, P7, P9, P10 and the optional P11; P3 and P8 covered by the tests of plans 20-01 / 20-02; P12, P13 by the BE suite). Gate re-run on BE `697d40a1` (Phase 21 + quick 261113-aql): `GATE_OK`, 46/46 OK, full suite 4339 green, analyzer 47 issues found (47 info / 0 warning / 0 error), `hardening_check` OK.

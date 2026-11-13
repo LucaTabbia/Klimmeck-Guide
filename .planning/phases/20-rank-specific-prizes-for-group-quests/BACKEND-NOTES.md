@@ -42,20 +42,33 @@ lastTurnKind
 |--------------------------------|------|
 | `turnsTotal` null or ≤ 0 | no turn line → «Esplorazione: tappa N di M» (or nothing when `stagesTotal` is null) |
 | `outcome` = `rescued`, `death` or `gmCompleted` | no turn line (fallback as above), even with the turn fields filled |
-| `success`, quest type ≠ `aid` (dungeon cleared) | «Turni superati: C di T» |
-| `success`, quest type = `aid`, `lastTurn` present (rescuer saved the wounded) | «Ferito raggiunto al turno L di T» |
-| `failure`, `lastTurn` present, `lastTurnKind` = `exploration` | «Caduto al turno L di T, in esplorazione» |
-| same, `lastTurnKind` = `fight` | «Caduto al turno L di T, in uno scontro» |
-| same, `lastTurnKind` null or unknown | «Caduto al turno L di T» |
-| `lastTurn` absent where the rows above need it | «Turni superati: C di T» |
+| `success`, quest type ≠ `aid` (dungeon cleared) | «Piani superati: C su T» |
+| `success`, quest type = `aid`, `lastTurn` present (rescuer saved the wounded) | «Soccorso effettuato al raggiungimento del L° piano su T» |
+| `failure`, `lastTurn` present, `lastTurnKind` = `exploration` | «Caduto al L° piano su T, in esplorazione» |
+| same, `lastTurnKind` = `fight` | «Caduto al L° piano su T, in uno scontro» |
+| same, `lastTurnKind` null or unknown | «Caduto al L° piano su T» |
+| `lastTurn` absent where the rows above need it | «Piani superati: C su T» |
 
-  `L` = `lastTurn` as served (the FE **never adds 1**), `T` = `turnsTotal`, `C` = `turnsCompleted ?? 0`.
+  `L` = `lastTurn` as served (the FE **never adds 1**), `T` = `turnsTotal`, `C` = `turnsCompleted ?? 0`. Copy amended by the user during the device UAT (2026-11-13, `20-UAT-FIX-02.md`): «piano» replaces «turno» in every line.
 - No «prize in proportion» line: the reduced prize of a dungeon aid shows only under «Ricompense» (D-20, D-21).
 - Against the BE of today the four turn fields are absent and the sheet is identical to before.
 
-## 3. UAT outcome
+## 3. UAT outcome (FE Phase 20, 2026-11-13)
 
-Filled by plan 20-04.
+BE ref: the session ran on `develop` `7f3506ac` (BE Phase 21 merged), then on the quick-task branch `feat/quick-aid-locks-source-quest`; both are now on `develop` `697d40a1` (PR #37). Gate re-run on `697d40a1`: `GATE_OK`, 46 × OK, full FE suite 4339 green. Record: `20-HUMAN-UAT.md` (12 executed steps, all pass). Results relevant to the BE:
+
+- **Block per title on HTTP.** Mixed boss seeded with seats hero ×1 + mage ×1 and two blocks (hero: 5 gold, 500 xp, 2 «Radice Curativa»; mage: 1 gold, 100 xp, 1 «Datteri»): the mage character saw the mage block, the legend saw the hero block. Pass.
+- **Fallback block (D-18).** No legend block was seeded: the legend read the hero block (highest block not above its rank). Pass.
+- **Change of title.** Checked by switching identity between two characters of different title (no title change at DB on an open sheet); the FE reread on a title change stays pinned by its tests. Per-subscriber resolution on `questUpdated` was not isolated on the device.
+- **Mixed boss `minTitle`.** «Titolo minimo: Mago» (lowest seat) and one seat line per title. A FE defect found here (a legend on a hero seat counted on no line) was fixed on the FE (`20-UAT-FIX-01.md`, mirror of BE 13.1 D-08); no BE change.
+- **Boss win by block (D-08, optional step run).** DB: the mage received 1 gold + 1 «Datteri», xp 125; the legend on the hero seat 5 gold + 2 «Radice Curativa»; log «Boss … risolto per 2 partecipanti». Pass.
+- **Turn counters.** Dungeon of 4 groups (8 turns) lost at the 2nd turn: result `turnsTotal` 8 / `turnsCompleted` 1 / `lastTurn` 2 / `fight`, line «Caduto al 2° piano su 8, in uno scontro». Rescuer's result: 8 / 2 / 2 / `fight`, line «Soccorso effettuato al raggiungimento del 2° piano su 8». Cleared dungeon (8 floors): 8 / 8 / 8 / `fight`, line «Piani superati: 8 su 8». All pass. The wounded's `rescued` result checked at DB only (no turn fields). Note: the aid born from the second fall carried `rescue.turn {1, fight, 8}`, consistent with the 0-based turn index of §4 and `lastTurn` 2 on the fall and on the rescuer.
+- **Aid share on the sheet.** The aid sheet showed 25 silver, 20 xp, 1 «Radice» = the share the BE wrote (a quarter of the 1 gold / 80 xp / 4 «Radice» dungeon); after the quick-task additions also the enemies actually faced (one «Arbusto Maligno» instead of four) and «Tempo richiesto: 8 secondi» (7500 ms of 30000). Pass.
+- **Wounded freed.** After the rescue the source dungeon was whole and acceptable again and the aid gone. Pass.
+- **Lost fight without rescue (D-19).** Artificial job with enemies (no real job has enemies): defeat, life 1, no awaiting rescue, lane free, no aid. Pass.
+- **Not run on the device:** the archiver release (D-16 — covered by the BE suite, BE D-27) and the spell for a non-caster (D-05b, BE suite); a defeat in an exploration turn (BE D-29 placeholder never fails an exploration).
+- **New user rules born in the UAT, all on the BE quick `261113-aql` (merged):** the source hunt / dungeon of an open aid is locked for everyone until the aid closes (supersedes D-15); the aid lists the enemies actually faced; the aid time is scaled with the same share as the prize; the dungeon order (strongest group last) is reported at boot (data reordered at DB by the orchestrator).
+- **Open, for the user (not blocking):** the banner copy shown on a refused locked quest (today the shared «Missione non disponibile, avvisa il locandiere»); `Quest.rankPrizes` is readable by every authenticated user.
 
 ## 4. Questions and notes for the BE
 
@@ -87,7 +100,9 @@ User rule (2026-11-13), verbatim: «Quando un personaggio attiva una aid a parti
 
 What the app consumes (BE twin `feat/quick-aid-locks-source-quest`):
 
-- `Quest.awaitingRescue: Boolean!` — selected in `QuestFragment` (`quests` and `OnQuestUpdated`); `true` → the sheet is torn for every viewer, not acceptable, reason «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.». The same value for every viewer; never null (the FE reads absent/malformed as `false`).
+- `Quest.awaitingRescue: Boolean!` — selected in `QuestFragment` (`quests` and `OnQuestUpdated`); `true` → the sheet is torn for every viewer, not acceptable, reason «Soccorso in corso: la missione riapre quando il soccorso si conclude.» (amended after the review, IN-03 of `20-REVIEW-UAT.md`). The same value for every viewer; never null (the FE reads absent/malformed as `false`).
 - `acceptQuest` on a locked quest → `QUEST_NOT_ACCEPTABLE` (already mapped to `QuestAcceptanceFailure.notAcceptable`; no new code).
 - `questUpdated` must republish the source quest **when the aid is born and when it closes** (every closing path: rescue done, timeout death, archiver): the FE has no other trigger to lift the lock (it never reads the aid quests and does not reread `quests` for this).
+- Correction after the review (WR-01, `20-REVIEW-UAT-FIX.md`): `questUpdated(questId)` is one subscription per quest id and the app follows only the viewer's own lane quest, so the lock is **not live on an open Board**. It shows at the next read of `quests` (Board opening, scope change of the viewer, map reread) or right after a refused accept: `QUEST_NOT_ACCEPTABLE` now triggers a silent reread of `quests`.
+- Schema check run after the BE merge (`697d40a1`, PR #37): `awaitingRescue` present, 46 × OK.
 - Schema check (46 documents) to be run by the orchestrator after the BE twin is merged on `develop`: until then the FE fragment selects a field the BE SDL does not have.

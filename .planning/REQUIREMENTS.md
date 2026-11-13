@@ -26,10 +26,10 @@ The backend is the source of truth for every rule: each requirement below descri
 
 ### Rank-Specific Prizes for Group Quests (Phase 20, added 2026-11-13)
 
-- [ ] **RANKP-01**: The quest sheet (Board and Map) shows the prize block the BE serves for the viewer, with today's rows; the app never chooses a block
-- [ ] **RANKP-02**: Mixed-rank bosses: one seat line per title, registration and party counter judged per seat title as the BE does
-- [ ] **RANKP-03**: Result sheet: one dungeon-turn line (dungeon and dungeon aid) printed from the BE fields, lenient parsing, the stages line kept as fallback
-- [ ] **RANKP-04**: Schema gate on the merged BE SDL, schema check green, device E2E covering rank blocks, mixed boss, dungeon aid by turns and the aid fixes visible on the FE
+- [x] **RANKP-01**: The quest sheet (Board and Map) shows the prize block the BE serves for the viewer, with today's rows; the app never chooses a block
+- [x] **RANKP-02**: Mixed-rank bosses: one seat line per title, registration and party counter judged per seat title as the BE does
+- [x] **RANKP-03**: Result sheet: one dungeon-turn line (dungeon and dungeon aid) printed from the BE fields, lenient parsing, the stages line kept as fallback
+- [x] **RANKP-04**: Schema gate on the merged BE SDL, schema check green, device E2E covering rank blocks, mixed boss, dungeon aid by turns and the aid fixes visible on the FE
 
 ## Future Requirements
 
@@ -65,12 +65,12 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | MODEL-02 | Phase 19 | Complete |
 | MODEL-03 | Phase 19 | Complete |
 | MODEL-04 | Phase 19 | Complete |
-| RANKP-01 | Phase 20 | Pending |
-| RANKP-02 | Phase 20 | Pending |
-| RANKP-03 | Phase 20 | Pending |
-| RANKP-04 | Phase 20 | Pending |
+| RANKP-01 | Phase 20 | Complete |
+| RANKP-02 | Phase 20 | Complete |
+| RANKP-03 | Phase 20 | Complete |
+| RANKP-04 | Phase 20 | Complete |
 
-**Coverage:** 10 / 10 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19). No orphans. No duplicates.
+**Coverage:** 14 / 14 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20). No orphans. No duplicates.
 
 ---
 
