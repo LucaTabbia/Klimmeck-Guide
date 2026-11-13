@@ -35,7 +35,6 @@ void main() {
         const Duration(minutes: 1): '1 minuto',
         const Duration(hours: 1, minutes: 15): '1 ora, 15 minuti',
         const Duration(hours: 2, minutes: 1): '2 ore, 1 minuto',
-        const Duration(hours: 1, minutes: 15, seconds: 30): '1 ora, 15 minuti',
         const Duration(milliseconds: 7500): '8 secondi',
         const Duration(seconds: 30): '30 secondi',
         const Duration(seconds: 1): '1 secondo',
@@ -59,6 +58,28 @@ void main() {
           expect(text, text.trim());
           expect(text, isNot(contains(' ,')));
         }
+      });
+    },
+  );
+
+  group(
+    'formatQuestDuration rounds up to the whole minute from one minute on and '
+    'never reads less than the real time (WR-04)',
+    () {
+      final cases = <Duration, String>{
+        const Duration(seconds: 61): '2 minuti',
+        const Duration(seconds: 90): '2 minuti',
+        const Duration(seconds: 119): '2 minuti',
+        const Duration(seconds: 3600): '1 ora',
+        const Duration(seconds: 3601): '1 ora, 1 minuto',
+        const Duration(hours: 1, minutes: 15, seconds: 30): '1 ora, 16 minuti',
+        const Duration(minutes: 22, seconds: 30): '23 minuti',
+      };
+
+      cases.forEach((duration, expected) {
+        test('$duration reads "$expected" (WR-04)', () {
+          expect(formatQuestDuration(duration), expected);
+        });
       });
     },
   );
