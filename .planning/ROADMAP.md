@@ -125,7 +125,7 @@ Plans:
 Plans:
 - [x] 20-01-PLAN.md — Contract pins for the served prize block and mixed-rank bosses (test-only)
 - [x] 20-02-PLAN.md — Dungeon turn fields on the result, one turn line in the stages slot with fallback, backend notes
-- [ ] 20-03-PLAN.md — Schema gate, turn-field selection, 46 documents OK, full suite (gated on the BE Phase 21 merge)
+- [x] 20-03-PLAN.md — Schema gate, turn-field selection, 46 documents OK, full suite (gated on the BE Phase 21 merge)
 - [ ] 20-04-PLAN.md — Device E2E, requirements closed, closing docs (human checkpoint, gated)
 
 ### Phase 21: Innkeeper Mission Completion Flow
@@ -162,7 +162,7 @@ Plans:
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 20. Rank-Specific Prizes for Group Quests | v1.1 | 2/4 | In Progress | — |
+| 20. Rank-Specific Prizes for Group Quests | v1.1 | 3/4 | In Progress | — |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
 
 ---

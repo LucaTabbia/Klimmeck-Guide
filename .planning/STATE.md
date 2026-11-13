@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: "Phase 20 parked at 2/4 (2026-11-13) — plans 20-03 and 20-04 wait for the BE Phase 21 merge"
+stopped_at: "Completed 20-03-PLAN.md (2026-11-13) — schema gate passed on BE 7f3506ac, 46/46 OK, full suite 4291 green; next 20-04 (device E2E)"
 last_updated: "2026-11-12T17:34:45.584Z"
-last_activity: "2026-11-13 -- Phase 20 planned (research, repo rules, validation, 4 plans; plan-checker passed)"
+last_activity: "2026-11-13 -- Plan 20-03 complete (schema gate, turn fields selected, phase gate green)"
 progress:
   total_phases: 4
   completed_phases: 2
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
 Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
-Plan: 02 of 4
-Status: Phase 20 executing — BE Phase 21 merged on BE `develop` (`7f3506ac`, 2026-11-13) and rebooted; plan 20-03 (schema gate) running, then 20-04 (device E2E)
-Last activity: 2026-11-13 -- BE Phase 21 merged; Phase 20 resumed at plan 20-03
-Next step: after the BE Phase 21 PR is merged on BE `develop` and the BE is rebooted from it, run 20-03 (schema gate, turn-field selection, full suite) and 20-04 (device E2E with the user, orchestrator-guided). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
+Plan: 03 of 4
+Status: Phase 20 executing — BE Phase 21 merged on BE `develop` (`7f3506ac`, 2026-11-13); plan 20-03 complete (gate OK, `QuestResultFragment` selects the four turn fields, 46/46 OK, full suite 4291 green); next 20-04 (device E2E). The branch now needs a BE with Phase 21
+Last activity: 2026-11-13 -- Plan 20-03 complete (schema gate on BE `7f3506ac`, turn fields selected, phase gate green)
+Next step: run 20-04 (device E2E with the user, orchestrator-guided, against the BE rebooted from `develop` with Phase 21). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
 
 ## Current Milestone
 
