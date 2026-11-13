@@ -137,8 +137,10 @@ void main() {
         lineOf(
           aidDungeonResultJson(
             outcome: 'failure',
+            turnsCompleted: 2,
             lastTurn: 3,
             lastTurnKind: 'exploration',
+            stagesCleared: 1,
           ),
         ),
         'Caduto al turno 3 di 8, in esplorazione',
