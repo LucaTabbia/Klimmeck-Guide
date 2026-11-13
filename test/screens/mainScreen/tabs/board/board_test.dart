@@ -633,8 +633,24 @@ void main() {
       );
     });
 
-    testWidgets('when questUpdated clears the lock the sheet is whole and '
-        'tearable again (quick 261113-aql)', (tester) async {
+    testWidgets('when a reread list brings the lock the open sheet tears and '
+        'says why (WR-01, quick 261113-aql)', (tester) async {
+      await pumpBoard(tester, quests: loaded([_boardQuest('d-1', 'dungeon')]));
+      await openLocked(tester);
+      expect(openSheet(tester).isEnabled, isTrue);
+
+      questStates.add(loaded([locked]));
+      await tester.pump();
+      await tester.pump();
+
+      expect(isTorn(tester, 'd-1'), isTrue);
+      expect(openSheet(tester).isEnabled, isFalse);
+      expect(openSheet(tester).canTear, isFalse);
+      expect(find.byKey(QuestInfoSheet.blockedReasonKey), findsOneWidget);
+    });
+
+    testWidgets('when a reread list drops the lock the sheet is whole and '
+        'tearable again (WR-01, quick 261113-aql)', (tester) async {
       await pumpBoard(tester, quests: loaded([locked]));
       await openLocked(tester);
       expect(openSheet(tester).isEnabled, isFalse);
