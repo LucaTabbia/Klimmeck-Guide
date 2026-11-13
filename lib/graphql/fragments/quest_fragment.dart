@@ -7,7 +7,7 @@ import 'loot_fragment.dart';
 /// `questUpdated`: una sola forma, un solo parser. Nemici con quantità e xp
 /// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06). La cura
 /// in premio e `noEffect` per il viewer sono della BE Phase 18 (18-CONTEXT
-/// D-01, D-20).
+/// D-01, D-20); `awaitingRescue`, uguale per tutti, del quick 261113-aql.
 class QuestFragment {
   static const String fields =
       '''
@@ -60,6 +60,7 @@ class QuestFragment {
       }
     }
     noEffect
+    awaitingRescue
     prizes {
       prizeCoins {
         ${CoinsFragment.fields}
