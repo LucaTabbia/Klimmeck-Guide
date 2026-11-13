@@ -12,6 +12,7 @@ class Quest extends Equatable {
     required this.registeredAdventurers,
     required this.prizes,
     this.noEffect = false,
+    this.awaitingRescue = false,
   });
 
   final String id;
@@ -24,6 +25,11 @@ class Quest extends Equatable {
   /// cambierebbe nulla al personaggio corrente. Lo decide il backend; il FE lo
   /// legge soltanto. Assente o malformato vale `false`.
   final bool noEffect;
+
+  /// Uguale per tutti (quick 261113-aql): `true` per una hunt o un dungeon da
+  /// cui è nato un soccorso ancora aperto. Lo decide il backend; il FE lo legge
+  /// soltanto. Assente o malformato vale `false`.
+  final bool awaitingRescue;
 
   factory Quest.fromJson(Map<String, dynamic> json) => Quest(
     id: json["id"],
@@ -38,6 +44,7 @@ class Quest extends Equatable {
       json['registeredAdventurers'],
     ),
     noEffect: json['noEffect'] == true,
+    awaitingRescue: json['awaitingRescue'] == true,
   );
 
   /// Confine di parsing del catalogo (editato a mano a DB): tipo, titolo o slot
@@ -60,6 +67,7 @@ class Quest extends Equatable {
         .map((r) => r.toJson())
         .toList(),
     "noEffect": noEffect,
+    "awaitingRescue": awaitingRescue,
   };
 
   Quest copyWith({
@@ -69,6 +77,7 @@ class Quest extends Equatable {
     QuestPrizes? prizes,
     List<RegisteredAdventurer>? registeredAdventurers,
     bool? noEffect,
+    bool? awaitingRescue,
   }) {
     return Quest(
       id: id ?? this.id,
@@ -78,6 +87,7 @@ class Quest extends Equatable {
       registeredAdventurers:
           registeredAdventurers ?? this.registeredAdventurers,
       noEffect: noEffect ?? this.noEffect,
+      awaitingRescue: awaitingRescue ?? this.awaitingRescue,
     );
   }
 
@@ -89,5 +99,6 @@ class Quest extends Equatable {
     prizes,
     registeredAdventurers,
     noEffect,
+    awaitingRescue,
   ];
 }

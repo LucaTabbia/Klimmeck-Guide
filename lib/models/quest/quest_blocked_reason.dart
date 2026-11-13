@@ -5,6 +5,11 @@ import 'quest_availability.dart';
 /// Copy fissata dall'utente (D-20): riga del foglio e banner del rifiuto.
 const String questNoEffectLine = 'Il tempio non può fare nulla per te adesso';
 
+/// Copy tecnica dell'orchestratore (quick 261113-aql): la quest da cui è nato
+/// un soccorso aperto.
+const String questAwaitingRescueLine =
+    'Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.';
+
 /// Copy provvisoria della prigione (quick 261110-cgd): riga del foglio e dei
 /// banner, completata dal tempo che manca dove è noto.
 const String questImprisonedLine = 'Sei in prigione';
@@ -32,4 +37,5 @@ String? questBlockedReasonOf(
   QuestAvailability.insufficientPoints => 'Punti canale insufficienti',
   QuestAvailability.noEffect => questNoEffectLine,
   QuestAvailability.imprisoned => questImprisonedLine,
+  QuestAvailability.awaitingRescue => questAwaitingRescueLine,
 };

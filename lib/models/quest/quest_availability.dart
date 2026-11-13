@@ -25,6 +25,10 @@ enum QuestAvailability {
 
   /// Il personaggio è in prigione (quick 261110-cgd): nessuna quest.
   imprisoned,
+
+  /// Da questa quest è nato un soccorso ancora aperto (quick 261113-aql):
+  /// foglio strappato per tutti finché il soccorso non si chiude.
+  awaitingRescue,
 }
 
 class QuestStanding extends Equatable {
@@ -81,7 +85,8 @@ bool isSheetTorn(
   QuestAvailability.notInCity ||
   QuestAvailability.insufficientPoints ||
   QuestAvailability.noEffect ||
-  QuestAvailability.imprisoned => true,
+  QuestAvailability.imprisoned ||
+  QuestAvailability.awaitingRescue => true,
 };
 
 /// Requisiti della quest indipendenti dalla corsia, letti anche a corsia occupata.
@@ -103,6 +108,7 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
   if (_isCatalogueDefect(type, lane, quest)) {
     return QuestAvailability.notAcceptable;
   }
+  if (quest.awaitingRescue) return QuestAvailability.awaitingRescue;
   if (nonRepeatableQuestTypes.contains(type) && _isDone(quest, type, viewer)) {
     return QuestAvailability.alreadyDone;
   }
