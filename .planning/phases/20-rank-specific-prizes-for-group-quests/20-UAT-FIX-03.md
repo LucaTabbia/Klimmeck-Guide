@@ -19,6 +19,7 @@ New `formatQuestDuration(Duration)` in `lib/utils/game_duration_format.dart`, ne
 - singular/plural: `1 ora` / `2 ore`, `1 minuto` / `2 minuti`, `1 secondo` / `2 secondi`;
 - seconds are printed ONLY when the whole duration is under one minute;
 - fractional seconds are rounded up to the whole second (a positive duration never reads empty or zero);
+- from one minute up the duration is rounded UP to the whole minute, so the line never reads less than the real time (amended by the orchestrator ruling on WR-04 of `20-REVIEW-UAT.md`, 2026-11-13; the first version truncated the minutes);
 - zero or negative reads «0 minuti»;
 - hours are not folded into days (today's behaviour).
 
@@ -31,7 +32,11 @@ The old `getStringToShowFromDuration` is removed from `utils.dart`; the quest sh
 | 3 h | «Tempo richiesto: 3 ore» |
 | 15 min | «Tempo richiesto: 15 minuti» |
 | 1 h 15 min | «Tempo richiesto: 1 ora, 15 minuti» |
-| 1 h 15 min 30 s | «Tempo richiesto: 1 ora, 15 minuti» |
+| 1 h 15 min 30 s | «Tempo richiesto: 1 ora, 16 minuti» (WR-04) |
+| 61 s | «Tempo richiesto: 2 minuti» (WR-04) |
+| 119 s | «Tempo richiesto: 2 minuti» (WR-04) |
+| 3 600 s | «Tempo richiesto: 1 ora» (WR-04) |
+| 3 601 s | «Tempo richiesto: 1 ora, 1 minuto» (WR-04) |
 | 7 500 ms | «Tempo richiesto: 8 secondi» |
 | 30 s | «Tempo richiesto: 30 secondi» |
 | 300 ms | «Tempo richiesto: 1 secondo» |
@@ -48,6 +53,8 @@ The old `getStringToShowFromDuration` is removed from `utils.dart`; the quest sh
 RED: the unit file failed to compile (`Method not found: 'formatQuestDuration'`, 16 cases), the widget case failed with 0 widgets for «Tempo richiesto: 15 minuti».
 
 After the fix: `flutter test test/utils test/shared/components/popup test/screens` → 2035 green; `flutter analyze` → 47 info / 0 warning / 0 error. Full suite expected total: 4312 + 17 = 4329.
+
+WR-04 amendment (`20-REVIEW-UAT-FIX.md`): new group «formatQuestDuration rounds up to the whole minute from one minute on and never reads less than the real time (WR-04)» with 7 cases; the old «1 h 15 min 30 s → 1 ora, 15 minuti» case moved there as «1 ora, 16 minuti» (net +6 tests). Commits `4dd1d4af` (RED), `331cf53c` (GREEN).
 
 ## Commits
 
