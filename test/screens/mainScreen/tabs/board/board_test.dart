@@ -612,8 +612,7 @@ void main() {
 
       expect(
         tester.widget<Text>(find.byKey(QuestInfoSheet.blockedReasonKey)).data,
-        'Soccorso in corso: la missione riapre quando il ferito è stato '
-        'raggiunto.',
+        'Soccorso in corso: la missione riapre quando il soccorso si conclude.',
       );
 
       final visibleCenter = Offset(

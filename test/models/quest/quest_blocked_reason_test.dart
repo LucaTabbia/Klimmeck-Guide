@@ -79,8 +79,7 @@ void main() {
           minTitle: null,
           type: type,
         ),
-        'Soccorso in corso: la missione riapre quando il ferito è stato '
-        'raggiunto.',
+        'Soccorso in corso: la missione riapre quando il soccorso si conclude.',
       );
     }
   });
