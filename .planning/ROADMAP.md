@@ -162,7 +162,7 @@ Plans:
 | 17. Unlockable Lore | v1.0 | 12/12 | Complete | 2026-11-09 |
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
-| 20. Rank-Specific Prizes for Group Quests | v1.1 | 0/4 | Planned | — |
+| 20. Rank-Specific Prizes for Group Quests | v1.1 | 0/4 | In Progress | — |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
 
 ---
