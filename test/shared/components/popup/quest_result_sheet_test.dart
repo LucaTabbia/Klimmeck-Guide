@@ -1244,6 +1244,43 @@ void main() {
       expect(find.byKey(turnsKey), findsNothing);
     });
 
+    final gatedOutcomes = {
+      'rescued': (
+        aidDungeonResultJson(outcome: 'rescued'),
+        'Esplorazione: tappa 2 di 4',
+      ),
+      'death': (
+        aidDungeonResultJson(outcome: 'death'),
+        'Esplorazione: tappa 2 di 4',
+      ),
+      'gmCompleted': (
+        dungeonResultJson(
+          outcome: 'gmCompleted',
+          stagesCleared: 3,
+          turnsTotal: 8,
+          turnsCompleted: 8,
+          lastTurn: 8,
+          lastTurnKind: 'fight',
+        ),
+        'Esplorazione: tappa 3 di 3',
+      ),
+    };
+
+    for (final MapEntry(key: outcome, value: (json, stagesLine))
+        in gatedOutcomes.entries) {
+      testWidgets(
+        'a $outcome result with turns shows the stages line, no turn line '
+        '(D-21, D-24)',
+        (tester) async {
+          await _pump(tester, questResult(json));
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(turnsKey), findsNothing);
+          expect(textOf(tester, QuestResultSheet.stagesKey), stagesLine);
+        },
+      );
+    }
+
     testWidgets('no turn line outside a dungeon (D-21)', (tester) async {
       await _pump(tester, questResult(successResultJson()));
       await tester.pumpAndSettle();
