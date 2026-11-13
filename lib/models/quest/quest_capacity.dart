@@ -21,6 +21,8 @@ List<AdventurerSlot> questSlotsOf(
 int totalSlots(List<AdventurerSlot> slots) =>
     slots.fold(0, (sum, slot) => sum + slot.count);
 
+/// Specchio di `isFullForEveryone` del BE, salvo che qui conta ogni
+/// registrato: il BE salta quelli di rango ignoto (tolleranza solo FE, IN-04).
 bool isFullForEveryone(
   List<AdventurerSlot> slots,
   List<RegisteredAdventurer> registered,
@@ -64,8 +66,10 @@ Map<TitleType, int> foldedCountsOf(
   return counts;
 }
 
-/// Registrati sui posti di qualsiasi rango: l'eccedenza dei posti esatti
-/// (sui conteggi piegati) più i registrati di rango ignoto (BE Phase 8 D-32).
+/// Registrati sui posti di qualsiasi rango. Specchio di `overflowOf` del BE:
+/// l'eccedenza dei posti esatti sui conteggi piegati. Solo FE, per tolleranza:
+/// i registrati di rango ignoto (forma Phase 7 o titolo che l'app non conosce)
+/// contano sul jolly, mentre `registeredCountsOf` del BE li salta (IN-04).
 int anyRankOverflowOf(
   List<AdventurerSlot> slots,
   List<RegisteredAdventurer> registered,
