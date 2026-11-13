@@ -116,6 +116,14 @@ void main() {
       );
     });
 
+    test('the quest selection asks for the served rescue lock '
+        '(quick 261113-aql)', () {
+      expect(
+        RegExp(r'\bawaitingRescue\b').allMatches(QuestFragment.fields),
+        hasLength(1),
+      );
+    });
+
     test('never selects lore or locations under an enemy (D-01)', () {
       expect(
         document,
