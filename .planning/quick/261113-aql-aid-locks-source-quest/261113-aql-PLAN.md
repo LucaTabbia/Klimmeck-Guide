@@ -21,7 +21,7 @@ autonomous: true
 must_haves:
   truths:
     - "A hunt or a dungeon served with awaitingRescue: true is not acceptable and drawn torn for every viewer, whatever its title, and without a viewer title"
-    - "Its open sheet prints «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.» and ignores the swipe"
+    - "Its open sheet prints «Soccorso in corso: la missione riapre quando il soccorso si conclude.» and ignores the swipe"
     - "The same quest with awaitingRescue false or absent is judged as before"
     - "The app only reads the served boolean: no lock is derived from the aid quests"
   artifacts:
@@ -61,7 +61,7 @@ The backend is the source of truth: the FE reads the boolean, never derives the 
 - `Quest.awaitingRescue` (`bool`, lenient: `json['awaitingRescue'] == true`) in `fromJson`, `toJson`, `copyWith`, `props`.
 - `QuestAvailability.awaitingRescue`: torn (`isSheetTorn` → `true`), not acceptable.
 - Precedence in `_availabilityOf`: after `tornForOwner`, `imprisoned` and the catalogue checks (`type == null`, `_isCatalogueDefect`), before every other viewer-dependent check (`alreadyDone`, `titleMismatch`, `laneBusy`, `full`, `notInCity`, `insufficientPoints`, `noEffect`). So every viewer that is not the lane owner and not in prison sees the same reason, whatever title, lane, city or balance.
-- Reason line (orchestrator's technical default): `questAwaitingRescueLine = 'Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.'` next to `questNoEffectLine` in `quest_blocked_reason.dart`.
+- Reason line (orchestrator's copy, amended by IN-03 of `20-REVIEW-UAT.md`): `questAwaitingRescueLine = 'Soccorso in corso: la missione riapre quando il soccorso si conclude.'` next to `questNoEffectLine` in `quest_blocked_reason.dart`.
 - Board: the open sheet is not draggable (`isEnabled` false) like a `noEffect` sheet.
 - Fragment: `awaitingRescue` selected once in `QuestFragment.fields` (used by `quests` and `OnQuestUpdated`). No schema gate against the BE here: the BE `develop` SDL has no such field until the twin is merged; the orchestrator runs the schema check after that merge.
 - Nothing in `QuestScopeListener`: the change arrives on `questUpdated`, not on `characterUpdated`.
@@ -81,3 +81,8 @@ Targeted `flutter test test/models/quest test/repository test/shared/components/
 ## Out of scope
 
 Schema check against the BE (after the BE merge), new error codes, any client inspection of aid quests, the map sheet (it shows only the character's own lane quest, no availability), ROADMAP / REQUIREMENTS / VALIDATION.
+
+## Amendments after the review of the UAT fixes (2026-11-13, `20-REVIEW-UAT-FIX.md`)
+
+- IN-03: the reason line was «Soccorso in corso: la missione riapre quando il ferito è stato raggiunto.» (technical default); it now reads «Soccorso in corso: la missione riapre quando il soccorso si conclude.», true for every way the aid closes.
+- WR-01: the Board does not subscribe `questUpdated` for a listed quest (the subscription takes one `questId` and `QuestCubit` follows only the viewer's own waiting lane quest), so the lock is not live on an open Board. A refused swipe (`QUEST_NOT_ACCEPTABLE` → `notAcceptable`) now silently rereads `quests`, so the sheet turns torn with its reason; a lock that starts or ends while the Board is open shows at the next list read (Board opening, scope change of the viewer, refused swipe). The Board test once named after `questUpdated` is now «when a reread list drops the lock…», paired with «when a reread list brings the lock…».
