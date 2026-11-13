@@ -1167,7 +1167,7 @@ void main() {
   });
 
   group('dungeon turns (Phase 20)', () {
-    const turnsKey = ValueKey('questResult.turns');
+    const turnsKey = QuestResultSheet.turnsKey;
 
     String? textOf(WidgetTester tester, Key key) =>
         tester.widget<Text>(find.byKey(key)).data;

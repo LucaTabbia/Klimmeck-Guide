@@ -1,4 +1,6 @@
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/enums/dungeon_turn_kind.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 
@@ -34,3 +36,32 @@ String? guardEncounterLine(QuestResult result) {
 /// nessuna riga a zero.
 String? companionXpGainedLine(int petXpGained) =>
     petXpGained > 0 ? 'Il tuo compagno guadagna $petXpGained PE' : null;
+
+/// Riga dei turni di una dungeon o di un'aid di dungeon (D-21): stampa i
+/// numeri del BE così come arrivano, mai un turno in più né una quota.
+/// `null` senza turni: il foglio ripiega sulla riga delle tappe (D-24).
+String? dungeonTurnLine(QuestResult result) {
+  final total = result.turnsTotal;
+  if (total == null || total <= 0) return null;
+  final last = result.lastTurn;
+  final cleared = 'Turni superati: ${result.turnsCompleted ?? 0} di $total';
+  return switch (result.outcome) {
+    QuestOutcome.success when _isAid(result) && last != null =>
+      'Ferito raggiunto al turno $last di $total',
+    QuestOutcome.success => cleared,
+    QuestOutcome.failure when last != null =>
+      'Caduto al turno $last di $total${_turnKindSuffix(result.lastTurnKind)}',
+    QuestOutcome.failure => cleared,
+    QuestOutcome.rescued ||
+    QuestOutcome.death ||
+    QuestOutcome.gmCompleted => null,
+  };
+}
+
+bool _isAid(QuestResult result) => result.quest?.type == QuestType.aid;
+
+String _turnKindSuffix(DungeonTurnKind? kind) => switch (kind) {
+  DungeonTurnKind.exploration => ', in esplorazione',
+  DungeonTurnKind.fight => ', in uno scontro',
+  null => '',
+};
