@@ -116,7 +116,8 @@ class QuestResult extends Equatable {
   /// Nemici affrontati, nell'ordine del BE (D-07); una voce malformata è scartata.
   final List<QuestEnemy> enemies;
 
-  /// Solo per una dungeon (BE D-12): tappe superate e totali.
+  /// Solo per una dungeon o un'aid di dungeon (BE D-12, D-22): tappe superate
+  /// e totali.
   final int? stagesCleared;
   final int? stagesTotal;
 

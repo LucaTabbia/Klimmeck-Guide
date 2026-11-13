@@ -465,7 +465,8 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         : _line(_stagesText(), QuestResultSheet.stagesKey);
   }
 
-  /// Contatori del BE per una dungeon (BE D-12): il FE li stampa, non li calcola.
+  /// Contatori del BE per una dungeon o un'aid di dungeon (BE D-12, D-22): il
+  /// FE li stampa, non li calcola.
   String? _stagesText() {
     final total = _result.stagesTotal;
     if (total == null) return null;
