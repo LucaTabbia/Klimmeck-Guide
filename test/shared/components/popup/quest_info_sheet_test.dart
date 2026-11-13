@@ -1306,4 +1306,17 @@ void main() {
       }
     });
   });
+
+  group(
+    'time line (quick 261113-aql, user: «Su Tempo richiesto vedo ",7" secondi»)',
+    () {
+      testWidgets('a quest lasting 15 minutes reads exactly "15 minuti"', (
+        tester,
+      ) async {
+        await _pump(tester, buildQuest(type: 'hunt', timeToComplete: 900000));
+
+        expect(find.text('Tempo richiesto: 15 minuti'), findsOneWidget);
+      });
+    },
+  );
 }
