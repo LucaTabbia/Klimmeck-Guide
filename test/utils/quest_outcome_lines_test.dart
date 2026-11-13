@@ -177,6 +177,21 @@ void main() {
       );
     });
 
+    test('a won rescue without the last turn reads the completed turns '
+        '(D-21)', () {
+      expect(
+        lineOf(aidDungeonResultJson(lastTurn: null)),
+        'Turni superati: 4 di 8',
+      );
+    });
+
+    test('missing completed turns read as zero (D-21)', () {
+      expect(
+        lineOf(dungeonResultJson(turnsTotal: 8)),
+        'Turni superati: 0 di 8',
+      );
+    });
+
     test('no turn line without turns (D-24)', () {
       expect(lineOf(dungeonResultJson()), isNull);
       expect(lineOf(successResultJson()), isNull);
@@ -189,6 +204,10 @@ void main() {
         ),
         isNull,
       );
+    });
+
+    test('no turn line with a negative total (D-24)', () {
+      expect(lineOf(dungeonResultJson(turnsTotal: -1, lastTurn: 1)), isNull);
     });
 
     test('a rescued character gets no turn line (D-21)', () {
