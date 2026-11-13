@@ -112,7 +112,7 @@ Plans:
 **Goal**: A group quest rewards every participant with a prize suited to their own rank: if an adventurer can join, the quest carries a prize fit for an adventurer, and the mage who joins the same quest gets a prize fit for a mage. Prizes are defined per rank among the ranks admitted by the quest and resolved by the backend for each participant; the app shows each viewer the prize of their own rank on the quest sheet and on the result sheet.
 **Depends on**: Phase 6 (quest sheets), Phase 9 (result sheet), Phase 14 (quest generation, pools by rank), BE Phase 21 «Premi per rango e soccorsi» (BE-RANKP-01..06, opened 2026-11-12). Executed before Phase 21, whose prize step reuses the prizes by rank (user decision, 2026-11-11).
 **Scope**: TBD
-**Requirements**: TBD
+**Requirements**: RANKP-01, RANKP-02, RANKP-03, RANKP-04
 **Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `20-CONTEXT.md` (D-01..D-17, discuss 2026-11-12): rank blocks on group quests by the character's title, solo prize on `minTitle`, pet/cure/spell by rank too (pet drawn once per rank block), spell only for ranks ≥ mage, mixed bosses with lower-rank seats, aid only from enemy/boss/hunt/dungeon/aid, dungeon aid by turns up to the turn of the defeat with proportional prize
 **Plans**: 0 plans
 

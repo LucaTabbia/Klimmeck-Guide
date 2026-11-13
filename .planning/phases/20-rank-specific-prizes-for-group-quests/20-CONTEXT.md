@@ -2,6 +2,7 @@
 
 **Gathered:** 2026-11-12
 **Status:** Ready for planning — BE companion: **BE Phase 21 «Premi per rango e soccorsi»** (BE-RANKP-01..06, branch `feat/21-premi-per-rango-e-soccorsi`)
+**Amended:** 2026-11-13 after `20-RESEARCH.md`, the BE research (`21-RESEARCH.md`) and the user's answers — new decisions D-18..D-25 under «Added after the research». Where they differ from the text above, the additions win.
 
 <domain>
 ## Phase Boundary
@@ -45,6 +46,19 @@ Group quests reward every participant with a prize block suited to **their own r
 
 ### DB cleanup (done in the discuss, 2026-11-12)
 - **D-17:** The 3 concluded aid quests at DB were UAT leftovers (each born from a real defeat, closed by hand at DB, no `QuestResult` on them, not on the board): backed up to EJSON in the session scratchpad (`aid-cleanup-backup-2026-11-12.json`) and deleted on the user's order. 0 aid quests remain; nothing referenced them.
+
+### Added after the research (2026-11-13)
+
+User answers of 2026-11-13 (picked among proposed options, not his own sentences) and technical defaults accepted by the orchestrator. BE side: BE `21-CONTEXT.md` D-18..D-30.
+
+- **D-18 (user; completes D-04, D-07):** when the viewer's rank has no block, the BE serves (and awards) **the highest block not above the viewer's rank, otherwise the lowest** — a legend on the hero seats of a hero boss gets the hero block; a viewer **without a character** sees the block of the quest's minimum rank. The rule lives **only in the BE**; the app never chooses a block.
+- **D-19 (user; completes D-09):** a fight lost in a quest that opens no rescue (`heal`, `job`, `study`, `magic`, `crime`, `guard`) behaves **like the lost guard encounter**: 1 HP, in town, lane free, injuries and consumables kept, no prize, no aid. Nothing to build on the FE beyond what the guard encounter already shows.
+- **D-20 (user; completes D-14):** the sheet of a dungeon aid shows **the real share**: the BE writes coins, xp and prize item already in proportion on the aid when it creates it (random loot and pet stay, less likely by the same share). The app prints `Quest.prizes` as always.
+- **D-21 (user; completes D-12, D-13):** on the result sheet **one turn line replaces the stages line, for the dungeon and for the dungeon aid** (e.g. «Caduto al turno 4 di 8, in esplorazione», «Ferito raggiunto al turno 4 di 8»); no separate «prize in proportion» line (the reduced prize already shows under «Ricompense»); when the turn fields are absent the sheet falls back to today's line. Final copy in the plan.
+- **D-22 (fixes D-07 and the «non-additive» note): the contract change is ADDITIVE.** `Quest.prizes` keeps name, type and sub-fields and is resolved by the BE on the viewer's current character (HTTP and WS); new on the wire: `Quest.rankPrizes: [QuestRankPrizes!]!` (`{ title, prizes }`, **not selected in this phase** — Phase 21 will), and four nullable fields on `QuestResult`: `turnsTotal: Int`, `turnsCompleted: Int`, `lastTurn: Int` (1-based, last turn played: the FE never adds 1), `lastTurnKind: DungeonTurnKind` (`exploration` | `fight`), null outside dungeon and dungeon-aid results; `stagesCleared` / `stagesTotal` stay (fallback) and are now also set for the rescuers of a dungeon aid. Pre-gate plans are safe against today's BE; only the new selections and the device E2E wait for the BE merge (Phase 18 pattern).
+- **D-23 (A1):** «same rows as today» on the quest sheet = coins, prize item card, pet line and the cure lines; `xpPrize` and `randomLoot` are parsed but not shown, `spell` is not selected: **no new row in this phase** and no spell row to hide.
+- **D-24 (A2):** today's dungeon line reads «Esplorazione: tappa N di M» (`quest_result_sheet.dart`), not «Ho superato N tappe di M».
+- **D-25 (A4, BE D-23):** a mixed boss carries `minTitle` = its lowest seat title and seats ordered own rank first, then the lower rank, never a null title; the app needs no new logic (`_slotLinesOf`, `canRegisterWithTitle` already handle any mix) — pinned by contract tests.
 
 ### Claude's Discretion
 - Wire shape of the per-viewer prize (recommended: the BE resolves `Quest.prizes` for the viewer's rank, like `noEffect`, so the FE sheet keeps reading one block; plus a list of blocks for the innkeeper in Phase 21) — decided with the BE companion.

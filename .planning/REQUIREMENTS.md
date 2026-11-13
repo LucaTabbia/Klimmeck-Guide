@@ -24,6 +24,13 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **MODEL-03**: `wornEquipment` and the `feet` slot replace the old names (fragment, model, `SlotType`, mannequin, equip request); the Journal spells section reads the single `spellStates` list with `active` (known = all, equipped = active, usages and recovery from the same entry), `CharacterStatus.spells` and `CharacterAssets.activeSpells` no longer selected, optimistic rollback adapted; `maxActiveSpells` unchanged
 - [x] **MODEL-04**: FE-only fixes before the gated plans: `PointOfInterest.fromJson` builds a `List<PoiType>` and guards `location`; sweep of the models for the same fragile patterns with a pinned test per fix; schema gate on the merged BE SDL and device E2E (Journal companions, spells and mannequin; a fight with the equipped companion; Map; Library)
 
+### Rank-Specific Prizes for Group Quests (Phase 20, added 2026-11-13)
+
+- [ ] **RANKP-01**: The quest sheet (Board and Map) shows the prize block the BE serves for the viewer, with today's rows; the app never chooses a block
+- [ ] **RANKP-02**: Mixed-rank bosses: one seat line per title, registration and party counter judged per seat title as the BE does
+- [ ] **RANKP-03**: Result sheet: one dungeon-turn line (dungeon and dungeon aid) printed from the BE fields, lenient parsing, the stages line kept as fallback
+- [ ] **RANKP-04**: Schema gate on the merged BE SDL, schema check green, device E2E covering rank blocks, mixed boss, dungeon aid by turns and the aid fixes visible on the FE
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -58,6 +65,10 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | MODEL-02 | Phase 19 | Complete |
 | MODEL-03 | Phase 19 | Complete |
 | MODEL-04 | Phase 19 | Complete |
+| RANKP-01 | Phase 20 | Pending |
+| RANKP-02 | Phase 20 | Pending |
+| RANKP-03 | Phase 20 | Pending |
+| RANKP-04 | Phase 20 | Pending |
 
 **Coverage:** 10 / 10 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19). No orphans. No duplicates.
 
