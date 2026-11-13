@@ -35,6 +35,7 @@ Map<String, dynamic> questJson({
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
   bool? noEffect,
+  bool? awaitingRescue,
 }) => {
   'id': id,
   'infos': {
@@ -62,6 +63,7 @@ Map<String, dynamic> questJson({
   if (prizes != null) 'prizes': prizes,
   'registeredAdventurers': registered,
   if (noEffect != null) 'noEffect': noEffect,
+  if (awaitingRescue != null) 'awaitingRescue': awaitingRescue,
 };
 
 /// `prizes.cure` sul filo (BE Phase 18): quota di vita e ferite guarite.
@@ -150,6 +152,7 @@ Quest buildQuest({
   List<Map<String, dynamic>>? lore,
   List<Map<String, dynamic>>? recommendedLoot,
   bool? noEffect,
+  bool? awaitingRescue,
 }) => Quest.fromJson(
   questJson(
     id: id,
@@ -167,6 +170,7 @@ Quest buildQuest({
     lore: lore,
     recommendedLoot: recommendedLoot,
     noEffect: noEffect,
+    awaitingRescue: awaitingRescue,
   ),
 );
 

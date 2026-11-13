@@ -380,6 +380,7 @@ void main() {
       QuestAvailability.insufficientPoints: (true, true),
       QuestAvailability.noEffect: (true, true),
       QuestAvailability.imprisoned: (true, true),
+      QuestAvailability.awaitingRescue: (true, true),
     };
 
     test('every availability has a torn decision (quick 261110-mag)', () {
@@ -536,6 +537,92 @@ void main() {
       expect(
         needsTravelPreview(
           buildQuest(type: 'heal', noEffect: true),
+          buildViewer(),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('awaitingRescue (quick 261113-aql)', () {
+    const sources = ['hunt', 'dungeon'];
+    const titles = <TitleType?>[...TitleType.values, null];
+
+    for (final type in sources) {
+      test('a $type with an open rescue is torn and not acceptable for every '
+          'viewer (quick 261113-aql)', () {
+        final quest = buildQuest(type: type, awaitingRescue: true);
+        for (final title in titles) {
+          final standing = standingOf(quest, buildViewer(title: title));
+          expect(
+            standing.availability,
+            QuestAvailability.awaitingRescue,
+            reason: '$title',
+          );
+          expect(standing.isTorn, isTrue, reason: '$title');
+          expect(standing.canAccept, isFalse, reason: '$title');
+        }
+      });
+
+      test('a $type without the lock is judged as before '
+          '(quick 261113-aql)', () {
+        for (final flag in <bool?>[false, null]) {
+          final standing = standingOf(
+            buildQuest(type: type, awaitingRescue: flag),
+            buildViewer(),
+          );
+          expect(standing.availability, QuestAvailability.available);
+          expect(standing.isTorn, isFalse);
+          expect(standing.canAccept, isTrue);
+        }
+      });
+    }
+
+    test('the lock wins over the viewer-dependent refusals, so every viewer '
+        'reads the same reason (quick 261113-aql)', () {
+      final quest = buildQuest(type: 'dungeon', awaitingRescue: true);
+      final viewers = [
+        buildViewer(
+          quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+        ),
+        buildViewer(cityPointIds: const {'poi-9'}),
+        buildViewer(cityPointIds: null),
+        buildViewer(twitchPoints: 0),
+        buildViewer(title: null, twitchPoints: null),
+      ];
+      for (final viewer in viewers) {
+        final standing = standingOf(quest, viewer);
+        expect(standing.availability, QuestAvailability.awaitingRescue);
+        expect(standing.isTorn, isTrue);
+      }
+    });
+
+    test("the lane owner and a prisoner keep their own reason "
+        "(quick 261113-aql)", () {
+      final quest = buildQuest(type: 'hunt', awaitingRescue: true);
+      expect(
+        availabilityOf(
+          quest,
+          buildViewer(
+            quests: buildLanes(pendingQuest: laneJson(questId: 'q-1')),
+          ),
+        ),
+        QuestAvailability.tornForOwner,
+      );
+      expect(
+        availabilityOf(
+          quest,
+          buildViewer(imprisonedFor: const Duration(hours: 1)),
+        ),
+        QuestAvailability.imprisoned,
+      );
+    });
+
+    test('a quest awaiting its rescue asks for no travel preview '
+        '(quick 261113-aql)', () {
+      expect(
+        needsTravelPreview(
+          buildQuest(type: 'dungeon', awaitingRescue: true),
           buildViewer(),
         ),
         isFalse,
