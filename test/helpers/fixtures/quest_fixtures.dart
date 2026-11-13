@@ -170,6 +170,30 @@ Quest buildQuest({
   ),
 );
 
+/// Boss misto (BE D-23, FE D-25): posti del rango del boss e poi del rango
+/// inferiore, mai un posto a titolo nullo; il minimo è il titolo più basso.
+Map<String, dynamic> mixedBossJson({
+  String id = 'boss-mixed',
+  List<Object> registered = const [],
+  Map<String, dynamic>? prizes,
+}) => questJson(
+  id: id,
+  type: 'boss',
+  title: 'Il drago delle paludi',
+  minTitle: 'adventurer',
+  slots: const [
+    {'title': 'paladin', 'count': 2},
+    {'title': 'adventurer', 'count': 1},
+  ],
+  registered: registered,
+  prizes: prizes,
+);
+
+Quest buildMixedBoss({
+  List<Object> registered = const [],
+  Map<String, dynamic>? prizes,
+}) => Quest.fromJson(mixedBossJson(registered: registered, prizes: prizes));
+
 QuestViewer buildViewer({
   String characterId = 'c-1',
   TitleType? title = TitleType.rookie,

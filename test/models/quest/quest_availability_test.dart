@@ -675,4 +675,30 @@ void main() {
       );
     });
   });
+
+  group('mixed boss (Phase 20)', () {
+    test('an adventurer is available on a mixed boss (D-25)', () {
+      expect(
+        availabilityOf(
+          buildMixedBoss(),
+          buildViewer(title: TitleType.adventurer),
+        ),
+        QuestAvailability.available,
+      );
+    });
+
+    test('a rookie is below the minimum title (D-25)', () {
+      expect(
+        availabilityOf(buildMixedBoss(), buildViewer(title: TitleType.rookie)),
+        QuestAvailability.titleMismatch,
+      );
+    });
+
+    test('a hero finds the mixed boss full (D-25)', () {
+      expect(
+        availabilityOf(buildMixedBoss(), buildViewer(title: TitleType.hero)),
+        QuestAvailability.full,
+      );
+    });
+  });
 }

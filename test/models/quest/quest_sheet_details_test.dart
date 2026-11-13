@@ -417,4 +417,40 @@ void main() {
       expect(QuestSheetDetails.of(buildQuest(type: 'hunt')).travelLine, isNull);
     });
   });
+
+  group('mixed boss (Phase 20)', () {
+    test('draws one line per seat title in wire order (D-03, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildMixedBoss(registered: [reg('c-2', 'paladin')]),
+        viewer: buildViewer(title: TitleType.adventurer),
+      );
+
+      expect(details.slotLines.map((l) => l.text), [
+        'Paladino: 1 / 2',
+        'Avventuriero: 0 / 1',
+      ]);
+      expect(details.slotLines.map((l) => l.isViewerRank), [false, true]);
+    });
+
+    test('has no any-rank line (D-02, D-25)', () {
+      final details = QuestSheetDetails.of(
+        buildMixedBoss(),
+        viewer: buildViewer(title: TitleType.adventurer),
+      );
+
+      expect(details.slotLines.where((l) => l.title == null), isEmpty);
+    });
+
+    test('shows the lowest seat title as the minimum (D-25)', () {
+      QuestSheetDetails detailsFor(TitleType title) => QuestSheetDetails.of(
+        buildMixedBoss(),
+        viewer: buildViewer(title: title),
+      );
+
+      final adventurer = detailsFor(TitleType.adventurer);
+      expect(adventurer.requiredTitleText, 'Titolo minimo: Avventuriero');
+      expect(adventurer.isTitleIneligible, isFalse);
+      expect(detailsFor(TitleType.rookie).isTitleIneligible, isTrue);
+    });
+  });
 }
