@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: "Completed 20-01-PLAN.md (1/4, 2026-11-13)"
+stopped_at: "Completed 20-02-PLAN.md (2/4, 2026-11-13)"
 last_updated: "2026-11-12T17:34:45.584Z"
 last_activity: "2026-11-13 -- Phase 20 planned (research, repo rules, validation, 4 plans; plan-checker passed)"
 progress:
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11, milestone close pending
 Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
-Plan: 01 of 4
+Plan: 02 of 4
 Status: Phase 20 executing — plans 20-01 and 20-02 run now with sequential executors; 20-03 and 20-04 wait for the BE Phase 21 merge
-Last activity: 2026-11-13 -- Plan 20-01 complete (contract pins for the served prize block and mixed-rank bosses, test-only, 1/4)
+Last activity: 2026-11-13 -- Plan 20-02 complete (dungeon turn fields on the result, one turn line in the stages slot with fallback, backend notes, 2/4); 20-03 and 20-04 gated on the BE Phase 21 merge
 Next step: `/gsd-execute-phase 20` with sequential executors on the main tree for 20-01 and 20-02, then park at 2/4 until the BE Phase 21 PR is merged on BE `develop`; then 20-03 (schema gate) and 20-04 (device E2E with the user). Phase 21 (context on `feat/21-innkeeper-mission-completion`) is planned with the BE Phase 22.
 
 ## Current Milestone
