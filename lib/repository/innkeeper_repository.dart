@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
@@ -38,6 +39,10 @@ class InnkeeperRepository {
   /// teletrasporto.
   Future<Character> readCharacter(String characterId) =>
       _guard(() => _graphQl.getCharacter(characterId));
+
+  /// Luoghi del mondo per il teletrasporto dell'oste (D-01, D-29).
+  Future<List<PointOfInterest>> listPointsOfInterest() =>
+      _guard(_graphQl.getPointsOfInterest);
 
   Future<List<QuestResult>> complete(CompletePendingRequestInput input) =>
       _guard(() => _graphQl.completePendingRequest(input));

@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/point_of_interest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
@@ -31,6 +32,7 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
@@ -216,6 +218,22 @@ class KlimmeckGraphQl {
     return _pendingRequestsFrom(data['pendingRequests']);
   }
 
+  /// Luoghi del mondo per il teletrasporto (D-29): un luogo illeggibile è
+  /// scartato, la lista resta. Lancia [OperationException] o
+  /// [FormatException].
+  Future<List<PointOfInterest>> getPointsOfInterest() async {
+    final data = _dataOrThrow(
+      await performQuery(PointOfInterestQueries.listPointsOfInterest),
+    );
+    final entries = data['pointOfInterests'];
+    if (entries is! List) {
+      throw const FormatException('pointOfInterests missing');
+    }
+    return List.unmodifiable(
+      entries.map(_pointOfInterestOrNull).whereType<PointOfInterest>(),
+    );
+  }
+
   /// Completa una richiesta per tutti i partecipanti (BE 09 §9): restituisce i
   /// risultati creati, voce per voce. Lancia [OperationException] o
   /// [FormatException].
@@ -262,6 +280,15 @@ class KlimmeckGraphQl {
       appLog('[Innkeeper] skipped $skipped malformed queue entries');
     }
     return List.unmodifiable(parsed);
+  }
+
+  PointOfInterest? _pointOfInterestOrNull(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    try {
+      return PointOfInterest.fromJson(json);
+    } on Object {
+      return null;
+    }
   }
 
   void _throwIfStreamFailed(QueryResult result, {required String operation}) {
