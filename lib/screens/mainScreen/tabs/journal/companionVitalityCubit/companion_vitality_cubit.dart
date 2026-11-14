@@ -61,6 +61,9 @@ class CompanionVitalityCubit extends Cubit<CompanionVitalityState>
       CompanionVitalityState(
         vitalities: Map.unmodifiable(vitalities),
         potionWaits: Map.unmodifiable(potionWaits),
+        sources: Map.unmodifiable({
+          for (final entry in _owned) entry.pet.id: entry,
+        }),
       ),
     );
     if (!_isChanging(vitalities.values) && potionWaits.isEmpty) {

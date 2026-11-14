@@ -84,6 +84,11 @@ CompanionVitality companionVitalityOf(
   return CompanionResting(life: life, maxLifePoints: max, remaining: remaining);
 }
 
+/// Sconfitto per la pergamena: la vita calcolata, o la voce servita finché
+/// la vita non è ricalcolata (D-02).
+bool isCompanionDefeated(OwnedPet owned, CompanionVitality? vitality) =>
+    vitality == null ? owned.isDefeated : vitality is CompanionDefeated;
+
 /// Attesa della pozione del compagno: fino alla sua data servita, null quando
 /// passata o assente (D-05).
 Duration? companionPotionWaitOf(OwnedPet owned, DateTime now) {

@@ -37,7 +37,7 @@ class OwnedCompanionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pet = owned.pet;
-    final isDefeated = vitality is CompanionDefeated;
+    final isDefeated = isCompanionDefeated(owned, vitality);
     final lines = _linesOf(pet.id);
     return GestureDetector(
       key: ValueKey('owned-pet-${pet.id}'),

@@ -68,19 +68,19 @@ void main() {
       '(D-09)', () {
     fakeAsync((async) {
       startAt(_t0);
+      final worg = _owned(currentLifePoints: 30);
+      final cat = _owned(id: _cat, currentLifePoints: 8, speciesMax: 10);
 
-      cubit.follow([
-        _owned(currentLifePoints: 30),
-        _owned(id: _cat, currentLifePoints: 8, speciesMax: 10),
-      ]);
+      cubit.follow([worg, cat]);
       async.flushMicrotasks();
 
-      expect(states, const [
+      expect(states, [
         CompanionVitalityState(
-          vitalities: {
+          vitalities: const {
             _worg: CompanionSteady(life: 30, maxLifePoints: 100),
             _cat: CompanionSteady(life: 8, maxLifePoints: 10),
           },
+          sources: {_worg: worg, _cat: cat},
         ),
       ]);
       cubit.close();

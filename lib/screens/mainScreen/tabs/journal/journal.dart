@@ -314,9 +314,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
           builder: (context, companion) =>
               BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
                 builder: (context, vitalities) {
-                  final vitality = vitalities.vitalityOf(petId);
+                  final vitality = vitalities.vitalityFor(owned);
                   final canToggle =
-                      !character.isOnMission && vitality is! CompanionDefeated;
+                      !character.isOnMission &&
+                      !isCompanionDefeated(owned, vitality);
                   return SingleChildScrollView(
                     child: CompanionInfoSheet(
                       pet: owned.pet,

@@ -76,7 +76,7 @@ class CompanionContent extends StatelessWidget {
             OwnedCompanionRow(
               key: ValueKey(entry.pet.id),
               owned: entry,
-              vitality: vitalities.vitalityOf(entry.pet.id),
+              vitality: vitalities.vitalityFor(entry),
               potionWait: vitalities.potionWaitOf(entry.pet.id),
               isDisplayed: entry.pet.id == displayed?.id,
               isPending: entry.pet.id == pendingPetId,
