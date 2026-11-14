@@ -229,7 +229,7 @@ void main() {
 
   group('label distance (UAT 2026-11-14)', () {
     for (final zoom in [1.0, 4.0, 8.0]) {
-      testWidgets('the label floats 10 px over the pawn at zoom $zoom', (
+      testWidgets('the label floats 5 px over the pawn at zoom $zoom', (
         tester,
       ) async {
         await pumpLayer(
@@ -248,7 +248,7 @@ void main() {
             matching: find.byType(DecoratedBox),
           ),
         );
-        expect(pawn.top - label.bottom, moreOrLessEquals(10, epsilon: 0.5));
+        expect(pawn.top - label.bottom, moreOrLessEquals(5, epsilon: 0.5));
         expect(label.center.dx, moreOrLessEquals(pawn.center.dx, epsilon: 0.5));
       });
     }

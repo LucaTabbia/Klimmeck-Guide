@@ -17,7 +17,7 @@ const double pawnMarkerBoxSize = 30;
 
 /// Spazio fra la cima della pedina e la sua etichetta, uguale a ogni zoom
 /// (UAT 2026-11-14).
-const double pawnLabelGap = 10;
+const double pawnLabelGap = 5;
 
 /// Marker dell'etichetta di una pedina su [point]: la pedina cresce con lo
 /// zoom attorno al suo punto, l'etichetta la segue restando a [pawnLabelGap].
