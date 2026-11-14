@@ -125,6 +125,7 @@ void main() {
     InnkeeperRepository? repository,
     Stream<PendingRequestsState> states = const Stream.empty(),
     QuestGenerationState generationState = const QuestGenerationIdle(),
+    String? resumeCardKey,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, states, initialState: state);
@@ -142,7 +143,10 @@ void main() {
         BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
         BlocProvider<QuestGenerationCubit>.value(value: generationCubit),
       ],
-      child: InnkeeperPanelScreen(openCompletion: openCompletion),
+      child: InnkeeperPanelScreen(
+        openCompletion: openCompletion,
+        resumeCardKey: resumeCardKey,
+      ),
     );
     await tester.pumpWidget(
       buildTestApp(
@@ -569,6 +573,124 @@ void main() {
       verifyNever(() => cubit.refetch());
       expect(find.byType(SnackBar), findsNothing);
       expect(find.byType(AlertDialog), findsNothing);
+    });
+  });
+
+  group('resume after the Map (Phase 21)', () {
+    late List<RequestCard> opened;
+    late StreamController<PendingRequestsState> snapshots;
+
+    setUp(() {
+      opened = [];
+      snapshots = StreamController<PendingRequestsState>.broadcast();
+      addTearDown(snapshots.close);
+      when(() => cubit.refetch()).thenAnswer((_) async {});
+    });
+
+    Future<CompletionExit?> recordOpening(BuildContext _, RequestCard card) {
+      opened.add(card);
+      return Future.value();
+    }
+
+    PendingRequestsState loaded(
+      List<Map<String, dynamic>> entries, {
+      DateTime? serverNow,
+    }) => PendingRequestsState(
+      serverNow: serverNow ?? _now,
+      requests: _queue(entries),
+      isLoaded: true,
+    );
+
+    Future<void> pumpResuming(WidgetTester tester, String? resumeCardKey) =>
+        pumpPanel(
+          tester,
+          PendingRequestsState(serverNow: _now),
+          openCompletion: recordOpening,
+          states: snapshots.stream,
+          resumeCardKey: resumeCardKey,
+        );
+
+    Future<void> emitSnapshot(
+      WidgetTester tester,
+      PendingRequestsState state,
+    ) async {
+      snapshots.add(state);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens the completion of the resumed card after the first '
+        'snapshot (D-28, Pitfall 1)', (tester) async {
+      await pumpResuming(tester, _storyCardKey);
+      expect(opened, isEmpty);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened.map((card) => card.cardKey), [_storyCardKey]);
+    });
+
+    testWidgets('opens it only once across later snapshots (D-28)', (
+      tester,
+    ) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+      await emitSnapshot(
+        tester,
+        loaded([
+          pendingRequestJson(),
+        ], serverNow: _now.add(const Duration(minutes: 1))),
+      );
+
+      expect(opened, hasLength(1));
+    });
+
+    testWidgets('finds a card that is not actionable in the raw requests '
+        '(D-28, Pitfall 5)', (tester) async {
+      await pumpResuming(tester, worldMissionQuestId);
+
+      await emitSnapshot(
+        tester,
+        loaded(
+          worldMissionEntriesJson(
+            travels: {
+              'Cosimo': queuedTravelJson(
+                endTime: _now.add(const Duration(minutes: 12)),
+              ),
+            },
+          ),
+        ),
+      );
+
+      expect(opened.map((card) => card.cardKey), [worldMissionQuestId]);
+      expect(
+        find.byKey(RequestCardView.keyFor(worldMissionQuestId)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a card gone from the queue shows «Richiesta non più '
+        'disponibile» (D-28)', (tester) async {
+      await pumpResuming(tester, 'quest-gone');
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened, isEmpty);
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text(InnkeeperPanelScreen.goneMessage),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('without a resume key nothing opens (PQ7)', (tester) async {
+      await pumpResuming(tester, null);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened, isEmpty);
+      expect(find.byType(SnackBar), findsNothing);
     });
   });
 

@@ -102,7 +102,10 @@ void main() {
       await authStates.close();
     });
 
-    Future<void> pumpAndOpen(WidgetTester tester) async {
+    Future<void> pumpAndOpen(
+      WidgetTester tester, {
+      String? resumeCardKey,
+    }) async {
       useLandscapePhone(tester);
       await tester.pumpWidget(
         RepositoryProvider<AppLifecycleEvents>.value(
@@ -119,7 +122,10 @@ void main() {
                     child: Scaffold(
                       body: Builder(
                         builder: (context) => ElevatedButton(
-                          onPressed: () => openInnkeeperPanel(context),
+                          onPressed: () => openInnkeeperPanel(
+                            context,
+                            resumeCardKey: resumeCardKey,
+                          ),
                           child: const Text('open'),
                         ),
                       ),
@@ -141,6 +147,16 @@ void main() {
       expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
       verify(() => repository.watchQueue()).called(1);
+    });
+
+    testWidgets('openInnkeeperPanel passes the resume key to the panel '
+        '(D-28)', (tester) async {
+      await pumpAndOpen(tester, resumeCardKey: 'quest-world-1');
+
+      final panel = tester.widget<InnkeeperPanelScreen>(
+        find.byType(InnkeeperPanelScreen),
+      );
+      expect(panel.resumeCardKey, 'quest-world-1');
     });
 
     testWidgets(
