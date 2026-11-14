@@ -321,6 +321,32 @@ void main() {
       );
     });
 
+    testWidgets('the instruction names the group when companions move too '
+        '(UAT 2026-11-14)', (tester) async {
+      await pumpTeleportMap(
+        tester,
+        teleportState: const TeleportActive(
+          target: TeleportTarget(
+            characterId: 'char-bea',
+            name: 'Bea',
+            location: PointOfInterest(
+              id: 'city-marker-1',
+              type: null,
+              location: aldheimMarker,
+              city: null,
+            ),
+            sex: SexType.female,
+            companionIds: ['char-2'],
+          ),
+        ),
+      );
+
+      expect(
+        find.text('Trascina Gruppo · 2 su una città o un luogo'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('outside teleport mode there is no badge', (tester) async {
       await pumpTeleportMap(tester, teleportState: const TeleportIdle());
 

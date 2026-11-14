@@ -335,7 +335,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
           child: TeleportModeChip(
-            characterName: state.target.name,
+            characterName: state.target.label,
             failure: state.failure,
             isTeleporting: state.isTeleporting,
             onCancel: context.read<TeleportModeCubit>().cancelToPanel,
