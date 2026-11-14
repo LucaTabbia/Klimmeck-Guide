@@ -44,16 +44,17 @@ created: 2026-11-14
 | 22-02-01 | 02 | 2 | PET-01 | T-22-05, T-22-07 | vitality only from served dates, never recoveryTime | unit | `flutter test test/models/companion` | ✅ | ✅ green |
 | 22-02-02 | 02 | 2 | PET-05 | T-22-06, T-22-08 | character-name rules unchanged after extraction | unit | `flutter test test/utils test/screens/characterCreation` | ✅ | ✅ green |
 | 22-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 02 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-03-01 | 03 | 3 | PET-01 | T-22-09 | only fields present in today's SDL selected | document pin | `flutter test test/graphql test/models` | ✅ extend | ⬜ pending |
-| 22-03-02 | 03 | 3 | PET-02 | T-22-10, T-22-11 | timer only while needed, cancelled on close | bloc + widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
-| 22-03-03 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 03 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-03-01 | 03 | 3 | PET-10 | T-22-04 | requirement Pending only | docs | `grep -q "^| PET-10 | Phase 22 | Pending |$" .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
+| 22-03-02 | 03 | 3 | PET-01, PET-10 | T-22-09 | only today's SDL fields selected; level and own max lenient, unselected | unit + document pin | `flutter test test/graphql test/models test/utils` | ✅ extend | ⬜ pending |
+| 22-03-03 | 03 | 3 | PET-02 | T-22-10, T-22-11 | timer only while needed, cancelled on close | bloc + widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
+| 22-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 3 of 17" .planning/STATE.md` | — | ⬜ pending |
 | 22-04-01 | 04 | 4 | PET-03 | T-22-14 | spell sheet unchanged | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
-| 22-04-02 | 04 | 4 | PET-03 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
+| 22-04-02 | 04 | 4 | PET-03, PET-10 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
 | 22-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 04 of 17" .planning/STATE.md` | — | ⬜ pending |
-| 22-05-01 | 05 | 5 | PET-03 | T-22-15, T-22-16 | switch off pinned; plain-text rendering | unit + widget | `flutter test test/config test/shared/components/popup` | ❌ W0 | ⬜ pending |
+| 22-05-01 | 05 | 5 | PET-03, PET-10 | T-22-15, T-22-16 | switch off pinned; plain-text rendering | unit + widget | `flutter test test/config test/shared/components/popup` | ❌ W0 | ⬜ pending |
 | 22-05-02 | 05 | 5 | PET-03 | T-22-17 | route sheet read-only, no rename | widget | `flutter test test/shared/components/popup` | ❌ W0 | ⬜ pending |
 | 22-05-03 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 05 of 17" .planning/STATE.md` | — | ⬜ pending |
-| 22-06-01 | 06 | 6 | PET-02 | T-22-18, T-22-20 | defeated parchment not tappable | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
+| 22-06-01 | 06 | 6 | PET-02, PET-10 | T-22-18, T-22-20 | defeated parchment not tappable | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
 | 22-06-02 | 06 | 6 | PET-03 | T-22-19 | bookmark off on mission and when defeated | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
 | 22-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 06 of 17" .planning/STATE.md` | — | ⬜ pending |
 | 22-07-01 | 07 | 7 | PET-03 | T-22-21 | long press read-only | widget | `flutter test test/shared test/screens/mainScreen/tabs/shop test/screens/innkeeper` | ✅ extend | ⬜ pending |
@@ -65,7 +66,7 @@ created: 2026-11-14
 | 22-09-01 | 09 | 9 | PET-04 | T-22-29 | every new code has a banner | unit | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/mainScreen/components` | ✅ extend | ⬜ pending |
 | 22-09-02 | 09 | 9 | PET-04 | T-22-26, T-22-27, T-22-28 | UseItem document unchanged; single-flight | unit + bloc | `flutter test test/repository test/graphql test/screens/mainScreen` | ✅ extend | ⬜ pending |
 | 22-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 09 of 17" .planning/STATE.md` | — | ⬜ pending |
-| 22-10-01 | 10 | 10 | PET-04 | T-22-30, T-22-31 | no target with the switch off | unit + widget | `flutter test test/models/companion test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
+| 22-10-01 | 10 | 10 | PET-04, PET-10 | T-22-30, T-22-31 | no target with the switch off | unit + widget | `flutter test test/models/companion test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
 | 22-10-02 | 10 | 10 | PET-04 | T-22-32 | targets disabled in flight | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ extend | ⬜ pending |
 | 22-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 10 of 17" .planning/STATE.md` | — | ⬜ pending |
 | 22-11-01 | 11 | 11 | PET-05 | T-22-35 | RenamePet registered, never sent pre-gate | document pin | `flutter test test/graphql test/models/request test/repository/services/graphql test/tool` | ❌ W0 | ⬜ pending |
@@ -83,12 +84,12 @@ created: 2026-11-14
 | 22-15-01 | 15 | 15 | PET-08 | T-22-49 | companionLifeAfter sent only when set | unit | `flutter test test/models test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 22-15-02 | 15 | 15 | PET-08 | T-22-48, T-22-50 | slider within served bounds | widget | `flutter test test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 22-15-03 | 15 | 15 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 15 of 17" .planning/STATE.md` | — | ⬜ pending |
-| 22-16-01 | 16 | 16 | PET-09 | T-22-51, T-22-52, T-22-53, T-22-55 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 22-16 + flutter test test/graphql` | ✅ | ⬜ pending |
+| 22-16-01 | 16 | 16 | PET-09, PET-10 | T-22-51, T-22-52, T-22-53, T-22-55 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 22-16 + flutter test test/graphql` | ✅ | ⬜ pending |
 | 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ⬜ pending |
 | 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ⬜ pending |
 | 22-17-01 | 17 | 17 | PET-09 | T-22-56, T-22-58 | names only, no secrets | docs | `gate re-check of 22-17 + secrets grep = 0` | ❌ (created in Task 1) | ⬜ pending |
-| 22-17-02 | 17 | 17 | PET-01..PET-08 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–8` | ❌ (created in 22-17) | ⬜ pending |
-| 22-17-03 | 17 | 17 | PET-01..PET-09 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ⬜ pending |
+| 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–8` | ❌ (created in 22-17) | ⬜ pending |
+| 22-17-03 | 17 | 17 | PET-01..PET-10 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -101,7 +102,8 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/helpers/fixtures/shop_fixtures.dart` — `petJson` (+ `maxLifePoints`, `recoveryTime`, `imagePath`) and `ownedPetJson` (+ `name`, `defeated`, `lifeAsOf`, `fullLifeAt`, `potionRecoveryUntil`), keys only when non-null — 22-01-02
 - [x] `test/models/companion/companion_vitality_test.dart`, `companion_display_name_test.dart` — 22-02-01
 - [x] `test/utils/name_rules_test.dart`, `test/utils/companion_lines_test.dart` — 22-02-02
-- [ ] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-02
+- [ ] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-03
+- [ ] `ownedPetJson` gains `level` / `maxLifePoints` (keys only when non-null) — 22-03-02
 - [ ] `test/shared/components/popup/details_sheet_frame_test.dart` — 22-04-01
 - [ ] `test/config/companion_care_test.dart`, `test/shared/components/popup/companion_info_sheet_test.dart` — 22-05-01; `companion_details_route_test.dart` — 22-05-02
 - [ ] `test/screens/mainScreen/tabs/journal/components/owned_companion_row_test.dart` — 22-06-01; `test/screens/mainScreen/tabs/journal/journal_companion_details_test.dart` — 22-06-02
@@ -127,6 +129,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 | «In forze» push and its toggle; «Imboscate» kept its choice | PET-07 | FCM + sweeper timing | step 6 |
 | Innkeeper companion slider to the floor | PET-08 | real guided completion | step 7 |
 | Long-press details in every list | PET-03 | device gesture and image loading | step 8 |
+| A companion levels up: max life grows, current life unchanged, «Livello N» | PET-10 | BE level rule + live `characterUpdated` | step 9 |
 
 ---
 
