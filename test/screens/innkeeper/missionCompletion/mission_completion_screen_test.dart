@@ -664,6 +664,33 @@ void main() {
       verify(() => participantsCubit.load([_aldo, _bea])).called(2);
     });
 
+    testWidgets(
+      'a draft with no participants teleports nobody and never throws',
+      (tester) async {
+        await openWizard(
+          tester,
+          MissionDraftReady(
+            draft: MissionDraft.tryFromJson(
+              missionDraftJson(participants: const []),
+            )!,
+          ),
+        );
+
+        await tester.tap(find.byKey(PlaceStep.teleportKey));
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        verifyNever(
+          () => teleport.prepare(
+            characterId: any(named: 'characterId'),
+            name: any(named: 'name'),
+            companionIds: any(named: 'companionIds'),
+            resumeCardKey: any(named: 'resumeCardKey'),
+          ),
+        );
+      },
+    );
+
     testWidgets('a refused «Resta qui» stays on «Luogo» (T-21-46)', (
       tester,
     ) async {

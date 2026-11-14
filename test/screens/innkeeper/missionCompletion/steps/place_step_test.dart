@@ -95,6 +95,21 @@ void main() {
     expect(find.text('Bea · Rovine presso Talmvere'), findsOneWidget);
   });
 
+  testWidgets('an unknown place shows the name with no trailing separator', (
+    tester,
+  ) async {
+    await pumpStep(
+      tester,
+      MissionParticipantsLoaded(
+        characters: _loaded().characters,
+        places: const {},
+      ),
+    );
+
+    expect(find.text('Aldo'), findsOneWidget);
+    expect(find.textContaining(' · '), findsNothing);
+  });
+
   testWidgets(
     '«Teletrasporta il gruppo» prepares the teleport with the card key (D-01, D-28)',
     (tester) async {
