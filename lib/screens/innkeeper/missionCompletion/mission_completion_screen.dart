@@ -322,6 +322,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       onNext: _saveFights,
     ),
     MissionPage.fight => FightStep(
+      key: ValueKey(_fightIndex),
       draft: ready.draft,
       fightIndex: _fightIndex,
       isSubmitting: ready.isSubmitting,
