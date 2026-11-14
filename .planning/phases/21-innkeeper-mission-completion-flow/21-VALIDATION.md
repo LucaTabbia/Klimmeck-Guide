@@ -72,9 +72,9 @@ created: 2026-11-14
 | 21-05-01 | 05 | 5 | GMFLOW-07 | T-21-16 | potions locked; potion refusal visible | unit + widget | `flutter test test/repository/item_use_failure_test.dart test/screens/mainScreen/tabs/journal` | ✅ extend | ✅ green |
 | 21-05-02 | 05 | 5 | GMFLOW-07 | T-21-15, T-21-17 | armour/companion/spells locked in-world, equip never sent | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 journal_mission_lock_test | ✅ green |
 | 21-05-03 | 05 | 5 | GMFLOW-07 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-05-SUMMARY.md && grep -q "Plan: 05 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-06-01 | 06 | 6 | GMFLOW-01 | T-21-18 | unknown POI type dropped, demonicPortal kept | unit | `flutter test test/models` | ❌ W0 poi_type_test, teleport_destination_test | ⬜ pending |
-| 21-06-02 | 06 | 6 | GMFLOW-01 | T-21-20 | document registered (47) with pins | document pin | `flutter test test/tool test/graphql` | ✅ extend | ⬜ pending |
-| 21-06-03 | 06 | 6 | GMFLOW-01 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-06-SUMMARY.md && grep -q "Plan: 06 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-06-01 | 06 | 6 | GMFLOW-01 | T-21-18 | unknown POI type dropped, demonicPortal kept | unit | `flutter test test/models` | ❌ W0 poi_type_test, teleport_destination_test | ✅ green |
+| 21-06-02 | 06 | 6 | GMFLOW-01 | T-21-20 | document registered (47) with pins | document pin | `flutter test test/tool test/graphql` | ✅ extend | ✅ green |
+| 21-06-03 | 06 | 6 | GMFLOW-01 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-06-SUMMARY.md && grep -q "Plan: 06 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-07-01 | 07 | 7 | GMFLOW-01 | T-21-22 | malformed POI dropped, list survives | unit | `flutter test test/repository/services/graphql/graphql_points_of_interest_test.dart test/repository/innkeeper_repository_test.dart` | ❌ W0 graphql_points_of_interest_test | ⬜ pending |
 | 21-07-02 | 07 | 7 | GMFLOW-01 | T-21-21, T-21-23 | teleport only via the Locanda mode; player drop untouched; failed places read keeps the city teleport (D-29) | bloc + widget | `flutter test test/screens/mainScreen/tabs/map test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 21-07-03 | 07 | 7 | GMFLOW-01 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-07-SUMMARY.md && grep -q "Plan: 07 of 18" .planning/STATE.md` | — | ⬜ pending |
