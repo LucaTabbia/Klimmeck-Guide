@@ -21,6 +21,7 @@ import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
@@ -87,6 +88,10 @@ MockInnkeeperRepository _wizardRepository({MissionDraft? draft}) {
   ).thenAnswer((_) async => const []);
   return repository;
 }
+
+Finder _stepHeader(String title) => find.byWidgetPredicate(
+  (widget) => widget is MissionStepHeader && widget.title == title,
+);
 
 /// Bozza della story di [pendingRequestJson] ferma al passo [step].
 MissionDraft _storyDraftAt(String step) => MissionDraft.tryFromJson(
@@ -436,10 +441,11 @@ void main() {
       final notice = find.text(InnkeeperPanelScreen.teleportUnavailableMessage);
       expect(notice, findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
+      for (var second = 0; second < 8; second++) {
+        await tester.pump(const Duration(seconds: 1));
+      }
 
-      expect(notice, findsNothing);
+      expect(notice, findsNothing, reason: 'no second notice queued');
       expect(find.byType(MissionCompletionScreen), findsOneWidget);
     });
 
@@ -666,7 +672,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MissionCompletionScreen), findsOneWidget);
-      expect(find.text(MissionCompletionScreen.encountersTitle), findsWidgets);
+      expect(
+        _stepHeader(MissionCompletionScreen.encountersTitle),
+        findsOneWidget,
+      );
       expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
     });
 
@@ -801,7 +810,7 @@ void main() {
       await emitSnapshot(tester, loaded([pendingRequestJson()]));
 
       expect(find.byType(MissionCompletionScreen), findsOneWidget);
-      expect(find.text(MissionCompletionScreen.placeTitle), findsWidgets);
+      expect(_stepHeader(MissionCompletionScreen.placeTitle), findsOneWidget);
       verify(() => repository.readMissionDraft(_storyCardKey)).called(1);
     });
 

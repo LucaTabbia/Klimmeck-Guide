@@ -8,12 +8,13 @@ import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
+import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/results_recap_dialog.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_route.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
-import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
@@ -29,7 +30,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 class InnkeeperPanelScreen extends StatelessWidget {
   const InnkeeperPanelScreen({
     super.key,
-    this.openCompletion = openRequestCompletion,
+    this.openCompletion = openMissionCompletion,
     this.resumeCardKey,
   });
 
@@ -56,7 +57,8 @@ class InnkeeperPanelScreen extends StatelessWidget {
     _ => 'Generate $created missioni',
   };
 
-  /// Apre il form di completamento; iniettabile per guidare gli esiti nei test.
+  /// Apre il wizard della missione (21-CONTEXT D-25, D-28); iniettabile per
+  /// guidare gli esiti nei test.
   final Future<CompletionExit?> Function(BuildContext, RequestCard)
   openCompletion;
 
@@ -85,8 +87,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
         BlocListener<TeleportModeCubit, TeleportModeState>(
           listenWhen: (previous, current) =>
               current is TeleportPreparationFailed && previous != current,
-          listener: (context, _) =>
-              _showSnackBar(context, teleportUnavailableMessage),
+          listener: _onTeleportPreparationFailed,
         ),
         BlocListener<QuestGenerationCubit, QuestGenerationState>(
           listenWhen: (_, current) =>
@@ -137,6 +138,15 @@ class InnkeeperPanelScreen extends StatelessWidget {
     }
   }
 
+  /// Con il wizard sopra il pannello l'avviso lo dà il wizard: uno solo (D-28).
+  static void _onTeleportPreparationFailed(
+    BuildContext context,
+    TeleportModeState _,
+  ) {
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+    _showSnackBar(context, teleportUnavailableMessage);
+  }
+
   static void _showSnackBar(BuildContext context, String message) =>
       ScaffoldMessenger.of(
         context,
@@ -175,7 +185,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
     unawaited(_complete(context, card));
   }
 
-  /// Traduce l'esito del form (10-CONTEXT D-13/D-14).
+  /// Traduce l'esito del wizard (10-CONTEXT D-13/D-14).
   Future<void> _complete(BuildContext context, RequestCard card) async {
     final queue = context.read<PendingRequestsCubit>();
     final messenger = ScaffoldMessenger.of(context);
