@@ -130,6 +130,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       markers: [
         Marker(
           point: point,
+          width: pawnMarkerBoxSize,
+          height: pawnMarkerBoxSize,
           child: _scaled(
             _buildDraggablePawn(
               pawnPath,
@@ -198,13 +200,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
 
   /// Etichetta che fluttua sopra la pedina (attesa di soccorso, prigione,
   /// tempo del viaggio).
-  static Marker _labelMarker(LatLng point, Widget label) => Marker(
-    point: point,
-    width: PawnLabel.markerWidth,
-    height: PawnLabel.markerHeight,
-    alignment: Alignment.topCenter,
-    child: Align(alignment: Alignment.topCenter, child: label),
-  );
+  Marker _labelMarker(LatLng point, Widget label) =>
+      pawnLabelMarker(point: point, zoom: widget.zoomNotifier, label: label);
 
   /// D-08/D-13: in viaggio (libero o verso una quest) la pedina sta sul punto
   /// interpolato, senza trascinamento né tap; sopra fluttua solo il tempo
@@ -218,7 +215,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     final pawnPath = state.character.infos!.sex!.pawnPath;
     return MarkerLayer(
       markers: [
-        Marker(point: point, child: _scaled(_pawn(pawnPath))),
+        Marker(
+          point: point,
+          width: pawnMarkerBoxSize,
+          height: pawnMarkerBoxSize,
+          child: _scaled(_pawn(pawnPath)),
+        ),
         _labelMarker(
           point,
           PawnLabel(

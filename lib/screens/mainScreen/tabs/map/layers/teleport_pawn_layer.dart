@@ -78,6 +78,8 @@ class _TeleportPawnLayerState extends State<TeleportPawnLayer>
       markers: [
         Marker(
           point: point,
+          width: pawnMarkerBoxSize,
+          height: pawnMarkerBoxSize,
           child: ValueListenableBuilder<double>(
             valueListenable: widget.zoomNotifier,
             builder: (_, zoom, child) =>
@@ -85,17 +87,12 @@ class _TeleportPawnLayerState extends State<TeleportPawnLayer>
             child: _buildDraggablePawn(widget.target.sex.pawnPath),
           ),
         ),
-        Marker(
+        pawnLabelMarker(
           point: point,
-          width: PawnLabel.markerWidth,
-          height: PawnLabel.markerHeight,
-          alignment: Alignment.topCenter,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: PawnLabel(
-              key: TeleportPawnLayer.nameLabelKey,
-              text: widget.target.label,
-            ),
+          zoom: widget.zoomNotifier,
+          label: PawnLabel(
+            key: TeleportPawnLayer.nameLabelKey,
+            text: widget.target.label,
           ),
         ),
       ],
