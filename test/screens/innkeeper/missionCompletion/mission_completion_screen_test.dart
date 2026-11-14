@@ -18,6 +18,7 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
@@ -96,6 +97,7 @@ void main() {
   late MockMissionDraftCubit draftCubit;
   late MockMissionParticipantsCubit participantsCubit;
   late MockMissionEnemiesCubit enemiesCubit;
+  late MockMissionPrizeOptionsCubit prizeOptionsCubit;
   late MockPendingRequestsCubit queue;
   late MockTeleportModeCubit teleport;
   late StreamController<MissionDraftState> draftStates;
@@ -108,6 +110,7 @@ void main() {
     draftCubit = MockMissionDraftCubit();
     participantsCubit = MockMissionParticipantsCubit();
     enemiesCubit = MockMissionEnemiesCubit();
+    prizeOptionsCubit = MockMissionPrizeOptionsCubit();
     queue = MockPendingRequestsCubit();
     teleport = MockTeleportModeCubit();
     draftStates = StreamController<MissionDraftState>.broadcast();
@@ -118,6 +121,12 @@ void main() {
     when(() => draftCubit.discard()).thenAnswer((_) async {});
     when(() => participantsCubit.load(any())).thenAnswer((_) async {});
     when(() => enemiesCubit.load()).thenAnswer((_) async {});
+    when(() => prizeOptionsCubit.loadAll(any())).thenAnswer((_) async {});
+    whenListen(
+      prizeOptionsCubit,
+      const Stream<MissionPrizeOptionsState>.empty(),
+      initialState: const MissionPrizeOptionsState(),
+    );
     whenListen(
       enemiesCubit,
       const Stream<MissionEnemiesState>.empty(),
@@ -177,6 +186,9 @@ void main() {
                         ),
                         BlocProvider<MissionEnemiesCubit>.value(
                           value: enemiesCubit,
+                        ),
+                        BlocProvider<MissionPrizeOptionsCubit>.value(
+                          value: prizeOptionsCubit,
                         ),
                       ],
                       child: MissionCompletionScreen(card: _card),
@@ -830,5 +842,73 @@ void main() {
 
       expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
     });
+  });
+
+  group('prizes step (Phase 21)', () {
+    setUp(() {
+      when(
+        () => draftCubit.savePrizes(any(), step: any(named: 'step')),
+      ).thenAnswer((_) async {});
+    });
+
+    final prizesReady = MissionDraftReady(
+      draft: MissionDraft.tryFromJson(
+        missionDraftJson(
+          step: 'prizes',
+          participants: [
+            missionParticipantJson(),
+            missionParticipantJson(
+              character: _bea,
+              name: 'Bea',
+              pendingQuest: 'pq-world-2',
+            ),
+          ],
+          prizes: [missionPrizeJson()],
+        ),
+      )!,
+    );
+
+    testWidgets('entering «Premi» reads the prize options of everyone (D-22)', (
+      tester,
+    ) async {
+      await openWizard(tester, prizesReady);
+
+      verify(() => prizeOptionsCubit.loadAll([_aldo, _bea])).called(1);
+    });
+
+    testWidgets(
+      '«Avanti» on «Premi» saves the prizes with step recap and opens «Riepilogo» (D-22)',
+      (tester) async {
+        await openWizard(tester, prizesReady);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        final captured = verify(
+          () =>
+              draftCubit.savePrizes(captureAny(), step: MissionDraftStep.recap),
+        ).captured;
+        expect(
+          [
+            for (final prize in captured.single as List<MissionPrizeInput>)
+              (prize.characterId, prize.xp),
+          ],
+          [(_aldo, 150), (_bea, 0)],
+        );
+        expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '«Indietro» from «Premi» with zero fights goes to «Scontri» (D-24)',
+      (tester) async {
+        await openWizard(tester, prizesReady);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      },
+    );
   });
 }
