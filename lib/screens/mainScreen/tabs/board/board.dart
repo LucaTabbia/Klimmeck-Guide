@@ -32,8 +32,9 @@ class Board extends StatefulWidget {
   /// Città caricate dal MainScreen: dicono se il personaggio è su un marker (D-11).
   final List<City> cities;
 
-  /// Chiamata su QuestAccepted di una quest con viaggio (D-03): il MainScreen
-  /// passa alla mappa. Story e worldMission restano sulla Board (UAT 2026-11-01).
+  /// Chiamata allo strappo di una quest con viaggio (D-03, utente 2026-11-14):
+  /// il MainScreen passa alla mappa senza aspettare il server. Story e
+  /// worldMission restano sulla Board (UAT 2026-11-01).
   final VoidCallback? onQuestAccepted;
 
   @override
@@ -210,10 +211,11 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   }
 
   /// Solo ciò che richiede la Board montata; banner, refresh e reset sono in
-  /// QuestAcceptanceOutcomeListener (MainScreen).
+  /// QuestAcceptanceOutcomeListener (MainScreen). Story e worldMission
+  /// accettate chiudono il foglio: aspettano l'oste (utente 2026-11-14).
   void _onAcceptanceOutcome(BuildContext context, QuestAcceptanceState state) {
     if (state is QuestAccepted) {
-      if (_needsTravel(context, state.questId)) widget.onQuestAccepted?.call();
+      if (!_needsTravel(context, state.questId)) _animationController.reverse();
     } else if (state is QuestAcceptanceFailed) {
       _tearKey.currentState?.recompose();
     }
@@ -348,9 +350,15 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     ),
   );
 
-  void _accept(QuestViewer viewer, Quest quest) => context
-      .read<QuestAcceptanceCubit>()
-      .accept(characterId: viewer.characterId, questId: quest.id);
+  /// Una quest che viaggia porta subito alla mappa, dove la pedina aspetta la
+  /// risposta del server con «In preparazione…» (utente 2026-11-14).
+  void _accept(QuestViewer viewer, Quest quest) {
+    context.read<QuestAcceptanceCubit>().accept(
+      characterId: viewer.characterId,
+      questId: quest.id,
+    );
+    if (_needsTravel(context, quest.id)) widget.onQuestAccepted?.call();
+  }
 
   void _selectQuest(Quest quest) {
     setState(() {

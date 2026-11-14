@@ -13,6 +13,7 @@ import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
 import '../../../characterCubit/character_cubit.dart';
 import '../../../prisonCubit/prison_cubit.dart';
+import '../../../questAcceptanceCubit/quest_acceptance_cubit.dart';
 import '../../../travelCubit/travel_cubit.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
 import '../utils/map_constants.dart';
@@ -39,6 +40,11 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const String awaitingAidLabel = 'In attesa di soccorso';
 
   static const Key prisonLabelKey = ValueKey('map.prisonLabel');
+
+  /// Quest strappata dal Tabellone, in attesa della risposta del server
+  /// (utente 2026-11-14).
+  static const Key preparingLabelKey = ValueKey('map.preparingLabel');
+  static const String preparingLabel = 'In preparazione…';
 
   /// Solo durante il flusso guidato della Locanda (FE Phase 21 D-16).
   static const Key missionLabelKey = ValueKey('map.missionLabel');
@@ -85,11 +91,21 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
                   builder: (context, travel) =>
                       BlocSelector<PrisonCubit, PrisonState, Duration?>(
                         selector: (prison) => prison.remaining,
-                        builder: (context, prisonRemaining) => _buildIdlePawn(
-                          characterState,
-                          travel,
-                          prisonRemaining: prisonRemaining,
-                        ),
+                        builder: (context, prisonRemaining) =>
+                            BlocSelector<
+                              QuestAcceptanceCubit,
+                              QuestAcceptanceState,
+                              bool
+                            >(
+                              selector: (acceptance) =>
+                                  acceptance is QuestAccepting,
+                              builder: (context, isPreparing) => _buildIdlePawn(
+                                characterState,
+                                travel,
+                                prisonRemaining: prisonRemaining,
+                                isPreparing: isPreparing,
+                              ),
+                            ),
                       ),
                 ),
         );
@@ -101,6 +117,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     CharacterLoaded state,
     TravelState travel, {
     required Duration? prisonRemaining,
+    required bool isPreparing,
   }) {
     final location = state.character.status!.location!.location!;
     final point = dragPoint ?? _confirmingDestination(travel) ?? location;
@@ -113,11 +130,21 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
             _buildDraggablePawn(
               pawnPath,
               canDrag:
-                  prisonRemaining == null && _canStartTravel(state, travel),
+                  prisonRemaining == null &&
+                  !isPreparing &&
+                  _canStartTravel(state, travel),
               onTap: _cityTapOf(state, travel),
             ),
           ),
         ),
+        if (isPreparing)
+          _labelMarker(
+            point,
+            const PawnLabel(
+              key: CharacterMarkerLayer.preparingLabelKey,
+              text: CharacterMarkerLayer.preparingLabel,
+            ),
+          ),
         if (state.character.status?.awaitingAid != null)
           _labelMarker(
             point,
