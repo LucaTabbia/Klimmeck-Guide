@@ -11,7 +11,6 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/en
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
-import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fixtures/mission_fixtures.dart';
 import '../../../../helpers/landscape.dart';
@@ -94,17 +93,18 @@ void main() {
       .widgetList<QuantityStepper>(inCard(index, find.byType(QuantityStepper)))
       .toList();
 
+  /// Lupo e goblin sono in cima alla lista servita: si torna in cima e si tocca.
   Future<void> pick(WidgetTester tester, String enemyId) async {
-    final row = find.byKey(EnemyPicker.enemyKeyFor(enemyId));
-    await tester.scrollUntilVisible(
-      row,
-      48,
-      scrollable: find.descendant(
+    final list = find.descendant(
+      of: find.descendant(
         of: find.byType(EnemyPicker),
-        matching: find.byType(Scrollable),
+        matching: find.byType(ListView),
       ),
+      matching: find.byType(Scrollable),
     );
-    await tester.tap(row);
+    tester.state<ScrollableState>(list).position.jumpTo(0);
+    await tester.pump();
+    await tester.tap(find.byKey(EnemyPicker.enemyKeyFor(enemyId)));
     await tester.pump();
   }
 

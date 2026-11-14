@@ -4,12 +4,15 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
@@ -25,7 +28,8 @@ enum MissionPage { place, encounters, fight, prizes, recap }
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
 /// Phase 10. Richiede sopra di sé [MissionDraftCubit],
-/// [MissionParticipantsCubit], [PendingRequestsCubit] e [TeleportModeCubit].
+/// [MissionParticipantsCubit], [MissionEnemiesCubit], [PendingRequestsCubit] e
+/// [TeleportModeCubit].
 class MissionCompletionScreen extends StatefulWidget {
   const MissionCompletionScreen({super.key, required this.card});
 
@@ -128,10 +132,23 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
-    _page = _pageOf(draft.step);
+    _enter(_pageOf(draft.step));
     context.read<MissionParticipantsCubit>().load([
       for (final participant in draft.participants) participant.characterId,
     ]);
+  }
+
+  /// Unico punto in cui la pagina cambia: «Scontri» chiede la lista dei
+  /// nemici solo se non c'è ancora (D-03).
+  void _enter(MissionPage page) {
+    _page = page;
+    if (page == MissionPage.encounters) _loadEnemiesIfMissing();
+  }
+
+  void _loadEnemiesIfMissing() {
+    final enemies = context.read<MissionEnemiesCubit>();
+    if (enemies.state.enemies.isNotEmpty || enemies.state.isLoading) return;
+    enemies.load();
   }
 
   static MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
@@ -283,7 +300,11 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
 
   Widget _buildPage(MissionDraftReady ready) => switch (_page) {
     MissionPage.place => _buildPlace(ready),
-    MissionPage.encounters ||
+    MissionPage.encounters => EncountersStep(
+      draft: ready.draft,
+      isSubmitting: ready.isSubmitting,
+      onNext: _saveFights,
+    ),
     MissionPage.fight ||
     MissionPage.prizes ||
     MissionPage.recap => const SizedBox.shrink(),
@@ -321,6 +342,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
+  /// Zero scontri: storia narrativa, si passa ai premi (D-24).
+  void _saveFights(List<List<MissionEnemyInput>> enemiesPerFight) {
+    final cubit = context.read<MissionDraftCubit>();
+    final hasFights = enemiesPerFight.isNotEmpty;
+    _runThenOpen(
+      () => cubit.saveFights(
+        enemiesPerFight,
+        step: hasFights ? null : MissionDraftStep.prizes,
+      ),
+      hasFights ? MissionPage.fight : MissionPage.prizes,
+    );
+  }
+
   /// T-21-46: la pagina cambia solo se la chiamata non è stata rifiutata.
   Future<void> _runThenOpen(
     Future<void> Function() action,
@@ -332,7 +366,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     if (!mounted) return;
     final state = cubit.state;
     if (state is! MissionDraftReady || state.failureSerial != serial) return;
-    setState(() => _page = next);
+    setState(() => _enter(next));
   }
 
   Widget _buildBottomBar(MissionDraftReady ready) {
@@ -348,7 +382,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
-  void _goBack() => setState(() => _page = MissionPage.values[_page.index - 1]);
+  void _goBack() => setState(() => _enter(MissionPage.values[_page.index - 1]));
 
   /// D-11: scartare libera i partecipanti; il teletrasporto fatto resta.
   Future<void> _confirmDiscard() async {
