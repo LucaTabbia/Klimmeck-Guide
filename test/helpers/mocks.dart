@@ -27,6 +27,9 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
@@ -196,3 +199,12 @@ class MockTeleportModeCubit extends MockCubit<TeleportModeState>
 
 class MockMissionDraftCubit extends MockCubit<MissionDraftState>
     implements MissionDraftCubit {}
+
+class MockMissionParticipantsCubit extends MockCubit<MissionParticipantsState>
+    implements MissionParticipantsCubit {}
+
+class MockMissionEnemiesCubit extends MockCubit<MissionEnemiesState>
+    implements MissionEnemiesCubit {}
+
+class MockMissionPrizeOptionsCubit extends MockCubit<MissionPrizeOptionsState>
+    implements MissionPrizeOptionsCubit {}
