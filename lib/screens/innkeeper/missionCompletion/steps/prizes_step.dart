@@ -325,7 +325,8 @@ class _PrizesStepState extends State<PrizesStep> {
         _update(characterId, (prize) => prize.withXp(_amountOf(text))),
   );
 
-  /// D-15: interi non negativi senza tetto; il BE resta giudice.
+  /// D-15: interi non negativi senza tetto di prodotto; solo cifre e al più
+  /// [maxPrizeAmountDigits], il tetto tecnico del BE. Il BE resta giudice.
   Widget _numberField({
     required Key key,
     required TextEditingController controller,
@@ -338,8 +339,13 @@ class _PrizesStepState extends State<PrizesStep> {
       controller: controller,
       enabled: !widget.isSubmitting,
       keyboardType: TextInputType.number,
+      maxLength: maxPrizeAmountDigits,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: InputDecoration(labelText: labelText, prefixIcon: prefixIcon),
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: prefixIcon,
+        counterText: '',
+      ),
       onChanged: onChanged,
     );
   }
