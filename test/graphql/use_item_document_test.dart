@@ -13,6 +13,10 @@ void main() {
     expect(document, contains(r'useItem(itemId: $itemId)'));
   });
 
+  test('UseItem does not declare petId before the gate (Pitfall 2)', () {
+    expect(CharacterMutations.useItem, isNot(contains('petId')));
+  });
+
   test('selects the outcome fields and the unlocked lore refs (D-11)', () {
     expect(
       _collapsed(CharacterMutations.useItem),
