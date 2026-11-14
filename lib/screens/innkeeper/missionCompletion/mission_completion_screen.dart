@@ -261,9 +261,10 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     return Theme(
       data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
       child: Scaffold(
-        // «Scontri» in orizzontale non ha altezza da cedere alla tastiera: la
-        // ricerca sta in cima e la lista resta sotto (UAT 2026-11-14).
-        resizeToAvoidBottomInset: _page != MissionPage.encounters,
+        // lo spazio della tastiera lo cede il corpo qui sotto: così le pagine
+        // sanno che si sta scrivendo e tolgono contatore e pulsanti (UAT
+        // 2026-11-14)
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(MissionCompletionScreen.title),
           actions: [
@@ -277,11 +278,23 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         ),
         body: DecoratedBox(
           decoration: KlimmeckGuideTheme.getParchmentBackground(),
-          child: SafeArea(child: _buildBody(context, state)),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: _keyboardInsetOf(context)),
+              child: _buildBody(context, state),
+            ),
+          ),
         ),
       ),
     );
   }
+
+  /// «Scontri» in orizzontale non ha altezza da cedere: la ricerca sta in
+  /// cima e la tastiera copre il fondo della lista.
+  double _keyboardInsetOf(BuildContext context) =>
+      _page == MissionPage.encounters
+      ? 0
+      : MediaQuery.viewInsetsOf(context).bottom;
 
   Widget _buildBody(BuildContext context, MissionDraftState state) {
     return switch (state) {
@@ -301,22 +314,30 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
 
   Widget _buildReady(MissionDraftReady ready) {
     final theme = KlimmeckGuideTheme.instance;
+    // la tastiera in orizzontale lascia poche righe: il contatore cede il
+    // posto al campo che si sta scrivendo, tranne su «Scontri» dove ospita la
+    // ricerca (UAT 2026-11-14)
+    final isTypingBelow =
+        _page != MissionPage.encounters &&
+        MediaQuery.viewInsetsOf(context).bottom > 0;
     return Padding(
       padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              MissionStepHeader(
-                stepNumber: _page.index + 1,
-                title: _titleOf(ready.draft),
-              ),
-              const SizedBox(width: KlimmeckGuideTheme.spacingMd),
-              Expanded(child: _buildHeaderSide(theme)),
-            ],
-          ),
-          const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+          if (!isTypingBelow) ...[
+            Row(
+              children: [
+                MissionStepHeader(
+                  stepNumber: _page.index + 1,
+                  title: _titleOf(ready.draft),
+                ),
+                const SizedBox(width: KlimmeckGuideTheme.spacingMd),
+                Expanded(child: _buildHeaderSide(theme)),
+              ],
+            ),
+            const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+          ],
           Expanded(
             child: MissionBackScope(
               onBack: _page != MissionPage.place && !ready.isSubmitting

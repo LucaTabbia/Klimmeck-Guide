@@ -40,6 +40,8 @@ class PrizesStep extends StatefulWidget {
   static const String coinsHeading = 'Monete';
   static const String xpLabel = 'PE';
   static const String removeTooltip = 'Rimuovi';
+  static Key headerKeyFor(String characterId) =>
+      ValueKey('mission.prizes.header.$characterId');
   static Key addPrizeKeyFor(String characterId) =>
       ValueKey('mission.prizes.add.$characterId');
   static Key retryKeyFor(String characterId) =>
@@ -74,6 +76,9 @@ enum _Coin {
 }
 
 class _PrizesStepState extends State<PrizesStep> {
+  /// Personaggi con la tendina aperta: sopravvive allo scorrimento della lista.
+  final Set<String> _openTiles = {};
+
   static const double _entrySize = 48;
   static const double _coinIconSize = 20;
   static const double _loaderHeight = 32;
@@ -177,41 +182,66 @@ class _PrizesStepState extends State<PrizesStep> {
   Widget build(BuildContext context) {
     return BlocBuilder<MissionPrizeOptionsCubit, MissionPrizeOptionsState>(
       builder: (context, options) {
-        final rows = [
-          for (final participant in widget.draft.participants)
-            ..._rowsOf(participant, options),
-        ];
+        final participants = widget.draft.participants;
+        // con la tastiera aperta in orizzontale resta spazio solo per il campo
+        // che si sta scrivendo: la riga dei pulsanti torna alla chiusura (UAT
+        // 2026-11-14)
+        final isTyping = MediaQuery.viewInsetsOf(context).bottom > 0;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: rows.length,
-                itemBuilder: (_, index) => rows[index](),
+                itemCount: participants.length,
+                itemBuilder: (_, index) =>
+                    _participantTile(participants[index], options),
               ),
             ),
-            Row(
-              children: [
-                const MissionBackButton(),
-                const Spacer(),
-                ElevatedButton(
-                  key: MissionCompletionScreen.nextKey,
-                  style: KlimmeckGuideTheme.primaryButtonStyle,
-                  onPressed:
-                      widget.isSubmitting || !widget.draft.allFightsSimulated
-                      ? null
-                      : _goOn,
-                  child: const Text(MissionCompletionScreen.nextLabel),
-                ),
-              ],
-            ),
+            if (!isTyping)
+              Row(
+                children: [
+                  const MissionBackButton(),
+                  const Spacer(),
+                  ElevatedButton(
+                    key: MissionCompletionScreen.nextKey,
+                    style: KlimmeckGuideTheme.primaryButtonStyle,
+                    onPressed:
+                        widget.isSubmitting || !widget.draft.allFightsSimulated
+                        ? null
+                        : _goOn,
+                    child: const Text(MissionCompletionScreen.nextLabel),
+                  ),
+                ],
+              ),
           ],
         );
       },
     );
   }
 
-  /// Righe di un personaggio, costruite solo quando entrano in vista.
+  /// I premi di un personaggio stanno sotto il suo nome, chiusi finché l'oste
+  /// non li apre (UAT 2026-11-14).
+  Widget _participantTile(
+    MissionParticipant participant,
+    MissionPrizeOptionsState state,
+  ) {
+    final id = participant.characterId;
+    return ExpansionTile(
+      // mai una PageStorageKey: i campi di testo qui sotto leggerebbero lo
+      // stesso posto e si romperebbero; l'apertura la ricorda la pagina
+      key: ValueKey('mission.prizes.tile.$id'),
+      initiallyExpanded: _openTiles.contains(id),
+      onExpansionChanged: (isOpen) =>
+          isOpen ? _openTiles.add(id) : _openTiles.remove(id),
+      tilePadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      title: _header(participant, state.options[id]),
+      children: [for (final row in _rowsOf(participant, state)) row()],
+    );
+  }
+
   List<Widget Function()> _rowsOf(
     MissionParticipant participant,
     MissionPrizeOptionsState state,
@@ -222,7 +252,6 @@ class _PrizesStepState extends State<PrizesStep> {
     final isLoading = options == null && state.loading.contains(id);
     final failure = options == null ? state.failures[id] : null;
     return [
-      () => _header(participant, options),
       if (failure != null) () => _failureRow(id, failure),
       () => _coinsRow(id),
       () => _xpField(id),
@@ -250,6 +279,7 @@ class _PrizesStepState extends State<PrizesStep> {
         Expanded(
           child: Text(
             title == null ? participant.name : '${participant.name} · $title',
+            key: PrizesStep.headerKeyFor(participant.characterId),
             style: theme.titleMedium,
           ),
         ),

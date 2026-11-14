@@ -39,9 +39,7 @@ class CorrectionSection extends StatelessWidget {
     final theme = KlimmeckGuideTheme.instance;
     final simulated = outcome.simulated;
     return ExpansionTile(
-      key: PageStorageKey<String>(
-        'mission.correction.${participant.characterId}',
-      ),
+      key: ValueKey('mission.correction.tile.${participant.characterId}'),
       maintainState: true,
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
