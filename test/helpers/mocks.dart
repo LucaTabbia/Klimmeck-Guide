@@ -32,7 +32,6 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPartic
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
-import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
@@ -187,9 +186,6 @@ class MockWorldMapCubit extends MockCubit<WorldMapState>
 
 class MockPendingRequestsCubit extends MockCubit<PendingRequestsState>
     implements PendingRequestsCubit {}
-
-class MockRequestCompletionCubit extends MockCubit<RequestCompletionState>
-    implements RequestCompletionCubit {}
 
 class MockQuestGenerationCubit extends MockCubit<QuestGenerationState>
     implements QuestGenerationCubit {}
