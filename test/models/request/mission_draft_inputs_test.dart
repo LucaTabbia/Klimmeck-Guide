@@ -406,6 +406,7 @@ void main() {
 
         expect(input.toJson()['cure'], isTrue);
         expect(input.withoutCure().toJson()['cure'], isFalse);
+        expect(input.withoutCure().withCure().toJson()['cure'], isTrue);
         final withPet = input.withPet('pet-owl').withSpell(fireballSpellId);
         expect(withPet.toJson()['pet'], 'pet-owl');
         expect(withPet.toJson()['spell'], fireballSpellId);

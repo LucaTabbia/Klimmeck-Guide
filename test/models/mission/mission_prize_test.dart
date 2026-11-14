@@ -208,6 +208,29 @@ void main() {
       },
     );
 
+    test('the block cure is read leniently (D-22)', () {
+      MissionPrizeOptions optionsWith(Object? cure) =>
+          MissionPrizeOptions.tryFromJson(
+            missionPrizeOptionsJson(
+              block: {'randomLoot': <Object>[], 'cure': cure},
+            ),
+          )!;
+
+      final withCure = optionsWith(const {
+        'lifePointsShare': 0.5,
+        'canHeal': ['blackEye'],
+      });
+
+      expect(withCure.blockCure!.lifePointsShare, 0.5);
+      expect(withCure.blockCure!.canHeal, [InjuryType.blackEye]);
+      expect(optionsWith(null).blockCure, isNull);
+      expect(optionsWith(const {'lifePointsShare': 3}).blockCure, isNull);
+      expect(
+        MissionPrizeOptions.tryFromJson(missionPrizeOptionsJson())!.blockCure,
+        isNull,
+      );
+    });
+
     test('options without character are null', () {
       expect(
         MissionPrizeOptions.tryFromJson({

@@ -241,6 +241,62 @@ void main() {
     expect(sentPrize().spellId, isNull);
   });
 
+  group('cure of the block (D-22)', () {
+    const blockCure = {'lifePointsShare': 0.5, 'canHeal': <String>[]};
+
+    void serveOptionsWithCure() => whenListen(
+      prizeOptionsCubit,
+      const Stream<MissionPrizeOptionsState>.empty(),
+      initialState: MissionPrizeOptionsState(
+        options: {
+          _aldo: MissionPrizeOptions.tryFromJson(
+            missionPrizeOptionsJson(
+              block: {'randomLoot': <Object>[], 'cure': blockCure},
+            ),
+          )!,
+        },
+      ),
+    );
+
+    testWidgets(
+      '«Aggiungi cura» puts back the cure of the block after a removal (D-22)',
+      (tester) async {
+        serveOptionsWithCure();
+        await pumpStep(tester, _draftWith([missionPrizeJson(cure: blockCure)]));
+        expect(find.byKey(PrizesStep.addCureKeyFor(_aldo)), findsNothing);
+
+        await tester.tap(find.byTooltip(PrizesStep.removeTooltip));
+        await tester.pump();
+        expect(find.text('Vita: almeno il 50%'), findsNothing);
+        await tester.tap(find.byKey(PrizesStep.addCureKeyFor(_aldo)));
+        await tester.pump();
+        await tapNext(tester);
+
+        expect(find.text('Vita: almeno il 50%'), findsOneWidget);
+        expect(find.text(PrizesStep.addCureLabel), findsNothing);
+        expect(sentPrize().cure, isTrue);
+      },
+    );
+
+    testWidgets(
+      'a draft saved without the cure offers it back from the block (D-22)',
+      (tester) async {
+        serveOptionsWithCure();
+        await pumpStep(tester, _draftWith([missionPrizeJson()]));
+
+        expect(find.text(PrizesStep.addCureLabel), findsOneWidget);
+      },
+    );
+
+    testWidgets('a block without a cure offers no «Aggiungi cura» (D-22)', (
+      tester,
+    ) async {
+      await pumpStep(tester, _draftWith([missionPrizeJson()]));
+
+      expect(find.byKey(PrizesStep.addCureKeyFor(_aldo)), findsNothing);
+    });
+  });
+
   testWidgets(
     '«Aggiungi premio» adds an item, a pet or a spell from the served catalogue (D-07)',
     (tester) async {
