@@ -16,6 +16,18 @@ OperationDefinitionNode _operationOf(String document) => parseString(
 
 void main() {
   final sharedSelection = _collapsed(QuestFragment.fields);
+  final prizePetSelection = 'pet { ${_collapsed(PetFragment.fields)} }';
+
+  test('quest prizes select the companion through PetFragment (D-35)', () {
+    final documents = {
+      'quests': QuestQueries.getAllQuests,
+      'OnQuestUpdated': QuestSubscriptions.questUpdated,
+    };
+    for (final MapEntry(key: name, value: document) in documents.entries) {
+      final prizes = _collapsed(document).split('prizes {').last;
+      expect(prizes, contains(prizePetSelection), reason: name);
+    }
+  });
 
   group('quests query', () {
     test('selects the shared quest fragment', () {
