@@ -164,10 +164,36 @@ Plans:
 
 ### Phase 22: Companion Defeat, Rest and Recovery
 **Goal**: The companions (pets) a character has equipped can be defeated, rested and healed. (1) A companion that reaches 0 life during a fight is unequipped automatically at the end of the fight and can be equipped again only when it is back to full life; the wait is proportional to its rarity and power. (2) A companion that is only hurt can be unequipped and put to rest: it regains life for as long as it rests, in proportion to the time (user example, 2026-11-14: a companion that takes 100 minutes to go from 1 to 100 life, put to rest at 20 life and left for 20 minutes, has 40 life when equipped again), so the time to a full recovery is proportional to the life to regain. (3) A hurt companion can instead be healed with potions, with the same rule as the potions on the character (wait time included). The backend stays the source of truth: defeat, recovery times, life regained and the potion rule are server-side; the app shows the state and drives the actions.
+_Amended 2026-11-14 (D-03): the companion's life floor is 1; «0 life» above reads «the floor»._
 **Depends on**: Phase 13 (companions in the Journal), Phase 18 (Journal potions and their wait), Phase 19 (companion model, companion xp), Phase 9 (result sheet), Phase 21 (mission lock on the companion; guided completion writes the companions' state), a BE companion phase (BE Phase 23 «Sconfitta, riposo e recupero dei compagni», added 2026-11-14)
-**Scope**: to be fixed in the discuss (interactive). Open points to bring there: where the companion's life and recovery are shown (Journal, result sheet), what the player sees for a defeated companion and for a resting one, potions on the companion, the notice when a companion is unequipped by a defeat, the innkeeper's guided flow and the companions.
-**Requirements**: TBD (defined at planning)
-**Plans**: TBD
+**Scope**: decisions D-01..D-35 of `22-CONTEXT.md` (discuss 2026-11-14, amended after the research); BE companion: BE Phase 23 «Sconfitta, riposo e recupero dei compagni»
+**Requirements**: PET-01, PET-02, PET-03, PET-04, PET-05, PET-06, PET-07, PET-08, PET-09
+**Success Criteria** (what must be TRUE):
+  1. The Journal shows each companion's life, rising live while it rests; a defeated companion is faded with its countdown and comes back by itself at full life.
+  2. A potion can be given to an eligible companion from the potion sheet; refusals show the companion's name.
+  3. Companions can be named at purchase, after a prize and from the details sheet; every wording uses the name.
+  4. The result sheet and the ambush pages tell the companion's life, defeat and walk on foot; every ambush pushes, and a defeated companion back in shape pushes «in forze».
+  5. Schema check green on the merged BE Phase 23 SDL and device E2E passed.
+**Plans**: 17 plans (sequential waves; 01–15 work against today's BE, 16–17 gated by the BE Phase 23 merge)
+
+Plans:
+- [ ] 22-01-PLAN.md — Requirements and companion models (lenient, unselected)
+- [ ] 22-02-PLAN.md — Pure rules: vitality, display name, name rules, companion copy
+- [ ] 22-03-PLAN.md — Live-safe pet fields and the companion vitality ticker
+- [ ] 22-04-PLAN.md — Details sheet frame and the companion card restyle
+- [ ] 22-05-PLAN.md — Companion details sheet, its route and the companion care switch
+- [ ] 22-06-PLAN.md — Journal «Compagno»: live life, rest, defeat, details
+- [ ] 22-07-PLAN.md — Companion cards in the shop lists and the basket, names in the sell list
+- [ ] 22-08-PLAN.md — Companion cards in the quest-sheet prize and the innkeeper prize rows
+- [ ] 22-09-PLAN.md — Companion potion plumbing: target, refusals, PotionCubit.give
+- [ ] 22-10-PLAN.md — Potion sheet with companion targets
+- [ ] 22-11-PLAN.md — Companion name plumbing: RenamePet, classifier, Cubit
+- [ ] 22-12-PLAN.md — Name prompt sheet and its entry points
+- [ ] 22-13-PLAN.md — Result sheet: companion life, defeat, xp and walk on foot
+- [ ] 22-14-PLAN.md — Ambush and «in forze» notification categories
+- [ ] 22-15-PLAN.md — Innkeeper companion life slider
+- [ ] 22-16-PLAN.md — Gate: schema, gated selections, UseItem target, switch (after the BE Phase 23 merge)
+- [ ] 22-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 23 merge, human)
 
 ## Progress
 
@@ -194,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 0/0 | Not started | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 0/17 | Planned | - |
 
 ---
 
