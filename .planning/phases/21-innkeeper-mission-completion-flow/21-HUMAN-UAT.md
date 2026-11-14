@@ -107,3 +107,11 @@ Source: the user on the Samsung phone; DB readings by the orchestrator. Every FE
 ## Verdict
 
 **Approved (2026-11-14).** Mandatory steps 1–10 all `pass`; optional step 11 `pass`; optional step 12 `not run` by the user's choice. Requirements GMFLOW-01..08 complete (map above). At the end the full FE suite read `+4722: All tests passed!` and `flutter analyze` 47 info / 0 warning / 0 error (orchestrator's run). Open: the off-screen pawn arrow awaits the user's look on the device; the orchestrator's copy listed above awaits review.
+
+## Final confirmation (2026-11-14, after the record)
+
+The user closed the phase with «Confermo tutto, chiudi la fase». This confirms what the record above left open:
+- the copy written by the orchestrator during the UAT (acceptance notice, `missionStart` push, «Inizio missione», «In preparazione…», the activity labels over the pawn);
+- the arrow towards the own pawn when it is off the screen, enlarged to 60 px on the user's request and drawn with the asset `arrowMap` (thicker border) the user provided; `arrowDown` stays for the dropdowns.
+
+Nothing is left to review for this phase. Merge order unchanged: BE PR #41 first, then the FE PR #51.

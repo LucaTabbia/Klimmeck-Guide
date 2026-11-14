@@ -139,3 +139,9 @@ No code change in this plan; T-21-60 mitigated (secrets grep = 0 on both docs), 
 ## Self-Check: PASSED
 
 Files found: 21-18-SUMMARY.md, 21-HUMAN-UAT.md; commits found: 04087482, b6b5c06a.
+
+## After the summary (2026-11-14)
+
+- The user confirmed everything left open («Confermo tutto, chiudi la fase»): the orchestrator's copy and the off-screen pawn arrow, now 60 px and drawn with the asset `arrowMap`.
+- FE PR #51 opened as a draft towards `develop`; BE PR #41 must be merged first.
+- UAT data removed from the DB and the two test characters put back where they were, by the orchestrator, with a backup outside the repo.
