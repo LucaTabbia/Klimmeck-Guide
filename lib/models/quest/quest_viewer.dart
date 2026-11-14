@@ -12,6 +12,7 @@ class QuestViewer extends Equatable {
     required this.cityPointIds,
     required this.twitchPoints,
     this.imprisonedFor,
+    this.isOnMission = false,
   });
 
   factory QuestViewer.of({
@@ -26,6 +27,7 @@ class QuestViewer extends Equatable {
     cityPointIds: cityPointIds,
     twitchPoints: twitchPoints,
     imprisonedFor: imprisonedFor,
+    isOnMission: character.status?.missionInProgress ?? false,
   );
 
   final String characterId;
@@ -42,6 +44,9 @@ class QuestViewer extends Equatable {
   /// libero.
   final Duration? imprisonedFor;
 
+  /// Missione in corso servita dal BE (D-13/D-16): ogni accettazione è bloccata.
+  final bool isOnMission;
+
   @override
   List<Object?> get props => [
     characterId,
@@ -50,5 +55,6 @@ class QuestViewer extends Equatable {
     cityPointIds,
     twitchPoints,
     imprisonedFor,
+    isOnMission,
   ];
 }

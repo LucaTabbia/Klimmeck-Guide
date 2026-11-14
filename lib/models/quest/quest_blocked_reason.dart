@@ -14,6 +14,9 @@ const String questAwaitingRescueLine =
 /// banner, completata dal tempo che manca dove è noto.
 const String questImprisonedLine = 'Sei in prigione';
 
+/// Copy D-30: riga della Bacheca durante ogni missione in corso (D-13).
+const String questMissionInProgressLine = "Missione in corso: aspetta l'esito";
+
 /// Riga di rifiuto mostrata al giocatore: testo di dominio fisso, mai testo del
 /// server (copy provvisoria, D-19).
 String? questBlockedReasonOf(
@@ -38,4 +41,5 @@ String? questBlockedReasonOf(
   QuestAvailability.noEffect => questNoEffectLine,
   QuestAvailability.imprisoned => questImprisonedLine,
   QuestAvailability.awaitingRescue => questAwaitingRescueLine,
+  QuestAvailability.missionInProgress => questMissionInProgressLine,
 };
