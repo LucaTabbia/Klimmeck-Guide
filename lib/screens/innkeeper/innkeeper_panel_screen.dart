@@ -35,6 +35,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
     this.resumesAtPlace = false,
   });
 
+  static const Key resumeCurtainKey = ValueKey('innkeeper.resumeCurtain');
   static const String title = 'Locanda';
   static const String emptyTitle = 'Nessuna richiesta in attesa';
   static const String emptyNote = 'La coda si aggiorna da sola';
@@ -83,11 +84,6 @@ class InnkeeperPanelScreen extends StatelessWidget {
               !previous.isForbidden && current.isForbidden,
           listener: (context, _) => _closeUnavailable(context),
         ),
-        BlocListener<PendingRequestsCubit, PendingRequestsState>(
-          listenWhen: (previous, current) =>
-              resumeCardKey != null && !previous.isLoaded && current.isLoaded,
-          listener: _resume,
-        ),
         BlocListener<AuthCubit, AuthState>(
           listenWhen: (previous, current) =>
               isInnkeeperSession(previous) && !isInnkeeperSession(current),
@@ -109,7 +105,11 @@ class InnkeeperPanelScreen extends StatelessWidget {
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) _cancelTeleportRead(context);
         },
-        child: _buildScaffold(context),
+        child: _ResumeCurtain(
+          isResuming: resumeCardKey != null,
+          onResume: (state) => _resume(context, state),
+          child: _buildScaffold(context),
+        ),
       ),
     );
   }
@@ -186,12 +186,15 @@ class InnkeeperPanelScreen extends StatelessWidget {
 
   /// Dopo la Mappa (21-CONTEXT D-28, Pitfall 1/5): la carta si ricostruisce
   /// dalle richieste grezze del primo snapshot, anche se non è azionabile.
-  void _resume(BuildContext context, PendingRequestsState state) {
+  Future<void> _resume(BuildContext context, PendingRequestsState state) {
     final card = requestCardsOf(
       state.requests,
     ).where((card) => card.cardKey == resumeCardKey).firstOrNull;
-    if (card == null) return _showSnackBar(context, goneMessage);
-    unawaited(_complete(context, card, atPlace: resumesAtPlace));
+    if (card == null) {
+      _showSnackBar(context, goneMessage);
+      return Future.value();
+    }
+    return _complete(context, card, atPlace: resumesAtPlace);
   }
 
   /// Traduce l'esito del wizard (10-CONTEXT D-13/D-14).
@@ -304,6 +307,51 @@ class _EmptyQueue extends StatelessWidget {
           Text(InnkeeperPanelScreen.emptyNote, style: theme.bodyMedium),
         ],
       ),
+    );
+  }
+}
+
+/// Dopo la Mappa il pannello riapre subito il wizard: finché non torna, la
+/// coda resta dietro una pergamena, così la Locanda non lampeggia fra la Mappa
+/// e il wizard (UAT 2026-11-14).
+class _ResumeCurtain extends StatefulWidget {
+  const _ResumeCurtain({
+    required this.isResuming,
+    required this.onResume,
+    required this.child,
+  });
+
+  final bool isResuming;
+  final Future<void> Function(PendingRequestsState state) onResume;
+  final Widget child;
+
+  @override
+  State<_ResumeCurtain> createState() => _ResumeCurtainState();
+}
+
+class _ResumeCurtainState extends State<_ResumeCurtain> {
+  late bool _isDrawn = widget.isResuming;
+
+  Future<void> _resume(PendingRequestsState state) async {
+    await widget.onResume(state);
+    if (mounted) setState(() => _isDrawn = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<PendingRequestsCubit, PendingRequestsState>(
+      listenWhen: (previous, current) =>
+          _isDrawn && !previous.isLoaded && current.isLoaded,
+      listener: (_, state) => unawaited(_resume(state)),
+      child: _isDrawn
+          ? Scaffold(
+              key: InnkeeperPanelScreen.resumeCurtainKey,
+              body: DecoratedBox(
+                decoration: KlimmeckGuideTheme.getParchmentBackground(),
+                child: const Center(child: KGLoader()),
+              ),
+            )
+          : widget.child,
     );
   }
 }
