@@ -532,6 +532,43 @@ void main() {
     );
 
     testWidgets(
+      'the queue losing the request while the completion is in flight '
+      'waits for the results (UAT 2026-11-14)',
+      (tester) async {
+        final exits = await openWizard(
+          tester,
+          MissionDraftReady(draft: _draftAt('recap'), isSubmitting: true),
+        );
+
+        queueStates.add(PendingRequestsState(serverNow: _now, isLoaded: true));
+        await tester.pump();
+        expect(exits, isEmpty);
+
+        draftStates.add(MissionDraftCompleted(results: _results));
+        await tester.pumpAndSettle();
+
+        expect(exits, [CompletionCompleted(_results)]);
+      },
+    );
+
+    testWidgets('a request gone during a save pops CompletionGone once the '
+        'save ends (UAT 2026-11-14)', (tester) async {
+      final exits = await openWizard(
+        tester,
+        _ready.copyWith(isSubmitting: true),
+      );
+
+      queueStates.add(PendingRequestsState(serverNow: _now, isLoaded: true));
+      await tester.pump();
+      expect(exits, isEmpty);
+
+      draftStates.add(_ready);
+      await tester.pumpAndSettle();
+
+      expect(exits, [const CompletionGone()]);
+    });
+
+    testWidgets(
       'a card only leaving the actionable list does not pop (Pitfall 5)',
       (tester) async {
         final exits = await openWizard(tester, _ready);
