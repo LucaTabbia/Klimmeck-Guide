@@ -48,9 +48,9 @@ created: 2026-11-14
 | 22-03-02 | 03 | 3 | PET-01, PET-10 | T-22-09 | only today's SDL fields selected; level and own max lenient, unselected | unit + document pin | `flutter test test/graphql test/models test/utils` | ✅ extend | ✅ green |
 | 22-03-03 | 03 | 3 | PET-02 | T-22-10, T-22-11 | timer only while needed, cancelled on close | bloc + widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ | ✅ green |
 | 22-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 3 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-04-01 | 04 | 4 | PET-03 | T-22-14 | spell sheet unchanged | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
-| 22-04-02 | 04 | 4 | PET-03, PET-10 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
-| 22-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 04 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-04-01 | 04 | 4 | PET-03 | T-22-14 | spell sheet unchanged | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/journal` | ❌ W0 | ✅ green |
+| 22-04-02 | 04 | 4 | PET-03, PET-10 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ✅ green |
+| 22-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 04 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-05-01 | 05 | 5 | PET-03, PET-10 | T-22-15, T-22-16 | switch off pinned; plain-text rendering | unit + widget | `flutter test test/config test/shared/components/popup` | ❌ W0 | ⬜ pending |
 | 22-05-02 | 05 | 5 | PET-03 | T-22-17 | route sheet read-only, no rename | widget | `flutter test test/shared/components/popup` | ❌ W0 | ⬜ pending |
 | 22-05-03 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 05 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -104,7 +104,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/utils/name_rules_test.dart`, `test/utils/companion_lines_test.dart` — 22-02-02
 - [x] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-03
 - [x] `ownedPetJson` gains `level` / `maxLifePoints` (keys only when non-null) — 22-03-02
-- [ ] `test/shared/components/popup/details_sheet_frame_test.dart` — 22-04-01
+- [x] `test/shared/components/popup/details_sheet_frame_test.dart` — 22-04-01
 - [ ] `test/config/companion_care_test.dart`, `test/shared/components/popup/companion_info_sheet_test.dart` — 22-05-01; `companion_details_route_test.dart` — 22-05-02
 - [ ] `test/screens/mainScreen/tabs/journal/components/owned_companion_row_test.dart` — 22-06-01; `test/screens/mainScreen/tabs/journal/journal_companion_details_test.dart` — 22-06-02
 - [x] `test/models/companion/companion_potion_target_test.dart` — 22-10-01
