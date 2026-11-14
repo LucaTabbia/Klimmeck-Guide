@@ -57,9 +57,9 @@ created: 2026-11-14
 | 22-06-01 | 06 | 6 | PET-02, PET-10 | T-22-18, T-22-20 | defeated parchment not tappable | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ✅ green |
 | 22-06-02 | 06 | 6 | PET-03 | T-22-19 | bookmark off on mission and when defeated | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ✅ green |
 | 22-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 06 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-07-01 | 07 | 7 | PET-03 | T-22-21 | long press read-only | widget | `flutter test test/shared test/screens/mainScreen/tabs/shop test/screens/innkeeper` | ✅ extend | ⬜ pending |
-| 22-07-02 | 07 | 7 | PET-03, PET-05 | T-22-22, T-22-23 | names only from own ownedPets | widget | `flutter test test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
-| 22-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 07 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-07-01 | 07 | 7 | PET-03 | T-22-21 | long press read-only | widget | `flutter test test/shared test/screens/mainScreen/tabs/shop test/screens/innkeeper` | ✅ extend | ✅ green |
+| 22-07-02 | 07 | 7 | PET-03, PET-05 | T-22-22, T-22-23 | names only from own ownedPets | widget | `flutter test test/screens/mainScreen/tabs/shop` | ✅ extend | ✅ green |
+| 22-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 07 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-08-01 | 08 | 8 | PET-03 | T-22-24 | prize pet selection live-safe | document pin + widget | `flutter test test/graphql test/models/quest test/shared/components/popup test/screens/mainScreen/tabs/board` | ✅ extend | ⬜ pending |
 | 22-08-02 | 08 | 8 | PET-03 | T-22-25 | prize rows unchanged by long press | widget | `flutter test test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 22-08-03 | 08 | 8 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 08 of 17" .planning/STATE.md` | — | ⬜ pending |
