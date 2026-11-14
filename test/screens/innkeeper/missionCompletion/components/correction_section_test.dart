@@ -275,6 +275,37 @@ void main() {
 
         expect(_companionSlider(tester).value, 300);
         expect(find.text('300 / 300'), findsOneWidget);
+        expect(
+          tester
+              .widget<Text>(
+                find.byKey(CorrectionSection.companionLifeBeforeKeyFor(_aldo)),
+              )
+              .data,
+          'Vita prima dello scontro',
+        );
+      },
+    );
+
+    testWidgets(
+      'a served or corrected companion life is not labelled as the life '
+      'before (D-17)',
+      (tester) async {
+        final outcome = _outcomeWithCompanion(lifeAfter: null);
+        await pumpSection(tester, outcome: _outcomeWithCompanion());
+        expect(
+          find.byKey(CorrectionSection.companionLifeBeforeKeyFor(_aldo)),
+          findsNothing,
+        );
+
+        await pumpSection(
+          tester,
+          outcome: outcome,
+          correction: _seeded(outcome).withCompanionLife(80),
+        );
+        expect(
+          find.byKey(CorrectionSection.companionLifeBeforeKeyFor(_aldo)),
+          findsNothing,
+        );
       },
     );
 
