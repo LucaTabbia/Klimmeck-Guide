@@ -1,45 +1,14 @@
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
-import 'package:klimmeck_guide/models/request/participant_draft.dart';
 
-/// Nomi di riserva condivisi da riepiloghi e form (copy provvisoria, D-22).
+/// Nomi di riserva condivisi dai riepiloghi e dai passi della missione guidata
+/// (copy provvisoria, D-22).
 const String unnamedItemLabel = 'Oggetto';
 const String unnamedSpellLabel = 'Magia sconosciuta';
 
 const String _unknownTitle = 'Sconosciuto';
 const String _fallbackParticipantName = 'Personaggio';
-
-/// Riepilogo della conferma (10-CONTEXT D-11): quest, numero di partecipanti
-/// e solo le modifiche rispetto ai default. Copy provvisoria (D-22).
-String confirmationRecapOf({
-  required RequestCard card,
-  required List<ParticipantDraft> drafts,
-}) {
-  final changes = [
-    for (final draft in drafts)
-      if (_changesOf(draft) case final changes when changes.isNotEmpty)
-        '${draft.name}: ${changes.join(', ')}',
-  ];
-  return [
-    card.questTitle,
-    'Partecipanti: ${drafts.length}',
-    if (changes.isEmpty)
-      'Nessuna modifica: i partecipanti restano come sono'
-    else
-      ...changes,
-  ].join('\n');
-}
-
-List<String> _changesOf(ParticipantDraft draft) => [
-  if (draft.hpAfter != draft.currentLifePoints)
-    'PV ${draft.currentLifePoints} → ${draft.hpAfter}',
-  for (final injury in draft.addedInjuries) injury.label,
-  for (final line in draft.consumables)
-    if (line.used > 0) '${line.name ?? unnamedItemLabel} ×${line.used}',
-  for (final line in draft.spells)
-    if (line.used > 0) '${line.name ?? unnamedSpellLabel} ×${line.used}',
-];
 
 /// Righe dell'esito di un personaggio per il riepilogo del GM (10-CONTEXT
 /// D-13): livello, titolo e magia solo quando cambiano.
