@@ -806,6 +806,20 @@ void main() {
       expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
     });
 
+    testWidgets('«Indietro» from «Premi» goes back to the last fight', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+      await tapNext(tester);
+      await tapNext(tester);
+      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+    });
+
     testWidgets('«Cambia nemici» goes back to «Scontri» (D-05)', (
       tester,
     ) async {

@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftC
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
@@ -73,7 +74,7 @@ class MissionCompletionScreen extends StatefulWidget {
 
 class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   MissionPage _page = MissionPage.place;
-  final int _fightIndex = 0;
+  int _fightIndex = 0;
   bool _hasLeft = false;
 
   @override
@@ -140,8 +141,9 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
 
   /// Unico punto in cui la pagina cambia: «Scontri» chiede la lista dei
   /// nemici solo se non c'è ancora (D-03).
-  void _enter(MissionPage page) {
+  void _enter(MissionPage page, {int fightIndex = 0}) {
     _page = page;
+    _fightIndex = fightIndex;
     if (page == MissionPage.encounters) _loadEnemiesIfMissing();
   }
 
@@ -305,9 +307,15 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       isSubmitting: ready.isSubmitting,
       onNext: _saveFights,
     ),
-    MissionPage.fight ||
-    MissionPage.prizes ||
-    MissionPage.recap => const SizedBox.shrink(),
+    MissionPage.fight => FightStep(
+      draft: ready.draft,
+      fightIndex: _fightIndex,
+      isSubmitting: ready.isSubmitting,
+      onSimulate: () => context.read<MissionDraftCubit>().simulate(_fightIndex),
+      onChangeEnemies: () => setState(() => _enter(MissionPage.encounters)),
+      onNext: (corrections) => _saveCorrections(ready.draft, corrections),
+    ),
+    MissionPage.prizes || MissionPage.recap => const SizedBox.shrink(),
   };
 
   Widget _buildPlace(MissionDraftReady ready) {
@@ -355,18 +363,38 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
+  /// Dopo l'ultimo scontro si passa ai premi (D-06).
+  void _saveCorrections(
+    MissionDraft draft,
+    List<MissionCorrection> corrections,
+  ) {
+    final cubit = context.read<MissionDraftCubit>();
+    final fightIndex = _fightIndex;
+    final isLast = fightIndex == draft.fights.length - 1;
+    _runThenOpen(
+      () => cubit.saveCorrections(
+        fightIndex,
+        corrections,
+        step: isLast ? MissionDraftStep.prizes : null,
+      ),
+      isLast ? MissionPage.prizes : MissionPage.fight,
+      fightIndex: fightIndex + 1,
+    );
+  }
+
   /// T-21-46: la pagina cambia solo se la chiamata non è stata rifiutata.
   Future<void> _runThenOpen(
     Future<void> Function() action,
-    MissionPage next,
-  ) async {
+    MissionPage next, {
+    int fightIndex = 0,
+  }) async {
     final cubit = context.read<MissionDraftCubit>();
     final serial = _failureSerialOf(cubit.state);
     await action();
     if (!mounted) return;
     final state = cubit.state;
     if (state is! MissionDraftReady || state.failureSerial != serial) return;
-    setState(() => _enter(next));
+    setState(() => _enter(next, fightIndex: fightIndex));
   }
 
   Widget _buildBottomBar(MissionDraftReady ready) {
@@ -375,14 +403,31 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       children: [
         OutlinedButton(
           key: MissionCompletionScreen.backKey,
-          onPressed: canGoBack ? _goBack : null,
+          onPressed: canGoBack ? () => _goBack(ready.draft) : null,
           child: const Text(MissionCompletionScreen.backLabel),
         ),
       ],
     );
   }
 
-  void _goBack() => setState(() => _enter(MissionPage.values[_page.index - 1]));
+  void _goBack(MissionDraft draft) =>
+      setState(() => _enterPrevious(draft.fights.length));
+
+  /// Gli scontri si ripercorrono uno per uno: «Premi» torna all'ultimo,
+  /// il primo torna a «Scontri».
+  void _enterPrevious(int fightCount) => switch (_page) {
+    MissionPage.fight when _fightIndex > 0 => _enter(
+      MissionPage.fight,
+      fightIndex: _fightIndex - 1,
+    ),
+    MissionPage.prizes when fightCount > 0 => _enter(
+      MissionPage.fight,
+      fightIndex: fightCount - 1,
+    ),
+    MissionPage.prizes || MissionPage.fight => _enter(MissionPage.encounters),
+    MissionPage.recap => _enter(MissionPage.prizes),
+    MissionPage.encounters || MissionPage.place => _enter(MissionPage.place),
+  };
 
   /// D-11: scartare libera i partecipanti; il teletrasporto fatto resta.
   Future<void> _confirmDiscard() async {
