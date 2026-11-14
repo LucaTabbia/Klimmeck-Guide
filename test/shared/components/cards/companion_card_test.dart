@@ -6,26 +6,47 @@ import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/fixtures/shop_fixtures.dart';
+import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
+
+/// Lato della carta nel Diario in landscape: `(780 - 180) / 5`.
+const double journalCardSize = 120;
+const String worgId = 'pet-worg';
+const String worgImage = 'v1/pets/worg.svg';
 
 void main() {
   setUp(() {
     seedSvgCache([
       CloudinaryAssets.emptyCardSheet,
       CloudinaryAssets.bookmarkRed,
+      worgImage,
     ]);
   });
 
-  Future<void> pump(WidgetTester tester, Pet pet, {bool? isMarked}) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Pet pet, {
+    bool? isMarked,
+    String? name,
+    int? level,
+  }) async {
+    useLandscapePhone(tester);
     await tester.pumpWidget(
       buildTestApp(
         home: Scaffold(
           body: Center(
-            child: CompanionCard(pet: pet, size: 120, isMarked: isMarked),
+            child: CompanionCard(
+              pet: pet,
+              size: journalCardSize,
+              name: name,
+              level: level,
+              isMarked: isMarked,
+            ),
           ),
         ),
       ),
@@ -40,6 +61,10 @@ void main() {
 
     expect(find.text('Cavallo da viaggio'), findsOneWidget);
     expect(find.text('Velocità ×2'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Cavallo da viaggio')).dy,
+      lessThan(tester.getTopLeft(find.text('Velocità ×2')).dy),
+    );
     expect(find.byType(CoinsDisplay), findsNothing);
     expect(find.byType(CardBookmark), findsNothing);
   });
@@ -64,7 +89,6 @@ void main() {
 
   const attackText = 'Attacco: tagliente 12, fuoco 5';
   const defenseText = 'Difesa: contundente 4';
-  const noDamages = <String, dynamic>{'base': [], 'energy': []};
   const attack = <String, dynamic>{
     'base': [
       {'type': 'cut', 'power': 12},
@@ -96,68 +120,145 @@ void main() {
       text.data,
   ];
 
-  group('attack and defense (D-13)', () {
-    testWidgets('shows the attack and the defense under the speed (D-13)', (
-      tester,
-    ) async {
-      await pump(
-        tester,
-        Pet.fromJson(petJson(attack: attack, defense: defense)),
-      );
+  String? textIn(WidgetTester tester, Key key) => tester
+      .widget<Text>(
+        find.descendant(of: find.byKey(key), matching: find.byType(Text)),
+      )
+      .data;
 
-      expect(find.text(attackText), findsOneWidget);
-      expect(find.text(defenseText), findsOneWidget);
+  final worg = Pet.fromJson(
+    petJson(
+      id: worgId,
+      name: 'Worg',
+      speedModifier: null,
+      rarity: 'rare',
+      imagePath: worgImage,
+    ),
+  );
+
+  group('image (D-34)', () {
+    testWidgets('shows the pet image above the title (D-34)', (tester) async {
+      await pump(tester, worg);
+
+      final image = find.byKey(CompanionCard.imageKeyOf(worgId));
+      expect(image, findsOneWidget);
+      expect(tester.widget<EnemyPortrait>(image).imagePath, worgImage);
       expect(
-        top(tester, 'Cavallo da viaggio'),
-        lessThan(top(tester, 'Velocità ×2')),
+        tester.getTopLeft(image).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(CompanionCard.titleKeyOf(worgId))).dy,
+        ),
       );
-      expect(top(tester, 'Velocità ×2'), lessThan(top(tester, attackText)));
-      expect(top(tester, attackText), lessThan(top(tester, defenseText)));
     });
 
-    testWidgets('hides the defense when it is empty (D-13)', (tester) async {
-      await pump(
-        tester,
-        Pet.fromJson(petJson(attack: attack, defense: noDamages)),
-      );
-
-      expect(find.text(attackText), findsOneWidget);
-      expect(find.textContaining('Difesa'), findsNothing);
-    });
-
-    testWidgets(
-      'hides the attack of a pet without attack and keeps its defense (D-13)',
-      (tester) async {
-        await pump(tester, Pet.fromJson(petJson(defense: defense)));
-
-        expect(find.textContaining('Attacco'), findsNothing);
-        expect(find.text(defenseText), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'shows neither line when the wire carries no attack, defense, maxXp or rarity (lenient)',
-      (tester) async {
-        await pump(tester, Pet.fromJson(petJson()));
-
-        expect(find.textContaining('Attacco'), findsNothing);
-        expect(find.textContaining('Difesa'), findsNothing);
-        expect(find.text('Cavallo da viaggio'), findsOneWidget);
-        expect(find.text('Velocità ×2'), findsOneWidget);
-      },
-    );
-
-    testWidgets('four labels fit the parchment without overflow (D-13)', (
+    testWidgets('no image when the path cannot be resolved (D-34)', (
       tester,
     ) async {
+      await pump(
+        tester,
+        Pet.fromJson(petJson(id: worgId, imagePath: 'assets/images/x.png')),
+      );
+
+      expect(find.byKey(CompanionCard.imageKeyOf(worgId)), findsNothing);
+      expect(find.byType(EnemyPortrait), findsNothing);
+    });
+  });
+
+  group('name and species (D-20)', () {
+    testWidgets(
+      'a named companion reads the name as title and the species below (D-20)',
+      (tester) async {
+        await pump(tester, worg, name: 'Fenrir');
+
+        expect(textIn(tester, CompanionCard.titleKeyOf(worgId)), 'Fenrir');
+        expect(colorOf(tester, 'Fenrir'), RarityType.rare.color);
+        expect(textIn(tester, CompanionCard.speciesKeyOf(worgId)), 'Worg');
+        expect(top(tester, 'Fenrir'), lessThan(top(tester, 'Worg')));
+      },
+    );
+
+    testWidgets(
+      'an unnamed companion reads the species as title and no sub-label (D-20)',
+      (tester) async {
+        await pump(tester, worg, name: '   ');
+
+        expect(textIn(tester, CompanionCard.titleKeyOf(worgId)), 'Worg');
+        expect(find.byKey(CompanionCard.speciesKeyOf(worgId)), findsNothing);
+        expect(cardTexts(tester), ['Worg']);
+      },
+    );
+  });
+
+  group('level (D-37)', () {
+    testWidgets(
+      'a named companion with a level reads «Worg · Livello 3» below the name (D-37)',
+      (tester) async {
+        await pump(tester, worg, name: 'Fenrir', level: 3);
+
+        expect(
+          textIn(tester, CompanionCard.speciesKeyOf(worgId)),
+          'Worg · Livello 3',
+        );
+      },
+    );
+
+    testWidgets(
+      'an unnamed companion with a level reads «Livello 3» below the species (D-37)',
+      (tester) async {
+        await pump(tester, worg, level: 3);
+
+        expect(textIn(tester, CompanionCard.titleKeyOf(worgId)), 'Worg');
+        expect(textIn(tester, CompanionCard.speciesKeyOf(worgId)), 'Livello 3');
+      },
+    );
+
+    testWidgets('without a level nothing about levels is shown (D-37)', (
+      tester,
+    ) async {
+      await pump(tester, worg, name: 'Fenrir');
+
+      expect(find.textContaining('Livello'), findsNothing);
+    });
+  });
+
+  testWidgets(
+    'the card carries no attack or defense: they live in the details (D-22)',
+    (tester) async {
       await pump(
         tester,
         Pet.fromJson(petJson(attack: attack, defense: defense)),
       );
 
-      expect(tester.takeException(), isNull);
-      expect(cardTexts(tester), hasLength(4));
-    });
+      expect(find.text(attackText), findsNothing);
+      expect(find.text(defenseText), findsNothing);
+      expect(find.textContaining('Attacco'), findsNothing);
+      expect(find.textContaining('Difesa'), findsNothing);
+      expect(cardTexts(tester), ['Cavallo da viaggio', 'Velocità ×2']);
+    },
+  );
+
+  testWidgets('fits without overflow at Journal size in landscape (D-22)', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      Pet.fromJson(
+        petJson(
+          id: worgId,
+          name: 'Worg',
+          rarity: 'legendary',
+          imagePath: worgImage,
+          attack: attack,
+          defense: defense,
+        ),
+      ),
+      name: 'Fenrir',
+      level: 3,
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(CompanionCard.imageKeyOf(worgId)), findsOneWidget);
+    expect(cardTexts(tester), ['Fenrir', 'Worg · Livello 3', 'Velocità ×2']);
   });
 
   group('rarity (D-20)', () {
@@ -189,29 +290,22 @@ void main() {
         ),
       );
 
-      expect(cardTexts(tester), [
-        'Cavallo da viaggio',
-        'Velocità ×2',
-        attackText,
-        defenseText,
-      ]);
+      expect(cardTexts(tester), ['Cavallo da viaggio', 'Velocità ×2']);
     });
 
-    testWidgets(
-      'the speed, attack and defense labels keep their colour (D-20)',
-      (tester) async {
-        await pump(
-          tester,
-          Pet.fromJson(
-            petJson(rarity: 'rare', attack: attack, defense: defense),
-          ),
-        );
+    testWidgets('the species and speed labels keep their colour (D-20)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        Pet.fromJson(petJson(name: 'Worg', rarity: 'rare')),
+        name: 'Fenrir',
+      );
 
-        expect(inkOfToday(), isNot(RarityType.rare.color));
-        expect(colorOf(tester, 'Velocità ×2'), inkOfToday());
-        expect(colorOf(tester, attackText), inkOfToday());
-        expect(colorOf(tester, defenseText), inkOfToday());
-      },
-    );
+      expect(inkOfToday(), isNot(RarityType.rare.color));
+      expect(colorOf(tester, 'Fenrir'), RarityType.rare.color);
+      expect(colorOf(tester, 'Worg'), inkOfToday());
+      expect(colorOf(tester, 'Velocità ×2'), inkOfToday());
+    });
   });
 }
