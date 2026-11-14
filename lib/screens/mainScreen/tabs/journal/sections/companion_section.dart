@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/companion_content.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/mission_locked_section.dart';
@@ -31,15 +32,22 @@ Pet? _displayedPet(Character character, String? displayedId) {
 /// equipaggia, il tocco su chi è al fianco lo toglie (overlay ottimistico di
 /// `CompanionCubit`). Interattiva anche in viaggio (BE D-15). Bloccata
 /// durante una missione in corso (Phase 21 D-12): il tocco non fa nulla e
-/// la sezione lo dice in testa.
+/// la sezione lo dice in testa; la pressione lunga apre comunque i dettagli
+/// (D-22: solo lettura). Vita e stato dei compagni da
+/// `CompanionVitalityCubit` (D-09).
 class CompanionSection extends StatelessWidget {
-  const CompanionSection({super.key, required this.size});
+  const CompanionSection({
+    super.key,
+    required this.size,
+    required this.onShowDetails,
+  });
 
   static const Key missionLockedKey = ValueKey(
     'journal.companion.missionLocked',
   );
 
   final double size;
+  final ValueChanged<String> onShowDetails;
 
   @override
   Widget build(BuildContext context) =>
@@ -50,18 +58,23 @@ class CompanionSection extends StatelessWidget {
           final isOnMission = character.isOnMission;
           return BlocBuilder<CompanionCubit, CompanionState>(
             builder: (context, companion) {
-              final content = CompanionContent(
-                owned: _ownedPetsOf(character),
-                displayed: _displayedPet(
-                  character,
-                  companion.displayedPetId(character),
-                ),
-                pendingPetId: companion.pending?.petId,
-                cardSize: size,
-                onToggle: isOnMission
-                    ? ignoreMissionLockedToggle
-                    : (petId) => _toggle(context, character, petId),
-              );
+              final content =
+                  BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
+                    builder: (context, vitalities) => CompanionContent(
+                      owned: _ownedPetsOf(character),
+                      displayed: _displayedPet(
+                        character,
+                        companion.displayedPetId(character),
+                      ),
+                      pendingPetId: companion.pending?.petId,
+                      cardSize: size,
+                      vitalities: vitalities,
+                      onToggle: isOnMission
+                          ? ignoreMissionLockedToggle
+                          : (petId) => _toggle(context, character, petId),
+                      onShowDetails: onShowDetails,
+                    ),
+                  );
               return Dropdown(
                 sectionName: 'Compagno',
                 data: isOnMission

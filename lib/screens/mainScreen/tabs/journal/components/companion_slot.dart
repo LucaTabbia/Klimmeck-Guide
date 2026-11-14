@@ -4,7 +4,9 @@ import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Lo slot del compagno (D-10, D-17): un solo box, vuoto quando nessuno è al
-/// fianco; il tocco sulla pergamena lo toglie. In attesa la pergamena sbiadisce.
+/// fianco; il tocco sulla pergamena lo toglie, la pressione lunga apre i
+/// dettagli (D-22). Il nome è il titolo della carta (D-20). In attesa la
+/// pergamena sbiadisce.
 class CompanionSlot extends StatelessWidget {
   const CompanionSlot({
     super.key,
@@ -12,12 +14,18 @@ class CompanionSlot extends StatelessWidget {
     required this.isPending,
     required this.cardSize,
     required this.onTap,
+    required this.onLongPress,
+    this.name,
+    this.level,
   });
 
   final Pet? pet;
   final bool isPending;
   final double cardSize;
   final ValueChanged<String> onTap;
+  final ValueChanged<String> onLongPress;
+  final String? name;
+  final int? level;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +48,11 @@ class CompanionSlot extends StatelessWidget {
     key: ValueKey('companion-slot-${pet.id}'),
     behavior: HitTestBehavior.opaque,
     onTap: () => onTap(pet.id),
+    onLongPress: () => onLongPress(pet.id),
     child: AnimatedOpacity(
       opacity: isPending ? KlimmeckGuideTheme.pendingInkOpacity : 1,
       duration: KlimmeckGuideTheme.pendingInkDuration,
-      child: CompanionCard(pet: pet, size: cardSize),
+      child: CompanionCard(pet: pet, size: cardSize, name: name, level: level),
     ),
   );
 }

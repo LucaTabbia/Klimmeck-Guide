@@ -456,7 +456,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                   screenWidth,
                                   lootSize,
                                 ),
-                                CompanionSection(size: lootSize),
+                                CompanionSection(
+                                  size: lootSize,
+                                  onShowDetails: (_) {},
+                                ),
                                 ItemsSection(size: lootSize),
                                 const SizedBox(height: 120),
                               ],

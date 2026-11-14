@@ -133,7 +133,9 @@ void main() {
 
       expect(_textOf(tester, _statusLine()), companionDefeatedLine(_hour));
       final fade = tester.widget<AnimatedOpacity>(
-        find.descendant(of: _row(), matching: find.byType(AnimatedOpacity)),
+        find
+            .descendant(of: _row(), matching: find.byType(AnimatedOpacity))
+            .first,
       );
       expect(fade.opacity, KlimmeckGuideTheme.pendingInkOpacity);
 
