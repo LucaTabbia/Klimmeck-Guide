@@ -64,14 +64,12 @@ class OwnedPet extends Equatable {
   /// lettura (D-24).
   final bool isDefeated;
 
-  /// Ancora della vita a riposo: `currentLifePoints` vale a `lifeAsOf`, la
-  /// vita piena arriva a `fullLifeAt`; entrambe null se equipaggiato o in
-  /// forze (D-24).
+  /// Istante in cui vale `currentLifePoints`: l'ancora da cui la vita a
+  /// riposo sale; null se equipaggiato o in forze (D-24).
   final DateTime? lifeAsOf;
 
-  /// Ancora della vita a riposo: `currentLifePoints` vale a `lifeAsOf`, la
-  /// vita piena arriva a `fullLifeAt`; entrambe null se equipaggiato o in
-  /// forze (D-24).
+  /// Istante in cui il compagno a riposo torna alla vita piena; null se
+  /// equipaggiato o in forze (D-24).
   final DateTime? fullLifeAt;
 
   /// Attesa della pozione di questo compagno soltanto (D-05).
