@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: "Phase 21 planned (17 plans, 2026-11-14) — next: execution, 21-16/21-17 gated by the BE Phase 22 merge"
+stopped_at: "Phase 21 planned (18 plans, 2026-11-14) — next: execution, 21-16..21-18 gated by the BE Phase 22 merge"
 last_updated: "2026-11-14T02:11:53.000Z"
-last_activity: "2026-11-14 -- Phase 21 planned (research, repo rules, validation, 17 plans)"
+last_activity: "2026-11-14 -- Phase 21 planned (research, repo rules, validation, 18 plans)"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 47
+  total_plans: 48
   completed_plans: 30
-  percent: 64
+  percent: 62
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion`: 17 plans in sequential waves, the last two gated by the BE Phase 22 merge
+**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion`: 18 plans in sequential waves, the last two gated by the BE Phase 22 merge
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 not planned; milestone close pending
-Phase: 21 of 21 (Innkeeper Mission Completion Flow) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 17 plans in sequential waves; BE Phase 22 planned in the same session
-Plan: 0 of 17
-Status: Phase 21 planned — ready to execute (21-01..21-15 against today's BE; 21-16/21-17 wait for the BE Phase 22 merge on BE `develop`)
-Last activity: 2026-11-14 -- Phase 21 planned (research, repo rules, validation, 17 plans)
-Next step: execute 21-01..21-15, review by area, then park until the BE Phase 22 PR merges; 21-16 (schema gate) and 21-17 (device E2E) after it.
+Phase: 21 of 21 (Innkeeper Mission Completion Flow) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 18 plans in sequential waves; BE Phase 22 planned in the same session
+Plan: 0 of 18
+Status: Phase 21 executing — 18 plans (plan check: 0 blockers, 4 warnings closed with D-31); 21-01..21-15 against today's BE, 21-16..21-18 wait for the BE Phase 22 merge on BE `develop`
+Last activity: 2026-11-14 -- Phase 21 planned (research, repo rules, validation, 18 plans)
+Next step: execute 21-01..21-15, review by area, then park until the BE Phase 22 PR merges; 21-16 (schema gate), 21-17 (old form retired, full suite) and 21-18 (device E2E) after it.
 
 ## Current Milestone
 

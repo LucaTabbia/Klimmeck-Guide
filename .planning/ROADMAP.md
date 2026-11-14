@@ -139,7 +139,7 @@ Plans:
   3. The mission is completed from the recap with a confirmation and the players get the usual result sheet; the Phase 10 form is gone.
   4. A character with a mission in progress sees the notice and cannot travel, accept quests, trade, change equipment, companion or spells, nor drink potions; a refusal shows the wait banner.
   5. Schema check green on the merged BE Phase 22 SDL and device E2E passed.
-**Plans**: 17 plans (sequential waves; 01–15 work against today's BE, 16–17 gated by the BE Phase 22 merge)
+**Plans**: 18 plans (sequential waves; 01–15 work against today's BE, 16–18 gated by the BE Phase 22 merge)
 
 Plans:
 - [ ] 21-01-PLAN.md — Mission lock plumbing I: status flags, shared code and copy, travel and acceptance refusals
@@ -157,8 +157,9 @@ Plans:
 - [ ] 21-13-PLAN.md — Wizard UI 1: route, host, start, resume, discard, «Luogo»
 - [ ] 21-14-PLAN.md — Wizard UI 2: «Scontri» and the fight page with corrections
 - [ ] 21-15-PLAN.md — Wizard UI 3: «Premi» and «Riepilogo» with completion
-- [ ] 21-16-PLAN.md — Gate: schema, gated selection, wizard wired, Phase 10 form retired, full suite (after the BE Phase 22 merge)
-- [ ] 21-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 22 merge, human)
+- [ ] 21-16-PLAN.md — Gate: schema, gated selection, «Completa» wired to the wizard (after the BE Phase 22 merge)
+- [ ] 21-17-PLAN.md — Phase 10 form retired, registry, schema check, full suite (after the BE Phase 22 merge)
+- [ ] 21-18-PLAN.md — Device E2E, handoff and closing (after the BE Phase 22 merge, human)
 
 ## Progress
 
@@ -184,7 +185,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 0/17 | Planned | - |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 0/18 | Planned | - |
 
 ---
 
