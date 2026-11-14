@@ -359,7 +359,15 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il primo partecipante porta con sé gli altri; all'atterraggio la Locanda
   /// riapre questo wizard dalla carta (D-01, D-28, Pitfall 1).
   void _teleportGroup(MissionDraft draft) {
-    final [first, ...rest] = draft.participants;
+    if (draft.participants case [final first, ...final rest]) {
+      _prepareTeleport(first, rest);
+    }
+  }
+
+  void _prepareTeleport(
+    MissionParticipant first,
+    List<MissionParticipant> rest,
+  ) {
     context.read<TeleportModeCubit>().prepare(
       characterId: first.characterId,
       name: first.name,

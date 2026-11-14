@@ -97,6 +97,8 @@ class PlaceStep extends StatelessWidget {
     if (loaded == null) return participant.name;
     final locationId =
         loaded.characters[participant.characterId]?.status?.location?.id;
-    return '${participant.name} · ${loaded.placeLabelFor(locationId)}';
+    final placeLabel = loaded.placeLabelFor(locationId);
+    if (placeLabel.isEmpty) return participant.name;
+    return '${participant.name} · $placeLabel';
   }
 }
