@@ -29,8 +29,18 @@ void main() {
     expect(schemaCheckDocuments.keys.toSet(), _declaredOperationNames());
   });
 
-  test('the registry lists 55 documents (D-12, D-17, D-29)', () {
-    expect(schemaCheckDocuments.length, 55);
+  test('the registry lists 54 documents and no completion form document '
+      '(D-25)', () {
+    expect(schemaCheckDocuments.length, 54);
+    expect(
+      schemaCheckDocuments,
+      isNot(
+        contains(
+          'Complete'
+          'PendingRequest',
+        ),
+      ),
+    );
   });
 
   test('each document holds one operation named like its key', () {

@@ -193,7 +193,7 @@ void main() {
     });
   });
 
-  test('the schema check registers 55 documents (D-12, D-17, D-29)', () {
-    expect(schemaCheckDocuments.length, 55);
+  test('the schema check registers 54 documents (D-17, D-25, D-29)', () {
+    expect(schemaCheckDocuments.length, 54);
   });
 }
