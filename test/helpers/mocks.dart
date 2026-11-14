@@ -26,6 +26,7 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
@@ -192,3 +193,6 @@ class MockQuestGenerationCubit extends MockCubit<QuestGenerationState>
 
 class MockTeleportModeCubit extends MockCubit<TeleportModeState>
     implements TeleportModeCubit {}
+
+class MockMissionDraftCubit extends MockCubit<MissionDraftState>
+    implements MissionDraftCubit {}
