@@ -330,6 +330,29 @@ void main() {
       expect(find.text(MissionCompletionScreen.leaveNote), findsNothing);
     });
 
+    testWidgets('«Indietro» sits on the same row as the other buttons of the '
+        'page, at the bottom (UAT 2026-11-14)', (tester) async {
+      await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+      final back = tester.getRect(find.byKey(MissionCompletionScreen.backKey));
+      final next = tester.getRect(find.byKey(MissionCompletionScreen.nextKey));
+      final add = tester.getRect(find.byKey(EncountersStep.addFightKey));
+      expect(back.center.dy, moreOrLessEquals(next.center.dy, epsilon: 1));
+      expect(back.center.dy, moreOrLessEquals(add.center.dy, epsilon: 1));
+      expect(back.left, lessThan(add.left));
+    });
+
+    testWidgets('the keyboard over «Scontri» never overflows the page '
+        '(UAT 2026-11-14)', (tester) async {
+      await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('the wizard buttons are written in the compact size '
         '(UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
