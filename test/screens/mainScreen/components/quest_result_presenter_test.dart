@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
@@ -19,16 +20,19 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/components/quest_result_presenter.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/ambush_report_carousel.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/fakes/fake_pending_quest_results.dart';
 import '../../../helpers/fakes/recording_quest_result_acknowledger.dart';
 import '../../../helpers/fixtures/quest_result_fixtures.dart';
+import '../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/mocks.dart';
@@ -48,6 +52,35 @@ QuestResult _lost(String id) => questResult(
   ambushLostResultJson(id: id, resolvedAt: '2026-10-27T11:40:00.000Z'),
 );
 
+final Map<String, dynamic> _owlJson = petJson(id: 'pet-owl', name: 'Gufo');
+
+QuestResult _owlPrize(String id, {String character = 'c-1'}) => questResult(
+  questResultJson(
+    id: id,
+    resolvedAt: _at(0),
+    character: character,
+    rewardPet: _owlJson,
+  ),
+);
+
+QuestResult _ambushWithOwl(String id) {
+  final json = ambushWonResultJson(id: id);
+  json['rewards'] = {
+    ...json['rewards'] as Map<String, dynamic>,
+    'pet': _owlJson,
+  };
+  return questResult(json);
+}
+
+CharacterLoaded _ownerOfOwl({String? name}) => CharacterLoaded(
+  Character.fromJson({
+    ...travellingCharacterJson(),
+    'assets': {
+      'ownedPets': [ownedPetJson(pet: _owlJson, name: name)],
+    },
+  }),
+);
+
 /// Presenter con i cubit reali della coda e della mappa contro fake e mock
 /// (09-10): la subscription live è [live], la lista non confermata [pending].
 class _PresenterHarness {
@@ -60,6 +93,12 @@ class _PresenterHarness {
       initialState: CharacterLoading(),
     );
     when(() => preferences.state).thenReturn(NotificationPreferencesState());
+    whenListen(
+      names,
+      const Stream<CompanionNameState>.empty(),
+      initialState: const CompanionNameIdle(),
+    );
+    when(() => names.reset()).thenReturn(null);
   }
 
   final MockQuestResultRepository repository = MockQuestResultRepository();
@@ -77,6 +116,7 @@ class _PresenterHarness {
   final MockNotificationPreferencesCubit preferences =
       MockNotificationPreferencesCubit();
   final MockCharacterCubit character = MockCharacterCubit();
+  final MockCompanionNameCubit names = MockCompanionNameCubit();
   final StreamController<TravelState> travelStates =
       StreamController<TravelState>.broadcast();
   final StreamController<CharacterState> characterStates =
@@ -94,7 +134,10 @@ class _PresenterHarness {
     userRefresh: refreshBus,
   );
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    bool isCompanionNamingEnabled = false,
+  }) async {
     useLandscapePhone(tester);
     results.start();
     await tester.pumpWidget(
@@ -109,8 +152,12 @@ class _PresenterHarness {
               value: preferences,
             ),
             BlocProvider<CharacterCubit>.value(value: character),
+            BlocProvider<CompanionNameCubit>.value(value: names),
           ],
-          child: const QuestResultPresenter(child: Scaffold(body: Text('map'))),
+          child: QuestResultPresenter(
+            isCompanionNamingEnabled: isCompanionNamingEnabled,
+            child: const Scaffold(body: Text('map')),
+          ),
         ),
       ),
     );
@@ -181,6 +228,7 @@ void main() {
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
+      CloudinaryAssets.bottomEmptySheet,
     ]);
     h = _PresenterHarness();
   });
@@ -582,6 +630,111 @@ void main() {
       await h.enterMap(tester);
 
       expect(_carousel, findsOneWidget);
+    });
+  });
+
+  group('QuestResultPresenter name prompt (D-18)', () {
+    final Finder prompt = find.byType(CompanionNameSheet);
+
+    Future<void> showQueue(
+      WidgetTester tester,
+      List<QuestResult> queue, {
+      bool isCompanionNamingEnabled = true,
+      CharacterLoaded? loaded,
+    }) async {
+      h.pending.results = queue;
+      await h.pump(tester, isCompanionNamingEnabled: isCompanionNamingEnabled);
+      await h.emitCharacter(tester, loaded ?? _ownerOfOwl());
+      await h.enterMap(tester);
+    }
+
+    Future<void> tapContinue(WidgetTester tester) async {
+      await tester.tap(find.byKey(QuestResultSheet.continueKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'after a result with a prize companion the name prompt opens before '
+      'the next sheet (D-18)',
+      (tester) async {
+        await showQueue(tester, [
+          _owlPrize('result-a'),
+          _success('result-b', minute: 1),
+        ]);
+        expect(find.text('1 di 2'), findsOneWidget);
+
+        await tapContinue(tester);
+
+        expect(h.acknowledger.acknowledged, ['result-a']);
+        expect(prompt, findsOneWidget);
+        expect(_sheet, findsNothing);
+        final sheet = tester.widget<CompanionNameSheet>(prompt);
+        expect(sheet.characterId, 'c-1');
+        expect(sheet.petId, 'pet-owl');
+        expect(sheet.species, 'Gufo');
+
+        await tester.tap(find.byKey(CompanionNameSheet.skipKey));
+        await tester.pumpAndSettle();
+
+        expect(prompt, findsNothing);
+        expect(_sheet, findsOneWidget);
+        expect(find.text('2 di 2'), findsOneWidget);
+      },
+    );
+
+    testWidgets('no prompt for an ambush (D-18)', (tester) async {
+      await showQueue(tester, [_ambushWithOwl('a1')]);
+
+      await tester.tap(_continueOfPage('a1'));
+      await tester.pumpAndSettle();
+
+      expect(_carousel, findsNothing);
+      expect(prompt, findsNothing);
+    });
+
+    testWidgets('no prompt for an already named companion (D-18)', (
+      tester,
+    ) async {
+      await showQueue(tester, [
+        _owlPrize('result-a'),
+      ], loaded: _ownerOfOwl(name: 'Civetta'));
+
+      await tapContinue(tester);
+
+      expect(prompt, findsNothing);
+    });
+
+    testWidgets("no prompt for another character's result (D-18)", (
+      tester,
+    ) async {
+      await showQueue(tester, [_owlPrize('result-a', character: 'c-9')]);
+
+      await tapContinue(tester);
+
+      expect(prompt, findsNothing);
+    });
+
+    testWidgets('no prompt with the switch off (D-18, Pitfall 3)', (
+      tester,
+    ) async {
+      await showQueue(tester, [
+        _owlPrize('result-a'),
+      ], isCompanionNamingEnabled: false);
+
+      await tapContinue(tester);
+
+      expect(prompt, findsNothing);
+      verifyNever(() => h.names.reset());
+    });
+
+    testWidgets('prize species already owned → no prompt (D-18)', (
+      tester,
+    ) async {
+      await showQueue(tester, [_success('result-a')]);
+
+      await tapContinue(tester);
+
+      expect(prompt, findsNothing);
     });
   });
 }

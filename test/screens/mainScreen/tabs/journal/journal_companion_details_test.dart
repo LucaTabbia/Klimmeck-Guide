@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_info.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:klimmeck_guide/utils/companion_lines.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -84,6 +86,7 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockSpellsCubit spellsCubit;
   late MockCompanionCubit companionCubit;
+  late MockCompanionNameCubit companionNameCubit;
 
   setUpAll(() => registerFallbackValue(_character()));
 
@@ -104,12 +107,20 @@ void main() {
     when(
       () => companionCubit.toggle(any(), any()),
     ).thenReturn(CompanionToggleIntent.equip);
+    companionNameCubit = MockCompanionNameCubit();
+    whenListen(
+      companionNameCubit,
+      const Stream<CompanionNameState>.empty(),
+      initialState: const CompanionNameIdle(),
+    );
+    when(() => companionNameCubit.reset()).thenReturn(null);
   });
 
   Future<Character> pumpJournal(
     WidgetTester tester, {
     bool defeated = false,
     bool missionInProgress = false,
+    bool isCompanionNamingEnabled = false,
   }) async {
     final character = _character(
       defeated: defeated,
@@ -126,6 +137,8 @@ void main() {
       spellsCubit: spellsCubit,
       companionCubit: companionCubit,
       clock: FakeServerClockService(spellFixtureNow),
+      companionNameCubit: companionNameCubit,
+      isCompanionNamingEnabled: isCompanionNamingEnabled,
     );
     final header = find.text('Compagno');
     await tester.ensureVisible(header);
@@ -243,13 +256,57 @@ void main() {
     verifyNever(() => companionCubit.toggle(any(), any()));
   });
 
-  testWidgets('the details sheet offers no rename before the switch '
-      '(Pitfall 3, D-22)', (tester) async {
-    await pumpJournal(tester);
+  testWidgets(
+    'the details offer «Dai un nome» or «Cambia nome» only with the switch '
+    'on (D-19, Pitfall 3)',
+    (tester) async {
+      await pumpJournal(tester);
+      await longPressWorg(tester);
+
+      expect(sheet(tester).onRename, isNull);
+      expect(find.byKey(CompanionInfo.renameKey), findsNothing);
+
+      await pumpJournal(tester, isCompanionNamingEnabled: true);
+      await longPressWorg(tester);
+
+      expect(sheet(tester).onRename, isNotNull);
+      expect(_textOf(tester, CompanionInfo.renameKey), 'Cambia nome');
+    },
+  );
+
+  testWidgets('the rename stays available during a mission (D-31)', (
+    tester,
+  ) async {
+    await pumpJournal(
+      tester,
+      missionInProgress: true,
+      isCompanionNamingEnabled: true,
+    );
     await longPressWorg(tester);
 
-    expect(sheet(tester).onRename, isNull);
-    expect(find.byKey(CompanionInfo.renameKey), findsNothing);
+    expect(sheet(tester).onToggle, isNull);
+    expect(sheet(tester).onRename, isNotNull);
+  });
+
+  testWidgets('tapping it opens the name prompt with the current name (D-19)', (
+    tester,
+  ) async {
+    final character = await pumpJournal(tester, isCompanionNamingEnabled: true);
+    await longPressWorg(tester);
+
+    await tester.ensureVisible(find.byKey(CompanionInfo.renameKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(CompanionInfo.renameKey));
+    await tester.pumpAndSettle();
+
+    final prompt = tester.widget<CompanionNameSheet>(
+      find.byType(CompanionNameSheet),
+    );
+    expect(prompt.characterId, character.id);
+    expect(prompt.petId, _worg);
+    expect(prompt.species, 'Worg');
+    expect(prompt.initialName, 'Zanna');
+    expect(find.text('Come chiamerai il tuo Worg?'), findsOneWidget);
   });
 
   testWidgets('a tap outside the companion sheet closes it (D-22)', (

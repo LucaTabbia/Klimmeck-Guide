@@ -9,15 +9,19 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
+import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fakes/svg_http_overrides.dart';
@@ -57,6 +61,20 @@ final _horsePool = CityShop.fromJson(
   cityShopJson(cityId: 'city-1', equipment: [], loot: [], pets: [petJson()]),
 );
 
+final _owl = Pet.fromJson(petJson(id: 'pet-owl', name: 'Gufo'));
+
+final _stablePool = CityShop.fromJson(
+  cityShopJson(
+    cityId: 'city-1',
+    equipment: [equipmentAssetJson()],
+    loot: [],
+    pets: [
+      petJson(),
+      petJson(id: 'pet-owl', name: 'Gufo'),
+    ],
+  ),
+);
+
 CharacterLoaded _characterInCity({
   List<Map<String, dynamic>> ownedPets = const [],
 }) => CharacterLoaded(
@@ -93,6 +111,19 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockTransactionCubit transactionCubit;
   late StreamController<CharacterState> characterStates;
+  late MockCompanionNameCubit companionNameCubit;
+
+  setUpAll(
+    () => registerFallbackValue(
+      buildTransactionRequest(
+        characterId: '',
+        bought: const TradeSelection(),
+        sold: const TradeSelection(),
+        total: const Coins(),
+        isTotalPositive: true,
+      ),
+    ),
+  );
 
   setUp(() {
     useSvgHttpOverrides();
@@ -123,9 +154,19 @@ void main() {
       const Stream<TransactionState>.empty(),
       initialState: TransactionInitial(),
     );
+    companionNameCubit = MockCompanionNameCubit();
+    whenListen(
+      companionNameCubit,
+      const Stream<CompanionNameState>.empty(),
+      initialState: const CompanionNameIdle(),
+    );
+    when(() => companionNameCubit.reset()).thenReturn(null);
   });
 
-  Future<void> pumpShop(WidgetTester tester) async {
+  Future<void> pumpShop(
+    WidgetTester tester, {
+    bool isCompanionNamingEnabled = false,
+  }) async {
     useLandscapePhone(tester);
     await tester.pumpWidget(
       buildTestApp(
@@ -134,8 +175,14 @@ void main() {
             BlocProvider<CharacterCubit>.value(value: characterCubit),
             BlocProvider<ShopCubit>.value(value: shopCubit),
             BlocProvider<TransactionCubit>.value(value: transactionCubit),
+            BlocProvider<CompanionNameCubit>.value(value: companionNameCubit),
           ],
-          child: Scaffold(body: Shop(cities: _cities)),
+          child: Scaffold(
+            body: Shop(
+              cities: _cities,
+              isCompanionNamingEnabled: isCompanionNamingEnabled,
+            ),
+          ),
         ),
       ),
     );
@@ -271,5 +318,127 @@ void main() {
         expect(completeCell(), findsNothing);
       },
     );
+  });
+
+  group('name prompts after a purchase (D-18)', () {
+    late StreamController<TransactionState> transactionStates;
+
+    setUp(() {
+      transactionStates = StreamController<TransactionState>.broadcast();
+      addTearDown(transactionStates.close);
+      whenListen(
+        transactionCubit,
+        transactionStates.stream,
+        initialState: TransactionInitial(),
+      );
+      when(
+        () => transactionCubit.doTransaction(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _stablePool);
+    });
+
+    Finder prompt() => find.byType(CompanionNameSheet);
+
+    String? promptedPetOf(WidgetTester tester) =>
+        tester.widget<CompanionNameSheet>(prompt()).petId;
+
+    Future<void> buy(
+      WidgetTester tester,
+      TradeSelection selection, {
+      CharacterLoaded? arrivingFirst,
+    }) async {
+      await tapAndSettle(tester, _cell(CloudinaryAssets.buy));
+      tester.widget<ShopModal>(find.byType(ShopModal)).onSelect(selection);
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+      await tapAndSettle(tester, _cell(CloudinaryAssets.completeTransaction));
+      tester
+          .widget<TransactionModal>(find.byType(TransactionModal))
+          .onConfirm(const Coins(gold: 2), false);
+      await tester.pumpAndSettle();
+      if (arrivingFirst != null) {
+        when(() => characterCubit.state).thenReturn(arrivingFirst);
+        characterStates.add(arrivingFirst);
+        await tester.pumpAndSettle();
+      }
+      transactionStates.add(TransactionDone());
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> skipPrompt(WidgetTester tester) async {
+      await tester.tap(find.byKey(CompanionNameSheet.skipKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'after a purchase each bought companion gets a name prompt in turn (D-18)',
+      (tester) async {
+        await pumpShop(tester, isCompanionNamingEnabled: true);
+        await tester.pumpAndSettle();
+
+        await buy(tester, const TradeSelection().addPet(_horse).addPet(_owl));
+
+        expect(prompt(), findsOneWidget);
+        expect(promptedPetOf(tester), _horse.id);
+        expect(
+          find.text('Come chiamerai il tuo Cavallo da viaggio?'),
+          findsOneWidget,
+        );
+        expect(tester.widget<CompanionNameSheet>(prompt()).characterId, 'c-1');
+
+        await skipPrompt(tester);
+        expect(prompt(), findsOneWidget);
+        expect(promptedPetOf(tester), _owl.id);
+
+        await skipPrompt(tester);
+        expect(prompt(), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a companion served with the character before the reply still gets '
+      'its prompt (D-18)',
+      (tester) async {
+        await pumpShop(tester, isCompanionNamingEnabled: true);
+        await tester.pumpAndSettle();
+
+        await buy(
+          tester,
+          const TradeSelection().addPet(_owl),
+          arrivingFirst: _characterInCity(
+            ownedPets: [
+              ownedPetJson(
+                pet: petJson(id: 'pet-owl', name: 'Gufo'),
+              ),
+            ],
+          ),
+        );
+
+        expect(promptedPetOf(tester), _owl.id);
+      },
+    );
+
+    testWidgets('buying only items opens no prompt (D-18)', (tester) async {
+      await pumpShop(tester, isCompanionNamingEnabled: true);
+      await tester.pumpAndSettle();
+
+      await buy(tester, TradeSelection(assets: [_stablePool.equipment.first]));
+
+      expect(prompt(), findsNothing);
+    });
+
+    testWidgets('with the switch off no prompt opens (Pitfall 3)', (
+      tester,
+    ) async {
+      await pumpShop(tester);
+      await tester.pumpAndSettle();
+
+      await buy(tester, const TradeSelection().addPet(_horse));
+
+      expect(prompt(), findsNothing);
+      verifyNever(() => companionNameCubit.reset());
+    });
   });
 }
