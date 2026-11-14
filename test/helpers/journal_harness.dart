@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
@@ -109,6 +110,17 @@ PotionCubit idlePotionCubit() {
   return cubit;
 }
 
+/// Nessun cambio di equipaggiamento rifiutato.
+JournalCubit idleJournalCubit() {
+  final cubit = MockJournalCubit();
+  whenListen(
+    cubit,
+    const Stream<JournalState>.empty(),
+    initialState: const JournalIdle(),
+  );
+  return cubit;
+}
+
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
 /// Come in produzione, il Diario sta sotto PotionOutcomeListener: i banner dei
 /// rifiuti vanno a [notices].
@@ -118,6 +130,7 @@ Future<void> pumpJournalPage(
   required SpellsCubit spellsCubit,
   CompanionCubit? companionCubit,
   PotionCubit? potionCubit,
+  JournalCubit? journalCubit,
   InAppNotificationsCubit? notices,
   FakeServerClockService? clock,
 }) async {
@@ -136,6 +149,9 @@ Future<void> pumpJournalPage(
             ),
             BlocProvider<PotionCubit>.value(
               value: potionCubit ?? idlePotionCubit(),
+            ),
+            BlocProvider<JournalCubit>.value(
+              value: journalCubit ?? idleJournalCubit(),
             ),
             BlocProvider<InAppNotificationsCubit>.value(
               value: notices ?? MockInAppNotificationsCubit(),
