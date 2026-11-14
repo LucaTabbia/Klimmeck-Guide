@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/prize_catalogue_sheet.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
@@ -363,6 +364,29 @@ void main() {
       await pumpStep(tester, _prefilled);
 
       verify(() => prizeOptionsCubit.loadAll([_aldo])).called(1);
+    },
+  );
+
+  testWidgets(
+    'a failed options read shows the error line and «Riprova» reads again (D-07)',
+    (tester) async {
+      when(() => prizeOptionsCubit.loadFor(any())).thenAnswer((_) async {});
+      whenListen(
+        prizeOptionsCubit,
+        const Stream<MissionPrizeOptionsState>.empty(),
+        initialState: const MissionPrizeOptionsState(
+          failures: {_aldo: InnkeeperFailure.connection},
+        ),
+      );
+      await pumpStep(tester, _prefilled);
+
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(PrizesStep.retryKeyFor(_aldo)));
+
+      verify(() => prizeOptionsCubit.loadFor(_aldo)).called(1);
     },
   );
 

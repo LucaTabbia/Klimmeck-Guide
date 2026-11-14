@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_picker.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
@@ -132,6 +134,41 @@ void main() {
     await tester.tap(find.byKey(EnemyPicker.enemyKeyFor('enemy-goblin')));
 
     expect(picks, [_goblin]);
+  });
+
+  testWidgets(
+    'a failed read shows the error line and «Riprova» reads again (D-03)',
+    (tester) async {
+      when(() => enemiesCubit.load()).thenAnswer((_) async {});
+      await pumpPicker(
+        tester,
+        const MissionEnemiesState(failure: InnkeeperFailure.connection),
+      );
+
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(EnemyPicker.retryKey));
+
+      verify(() => enemiesCubit.load()).called(1);
+      expect(find.text(MissionCompletionScreen.retryLabel), findsOneWidget);
+    },
+  );
+
+  testWidgets('a failure with enemies already listed keeps the list', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      MissionEnemiesState(
+        enemies: [_wolf],
+        failure: InnkeeperFailure.connection,
+      ),
+    );
+
+    expect(find.byKey(EnemyPicker.enemyKeyFor('enemy-wolf')), findsOneWidget);
+    expect(find.byKey(EnemyPicker.retryKey), findsNothing);
   });
 
   testWidgets('the list is built lazily (ui-ux)', (tester) async {
