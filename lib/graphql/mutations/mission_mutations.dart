@@ -45,7 +45,7 @@ class MissionMutations {
   ''';
 
   /// Completa la missione leggendo la bozza (D-05, D-08, D-25): restituisce
-  /// gli esiti creati, come `completePendingRequest`.
+  /// gli esiti creati, uno per partecipante.
   static String get completeGuidedMission =>
       '''
     mutation CompleteGuidedMission(\$pendingQuestId: ID!) {

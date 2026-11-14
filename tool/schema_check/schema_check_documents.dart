@@ -1,7 +1,6 @@
 import 'package:klimmeck_guide/graphql/mutations/auth_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
-import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
@@ -36,7 +35,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// Phase 9 aggiunge `OnQuestResultReceived` e `GetQuestResult`; la Phase 9
 /// (dopo la BE 9.2) aggiunge `ListUnacknowledgedQuestResults` e
 /// `AcknowledgeQuestResult`; la Phase 10 aggiunge `GetPendingRequests`,
-/// `OnPendingRequestsUpdated`, `CompletePendingRequest` e `TeleportCharacter`;
+/// `OnPendingRequestsUpdated` e `TeleportCharacter` (il documento del modulo di
+/// completamento è stato tolto dalla Phase 21);
 /// la Phase 13 aggiunge `GetCityShop`, `EquipPet` e `UnequipPet` e ha tolto
 /// i due cataloghi globali di equipaggiamento e loot (BE D-20: deprecati,
 /// nessun consumer); la Phase 14 aggiunge `GenerateQuests`;
@@ -86,7 +86,6 @@ final Map<String, String> schemaCheckDocuments = {
   'AbandonQuest': QuestMutations.abandonQuest,
   'GenerateQuests': QuestMutations.generateQuests,
   'AcknowledgeQuestResult': QuestResultMutations.acknowledgeQuestResult,
-  'CompletePendingRequest': PendingRequestMutations.completePendingRequest,
   'StartMissionDraft': MissionMutations.startMissionDraft,
   'SaveMissionDraft': MissionMutations.saveMissionDraft,
   'SimulateMissionFight': MissionMutations.simulateMissionFight,
