@@ -37,11 +37,25 @@ Map<String, dynamic> missionEffectsJson({
   List<String> injuriesAdded = const ['crushedRightHand'],
   List<Map<String, dynamic>> consumablesUsed = const [],
   List<Map<String, dynamic>> spellsUsed = const [],
+  int? companionLifeAfter,
 }) => {
   'hpAfter': hpAfter,
   'injuriesAdded': injuriesAdded,
   'consumablesUsed': consumablesUsed,
   'spellsUsed': spellsUsed,
+  if (companionLifeAfter != null) 'companionLifeAfter': companionLifeAfter,
+};
+
+Map<String, dynamic> missionCompanionJson({
+  Object? pet = 'pet-worg',
+  Object? name = 'Fenrir',
+  Object? lifeBefore = 300,
+  Object? maxLifePoints = 300,
+}) => {
+  'pet': pet,
+  'name': name,
+  'lifeBefore': lifeBefore,
+  'maxLifePoints': maxLifePoints,
 };
 
 Map<String, dynamic> missionOutcomeJson({
@@ -56,6 +70,7 @@ Map<String, dynamic> missionOutcomeJson({
   ],
   Map<String, dynamic>? simulated,
   Map<String, dynamic>? corrected,
+  Map<String, dynamic>? companion,
 }) => {
   'character': character,
   'hpBefore': hpBefore,
@@ -64,6 +79,7 @@ Map<String, dynamic> missionOutcomeJson({
   'spellsAvailable': spellsAvailable,
   'simulated': simulated,
   'corrected': corrected,
+  if (companion != null) 'companion': companion,
 };
 
 Map<String, dynamic> missionFightEnemyJson({
