@@ -89,6 +89,16 @@ void main() {
       });
     });
 
+    test('a defeated companion refused at equip says to wait (D-02)', () {
+      expect(
+        companionNoticeFor(_outcome(failure: PetEquipFailure.defeated)),
+        const KGNotification(
+          title: 'Compagno non equipaggiato',
+          description: 'È ancora sconfitto: aspetta che torni in forze',
+        ),
+      );
+    });
+
     test('a companion refused during a mission shows the wait line '
         '(D-11, D-30)', () {
       expect(

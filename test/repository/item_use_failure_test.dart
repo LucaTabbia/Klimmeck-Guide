@@ -63,6 +63,26 @@ void main() {
       });
     });
 
+    test('PET_DEFEATED maps to petDefeated (D-06, D-32)', () {
+      _shapes.forEach((shape, build) {
+        expect(
+          itemUseFailureFrom(build({'code': 'PET_DEFEATED'})),
+          ItemUseFailure.petDefeated,
+          reason: shape,
+        );
+      });
+    });
+
+    test('ITEM_NO_EFFECT stays noEffect for a companion (D-32)', () {
+      _shapes.forEach((shape, build) {
+        expect(
+          itemUseFailureFrom(build({'code': 'ITEM_NO_EFFECT'})),
+          ItemUseFailure.noEffect,
+          reason: shape,
+        );
+      });
+    });
+
     test('a link error without a code is a connection failure (D-11)', () {
       final exception = OperationException(
         linkException: ServerException(
@@ -132,6 +152,48 @@ void main() {
             reason: '$extensions via $shape',
           );
         });
+      }
+    });
+
+    test('PET_POTION_RECOVERING maps to petPotionRecovering with the served '
+        'recoveryUntil (D-05, D-32)', () {
+      _shapes.forEach((shape, build) {
+        final exception = itemUseExceptionFrom(
+          build({
+            'code': 'PET_POTION_RECOVERING',
+            'recoveryUntil': '2026-11-14T10:30:00.000Z',
+          }),
+        );
+
+        expect(
+          exception.failure,
+          ItemUseFailure.petPotionRecovering,
+          reason: shape,
+        );
+        expect(
+          exception.recoveryUntil,
+          DateTime.utc(2026, 11, 14, 10, 30),
+          reason: shape,
+        );
+      });
+    });
+
+    test('a malformed recoveryUntil on a companion wait reads null '
+        '(D-32)', () {
+      final unreadable = <Map<String, dynamic>>[
+        {'code': 'PET_POTION_RECOVERING'},
+        {'code': 'PET_POTION_RECOVERING', 'recoveryUntil': 42},
+        {'code': 'PET_POTION_RECOVERING', 'recoveryUntil': 'soon'},
+      ];
+      for (final extensions in unreadable) {
+        final exception = itemUseExceptionFrom(_withExtensions(extensions));
+
+        expect(
+          exception.failure,
+          ItemUseFailure.petPotionRecovering,
+          reason: '$extensions',
+        );
+        expect(exception.recoveryUntil, isNull, reason: '$extensions');
       }
     });
 
