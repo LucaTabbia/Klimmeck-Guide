@@ -18,15 +18,35 @@ Map<String, dynamic> ambushCityJson({
 }) => {'id': id, 'name': name};
 
 /// Blocco `ambush` di un `QuestResult` (`AmbushReport`): `reachedCity` solo
-/// dopo una sconfitta.
+/// dopo una sconfitta; `onFoot` (BE Phase 23, D-28) scritto solo se valorizzato.
 Map<String, dynamic> ambushReportJson({
   String at = _defaultAmbushAt,
   Map<String, dynamic>? nearCity,
   Map<String, dynamic>? reachedCity,
+  bool? onFoot,
 }) => {
   'at': at,
   'nearCity': nearCity ?? ambushCityJson(),
   'reachedCity': reachedCity,
+  if (onFoot != null) 'onFoot': onFoot,
+};
+
+/// Compagno nell'esito (`CompanionOutcome`, BE Phase 23 D-27): di default
+/// Fenrir ferito ma in piedi.
+Map<String, dynamic> companionOutcomeJson({
+  String name = 'Fenrir',
+  int lifeBefore = 300,
+  int lifePoints = 120,
+  int maxLifePoints = 300,
+  bool defeated = false,
+  String? fullLifeAt,
+}) => {
+  'name': name,
+  'lifeBefore': lifeBefore,
+  'lifePoints': lifePoints,
+  'maxLifePoints': maxLifePoints,
+  'defeated': defeated,
+  'fullLifeAt': fullLifeAt,
 };
 
 /// Consumabile o ricompensa `LootItem` (selezione `LootFragment.simpleFields`
@@ -106,6 +126,7 @@ Map<String, dynamic> questResultJson({
   Object? lastTurnKind,
   List<String> rescuedCharacters = const [],
   String? acknowledgedAt,
+  Map<String, dynamic>? companion,
 }) => {
   'id': id,
   'outcome': outcome,
@@ -151,6 +172,7 @@ Map<String, dynamic> questResultJson({
   if (lastTurnKind != null) 'lastTurnKind': lastTurnKind,
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
+  if (companion != null) 'companion': companion,
 };
 
 /// Esito di una quest heal vinta (BE Phase 18): vita risalita, una ferita
