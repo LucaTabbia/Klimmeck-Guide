@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
+import 'package:klimmeck_guide/models/companion/companion_display_name.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
@@ -34,6 +35,13 @@ class CharacterAssets extends Equatable {
     }
     return null;
   }
+
+  /// Nomi scelti dei compagni posseduti, per id a catalogo: chi non ha un
+  /// nome resta fuori (D-20, Pitfall 9).
+  Map<String, String> get chosenPetNames => {
+    for (final owned in ownedPets)
+      if (owned.name != null) owned.pet.id: companionDisplayNameOf(owned),
+  };
 
   factory CharacterAssets.fromJson(Map<String, dynamic> json) =>
       CharacterAssets(

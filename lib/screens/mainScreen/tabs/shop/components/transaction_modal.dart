@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
-import 'package:klimmeck_guide/models/companion/companion_display_name.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
@@ -55,10 +54,8 @@ class _TransactionModalState extends State<TransactionModal> {
   late TradeSelection _toSell;
 
   /// Nomi scelti dei compagni posseduti, per il lato vendita (Pitfall 9).
-  Map<String, String> get _sellNames => {
-    for (final owned in widget.character.assets?.ownedPets ?? const [])
-      if (owned.name != null) owned.pet.id: companionDisplayNameOf(owned),
-  };
+  Map<String, String> get _sellNames =>
+      widget.character.assets?.chosenPetNames ?? const {};
 
   @override
   void initState() {

@@ -21,7 +21,6 @@ import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 
 import '../../../../models/character/character.dart';
-import '../../../../models/companion/companion_display_name.dart';
 import '../../../../shared/components/cached_svg.dart';
 import '../../../../shared/components/coins_display.dart';
 import '../../../../shared/components/popup/companion_details_route.dart';
@@ -193,14 +192,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     items: character.assets?.ownedItems ?? const [],
     pets: _ownedPetsOf(character),
     equippedPetId: character.assets?.pet?.id,
-    petNames: _chosenPetNamesOf(character),
+    petNames: character.assets?.chosenPetNames ?? const {},
   );
-
-  /// Nomi scelti dei compagni posseduti per la lista di vendita (Pitfall 9).
-  Map<String, String> _chosenPetNamesOf(Character character) => {
-    for (final owned in character.assets?.ownedPets ?? const [])
-      if (owned.name != null) owned.pet.id: companionDisplayNameOf(owned),
-  };
 
   void _showCompanionDetails(Pet pet, String? name) =>
       showCompanionDetails(context, pet: pet, name: name);
