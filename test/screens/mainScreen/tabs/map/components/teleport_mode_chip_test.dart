@@ -73,14 +73,18 @@ void main() {
       );
     }
 
-    testWidgets('invites to drag the character and offers Annulla', (
-      tester,
-    ) async {
-      await pumpChip(tester);
+    testWidgets(
+      'invites to drag the character on a city or a place and offers Annulla (D-29)',
+      (tester) async {
+        await pumpChip(tester);
 
-      expect(find.text('Trascina Bea su una città'), findsOneWidget);
-      expect(find.text('Annulla'), findsOneWidget);
-    });
+        expect(
+          find.text('Trascina Bea su una città o un luogo'),
+          findsOneWidget,
+        );
+        expect(find.text('Annulla'), findsOneWidget);
+      },
+    );
 
     testWidgets('tapping Annulla cancels', (tester) async {
       await pumpChip(tester);
@@ -112,7 +116,7 @@ void main() {
       await pumpChip(tester, isTeleporting: true);
 
       expect(find.text('Teletrasporto in corso…'), findsOneWidget);
-      expect(find.text('Trascina Bea su una città'), findsNothing);
+      expect(find.text('Trascina Bea su una città o un luogo'), findsNothing);
     });
 
     testWidgets('shows the failure line in the error style', (tester) async {

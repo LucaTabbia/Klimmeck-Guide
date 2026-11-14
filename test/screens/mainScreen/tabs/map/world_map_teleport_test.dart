@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
@@ -18,6 +19,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_ove
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_markers_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_paper_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_pawn_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_poi_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/travel_route_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
@@ -240,26 +242,68 @@ void main() {
   }
 
   group('teleport layers (D-15, D-20, C14)', () {
-    testWidgets('only the chosen pawn and the cities are on the map', (
-      tester,
-    ) async {
-      await pumpTeleportMap(tester);
+    testWidgets(
+      'only the chosen pawn, the cities and the places are on the map',
+      (tester) async {
+        await pumpTeleportMap(tester);
 
-      expect(find.byKey(TeleportPawnLayer.pawnKey), findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byKey(TeleportPawnLayer.nameLabelKey),
-          matching: find.text('Bea'),
-        ),
-        findsOneWidget,
-      );
-      expect(find.byKey(CharacterMarkerLayer.pawnKey), findsNothing);
-      expect(find.byType(TravelRouteLayer), findsNothing);
-      expect(find.byType(QuestMarkersLayer), findsNothing);
-      expect(find.byType(QuestPaperLayer), findsNothing);
-      expect(find.byType(QuestInfoOverlay), findsNothing);
-      expect(find.byType(CityMarkersLayer), findsOneWidget);
-      expect(find.byType(TeleportModeChip), findsOneWidget);
+        expect(find.byKey(TeleportPawnLayer.pawnKey), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(TeleportPawnLayer.nameLabelKey),
+            matching: find.text('Bea'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byKey(CharacterMarkerLayer.pawnKey), findsNothing);
+        expect(find.byType(TravelRouteLayer), findsNothing);
+        expect(find.byType(QuestMarkersLayer), findsNothing);
+        expect(find.byType(QuestPaperLayer), findsNothing);
+        expect(find.byType(QuestInfoOverlay), findsNothing);
+        expect(find.byType(CityMarkersLayer), findsOneWidget);
+        expect(find.byType(TeleportPoiLayer), findsOneWidget);
+        expect(find.byType(TeleportModeChip), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'teleport mode shows the places layer between cities and pawn (D-29)',
+      (tester) async {
+        const ruins = TeleportDestination(
+          poiId: 'poi-ruins-1',
+          point: LatLng(12, 30),
+          label: 'Rovine presso Aldheim',
+          isCityMarker: false,
+        );
+        await pumpTeleportMap(
+          tester,
+          teleportState: const TeleportActive(target: bea, places: [ruins]),
+        );
+
+        final layers = tester
+            .widget<FlutterMap>(find.byType(FlutterMap))
+            .children
+            .map((layer) => layer.runtimeType)
+            .toList();
+        expect(
+          layers.indexOf(TeleportPoiLayer),
+          layers.indexOf(CityMarkersLayer) + 1,
+        );
+        expect(
+          layers.indexOf(TeleportPawnLayer),
+          layers.indexOf(TeleportPoiLayer) + 1,
+        );
+        expect(
+          tester.widget<TeleportPoiLayer>(find.byType(TeleportPoiLayer)).places,
+          [ruins],
+        );
+      },
+    );
+
+    testWidgets('player mode has no places layer (D-29)', (tester) async {
+      await pumpTeleportMap(tester, teleportState: const TeleportIdle());
+
+      expect(find.byType(TeleportPoiLayer), findsNothing);
     });
 
     testWidgets('the Locanda badge marks the map in teleport mode', (
@@ -327,6 +371,28 @@ void main() {
           destination: any(named: 'destination'),
         ),
       );
+      expect(mapAvailability.state.isPawnDragging, isFalse);
+    });
+
+    testWidgets('a drop on an inner place teleports there (D-01)', (
+      tester,
+    ) async {
+      const dragOffset = Offset(150, 0);
+      await pumpTeleportMap(tester);
+      final camera = mapCamera(tester);
+      final ruins = TeleportDestination(
+        poiId: 'poi-ruins-1',
+        point: camera.screenOffsetToLatLng(
+          camera.latLngToScreenOffset(aldheimMarker) + dragOffset,
+        ),
+        label: 'Rovine presso Aldheim',
+        isCityMarker: false,
+      );
+      await emitTeleport(tester, TeleportActive(target: bea, places: [ruins]));
+
+      await dragPawnBy(tester, dragOffset);
+
+      verify(() => teleportCubit.teleportTo(ruins)).called(1);
       expect(mapAvailability.state.isPawnDragging, isFalse);
     });
 

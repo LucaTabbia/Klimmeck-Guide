@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_pawn_layer.dart';
@@ -53,31 +54,37 @@ const TeleportTarget bea = TeleportTarget(
 
 void main() {
   late List<LatLng> dragUpdates;
-  late List<(LatLng?, City?)> dragEnds;
+  late List<TeleportDestination?> drops;
 
   setUp(() {
     dragUpdates = [];
-    dragEnds = [];
+    drops = [];
     seedSvgCache([CloudinaryAssets.adventurerFemalePawn]);
   });
 
-  Future<void> pumpLayer(WidgetTester tester, {bool canDrag = true}) async {
+  Future<MapController> pumpLayer(
+    WidgetTester tester, {
+    bool canDrag = true,
+    List<TeleportDestination> places = const [],
+  }) async {
     useLandscapePhone(tester);
     final controller = MapController();
     await tester.pumpWidget(
       mapHarness([
         TeleportPawnLayer(
           target: bea,
+          places: places,
           cities: [cityA, cityB],
           zoomNotifier: ValueNotifier(2),
           mapController: controller,
           canDrag: canDrag,
           onDragUpdate: dragUpdates.add,
-          onDragEnd: (location, city) => dragEnds.add((location, city)),
+          onDrop: drops.add,
         ),
       ], controller: controller),
     );
     await tester.pump();
+    return controller;
   }
 
   LatLng pawnPoint(WidgetTester tester) => tester
@@ -121,16 +128,41 @@ void main() {
     });
   });
 
-  group('teleport drag (Phase 7 drop rule)', () {
-    testWidgets('releasing east resolves the nearest city', (tester) async {
+  group('teleport drag (D-01, D-29)', () {
+    testWidgets('releasing east resolves the nearest city (D-01)', (
+      tester,
+    ) async {
       await pumpLayer(tester);
 
       await tester.drag(find.byType(Draggable<Object>), const Offset(200, 0));
       await tester.pumpAndSettle();
 
       expect(dragUpdates, isNotEmpty);
-      expect(dragEnds, [(valdoriaMarker, cityB)]);
+      expect(drops, [TeleportDestination.ofCity(cityB)]);
+      expect(drops.single?.point, valdoriaMarker);
       expect(pawnPoint(tester), aldheimMarker);
+    });
+
+    testWidgets('releasing on an inner place reports the place (D-29)', (
+      tester,
+    ) async {
+      const dragOffset = Offset(100, 0);
+      final probe = await pumpLayer(tester);
+      final camera = probe.camera;
+      final ruins = TeleportDestination(
+        poiId: 'poi-ruins-1',
+        point: camera.screenOffsetToLatLng(
+          camera.latLngToScreenOffset(aldheimMarker) + dragOffset,
+        ),
+        label: 'Rovine presso Aldheim',
+        isCityMarker: false,
+      );
+      await pumpLayer(tester, places: [ruins]);
+
+      await tester.drag(find.byType(Draggable<Object>), dragOffset);
+      await tester.pumpAndSettle();
+
+      expect(drops, [ruins]);
     });
 
     testWidgets('a pawn that cannot be dragged reports nothing', (
@@ -142,7 +174,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(dragUpdates, isEmpty);
-      expect(dragEnds, isEmpty);
+      expect(drops, isEmpty);
     });
   });
 }
