@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/components/city_marker.dart';
@@ -310,12 +311,16 @@ void main() {
       verify(() => teleportCubit.cancelToPanel()).called(1);
     });
 
-    testWidgets('releasing the pawn on a city teleports there', (tester) async {
+    testWidgets('a city drop teleports to the city marker destination (D-01)', (
+      tester,
+    ) async {
       await pumpTeleportMap(tester);
 
       await dragPawnBy(tester, const Offset(300, 0));
 
-      verify(() => teleportCubit.teleportTo(cityB)).called(1);
+      verify(
+        () => teleportCubit.teleportTo(TeleportDestination.ofCity(cityB)!),
+      ).called(1);
       verifyNever(
         () => travelCubit.preview(
           characterId: any(named: 'characterId'),
