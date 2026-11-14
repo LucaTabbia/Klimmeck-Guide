@@ -43,5 +43,16 @@ String giveToCompanionLabel(String name) => 'Dai a $name';
 String companionNamePromptTitle(String species) =>
     'Come chiamerai il tuo $species?';
 
+/// Null finché il BE non serve un livello (D-37).
+String? companionLevelLine(int? level) =>
+    level == null ? null : 'Livello $level';
+
+/// Specie e livello sotto il nome sulla pergamena; la specie sola senza
+/// livello (D-37).
+String companionSpeciesLevelLine(String species, int? level) {
+  final levelLine = companionLevelLine(level);
+  return levelLine == null ? species : '$species · $levelLine';
+}
+
 String renameCompanionLabel({required bool hasName}) =>
     hasName ? 'Cambia nome' : 'Dai un nome';

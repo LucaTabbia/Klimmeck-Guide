@@ -14,6 +14,8 @@ class OwnedPet extends Equatable {
     this.lifeAsOf,
     this.fullLifeAt,
     this.potionRecoveryUntil,
+    this.level,
+    this.ownMaxLifePoints,
   });
 
   /// Una voce è `{ pet, xp, currentLifePoints }`: qualsiasi altra forma vale
@@ -34,6 +36,8 @@ class OwnedPet extends Equatable {
       lifeAsOf: _instantOf(json['lifeAsOf']),
       fullLifeAt: _instantOf(json['fullLifeAt']),
       potionRecoveryUntil: _instantOf(json['potionRecoveryUntil']),
+      level: _levelOf(json['level']),
+      ownMaxLifePoints: _positiveOf(json['maxLifePoints']),
     );
   }
 
@@ -42,6 +46,12 @@ class OwnedPet extends Equatable {
 
   static DateTime? _instantOf(Object? value) =>
       value is String ? DateTime.tryParse(value)?.toUtc() : null;
+
+  static int? _levelOf(Object? value) =>
+      value is num && value >= 1 ? value.toInt() : null;
+
+  static int? _positiveOf(Object? value) =>
+      value is num && value > 0 ? value.toInt() : null;
 
   final Pet pet;
   final int xp;
@@ -67,6 +77,17 @@ class OwnedPet extends Equatable {
   /// Attesa della pozione di questo compagno soltanto (D-05).
   final DateTime? potionRecoveryUntil;
 
+  /// Livello del compagno servito dal BE (D-37); null = nascosto.
+  final int? level;
+
+  /// Vita massima del compagno, cresce col livello (D-38); null = quella
+  /// della specie.
+  final int? ownMaxLifePoints;
+
+  /// L'unica vita massima di un compagno posseduto (D-38): ogni lettore passa
+  /// da qui.
+  int? get effectiveMaxLifePoints => ownMaxLifePoints ?? pet.maxLifePoints;
+
   Map<String, dynamic> toJson() => {
     'pet': pet.toJson(),
     'xp': xp,
@@ -76,6 +97,8 @@ class OwnedPet extends Equatable {
     'lifeAsOf': lifeAsOf?.toIso8601String(),
     'fullLifeAt': fullLifeAt?.toIso8601String(),
     'potionRecoveryUntil': potionRecoveryUntil?.toIso8601String(),
+    'level': level,
+    'maxLifePoints': ownMaxLifePoints,
   };
 
   @override
@@ -88,5 +111,7 @@ class OwnedPet extends Equatable {
     lifeAsOf,
     fullLifeAt,
     potionRecoveryUntil,
+    level,
+    ownMaxLifePoints,
   ];
 }

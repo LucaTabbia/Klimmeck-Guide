@@ -50,15 +50,16 @@ final class CompanionDefeated extends CompanionVitality {
   List<Object?> get props => [...super.props, remaining];
 }
 
-/// Interpolazione lineare fra (`currentLifePoints` a `lifeAsOf`) e
-/// (`maxLifePoints` a `fullLifeAt`), arrotondata al punto più vicino come il
-/// BE (D-24) e ferma a `max − 1` prima di `fullLifeAt` (Pitfall 8).
+/// Interpolazione lineare fra (`currentLifePoints` a `lifeAsOf`) e la vita
+/// massima del compagno a `fullLifeAt` (D-38), arrotondata al punto più
+/// vicino come il BE (D-24) e ferma a `max − 1` prima di `fullLifeAt`
+/// (Pitfall 8).
 CompanionVitality companionVitalityOf(
   OwnedPet owned,
   DateTime now, {
   required bool isEquipped,
 }) {
-  final max = owned.pet.maxLifePoints;
+  final max = owned.effectiveMaxLifePoints;
   final lifeAsOf = owned.lifeAsOf;
   final fullLifeAt = owned.fullLifeAt;
   if (max == null || isEquipped || lifeAsOf == null || fullLifeAt == null) {
