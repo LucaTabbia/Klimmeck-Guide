@@ -53,6 +53,16 @@ void main() {
       });
     });
 
+    test('MISSION_IN_PROGRESS maps to missionInProgress (D-11)', () {
+      _shapes.forEach((shape, build) {
+        expect(
+          itemUseFailureFrom(build({'code': 'MISSION_IN_PROGRESS'})),
+          ItemUseFailure.missionInProgress,
+          reason: shape,
+        );
+      });
+    });
+
     test('a link error without a code is a connection failure (D-11)', () {
       final exception = OperationException(
         linkException: ServerException(

@@ -54,6 +54,17 @@ void main() {
       );
     });
 
+    test('a potion refused during a mission shows the wait line under '
+        '«Pozione non bevuta» (D-30)', () {
+      expect(
+        potionNoticeFor(ItemUseFailure.missionInProgress),
+        const KGNotification(
+          title: 'Pozione non bevuta',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+    });
+
     test('every other refusal is the generic notice (D-11)', () {
       for (final failure in [
         ItemUseFailure.awaitingAid,

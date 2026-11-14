@@ -35,7 +35,8 @@ const _healEffectUrl =
 /// [spellbook] è una mappa di `spellbookCharacterJson(...)`; [ownedItems] sono
 /// le voci `{'item': …, 'quantity': …}` della sezione «Oggetti».
 /// [potionRecoveryUntil], [awaitingAid] e [activeTravel] entrano nello status
-/// solo se passati.
+/// solo se passati; [missionInProgress] è il flag servito della missione in
+/// corso. [wornEquipment] e [ownedEquipments] sono le armature del manichino.
 Character journalCharacter({
   required Map<String, dynamic> spellbook,
   List<Map<String, dynamic>> ownedItems = const [],
@@ -43,6 +44,9 @@ Character journalCharacter({
   String? potionRecoveryUntil,
   Map<String, dynamic>? awaitingAid,
   Map<String, dynamic>? activeTravel,
+  bool missionInProgress = false,
+  Map<String, dynamic> wornEquipment = const {},
+  List<Map<String, dynamic>> ownedEquipments = const [],
 }) => Character.fromJson({
   ...spellbook,
   'infos': {'name': 'Aria', 'sex': 'male'},
@@ -56,11 +60,12 @@ Character journalCharacter({
     'potionRecoveryUntil': ?potionRecoveryUntil,
     'awaitingAid': ?awaitingAid,
     'activeTravel': ?activeTravel,
+    'missionInProgress': missionInProgress,
   },
   'assets': {
     ...spellbook['assets'] as Map<String, dynamic>,
-    'wornEquipment': <String, dynamic>{},
-    'ownedEquipments': <Map<String, dynamic>>[],
+    'wornEquipment': wornEquipment,
+    'ownedEquipments': ownedEquipments,
     'ownedItems': ownedItems,
   },
 });
