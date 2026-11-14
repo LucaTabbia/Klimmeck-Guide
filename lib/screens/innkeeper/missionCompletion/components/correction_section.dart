@@ -31,6 +31,8 @@ class CorrectionSection extends StatelessWidget {
       ValueKey('mission.correction.companion.$characterId');
   static Key companionDefeatedKeyFor(String characterId) =>
       ValueKey('mission.correction.companionDefeated.$characterId');
+  static Key companionLifeBeforeKeyFor(String characterId) =>
+      ValueKey('mission.correction.companionLifeBefore.$characterId');
 
   final MissionParticipant participant;
   final MissionFightOutcome outcome;
@@ -105,11 +107,14 @@ class CorrectionSection extends StatelessWidget {
   }
 
   /// Vita del compagno dopo lo scontro: il minimo è la sconfitta (D-17).
+  /// Senza proposta del motore né correzione lo slider parte dalla vita prima
+  /// dello scontro, e lo dice.
   List<Widget> _companionLife(
     MissionCompanion companion,
     KlimmeckGuideTheme theme,
   ) {
-    final life = correction.companionLifeAfter ?? companion.lifeBefore;
+    final proposed = correction.companionLifeAfter;
+    final life = proposed ?? companion.lifeBefore;
     return [
       _Heading('Compagno: ${companion.name}'),
       LifeSlider(
@@ -118,6 +123,12 @@ class CorrectionSection extends StatelessWidget {
         max: companion.maxLifePoints,
         onChanged: (value) => onChanged(correction.withCompanionLife(value)),
       ),
+      if (proposed == null)
+        Text(
+          'Vita prima dello scontro',
+          key: companionLifeBeforeKeyFor(participant.characterId),
+          style: theme.bodyMedium,
+        ),
       if (life == minLifeAfterFight)
         Text(
           'Sconfitto',
