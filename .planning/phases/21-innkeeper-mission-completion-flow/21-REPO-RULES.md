@@ -60,4 +60,27 @@ The BE adds operations and types; `completePendingRequest` with overrides stays 
 
 ## Completed after the research
 
-To be written after `21-RESEARCH.md`. Where this section and the rest of the file disagree, this section wins.
+Written on 2026-11-14. Where this section and the rest of the file disagree, this section wins. File:line evidence in `21-RESEARCH.md`; rulings in `21-CONTEXT.md` D-13..D-30.
+
+### Final wire (D-17)
+
+The contract is the SDL of the BE `22-RESEARCH.md` §Q9 (read it with `git -C <BE> show feat/22-completamento-guidato-missioni:.planning/phases/22-completamento-guidato-missioni/22-RESEARCH.md`) **plus** `CharacterStatus.guidedMissionInProgress: Boolean!` and, on `MissionFightOutcome`, `consumablesAvailable`, `injuriesBefore`, `spellsAvailable`. The draft table above reads as follows:
+
+- Queries: `missionDraft(pendingQuestId: ID!): MissionDraft`, `missionEnemies(pendingQuestId: ID!, showAll: Boolean = false): [Enemy!]!`, `missionPrizeOptions(characterId: ID!, pendingQuestId: ID!): MissionPrizeOptions!`.
+- Mutations: `startMissionDraft(pendingQuestId)`, `saveMissionDraft(input: SaveMissionDraftInput!)`, `simulateMissionFight(input: SimulateMissionFightInput!)` → all `MissionDraft!`; `discardMissionDraft(pendingQuestId): CommonResponse!`; `completeGuidedMission(pendingQuestId): [QuestResult!]!`.
+- Fields: `CharacterStatus.missionInProgress: Boolean!`, `CharacterStatus.guidedMissionInProgress: Boolean!`, `PendingRequest.missionDraftStartedAt: DateTime`.
+- Refusal: `extensions.code` = `MISSION_IN_PROGRESS` (no extra keys).
+- A rename of any of these after the BE merge is fixed in the gated plan in ONE fragment/document and ONE parser: every model reads its keys in one place, no key string is repeated in a Cubit or widget.
+
+### Hard rules
+
+- **Gated selection (Pitfall 2):** `missionInProgress`, `guidedMissionInProgress` and `missionDraftStartedAt` are modelled pre-gate (lenient, default `false` / `null`) and added to `CharacterFragment` / `PendingRequestFragment` ONLY in the gated plan: selecting them on today's BE loses the character.
+- **Pre-gate wiring (D-28):** the wizard lives in new files under `lib/screens/innkeeper/missionCompletion/`; «Completa» keeps opening the Phase 10 form until the gated plan, which rewires it and deletes the old form RED-first. The inner-POI teleport (D-29) is live against today's BE.
+- **Landing (Pitfall 1):** teleport mode pops every root route; the wizard is reopened by the landing from `resumeCardKey` and rebuilt from the served draft — no wizard state is kept in memory across the Map.
+- **Drop rule (Pitfall 6):** the players' travel drop (`MapUtils.dropTargetCity`) does not change; only the teleport pawn accepts inner POIs.
+- **Served bounds (rule 4):** sliders and steppers take min/max from the draft (`MissionParticipant.maxLifePoints`, `hpBefore`, `consumablesAvailable`, `spellsAvailable`); injuries in `injuriesBefore` are shown as not removable (D-14); coins and xp are free non-negative integers (D-15); the enemy and prize lists are never filtered by rank, habitat or rarity in the app.
+- **Two booleans (D-16):** pawn label ← `guidedMissionInProgress`; Journal / Board / satchel lock ← `missionInProgress`. Never derived from lanes or quests.
+- **Registry:** the schema-check registry is `tool/schema_check/schema_check_documents.dart`; FOUR test files pin its count (46 today, list in `21-RESEARCH.md` Pitfall 7): every plan that adds or removes a document updates all four RED-first.
+- **Formatter:** `lib/screens/mainScreen/tabs/map/utils/map_utils.dart` is not formatter-clean: the first plan that touches it starts with `style(map): format map_utils.dart`.
+- **Enums in served models (Pitfall 8):** lenient `fromWire` returning `null`/a fallback, never `byName`; a malformed entry drops the entry, never the draft.
+- Copy: the table of D-30 and Open Question 8 of the research; no other new copy. Plan order recommended by the research: lock plumbing → lock on Board/Map/satchel → lock in the Journal → inner-POI teleport and resume → mission models, documents, repository → wizard Cubits → wizard UI 1 → wizard UI 2 → gate (schema, selection, wiring, old form retired, full suite) → device E2E.

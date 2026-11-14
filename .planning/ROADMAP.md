@@ -131,8 +131,8 @@ Plans:
 ### Phase 21: Innkeeper Mission Completion Flow
 **Goal**: The innkeeper completes a story or worldMission quest from the Inn through a guided flow instead of the current plain form: (1) teleport the participants to a POI/city; (2) pick the enemies from a list — quantity and kind — filtered by the rank of the mission and the type of the POI; (3) run a combat simulation with the backend combat engine that does **not** write its outcome on the characters; (4) fix the outcome by hand where needed (remove the injuries in excess, set each character's life with a slider); (5) choose the prizes per character (coins, xp, items, pets, spells) from a list already filtered to the prizes suited to that character's rank (Phase 20); (6) complete the quest, which updates the playing characters. The backend stays the source of truth: simulation, enemy lists and the final write are server-side, the app only drives the steps.
 **Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE Phase 22 «Completamento guidato delle missioni» (BE-GMFLOW-01..07, opened 2026-11-12: enemy list by rank/POI type, dry-run simulation, draft, completion with manual outcome and per-character prizes)
-**Scope**: TBD
-**Requirements**: TBD
+**Scope**: decisions D-01..D-30 of `21-CONTEXT.md` (discuss 2026-11-12, amended 2026-11-14 after the research); BE companion: BE Phase 22 «Completamento guidato delle missioni»
+**Requirements**: GMFLOW-01, GMFLOW-02, GMFLOW-03, GMFLOW-04, GMFLOW-05, GMFLOW-06, GMFLOW-07, GMFLOW-08
 **Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `21-CONTEXT.md` (D-01..D-10, discuss 2026-11-12): teleport to cities and inner POIs, one or several fights with enemies filtered by POI and rank («Mostra tutti»), simulation without writes, corrections, prizes prefilled from the rank block, backend draft, players locked with a «Missione in corso» notice until the result (the same lock for every mission from its effective start, D-12), always completed
 **Plans**: 0 plans
 

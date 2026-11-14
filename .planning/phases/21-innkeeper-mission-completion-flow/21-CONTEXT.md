@@ -2,6 +2,7 @@
 
 **Gathered:** 2026-11-12
 **Status:** Ready for planning — BE companion: **BE Phase 22 «Completamento guidato delle missioni»** (BE-GMFLOW-01..07, branch `feat/22-completamento-guidato-missioni`); depends on FE Phase 20 / BE Phase 21 (rank blocks)
+**Amended:** 2026-11-14 after `21-RESEARCH.md`, the BE `22-RESEARCH.md` and the user's answers (D-13..D-30; D-01, D-03, D-06, D-07, D-10 and D-12 are revised by the new decisions: where they differ the new ones win)
 
 <domain>
 ## Phase Boundary
@@ -40,6 +41,30 @@ The innkeeper completes a `story` or `worldMission` request from the Locanda thr
 
 ### Same lock for every mission (added 2026-11-12)
 - **D-12:** Gap found in the discuss: in normal missions the BE reads the character **only at resolution** (`resolution-loader.service.ts:382`), and `equipItem`/`equipPet`/`equipSpell`, `useItem` (refused only while awaiting aid) and the shop (only «in the city») have no guard on a mission in progress — a player can swap to a better weapon or drink a potion one minute before the fight. User's choice (option 1 of 2, snapshot at start rejected): **reuse the D-11 lock for every mission**: from the **effective start** (standard lane: arrival at the quest, i.e. the waiting time; boss/registered quests: party started) **until the result**, no equipment/companion/spell changes, no spell use outside combat, no potions, no shop, with the same «Missione in corso» notice; travel and quest acceptance are already blocked by the occupied lane. One backend rule and one FE notice for both the guided flow and the normal missions.
+
+### Added after the research (2026-11-14)
+
+Same numbering as the BE `22-CONTEXT.md` (D-13..D-27 shared, D-28..D-30 FE only). File:line evidence in `21-RESEARCH.md`; the wire is the BE `22-RESEARCH.md` §Q9 plus D-16/D-17.
+
+**User's answers (2026-11-14, AskUserQuestion):**
+- **D-13 (revises D-12, conflict C-3):** «travel and quest acceptance are already blocked by the occupied lane» is false for story and worldMission (separate lanes, `quest_lane.dart:5-11`). User: «Sì, blocca tutto» — while a mission is in progress **every acceptance or registration is blocked** (`QuestAvailability` blocked line for every quest type; BE refusal `MISSION_IN_PROGRESS`).
+- **D-14 (refines D-06, C-2):** user: «Solo quelle della missione» — the innkeeper removes only the injuries **added in this mission** (by the engine or by hand); the injuries the character already had (`injuriesBefore`, served) are shown and not removable. On the wire `corrections[].injuries` is the full list of injuries the fight adds after the correction.
+- **D-15 (refines D-07, against the recommendation):** user: «Liberi, senza tetto» — **coins and xp of the prizes are free numbers** (integers ≥ 0, no ceiling tied to the block): numeric inputs prefilled with the block's values. Items, pets and spells still come only from the served catalogue (the BE revalidates); item quantity `1..99`.
+- **D-16 (refines D-10):** user: «Pedina solo per la guidata» — the pawn label «Missione in corso» shows **only during the innkeeper's guided flow** (`CharacterStatus.guidedMissionInProgress`); the disabled Journal actions and the Board line show in **every** mission in progress (`CharacterStatus.missionInProgress`, true for guided and normal missions). The FE reads the two served booleans and never derives one from lanes.
+
+**Orchestrator rulings on the research (recommendations accepted; the user may overturn them before the execution):**
+- **D-17 (wire):** BE `22-RESEARCH.md` §Q9 verbatim plus `CharacterStatus.guidedMissionInProgress: Boolean!` and, on `MissionFightOutcome`, `consumablesAvailable: [MissionItemUsage!]!`, `injuriesBefore: [InjuryType!]!`, `spellsAvailable: [MissionSpellUsage!]!` (the bounds at the start of each fight are served, never computed). Additions accepted: query `missionDraft(pendingQuestId)`, `PendingRequest.missionDraftStartedAt` (the card reads «Riprendi» when set), `MissionPrizeOptions`.
+- **D-18 (draft):** one draft per request (story) or per group of requests of the same worldMission, reached by any entry id of the card; last write wins (no version field); steps `teleport` / `fights` / `prizes` / `recap` saved by the wizard, order not enforced by the BE.
+- **D-19 (enemies):** legendaries are offered for worldMission when they live in the zone, with no XP band filter; mixed worldMission band = union of the seats' bands; the list arrives sorted.
+- **D-20 / D-21:** the companion enters the BE combat context (no FE effect); the verdict is one per fight (`MissionFight.verdict`), shown on the fight, not per character.
+- **D-22 (prizes):** the BE prefills `MissionDraft.prizes` at the start with the whole rank block of each participant (the whole `randomLoot` pool and the pet included; the innkeeper removes); the FE never builds a prize list from `MissionPrizeOptions.block`.
+- **D-23 (lock borders):** a wounded character awaiting aid is NOT «mission in progress»; the travel preview is refused too; the existing codes keep their precedence and their copy; the teleport of a participant stays allowed; the lock arrives live through `characterUpdated`.
+- **D-24 (fights):** zero fights allowed (narrative story: prizes only); fight k cannot be simulated before fight k-1; changing the enemies of fight k voids simulation and corrections of k and the following ones (shown from the served draft: «Da simulare»).
+- **D-25 (completion):** `completeGuidedMission(pendingQuestId)`; `completePendingRequest` stays alive on the BE until this phase is merged; the Phase 10 form is retired in the gated plan.
+- **D-26 / D-27:** BE only (audit of the mutations; orphan PendingQuests of archived characters out of scope).
+- **D-28 (wizard, C-5, C-6, F-3):** new files under `lib/screens/innkeeper/missionCompletion/`; the Phase 10 form keeps working until the gated plan wires «Completa» to the wizard and deletes it RED-first; an explicit **«Inizia la missione»** page creates the draft (no draft on open); after the Map round trip the landing reopens the panel **and the wizard of that card** (`TeleportModeCubit.resumeCardKey`), rebuilt from the served draft.
+- **D-29 (inner POIs, C-4, PQ6, PQ7, LB-2):** one new document `ListPointsOfInterest`, a POI layer shown only in teleport mode, a drop rule the teleport pawn overrides (player travel unchanged); a place is named by its type label plus the nearby city («Rovine presso Talmvere»), with the Italian labels of every `PoiType` proposed in the plan (the user reviews the list at the UAT) and `demonicPortal` added to the enum; the card-level «Teletrasporta» stays.
+- **D-30 (players' side, C-1, C-7, LB-1, Pitfall 2):** prize lists are built from the existing blocks (`CoinsDisplay`, `ItemRow`, item cards, `CompanionRow`, `SpellRow`), not extracted from the gameplay sheet; a small equipment repository + failure classifier makes an `equipItem` refusal visible (today silent, `journal_cubit.dart:29-36`); the two status booleans are modelled pre-gate (lenient, default `false`) and **selected in `CharacterFragment` only in the gated plan**. Copy (final unless the user amends it): pawn «Missione in corso»; Journal row status «Missione in corso»; Board line «Missione in corso: aspetta l'esito»; refusal banner description «Sei impegnato in una missione: aspetta l'esito» (titles per action as today); wizard copy as `21-RESEARCH.md` Open Question 8.
 
 ### Claude's Discretion
 - Wizard layout (stepper, pages, back navigation between steps), copy, loaders (explicit actions: allowed), how the fights list is edited, recap content.
