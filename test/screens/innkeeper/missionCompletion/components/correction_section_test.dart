@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/correction_section.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/life_slider.dart';
 
 import '../../../../helpers/fixtures/mission_fixtures.dart';
 import '../../../../helpers/fixtures/pending_request_fixtures.dart';
@@ -24,14 +25,26 @@ MissionFightOutcome _outcome({
   List<String> injuriesBefore = const ['blackEye'],
   Map<String, dynamic>? simulated,
   Map<String, dynamic>? corrected,
+  Map<String, dynamic>? companion,
 }) => MissionFightOutcome.tryFromJson(
   missionOutcomeJson(
     hpBefore: hpBefore,
     injuriesBefore: injuriesBefore,
     simulated: simulated ?? missionEffectsJson(),
     corrected: corrected,
+    companion: companion,
   ),
 )!;
+
+/// Aldo combatte con Fenrir (300 PV): il motore lo porta da 300 a [lifeAfter].
+MissionFightOutcome _outcomeWithCompanion({int? lifeAfter = 120}) => _outcome(
+  simulated: missionEffectsJson(companionLifeAfter: lifeAfter),
+  companion: missionCompanionJson(),
+);
+
+Slider _companionSlider(WidgetTester tester) => tester.widget<Slider>(
+  find.byKey(CorrectionSection.companionSliderKeyFor(_aldo)),
+);
 
 MissionCorrection _seeded(MissionFightOutcome outcome) =>
     MissionCorrection.fromEffects(_aldo, outcome.effective!);
@@ -214,5 +227,95 @@ void main() {
     fireball.onChanged(1);
 
     expect(changes.single.spellsUsed, {fireballSpellId: 1});
+  });
+
+  testWidgets(
+    'the character slider keeps its bounds and text (Phase 21 D-06)',
+    (tester) async {
+      await pumpSection(tester);
+
+      final characterSlider = find.byKey(
+        CorrectionSection.hpSliderKeyFor(_aldo),
+      );
+      expect(
+        find.ancestor(of: characterSlider, matching: find.byType(LifeSlider)),
+        findsOneWidget,
+      );
+      final slider = tester.widget<Slider>(characterSlider);
+      expect((slider.min, slider.max, slider.divisions), (1, 1000, 999));
+      expect(find.text('700 / 1000'), findsOneWidget);
+    },
+  );
+
+  group('companion life (D-17)', () {
+    testWidgets(
+      'a participant with a companion shows «Compagno: Fenrir» and its slider (D-17)',
+      (tester) async {
+        await pumpSection(tester, outcome: _outcomeWithCompanion());
+
+        expect(find.text('Compagno: Fenrir'), findsOneWidget);
+        final slider = _companionSlider(tester);
+        expect((slider.min, slider.max, slider.value), (1, 300, 120));
+        expect(find.text('120 / 300'), findsOneWidget);
+        expect(find.byType(LifeSlider), findsNWidgets(2));
+        expect(
+          find.byKey(CorrectionSection.companionDefeatedKeyFor(_aldo)),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'without a served companion life the slider starts at lifeBefore (D-17)',
+      (tester) async {
+        await pumpSection(
+          tester,
+          outcome: _outcomeWithCompanion(lifeAfter: null),
+        );
+
+        expect(_companionSlider(tester).value, 300);
+        expect(find.text('300 / 300'), findsOneWidget);
+      },
+    );
+
+    testWidgets('moving the companion slider sends withCompanionLife (D-17)', (
+      tester,
+    ) async {
+      final outcome = _outcomeWithCompanion();
+      await pumpSection(tester, outcome: outcome);
+
+      _companionSlider(tester).onChanged!(80);
+
+      expect(changes, [_seeded(outcome).withCompanionLife(80)]);
+      expect(changes.single.companionLifeAfter, 80);
+      expect(changes.single.hpAfter, 700);
+    });
+
+    testWidgets('at the floor the companion reads «Sconfitto» (D-17)', (
+      tester,
+    ) async {
+      await pumpSection(tester, outcome: _outcomeWithCompanion(lifeAfter: 1));
+
+      expect(
+        find.byKey(CorrectionSection.companionDefeatedKeyFor(_aldo)),
+        findsOneWidget,
+      );
+      expect(find.text('Sconfitto'), findsOneWidget);
+      expect(find.text('1 / 300'), findsOneWidget);
+    });
+
+    testWidgets('without a companion the section is today\'s (D-33)', (
+      tester,
+    ) async {
+      await pumpSection(tester);
+
+      expect(find.textContaining('Compagno'), findsNothing);
+      expect(
+        find.byKey(CorrectionSection.companionSliderKeyFor(_aldo)),
+        findsNothing,
+      );
+      expect(find.text('Sconfitto'), findsNothing);
+      expect(find.byType(Slider), findsOneWidget);
+    });
   });
 }
