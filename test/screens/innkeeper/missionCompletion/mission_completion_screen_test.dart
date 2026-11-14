@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeO
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
@@ -910,5 +911,64 @@ void main() {
         expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
       },
     );
+  });
+
+  group('recap step (Phase 21)', () {
+    final recapReady = MissionDraftReady(draft: _draftAt('recap'));
+
+    Finder confirmButton() => find.descendant(
+      of: find.byType(DestructiveConfirmationDialog),
+      matching: find.widgetWithText(ElevatedButton, RecapStep.completeLabel),
+    );
+
+    setUp(() => when(() => draftCubit.complete()).thenAnswer((_) async {}));
+
+    testWidgets(
+      'a draft reopened on «Riepilogo» reads the prize names (D-22)',
+      (tester) async {
+        await openWizard(tester, recapReady);
+
+        verify(() => prizeOptionsCubit.loadAll([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'completion pops CompletionCompleted with the results for the Phase 10 recap (D-08)',
+      (tester) async {
+        final exits = await openWizard(tester, recapReady);
+
+        await tester.tap(find.byKey(RecapStep.completeKey));
+        await tester.pumpAndSettle();
+        await tester.tap(confirmButton());
+        await tester.pumpAndSettle();
+        verify(() => draftCubit.complete()).called(1);
+        await emitDraft(tester, MissionDraftCompleted(results: _results));
+
+        expect(exits, [CompletionCompleted(_results)]);
+      },
+    );
+
+    testWidgets('«Completa» is disabled while submitting', (tester) async {
+      await openWizard(
+        tester,
+        MissionDraftReady(draft: _draftAt('recap'), isSubmitting: true),
+      );
+
+      final complete = tester.widget<ElevatedButton>(
+        find.byKey(RecapStep.completeKey),
+      );
+      expect(complete.onPressed, isNull);
+    });
+
+    testWidgets('«Indietro» from «Riepilogo» goes back to «Premi»', (
+      tester,
+    ) async {
+      await openWizard(tester, recapReady);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+    });
   });
 }
