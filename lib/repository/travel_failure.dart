@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/character_imprisoned.dart';
+import 'package:klimmeck_guide/repository/mission_in_progress.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -35,6 +36,9 @@ enum TravelFailure {
   /// Il personaggio è in prigione (quick 261110-cgd): la fine viaggia
   /// sull'eccezione.
   imprisoned,
+
+  /// Missione in corso (BE Phase 22, D-11/D-12): il personaggio aspetta l'esito.
+  missionInProgress,
   notFound,
   forbidden,
 
@@ -81,6 +85,7 @@ TravelFailure travelFailureFrom(OperationException exception) {
     awaitingAidCode => TravelFailure.awaitingAid,
     travelStarvingCode => TravelFailure.starving,
     characterImprisonedCode => TravelFailure.imprisoned,
+    missionInProgressCode => TravelFailure.missionInProgress,
     notFoundCode => TravelFailure.notFound,
     forbiddenCode => TravelFailure.forbidden,
     badUserInputCode => TravelFailure.badUserInput,

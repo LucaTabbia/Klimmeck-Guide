@@ -1,6 +1,7 @@
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/travel/travel_cost_text.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 
 const String travelNoticeTitle = 'Viaggio non partito';
@@ -23,6 +24,7 @@ KGNotification? travelNoticeFor(
     TravelFailure.awaitingAid => 'Sei in attesa di soccorso: non puoi partire',
     TravelFailure.starving => starvingPhrase,
     TravelFailure.imprisoned => prisonReleaseLine(imprisonedFor),
+    TravelFailure.missionInProgress => missionInProgressRefusalLine,
     TravelFailure.notFound => 'Questa meta non è più raggiungibile',
     TravelFailure.forbidden => 'Questo personaggio non può partire',
     TravelFailure.connection => 'Connessione assente, riprova',
