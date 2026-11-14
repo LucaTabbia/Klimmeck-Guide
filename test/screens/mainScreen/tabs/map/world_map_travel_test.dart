@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_paper_asset.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
+import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
@@ -230,7 +231,10 @@ TravelConfirming confirmingAlong(List<List<double>> coordinates) =>
 
 /// Cubit della shell e stream condivisi dai test della mappa reale.
 void setUpWorldMapHarness() {
-  setUpAll(() => registerFallbackValue(cityA));
+  setUpAll(() {
+    registerFallbackValue(cityA);
+    registerFallbackValue(TeleportDestination.ofCity(cityA)!);
+  });
 
   setUp(() {
     characterCubit = MockCharacterCubit();

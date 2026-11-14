@@ -14,6 +14,7 @@ import '../../../../models/quest/board_policy.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../models/quest/quest_state_label.dart';
 import '../../../../models/travel/active_travel.dart';
+import '../../../../models/travel/teleport_destination.dart';
 import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
@@ -516,11 +517,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _showTravelConfirmation(travelCubit, destination);
   }
 
-  /// C16: il cubit ignora la città in cui il personaggio si trova già.
+  /// C16: il cubit ignora il luogo in cui il gruppo si trova già.
   void _handleTeleportDragEnd(LatLng? _, City? targetCity) {
     _endPawnDrag();
-    if (targetCity == null) return;
-    context.read<TeleportModeCubit>().teleportTo(targetCity);
+    final destination = TeleportDestination.ofCity(targetCity);
+    if (destination == null) return;
+    context.read<TeleportModeCubit>().teleportTo(destination);
   }
 
   /// D-03/D-04: foglio di pergamena con la rotta visibile dietro (barriera

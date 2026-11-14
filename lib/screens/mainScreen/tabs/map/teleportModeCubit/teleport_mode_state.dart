@@ -40,11 +40,21 @@ final class TeleportPreparationFailed extends TeleportModeState {
 final class TeleportActive extends TeleportModeState {
   const TeleportActive({
     required this.target,
+    this.places = const [],
+    this.resumeCardKey,
     this.isTeleporting = false,
     this.failure,
   });
 
   final TeleportTarget target;
+
+  /// Luoghi interni dove la pedina può atterrare oltre alle città (D-01,
+  /// D-29): vuoti se la lettura dei luoghi è fallita.
+  final List<TeleportDestination> places;
+
+  /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
+  /// `null` per il «Teletrasporta» della carta.
+  final String? resumeCardKey;
   final bool isTeleporting;
   final InnkeeperFailure? failure;
 
@@ -53,30 +63,46 @@ final class TeleportActive extends TeleportModeState {
     InnkeeperFailure? Function()? failure,
   }) => TeleportActive(
     target: target,
+    places: places,
+    resumeCardKey: resumeCardKey,
     isTeleporting: isTeleporting ?? this.isTeleporting,
     failure: failure != null ? failure() : this.failure,
   );
 
   @override
-  List<Object?> get props => [target, isTeleporting, failure];
+  List<Object?> get props => [
+    target,
+    places,
+    resumeCardKey,
+    isTeleporting,
+    failure,
+  ];
 }
 
 /// Teletrasporto riuscito: il MainScreen riapre il pannello e chiama
 /// `acknowledgeExit` (D-17).
 final class TeleportSucceeded extends TeleportModeState {
-  const TeleportSucceeded({required this.target});
+  const TeleportSucceeded({required this.target, this.resumeCardKey});
 
   final TeleportTarget target;
 
+  /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
+  /// `null` per il «Teletrasporta» della carta.
+  final String? resumeCardKey;
+
   @override
-  List<Object?> get props => [target];
+  List<Object?> get props => [target, resumeCardKey];
 }
 
 /// «Annulla» dalla Mappa (UAT 2026-11-01): come il successo, il MainScreen
 /// riapre il pannello e chiama `acknowledgeExit`.
 final class TeleportCancelled extends TeleportModeState {
-  const TeleportCancelled();
+  const TeleportCancelled({this.resumeCardKey});
+
+  /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
+  /// `null` per il «Teletrasporta» della carta.
+  final String? resumeCardKey;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [resumeCardKey];
 }
