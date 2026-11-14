@@ -19,6 +19,7 @@ import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/fixtures/mission_fixtures.dart';
@@ -307,6 +308,30 @@ void main() {
     expect(sentPrize().items, isEmpty);
     expect(sentPrize().petId, isNull);
     expect(sentPrize().spellId, isNull);
+  });
+
+  testWidgets('a long press on a prize companion opens its details (D-35)', (
+    tester,
+  ) async {
+    seedSvgCache([CloudinaryAssets.emptySheet]);
+    await pumpStep(tester, _draftWith([missionPrizeJson(pet: _horse)]));
+    final row = find.byType(CompanionRow);
+    await reveal(tester, row);
+
+    await tester.longPress(row);
+    await tester.pumpAndSettle();
+    expect(find.byType(CompanionInfoSheet), findsOneWidget);
+
+    await tester.tapAt(const Offset(20, 300));
+    await tester.pumpAndSettle();
+    expect(find.byType(CompanionInfoSheet), findsNothing);
+    final remove = find.byTooltip(PrizesStep.removeTooltip);
+    await reveal(tester, remove);
+    await tester.tap(remove);
+    await tester.pump();
+    await tapNext(tester);
+
+    expect(sentPrize().petId, isNull);
   });
 
   group('cure of the block (D-22)', () {
