@@ -111,7 +111,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       listeners: [
         BlocListener<PendingRequestsCubit, PendingRequestsState>(
           listenWhen: (_, current) => _isRequestGone(current),
-          listener: (_, _) => _leave(const CompletionGone()),
+          listener: (context, _) => _leaveGoneUnlessCalling(context),
+        ),
+        // il completamento toglie la richiesta dalla coda prima che arrivi la
+        // sua risposta: a chiamata finita si ricontrolla (UAT 2026-11-14)
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: (previous, current) =>
+              _isCallInFlight(previous) && !_isCallInFlight(current),
+          listener: (context, _) => _leaveGoneUnlessCalling(context),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
           listenWhen: (previous, current) =>
@@ -140,6 +147,18 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         ),
       ),
     );
+  }
+
+  /// Una chiamata in corso decide lei l'uscita: i risultati del completamento,
+  /// o `NOT_FOUND` se la richiesta è sparita davvero.
+  void _leaveGoneUnlessCalling(BuildContext context) {
+    final draft = context.read<MissionDraftCubit>().state;
+    if (_isCallInFlight(draft)) return;
+    if (draft is MissionDraftCompleted || draft is MissionDraftDiscarded) {
+      return;
+    }
+    if (!_isRequestGone(context.read<PendingRequestsCubit>().state)) return;
+    _leave(const CompletionGone());
   }
 
   /// Pitfall 5: conta la coda grezza, non le carte azionabili.
