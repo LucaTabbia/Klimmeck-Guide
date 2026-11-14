@@ -81,9 +81,9 @@ created: 2026-11-14
 | 22-14-01 | 14 | 14 | PET-07 | T-22-44, T-22-45, T-22-46 | ambush toggle keeps its storage key | unit + widget | `flutter test test/models test/repository/storage test/repository/services/push test/screens/mainScreen/tabs/settings test/screens/mainScreen/components` | ✅ extend | ✅ green |
 | 22-14-02 | 14 | 14 | PET-07 | T-22-47 | no double notice | widget | `flutter test test/screens/mainScreen` | ✅ extend | ✅ green |
 | 22-14-03 | 14 | 14 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 14 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-15-01 | 15 | 15 | PET-08 | T-22-49 | companionLifeAfter sent only when set | unit | `flutter test test/models test/screens/innkeeper` | ✅ extend | ⬜ pending |
-| 22-15-02 | 15 | 15 | PET-08 | T-22-48, T-22-50 | slider within served bounds | widget | `flutter test test/screens/innkeeper` | ✅ extend | ⬜ pending |
-| 22-15-03 | 15 | 15 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 15 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-15-01 | 15 | 15 | PET-08 | T-22-49 | companionLifeAfter sent only when set | unit | `flutter test test/models test/screens/innkeeper` | ✅ extend | ✅ green |
+| 22-15-02 | 15 | 15 | PET-08 | T-22-48, T-22-50 | slider within served bounds | widget | `flutter test test/screens/innkeeper` | ✅ extend | ✅ green |
+| 22-15-03 | 15 | 15 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 15 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-16-01 | 16 | 16 | PET-09, PET-10 | T-22-51, T-22-52, T-22-53, T-22-55 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 22-16 + flutter test test/graphql` | ✅ | ⬜ pending |
 | 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ⬜ pending |
 | 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -112,7 +112,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/repository/pet_rename_failure_test.dart`, `test/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit_test.dart`, `companion_name_notice_test.dart`; `MockCompanionNameCubit` — 22-11-02
 - [x] `test/shared/components/popup/companion_name_sheet_test.dart` — 22-12-01
 - [x] `test/models/quest_result/quest_companion_outcome_test.dart`; `companionOutcomeJson` and the optional `companion` / `onFoot` fixture keys — 22-13-01
-- [ ] `missionCompanionJson` and the optional `companion` / `companionLifeAfter` fixture keys — 22-15-01
+- [x] `missionCompanionJson` and the optional `companion` / `companionLifeAfter` fixture keys — 22-15-01
 - No framework install, no golden test (none exist).
 
 ---
