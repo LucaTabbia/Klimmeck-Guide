@@ -31,6 +31,13 @@ void main() {
       });
     });
 
+    test('MISSION_IN_PROGRESS maps to missionInProgress (D-11)', () {
+      expect(
+        petEquipFailureFrom(_withCode('MISSION_IN_PROGRESS')),
+        PetEquipFailure.missionInProgress,
+      );
+    });
+
     test('maps a link error without code to connection', () {
       final exception = OperationException(
         linkException: ServerException(

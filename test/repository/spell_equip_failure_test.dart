@@ -29,6 +29,13 @@ void main() {
       });
     });
 
+    test('MISSION_IN_PROGRESS maps to missionInProgress (D-11)', () {
+      expect(
+        spellEquipFailureFrom(_withCode('MISSION_IN_PROGRESS')),
+        SpellEquipFailure.missionInProgress,
+      );
+    });
+
     test('maps a link error without code to connection', () {
       final exception = OperationException(
         linkException: ServerException(
