@@ -170,6 +170,7 @@ class PotionSheet extends StatelessWidget {
       child: Semantics(
         label: label,
         button: true,
+        enabled: !isDrinking,
         child: GestureDetector(
           key: targetKeyOf(target.petId),
           behavior: HitTestBehavior.opaque,
