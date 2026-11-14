@@ -69,7 +69,7 @@ void main() {
   SwitchListTile tile(WidgetTester tester, String storageKey) =>
       tester.widget<SwitchListTile>(tileOf(storageKey));
 
-  testWidgets('shows title and five labelled switches in order (D-02)', (
+  testWidgets('shows title and the labelled switches in order (D-02, D-11)', (
     tester,
   ) async {
     await pumpSection(tester, NotificationPreferencesState(isLoaded: true));
@@ -82,13 +82,19 @@ void main() {
     final ambush = tester.getTopLeft(find.text('Imboscate')).dy;
     final prison = tester.getTopLeft(find.text('Uscita di prigione')).dy;
     final mission = tester.getTopLeft(find.text('Inizio missione')).dy;
+    final recovered = tester.getTopLeft(find.text('Compagno in forze')).dy;
+    expect(
+      find.byType(SwitchListTile),
+      findsNWidgets(NotificationCategory.values.length),
+    );
     expect(
       travel < live &&
           live < quest &&
           quest < cancelled &&
           cancelled < ambush &&
           ambush < prison &&
-          prison < mission,
+          prison < mission &&
+          mission < recovered,
       isTrue,
     );
     for (final key in [
@@ -99,6 +105,7 @@ void main() {
       'ambush_defeat',
       'prison_release',
       'mission_start',
+      'pet_recovered',
     ]) {
       expect(tile(tester, key).value, isTrue);
     }
@@ -112,7 +119,7 @@ void main() {
           NotificationCategory.travelEnd: true,
           NotificationCategory.streamerLive: false,
           NotificationCategory.questEnd: true,
-          NotificationCategory.ambushDefeat: true,
+          NotificationCategory.ambush: true,
         },
         isLoaded: true,
       ),

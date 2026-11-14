@@ -2,15 +2,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 
 void main() {
-  test('exposes the categories in display order (D-02)', () {
+  test('exposes the categories in display order (D-02, D-11)', () {
     expect(NotificationCategory.values, [
       NotificationCategory.travelEnd,
       NotificationCategory.streamerLive,
       NotificationCategory.questEnd,
       NotificationCategory.questCancelled,
-      NotificationCategory.ambushDefeat,
+      NotificationCategory.ambush,
       NotificationCategory.prisonRelease,
       NotificationCategory.missionStart,
+      NotificationCategory.petRecovered,
     ]);
   });
 
@@ -21,11 +22,16 @@ void main() {
       expect(NotificationCategory.streamerLive.storageKey, 'streamer_live');
       expect(NotificationCategory.questEnd.storageKey, 'quest_end');
       expect(NotificationCategory.questCancelled.storageKey, 'quest_cancelled');
-      expect(NotificationCategory.ambushDefeat.storageKey, 'ambush_defeat');
+      expect(NotificationCategory.ambush.storageKey, 'ambush_defeat');
       expect(NotificationCategory.prisonRelease.storageKey, 'prison_release');
       expect(NotificationCategory.missionStart.storageKey, 'mission_start');
+      expect(NotificationCategory.petRecovered.storageKey, 'pet_recovered');
     },
   );
+
+  test('ambush keeps the storage key of the old toggle (D-30)', () {
+    expect(NotificationCategory.ambush.storageKey, 'ambush_defeat');
+  });
 
   group('wireType', () {
     test('pins the backend push types so renaming a value cannot break '
@@ -34,9 +40,10 @@ void main() {
       expect(NotificationCategory.streamerLive.wireType, 'streamerLive');
       expect(NotificationCategory.questEnd.wireType, 'questEnd');
       expect(NotificationCategory.questCancelled.wireType, 'questCancelled');
-      expect(NotificationCategory.ambushDefeat.wireType, 'ambushDefeat');
+      expect(NotificationCategory.ambush.wireType, 'ambush');
       expect(NotificationCategory.prisonRelease.wireType, 'prisonRelease');
       expect(NotificationCategory.missionStart.wireType, 'missionStart');
+      expect(NotificationCategory.petRecovered.wireType, 'petRecovered');
     });
   });
 
@@ -59,8 +66,8 @@ void main() {
         NotificationCategory.questCancelled,
       );
       expect(
-        NotificationCategory.fromWireType('ambushDefeat'),
-        NotificationCategory.ambushDefeat,
+        NotificationCategory.fromWireType('ambush'),
+        NotificationCategory.ambush,
       );
       expect(
         NotificationCategory.fromWireType('prisonRelease'),
@@ -69,6 +76,22 @@ void main() {
       expect(
         NotificationCategory.fromWireType('missionStart'),
         NotificationCategory.missionStart,
+      );
+      expect(
+        NotificationCategory.fromWireType('petRecovered'),
+        NotificationCategory.petRecovered,
+      );
+    });
+
+    test('both ambush and ambushDefeat map to the ambush category '
+        '(D-14, D-30)', () {
+      expect(
+        NotificationCategory.fromWireType('ambush'),
+        NotificationCategory.ambush,
+      );
+      expect(
+        NotificationCategory.fromWireType('ambushDefeat'),
+        NotificationCategory.ambush,
       );
     });
 
@@ -93,8 +116,19 @@ void main() {
       expect(NotificationCategory.questCancelled.isPersonal, isTrue);
     });
 
-    test('an ambush defeat is a personal event (D-02)', () {
-      expect(NotificationCategory.ambushDefeat.isPersonal, isTrue);
+    test('an ambush is a personal event (D-02, D-14)', () {
+      expect(NotificationCategory.ambush.isPersonal, isTrue);
+    });
+
+    test('petRecovered is a personal category with its own storage key '
+        '(D-11)', () {
+      expect(NotificationCategory.petRecovered.isPersonal, isTrue);
+      expect(NotificationCategory.petRecovered.storageKey, 'pet_recovered');
+      final storageKeys = NotificationCategory.values.map((c) => c.storageKey);
+      expect(
+        storageKeys.toSet(),
+        hasLength(NotificationCategory.values.length),
+      );
     });
 
     test('is false for the streamer live broadcast', () {

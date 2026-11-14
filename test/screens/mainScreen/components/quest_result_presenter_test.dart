@@ -620,7 +620,7 @@ void main() {
         NotificationPreferencesState(
           enabled: {
             for (final category in NotificationCategory.values)
-              category: category != NotificationCategory.ambushDefeat,
+              category: category != NotificationCategory.ambush,
           },
           isLoaded: true,
         ),

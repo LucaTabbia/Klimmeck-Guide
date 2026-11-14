@@ -180,8 +180,8 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
   });
 
-  testWidgets('an ambushDefeat tap only latches the camera focus on the pawn '
-      '(D-02)', (tester) async {
+  testWidgets('an ambush tap only latches the camera focus on the pawn '
+      '(D-02, D-30)', (tester) async {
     await startSession(tester);
     final mapFocus = MapFocusCubit();
     addTearDown(mapFocus.close);
@@ -195,7 +195,7 @@ void main() {
 
     cubit.offer(
       NotificationIntent(
-        category: NotificationCategory.ambushDefeat,
+        category: NotificationCategory.ambush,
         id: 'c-1',
         sentAt: DateTime.utc(2026, 10, 18, 12, 10),
       ),
@@ -235,12 +235,41 @@ void main() {
     verify(() => questResults.requestFromTap('result-7')).called(1);
   });
 
-  test('registers the travelEnd, questEnd, ambushDefeat, prisonRelease and '
-      'missionStart popups', () {
+  testWidgets('a petRecovered tap lands on the map with no popup (D-11)', (
+    tester,
+  ) async {
+    await startSession(tester);
+    final mapFocus = MapFocusCubit();
+    addTearDown(mapFocus.close);
+    final controller = await pumpLanding(
+      tester,
+      popups: defaultNotificationPopups,
+      mapFocus: mapFocus,
+    );
+    controller.jumpToPage(3);
+    await tester.pump();
+
+    cubit.offer(
+      NotificationIntent(
+        category: NotificationCategory.petRecovered,
+        id: 'c-1',
+        sentAt: DateTime.utc(2026, 11, 14, 12),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('page 0'), findsOneWidget);
+    expect(cubit.state.pending, isNull);
+    expect(mapFocus.state.isCharacterFocusPending, isFalse);
+    expect(find.byType(BottomSheet), findsNothing);
+  });
+
+  test('registers the travelEnd, questEnd, ambush, prisonRelease and '
+      'missionStart popups (D-30, D-11)', () {
     expect(defaultNotificationPopups.keys.toSet(), {
       NotificationCategory.travelEnd,
       NotificationCategory.questEnd,
-      NotificationCategory.ambushDefeat,
+      NotificationCategory.ambush,
       NotificationCategory.prisonRelease,
       NotificationCategory.missionStart,
     });

@@ -36,6 +36,22 @@ void main() {
     'id': '6712a0c4e1b2c3d4e5f60718',
   };
 
+  const ambushData = <String, Object?>{
+    'type': 'ambush',
+    'title': 'Imboscata!',
+    'body': 'Hai respinto i briganti: la via prosegue verso Bosa',
+    'sentAt': '2026-10-18T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60720',
+  };
+
+  const petRecoveredData = <String, Object?>{
+    'type': 'petRecovered',
+    'title': 'Compagno in forze',
+    'body': 'Fenrir è di nuovo in forze',
+    'sentAt': '2026-11-14T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60718',
+  };
+
   const prisonReleaseData = <String, Object?>{
     'type': 'prisonRelease',
     'title': 'Di nuovo libero',
@@ -82,8 +98,10 @@ void main() {
       questEndData,
       streamerLiveData,
       ambushDefeatData,
+      ambushData,
       prisonReleaseData,
       missionStartData,
+      petRecoveredData,
     ]) {
       test('shows one notification for ${data['type']} by default', () async {
         await handle(data);
@@ -203,13 +221,30 @@ void main() {
     });
 
     test('drops an ambush defeat when its toggle is off (D-10)', () async {
-      disable('u-1', NotificationCategory.ambushDefeat);
+      disable('u-1', NotificationCategory.ambush);
 
       expect(await accept(ambushDefeatData, userId: 'u-1'), isNull);
     });
 
+    test('the one ambush toggle drops both the legacy and the current '
+        'ambush push (D-14, D-30)', () async {
+      disable('u-1', NotificationCategory.ambush);
+
+      expect(
+        PushEvent.tryParse(ambushDefeatData)?.category,
+        NotificationCategory.ambush,
+      );
+      expect(await accept(ambushData, userId: 'u-1'), isNull);
+    });
+
+    test('drops a pet recovered push when its toggle is off (D-11)', () async {
+      disable('u-1', NotificationCategory.petRecovered);
+
+      expect(await accept(petRecoveredData, userId: 'u-1'), isNull);
+    });
+
     test('the ambush toggle off keeps the other categories (D-10)', () async {
-      disable('u-1', NotificationCategory.ambushDefeat);
+      disable('u-1', NotificationCategory.ambush);
 
       expect(
         await accept(travelEndData, userId: 'u-1'),
