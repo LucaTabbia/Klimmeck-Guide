@@ -43,6 +43,20 @@ void main() {
       expect(TeleportDestination.ofPlace(poiOf(latitude: null)), isNull);
     });
 
+    test(
+      'a place with no known type is not a destination, so no dot (D-29)',
+      () {
+        expect(TeleportDestination.ofPlace(poiOf(types: ['cave'])), isNull);
+        expect(TeleportDestination.ofPlace(poiOf(types: ['all'])), isNull);
+        expect(
+          innerPlacesOf([
+            poiOf(id: 'poi-cave', types: ['cave']),
+          ]),
+          isEmpty,
+        );
+      },
+    );
+
     test('ofPlace names the inner place and keeps its point (D-01, D-29)', () {
       expect(
         TeleportDestination.ofPlace(poiOf()),

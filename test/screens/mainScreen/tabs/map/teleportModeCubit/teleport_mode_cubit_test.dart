@@ -59,7 +59,7 @@ void main() {
     companionIds: const [cosimoId],
   )!;
   final ruins = placeOf(id: 'poi-ruins-1');
-  final cave = placeOf(id: 'poi-cave-1', types: const ['cave']);
+  final cave = placeOf(id: 'poi-forest-1', types: const ['forest']);
   final toRuins = TeleportDestination.ofPlace(ruins)!;
 
   setUp(() {
