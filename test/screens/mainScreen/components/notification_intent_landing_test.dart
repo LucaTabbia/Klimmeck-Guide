@@ -235,14 +235,19 @@ void main() {
     verify(() => questResults.requestFromTap('result-7')).called(1);
   });
 
-  test('registers the travelEnd, questEnd, ambushDefeat and prisonRelease '
-      'popups', () {
+  test('registers the travelEnd, questEnd, ambushDefeat, prisonRelease and '
+      'missionStart popups', () {
     expect(defaultNotificationPopups.keys.toSet(), {
       NotificationCategory.travelEnd,
       NotificationCategory.questEnd,
       NotificationCategory.ambushDefeat,
       NotificationCategory.prisonRelease,
+      NotificationCategory.missionStart,
     });
+    expect(
+      defaultNotificationPopups[NotificationCategory.missionStart],
+      focusCharacterOnMap,
+    );
     expect(
       defaultNotificationPopups[NotificationCategory.prisonRelease],
       focusCharacterOnMap,

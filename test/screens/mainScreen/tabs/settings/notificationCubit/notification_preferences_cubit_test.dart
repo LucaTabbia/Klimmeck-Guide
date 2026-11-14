@@ -15,6 +15,7 @@ NotificationPreferencesState loaded({
   bool questCancelled = true,
   bool ambushDefeat = true,
   bool prisonRelease = true,
+  bool missionStart = true,
 }) => NotificationPreferencesState(
   enabled: {
     NotificationCategory.travelEnd: travelEnd,
@@ -23,6 +24,7 @@ NotificationPreferencesState loaded({
     NotificationCategory.questCancelled: questCancelled,
     NotificationCategory.ambushDefeat: ambushDefeat,
     NotificationCategory.prisonRelease: prisonRelease,
+    NotificationCategory.missionStart: missionStart,
   },
   isLoaded: true,
 );

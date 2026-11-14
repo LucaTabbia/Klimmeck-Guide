@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 
 void main() {
-  test('exposes the five categories in display order (D-02)', () {
+  test('exposes the categories in display order (D-02)', () {
     expect(NotificationCategory.values, [
       NotificationCategory.travelEnd,
       NotificationCategory.streamerLive,
@@ -10,6 +10,7 @@ void main() {
       NotificationCategory.questCancelled,
       NotificationCategory.ambushDefeat,
       NotificationCategory.prisonRelease,
+      NotificationCategory.missionStart,
     ]);
   });
 
@@ -22,6 +23,7 @@ void main() {
       expect(NotificationCategory.questCancelled.storageKey, 'quest_cancelled');
       expect(NotificationCategory.ambushDefeat.storageKey, 'ambush_defeat');
       expect(NotificationCategory.prisonRelease.storageKey, 'prison_release');
+      expect(NotificationCategory.missionStart.storageKey, 'mission_start');
     },
   );
 
@@ -34,6 +36,7 @@ void main() {
       expect(NotificationCategory.questCancelled.wireType, 'questCancelled');
       expect(NotificationCategory.ambushDefeat.wireType, 'ambushDefeat');
       expect(NotificationCategory.prisonRelease.wireType, 'prisonRelease');
+      expect(NotificationCategory.missionStart.wireType, 'missionStart');
     });
   });
 
@@ -62,6 +65,10 @@ void main() {
       expect(
         NotificationCategory.fromWireType('prisonRelease'),
         NotificationCategory.prisonRelease,
+      );
+      expect(
+        NotificationCategory.fromWireType('missionStart'),
+        NotificationCategory.missionStart,
       );
     });
 

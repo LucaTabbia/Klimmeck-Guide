@@ -81,12 +81,14 @@ void main() {
     final cancelled = tester.getTopLeft(find.text('Missione annullata')).dy;
     final ambush = tester.getTopLeft(find.text('Imboscate')).dy;
     final prison = tester.getTopLeft(find.text('Uscita di prigione')).dy;
+    final mission = tester.getTopLeft(find.text('Inizio missione')).dy;
     expect(
       travel < live &&
           live < quest &&
           quest < cancelled &&
           cancelled < ambush &&
-          ambush < prison,
+          ambush < prison &&
+          prison < mission,
       isTrue,
     );
     for (final key in [
@@ -96,6 +98,7 @@ void main() {
       'quest_cancelled',
       'ambush_defeat',
       'prison_release',
+      'mission_start',
     ]) {
       expect(tile(tester, key).value, isTrue);
     }
