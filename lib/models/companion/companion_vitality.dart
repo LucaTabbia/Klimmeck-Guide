@@ -71,7 +71,8 @@ CompanionVitality companionVitalityOf(
   final life = _interpolatedLife(
     from: owned.currentLifePoints,
     to: max,
-    share: _elapsedShare(lifeAsOf, fullLifeAt, now),
+    spanMs: fullLifeAt.difference(lifeAsOf).inMilliseconds,
+    elapsedMs: now.difference(lifeAsOf).inMilliseconds,
   );
   final remaining = fullLifeAt.difference(now);
   if (owned.isDefeated) {
@@ -97,18 +98,16 @@ Duration? companionPotionWaitOf(OwnedPet owned, DateTime now) {
   return until.difference(now);
 }
 
-double _elapsedShare(DateTime lifeAsOf, DateTime fullLifeAt, DateTime now) {
-  final spanMs = fullLifeAt.difference(lifeAsOf).inMilliseconds;
-  if (spanMs <= 0) return 1.0;
-  final elapsedMs = now.difference(lifeAsOf).inMilliseconds;
-  return (elapsedMs / spanMs).clamp(0.0, 1.0);
-}
-
+/// Solo interi, come `Math.round` del BE: mezzo punto arrotonda in su,
+/// senza l'errore di una frazione in virgola mobile.
 int _interpolatedLife({
   required int from,
   required int to,
-  required double share,
+  required int spanMs,
+  required int elapsedMs,
 }) {
-  final risen = from + ((to - from) * share).round();
+  if (spanMs <= 0) return math.max(from, to - 1);
+  final elapsed = elapsedMs.clamp(0, spanMs);
+  final risen = from + ((to - from) * elapsed * 2 + spanMs) ~/ (2 * spanMs);
   return math.max(from, math.min(risen, to - 1));
 }
