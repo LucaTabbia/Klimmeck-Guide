@@ -2,8 +2,8 @@
 phase: 21
 slug: innkeeper-mission-completion-flow
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-14
 ---
 
@@ -105,9 +105,9 @@ created: 2026-11-14
 | 21-16-01 | 16 | 16 | GMFLOW-07, GMFLOW-08 | T-21-55, T-21-56, T-21-57 | gate before any selection; deviation stops | gate + document pin | schema gate block + `flutter test test/graphql/character_fragment_test.dart test/graphql/pending_request_documents_test.dart` | ✅ extend | ✅ green |
 | 21-16-02 | 16 | 16 | GMFLOW-02, GMFLOW-06 | T-21-66 | «Completa» and the resume open the wizard, innkeeper-only path | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components` | ✅ retarget | ✅ green |
 | 21-16-03 | 16 | 16 | GMFLOW-08 | — | targeted regression + bookkeeping | docs | `flutter test test/graphql test/models test/repository test/screens/innkeeper test/screens/mainScreen test/tool` | — | ✅ green |
-| 21-17-01 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-68 | registry 54 and document gone pinned RED (anchored `length, 54)`) | document pin | `flutter test test/tool test/graphql` (RED) | ✅ retarget | ⬜ pending |
-| 21-17-02 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-59, T-21-67 | old override path deleted in groups ≤ 8 files; 54 × OK | widget + gate | `flutter test test/screens/innkeeper test/graphql test/tool test/repository test/models` + schema check | ✅ retarget | ⬜ pending |
-| 21-17-03 | 17 | 17 | GMFLOW-08 | T-21-58 | full suite, hardening_check, no payload logs; VALIDATION closed | gate | full suite (alone, ≥300 s) + `bash tool/hardening_check.sh` | ✅ | ⬜ pending |
+| 21-17-01 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-68 | registry 54 and document gone pinned RED (anchored `length, 54)`) | document pin | `flutter test test/tool test/graphql` (RED) | ✅ retarget | ✅ green |
+| 21-17-02 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-59, T-21-67 | old override path deleted in groups ≤ 8 files; 54 × OK | widget + gate | `flutter test test/screens/innkeeper test/graphql test/tool test/repository test/models` + schema check | ✅ retarget | ✅ green |
+| 21-17-03 | 17 | 17 | GMFLOW-08 | T-21-58 | full suite, hardening_check, no payload logs; VALIDATION closed | gate | full suite (alone, ≥300 s) + `bash tool/hardening_check.sh` | ✅ | ✅ green |
 | 21-18-01 | 18 | 18 | GMFLOW-08 | T-21-60, T-21-62 | NAMES only in the UAT and BE notes | docs | gate re-check + `grep -cE "^\| [0-9]+ \|" 21-HUMAN-UAT.md` = 12 | ❌ created here | ⬜ pending |
 | 21-18-02 | 18 | 18 | GMFLOW-01..08 | T-21-63 | second bearer probes expect MISSION_IN_PROGRESS | manual | `21-HUMAN-UAT.md` (human checkpoint) | — | ⬜ pending |
 | 21-18-03 | 18 | 18 | GMFLOW-01..08 | T-21-61 | mark-complete only for passed requirements | docs | `grep -q "Plan: 18 of 18" .planning/STATE.md` | — | ⬜ pending |
@@ -152,11 +152,13 @@ Not observable on the device (tests only): every classifier row, lenient parsing
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120 s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120 s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+Gate passed on BE `f82ab278`: 54/54 OK, full suite 4678 green, analyzer `47 issues found. (ran in 5.9s)` (47 info / 0 warning / 0 error).
+
+**Approval:** automated gate passed 2026-11-14 (21-17); device E2E pending (21-18)
