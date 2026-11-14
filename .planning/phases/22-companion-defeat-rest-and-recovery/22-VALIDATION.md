@@ -63,9 +63,9 @@ created: 2026-11-14
 | 22-08-01 | 08 | 8 | PET-03 | T-22-24 | prize pet selection live-safe | document pin + widget | `flutter test test/graphql test/models/quest test/shared/components/popup test/screens/mainScreen/tabs/board` | ✅ extend | ✅ green |
 | 22-08-02 | 08 | 8 | PET-03 | T-22-25 | prize rows unchanged by long press | widget | `flutter test test/screens/innkeeper` | ✅ extend | ✅ green |
 | 22-08-03 | 08 | 8 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 08 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-09-01 | 09 | 9 | PET-04 | T-22-29 | every new code has a banner | unit | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/mainScreen/components` | ✅ extend | ⬜ pending |
-| 22-09-02 | 09 | 9 | PET-04 | T-22-26, T-22-27, T-22-28 | UseItem document unchanged; single-flight | unit + bloc | `flutter test test/repository test/graphql test/screens/mainScreen` | ✅ extend | ⬜ pending |
-| 22-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 09 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-09-01 | 09 | 9 | PET-04 | T-22-29 | every new code has a banner | unit | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/mainScreen/components` | ✅ extend | ✅ green |
+| 22-09-02 | 09 | 9 | PET-04 | T-22-26, T-22-27, T-22-28 | UseItem document unchanged; single-flight | unit + bloc | `flutter test test/repository test/graphql test/screens/mainScreen` | ✅ extend | ✅ green |
+| 22-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 09 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-10-01 | 10 | 10 | PET-04, PET-10 | T-22-30, T-22-31 | no target with the switch off | unit + widget | `flutter test test/models/companion test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
 | 22-10-02 | 10 | 10 | PET-04 | T-22-32 | targets disabled in flight | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ extend | ⬜ pending |
 | 22-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 10 of 17" .planning/STATE.md` | — | ⬜ pending |
