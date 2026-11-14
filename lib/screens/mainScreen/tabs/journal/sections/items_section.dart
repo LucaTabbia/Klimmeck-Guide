@@ -17,6 +17,7 @@ import 'package:klimmeck_guide/shared/components/items_filter.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
@@ -152,8 +153,9 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     );
   }
 
-  /// Tre fatti dai modelli, nulla di calcolato: pozione (effetto + ricarica),
-  /// attesa di soccorso, countdown della ricarica (D-11, D-12).
+  /// Quattro fatti dai modelli, nulla di calcolato: pozione (effetto +
+  /// ricarica), attesa di soccorso, missione in corso (Phase 21 D-12),
+  /// countdown della ricarica (D-11, D-12).
   Widget _row(
     BuildContext context, {
     required Character character,
@@ -165,6 +167,14 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     final isAwaitingAid = character.status?.awaitingAid != null;
     if (potion == null || isAwaitingAid) {
       return _itemRow(item, quantity);
+    }
+    if (character.status?.missionInProgress ?? false) {
+      return _itemRow(
+        item,
+        quantity,
+        isDisabled: true,
+        statusLine: missionInProgressLabel,
+      );
     }
     if (remaining != null) {
       return _itemRow(

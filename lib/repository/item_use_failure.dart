@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/mission_in_progress.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -22,6 +23,9 @@ enum ItemUseFailure {
   /// La pozione non cambierebbe nulla: non è consumata.
   noEffect,
   awaitingAid,
+
+  /// Missione in corso (BE Phase 22, D-12).
+  missionInProgress,
   notOwned,
   notUsable,
 
@@ -58,6 +62,7 @@ ItemUseFailure itemUseFailureFrom(OperationException exception) {
     potionRecoveringCode => ItemUseFailure.potionRecovering,
     itemNoEffectCode => ItemUseFailure.noEffect,
     awaitingAidCode => ItemUseFailure.awaitingAid,
+    missionInProgressCode => ItemUseFailure.missionInProgress,
     itemNotOwnedCode => ItemUseFailure.notOwned,
     itemNotUsableCode => ItemUseFailure.notUsable,
     badUserInputCode => ItemUseFailure.badUserInput,
