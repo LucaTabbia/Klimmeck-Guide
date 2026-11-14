@@ -542,23 +542,13 @@ class KlimmeckGraphQl {
     return response;
   }
 
-  Future<String> equipItem(EquipItemRequest request) async {
-    final result = await performMutation(
-      query: CharacterMutations.equipItem,
-      variables: {"request": request},
-    );
-    if (result.hasException) {
-      final errorMessage = getGenericErrorMessage(result.exception);
-      throw Exception(errorMessage);
-    }
-
-    final dynamic transactionResult = result.data?['equipItem'];
-    if (transactionResult == null) {
-      throw Exception("Can't equip item");
-    }
-
-    return transactionResult["response"];
-  }
+  /// Equipaggia o svuota uno slot: lancia [OperationException] o
+  /// [FormatException] (LB-1).
+  Future<bool> equipItem(EquipItemRequest request) => _successfulMutation(
+    CharacterMutations.equipItem,
+    'equipItem',
+    request.toJson(),
+  );
 
   /// Tabella età/razza dal backend. Lancia [OperationException] o [FormatException].
   Future<List<RaceTraits>> getRaceTraits() async {
