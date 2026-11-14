@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/point_of_interest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
@@ -38,11 +39,13 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// i due cataloghi globali di equipaggiamento e loot (BE D-20: deprecati,
 /// nessun consumer); la Phase 14 aggiunge `GenerateQuests`;
 /// la Phase 15 aggiunge `GetQuestTravelPreview`; la Phase 18 aggiunge
-/// `UseItem`; ogni documento futuro va
+/// `UseItem`; la Phase 21 aggiunge `ListPointsOfInterest`; ogni documento
+/// futuro va
 /// aggiunto qui (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
   'GetCity': CityQueries.getCity,
+  'ListPointsOfInterest': PointOfInterestQueries.listPointsOfInterest,
   'GetCityShop': ShopQueries.getCityShop,
   'GetTravelPreview': TravelQueries.getTravelPreview,
   'GetQuestTravelPreview': TravelQueries.getQuestTravelPreview,
