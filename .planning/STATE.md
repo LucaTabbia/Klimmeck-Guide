@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, not planned; milestone close pending
 Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`, Phase 21 merged with PR #51): context D-01..D-22 amended after the research and the user's answers (D-23..D-35), `22-REPO-RULES.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, 17 plans in sequential waves (01–15 against today's BE, 16–17 gated on the BE Phase 23 merge); BE Phase 23 planned in the same session (18 plans)
-Plan: 2 of 17
+Plan: 3 of 17
 Status: Phase 22 executing — plans 01–15 pre-gate in progress (16–17 gated on the BE Phase 23 merge)
 Last activity: 2026-11-14 -- Phase 22 planning complete
 Next step: execute Phase 22 plans 01–15 (pre-gate) while the BE Phase 23 runs; plans 16–17 (schema gate, device E2E) after the BE Phase 23 PR is merged. The recovery-time table of the 44 pets awaits the user's review (`~/Downloads/klimmeck-tempi-recupero-compagni.md`) before the DB write.

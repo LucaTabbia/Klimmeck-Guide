@@ -44,10 +44,10 @@ created: 2026-11-14
 | 22-02-01 | 02 | 2 | PET-01 | T-22-05, T-22-07 | vitality only from served dates, never recoveryTime | unit | `flutter test test/models/companion` | ✅ | ✅ green |
 | 22-02-02 | 02 | 2 | PET-05 | T-22-06, T-22-08 | character-name rules unchanged after extraction | unit | `flutter test test/utils test/screens/characterCreation` | ✅ | ✅ green |
 | 22-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 02 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-03-01 | 03 | 3 | PET-10 | T-22-04 | requirement Pending only | docs | `grep -q "^| PET-10 | Phase 22 | Pending |$" .planning/REQUIREMENTS.md` | ✅ | ⬜ pending |
-| 22-03-02 | 03 | 3 | PET-01, PET-10 | T-22-09 | only today's SDL fields selected; level and own max lenient, unselected | unit + document pin | `flutter test test/graphql test/models test/utils` | ✅ extend | ⬜ pending |
-| 22-03-03 | 03 | 3 | PET-02 | T-22-10, T-22-11 | timer only while needed, cancelled on close | bloc + widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
-| 22-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 3 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-03-01 | 03 | 3 | PET-10 | T-22-04 | requirement Pending only | docs | `grep -q "^| PET-10 | Phase 22 | Pending |$" .planning/REQUIREMENTS.md` | ✅ | ✅ green |
+| 22-03-02 | 03 | 3 | PET-01, PET-10 | T-22-09 | only today's SDL fields selected; level and own max lenient, unselected | unit + document pin | `flutter test test/graphql test/models test/utils` | ✅ extend | ✅ green |
+| 22-03-03 | 03 | 3 | PET-02 | T-22-10, T-22-11 | timer only while needed, cancelled on close | bloc + widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ | ✅ green |
+| 22-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 3 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-04-01 | 04 | 4 | PET-03 | T-22-14 | spell sheet unchanged | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
 | 22-04-02 | 04 | 4 | PET-03, PET-10 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
 | 22-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 04 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -102,8 +102,8 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/helpers/fixtures/shop_fixtures.dart` — `petJson` (+ `maxLifePoints`, `recoveryTime`, `imagePath`) and `ownedPetJson` (+ `name`, `defeated`, `lifeAsOf`, `fullLifeAt`, `potionRecoveryUntil`), keys only when non-null — 22-01-02
 - [x] `test/models/companion/companion_vitality_test.dart`, `companion_display_name_test.dart` — 22-02-01
 - [x] `test/utils/name_rules_test.dart`, `test/utils/companion_lines_test.dart` — 22-02-02
-- [ ] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-03
-- [ ] `ownedPetJson` gains `level` / `maxLifePoints` (keys only when non-null) — 22-03-02
+- [x] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-03
+- [x] `ownedPetJson` gains `level` / `maxLifePoints` (keys only when non-null) — 22-03-02
 - [ ] `test/shared/components/popup/details_sheet_frame_test.dart` — 22-04-01
 - [ ] `test/config/companion_care_test.dart`, `test/shared/components/popup/companion_info_sheet_test.dart` — 22-05-01; `companion_details_route_test.dart` — 22-05-02
 - [ ] `test/screens/mainScreen/tabs/journal/components/owned_companion_row_test.dart` — 22-06-01; `test/screens/mainScreen/tabs/journal/journal_companion_details_test.dart` — 22-06-02
