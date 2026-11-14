@@ -32,6 +32,7 @@ import 'components/teleport_mode_chip.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'components/unknown_city_modal.dart';
 import 'cubit/world_map_cubit.dart';
+import 'layers/pawn_pointer_layer.dart';
 import 'layers/character_marker_layer.dart';
 import 'layers/city_markers_layer.dart';
 import 'layers/quest_info_overlay.dart';
@@ -291,6 +292,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         onDragEnd: _handleCharacterDragEnd,
         onCityTap: _openCityLore,
       ),
+      const PawnPointerLayer(),
       QuestPaperLayer(onOpen: _openFromPaper),
       _buildQuestOverlay(),
     ];
