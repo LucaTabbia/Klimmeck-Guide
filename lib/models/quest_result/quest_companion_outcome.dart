@@ -12,6 +12,9 @@ class QuestCompanionOutcome extends Equatable {
     this.fullLifeAt,
   });
 
+  /// Soggetto delle righe quando il nome servito manca o è vuoto.
+  static const String unnamedLabel = 'Il tuo compagno';
+
   final String name;
   final int lifeBefore;
   final int lifePoints;
@@ -21,25 +24,30 @@ class QuestCompanionOutcome extends Equatable {
   /// Istante UTC del ritorno in forze; `null` quando non servito.
   final DateTime? fullLifeAt;
 
-  /// Confine di parsing: una voce malformata vale null e l'esito resta (D-27).
+  /// Confine di parsing: senza numeri la voce vale null e l'esito resta; un
+  /// nome mancante non toglie la sconfitta né la vita (D-27).
   static QuestCompanionOutcome? tryFromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
     final name = json['name'];
     final lifeBefore = json['lifeBefore'];
     final lifePoints = json['lifePoints'];
     final maxLifePoints = json['maxLifePoints'];
-    if (name is! String || name.trim().isEmpty) return null;
     if (lifeBefore is! num || lifePoints is! num || maxLifePoints is! num) {
       return null;
     }
     return QuestCompanionOutcome(
-      name: name.trim(),
+      name: _nameOf(name),
       lifeBefore: lifeBefore.toInt(),
       lifePoints: lifePoints.toInt(),
       maxLifePoints: maxLifePoints.toInt(),
       isDefeated: json['defeated'] == true,
       fullLifeAt: _instantOf(json['fullLifeAt']),
     );
+  }
+
+  static String _nameOf(Object? name) {
+    final trimmed = name is String ? name.trim() : '';
+    return trimmed.isEmpty ? unnamedLabel : trimmed;
   }
 
   static DateTime? _instantOf(Object? value) =>

@@ -51,12 +51,16 @@ class MissionCompanion extends Equatable {
     required this.maxLifePoints,
   });
 
+  /// Etichetta dello slider quando il nome servito manca o è vuoto.
+  static const String unnamedLabel = 'Compagno';
+
   final String petId;
   final String name;
   final int lifeBefore;
   final int maxLifePoints;
 
-  /// Confine di parsing: un compagno malformato vale `null` (D-33).
+  /// Confine di parsing: senza id o numeri il compagno vale `null`; un nome
+  /// mancante non toglie lo slider (D-33).
   static MissionCompanion? tryFromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
     final petId = json['pet'];
@@ -64,11 +68,10 @@ class MissionCompanion extends Equatable {
     final lifeBefore = missionIntOf(json['lifeBefore']);
     final maxLifePoints = missionIntOf(json['maxLifePoints']);
     if (petId is! String || petId.trim().isEmpty) return null;
-    if (name is! String || name.trim().isEmpty) return null;
     if (lifeBefore == null || maxLifePoints == null) return null;
     return MissionCompanion(
       petId: petId,
-      name: name,
+      name: name is String && name.trim().isNotEmpty ? name : unnamedLabel,
       lifeBefore: lifeBefore,
       maxLifePoints: maxLifePoints,
     );

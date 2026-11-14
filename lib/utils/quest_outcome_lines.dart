@@ -40,7 +40,7 @@ String? guardEncounterLine(QuestResult result) {
 String? companionXpGainedLine(int petXpGained, {String? name}) {
   if (petXpGained <= 0) return null;
   final subject = name == null || name.trim().isEmpty
-      ? 'Il tuo compagno'
+      ? QuestCompanionOutcome.unnamedLabel
       : name.trim();
   return '$subject guadagna $petXpGained PE';
 }

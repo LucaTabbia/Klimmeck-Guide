@@ -722,7 +722,7 @@ void main() {
 
     test('a malformed companion keeps the result (D-27)', () {
       for (final malformed in <Object?>[
-        companionOutcomeJson()..remove('name'),
+        companionOutcomeJson()..remove('lifeBefore'),
         companionOutcomeJson()..['lifePoints'] = '5',
         'Fenrir',
       ]) {
