@@ -132,7 +132,8 @@ class _CompanionNameSheetState extends State<CompanionNameSheet> {
 
   Widget _content(BuildContext context, CompanionNameState state) {
     final isSubmitting = state is CompanionNameSubmitting;
-    final canConfirm = !isSubmitting && nameErrorOf(_controller.text) == null;
+    final canConfirm =
+        !isSubmitting && nameErrorOf(_controller.text) == null && !_isUnchanged;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -205,6 +206,10 @@ class _CompanionNameSheetState extends State<CompanionNameSheet> {
       context.read<CompanionNameCubit>().reset();
     }
   }
+
+  /// Lo stesso nome di adesso non manda una richiesta inutile (D-19).
+  bool get _isUnchanged =>
+      normalizedNameOf(_controller.text) == widget.initialName;
 
   void _confirm() => context.read<CompanionNameCubit>().rename(
     characterId: widget.characterId,
