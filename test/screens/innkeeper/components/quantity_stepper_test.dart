@@ -12,8 +12,14 @@ void main() {
   Future<void> pumpStepper(WidgetTester tester, QuantityStepper stepper) =>
       tester.pumpWidget(buildTestApp(home: Scaffold(body: stepper)));
 
-  VoidCallback? onPressedOf(WidgetTester tester, String tooltip) =>
-      tester.widget<IconButton>(find.byTooltip(tooltip)).onPressed;
+  VoidCallback? onPressedOf(WidgetTester tester, String tooltip) => tester
+      .widget<IconButton>(
+        find.ancestor(
+          of: find.byTooltip(tooltip),
+          matching: find.byType(IconButton),
+        ),
+      )
+      .onPressed;
 
   testWidgets('min defaults to 0 (Phase 10 D-12)', (tester) async {
     await pumpStepper(

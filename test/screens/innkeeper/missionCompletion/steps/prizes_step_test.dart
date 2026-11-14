@@ -194,8 +194,8 @@ void main() {
         .widgetList<QuantityStepper>(find.byType(QuantityStepper))
         .toList();
     expect([for (final s in steppers) (s.min, s.max)], [(1, 99), (1, 99)]);
-    final minus = find.byTooltip('Diminuisci');
-    final plus = find.byTooltip('Aumenta');
+    final minus = find.widgetWithIcon(IconButton, Icons.remove);
+    final plus = find.widgetWithIcon(IconButton, Icons.add);
     expect(tester.widget<IconButton>(minus.first).onPressed, isNull);
     expect(tester.widget<IconButton>(plus.last).onPressed, isNull);
     await tester.tap(plus.first);

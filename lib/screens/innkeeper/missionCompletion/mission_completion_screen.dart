@@ -15,6 +15,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPartic
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/prizes_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -29,8 +30,8 @@ enum MissionPage { place, encounters, fight, prizes, recap }
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
 /// Phase 10. Richiede sopra di sé [MissionDraftCubit],
-/// [MissionParticipantsCubit], [MissionEnemiesCubit], [PendingRequestsCubit] e
-/// [TeleportModeCubit].
+/// [MissionParticipantsCubit], [MissionEnemiesCubit], `MissionPrizeOptionsCubit`,
+/// [PendingRequestsCubit] e [TeleportModeCubit].
 class MissionCompletionScreen extends StatefulWidget {
   const MissionCompletionScreen({super.key, required this.card});
 
@@ -315,7 +316,12 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       onChangeEnemies: () => setState(() => _enter(MissionPage.encounters)),
       onNext: (corrections) => _saveCorrections(ready.draft, corrections),
     ),
-    MissionPage.prizes || MissionPage.recap => const SizedBox.shrink(),
+    MissionPage.prizes => PrizesStep(
+      draft: ready.draft,
+      isSubmitting: ready.isSubmitting,
+      onNext: _savePrizes,
+    ),
+    MissionPage.recap => const SizedBox.shrink(),
   };
 
   Widget _buildPlace(MissionDraftReady ready) {
@@ -379,6 +385,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       ),
       isLast ? MissionPage.prizes : MissionPage.fight,
       fightIndex: fightIndex + 1,
+    );
+  }
+
+  void _savePrizes(List<MissionPrizeInput> prizes) {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(
+      () => cubit.savePrizes(prizes, step: MissionDraftStep.recap),
+      MissionPage.recap,
     );
   }
 
