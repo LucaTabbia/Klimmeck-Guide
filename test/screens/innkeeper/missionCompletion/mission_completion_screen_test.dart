@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
@@ -43,9 +45,13 @@ final List<PendingRequest> _entries = worldMissionEntriesJson(
 
 final RequestCard _card = requestCardsOf(_entries).single;
 
-MissionDraft _draftAt(String step) => MissionDraft.tryFromJson(
+MissionDraft _draftAt(
+  String step, {
+  List<Map<String, dynamic>> fights = const [],
+}) => MissionDraft.tryFromJson(
   missionDraftJson(
     step: step,
+    fights: fights,
     participants: [
       missionParticipantJson(),
       missionParticipantJson(
@@ -58,6 +64,11 @@ MissionDraft _draftAt(String step) => MissionDraft.tryFromJson(
 )!;
 
 final MissionDraftReady _ready = MissionDraftReady(draft: _draftAt('teleport'));
+
+/// Due scontri serviti, nessuno simulato.
+final MissionDraftReady _twoFightsReady = MissionDraftReady(
+  draft: _draftAt('fights', fights: [missionFightJson(), missionFightJson()]),
+);
 
 final List<QuestResult> _results = [
   QuestResult.fromJson(questResultJson(id: 'result-aldo', character: _aldo)),
@@ -73,6 +84,7 @@ Finder get _discardConfirm => find.descendant(
 void main() {
   late MockMissionDraftCubit draftCubit;
   late MockMissionParticipantsCubit participantsCubit;
+  late MockMissionEnemiesCubit enemiesCubit;
   late MockPendingRequestsCubit queue;
   late MockTeleportModeCubit teleport;
   late StreamController<MissionDraftState> draftStates;
@@ -84,6 +96,7 @@ void main() {
   setUp(() {
     draftCubit = MockMissionDraftCubit();
     participantsCubit = MockMissionParticipantsCubit();
+    enemiesCubit = MockMissionEnemiesCubit();
     queue = MockPendingRequestsCubit();
     teleport = MockTeleportModeCubit();
     draftStates = StreamController<MissionDraftState>.broadcast();
@@ -93,6 +106,12 @@ void main() {
     when(() => draftCubit.start()).thenAnswer((_) async {});
     when(() => draftCubit.discard()).thenAnswer((_) async {});
     when(() => participantsCubit.load(any())).thenAnswer((_) async {});
+    when(() => enemiesCubit.load()).thenAnswer((_) async {});
+    whenListen(
+      enemiesCubit,
+      const Stream<MissionEnemiesState>.empty(),
+      initialState: const MissionEnemiesState(),
+    );
     whenListen(
       participantsCubit,
       const Stream<MissionParticipantsState>.empty(),
@@ -144,6 +163,9 @@ void main() {
                         ),
                         BlocProvider<MissionParticipantsCubit>.value(
                           value: participantsCubit,
+                        ),
+                        BlocProvider<MissionEnemiesCubit>.value(
+                          value: enemiesCubit,
                         ),
                       ],
                       child: MissionCompletionScreen(card: _card),
@@ -601,6 +623,76 @@ void main() {
         find.text(MissionCompletionScreen.invalidValuesMessage),
         findsOneWidget,
       );
+    });
+  });
+
+  group('encounters step (Phase 21)', () {
+    setUp(() {
+      when(
+        () => draftCubit.saveFights(any(), step: any(named: 'step')),
+      ).thenAnswer((_) async {});
+    });
+
+    testWidgets(
+      '«Avanti» on «Scontri» saves the fights and opens «Scontro 1 di N» (D-02)',
+      (tester) async {
+        await openWizard(tester, _twoFightsReady);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        verify(() => draftCubit.saveFights(any(), step: null)).called(1);
+        expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'with zero fights it saves step prizes and opens «Premi» (D-24)',
+      (tester) async {
+        await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        verify(
+          () => draftCubit.saveFights([], step: MissionDraftStep.prizes),
+        ).called(1);
+        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      },
+    );
+
+    testWidgets('opening «Scontri» loads the enemy list once (D-03)', (
+      tester,
+    ) async {
+      await openWizard(tester, _twoFightsReady);
+
+      verify(() => enemiesCubit.load()).called(1);
+    });
+
+    testWidgets('a list already served is not read again (D-03)', (
+      tester,
+    ) async {
+      whenListen(
+        enemiesCubit,
+        const Stream<MissionEnemiesState>.empty(),
+        initialState: MissionEnemiesState(
+          enemies: [MissionEnemy.tryFromJson(missionEnemyJson())!],
+        ),
+      );
+      await openWizard(tester, _twoFightsReady);
+
+      verifyNever(() => enemiesCubit.load());
+    });
+
+    testWidgets('«Indietro» from «Scontri» goes back to «Luogo»', (
+      tester,
+    ) async {
+      await openWizard(tester, _twoFightsReady);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
     });
   });
 }
