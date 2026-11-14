@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
@@ -18,6 +19,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftC
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -64,6 +66,15 @@ MissionDraft _draftAt(
 )!;
 
 final MissionDraftReady _ready = MissionDraftReady(draft: _draftAt('teleport'));
+
+/// Scontro simulato con gli esiti di Aldo e Bea.
+Map<String, dynamic> _simulatedFight() => missionFightJson(
+  verdict: 'success',
+  outcomes: [
+    missionOutcomeJson(simulated: missionEffectsJson()),
+    missionOutcomeJson(character: _bea, simulated: missionEffectsJson()),
+  ],
+);
 
 /// Due scontri serviti, nessuno simulato.
 final MissionDraftReady _twoFightsReady = MissionDraftReady(
@@ -693,6 +704,117 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+    });
+  });
+
+  group('fight step (Phase 21)', () {
+    setUp(() {
+      when(
+        () => draftCubit.saveFights(any(), step: any(named: 'step')),
+      ).thenAnswer((_) async {});
+      when(() => draftCubit.simulate(any())).thenAnswer((_) async {});
+      when(
+        () =>
+            draftCubit.saveCorrections(any(), any(), step: any(named: 'step')),
+      ).thenAnswer((_) async {});
+    });
+
+    Future<void> openFight(WidgetTester tester, int fightCount) async {
+      await openWizard(
+        tester,
+        MissionDraftReady(
+          draft: _draftAt(
+            'fights',
+            fights: [for (var i = 0; i < fightCount; i++) _simulatedFight()],
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapNext(WidgetTester tester) async {
+      await tester.ensureVisible(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('«Simula» simulates the fight on show (D-04)', (tester) async {
+      await openFight(tester, 2);
+
+      await tester.tap(find.byKey(FightStep.simulateKey));
+      await tester.pump();
+
+      verify(() => draftCubit.simulate(0)).called(1);
+    });
+
+    testWidgets(
+      '«Avanti» on the last fight saves corrections with step prizes and opens «Premi» (D-06)',
+      (tester) async {
+        await openFight(tester, 1);
+        expect(_headerText('Passo 3 di 5 · Scontro 1 di 1'), findsOneWidget);
+
+        await tapNext(tester);
+
+        final captured = verify(
+          () => draftCubit.saveCorrections(
+            0,
+            captureAny(),
+            step: MissionDraftStep.prizes,
+          ),
+        ).captured;
+        expect(
+          [
+            for (final correction in captured.single as List<MissionCorrection>)
+              correction.characterId,
+          ],
+          [_aldo, _bea],
+        );
+        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      },
+    );
+
+    testWidgets('«Avanti» on fight 1 of 2 opens «Scontro 2 di 2»', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+
+      await tapNext(tester);
+
+      verify(() => draftCubit.saveCorrections(0, any(), step: null)).called(1);
+      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+    });
+
+    testWidgets('«Indietro» from fight 2 goes back to fight 1', (tester) async {
+      await openFight(tester, 2);
+      await tapNext(tester);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+    });
+
+    testWidgets('«Indietro» from fight 1 goes back to «Scontri»', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+    });
+
+    testWidgets('«Cambia nemici» goes back to «Scontri» (D-05)', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+
+      await tester.tap(find.byKey(FightStep.changeEnemiesKey));
+      await tester.pumpAndSettle();
+
+      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
     });
   });
 }
