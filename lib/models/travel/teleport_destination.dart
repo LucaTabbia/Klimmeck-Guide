@@ -32,16 +32,16 @@ class TeleportDestination extends Equatable {
     );
   }
 
-  /// Un luogo interno; `null` per un marker di città, senza punto o senza nome.
+  /// Un luogo interno; `null` per un marker di città, senza punto o senza un
+  /// tipo noto all'app (non avrebbe nome né punto sulla mappa, D-29).
   static TeleportDestination? ofPlace(PointOfInterest poi) {
     final point = poi.location;
     if (point == null || _isCityMarker(poi)) return null;
-    final label = placeLabelOf(poi);
-    if (label.isEmpty) return null;
+    if (_placeTypeOf(poi) == null) return null;
     return TeleportDestination(
       poiId: poi.id,
       point: point,
-      label: label,
+      label: placeLabelOf(poi),
       isCityMarker: false,
     );
   }
