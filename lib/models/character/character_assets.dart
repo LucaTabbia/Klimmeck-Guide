@@ -24,6 +24,17 @@ class CharacterAssets extends Equatable {
   /// Compagni a catalogo dei posseduti, nell'ordine servito (negozio, slot).
   List<Pet> get ownedCatalogPets => [for (final owned in ownedPets) owned.pet];
 
+  /// La voce posseduta del compagno al fianco: una per specie, chiave = id a
+  /// catalogo (D-23).
+  OwnedPet? get equippedOwnedPet {
+    final equippedId = pet?.id;
+    if (equippedId == null) return null;
+    for (final owned in ownedPets) {
+      if (owned.pet.id == equippedId) return owned;
+    }
+    return null;
+  }
+
   factory CharacterAssets.fromJson(Map<String, dynamic> json) =>
       CharacterAssets(
         ownedEquipments: _entriesFrom(json['ownedEquipments']),

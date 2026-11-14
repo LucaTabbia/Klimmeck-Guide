@@ -2,35 +2,91 @@ import 'package:equatable/equatable.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 
 /// Compagno posseduto (BE Phase 19, D-03): il compagno a catalogo più lo
-/// stato che vive sul personaggio. La vita non si mostra (D-18).
+/// stato che vive sul personaggio. Vita, riposo e attesa della pozione
+/// arrivano dal backend (BE Phase 23); il FE interpola soltanto (D-09, D-24).
 class OwnedPet extends Equatable {
   const OwnedPet({
     required this.pet,
     required this.xp,
     required this.currentLifePoints,
+    this.name,
+    this.isDefeated = false,
+    this.lifeAsOf,
+    this.fullLifeAt,
+    this.potionRecoveryUntil,
   });
 
   /// Una voce è `{ pet, xp, currentLifePoints }`: qualsiasi altra forma vale
-  /// null e chi la contiene la scarta.
+  /// null e chi la contiene la scarta. Lo stato del compagno è tollerante:
+  /// un valore illeggibile vale null o false e la voce resta (D-24).
   static OwnedPet? tryFromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
     final pet = Pet.tryFromEntryJson(json['pet']);
     final xp = json['xp'];
     final life = json['currentLifePoints'];
     if (pet == null || xp is! num || life is! num) return null;
-    return OwnedPet(pet: pet, xp: xp.toInt(), currentLifePoints: life.toInt());
+    return OwnedPet(
+      pet: pet,
+      xp: xp.toInt(),
+      currentLifePoints: life.toInt(),
+      name: _nameOf(json['name']),
+      isDefeated: json['defeated'] == true,
+      lifeAsOf: _instantOf(json['lifeAsOf']),
+      fullLifeAt: _instantOf(json['fullLifeAt']),
+      potionRecoveryUntil: _instantOf(json['potionRecoveryUntil']),
+    );
   }
+
+  static String? _nameOf(Object? value) =>
+      value is String && value.trim().isNotEmpty ? value.trim() : null;
+
+  static DateTime? _instantOf(Object? value) =>
+      value is String ? DateTime.tryParse(value)?.toUtc() : null;
 
   final Pet pet;
   final int xp;
   final int currentLifePoints;
 
+  /// Nome scelto dal giocatore (D-18); null = la specie è la dicitura (D-20).
+  final String? name;
+
+  /// Sconfitto finché `fullLifeAt` è futura: lo risolve il backend alla
+  /// lettura (D-24).
+  final bool isDefeated;
+
+  /// Ancora della vita a riposo: `currentLifePoints` vale a `lifeAsOf`, la
+  /// vita piena arriva a `fullLifeAt`; entrambe null se equipaggiato o in
+  /// forze (D-24).
+  final DateTime? lifeAsOf;
+
+  /// Ancora della vita a riposo: `currentLifePoints` vale a `lifeAsOf`, la
+  /// vita piena arriva a `fullLifeAt`; entrambe null se equipaggiato o in
+  /// forze (D-24).
+  final DateTime? fullLifeAt;
+
+  /// Attesa della pozione di questo compagno soltanto (D-05).
+  final DateTime? potionRecoveryUntil;
+
   Map<String, dynamic> toJson() => {
     'pet': pet.toJson(),
     'xp': xp,
     'currentLifePoints': currentLifePoints,
+    'name': name,
+    'defeated': isDefeated,
+    'lifeAsOf': lifeAsOf?.toIso8601String(),
+    'fullLifeAt': fullLifeAt?.toIso8601String(),
+    'potionRecoveryUntil': potionRecoveryUntil?.toIso8601String(),
   };
 
   @override
-  List<Object?> get props => [pet, xp, currentLifePoints];
+  List<Object?> get props => [
+    pet,
+    xp,
+    currentLifePoints,
+    name,
+    isDefeated,
+    lifeAsOf,
+    fullLifeAt,
+    potionRecoveryUntil,
+  ];
 }

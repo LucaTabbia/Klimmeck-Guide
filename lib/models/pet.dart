@@ -18,6 +18,7 @@ class Pet extends Equatable {
     this.rarity,
     this.speedModifier,
     this.sellable,
+    this.recoveryTime,
   });
 
   final String? imagePath;
@@ -34,6 +35,13 @@ class Pet extends Equatable {
   /// Moltiplicatore servito dal BE: null per un compagno non da sella (D-07); il FE non calcola mai la velocità (D-11).
   final double? speedModifier;
   final bool? sellable;
+
+  /// Tempo dal minimo alla vita piena in millisecondi (D-01, D-25); null =
+  /// non curato: il FE non lo usa mai per calcolare una data.
+  final int? recoveryTime;
+
+  Duration? get recoveryDuration =>
+      recoveryTime == null ? null : Duration(milliseconds: recoveryTime!);
 
   factory Pet.fromJson(Map<String, dynamic> json) => Pet(
     id: json["id"],
@@ -52,7 +60,11 @@ class Pet extends Equatable {
     maxLifePoints: json["maxLifePoints"]?.toInt(),
     speedModifier: (json['speedModifier'] as num?)?.toDouble(),
     sellable: json['sellable'] as bool?,
+    recoveryTime: _positiveMillisOf(json['recoveryTime']),
   );
+
+  static int? _positiveMillisOf(Object? value) =>
+      value is num && value > 0 ? value.toInt() : null;
 
   static Damages? _damagesFrom(Object? json) =>
       json is Map<String, dynamic> ? Damages.fromJson(json) : null;
@@ -88,6 +100,7 @@ class Pet extends Equatable {
     "imagePath": imagePath,
     "speedModifier": speedModifier,
     "sellable": sellable,
+    "recoveryTime": recoveryTime,
   };
 
   Pet copyWith({
@@ -103,6 +116,7 @@ class Pet extends Equatable {
     int? maxLifePoints,
     double? speedModifier,
     bool? sellable,
+    int? recoveryTime,
   }) {
     return Pet(
       imagePath: imagePath ?? this.imagePath,
@@ -117,6 +131,7 @@ class Pet extends Equatable {
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
       speedModifier: speedModifier ?? this.speedModifier,
       sellable: sellable ?? this.sellable,
+      recoveryTime: recoveryTime ?? this.recoveryTime,
     );
   }
 
@@ -134,5 +149,6 @@ class Pet extends Equatable {
     maxLifePoints,
     speedModifier,
     sellable,
+    recoveryTime,
   ];
 }
