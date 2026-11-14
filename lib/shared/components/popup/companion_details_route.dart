@@ -20,13 +20,16 @@ Future<void> showCompanionDetails(
   transitionDuration: _slideDuration,
   pageBuilder: (context, _, _) {
     final screenHeight = MediaQuery.of(context).size.height;
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        height: screenHeight,
-        width: screenHeight * _sheetAspect,
-        child: SingleChildScrollView(
-          child: CompanionInfoSheet(pet: pet, name: name),
+    return Material(
+      type: MaterialType.transparency,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(
+          height: screenHeight,
+          width: screenHeight * _sheetAspect,
+          child: SingleChildScrollView(
+            child: CompanionInfoSheet(pet: pet, name: name),
+          ),
         ),
       ),
     );
