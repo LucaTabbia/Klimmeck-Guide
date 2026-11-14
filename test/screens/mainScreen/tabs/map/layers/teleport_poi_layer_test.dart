@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_poi_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/map_constants.dart';
 import 'package:latlong2/latlong.dart';
@@ -13,6 +14,7 @@ const TeleportDestination ruins = TeleportDestination(
   point: LatLng(10, 20),
   label: 'Rovine presso Aldheim',
   isCityMarker: false,
+  typesLine: 'Rovine · Cimitero presso Aldheim',
 );
 
 const TeleportDestination cave = TeleportDestination(
@@ -65,18 +67,50 @@ void main() {
       );
     });
 
-    testWidgets('a dot has no tap (D-29)', (tester) async {
+    testWidgets('a tap on a dot shows every type of the place, a second tap '
+        'hides it (UAT 2026-11-14)', (tester) async {
+      await pumpLayer(tester, zoom: MapConstants.cityVisibleZoom);
+      expect(find.byKey(TeleportPoiLayer.typesLabelKey), findsNothing);
+
+      await tester.tap(find.byKey(TeleportPoiLayer.placeKeyFor(ruins.poiId)));
+      await tester.pump();
+      expect(
+        tester
+            .widget<PawnLabel>(find.byKey(TeleportPoiLayer.typesLabelKey))
+            .text,
+        'Rovine · Cimitero presso Aldheim',
+      );
+
+      await tester.tap(find.byKey(TeleportPoiLayer.placeKeyFor(ruins.poiId)));
+      await tester.pump();
+      expect(find.byKey(TeleportPoiLayer.typesLabelKey), findsNothing);
+    });
+
+    testWidgets('a place without a types line shows its label', (tester) async {
       await pumpLayer(tester, zoom: MapConstants.cityVisibleZoom);
 
-      final dot = find.byKey(TeleportPoiLayer.placeKeyFor(ruins.poiId));
+      await tester.tap(find.byKey(TeleportPoiLayer.placeKeyFor(cave.poiId)));
+      await tester.pump();
+
       expect(
-        find.descendant(of: dot, matching: find.byType(GestureDetector)),
-        findsNothing,
+        tester
+            .widget<PawnLabel>(find.byKey(TeleportPoiLayer.typesLabelKey))
+            .text,
+        'Grotta presso Valdoria',
       );
-      expect(
-        find.descendant(of: dot, matching: find.byType(InkWell)),
-        findsNothing,
+    });
+
+    testWidgets('the tap target of a dot is at least 44 by 44', (tester) async {
+      await pumpLayer(tester, zoom: MapConstants.cityVisibleZoom);
+
+      final target = tester.getSize(
+        find.ancestor(
+          of: find.byKey(TeleportPoiLayer.placeKeyFor(ruins.poiId)),
+          matching: find.byType(GestureDetector),
+        ),
       );
+      expect(target.width, greaterThanOrEqualTo(44));
+      expect(target.height, greaterThanOrEqualTo(44));
     });
   });
 }

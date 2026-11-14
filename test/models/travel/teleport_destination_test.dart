@@ -65,7 +65,23 @@ void main() {
           point: LatLng(12, 22),
           label: 'Rovine presso Talmvere',
           isCityMarker: false,
+          typesLine: 'Rovine presso Talmvere',
         ),
+      );
+    });
+
+    test('ofPlace lists every known type of the place (UAT 2026-11-14)', () {
+      expect(
+        TeleportDestination.ofPlace(
+          poiOf(types: ['all', 'graveyard', 'cave', 'swamp']),
+        )?.typesLine,
+        'Cimitero · Palude presso Talmvere',
+      );
+      expect(
+        TeleportDestination.ofPlace(
+          poiOf(types: ['graveyard', 'swamp'], cityId: null),
+        )?.typesLine,
+        'Cimitero · Palude',
       );
     });
 
