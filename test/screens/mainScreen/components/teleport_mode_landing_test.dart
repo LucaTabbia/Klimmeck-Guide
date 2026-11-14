@@ -207,6 +207,10 @@ void main() {
       .widget<InnkeeperPanelScreen>(find.byType(InnkeeperPanelScreen))
       .resumeCardKey;
 
+  bool resumesAtPlace(WidgetTester tester) => tester
+      .widget<InnkeeperPanelScreen>(find.byType(InnkeeperPanelScreen))
+      .resumesAtPlace;
+
   testWidgets('a success without a resume key reopens the bare panel', (
     tester,
   ) async {
@@ -244,6 +248,7 @@ void main() {
 
     verify(() => teleportCubit.acknowledgeExit()).called(1);
     expect(resumedCardKey(tester), _resumeCardKey);
+    expect(resumesAtPlace(tester), isFalse);
   });
 
   testWidgets('cancel with a resume key reopens the panel for that card '
@@ -258,6 +263,7 @@ void main() {
 
     verify(() => teleportCubit.acknowledgeExit()).called(1);
     expect(resumedCardKey(tester), _resumeCardKey);
+    expect(resumesAtPlace(tester), isTrue);
   });
 
   testWidgets('a lost innkeeper role cancels the mode', (tester) async {

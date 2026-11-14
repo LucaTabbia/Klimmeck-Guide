@@ -163,8 +163,9 @@ void main() {
 
   Future<List<CompletionExit?>> openWizard(
     WidgetTester tester,
-    MissionDraftState initial,
-  ) async {
+    MissionDraftState initial, {
+    bool opensAtPlace = false,
+  }) async {
     useLandscapePhone(tester);
     whenListen(draftCubit, draftStates.stream, initialState: initial);
     final exits = <CompletionExit?>[];
@@ -193,7 +194,10 @@ void main() {
                           value: prizeOptionsCubit,
                         ),
                       ],
-                      child: MissionCompletionScreen(card: _card),
+                      child: MissionCompletionScreen(
+                        card: _card,
+                        opensAtPlace: opensAtPlace,
+                      ),
                     ),
                   ),
                 ),
@@ -282,6 +286,18 @@ void main() {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('recap')));
 
       expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+    });
+
+    testWidgets('back from a cancelled teleport the wizard reopens on «Luogo» '
+        'whatever the served step (UAT 2026-11-14)', (tester) async {
+      await openWizard(
+        tester,
+        MissionDraftReady(draft: _draftAt('fights')),
+        opensAtPlace: true,
+      );
+
+      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
     });
 
     testWidgets('a later save never moves the page (D-18)', (tester) async {

@@ -60,7 +60,11 @@ List<PendingRequest> _queue(List<Map<String, dynamic>> entries) =>
     List.unmodifiable(entries.map(PendingRequest.fromJson));
 
 typedef _CompletionOpener =
-    Future<CompletionExit?> Function(BuildContext context, RequestCard card);
+    Future<CompletionExit?> Function(
+      BuildContext context,
+      RequestCard card, {
+      bool atPlace,
+    });
 
 ElevatedButton _completeButton(WidgetTester tester, String questId) =>
     tester.widget<ElevatedButton>(
@@ -159,6 +163,7 @@ void main() {
     Stream<PendingRequestsState> states = const Stream.empty(),
     QuestGenerationState generationState = const QuestGenerationIdle(),
     String? resumeCardKey,
+    bool resumesAtPlace = false,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, states, initialState: state);
@@ -181,6 +186,7 @@ void main() {
           : InnkeeperPanelScreen(
               openCompletion: openCompletion,
               resumeCardKey: resumeCardKey,
+              resumesAtPlace: resumesAtPlace,
             ),
     );
     await tester.pumpWidget(
@@ -365,7 +371,7 @@ void main() {
     });
 
     _CompletionOpener exitWith(CompletionExit? exit) =>
-        (_, _) async => exit;
+        (_, _, {atPlace = false}) async => exit;
 
     testWidgets('a story with a present participant can be completed', (
       tester,
@@ -505,7 +511,7 @@ void main() {
       await pumpQueue(
         tester,
         [pendingRequestJson()],
-        openCompletion: (_, _) => exit.future,
+        openCompletion: (_, _, {atPlace = false}) => exit.future,
         states: states.stream,
       );
 
@@ -689,17 +695,24 @@ void main() {
 
   group('resume after the Map (Phase 21)', () {
     late List<RequestCard> opened;
+    late List<bool> openedAtPlace;
     late StreamController<PendingRequestsState> snapshots;
 
     setUp(() {
       opened = [];
+      openedAtPlace = [];
       snapshots = StreamController<PendingRequestsState>.broadcast();
       addTearDown(snapshots.close);
       when(() => cubit.refetch()).thenAnswer((_) async {});
     });
 
-    Future<CompletionExit?> recordOpening(BuildContext _, RequestCard card) {
+    Future<CompletionExit?> recordOpening(
+      BuildContext _,
+      RequestCard card, {
+      bool atPlace = false,
+    }) {
       opened.add(card);
+      openedAtPlace.add(atPlace);
       return Future.value();
     }
 
@@ -712,14 +725,18 @@ void main() {
       isLoaded: true,
     );
 
-    Future<void> pumpResuming(WidgetTester tester, String? resumeCardKey) =>
-        pumpPanel(
-          tester,
-          PendingRequestsState(serverNow: _now),
-          openCompletion: recordOpening,
-          states: snapshots.stream,
-          resumeCardKey: resumeCardKey,
-        );
+    Future<void> pumpResuming(
+      WidgetTester tester,
+      String? resumeCardKey, {
+      bool resumesAtPlace = false,
+    }) => pumpPanel(
+      tester,
+      PendingRequestsState(serverNow: _now),
+      openCompletion: recordOpening,
+      states: snapshots.stream,
+      resumeCardKey: resumeCardKey,
+      resumesAtPlace: resumesAtPlace,
+    );
 
     Future<void> emitSnapshot(
       WidgetTester tester,
@@ -737,6 +754,16 @@ void main() {
       await emitSnapshot(tester, loaded([pendingRequestJson()]));
 
       expect(opened.map((card) => card.cardKey), [_storyCardKey]);
+      expect(openedAtPlace, [false]);
+    });
+
+    testWidgets('after a cancelled teleport the resumed wizard opens on the '
+        'place step (UAT 2026-11-14)', (tester) async {
+      await pumpResuming(tester, _storyCardKey, resumesAtPlace: true);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(openedAtPlace, [true]);
     });
 
     testWidgets('opens it only once across later snapshots (D-28)', (
