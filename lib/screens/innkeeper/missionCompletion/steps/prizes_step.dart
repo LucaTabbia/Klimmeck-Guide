@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/prize_catalogue_sheet.dart';
@@ -40,6 +41,8 @@ class PrizesStep extends StatefulWidget {
   static const String removeTooltip = 'Rimuovi';
   static Key addPrizeKeyFor(String characterId) =>
       ValueKey('mission.prizes.add.$characterId');
+  static Key retryKeyFor(String characterId) =>
+      ValueKey('mission.prizes.retry.$characterId');
   static Key addCureKeyFor(String characterId) =>
       ValueKey('mission.prizes.addCure.$characterId');
 
@@ -212,8 +215,10 @@ class _PrizesStepState extends State<PrizesStep> {
     final prize = _prizes[id]!;
     final options = state.options[id];
     final isLoading = options == null && state.loading.contains(id);
+    final failure = options == null ? state.failures[id] : null;
     return [
       () => _header(participant, options),
+      if (failure != null) () => _failureRow(id, failure),
       () => _coinsRow(id),
       () => _xpField(id),
       if (prize.cure)
@@ -249,6 +254,27 @@ class _PrizesStepState extends State<PrizesStep> {
               ? () => _openCatalogue(participant.characterId, options)
               : null,
           child: const Text(PrizesStep.addPrizeLabel),
+        ),
+      ],
+    );
+  }
+
+  /// Opzioni non lette: errore e «Riprova», mai un «Aggiungi premio» spento
+  /// senza motivo.
+  Widget _failureRow(String characterId, InnkeeperFailure failure) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            MissionCompletionScreen.failureLineOf(failure),
+            style: KlimmeckGuideTheme.instance.bodyMedium,
+          ),
+        ),
+        TextButton(
+          key: PrizesStep.retryKeyFor(characterId),
+          onPressed: () =>
+              context.read<MissionPrizeOptionsCubit>().loadFor(characterId),
+          child: const Text(MissionCompletionScreen.retryLabel),
         ),
       ],
     );
