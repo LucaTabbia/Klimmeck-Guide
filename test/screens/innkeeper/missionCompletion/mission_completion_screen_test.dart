@@ -353,6 +353,20 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('the keyboard over «Premi» hides the step counter and the '
+        'buttons, without overflow (UAT 2026-11-14)', (tester) async {
+      await openWizard(tester, MissionDraftReady(draft: _draftAt('prizes')));
+      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 700);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump();
+
+      expect(_headerText('Passo 4 di 5 · Premi'), findsNothing);
+      expect(find.byKey(MissionCompletionScreen.nextKey), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('the wizard buttons are written in the compact size '
         '(UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));

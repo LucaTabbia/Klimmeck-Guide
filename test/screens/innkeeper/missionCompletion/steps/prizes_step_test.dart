@@ -93,11 +93,27 @@ void main() {
     );
   });
 
-  Future<void> pumpStep(WidgetTester tester, MissionDraft draft) async {
+  /// La lista della pagina è il primo Scrollable (i campi ne hanno uno loro).
+  Future<void> reveal(WidgetTester tester, Finder finder) async {
+    await tester.scrollUntilVisible(
+      finder,
+      60,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
+  }
+
+  Future<void> pumpStep(
+    WidgetTester tester,
+    MissionDraft draft, {
+    bool opens = true,
+  }) async {
     useLandscapePhone(tester);
     await tester.pumpWidget(
       buildTestApp(
         home: Scaffold(
+          // come il wizard: la tastiera resta visibile alle pagine
+          resizeToAvoidBottomInset: false,
           body: BlocProvider<MissionPrizeOptionsCubit>.value(
             value: prizeOptionsCubit,
             child: PrizesStep(
@@ -110,15 +126,16 @@ void main() {
       ),
     );
     await tester.pump();
-  }
-
-  /// La lista della pagina è il primo Scrollable (i campi ne hanno uno loro).
-  Future<void> reveal(WidgetTester tester, Finder finder) async {
-    await tester.scrollUntilVisible(
-      finder,
-      60,
-      scrollable: find.byType(Scrollable).first,
-    );
+    if (!opens) return;
+    for (final participant in draft.participants) {
+      final header = find.byKey(
+        PrizesStep.headerKeyFor(participant.characterId),
+      );
+      await reveal(tester, header);
+      await tester.tap(header);
+      await tester.pumpAndSettle();
+    }
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 5000));
     await tester.pump();
   }
 
@@ -131,6 +148,31 @@ void main() {
   }
 
   MissionPrizeInput sentPrize() => sent.single.single;
+
+  testWidgets("each character's prizes start folded under the name "
+      '(UAT 2026-11-14)', (tester) async {
+    await pumpStep(tester, _prefilled, opens: false);
+
+    expect(find.byKey(PrizesStep.headerKeyFor(_aldo)), findsOneWidget);
+    expect(find.byKey(PrizesStep.xpFieldKeyFor(_aldo)), findsNothing);
+
+    await tester.tap(find.byKey(PrizesStep.headerKeyFor(_aldo)));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(PrizesStep.xpFieldKeyFor(_aldo)), findsOneWidget);
+  });
+
+  testWidgets('the keyboard hides the button row and never overflows '
+      '(UAT 2026-11-14)', (tester) async {
+    await pumpStep(tester, _prefilled);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 700);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+
+    expect(find.byKey(MissionCompletionScreen.nextKey), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('each character starts from the prefilled served prizes (D-22)', (
     tester,
