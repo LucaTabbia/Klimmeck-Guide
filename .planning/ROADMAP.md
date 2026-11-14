@@ -133,11 +133,32 @@ Plans:
 **Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE Phase 22 «Completamento guidato delle missioni» (BE-GMFLOW-01..07, opened 2026-11-12: enemy list by rank/POI type, dry-run simulation, draft, completion with manual outcome and per-character prizes)
 **Scope**: decisions D-01..D-30 of `21-CONTEXT.md` (discuss 2026-11-12, amended 2026-11-14 after the research); BE companion: BE Phase 22 «Completamento guidato delle missioni»
 **Requirements**: GMFLOW-01, GMFLOW-02, GMFLOW-03, GMFLOW-04, GMFLOW-05, GMFLOW-06, GMFLOW-07, GMFLOW-08
-**Success Criteria** (what must be TRUE): TBD in plan-phase — decisions in `21-CONTEXT.md` (D-01..D-10, discuss 2026-11-12): teleport to cities and inner POIs, one or several fights with enemies filtered by POI and rank («Mostra tutti»), simulation without writes, corrections, prizes prefilled from the rank block, backend draft, players locked with a «Missione in corso» notice until the result (the same lock for every mission from its effective start, D-12), always completed
-**Plans**: 0 plans
+**Success Criteria** (what must be TRUE):
+  1. The innkeeper teleports the group to a city or an inner POI from the wizard and comes back to the wizard of that request.
+  2. The wizard starts, resumes at the served step (also from another device) and discards the draft; simulations, corrections and prizes are read from and saved to the backend, never computed in the app.
+  3. The mission is completed from the recap with a confirmation and the players get the usual result sheet; the Phase 10 form is gone.
+  4. A character with a mission in progress sees the notice and cannot travel, accept quests, trade, change equipment, companion or spells, nor drink potions; a refusal shows the wait banner.
+  5. Schema check green on the merged BE Phase 22 SDL and device E2E passed.
+**Plans**: 17 plans (sequential waves; 01–15 work against today's BE, 16–17 gated by the BE Phase 22 merge)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+- [ ] 21-01-PLAN.md — Mission lock plumbing I: status flags, shared code and copy, travel and acceptance refusals
+- [ ] 21-02-PLAN.md — Mission lock plumbing II: shop, spell and companion refusals
+- [ ] 21-03-PLAN.md — Equipment refusal made visible: repository, classifier, Journal notice
+- [ ] 21-04-PLAN.md — Players' lock on the Board, the Map pawn and the satchel
+- [ ] 21-05-PLAN.md — Players' lock in the Journal and the potion refusal
+- [ ] 21-06-PLAN.md — Inner-place data: POI labels, place names, teleport destination, POI document
+- [ ] 21-07-PLAN.md — Teleport mode over destinations and the card to resume
+- [ ] 21-08-PLAN.md — Map: inner-POI layer and the teleport-only drop rule
+- [ ] 21-09-PLAN.md — Return to the wizard after the Map and the «Riprendi» flag
+- [ ] 21-10-PLAN.md — Mission draft models and wire inputs
+- [ ] 21-11-PLAN.md — Mission documents, registry, service and repository operations
+- [ ] 21-12-PLAN.md — Wizard Cubits: draft, participants, enemies, prize options
+- [ ] 21-13-PLAN.md — Wizard UI 1: route, host, start, resume, discard, «Luogo»
+- [ ] 21-14-PLAN.md — Wizard UI 2: «Scontri» and the fight page with corrections
+- [ ] 21-15-PLAN.md — Wizard UI 3: «Premi» and «Riepilogo» with completion
+- [ ] 21-16-PLAN.md — Gate: schema, gated selection, wizard wired, Phase 10 form retired, full suite (after the BE Phase 22 merge)
+- [ ] 21-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 22 merge, human)
 
 ## Progress
 
@@ -163,7 +184,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 0/17 | Planned | - |
 
 ---
 

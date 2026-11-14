@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: phase-complete
-stopped_at: "Completed 20-04-PLAN.md (2026-11-13) — Phase 20 complete: device E2E passed, gate re-run on BE 697d40a1 (46/46 OK, full suite 4339 green), RANKP-01..04 complete; next the PR feat/20-rank-specific-prizes → develop"
-last_updated: "2026-11-13T00:00:00.000Z"
-last_activity: "2026-11-13 -- Plan 20-04 complete (device E2E recorded, Phase 20 closed)"
+status: executing
+stopped_at: "Phase 21 planned (17 plans, 2026-11-14) — next: execution, 21-16/21-17 gated by the BE Phase 22 merge"
+last_updated: "2026-11-14T02:11:53.000Z"
+last_activity: "2026-11-14 -- Phase 21 planned (research, repo rules, validation, 17 plans)"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 30
-  completed_plans: 27
-  percent: 90
+  total_plans: 47
+  completed_plans: 30
+  percent: 64
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 20 — Rank-Specific Prizes for Group Quests (↔ BE Phase 21) — COMPLETE on 2026-11-13 on `feat/20-rank-specific-prizes` (from `develop`): 4/4 plans, device E2E passed; PR to `develop` next
+**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion`: 17 plans in sequential waves, the last two gated by the BE Phase 22 merge
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 not planned; milestone close pending
-Phase: 20 of 21 (Rank-Specific Prizes for Group Quests) — context of 2026-11-12 (D-01..D-17) amended on 2026-11-13 after the research and the user answers (D-18..D-25), `20-REPO-RULES.md`, `20-RESEARCH.md`, `20-VALIDATION.md`, 4 plans written on 2026-11-13
-Plan: 04 of 4
-Status: Phase 20 complete — device E2E passed on 2026-11-13 (`20-HUMAN-UAT.md`: 12 executed steps pass, three FE fixes and the quick task 261113-aql born during the UAT); gate re-run on BE `develop` `697d40a1` (Phase 21 + quick 261113-aql): `GATE_OK`, 46/46 OK, full suite 4339 green, analyzer 47 info / 0 warning / 0 error; RANKP-01..04 complete. The branch needs a BE with Phase 21 and `Quest.awaitingRescue`
-Last activity: 2026-11-13 -- Plan 20-04 complete (device E2E recorded, requirements, ROADMAP, VALIDATION and BACKEND-NOTES closed)
-Next step: the PR `feat/20-rank-specific-prizes` → `develop` (opened by the orchestrator; the BE Phase 21 PR and the BE quick PR #37 are already merged), then Phase 21 discuss / plan (context on `feat/21-innkeeper-mission-completion`, with the BE Phase 22).
+Phase: 21 of 21 (Innkeeper Mission Completion Flow) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 17 plans in sequential waves; BE Phase 22 planned in the same session
+Plan: 0 of 17
+Status: Phase 21 planned — ready to execute (21-01..21-15 against today's BE; 21-16/21-17 wait for the BE Phase 22 merge on BE `develop`)
+Last activity: 2026-11-14 -- Phase 21 planned (research, repo rules, validation, 17 plans)
+Next step: execute 21-01..21-15, review by area, then park until the BE Phase 22 PR merges; 21-16 (schema gate) and 21-17 (device E2E) after it.
 
 ## Current Milestone
 
@@ -90,6 +90,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-13
-Stopped at: Completed 20-04-PLAN.md (Phase 20 complete)
-Resume file: .planning/phases/20-rank-specific-prizes-for-group-quests/20-04-SUMMARY.md
+Last session: 2026-11-14
+Stopped at: Phase 21 planned
+Resume file: .planning/phases/21-innkeeper-mission-completion-flow/21-01-PLAN.md
