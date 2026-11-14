@@ -63,6 +63,7 @@ class _TeleportPawnLayerState extends State<TeleportPawnLayer>
       places: widget.places,
       cities: widget.cities,
       toScreen: pawnMapController.camera.latLngToScreenOffset,
+      zoom: pawnMapController.camera.zoom,
     ),
   );
 

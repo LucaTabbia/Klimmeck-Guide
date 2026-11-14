@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_pawn_
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_poi_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/travel_route_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/map_constants.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mocktail/mocktail.dart';
@@ -374,27 +375,36 @@ void main() {
       expect(mapAvailability.state.isPawnDragging, isFalse);
     });
 
-    testWidgets('a drop on an inner place teleports there (D-01)', (
-      tester,
-    ) async {
-      const dragOffset = Offset(150, 0);
-      await pumpTeleportMap(tester);
-      final camera = mapCamera(tester);
-      final ruins = TeleportDestination(
-        poiId: 'poi-ruins-1',
-        point: camera.screenOffsetToLatLng(
-          camera.latLngToScreenOffset(aldheimMarker) + dragOffset,
-        ),
-        label: 'Rovine presso Aldheim',
-        isCityMarker: false,
-      );
-      await emitTeleport(tester, TeleportActive(target: bea, places: [ruins]));
+    testWidgets(
+      'a drop on a visible inner place teleports there (D-01, D-29)',
+      (tester) async {
+        const dragOffset = Offset(150, 0);
+        await pumpTeleportMap(tester);
+        tester
+            .widget<FlutterMap>(find.byType(FlutterMap))
+            .mapController!
+            .move(mapCamera(tester).center, MapConstants.cityVisibleZoom);
+        await tester.pump();
+        final camera = mapCamera(tester);
+        final ruins = TeleportDestination(
+          poiId: 'poi-ruins-1',
+          point: camera.screenOffsetToLatLng(
+            camera.latLngToScreenOffset(aldheimMarker) + dragOffset,
+          ),
+          label: 'Rovine presso Aldheim',
+          isCityMarker: false,
+        );
+        await emitTeleport(
+          tester,
+          TeleportActive(target: bea, places: [ruins]),
+        );
 
-      await dragPawnBy(tester, dragOffset);
+        await dragPawnBy(tester, dragOffset);
 
-      verify(() => teleportCubit.teleportTo(ruins)).called(1);
-      expect(mapAvailability.state.isPawnDragging, isFalse);
-    });
+        verify(() => teleportCubit.teleportTo(ruins)).called(1);
+        expect(mapAvailability.state.isPawnDragging, isFalse);
+      },
+    );
 
     testWidgets('a teleport in flight keeps the pawn still', (tester) async {
       await pumpTeleportMap(

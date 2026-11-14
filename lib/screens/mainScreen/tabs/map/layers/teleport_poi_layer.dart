@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 
 import '../../../../../models/travel/teleport_destination.dart';
 import '../../../../../theme/kg_theme.dart';
-import '../utils/map_constants.dart';
+import '../utils/teleport_drop.dart';
 
 /// Luoghi interni come bersagli del teletrasporto (D-29): un punto per luogo,
 /// solo in modalità teletrasporto e da zoom città; nessun tap, il chip dice
@@ -33,9 +33,8 @@ class TeleportPoiLayer extends StatelessWidget {
             height: dotSize,
             child: ValueListenableBuilder<double>(
               valueListenable: zoomNotifier,
-              builder: (_, zoom, dot) => zoom < MapConstants.cityVisibleZoom
-                  ? const SizedBox.shrink()
-                  : dot!,
+              builder: (_, zoom, dot) =>
+                  innerPlacesVisibleAt(zoom) ? dot! : const SizedBox.shrink(),
               child: _buildDot(place),
             ),
           ),

@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/teleport_pawn_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/map_constants.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../helpers/fixtures/travel_fixtures.dart';
@@ -66,22 +67,27 @@ void main() {
     WidgetTester tester, {
     bool canDrag = true,
     List<TeleportDestination> places = const [],
+    double zoom = 2,
   }) async {
     useLandscapePhone(tester);
     final controller = MapController();
     await tester.pumpWidget(
-      mapHarness([
-        TeleportPawnLayer(
-          target: bea,
-          places: places,
-          cities: [cityA, cityB],
-          zoomNotifier: ValueNotifier(2),
-          mapController: controller,
-          canDrag: canDrag,
-          onDragUpdate: dragUpdates.add,
-          onDrop: drops.add,
-        ),
-      ], controller: controller),
+      mapHarness(
+        [
+          TeleportPawnLayer(
+            target: bea,
+            places: places,
+            cities: [cityA, cityB],
+            zoomNotifier: ValueNotifier(2),
+            mapController: controller,
+            canDrag: canDrag,
+            onDragUpdate: dragUpdates.add,
+            onDrop: drops.add,
+          ),
+        ],
+        controller: controller,
+        initialZoom: zoom,
+      ),
     );
     await tester.pump();
     return controller;
@@ -143,11 +149,11 @@ void main() {
       expect(pawnPoint(tester), aldheimMarker);
     });
 
-    testWidgets('releasing on an inner place reports the place (D-29)', (
+    testWidgets('releasing on a visible inner place reports the place (D-29)', (
       tester,
     ) async {
       const dragOffset = Offset(100, 0);
-      final probe = await pumpLayer(tester);
+      final probe = await pumpLayer(tester, zoom: MapConstants.cityVisibleZoom);
       final camera = probe.camera;
       final ruins = TeleportDestination(
         poiId: 'poi-ruins-1',
@@ -157,7 +163,11 @@ void main() {
         label: 'Rovine presso Aldheim',
         isCityMarker: false,
       );
-      await pumpLayer(tester, places: [ruins]);
+      await pumpLayer(
+        tester,
+        places: [ruins],
+        zoom: MapConstants.cityVisibleZoom,
+      );
 
       await tester.drag(find.byType(Draggable<Object>), dragOffset);
       await tester.pumpAndSettle();
