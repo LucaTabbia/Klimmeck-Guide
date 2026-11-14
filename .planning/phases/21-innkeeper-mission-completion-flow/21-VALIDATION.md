@@ -90,9 +90,9 @@ created: 2026-11-14
 | 21-11-01 | 11 | 11 | GMFLOW-02..06 | T-21-37 | eight documents registered (55), no gated selection | document pin | `flutter test test/graphql test/tool` | ❌ W0 mission_documents_test | ✅ green |
 | 21-11-02 | 11 | 11 | GMFLOW-02..06 | T-21-35, T-21-36, T-21-38 | innkeeper-only ops through _guard, no payload logs | unit | `flutter test test/repository` | ❌ W0 graphql_mission_test | ✅ green |
 | 21-11-03 | 11 | 11 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-11-SUMMARY.md && grep -q "Plan: 11 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-12-01 | 12 | 12 | GMFLOW-02, GMFLOW-04..06 | T-21-40, T-21-41, T-21-42 | served draft replaces state; one call at a time | bloc | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 mission_draft_cubit_test | ⬜ pending |
-| 21-12-02 | 12 | 12 | GMFLOW-03, GMFLOW-05 | T-21-39 | no client filter on enemies/prizes | bloc | `flutter test test/screens/innkeeper` | ❌ W0 three cubit tests | ⬜ pending |
-| 21-12-03 | 12 | 12 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-12-SUMMARY.md && grep -q "Plan: 12 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-12-01 | 12 | 12 | GMFLOW-02, GMFLOW-04..06 | T-21-40, T-21-41, T-21-42 | served draft replaces state; one call at a time | bloc | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 mission_draft_cubit_test | ✅ green |
+| 21-12-02 | 12 | 12 | GMFLOW-03, GMFLOW-05 | T-21-39 | no client filter on enemies/prizes | bloc | `flutter test test/screens/innkeeper` | ❌ W0 three cubit tests | ✅ green |
+| 21-12-03 | 12 | 12 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-12-SUMMARY.md && grep -q "Plan: 12 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-13-01 | 13 | 13 | GMFLOW-02 | T-21-43, T-21-44, T-21-45, T-21-46 | explicit start, exits on NOT_FOUND/FORBIDDEN/gone | widget | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 mission_completion_screen_test, route_test | ⬜ pending |
 | 21-13-02 | 13 | 13 | GMFLOW-01 | T-21-43 | teleport prepared with resumeCardKey | widget | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 place_step_test | ⬜ pending |
 | 21-13-03 | 13 | 13 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-13-SUMMARY.md && grep -q "Plan: 13 of 18" .planning/STATE.md` | — | ⬜ pending |
@@ -123,7 +123,7 @@ created: 2026-11-14
 - [x] `test/screens/innkeeper/missionCompletion/**` — cubits (bloc_test) and pages (widget) — planned: 21-12..21-15
 - [x] `test/screens/mainScreen/tabs/map/layers/teleport_poi_layer_test.dart`, `utils/teleport_drop_test.dart` — planned: 21-08
 - [x] `test/repository/equipment_failure_test.dart`, `equipment_repository_test.dart` (21-03); `test/utils/mission_lines_test.dart` (21-01)
-- [x] Mocks: `MockMissionDraftCubit`/`MockMissionEnemiesCubit` in `test/helpers/mocks.dart` (pattern of existing mock cubits) — planned: 21-12, with `MockEquipmentRepository` in 21-03
+- [x] Mocks: `MockMissionDraftCubit`/`MockMissionEnemiesCubit` in `test/helpers/mocks.dart` (pattern of existing mock cubits) — planned: 21-12, with `MockEquipmentRepository` in 21-03 — delivered in 21-12
 - No framework install, no golden test (none exist).
 
 ---
