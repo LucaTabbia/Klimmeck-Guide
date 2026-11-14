@@ -258,6 +258,29 @@ void main() {
     );
   });
 
+  group('AmbushReportCarousel companion fate (BE Phase 23)', () {
+    testWidgets('an ambush page prints the companion defeat and «Prosegui a '
+        'piedi» (D-10, D-28)', (tester) async {
+      final json = ambushLostResultJson()
+        ..['ambush']['onFoot'] = true
+        ..['companion'] = companionOutcomeJson(
+          name: 'Ronzinante',
+          lifePoints: 0,
+          defeated: true,
+          fullLifeAt: '2026-10-27T13:40:00.000Z',
+        );
+
+      await _pump(tester, [questResult(json)]);
+
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text('Ronzinante è stato sconfitto: riposa e tornerà fra 2 h'),
+        findsOneWidget,
+      );
+      expect(find.text('Prosegui a piedi'), findsOneWidget);
+    });
+  });
+
   group('AmbushReportCarousel opening nudge (D-19)', () {
     testWidgets(
       'the nudge rests before moving, then moves and settles back (D-19)',

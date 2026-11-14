@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
 import 'package:klimmeck_guide/utils/quest_outcome_lines.dart';
 
 import '../helpers/fixtures/quest_result_fixtures.dart';
@@ -76,6 +77,101 @@ void main() {
     test('is null at zero and below (D-03)', () {
       expect(companionXpGainedLine(0), isNull);
       expect(companionXpGainedLine(-3), isNull);
+    });
+  });
+
+  group('companion fate (BE Phase 23)', () {
+    const wounded = QuestCompanionOutcome(
+      name: 'Fenrir',
+      lifeBefore: 300,
+      lifePoints: 120,
+      maxLifePoints: 300,
+    );
+    const unharmed = QuestCompanionOutcome(
+      name: 'Fenrir',
+      lifeBefore: 300,
+      lifePoints: 300,
+      maxLifePoints: 300,
+    );
+    final resolvedAt = DateTime.utc(2026, 10, 27, 12);
+    QuestCompanionOutcome defeated({DateTime? fullLifeAt}) =>
+        QuestCompanionOutcome(
+          name: 'Fenrir',
+          lifeBefore: 300,
+          lifePoints: 0,
+          maxLifePoints: 300,
+          isDefeated: true,
+          fullLifeAt: fullLifeAt,
+        );
+
+    test('life line when the life dropped: «Fenrir: 120 / 300 di vita» '
+        '(D-10, D-27)', () {
+      expect(companionFightLifeLine(wounded), 'Fenrir: 120 / 300 di vita');
+    });
+
+    test('no life line when unharmed or defeated (D-10)', () {
+      expect(companionFightLifeLine(unharmed), isNull);
+      expect(
+        companionFightLifeLine(
+          defeated(fullLifeAt: DateTime.utc(2026, 10, 27, 22)),
+        ),
+        isNull,
+      );
+      expect(companionFightLifeLine(null), isNull);
+    });
+
+    test('defeat line with fullLifeAt − resolvedAt: «… tornerà fra 10 h» '
+        '(D-10, D-27)', () {
+      expect(
+        companionDefeatResultLine(
+          defeated(fullLifeAt: DateTime.utc(2026, 10, 27, 22)),
+          resolvedAt,
+        ),
+        'Fenrir è stato sconfitto: riposa e tornerà fra 10 h',
+      );
+      expect(companionDefeatResultLine(wounded, resolvedAt), isNull);
+      expect(companionDefeatResultLine(null, resolvedAt), isNull);
+    });
+
+    test('a defeat without a usable date reads the name and the defeat only '
+        '(D-10)', () {
+      for (final fullLifeAt in <DateTime?>[
+        null,
+        resolvedAt,
+        DateTime.utc(2026),
+      ]) {
+        expect(
+          companionDefeatResultLine(
+            defeated(fullLifeAt: fullLifeAt),
+            resolvedAt,
+          ),
+          'Fenrir è stato sconfitto',
+          reason: '$fullLifeAt',
+        );
+      }
+    });
+
+    test('the xp line names the companion when served (D-20, D-27)', () {
+      expect(
+        companionXpGainedLine(12, name: 'Fenrir'),
+        'Fenrir guadagna 12 PE',
+      );
+      expect(companionXpGainedLine(12), 'Il tuo compagno guadagna 12 PE');
+      expect(
+        companionXpGainedLine(12, name: '  '),
+        'Il tuo compagno guadagna 12 PE',
+      );
+      expect(companionXpGainedLine(0, name: 'Fenrir'), isNull);
+    });
+
+    test('«Prosegui a piedi» only when on foot (D-28)', () {
+      final onFoot = questResult(
+        ambushLostResultJson()..['ambush']['onFoot'] = true,
+      );
+
+      expect(onFootLineOf(onFoot), 'Prosegui a piedi');
+      expect(onFootLineOf(questResult(ambushLostResultJson())), isNull);
+      expect(onFootLineOf(questResult(questResultJson())), isNull);
     });
   });
 
