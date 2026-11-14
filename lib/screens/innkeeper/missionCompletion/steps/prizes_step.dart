@@ -21,6 +21,7 @@ import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_details_route.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
@@ -457,7 +458,12 @@ class _PrizesStepState extends State<PrizesStep> {
       onRemove: () => _update(characterId, (prize) => prize.withPet(null)),
       child: pet == null
           ? Text(petId, style: KlimmeckGuideTheme.instance.bodyMedium)
-          : CompanionRow(pet: pet, size: _entrySize, showCoins: false),
+          : CompanionRow(
+              pet: pet,
+              size: _entrySize,
+              showCoins: false,
+              onLongPress: () => showCompanionDetails(context, pet: pet),
+            ),
     );
   }
 
