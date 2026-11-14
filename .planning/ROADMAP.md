@@ -148,7 +148,7 @@ Plans:
 - [x] 21-04-PLAN.md — Players' lock on the Board, the Map pawn and the satchel
 - [x] 21-05-PLAN.md — Players' lock in the Journal and the potion refusal
 - [x] 21-06-PLAN.md — Inner-place data: POI labels, place names, teleport destination, POI document
-- [ ] 21-07-PLAN.md — Teleport mode over destinations and the card to resume
+- [x] 21-07-PLAN.md — Teleport mode over destinations and the card to resume
 - [ ] 21-08-PLAN.md — Map: inner-POI layer and the teleport-only drop rule
 - [ ] 21-09-PLAN.md — Return to the wizard after the Map and the «Riprendi» flag
 - [ ] 21-10-PLAN.md — Mission draft models and wire inputs
@@ -185,7 +185,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 6/18 | In Progress | - |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 7/18 | In Progress | - |
 
 ---
 
