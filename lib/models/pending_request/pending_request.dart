@@ -98,6 +98,7 @@ class PendingRequest extends Equatable {
     required this.startDate,
     required this.quest,
     required this.character,
+    this.missionDraftStartedAt,
   });
 
   final String id;
@@ -106,6 +107,9 @@ class PendingRequest extends Equatable {
   final DateTime? startDate;
   final PendingRequestQuest quest;
   final PendingRequestCharacter character;
+
+  /// Bozza del flusso guidato avviata (BE Phase 22, D-17): la carta legge «Riprendi». Selezionato solo dopo il gate.
+  final DateTime? missionDraftStartedAt;
 
   factory PendingRequest.fromJson(Map<String, dynamic> json) {
     final startDate = json['startDate'] as String?;
@@ -118,8 +122,12 @@ class PendingRequest extends Equatable {
       character: PendingRequestCharacter.fromJson(
         json['character'] as Map<String, dynamic>,
       ),
+      missionDraftStartedAt: _instantOrNull(json['missionDraftStartedAt']),
     );
   }
+
+  static DateTime? _instantOrNull(Object? json) =>
+      json is String ? DateTime.tryParse(json)?.toUtc() : null;
 
   /// Confine di parsing per voce (Phase 9 IN-04): una voce malformata vale `null` e il chiamante la salta, la lista sopravvive.
   static PendingRequest? tryFromJson(Object? json) {
@@ -132,5 +140,11 @@ class PendingRequest extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, startDate, quest, character];
+  List<Object?> get props => [
+    id,
+    startDate,
+    quest,
+    character,
+    missionDraftStartedAt,
+  ];
 }

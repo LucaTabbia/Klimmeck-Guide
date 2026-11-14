@@ -14,6 +14,7 @@ class RequestCard extends Equatable {
     required this.participants,
     required this.entryCount,
     required this.totalSeats,
+    this.hasMissionDraft = false,
   });
 
   /// Chiave della carta (vedi [cardKeyOf]): la quest per una worldMission, la richiesta altrimenti.
@@ -29,6 +30,9 @@ class RequestCard extends Equatable {
   /// Tutte le voci della quest, nascosti compresi (C7).
   final int entryCount;
   final int totalSeats;
+
+  /// Una voce della carta ha la bozza del flusso guidato avviata (D-17): il bottone legge «Riprendi».
+  final bool hasMissionDraft;
 
   bool get hasHiddenParticipants => participants.length < entryCount;
 
@@ -59,6 +63,7 @@ class RequestCard extends Equatable {
     participants,
     entryCount,
     totalSeats,
+    hasMissionDraft,
   ];
 }
 
@@ -101,5 +106,8 @@ RequestCard? _cardOf(List<PendingRequest> entries) {
     participants: List.unmodifiable(visible),
     entryCount: entries.length,
     totalSeats: first.quest.totalSeats,
+    hasMissionDraft: entries.any(
+      (entry) => entry.missionDraftStartedAt != null,
+    ),
   );
 }

@@ -24,6 +24,10 @@ class RequestCardView extends StatelessWidget {
       ValueKey('innkeeper.teleport.$cardKey');
 
   static const String teleportLabel = 'Teletrasporta';
+  static const String completeLabel = 'Completa';
+
+  /// Bozza del flusso guidato già avviata (21-CONTEXT D-17).
+  static const String resumeLabel = 'Riprendi';
 
   static const String _fallbackTypeLabel = 'Richiesta';
 
@@ -87,7 +91,9 @@ class RequestCardView extends StatelessWidget {
                   onPressed: card.canComplete(serverNow)
                       ? () => onComplete(card)
                       : null,
-                  child: const Text('Completa'),
+                  child: Text(
+                    card.hasMissionDraft ? resumeLabel : completeLabel,
+                  ),
                 ),
               ],
             ),
