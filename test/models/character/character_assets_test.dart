@@ -214,6 +214,37 @@ void main() {
     });
   });
 
+  group('equipped owned entry (BE Phase 23)', () {
+    test('equippedOwnedPet is the owned entry of the equipped species '
+        '(D-23)', () {
+      final assets = CharacterAssets.fromJson({
+        'pet': catPetJson(),
+        'ownedPets': [
+          ownedPetJson(pet: petJson(), xp: 40),
+          ownedPetJson(pet: catPetJson(), xp: 7, name: 'Micio'),
+        ],
+      });
+
+      expect(assets.equippedOwnedPet?.pet.id, 'pet-cat');
+      expect(assets.equippedOwnedPet?.xp, 7);
+      expect(assets.equippedOwnedPet?.name, 'Micio');
+    });
+
+    test('equippedOwnedPet is null with no companion equipped or an '
+        'equipped species not owned (D-23)', () {
+      final unequipped = CharacterAssets.fromJson({
+        'ownedPets': [ownedPetJson()],
+      });
+      final notOwned = CharacterAssets.fromJson({
+        'pet': catPetJson(),
+        'ownedPets': [ownedPetJson(pet: petJson())],
+      });
+
+      expect(unequipped.equippedOwnedPet, isNull);
+      expect(notOwned.equippedOwnedPet, isNull);
+    });
+  });
+
   group('worn equipment (BE Phase 19)', () {
     test('parses the worn equipment from the wornEquipment key (D-04)', () {
       final assets = CharacterAssets.fromJson({

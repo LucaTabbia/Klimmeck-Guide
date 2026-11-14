@@ -204,4 +204,31 @@ void main() {
       );
     });
   });
+
+  group('recovery time (BE Phase 23)', () {
+    test('reads recoveryTime in milliseconds as a Duration (D-25)', () {
+      final pet = Pet.fromJson(petJson(recoveryTime: 600000));
+
+      expect(pet.recoveryTime, 600000);
+      expect(pet.recoveryDuration, const Duration(minutes: 10));
+    });
+
+    test('a missing, zero, negative or malformed recoveryTime reads null '
+        '(D-25)', () {
+      for (final value in <Object?>[null, 0, -5, '10']) {
+        final pet = Pet.fromJson(petJson(recoveryTime: value));
+
+        expect(pet.recoveryTime, isNull, reason: '$value');
+        expect(pet.recoveryDuration, isNull, reason: '$value');
+      }
+    });
+
+    test('toJson round trip keeps recoveryTime (D-25)', () {
+      final pet = Pet.fromJson(petJson(recoveryTime: 600000));
+
+      expect(Pet.fromJson(pet.toJson()), pet);
+      expect(pet.toJson()['recoveryTime'], 600000);
+      expect(pet, isNot(Pet.fromJson(petJson(recoveryTime: 1))));
+    });
+  });
 }
