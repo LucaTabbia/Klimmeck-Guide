@@ -17,6 +17,7 @@ class TearablePaper extends StatefulWidget {
     super.key,
     required this.child,
     required this.onTorn,
+    this.onExited,
     this.canTear = true,
     this.tearSeed = 0,
     this.isEnabled = true,
@@ -26,6 +27,9 @@ class TearablePaper extends StatefulWidget {
 
   final Widget child;
   final VoidCallback onTorn;
+
+  /// Il corpo strappato è uscito dallo schermo: mai dopo un [recompose].
+  final VoidCallback? onExited;
 
   /// false = il foglio resiste e torna intero (quest non accettabile, D-11).
   final bool canTear;
@@ -132,7 +136,12 @@ class TearablePaperState extends State<TearablePaper>
     if (!mounted) return;
     HapticFeedback.mediumImpact();
     widget.onTorn();
-    _exitController.animateTo(1, duration: _exitDuration, curve: Curves.easeIn);
+    await _exitController.animateTo(
+      1,
+      duration: _exitDuration,
+      curve: Curves.easeIn,
+    );
+    if (mounted && _isTorn) widget.onExited?.call();
   }
 
   void _springBack(double velocity) {

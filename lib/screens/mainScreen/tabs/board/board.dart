@@ -335,6 +335,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       // trascina né si accetta.
       isEnabled: isIdle && !selected.noEffect && !selected.awaitingRescue,
       onTorn: () => _accept(viewer, selected),
+      onExited: () => _leaveForTheMap(selected),
       child: ColoredBox(
         color: Colors.transparent,
         child: BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
@@ -350,14 +351,19 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
     ),
   );
 
-  /// Una quest che viaggia porta subito alla mappa, dove la pedina aspetta la
-  /// risposta del server con «In preparazione…» (utente 2026-11-14).
-  void _accept(QuestViewer viewer, Quest quest) {
-    context.read<QuestAcceptanceCubit>().accept(
-      characterId: viewer.characterId,
-      questId: quest.id,
-    );
-    if (_needsTravel(context, quest.id)) widget.onQuestAccepted?.call();
+  void _accept(QuestViewer viewer, Quest quest) => context
+      .read<QuestAcceptanceCubit>()
+      .accept(characterId: viewer.characterId, questId: quest.id);
+
+  /// Uscito il foglio strappato, una quest che viaggia porta alla mappa senza
+  /// aspettare il server: lì la pedina attende con «In preparazione…»; un
+  /// rifiuto già arrivato lascia sul Tabellone (utente 2026-11-14).
+  void _leaveForTheMap(Quest quest) {
+    if (!_needsTravel(context, quest.id)) return;
+    if (context.read<QuestAcceptanceCubit>().state is QuestAcceptanceFailed) {
+      return;
+    }
+    widget.onQuestAccepted?.call();
   }
 
   void _selectQuest(Quest quest) {
