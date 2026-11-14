@@ -99,9 +99,9 @@ created: 2026-11-14
 | 21-14-01 | 14 | 14 | GMFLOW-03 | T-21-50, T-21-65 | served list, lazy, no client filter; BE caps (10 fights, 10 entries, quantity 1..20) | widget | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 encounters_step_test, enemy_picker_test | ✅ green |
 | 21-14-02 | 14 | 14 | GMFLOW-04 | T-21-47, T-21-48, T-21-49 | served bounds, injuriesBefore locked per fight (D-14), order enforced, full corrections list | widget | `flutter test test/screens/innkeeper` | ❌ W0 fight_step_test, correction_section_test, injury_chips_test | ✅ green |
 | 21-14-03 | 14 | 14 | GMFLOW-04 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-14-SUMMARY.md && grep -q "Plan: 14 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-15-01 | 15 | 15 | GMFLOW-05 | T-21-51, T-21-52 | served catalogue only, free non-negative coins/xp | widget | `flutter test test/screens/innkeeper` | ❌ W0 prizes_step_test, prize_catalogue_sheet_test, quantity_stepper_test | ⬜ pending |
-| 21-15-02 | 15 | 15 | GMFLOW-06 | T-21-53 | explicit neutral confirmation before completing | widget | `flutter test test/screens/innkeeper` | ❌ W0 recap_step_test | ⬜ pending |
-| 21-15-03 | 15 | 15 | GMFLOW-06 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-15-SUMMARY.md && grep -q "Plan: 15 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-15-01 | 15 | 15 | GMFLOW-05 | T-21-51, T-21-52 | served catalogue only, free non-negative coins/xp | widget | `flutter test test/screens/innkeeper` | ❌ W0 prizes_step_test, prize_catalogue_sheet_test, quantity_stepper_test | ✅ green |
+| 21-15-02 | 15 | 15 | GMFLOW-06 | T-21-53 | explicit neutral confirmation before completing | widget | `flutter test test/screens/innkeeper` | ❌ W0 recap_step_test | ✅ green |
+| 21-15-03 | 15 | 15 | GMFLOW-06 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-15-SUMMARY.md && grep -q "Plan: 15 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-16-01 | 16 | 16 | GMFLOW-07, GMFLOW-08 | T-21-55, T-21-56, T-21-57 | gate before any selection; deviation stops | gate + document pin | schema gate block + `flutter test test/graphql/character_fragment_test.dart test/graphql/pending_request_documents_test.dart` | ✅ extend | ⬜ pending |
 | 21-16-02 | 16 | 16 | GMFLOW-02, GMFLOW-06 | T-21-66 | «Completa» and the resume open the wizard, innkeeper-only path | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components` | ✅ retarget | ⬜ pending |
 | 21-16-03 | 16 | 16 | GMFLOW-08 | — | targeted regression + bookkeeping | docs | `flutter test test/graphql test/models test/repository test/screens/innkeeper test/screens/mainScreen test/tool` | — | ⬜ pending |
@@ -120,7 +120,7 @@ created: 2026-11-14
 
 - [x] `test/helpers/fixtures/mission_fixtures.dart` — `missionDraftJson({step, fights, …})`, `missionFightJson`, `simulatedOutcomeJson`, `missionEnemyJson`, `prizeOptionsJson`, `pointOfInterestJson` — planned: 21-10 Task 1 (`pointOfInterestJson` in `travel_fixtures.dart`, 21-06 Task 1) — delivered in 21-10
 - [x] `test/models/mission/*_test.dart` — fromJson/toJson/Equatable/lenient per entry — planned: 21-10 — delivered in 21-10
-- [x] `test/screens/innkeeper/missionCompletion/**` — cubits (bloc_test) and pages (widget) — planned: 21-12..21-15
+- [x] `test/screens/innkeeper/missionCompletion/**` — cubits (bloc_test) and pages (widget) — planned: 21-12..21-15 — delivered in 21-15
 - [x] `test/screens/mainScreen/tabs/map/layers/teleport_poi_layer_test.dart`, `utils/teleport_drop_test.dart` — planned: 21-08
 - [x] `test/repository/equipment_failure_test.dart`, `equipment_repository_test.dart` (21-03); `test/utils/mission_lines_test.dart` (21-01)
 - [x] Mocks: `MockMissionDraftCubit`/`MockMissionEnemiesCubit` in `test/helpers/mocks.dart` (pattern of existing mock cubits) — planned: 21-12, with `MockEquipmentRepository` in 21-03 — delivered in 21-12
