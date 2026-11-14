@@ -63,7 +63,7 @@ class TeleportModeChip extends StatelessWidget {
 
   String get _instruction => isTeleporting
       ? 'Teletrasporto in corso…'
-      : 'Trascina $characterName su una città';
+      : 'Trascina $characterName su una città o un luogo';
 
   Widget _buildCancel(TextStyle? labelStyle) {
     return Semantics(

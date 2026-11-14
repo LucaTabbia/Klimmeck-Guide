@@ -38,6 +38,7 @@ import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
 import 'layers/teleport_pawn_layer.dart';
+import 'layers/teleport_poi_layer.dart';
 import 'layers/travel_route_layer.dart';
 import 'mapAvailabilityCubit/map_availability_cubit.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
@@ -295,19 +296,21 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     ];
   }
 
-  /// 10-CONTEXT D-15/D-20/C14: solo la pedina scelta e le città come bersagli.
+  /// 10-CONTEXT D-15/D-20/C14, D-01/D-29: pedina, città e luoghi interni come bersagli.
   List<Widget> _teleportLayers(TeleportActive state) {
     return [
       _buildMapImage(),
       CityMarkersLayer(cities: widget.cities, zoomNotifier: _zoomNotifier),
+      TeleportPoiLayer(places: state.places, zoomNotifier: _zoomNotifier),
       TeleportPawnLayer(
         target: state.target,
+        places: state.places,
         cities: widget.cities,
         zoomNotifier: _zoomNotifier,
         mapController: _mapController,
         canDrag: !state.isTeleporting,
         onDragUpdate: _handleCharacterDragUpdate,
-        onDragEnd: _handleTeleportDragEnd,
+        onDrop: _handleTeleportDrop,
       ),
     ];
   }
@@ -518,9 +521,8 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
   }
 
   /// C16: il cubit ignora il luogo in cui il gruppo si trova già.
-  void _handleTeleportDragEnd(LatLng? _, City? targetCity) {
+  void _handleTeleportDrop(TeleportDestination? destination) {
     _endPawnDrag();
-    final destination = TeleportDestination.ofCity(targetCity);
     if (destination == null) return;
     context.read<TeleportModeCubit>().teleportTo(destination);
   }
