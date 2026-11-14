@@ -19,6 +19,9 @@ enum PetRenameFailure {
   notOwned,
   notFound,
   badUserInput,
+
+  /// Guardia del solo proprietario (`FORBIDDEN`): riprovare non cambia nulla.
+  forbidden,
   unauthenticated,
   connection,
 
@@ -28,6 +31,11 @@ enum PetRenameFailure {
 
   /// `successful: false` senza codice.
   declined,
+
+  /// Un codice servito che l'app non conosce: riprovare non cambia nulla.
+  refused,
+
+  /// Nessun codice né errore di rete.
   unknown,
 }
 
@@ -54,6 +62,8 @@ PetRenameFailure petRenameFailureFrom(OperationException exception) {
     notFoundCode => PetRenameFailure.notFound,
     badUserInputCode => PetRenameFailure.badUserInput,
     unauthenticatedCode => PetRenameFailure.unauthenticated,
-    _ => PetRenameFailure.unknown,
+    forbiddenCode => PetRenameFailure.forbidden,
+    null => PetRenameFailure.unknown,
+    _ => PetRenameFailure.refused,
   };
 }
