@@ -172,6 +172,58 @@ void main() {
     });
   });
 
+  group('companion level (BE Phase 23)', () {
+    OwnedPet entryOf(Map<String, dynamic> json) => OwnedPet.tryFromJson(json)!;
+
+    test('reads the companion level and its own max life (D-37, D-38)', () {
+      final owned = entryOf(ownedPetJson(level: 3, maxLifePoints: 140));
+
+      expect(owned.level, 3);
+      expect(owned.ownMaxLifePoints, 140);
+    });
+
+    test('a missing or malformed level or own max keeps the entry and reads '
+        'null (D-38)', () {
+      final bare = entryOf(ownedPetJson());
+
+      expect(bare.level, isNull);
+      expect(bare.ownMaxLifePoints, isNull);
+      expect(entryOf(ownedPetJson(level: 0)).level, isNull);
+      expect(entryOf(ownedPetJson(level: '3')).level, isNull);
+      expect(entryOf(ownedPetJson(maxLifePoints: -1)).ownMaxLifePoints, isNull);
+      expect(entryOf(ownedPetJson(maxLifePoints: 0)).ownMaxLifePoints, isNull);
+    });
+
+    test('effectiveMaxLifePoints is the own max, else the species max '
+        '(D-38)', () {
+      final species = petJson(maxLifePoints: 100);
+
+      expect(
+        entryOf(
+          ownedPetJson(pet: species, maxLifePoints: 140),
+        ).effectiveMaxLifePoints,
+        140,
+      );
+      expect(entryOf(ownedPetJson(pet: species)).effectiveMaxLifePoints, 100);
+      expect(entryOf(ownedPetJson()).effectiveMaxLifePoints, isNull);
+    });
+
+    test('toJson round trip keeps level and the own max (D-37)', () {
+      final owned = entryOf(ownedPetJson(level: 3, maxLifePoints: 140));
+
+      expect(OwnedPet.tryFromJson(owned.toJson()), owned);
+      expect(owned.toJson()['level'], 3);
+      expect(owned.toJson()['maxLifePoints'], 140);
+    });
+
+    test('props tell two entries apart by level and own max (D-37, D-38)', () {
+      final base = entryOf(ownedPetJson());
+
+      expect(entryOf(ownedPetJson(level: 2)), isNot(base));
+      expect(entryOf(ownedPetJson(maxLifePoints: 140)), isNot(base));
+    });
+  });
+
   test('a bare catalogue pet map is dropped (D-03, D-15)', () {
     expect(OwnedPet.tryFromJson(petJson()), isNull);
   });

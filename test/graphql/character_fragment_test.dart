@@ -195,6 +195,21 @@ void main() {
     expect(assets, contains('ownedPets { xp currentLifePoints pet { $pet } }'));
   });
 
+  test('ownedPets and the equipped pet carry maxLifePoints and imagePath '
+      '(D-09, D-34)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final ownedPets = assets.split('ownedPets {').last;
+    final equippedPet = assets.split(' pet { ')[1];
+
+    expect(ownedPets, contains('maxLifePoints'));
+    expect(ownedPets, contains('imagePath'));
+    expect(equippedPet, contains('maxLifePoints'));
+    expect(equippedPet, contains('imagePath'));
+  });
+
   group('worn equipment (BE Phase 19)', () {
     final assets = CharacterFragment.assetsFields.replaceAll(
       RegExp(r'\s+'),

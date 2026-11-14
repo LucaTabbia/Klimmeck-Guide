@@ -45,6 +45,8 @@ Map<String, dynamic> ownedPetJson({
   Object? lifeAsOf,
   Object? fullLifeAt,
   Object? potionRecoveryUntil,
+  Object? level,
+  Object? maxLifePoints,
 }) => {
   'pet': pet ?? petJson(),
   'xp': xp,
@@ -54,6 +56,8 @@ Map<String, dynamic> ownedPetJson({
   if (lifeAsOf != null) 'lifeAsOf': lifeAsOf,
   if (fullLifeAt != null) 'fullLifeAt': fullLifeAt,
   if (potionRecoveryUntil != null) 'potionRecoveryUntil': potionRecoveryUntil,
+  if (level != null) 'level': level,
+  if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
 };
 
 /// Compagno non da sella (gatto): nessuna velocità (D-07).

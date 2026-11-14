@@ -8,6 +8,7 @@ final DateTime t0 = DateTime.utc(2026, 11, 14, 10);
 OwnedPet ownedWith({
   int currentLifePoints = 20,
   int? maxLifePoints = 100,
+  int? ownMaxLifePoints,
   bool isDefeated = false,
   DateTime? lifeAsOf,
   DateTime? fullLifeAt,
@@ -24,6 +25,7 @@ OwnedPet ownedWith({
   ),
   xp: 0,
   currentLifePoints: currentLifePoints,
+  ownMaxLifePoints: ownMaxLifePoints,
   isDefeated: isDefeated,
   lifeAsOf: lifeAsOf,
   fullLifeAt: fullLifeAt,
@@ -171,6 +173,57 @@ void main() {
           isEquipped: false,
         ),
         const CompanionSteady(life: 20, maxLifePoints: null),
+      );
+    });
+  });
+
+  group('companion levels', () {
+    final fullLifeAt = t0.add(const Duration(hours: 2));
+
+    test('a levelled companion rests up to its own max (D-37, D-38)', () {
+      final owned = ownedWith(
+        currentLifePoints: 100,
+        ownMaxLifePoints: 200,
+        lifeAsOf: t0,
+        fullLifeAt: fullLifeAt,
+      );
+
+      expect(
+        companionVitalityOf(
+          owned,
+          t0.add(const Duration(hours: 1)),
+          isEquipped: false,
+        ),
+        const CompanionResting(
+          life: 150,
+          maxLifePoints: 200,
+          remaining: Duration(hours: 1),
+        ),
+      );
+      expect(
+        companionVitalityOf(owned, fullLifeAt, isEquipped: false),
+        const CompanionSteady(life: 200, maxLifePoints: 200),
+      );
+    });
+
+    test('without an own max the species max is used (D-38)', () {
+      final owned = ownedWith(
+        currentLifePoints: 50,
+        lifeAsOf: t0,
+        fullLifeAt: fullLifeAt,
+      );
+
+      expect(
+        companionVitalityOf(
+          owned,
+          t0.add(const Duration(hours: 1)),
+          isEquipped: false,
+        ),
+        const CompanionResting(
+          life: 75,
+          maxLifePoints: 100,
+          remaining: Duration(hours: 1),
+        ),
       );
     });
   });

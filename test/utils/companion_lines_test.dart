@@ -83,4 +83,15 @@ void main() {
     expect(companionNameConfirmLabel, 'Chiamalo così');
     expect(companionNameSkipLabel, 'Più tardi');
   });
+
+  test('level line «Livello 3» (D-37)', () {
+    expect(companionLevelLine(3), 'Livello 3');
+    expect(companionLevelLine(null), isNull);
+  });
+
+  test('species and level «Worg · Livello 3», species alone without level '
+      '(D-37)', () {
+    expect(companionSpeciesLevelLine('Worg', 3), 'Worg · Livello 3');
+    expect(companionSpeciesLevelLine('Worg', null), 'Worg');
+  });
 }
