@@ -64,4 +64,31 @@ The BE adds fields, one argument, operations, codes and push categories. Today's
 
 ## Completed after the research
 
-_To be written by the orchestrator after `22-RESEARCH.md` and the BE `23-RESEARCH.md` (final wire, hard rules, plan order)._
+Written on 2026-11-14. Where this section and the rest of the file disagree, this section wins. File:line evidence in `22-RESEARCH.md`; rulings in `22-CONTEXT.md` D-23..D-35.
+
+### Final wire (D-23..D-33)
+
+The contract is the SDL of the BE `23-RESEARCH.md` §Q12 (read it from the BE working tree, branch `feat/23-sconfitta-riposo-recupero-compagni`) **plus** `CompanionOutcome.lifeBefore: Int!`, with `QuestResult.companion` served whenever a companion fought (D-27). The draft table above reads as follows:
+
+- **Key:** the catalogue pet id everywhere; there is NO `OwnedPet.id` and no `ownedPetId` (D-23). `useItem(itemId: ID!, petId: ID): UseItemResult!`; `renamePet(request: RenamePetRequest!): CommonResponse!` with `RenamePetRequest { id: String!, name: String, petId: String! }` (`id` = character id).
+- **`OwnedPet`:** `currentLifePoints`, `defeated: Boolean!`, `fullLifeAt: DateTime`, `lifeAsOf: DateTime`, `name: String`, `pet`, `potionRecoveryUntil: DateTime`, `xp`. **`Pet.recoveryTime: Int`** nullable, milliseconds.
+- **`QuestResult.companion: CompanionOutcome`** { `defeated`, `fullLifeAt`, `lifeBefore`, `lifePoints`, `maxLifePoints`, `name` }; no `AmbushReport.companion` (an ambush report is a `QuestResult`); `AmbushReport.onFoot: Boolean!`.
+- **Guided flow:** `MissionFightOutcome.companion: MissionCompanion` { `lifeBefore`, `maxLifePoints`, `name`, `pet` }, `MissionFightEffects.companionLifeAfter: Int`, `ParticipantOverrideInput.companionLifeAfter: Int`.
+- **Pushes:** `PushEventType.ambush` (every ambush; `ambushDefeat` still accepted, D-30), `PushEventType.petRecovered`.
+- **Refusals:** `PET_DEFEATED` (equip, potion), `PET_POTION_RECOVERING` with `extensions.recoveryUntil`, `ITEM_NO_EFFECT` (full life), `PET_NAME_INVALID`; `MISSION_IN_PROGRESS` / `AWAITING_AID` on a companion potion as on the character's; the rename is not locked.
+- A rename of any of these after the BE merge is fixed in the gated plan in ONE fragment/document and ONE parser: every model reads its keys in one place.
+
+### Hard rules
+
+- **Gated selection (Pitfall 1):** every new field is modelled lenient pre-gate (default `false` / `null`) and selected ONLY in the gate plan. Exception: `Pet.maxLifePoints` is in today's SDL and is selected pre-gate. **`UseItem` variable (Pitfall 2):** the document gains `petId` only in the gate plan; pre-gate the repository accepts the target but the UI cannot reach it.
+- **One switch (Pitfall 3):** companion potions and every rename entry point are hidden behind ONE constant flipped in the gate plan; no other pre-gate plan exposes them.
+- **Live life (D-09, D-24):** `CompanionVitalityCubit`, Journal-scoped, on the shape of `SpellRecoveryCubit` / `ServerDeadlineCountdown` (not `TravelProgressCubit`); pure rule `companionVitalityOf` interpolating between (`currentLifePoints` at `lifeAsOf`) and (`maxLifePoints` at `fullLifeAt`), rounding as Pitfall 8; never from `recoveryTime`. At `fullLifeAt` the parchment re-enables locally (the BE judges equip on the same date).
+- **Display name:** ONE function `companionDisplayNameOf` (name, else species) for every wording (D-20); the sell list keeps the name (Pitfall 9).
+- **Cards (D-22, D-34, D-35):** one details-sheet frame shared with the spell sheet; `CompanionCard` with the pet image; long press in Journal, shop list and basket, quest-sheet prize, innkeeper prize rows; the result sheet stays text. `equipment_info_display.dart` is not formatter-clean: the first plan that touches it starts with `style(shop): format equipment_info_display.dart`.
+- **Potion row (D-32):** tappable when the character or a companion can drink; «Bevi» disabled inside during the character's wait; companions in their own wait not listed.
+- **Result sheet (D-27, Pitfall 7):** defeat duration = `fullLifeAt − resolvedAt`, never from now; no ticker on a dated record.
+- **Ambush (D-28, D-30, Pitfall 5):** no new mechanism for the mid-travel parchments; one notification category «Imboscate» keeping its `storageKey` and accepting both wire types; the push banner `ambush|<result id>` is suppressed when the carousel opens live. «Prosegui a piedi» printed from `onFoot`.
+- **Name (D-31):** `name_rules.dart` extracted from the character draft (same form rules, refactor first); keyboard on a parchment sheet in landscape as Pitfall 6 (see the memory of the Phase 21 UAT: Scaffold/keyboard traps).
+- **Registry:** 54 → 55 (`RenamePet`); every test that pins the count is updated RED-first in the plan that adds the document (Pitfall 10).
+- **Requirements:** PET-01..PET-09 of `22-RESEARCH.md` §Phase Requirements; the first plan writes them in `.planning/REQUIREMENTS.md` and in the ROADMAP (Pitfall 14).
+- Copy: the copy table of `22-RESEARCH.md` (provisional) with D-30 («Imboscate») and D-28 («Prosegui a piedi»); no other new copy. Plan order: the 15 plans of `22-RESEARCH.md` §Recommended plan order (22-14 and 22-15 may merge; `OwnedPet.id` dropped from 22-01).
