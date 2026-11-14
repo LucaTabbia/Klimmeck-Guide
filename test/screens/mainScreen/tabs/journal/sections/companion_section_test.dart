@@ -4,17 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/companion_content.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/owned_companion_row.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/companion_lines.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../../helpers/fakes/fake_server_clock_service.dart';
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../../helpers/haptic_recorder.dart';
@@ -26,6 +31,7 @@ import '../../../../../helpers/test_app.dart';
 const _horse = 'pet-travel-horse';
 const _cat = 'pet-cat';
 const _lightImpact = 'HapticFeedbackType.lightImpact';
+final _t0 = DateTime.utc(2026, 11, 14, 10);
 
 Character _character({
   String? equipped = _horse,
@@ -60,6 +66,11 @@ Finder _ownedPet(String petId) => find.byKey(ValueKey('owned-pet-$petId'));
 
 Finder _xpLine(String petId) => find.byKey(ValueKey('companion-xp-$petId'));
 
+Finder _lifeLine(String petId) => find.byKey(ValueKey('companion-life-$petId'));
+
+Finder _statusLine(String petId) =>
+    find.byKey(ValueKey('companion-status-$petId'));
+
 Finder _inSlot(Finder matching) =>
     find.descendant(of: _slotBox(), matching: matching);
 
@@ -74,6 +85,8 @@ CompanionCard _cardOf(WidgetTester tester, Finder scope) =>
 void main() {
   late MockCharacterCubit characterCubit;
   late MockCompanionCubit companionCubit;
+  late FakeServerClockService clock;
+  late List<String> detailsAsked;
 
   setUpAll(() => registerFallbackValue(_character()));
 
@@ -83,6 +96,8 @@ void main() {
   setUp(() {
     characterCubit = MockCharacterCubit();
     companionCubit = MockCompanionCubit();
+    clock = FakeServerClockService(_t0);
+    detailsAsked = [];
     stubToggle(CompanionToggleIntent.equip);
     seedSvgCache([
       CloudinaryAssets.emptyCardSheet,
@@ -111,13 +126,23 @@ void main() {
     );
     await tester.pumpWidget(
       buildTestApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<CharacterCubit>.value(value: characterCubit),
-            BlocProvider<CompanionCubit>.value(value: companionCubit),
-          ],
-          child: const Scaffold(
-            body: SingleChildScrollView(child: CompanionSection(size: 60)),
+        home: RepositoryProvider<ServerClockService>.value(
+          value: clock,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<CharacterCubit>.value(value: characterCubit),
+              BlocProvider<CompanionCubit>.value(value: companionCubit),
+            ],
+            child: CompanionVitalityScope(
+              child: Scaffold(
+                body: SingleChildScrollView(
+                  child: CompanionSection(
+                    size: 60,
+                    onShowDetails: detailsAsked.add,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -368,26 +393,30 @@ void main() {
       verify(() => companionCubit.toggle(character, _horse)).called(1);
     });
 
-    testWidgets('the life of the owned companion is shown nowhere (D-18)', (
-      tester,
-    ) async {
-      await pump(
-        tester,
-        character: _character(
-          equipped: null,
-          owned: [
-            ownedPetJson(
-              pet: petJson(maxXp: 300),
-              xp: 40,
-              currentLifePoints: 7,
-            ),
-          ],
-        ),
-      );
+    testWidgets(
+      'the life of the owned companion is shown under its experience (D-09)',
+      (tester) async {
+        await pump(
+          tester,
+          character: _character(
+            equipped: null,
+            owned: [
+              ownedPetJson(
+                pet: petJson(maxXp: 300, maxLifePoints: 12),
+                xp: 40,
+                currentLifePoints: 7,
+              ),
+            ],
+          ),
+        );
 
-      expect(_xpLine(_horse), findsOneWidget);
-      expect(find.textContaining('Vita'), findsNothing);
-    });
+        expect(tester.widget<Text>(_lifeLine(_horse)).data, 'Vita: 7 / 12');
+        expect(
+          tester.getTopLeft(_xpLine(_horse)).dy,
+          lessThan(tester.getTopLeft(_lifeLine(_horse)).dy),
+        );
+      },
+    );
 
     testWidgets(
       'tapping a row with the experience line still toggles the companion (D-03)',
@@ -402,6 +431,153 @@ void main() {
         verify(() => companionCubit.toggle(character, _horse)).called(1);
       },
     );
+  });
+
+  group('companion life, rest and defeat (FE Phase 22)', () {
+    Map<String, dynamic> restingWorg({bool defeated = false}) => ownedPetJson(
+      pet: petJson(id: 'pet-worg', name: 'Worg', maxLifePoints: 100),
+      currentLifePoints: 20,
+      defeated: defeated ? true : null,
+      lifeAsOf: _t0.toIso8601String(),
+      fullLifeAt: _t0.add(const Duration(minutes: 80)).toIso8601String(),
+    );
+
+    testWidgets('the number rises live with the server clock (D-09, D-24)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(equipped: null, owned: [restingWorg()]),
+      );
+
+      expect(tester.widget<Text>(_lifeLine('pet-worg')).data, 'Vita: 20 / 100');
+      expect(
+        tester.widget<Text>(_statusLine('pet-worg')).data,
+        companionRestingLine(const Duration(minutes: 80)),
+      );
+
+      clock.advance(const Duration(minutes: 20));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(tester.widget<Text>(_lifeLine('pet-worg')).data, 'Vita: 40 / 100');
+    });
+
+    testWidgets('at fullLifeAt the defeated parchment re-enables locally '
+        '(D-24, D-09)', (tester) async {
+      final character = await pump(
+        tester,
+        character: _character(
+          equipped: null,
+          owned: [restingWorg(defeated: true)],
+        ),
+      );
+
+      await tapCard(tester, _ownedPet('pet-worg'));
+      verifyNever(() => companionCubit.toggle(any(), any()));
+
+      clock.advance(const Duration(minutes: 81));
+      await tester.pump(const Duration(seconds: 1));
+      await tapCard(tester, _ownedPet('pet-worg'));
+
+      verify(() => companionCubit.toggle(character, 'pet-worg')).called(1);
+      expect(_statusLine('pet-worg'), findsNothing);
+    });
+
+    testWidgets('the life line uses the companion\'s own max (D-38, D-09)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(
+          equipped: null,
+          owned: [
+            ownedPetJson(
+              pet: petJson(maxLifePoints: 100),
+              currentLifePoints: 150,
+              maxLifePoints: 200,
+            ),
+          ],
+        ),
+      );
+
+      expect(tester.widget<Text>(_lifeLine(_horse)).data, 'Vita: 150 / 200');
+    });
+
+    testWidgets("the slot shows the equipped companion's life (D-04, D-09)", (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(
+          owned: [
+            ownedPetJson(
+              pet: petJson(maxLifePoints: 12),
+              currentLifePoints: 10,
+            ),
+          ],
+        ),
+      );
+
+      final slotLife = find.byKey(CompanionContent.slotLifeKey);
+      expect(tester.widget<Text>(slotLife).data, 'Vita: 10 / 12');
+      expect(
+        tester.getTopLeft(_slotBox()).dy,
+        lessThan(tester.getTopLeft(slotLife).dy),
+      );
+    });
+
+    testWidgets('no slot life when the slot is empty (D-04)', (tester) async {
+      await pump(tester, character: _character(equipped: null));
+
+      expect(find.byKey(CompanionContent.slotLifeKey), findsNothing);
+    });
+
+    testWidgets('the long press on a parchment and on the slot asks for the '
+        'details (D-22)', (tester) async {
+      final character = await pump(tester);
+
+      await tester.ensureVisible(_ownedPet(_cat));
+      await tester.pumpAndSettle();
+      await tester.longPress(_ownedPet(_cat));
+      await tester.pumpAndSettle();
+      await tester.longPress(_slotCard(_horse));
+      await tester.pumpAndSettle();
+
+      expect(detailsAsked, [_cat, _horse]);
+      verifyNever(() => companionCubit.toggle(any(), any()));
+
+      await tapCard(tester, _ownedPet(_cat));
+
+      verify(() => companionCubit.toggle(character, _cat)).called(1);
+    });
+
+    testWidgets('the long press asks for the details during a mission (D-22)', (
+      tester,
+    ) async {
+      await pump(tester, character: _character(missionInProgress: true));
+
+      await tester.ensureVisible(_ownedPet(_cat));
+      await tester.pumpAndSettle();
+      await tester.longPress(_ownedPet(_cat));
+      await tester.pumpAndSettle();
+
+      expect(detailsAsked, [_cat]);
+    });
+
+    testWidgets('a named companion reads its name on the slot card (D-20)', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        character: _character(
+          owned: [ownedPetJson(pet: petJson(), name: 'Lampo', level: 2)],
+        ),
+      );
+
+      final card = _cardOf(tester, _slotBox());
+      expect(card.name, 'Lampo');
+      expect(card.level, 2);
+    });
   });
 
   group('mission in progress (Phase 21)', () {
