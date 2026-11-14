@@ -941,12 +941,6 @@ void main() {
       expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
-    // il progresso della lettura gira per sempre: niente pumpAndSettle
-    Future<void> settleRoute(WidgetTester tester) async {
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-    }
-
     Future<void> pushPanel(
       WidgetTester tester,
       TeleportModeState teleportState,
@@ -995,7 +989,7 @@ void main() {
         ),
       );
       await tester.tap(find.text('apri'));
-      await settleRoute(tester);
+      await tester.pumpAndSettle();
     }
 
     // il wizard lasciato durante la sua lettura riporta il pannello in cima:
@@ -1005,7 +999,7 @@ void main() {
       await pushPanel(tester, const TeleportPreparing(characterId: 'char-bea'));
 
       await tester.binding.handlePopRoute();
-      await settleRoute(tester);
+      await tester.pumpAndSettle();
 
       expect(find.byType(InnkeeperPanelScreen), findsNothing);
       verify(() => teleportCubit.cancel()).called(1);

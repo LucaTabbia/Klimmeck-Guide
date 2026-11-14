@@ -23,8 +23,8 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Pannello della Locanda (10-CONTEXT D-01/D-05..D-09): utility screen con la
 /// coda viva del GM; il loader solo fino al primo snapshot (apertura
 /// esplicita). Si chiude da solo su `FORBIDDEN` o sul ruolo perso (D-04).
-/// «Teletrasporta» prepara la modalità della shell: il salto alla Mappa lo fa
-/// `TeleportModeLanding` (D-15). «Genera missioni» sta in cima, fuori dalla
+/// Il teletrasporto parte dal wizard (passo «Luogo», UAT 2026-11-14): il salto
+/// alla Mappa lo fa `TeleportModeLanding` (D-15). «Genera missioni» sta in cima, fuori dalla
 /// coda (14-CONTEXT D-08). Richiede [PendingRequestsCubit], [AuthCubit],
 /// [TeleportModeCubit] e [QuestGenerationCubit] sopra di sé.
 class InnkeeperPanelScreen extends StatelessWidget {
@@ -114,8 +114,9 @@ class InnkeeperPanelScreen extends StatelessWidget {
     );
   }
 
-  /// Una lettura per il teletrasporto vive col pannello: uscire la annulla.
-  /// Con la modalità già attiva il pop è l'atterraggio sulla Mappa (D-15).
+  /// Una lettura avviata dal wizard e lasciata in volo tornando al pannello
+  /// vive col pannello: uscire la annulla. Con la modalità già attiva il pop è
+  /// l'atterraggio sulla Mappa (D-15).
   static void _cancelTeleportRead(BuildContext context) {
     final teleport = context.read<TeleportModeCubit>();
     if (teleport.state is TeleportPreparing) teleport.cancel();
@@ -148,6 +149,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
   }
 
   /// Con il wizard sopra il pannello l'avviso lo dà il wizard: uno solo (D-28).
+  /// Il pannello lo dà per una lettura che il wizard ha lasciato in volo.
   static void _onTeleportPreparationFailed(
     BuildContext context,
     TeleportModeState _,
@@ -172,16 +174,6 @@ class InnkeeperPanelScreen extends StatelessWidget {
       confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
     );
     if (confirmed && !generation.isClosed) await generation.generate();
-  }
-
-  /// Legge il primo partecipante e porta con sé gli altri (UAT 2026-11-01).
-  void _teleport(BuildContext context, RequestCard card) {
-    final [first, ...companions] = card.participants;
-    context.read<TeleportModeCubit>().prepare(
-      characterId: first.id,
-      name: first.name,
-      companionIds: [for (final companion in companions) companion.id],
-    );
   }
 
   /// Dopo la Mappa (21-CONTEXT D-28, Pitfall 1/5): la carta si ricostruisce
@@ -271,22 +263,16 @@ class InnkeeperPanelScreen extends StatelessWidget {
     if (!state.isLoaded) return const Center(child: KGLoader());
     final cards = state.cards;
     if (cards.isEmpty) return const _EmptyQueue();
-    return BlocSelector<TeleportModeCubit, TeleportModeState, String?>(
-      selector: (teleport) =>
-          teleport is TeleportPreparing ? teleport.characterId : null,
-      builder: (_, preparingCharacterId) => ListView.separated(
-        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
-        itemCount: cards.length,
-        separatorBuilder: (_, _) =>
-            const SizedBox(height: KlimmeckGuideTheme.spacingMd),
-        itemBuilder: (_, index) => RequestCardView(
-          key: RequestCardView.keyFor(cards[index].cardKey),
-          card: cards[index],
-          serverNow: state.serverNow,
-          onComplete: (card) => _complete(panelContext, card),
-          preparingCharacterId: preparingCharacterId,
-          onTeleport: (card) => _teleport(panelContext, card),
-        ),
+    return ListView.separated(
+      padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
+      itemCount: cards.length,
+      separatorBuilder: (_, _) =>
+          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
+      itemBuilder: (_, index) => RequestCardView(
+        key: RequestCardView.keyFor(cards[index].cardKey),
+        card: cards[index],
+        serverNow: state.serverNow,
+        onComplete: (card) => _complete(panelContext, card),
       ),
     );
   }
