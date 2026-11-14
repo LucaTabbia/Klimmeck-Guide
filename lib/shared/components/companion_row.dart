@@ -7,8 +7,8 @@ import 'cards/companion_card.dart';
 import 'coins_display.dart';
 
 /// Riga di un compagno (negozio, carrello, premi dell'oste): carta con immagine
-/// e nome (D-22, D-34), prezzo e righe di testo; il tocco seleziona, il tocco
-/// prolungato apre il dettaglio (D-35).
+/// e nome (D-22, D-34), prezzo e righe di testo; la velocità sta solo sulla
+/// carta. Il tocco seleziona, il tocco prolungato apre il dettaglio (D-35).
 class CompanionRow extends StatelessWidget {
   const CompanionRow({
     super.key,
@@ -67,7 +67,6 @@ class CompanionRow extends StatelessWidget {
   }
 
   Widget _buildTexts() {
-    final speed = companionSpeedLabel(pet);
     final attack = petAttackLine(pet);
     final defense = petDefenseLine(pet);
     final style = KlimmeckGuideTheme.instance.bodyMedium;
@@ -75,8 +74,6 @@ class CompanionRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (speed != null)
-          Text(speed, key: ValueKey('companion-speed-${pet.id}'), style: style),
         if (attack != null)
           Text(
             attack,

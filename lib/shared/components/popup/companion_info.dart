@@ -28,7 +28,6 @@ class CompanionInfo extends StatelessWidget {
   static const Key statusKey = ValueKey('companion.info.status');
   static const Key potionWaitKey = ValueKey('companion.info.potionWait');
   static const Key recoveryTimeKey = ValueKey('companion.info.recoveryTime');
-  static const Key speedKey = ValueKey('companion.info.speed');
   static const Key attackKey = ValueKey('companion.info.attack');
   static const Key defenseKey = ValueKey('companion.info.defense');
   static const Key xpKey = ValueKey('companion.info.xp');
@@ -76,7 +75,6 @@ class CompanionInfo extends StatelessWidget {
       },
       if (wait != null) potionWaitKey: companionPotionWaitLine(wait),
       recoveryTimeKey: companionRecoveryTimeLine(pet.recoveryDuration),
-      speedKey: companionSpeedLabel(pet),
       attackKey: petAttackLine(pet),
       defenseKey: petDefenseLine(pet),
       if (currentXp != null) xpKey: companionXpLine(currentXp, pet.maxXp),
