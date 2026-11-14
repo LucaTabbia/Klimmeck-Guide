@@ -60,7 +60,7 @@ class PawnPointerLayer extends StatelessWidget {
               key: arrowKey,
               angle: pointer.angle,
               child: CachedSvg(
-                url: CloudinaryAssets.url(CloudinaryAssets.arrowDown),
+                url: CloudinaryAssets.url(CloudinaryAssets.arrowMap),
                 width: arrowSize,
                 height: arrowSize,
               ),
