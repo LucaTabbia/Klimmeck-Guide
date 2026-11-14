@@ -15,7 +15,7 @@ class PawnPointerLayer extends StatelessWidget {
   const PawnPointerLayer({super.key});
 
   static const Key arrowKey = ValueKey('map.pawnPointer');
-  static const double arrowSize = 40;
+  static const double arrowSize = 60;
 
   @override
   Widget build(BuildContext context) {
