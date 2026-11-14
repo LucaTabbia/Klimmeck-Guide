@@ -68,6 +68,14 @@ class MissionCompletionScreen extends StatefulWidget {
   static const Key nextKey = ValueKey('mission.next');
   static const Key retryKey = ValueKey('mission.retry');
 
+  /// Riga d'errore del wizard per un rifiuto o una lettura fallita.
+  static String failureLineOf(InnkeeperFailure failure) => switch (failure) {
+    InnkeeperFailure.overrideInvalid => invalidValuesMessage,
+    InnkeeperFailure.notParticipant => notParticipantMessage,
+    InnkeeperFailure.connection => connectionMessage,
+    _ => genericMessage,
+  };
+
   final RequestCard card;
 
   @override
@@ -137,13 +145,17 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
     final page = _pageOf(draft.step);
-    final characterIds = [
-      for (final participant in draft.participants) participant.characterId,
-    ];
     _enter(page);
-    context.read<MissionParticipantsCubit>().load(characterIds);
-    if (page == MissionPage.recap) _loadPrizeNames(characterIds);
+    _loadParticipants(draft);
+    if (page == MissionPage.recap) _loadPrizeNames(_characterIdsOf(draft));
   }
+
+  void _loadParticipants(MissionDraft draft) =>
+      context.read<MissionParticipantsCubit>().load(_characterIdsOf(draft));
+
+  static List<String> _characterIdsOf(MissionDraft draft) => [
+    for (final participant in draft.participants) participant.characterId,
+  ];
 
   /// «Premi» legge le opzioni da sé; un «Riepilogo» riaperto le chiede qui
   /// per dare un nome ai premi scelti (D-22).
@@ -208,7 +220,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
           MissionDraftAbsent(:final failure?):
         final exit = _exitOf(failure);
         if (exit != null) return _leave(exit);
-        _showSnackBar(context, _lineOf(failure));
+        _showSnackBar(context, MissionCompletionScreen.failureLineOf(failure));
       case MissionDraftReady() || MissionDraftAbsent() || MissionDraftLoading():
         return;
     }
@@ -221,15 +233,6 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     InnkeeperFailure.questInProgress => const CompletionBusy(),
     InnkeeperFailure.forbidden => const CompletionForbidden(),
     _ => null,
-  };
-
-  static String _lineOf(InnkeeperFailure failure) => switch (failure) {
-    InnkeeperFailure.overrideInvalid =>
-      MissionCompletionScreen.invalidValuesMessage,
-    InnkeeperFailure.notParticipant =>
-      MissionCompletionScreen.notParticipantMessage,
-    InnkeeperFailure.connection => MissionCompletionScreen.connectionMessage,
-    _ => MissionCompletionScreen.genericMessage,
   };
 
   /// Una sola uscita: coda e risposta possono chiudere il wizard insieme.
@@ -272,7 +275,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         onStart: context.read<MissionDraftCubit>().start,
       ),
       MissionDraftLoadFailed(:final failure) => _LoadFailed(
-        message: _lineOf(failure),
+        message: MissionCompletionScreen.failureLineOf(failure),
       ),
       MissionDraftLoading() ||
       MissionDraftCompleted() ||
@@ -347,6 +350,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         isSubmitting: ready.isSubmitting,
         onTeleport: () => _teleportGroup(ready.draft),
         onStay: _stayAt,
+        onRetry: () => _loadParticipants(ready.draft),
       ),
     );
   }

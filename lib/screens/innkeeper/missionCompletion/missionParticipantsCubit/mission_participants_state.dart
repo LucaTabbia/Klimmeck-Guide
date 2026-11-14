@@ -25,7 +25,8 @@ final class MissionParticipantsFailed extends MissionParticipantsState {
   List<Object?> get props => [failure];
 }
 
-/// Personaggi e luoghi letti una volta, solo per nomi ed etichette: i limiti
+/// Personaggi e luoghi letti una volta (luoghi vuoti se la loro lettura è
+/// fallita, D-31), solo per nomi ed etichette: i limiti
 /// di vita, consumabili e magie arrivano dalla bozza servita (D-29, regola 4).
 final class MissionParticipantsLoaded extends MissionParticipantsState {
   const MissionParticipantsLoaded({

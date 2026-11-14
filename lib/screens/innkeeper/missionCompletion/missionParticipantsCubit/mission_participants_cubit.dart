@@ -27,7 +27,7 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
       final characters = await Future.wait(
         characterIds.map(_repository.readCharacter),
       );
-      final places = await _repository.listPointsOfInterest();
+      final places = await _placesOrNone();
       emit(
         MissionParticipantsLoaded(
           characters: Map.unmodifiable({
@@ -41,6 +41,16 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
       );
     } on InnkeeperException catch (error) {
       emit(MissionParticipantsFailed(failure: error.failure));
+    }
+  }
+
+  /// I luoghi danno solo le etichette: senza di essi i nomi restano vuoti e
+  /// il teletrasporto in città resta possibile (D-31).
+  Future<List<PointOfInterest>> _placesOrNone() async {
+    try {
+      return await _repository.listPointsOfInterest();
+    } on InnkeeperException {
+      return const [];
     }
   }
 }
