@@ -8,7 +8,6 @@ import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
-import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
@@ -39,17 +38,14 @@ class InnkeeperRepository {
   Future<List<PendingRequest>> fetchQueue() =>
       _guard(_graphQl.getPendingRequests);
 
-  /// Lettura del GM di un personaggio qualsiasi (BE Phase 3): form e
-  /// teletrasporto.
+  /// Lettura del GM di un personaggio qualsiasi (BE Phase 3): partecipanti
+  /// della missione guidata e teletrasporto.
   Future<Character> readCharacter(String characterId) =>
       _guard(() => _graphQl.getCharacter(characterId));
 
   /// Luoghi del mondo per il teletrasporto dell'oste (D-01, D-29).
   Future<List<PointOfInterest>> listPointsOfInterest() =>
       _guard(_graphQl.getPointsOfInterest);
-
-  Future<List<QuestResult>> complete(CompletePendingRequestInput input) =>
-      _guard(() => _graphQl.completePendingRequest(input));
 
   /// La nuova posizione arriva dalla coda o da `characterUpdated`, mai da qui.
   Future<void> teleport({

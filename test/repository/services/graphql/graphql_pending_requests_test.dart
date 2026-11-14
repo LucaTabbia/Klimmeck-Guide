@@ -1,14 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
-import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
-import 'package:klimmeck_guide/models/request/participant_override.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 
 import '../../../helpers/fixtures/pending_request_fixtures.dart';
-import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/fixtures/sync_event_fixtures.dart';
 import 'graphql_sync_test.dart' show operationNameOf;
 
@@ -157,62 +154,6 @@ void main() {
       await expectLater(
         buildGraphQl().getPendingRequests(),
         _operationCoded('FORBIDDEN'),
-      );
-    });
-  });
-
-  group('completePendingRequest', () {
-    const input = CompletePendingRequestInput(
-      pendingQuestId: 'pq-story-1',
-      outcomes: [ParticipantOverride(characterId: 'char-aldo', hpAfter: 12)],
-    );
-
-    test('sends CompletePendingRequest with the input variable', () async {
-      handler = (_) => Stream.value(
-        dataResponse({
-          'completePendingRequest': [gmCompletedResultJson()],
-        }),
-      );
-
-      await buildGraphQl().completePendingRequest(input);
-
-      expect(operationNameOf(requests.single), 'CompletePendingRequest');
-      expect(requests.single.variables, {'input': input.toJson()});
-    });
-
-    test('returns the created results, skipping a malformed one', () async {
-      handler = (_) => Stream.value(
-        dataResponse({
-          'completePendingRequest': [
-            gmCompletedResultJson(id: 'r-1'),
-            {'id': 'broken'},
-            gmCompletedResultJson(id: 'r-2'),
-          ],
-        }),
-      );
-
-      final results = await buildGraphQl().completePendingRequest(input);
-
-      expect(results.map((result) => result.id), ['r-1', 'r-2']);
-    });
-
-    test('turns a payload that is not a list into a FormatException', () async {
-      handler = (_) =>
-          Stream.value(dataResponse({'completePendingRequest': null}));
-
-      await expectLater(
-        buildGraphQl().completePendingRequest(input),
-        throwsFormatException,
-      );
-    });
-
-    test('throws the raw OperationException keeping the code', () async {
-      handler = (_) =>
-          Stream.value(errorCodeResponse('OUTCOME_OVERRIDE_INVALID'));
-
-      await expectLater(
-        buildGraphQl().completePendingRequest(input),
-        _operationCoded('OUTCOME_OVERRIDE_INVALID'),
       );
     });
   });

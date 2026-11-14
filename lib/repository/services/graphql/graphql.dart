@@ -1,7 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
-import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
@@ -42,7 +41,6 @@ import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/abandon_quest_request.dart';
 import 'package:klimmeck_guide/models/request/accept_quest_request.dart';
-import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
@@ -237,27 +235,6 @@ class KlimmeckGraphQl {
     }
     return List.unmodifiable(
       entries.map(_pointOfInterestOrNull).whereType<PointOfInterest>(),
-    );
-  }
-
-  /// Completa una richiesta per tutti i partecipanti (BE 09 §9): restituisce i
-  /// risultati creati, voce per voce. Lancia [OperationException] o
-  /// [FormatException].
-  Future<List<QuestResult>> completePendingRequest(
-    CompletePendingRequestInput input,
-  ) async {
-    final data = _dataOrThrow(
-      await performMutation(
-        query: PendingRequestMutations.completePendingRequest,
-        variables: {'input': input.toJson()},
-      ),
-    );
-    final entries = data['completePendingRequest'];
-    if (entries is! List) {
-      throw const FormatException('completePendingRequest missing');
-    }
-    return List.unmodifiable(
-      entries.map(QuestResult.tryFromJson).whereType<QuestResult>(),
     );
   }
 

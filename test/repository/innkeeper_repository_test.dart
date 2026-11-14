@@ -10,7 +10,6 @@ import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
-import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
@@ -38,10 +37,6 @@ void main() {
   late MockKlimmeckGraphQl graphQl;
   late InnkeeperRepository repository;
 
-  const input = CompletePendingRequestInput(
-    pendingQuestId: 'pq-story-1',
-    outcomes: [],
-  );
   const teleportRequest = TravelRequest(
     id: 'char-bea',
     poiId: 'poi-borgo-marker',
@@ -55,7 +50,6 @@ void main() {
   );
 
   setUpAll(() {
-    registerFallbackValue(input);
     registerFallbackValue(teleportRequest);
     registerFallbackValue(saveInput);
     registerFallbackValue(simulateInput);
@@ -170,32 +164,6 @@ void main() {
         repository.readCharacter('char-bea'),
         _failsWith(InnkeeperFailure.unknown),
       );
-    });
-  });
-
-  group('complete', () {
-    test('sends the input and returns the created results', () async {
-      final results = [QuestResult.tryFromJson(gmCompletedResultJson())!];
-      when(
-        () => graphQl.completePendingRequest(input),
-      ).thenAnswer((_) async => results);
-
-      expect(await repository.complete(input), results);
-      verify(() => graphQl.completePendingRequest(input)).called(1);
-    });
-
-    final byCode = {
-      'OUTCOME_OVERRIDE_INVALID': InnkeeperFailure.overrideInvalid,
-      'NOT_FOUND': InnkeeperFailure.notFound,
-    };
-    byCode.forEach((code, failure) {
-      test('maps $code to ${failure.name}', () async {
-        when(
-          () => graphQl.completePendingRequest(any()),
-        ).thenThrow(_coded(code));
-
-        await expectLater(repository.complete(input), _failsWith(failure));
-      });
     });
   });
 
