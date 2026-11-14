@@ -53,6 +53,7 @@ The backend is the source of truth for every rule: each requirement below descri
 - [ ] **PET-07**: Ambushes and pushes: unseen ambush reports opened at the Map also mid-travel (existing queue), the recomputed or redirected travel read from the stream, one «Imboscate» category accepting `ambush` and `ambushDefeat` with the banner suppressed when the carousel opens live, a new «Compagno in forze» category (`petRecovered`) with its toggle
 - [ ] **PET-08**: Innkeeper corrections: a companion life slider next to the character's within served bounds (1 = defeated, marker «Sconfitto»), sent as `companionLifeAfter` in the per-fight correction only when the participant has a companion
 - [ ] **PET-09**: Schema gate on the merged BE Phase 23 SDL (gated selections, `UseItem` target, the one switch flipped, registry 55, schema check, full suite) and device E2E
+- [ ] **PET-10**: Companion levels: `OwnedPet.level` and the companion's own `maxLifePoints` read from the wire (lenient: level hidden while absent, the species' max as fallback) through one getter used by every reader of the companion's max; «Livello N» shown in the details sheet and next to the species on the Journal parchment; the app never computes a level, a threshold or a max
 
 ## Future Requirements
 
@@ -109,8 +110,9 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | PET-07 | Phase 22 | Pending |
 | PET-08 | Phase 22 | Pending |
 | PET-09 | Phase 22 | Pending |
+| PET-10 | Phase 22 | Pending |
 
-**Coverage:** 31 / 31 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 9 PET → Phase 22). No orphans. No duplicates.
+**Coverage:** 32 / 32 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22). No orphans. No duplicates.
 
 ---
 

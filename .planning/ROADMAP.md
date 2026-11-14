@@ -167,7 +167,7 @@ Plans:
 _Amended 2026-11-14 (D-03): the companion's life floor is 1; «0 life» above reads «the floor»._
 **Depends on**: Phase 13 (companions in the Journal), Phase 18 (Journal potions and their wait), Phase 19 (companion model, companion xp), Phase 9 (result sheet), Phase 21 (mission lock on the companion; guided completion writes the companions' state), a BE companion phase (BE Phase 23 «Sconfitta, riposo e recupero dei compagni», added 2026-11-14)
 **Scope**: decisions D-01..D-35 of `22-CONTEXT.md` (discuss 2026-11-14, amended after the research); BE companion: BE Phase 23 «Sconfitta, riposo e recupero dei compagni»
-**Requirements**: PET-01, PET-02, PET-03, PET-04, PET-05, PET-06, PET-07, PET-08, PET-09
+**Requirements**: PET-01, PET-02, PET-03, PET-04, PET-05, PET-06, PET-07, PET-08, PET-09, PET-10
 **Success Criteria** (what must be TRUE):
   1. The Journal shows each companion's life, rising live while it rests; a defeated companion is faded with its countdown and comes back by itself at full life.
   2. A potion can be given to an eligible companion from the potion sheet; refusals show the companion's name.
