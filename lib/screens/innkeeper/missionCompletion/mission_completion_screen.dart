@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -262,7 +263,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
           ),
           Text(MissionCompletionScreen.leaveNote, style: theme.bodyMedium),
           const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-          Expanded(child: _buildPage()),
+          Expanded(child: _buildPage(ready)),
           _buildBottomBar(ready),
         ],
       ),
@@ -280,7 +281,59 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     MissionPage.recap => MissionCompletionScreen.recapTitle,
   };
 
-  Widget _buildPage() => const SizedBox.shrink();
+  Widget _buildPage(MissionDraftReady ready) => switch (_page) {
+    MissionPage.place => _buildPlace(ready),
+    MissionPage.encounters ||
+    MissionPage.fight ||
+    MissionPage.prizes ||
+    MissionPage.recap => const SizedBox.shrink(),
+  };
+
+  Widget _buildPlace(MissionDraftReady ready) {
+    return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
+      builder: (context, participants) => PlaceStep(
+        draft: ready.draft,
+        participants: participants,
+        isSubmitting: ready.isSubmitting,
+        onTeleport: () => _teleportGroup(ready.draft),
+        onStay: _stayAt,
+      ),
+    );
+  }
+
+  /// Il primo partecipante porta con sé gli altri; all'atterraggio la Locanda
+  /// riapre questo wizard dalla carta (D-01, D-28, Pitfall 1).
+  void _teleportGroup(MissionDraft draft) {
+    final [first, ...rest] = draft.participants;
+    context.read<TeleportModeCubit>().prepare(
+      characterId: first.characterId,
+      name: first.name,
+      companionIds: [for (final participant in rest) participant.characterId],
+      resumeCardKey: widget.card.cardKey,
+    );
+  }
+
+  void _stayAt(String placeId) {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(
+      () => cubit.saveStep(MissionDraftStep.fights, placeId: placeId),
+      MissionPage.encounters,
+    );
+  }
+
+  /// T-21-46: la pagina cambia solo se la chiamata non è stata rifiutata.
+  Future<void> _runThenOpen(
+    Future<void> Function() action,
+    MissionPage next,
+  ) async {
+    final cubit = context.read<MissionDraftCubit>();
+    final serial = _failureSerialOf(cubit.state);
+    await action();
+    if (!mounted) return;
+    final state = cubit.state;
+    if (state is! MissionDraftReady || state.failureSerial != serial) return;
+    setState(() => _page = next);
+  }
 
   Widget _buildBottomBar(MissionDraftReady ready) {
     final canGoBack = _page != MissionPage.place && !ready.isSubmitting;
