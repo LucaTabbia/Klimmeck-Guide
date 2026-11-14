@@ -4,9 +4,11 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
@@ -14,6 +16,7 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
@@ -23,12 +26,14 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/fixtures/mission_fixtures.dart';
 import '../../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../../helpers/fixtures/quest_result_fixtures.dart';
+import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/mocks.dart';
 import '../../../helpers/test_app.dart';
 
 const String _aldo = 'char-aldo';
 const String _bea = 'char-bea';
+const String _ruins = 'poi-ruins-1';
 
 final DateTime _now = DateTime.utc(2026, 11, 14, 12);
 
@@ -493,5 +498,109 @@ void main() {
         );
       },
     );
+  });
+
+  group('place step (Phase 21)', () {
+    setUp(() {
+      when(
+        () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async {});
+      when(
+        () => teleport.prepare(
+          characterId: any(named: 'characterId'),
+          name: any(named: 'name'),
+          companionIds: any(named: 'companionIds'),
+          resumeCardKey: any(named: 'resumeCardKey'),
+        ),
+      ).thenAnswer((_) async {});
+      whenListen(
+        participantsCubit,
+        const Stream<MissionParticipantsState>.empty(),
+        initialState: MissionParticipantsLoaded(
+          characters: {
+            _aldo: Character.fromJson(
+              participantCharacterJson(locationId: _ruins),
+            ),
+            _bea: Character.fromJson(
+              participantCharacterJson(
+                id: _bea,
+                name: 'Bea',
+                locationId: _ruins,
+              ),
+            ),
+          },
+          places: {_ruins: PointOfInterest.fromJson(pointOfInterestJson())},
+        ),
+      );
+    });
+
+    testWidgets('«Luogo» names the place of each participant (D-29)', (
+      tester,
+    ) async {
+      await openWizard(tester, _ready);
+
+      expect(find.text('Aldo · Rovine presso Talmvere'), findsOneWidget);
+      expect(find.text('Bea · Rovine presso Talmvere'), findsOneWidget);
+    });
+
+    testWidgets(
+      '«Teletrasporta il gruppo» prepares the teleport with the card key (D-01, D-28)',
+      (tester) async {
+        await openWizard(tester, _ready);
+
+        await tester.tap(find.byKey(PlaceStep.teleportKey));
+        await tester.pump();
+
+        verify(
+          () => teleport.prepare(
+            characterId: _aldo,
+            name: 'Aldo',
+            companionIds: [_bea],
+            resumeCardKey: 'quest-world-1',
+          ),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      '«Resta qui» saves step fights with the shared place and opens «Scontri» (D-01, D-18)',
+      (tester) async {
+        await openWizard(tester, _ready);
+
+        await tester.tap(find.byKey(PlaceStep.stayKey));
+        await emitDraft(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+        verify(
+          () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
+        ).called(1);
+        expect(find.text('Passo 2 di 5 · Scontri'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a refused «Resta qui» stays on «Luogo» (T-21-46)', (
+      tester,
+    ) async {
+      when(
+        () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async {
+        draftStates.add(
+          _ready.copyWith(
+            failure: InnkeeperFailure.overrideInvalid,
+            failureSerial: 1,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+      });
+      await openWizard(tester, _ready);
+
+      await tester.tap(find.byKey(PlaceStep.stayKey));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(
+        find.text(MissionCompletionScreen.invalidValuesMessage),
+        findsOneWidget,
+      );
+    });
   });
 }
