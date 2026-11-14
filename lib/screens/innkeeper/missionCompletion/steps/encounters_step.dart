@@ -10,6 +10,10 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 typedef _EnemyPick = ({MissionEnemy enemy, int quantity});
 
+/// Scontro in modifica: [servedIndex] è lo scontro servito da cui viene
+/// (`null` per uno nuovo), così lo stato resta suo anche se la lista cambia.
+typedef _LocalFight = ({int? servedIndex, List<_EnemyPick> picks});
+
 /// Passo «Scontri» (D-02, D-03, D-24): zero, uno o più scontri, ognuno coi
 /// nemici della lista servita e le loro quantità. I tetti di
 /// `mission_limits.dart` sono solo limiti di UI: il BE resta giudice.
@@ -40,18 +44,21 @@ class EncountersStep extends StatefulWidget {
 }
 
 class _EncountersStepState extends State<EncountersStep> {
-  late List<List<_EnemyPick>> _fights;
+  late List<_LocalFight> _fights;
   int? _selected;
 
   @override
   void initState() {
     super.initState();
     _fights = [
-      for (final fight in widget.draft.fights)
-        [
-          for (final served in fight.enemies)
-            (enemy: served.enemy, quantity: served.quantity),
-        ],
+      for (final (index, fight) in widget.draft.fights.indexed)
+        (
+          servedIndex: index,
+          picks: [
+            for (final served in fight.enemies)
+              (enemy: served.enemy, quantity: served.quantity),
+          ],
+        ),
     ];
     _selected = _fights.isEmpty ? null : 0;
   }
@@ -61,10 +68,10 @@ class _EncountersStepState extends State<EncountersStep> {
 
   /// Il BE rifiuta uno scontro senza nemici: «Avanti» aspetta che ognuno ne abbia.
   bool get _canGoOn =>
-      !widget.isSubmitting && _fights.every((picks) => picks.isNotEmpty);
+      !widget.isSubmitting && _fights.every((fight) => fight.picks.isNotEmpty);
 
   void _addFight() => setState(() {
-    _fights = [..._fights, const []];
+    _fights = [..._fights, (servedIndex: null, picks: const [])];
     _selected = _fights.length - 1;
   });
 
@@ -85,7 +92,7 @@ class _EncountersStepState extends State<EncountersStep> {
   void _pick(MissionEnemy enemy) {
     final index = _selected;
     if (index == null) return;
-    final picks = _fights[index];
+    final picks = _fights[index].picks;
     final at = picks.indexWhere((pick) => pick.enemy.id == enemy.id);
     if (at >= 0) return _setQuantity(index, at, picks[at].quantity + 1);
     if (picks.length >= maxEnemyEntriesPerFight) return;
@@ -97,7 +104,7 @@ class _EncountersStepState extends State<EncountersStep> {
 
   void _setQuantity(int fightIndex, int pickIndex, int quantity) {
     if (quantity > maxEnemyQuantity) return;
-    final picks = [..._fights[fightIndex]];
+    final picks = [..._fights[fightIndex].picks];
     if (quantity <= 0) {
       picks.removeAt(pickIndex);
     } else {
@@ -106,13 +113,16 @@ class _EncountersStepState extends State<EncountersStep> {
     _replaceFight(fightIndex, picks);
   }
 
-  void _replaceFight(int index, List<_EnemyPick> picks) =>
-      setState(() => _fights = [..._fights]..[index] = picks);
+  void _replaceFight(int index, List<_EnemyPick> picks) => setState(
+    () =>
+        _fights = [..._fights]
+          ..[index] = (servedIndex: _fights[index].servedIndex, picks: picks),
+  );
 
   void _goOn() => widget.onNext([
-    for (final picks in _fights)
+    for (final fight in _fights)
       [
-        for (final pick in picks)
+        for (final pick in fight.picks)
           if (pick.quantity > 0)
             MissionEnemyInput(enemyId: pick.enemy.id, quantity: pick.quantity),
       ],
@@ -195,7 +205,7 @@ class _EncountersStepState extends State<EncountersStep> {
                   if (status != null) Text(status, style: theme.bodyMedium),
                 ],
               ),
-              for (final (pickIndex, pick) in _fights[index].indexed)
+              for (final (pickIndex, pick) in _fights[index].picks.indexed)
                 QuantityStepper(
                   label: pick.enemy.name,
                   value: pick.quantity,
@@ -220,10 +230,13 @@ class _EncountersStepState extends State<EncountersStep> {
     );
   }
 
-  /// Solo dalla bozza servita (D-21, D-24): l'app non decide se è scaduto.
+  /// Solo dallo scontro servito da cui viene la carta (D-21, D-24): l'app
+  /// non decide se è scaduto; uno scontro nuovo non ha stato.
   String? _statusOf(int index) {
+    final servedIndex = _fights[index].servedIndex;
     final served = widget.draft.fights;
-    if (index >= served.length) return null;
-    return served[index].verdict?.label ?? EncountersStep.notSimulatedLabel;
+    if (servedIndex == null || servedIndex >= served.length) return null;
+    return served[servedIndex].verdict?.label ??
+        EncountersStep.notSimulatedLabel;
   }
 }
