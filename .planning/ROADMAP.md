@@ -177,7 +177,7 @@ _Amended 2026-11-14 (D-03): the companion's life floor is 1; «0 life» above re
 **Plans**: 17 plans (sequential waves; 01–15 work against today's BE, 16–17 gated by the BE Phase 23 merge)
 
 Plans:
-- [ ] 22-01-PLAN.md — Requirements and companion models (lenient, unselected)
+- [x] 22-01-PLAN.md — Requirements and companion models (lenient, unselected)
 - [ ] 22-02-PLAN.md — Pure rules: vitality, display name, name rules, companion copy
 - [ ] 22-03-PLAN.md — Live-safe pet fields and the companion vitality ticker
 - [ ] 22-04-PLAN.md — Details sheet frame and the companion card restyle
@@ -220,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 0/17 | Planned | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 1/17 | In Progress | - |
 
 ---
 

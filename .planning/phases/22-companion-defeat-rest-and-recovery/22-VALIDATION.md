@@ -38,9 +38,9 @@ created: 2026-11-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 22-01-01 | 01 | 1 | PET-01..PET-09 | T-22-04 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| PET-0[1-9] \| Phase 22 \| Pending \|$' .planning/REQUIREMENTS.md (= 9)` | ✅ | ⬜ pending |
-| 22-01-02 | 01 | 1 | PET-01 | T-22-01, T-22-02 | new fields lenient, nothing selected | unit | `flutter test test/models test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ⬜ pending |
-| 22-01-03 | 01 | 1 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 01 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-01-01 | 01 | 1 | PET-01..PET-09 | T-22-04 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| PET-0[1-9] \| Phase 22 \| Pending \|$' .planning/REQUIREMENTS.md (= 9)` | ✅ | ✅ green |
+| 22-01-02 | 01 | 1 | PET-01 | T-22-01, T-22-02 | new fields lenient, nothing selected | unit | `flutter test test/models test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ✅ green |
+| 22-01-03 | 01 | 1 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 01 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-02-01 | 02 | 2 | PET-01 | T-22-05, T-22-07 | vitality only from served dates, never recoveryTime | unit | `flutter test test/models/companion` | ❌ W0 | ⬜ pending |
 | 22-02-02 | 02 | 2 | PET-05 | T-22-06, T-22-08 | character-name rules unchanged after extraction | unit | `flutter test test/utils test/screens/characterCreation` | ❌ W0 | ⬜ pending |
 | 22-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 02 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -98,7 +98,7 @@ created: 2026-11-14
 
 Each new test file is created RED-first by the task that needs it (no separate Wave 0 plan):
 
-- [ ] `test/helpers/fixtures/shop_fixtures.dart` — `petJson` (+ `maxLifePoints`, `recoveryTime`, `imagePath`) and `ownedPetJson` (+ `name`, `defeated`, `lifeAsOf`, `fullLifeAt`, `potionRecoveryUntil`), keys only when non-null — 22-01-02
+- [x] `test/helpers/fixtures/shop_fixtures.dart` — `petJson` (+ `maxLifePoints`, `recoveryTime`, `imagePath`) and `ownedPetJson` (+ `name`, `defeated`, `lifeAsOf`, `fullLifeAt`, `potionRecoveryUntil`), keys only when non-null — 22-01-02
 - [ ] `test/models/companion/companion_vitality_test.dart`, `companion_display_name_test.dart` — 22-02-01
 - [ ] `test/utils/name_rules_test.dart`, `test/utils/companion_lines_test.dart` — 22-02-02
 - [ ] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-02
