@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/models/mission/mission_limits.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
@@ -176,6 +177,30 @@ void main() {
     expect(sentPrize().coins, const Coins(gold: 900, silver: 5));
     expect(sentPrize().xp, 12000);
   });
+
+  testWidgets(
+    'coins and xp take digits only, at most 7 (BE technical ceiling 9 999 999)',
+    (tester) async {
+      await pumpStep(tester, _prefilled);
+
+      await tester.enterText(
+        find.byKey(PrizesStep.xpFieldKeyFor(_aldo)),
+        '123456789',
+      );
+      await tester.enterText(
+        find.byKey(PrizesStep.coinFieldKeyFor(_aldo, 'gold')),
+        '99999999999999999999',
+      );
+      await tester.pump();
+      await tapNext(tester);
+
+      expect(fieldText(tester, PrizesStep.xpFieldKeyFor(_aldo)), '1234567');
+      expect(sentPrize().xp, 1234567);
+      expect(sentPrize().coins.gold, 9999999);
+      expect(maxPrizeAmountDigits, 7);
+      expect(find.text('7/7'), findsNothing);
+    },
+  );
 
   testWidgets('an item quantity stays within 1..99 (D-15)', (tester) async {
     await pumpStep(

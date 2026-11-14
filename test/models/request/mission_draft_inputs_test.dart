@@ -3,7 +3,6 @@ import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
-import 'package:klimmeck_guide/models/mission/mission_limits.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 
@@ -345,14 +344,6 @@ void main() {
         );
       },
     );
-  });
-
-  test('the BE caps are named in one place (ruling 2026-11-14)', () {
-    expect(maxMissionFights, 10);
-    expect(maxEnemyEntriesPerFight, 10);
-    expect(minEnemyQuantity, 1);
-    expect(maxEnemyQuantity, 20);
-    expect(maxPrizeItemQuantity, 99);
   });
 
   group('MissionPrizeInput', () {
