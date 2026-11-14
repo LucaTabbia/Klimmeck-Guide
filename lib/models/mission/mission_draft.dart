@@ -91,6 +91,9 @@ class MissionDraft extends Equatable {
   final List<MissionFight> fights;
   final List<MissionPrize> prizes;
 
+  /// Vero anche senza scontri (D-24): letto dal verdetto servito, mai calcolato.
+  bool get allFightsSimulated => fights.every((fight) => fight.isSimulated);
+
   MissionPrize? prizeOf(String characterId) {
     for (final prize in prizes) {
       if (prize.characterId == characterId) return prize;

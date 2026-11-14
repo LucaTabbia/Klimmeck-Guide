@@ -123,7 +123,9 @@ class RecapStep extends StatelessWidget {
                 ElevatedButton(
                   key: completeKey,
                   style: KlimmeckGuideTheme.primaryButtonStyle,
-                  onPressed: isSubmitting ? null : () => _confirm(context),
+                  onPressed: isSubmitting || !draft.allFightsSimulated
+                      ? null
+                      : () => _confirm(context),
                   child: const Text(completeLabel),
                 ),
               ],

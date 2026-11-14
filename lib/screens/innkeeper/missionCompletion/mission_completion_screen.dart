@@ -375,14 +375,15 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
-  /// Zero scontri: storia narrativa, si passa ai premi (D-24).
+  /// Zero scontri: storia narrativa, si passa ai premi (D-24). Con scontri il
+  /// passo salvato torna `fights`: una ripresa non salta scontri da simulare.
   void _saveFights(List<List<MissionEnemyInput>> enemiesPerFight) {
     final cubit = context.read<MissionDraftCubit>();
     final hasFights = enemiesPerFight.isNotEmpty;
     _runThenOpen(
       () => cubit.saveFights(
         enemiesPerFight,
-        step: hasFights ? null : MissionDraftStep.prizes,
+        step: hasFights ? MissionDraftStep.fights : MissionDraftStep.prizes,
       ),
       hasFights ? MissionPage.fight : MissionPage.prizes,
     );

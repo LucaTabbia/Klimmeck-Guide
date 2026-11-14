@@ -195,7 +195,10 @@ class _PrizesStepState extends State<PrizesStep> {
                 ElevatedButton(
                   key: MissionCompletionScreen.nextKey,
                   style: KlimmeckGuideTheme.primaryButtonStyle,
-                  onPressed: widget.isSubmitting ? null : _goOn,
+                  onPressed:
+                      widget.isSubmitting || !widget.draft.allFightsSimulated
+                      ? null
+                      : _goOn,
                   child: const Text(MissionCompletionScreen.nextLabel),
                 ),
               ],
