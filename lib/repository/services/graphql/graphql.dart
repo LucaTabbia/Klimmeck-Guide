@@ -46,6 +46,7 @@ import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
 import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/models/request/rename_pet_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
@@ -869,6 +870,14 @@ class KlimmeckGraphQl {
   Future<bool> unequipPet(UnequipPetRequest request) => _successfulMutation(
     CharacterMutations.unequipPet,
     'unequipPet',
+    request.toJson(),
+  );
+
+  /// Dà un nome a un compagno posseduto (D-19), stesso contratto di
+  /// [equipPet]: il nome arriva solo da `characterUpdated`.
+  Future<bool> renamePet(RenamePetRequest request) => _successfulMutation(
+    CharacterMutations.renamePet,
+    'renamePet',
     request.toJson(),
   );
 
