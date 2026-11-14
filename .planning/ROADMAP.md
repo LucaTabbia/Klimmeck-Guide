@@ -142,7 +142,7 @@ Plans:
 **Plans**: 18 plans (sequential waves; 01–15 work against today's BE, 16–18 gated by the BE Phase 22 merge)
 
 Plans:
-- [ ] 21-01-PLAN.md — Mission lock plumbing I: status flags, shared code and copy, travel and acceptance refusals
+- [x] 21-01-PLAN.md — Mission lock plumbing I: status flags, shared code and copy, travel and acceptance refusals
 - [ ] 21-02-PLAN.md — Mission lock plumbing II: shop, spell and companion refusals
 - [ ] 21-03-PLAN.md — Equipment refusal made visible: repository, classifier, Journal notice
 - [ ] 21-04-PLAN.md — Players' lock on the Board, the Map pawn and the satchel
@@ -185,7 +185,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 0/18 | Planned | - |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 1/18 | In Progress | - |
 
 ---
 
