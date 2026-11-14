@@ -1,7 +1,7 @@
 ---
 phase: 21
 slug: innkeeper-mission-completion-flow
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-14
@@ -108,9 +108,9 @@ created: 2026-11-14
 | 21-17-01 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-68 | registry 54 and document gone pinned RED (anchored `length, 54)`) | document pin | `flutter test test/tool test/graphql` (RED) | ✅ retarget | ✅ green |
 | 21-17-02 | 17 | 17 | GMFLOW-06, GMFLOW-08 | T-21-59, T-21-67 | old override path deleted in groups ≤ 8 files; 54 × OK | widget + gate | `flutter test test/screens/innkeeper test/graphql test/tool test/repository test/models` + schema check | ✅ retarget | ✅ green |
 | 21-17-03 | 17 | 17 | GMFLOW-08 | T-21-58 | full suite, hardening_check, no payload logs; VALIDATION closed | gate | full suite (alone, ≥300 s) + `bash tool/hardening_check.sh` | ✅ | ✅ green |
-| 21-18-01 | 18 | 18 | GMFLOW-08 | T-21-60, T-21-62 | NAMES only in the UAT and BE notes | docs | gate re-check + `grep -cE "^\| [0-9]+ \|" 21-HUMAN-UAT.md` = 12 | ❌ created here | ⬜ pending |
-| 21-18-02 | 18 | 18 | GMFLOW-01..08 | T-21-63 | second bearer probes expect MISSION_IN_PROGRESS | manual | `21-HUMAN-UAT.md` (human checkpoint) | — | ⬜ pending |
-| 21-18-03 | 18 | 18 | GMFLOW-01..08 | T-21-61 | mark-complete only for passed requirements | docs | `grep -q "Plan: 18 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-18-01 | 18 | 18 | GMFLOW-08 | T-21-60, T-21-62 | NAMES only in the UAT and BE notes | docs | gate re-check + `grep -cE "^\| [0-9]+ \|" 21-HUMAN-UAT.md` = 12 | ❌ created here | ✅ green |
+| 21-18-02 | 18 | 18 | GMFLOW-01..08 | T-21-63 | second bearer probes expect MISSION_IN_PROGRESS | manual | `21-HUMAN-UAT.md` (human checkpoint) | — | ✅ green |
+| 21-18-03 | 18 | 18 | GMFLOW-01..08 | T-21-61 | mark-complete only for passed requirements | docs | `grep -q "Plan: 18 of 18" .planning/STATE.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -161,4 +161,6 @@ Not observable on the device (tests only): every classifier row, lenient parsing
 
 Gate passed on BE `f82ab278`: 54/54 OK, full suite 4678 green, analyzer `47 issues found. (ran in 5.9s)` (47 info / 0 warning / 0 error).
 
-**Approval:** automated gate passed 2026-11-14 (21-17); device E2E pending (21-18)
+Device E2E passed on 2026-11-14 (`21-HUMAN-UAT.md`, steps 1–10 pass, optional step 11 pass, optional step 12 not run by the user's choice), on BE branch `feat/mission-start-push` (BE PR #41 on top of `develop` `4aed73bb`); full suite at the end `+4722: All tests passed!`, analyzer 47 info / 0 warning / 0 error.
+
+**Approval:** approved 2026-11-14

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: "Completed 21-16-PLAN.md (2026-11-14) — gate passed on BE develop f82ab278"
-last_updated: "2026-11-14T02:11:53.000Z"
-last_activity: "2026-11-14 -- Phase 21 plan 16 executed (schema gate, gated selections, «Completa» → wizard)"
+stopped_at: "Completed 21-18-PLAN.md (2026-11-14) — device E2E approved, Phase 21 complete"
+last_updated: "2026-11-14T15:51:44.043Z"
+last_activity: 2026-11-14 -- Phase 21 plan 18 executed (device E2E recorded, requirements and planning documents closed)
 progress:
-  total_phases: 4
-  completed_phases: 3
+  total_phases: 5
+  completed_phases: 4
   total_plans: 48
-  completed_plans: 30
-  percent: 62
+  completed_plans: 48
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion`: 18 plans in sequential waves, the last two gated by the BE Phase 22 merge
+**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — COMPLETE on 2026-11-14 on `feat/21-innkeeper-mission-completion` (18/18, device E2E approved); FE PR pending after BE PR #41
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 not planned; milestone close pending
-Phase: 21 of 21 (Innkeeper Mission Completion Flow) — PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 18 plans in sequential waves; BE Phase 22 planned in the same session
-Plan: 17 of 18
-Status: Phase 21 in progress at 17/18 — BE Phase 22 merged on BE `develop` (`f82ab278`); 21-16 wired «Completa» and the resume to the wizard; 21-17 retired the Phase 10 completion form (registry 54, 54/54 OK on the merged SDL, full suite 4678 green, VALIDATION `nyquist_compliant: true`). The branch needs a BE with Phase 22.
-Last activity: 2026-11-14 -- Phase 21 plan 17 executed (Phase 10 form retired, 54/54 documents OK, full suite 4678 green)
-Next step: 21-18 (device E2E with the user); then the FE PR to `develop`.
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, not planned; milestone close pending
+Phase: 21 of 22 (Innkeeper Mission Completion Flow) — COMPLETE on 2026-11-14 (device E2E approved, `21-HUMAN-UAT.md`); PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 18 plans in sequential waves; BE Phase 22 planned in the same session
+Plan: 18 of 18
+Status: Phase 21 complete at 18/18 — device E2E approved on 2026-11-14 (steps 1–10 pass, optional 11 pass, optional 12 not run by the user's choice), GMFLOW-01..08 complete, VALIDATION approved; registry 54; full suite +4722 green, analyzer 47 info / 0 warning / 0 error. The UAT ran on BE branch `feat/mission-start-push` (BE PR #41, not merged yet): the FE branch now needs PR #41 (`PushEventType.missionStart`, `pointOfInterests.city`, `pendingQuest.quest.infos.type`). The off-screen pawn arrow (last UAT fix) awaits the user's look on the device; the orchestrator's UAT copy awaits review.
+Last activity: 2026-11-14 -- Phase 21 plan 18 executed (device E2E recorded, requirements and planning documents closed)
+Next step: merge BE PR #41 (`feat/mission-start-push`) FIRST; then open the FE PR `feat/21-innkeeper-mission-completion` → `develop` (the orchestrator opens it as a draft; never `main`); then Phase 22 (discuss/plan) or the milestone v1.1 close.
 
 ## Current Milestone
 
@@ -91,5 +91,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-14
-Stopped at: Completed 21-17-PLAN.md
-Resume file: .planning/phases/21-innkeeper-mission-completion-flow/21-18-PLAN.md
+Stopped at: Completed 21-18-PLAN.md
+Resume file: None

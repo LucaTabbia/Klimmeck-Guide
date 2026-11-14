@@ -2,7 +2,7 @@
 
 Written by plan 21-18 (Task 1) after the BE Phase 22 merge; §3 is completed by plan 21-18 (Task 3) after the device E2E.
 
-Frontend companion of the BE Phase 22 («Completamento guidato delle missioni»). Branch `feat/21-innkeeper-mission-completion`. English text, Italian UI copy verbatim. No ids of real users or characters, no secrets, no URIs, no environment values in this file. BE ref read by the gate: `origin/develop` `4aed73bb` (PR #40 on top of the Phase 22 merge `f82ab278`, no SDL change between them).
+Frontend companion of the BE Phase 22 («Completamento guidato delle missioni»). Branch `feat/21-innkeeper-mission-completion`. English text, Italian UI copy verbatim. No ids of real users or characters, no secrets, no URIs, no environment values in this file. BE ref read by the gate: `origin/develop` `4aed73bb` (PR #40 on top of the Phase 22 merge `f82ab278`, no SDL change between them). The device UAT ran on `feat/mission-start-push` (BE PR #41 on top of `4aed73bb`): see §3 and the merge order in §4.
 
 ## 1. Contract consumed by the FE
 
@@ -44,9 +44,24 @@ Selection points:
 - **Inner-POI drop rule (D-29, 21-08):** only the teleport pawn accepts inner places: nearest place within 32 px at or above `MapConstants.cityVisibleZoom`, else the city as in Phase 10; a place without a known type is not a destination. The players' travel drop is unchanged.
 - **Completion:** recap + explicit confirmation «Completa la missione», then the results recap of the Locanda; `OUTCOME_OVERRIDE_INVALID` in the wizard reads «Operazione rifiutata: controlla scontri, correzioni e premi».
 
-## 3. UAT outcome (FE Phase 21, <date>)
+## 3. UAT outcome (FE Phase 21, 2026-11-14)
 
-Filled by plan 21-18.
+**Approved.** Mandatory steps 1–10 passed, optional step 11 passed, optional step 12 not run (user's choice). Record: `21-HUMAN-UAT.md`.
+
+BE under test: branch `feat/mission-start-push` (BE PR #41, not merged at the time of recording; local tip `6dbfd9df`) = `develop` `4aed73bb` + the `missionStart` push + the POI city fix + the lane quest type — NOT `origin/develop`. Booted by the orchestrator on port 3001; a second instance on 3002 with the second account's dev bearer (never printed) served the probes. Characters: the innkeeper's own (legend) and a second account's (rookie); worldMission with `rookie` / `legend` seats and rank blocks, a story with `minTitle` legend, a normal hunt with a 3 min wait.
+
+Outcomes relevant to the BE:
+
+- **Start and lock (step 1):** `startMissionDraft` wrote a draft for 2 participants (DB). Probes of the second character: `travelPreview`, `startTravel`, `acceptQuest`, `doTransaction`, `equipItem`, `useItem` → all `MISSION_IN_PROGRESS`. The lock showed on the innkeeper's own character after leaving the Locanda (pawn label, Journal, shop, Board). The `missionStart` push (PR #41) reached the participants.
+- **Teleport onto an inner POI (step 2):** BE defect found — `pointOfInterests { city { id name } }` failed (city not populated), so no «tipo presso città» and no place dots; fixed in PR #41 («serve the city of each place in the place list»). After the fix `teleportCharacter` with an inner POI id moved both pawns and the wizard came back on the same request.
+- **Encounters (step 4):** `missionEnemies` listed the legendary on the graveyard place for the worldMission; two fights saved with `saveMissionDraft`.
+- **Simulation from the corrected state (step 5):** DB confirmed that fight 2 starts from fight 1's corrected state. «Rilancia» returns the same numbers (placeholder engine, accepted by the user; the real engine comes later); the draft `rev` grows at every rerun. Invalidation after «Cambia nemici» read from the served `verdict`.
+- **Resume (step 6):** after closing the app the wizard reopened on the served step (`missionDraft` + `missionDraftStartedAt`).
+- **Prizes (step 7):** `missionPrizeOptions` served different blocks per rank; the rookie's spell catalogue is empty (correct for the user); coins / xp above the block, a removed entry and an added pet went through to the summary.
+- **Completion (step 8):** `completeGuidedMission` wrote two `gmCompleted` results with the 3 enemies of the two fights; draft and requests gone, mission concluded, cure applied; result sheets on both players; lock lifted live. FE race fixed on the branch: `pendingRequestsUpdated` can arrive before the completion answer (the FE no longer reads it as «request gone» while its own call is in flight).
+- **Discard (step 9):** `discardMissionDraft` cleared the marker; the request came back to the queue; lock lifted live — `characterUpdated` and `pendingRequestsUpdated` at discard work.
+- **Normal mission lock (step 10):** a hunt with a 3 min wait set `missionInProgress` without `guidedMissionInProgress`; Journal / Board locked, no guided pawn label; released at the result. The activity label over the pawn reads the quest type on the lanes (PR #41).
+- **Zero fights (step 11):** a narrative story completes with no fight.
 
 ## 4. Questions and notes for the BE
 
@@ -55,4 +70,9 @@ Filled by plan 21-18.
 3. `completePendingRequest` can now be removed (D-25): no FE document uses it since plan 21-17.
 4. Lock precedence accepted (BE A-02): `PET_NOT_OWNED` and `SHOP_NOT_IN_CITY` arrive after `MISSION_IN_PROGRESS`; a worldMission registration with an open draft gets `QUEST_NOT_ACCEPTABLE` (already mapped).
 5. Completion read/retry: a save between the completion's read and its delete gives `OUTCOME_OVERRIDE_INVALID` with no write; the FE shows the refusal and the innkeeper retries after the reread.
-6. Copy or labels the user changes at the UAT: listed here by plan 21-18 (Task 3).
+6. Copy or labels the user changed at the UAT: none of the proposed strings was amended. Copy written by the orchestrator during the UAT and still open to review: the push «La missione comincia» / «L'oste ha dato inizio a «titolo»» (category «Inizio missione»), «Missione accettata» / «L'oste è stato avvisato: la missione comincerà quando la avvia», «In preparazione…», the activity labels (Cacciando…, Esplorando…, Combattendo…, Soccorrendo…, Studiando…, In cura…, Lavorando…, Tramando…, Di guardia…).
+7. **Merge order: BE PR #41 (`feat/mission-start-push`) must be merged BEFORE the FE PR** `feat/21-innkeeper-mission-completion` → `develop`. What the FE branch now needs from PR #41:
+   - `PushEventType.missionStart` — the push sent to the participants when the innkeeper starts the mission (FE category «Inizio missione», tap = own pawn on the Map);
+   - `pointOfInterests.city` populated (`city { id name }`) — the «<tipo> presso <città>» labels and the inner-place dots of the teleport;
+   - `pendingQuest.quest.infos.type` served on the lanes of a character — the activity label over the pawn; a BE without it serves the lane type as null.
+8. The placeholder simulation engine returns the same numbers on «Rilancia» (accepted for now); the FE reads whatever the real engine will serve, no FE change expected.
