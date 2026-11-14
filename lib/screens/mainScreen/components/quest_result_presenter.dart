@@ -123,9 +123,9 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     final arrival = state.arrival;
     if (arrival == null || state.arrivalSerial == _handledArrival) return;
     _handledArrival = state.arrivalSerial;
-    // D-06: l'arrivo lo annuncia travelEnd, nessun banner «Missione conclusa»
-    // per i report.
-    if (arrival.isAmbush) return;
+    // D-06: nessun banner «Missione conclusa» per i report; lo annuncia il
+    // push dell'imboscata, nascosto se il carosello si apre ora (22 D-30).
+    if (arrival.isAmbush) return _suppressAmbushBanner(arrival);
     final event = questEndEventOf(arrival);
     final notices = context.read<InAppNotificationsCubit>();
     if (_isSheetGround()) {
@@ -134,6 +134,14 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     }
     if (!_isQuestEndBannerEnabled) return;
     notices.publish(event);
+  }
+
+  /// Pitfall 5 (Phase 22): carosello e banner del push mai insieme.
+  void _suppressAmbushBanner(QuestResult arrival) {
+    if (!_isSheetGround()) return;
+    context.read<InAppNotificationsCubit>().suppress(
+      '${NotificationCategory.ambush.wireType}|${arrival.id}',
+    );
   }
 
   bool get _isQuestEndBannerEnabled => context

@@ -596,7 +596,11 @@ void main() {
       await h.pump(tester);
       await h.emitCharacter(
         tester,
-        CharacterLoaded(Character.fromJson(travellingCharacterJson())),
+        CharacterLoaded(
+          Character.fromJson(
+            travellingCharacterJson(activeTravel: activeTravelJson()),
+          ),
+        ),
       );
       await h.enterMap(tester);
       h.pending.results = [_lost('result-1')];
