@@ -45,9 +45,28 @@ void main() {
       );
     });
 
-    test('the other failures read the generic line (D-31)', () {
+    test('forbidden says the character cannot do it, with no retry (D-31)', () {
+      expect(
+        companionNameRefusalLine(PetRenameFailure.forbidden),
+        'Questo personaggio non può farlo',
+      );
+    });
+
+    test('a refusal a retry cannot change offers no retry (D-31)', () {
       for (final failure in [
         PetRenameFailure.badUserInput,
+        PetRenameFailure.refused,
+      ]) {
+        expect(
+          companionNameRefusalLine(failure),
+          'Qualcosa è andato storto',
+          reason: failure.name,
+        );
+      }
+    });
+
+    test('a failure without a served code asks to retry (D-31)', () {
+      for (final failure in [
         PetRenameFailure.declined,
         PetRenameFailure.unknown,
       ]) {

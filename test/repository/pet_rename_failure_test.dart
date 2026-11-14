@@ -59,16 +59,26 @@ void main() {
       expect(petRenameFailureFrom(exception), PetRenameFailure.connection);
     });
 
-    test('an unknown code, and MISSION_IN_PROGRESS, map to unknown '
-        '(D-31: the rename is not locked)', () {
+    test('FORBIDDEN, the owner-only guard, maps to forbidden (D-19, D-31)', () {
+      expect(
+        petRenameFailureFrom(_withCode('FORBIDDEN')),
+        PetRenameFailure.forbidden,
+      );
+    });
+
+    test('a served code the app does not know, MISSION_IN_PROGRESS included, '
+        'maps to refused (D-31: the rename is not locked)', () {
       expect(
         petRenameFailureFrom(_withCode('MISSION_IN_PROGRESS')),
-        PetRenameFailure.unknown,
+        PetRenameFailure.refused,
       );
       expect(
         petRenameFailureFrom(_withCode('PET_ALREADY_OWNED')),
-        PetRenameFailure.unknown,
+        PetRenameFailure.refused,
       );
+    });
+
+    test('no code and no link error maps to unknown (D-31)', () {
       expect(
         petRenameFailureFrom(OperationException()),
         PetRenameFailure.unknown,
