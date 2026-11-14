@@ -12,10 +12,12 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mi
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/prizes_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
@@ -30,7 +32,7 @@ enum MissionPage { place, encounters, fight, prizes, recap }
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
 /// Phase 10. Richiede sopra di sé [MissionDraftCubit],
-/// [MissionParticipantsCubit], [MissionEnemiesCubit], `MissionPrizeOptionsCubit`,
+/// [MissionParticipantsCubit], [MissionEnemiesCubit], [MissionPrizeOptionsCubit],
 /// [PendingRequestsCubit] e [TeleportModeCubit].
 class MissionCompletionScreen extends StatefulWidget {
   const MissionCompletionScreen({super.key, required this.card});
@@ -134,11 +136,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
-    _enter(_pageOf(draft.step));
-    context.read<MissionParticipantsCubit>().load([
+    final page = _pageOf(draft.step);
+    final characterIds = [
       for (final participant in draft.participants) participant.characterId,
-    ]);
+    ];
+    _enter(page);
+    context.read<MissionParticipantsCubit>().load(characterIds);
+    if (page == MissionPage.recap) _loadPrizeNames(characterIds);
   }
+
+  /// «Premi» legge le opzioni da sé; un «Riepilogo» riaperto le chiede qui
+  /// per dare un nome ai premi scelti (D-22).
+  void _loadPrizeNames(List<String> characterIds) =>
+      context.read<MissionPrizeOptionsCubit>().loadAll(characterIds);
 
   /// Unico punto in cui la pagina cambia: «Scontri» chiede la lista dei
   /// nemici solo se non c'è ancora (D-03).
@@ -321,7 +331,12 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       isSubmitting: ready.isSubmitting,
       onNext: _savePrizes,
     ),
-    MissionPage.recap => const SizedBox.shrink(),
+    MissionPage.recap => RecapStep(
+      card: widget.card,
+      draft: ready.draft,
+      isSubmitting: ready.isSubmitting,
+      onComplete: context.read<MissionDraftCubit>().complete,
+    ),
   };
 
   Widget _buildPlace(MissionDraftReady ready) {

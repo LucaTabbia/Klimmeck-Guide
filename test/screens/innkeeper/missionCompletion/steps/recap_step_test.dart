@@ -319,7 +319,7 @@ void main() {
       await pumpStep(tester, _draft(fights: [_fights.first]));
 
       final buttons = tester.widgetList<ButtonStyleButton>(
-        find.byType(ButtonStyleButton),
+        find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
       );
       expect(buttons.map((button) => button.key), [RecapStep.completeKey]);
       expect(buttons.single.onPressed, isNotNull);
