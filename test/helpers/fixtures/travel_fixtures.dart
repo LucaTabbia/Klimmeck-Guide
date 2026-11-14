@@ -113,3 +113,21 @@ Map<String, dynamic> travelCityJson({
     'imagePath': image,
   },
 };
+
+/// Luogo del mondo come lo serve `pointOfInterests` (D-29): rovine presso
+/// Talmvere; `latitude: null` toglie il punto, `cityId: null` la città.
+Map<String, dynamic> pointOfInterestJson({
+  String id = 'poi-ruins-1',
+  List<String> types = const ['ruins'],
+  double? latitude = 12,
+  double? longitude = 22,
+  String? cityId = 'city-talmvere',
+  String? cityName = 'Talmvere',
+}) => {
+  'id': id,
+  'type': types,
+  'location': latitude == null || longitude == null
+      ? null
+      : [latitude, longitude],
+  'city': cityId == null ? null : {'id': cityId, 'name': cityName},
+};
