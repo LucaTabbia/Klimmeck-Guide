@@ -46,8 +46,9 @@ class NotificationPreferencesSection extends StatelessWidget {
     NotificationCategory.streamerLive => 'Streamer in live',
     NotificationCategory.questEnd => 'Fine quest',
     NotificationCategory.questCancelled => 'Missione annullata',
-    NotificationCategory.ambushDefeat => 'Imboscate',
+    NotificationCategory.ambush => 'Imboscate',
     NotificationCategory.prisonRelease => 'Uscita di prigione',
     NotificationCategory.missionStart => 'Inizio missione',
+    NotificationCategory.petRecovered => 'Compagno in forze',
   };
 }
