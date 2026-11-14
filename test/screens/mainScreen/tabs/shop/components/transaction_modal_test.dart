@@ -7,6 +7,8 @@ import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
@@ -32,6 +34,19 @@ AssetQuantity _swordSoldFor(Map<String, dynamic> sellPrice) {
 
 final _sword = AssetQuantity.fromJson(equipmentAssetJson());
 final _horse = Pet.fromJson(petJson());
+
+const _horseRowKey = ValueKey('trade-pet-pet-travel-horse');
+
+Character _ownerOf(String name) => Character.fromJson({
+  'id': 'c-1',
+  'infos': {'name': 'Aldo', 'sex': 'male'},
+  'status': {'title': 'rookie', 'coins': coinsJson(gold: 2)},
+  'assets': {
+    'ownedPets': [ownedPetJson(pet: petJson(), name: name)],
+  },
+});
+
+typedef _InfoRequest = ({Pet pet, String? name});
 
 Finder _companionIn(String dropdownKey) => find.descendant(
   of: find.byKey(ValueKey(dropdownKey)),
@@ -72,6 +87,7 @@ void main() {
     TradeSelection toBuy = const TradeSelection(),
     TradeSelection toSell = const TradeSelection(),
     bool? isAdd,
+    void Function(Pet pet, String? name)? onCompanionInfo,
   }) async {
     final confirmations = <_Confirmation>[];
     changes.clear();
@@ -94,6 +110,7 @@ void main() {
                 character: character,
                 isAdd: isAdd,
                 onEquipmentInfo: (_) {},
+                onCompanionInfo: onCompanionInfo,
               ),
             ),
           ),
@@ -226,5 +243,71 @@ void main() {
 
     expect(changes, isEmpty);
     expect(_companionIn('buy_dropdown'), findsOneWidget);
+  });
+
+  testWidgets('long press on a basket companion asks for its details (D-35)', (
+    tester,
+  ) async {
+    final requests = <_InfoRequest>[];
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(pets: [_horse]),
+      isAdd: false,
+      onCompanionInfo: (pet, name) => requests.add((pet: pet, name: name)),
+    );
+    await open(tester, 'Acquisto');
+    await tester.longPress(find.byKey(_horseRowKey));
+    await tester.pumpAndSettle();
+
+    expect(requests, [(pet: _horse, name: null)]);
+    expect(changes, isEmpty);
+    expect(_companionIn('buy_dropdown'), findsOneWidget);
+  });
+
+  testWidgets(
+    'the sell side of the basket reads the owned companion\'s name (D-20)',
+    (tester) async {
+      final requests = <_InfoRequest>[];
+      await pumpTransaction(
+        tester,
+        character: _ownerOf('Fulmine'),
+        toSell: TradeSelection(pets: [_horse]),
+        onCompanionInfo: (pet, name) => requests.add((pet: pet, name: name)),
+      );
+      await open(tester, 'Vendita');
+
+      expect(
+        tester
+            .widget<CardLabel>(
+              find.byKey(CompanionCard.titleKeyOf('pet-travel-horse')),
+            )
+            .text,
+        'Fulmine',
+      );
+      await tester.longPress(find.byKey(_horseRowKey));
+      await tester.pumpAndSettle();
+      expect(requests, [(pet: _horse, name: 'Fulmine')]);
+    },
+  );
+
+  testWidgets('the buy side of the basket reads the species (D-20)', (
+    tester,
+  ) async {
+    await pumpTransaction(
+      tester,
+      character: _ownerOf('Fulmine'),
+      toBuy: TradeSelection(pets: [_horse]),
+    );
+    await open(tester, 'Acquisto');
+
+    expect(
+      tester
+          .widget<CardLabel>(
+            find.byKey(CompanionCard.titleKeyOf('pet-travel-horse')),
+          )
+          .text,
+      'Cavallo da viaggio',
+    );
   });
 }

@@ -8,6 +8,8 @@ import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
@@ -51,6 +53,11 @@ final _helm = _equipment('e-helm', EquipType.helm);
 final _boots = _equipment('e-boots', EquipType.boots);
 final _horse = Pet.fromJson(petJson());
 final _cat = Pet.fromJson(catPetJson());
+final _worg = Pet.fromJson(
+  petJson(id: 'pet-worg', name: 'Worg', speedModifier: null),
+);
+
+typedef _InfoRequest = ({Pet pet, String? name});
 
 const _companions = ValueKey('companions_dropdown');
 
@@ -91,6 +98,8 @@ void main() {
     bool isBuy = true,
     bool? isAdd,
     String? equippedPetId,
+    Map<String, String> petNames = const {},
+    void Function(Pet pet, String? name)? onCompanionInfo,
     void Function(TradeSelection)? onSelect,
   }) async {
     useLandscapePhone(tester);
@@ -107,6 +116,8 @@ void main() {
             isAdd: isAdd,
             onEquipmentInfo: (_) {},
             equippedPetId: equippedPetId,
+            petNames: petNames,
+            onCompanionInfo: onCompanionInfo,
           ),
         ),
       ),
@@ -131,6 +142,71 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  Future<void> longPressPet(WidgetTester tester, Pet pet) async {
+    await tester.ensureVisible(_companionRow(pet));
+    await tester.pumpAndSettle();
+    await tester.longPressAt(
+      tester.getTopLeft(_companionRow(pet)) + const Offset(20, 10),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  String cardTextOf(WidgetTester tester, Key key) =>
+      tester.widget<CardLabel>(find.byKey(key)).text;
+
+  testWidgets('the sell list reads the companion\'s name (D-20)', (
+    tester,
+  ) async {
+    await pumpShop(
+      tester,
+      pets: [_worg],
+      isBuy: false,
+      petNames: const {'pet-worg': 'Fenrir'},
+    );
+    await tapAndSettle(tester, find.text('Compagni'));
+
+    expect(cardTextOf(tester, CompanionCard.titleKeyOf('pet-worg')), 'Fenrir');
+    expect(cardTextOf(tester, CompanionCard.speciesKeyOf('pet-worg')), 'Worg');
+  });
+
+  testWidgets('the buy list reads the species (D-20)', (tester) async {
+    await pumpShop(
+      tester,
+      pets: [_worg],
+      petNames: const {'pet-worg': 'Fenrir'},
+    );
+    await tapAndSettle(tester, find.text('Compagni'));
+
+    expect(cardTextOf(tester, CompanionCard.titleKeyOf('pet-worg')), 'Worg');
+    expect(find.byKey(CompanionCard.speciesKeyOf('pet-worg')), findsNothing);
+  });
+
+  testWidgets(
+    'long press on a companion asks for its details, the tap still selects (D-35)',
+    (tester) async {
+      final requests = <_InfoRequest>[];
+      final selections = <TradeSelection>[];
+      await pumpShop(
+        tester,
+        pets: [_worg],
+        isBuy: false,
+        isAdd: true,
+        petNames: const {'pet-worg': 'Fenrir'},
+        onCompanionInfo: (pet, name) => requests.add((pet: pet, name: name)),
+        onSelect: selections.add,
+      );
+      await tapAndSettle(tester, find.text('Compagni'));
+
+      await longPressPet(tester, _worg);
+      expect(requests, [(pet: _worg, name: 'Fenrir')]);
+      expect(selections, isEmpty);
+
+      await tapPet(tester, _worg);
+      expect(selections.last.pets, [_worg]);
+      expect(requests, hasLength(1));
+    },
+  );
 
   testWidgets('a vanished effect falls back to «Tutti» for good (WR-02)', (
     tester,
