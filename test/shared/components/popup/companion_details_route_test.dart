@@ -76,6 +76,20 @@ void main() {
     expect(find.byType(CompanionInfoSheet), findsNothing);
   });
 
+  testWidgets('the route texts sit on a Material, never on the debug '
+      'underlined style (D-35)', (tester) async {
+    await _open(tester);
+
+    final titleText = find.descendant(
+      of: find.byKey(CompanionInfo.titleKey),
+      matching: find.byType(RichText),
+    );
+    final style = tester.widget<RichText>(titleText).text.style;
+
+    expect(style?.decoration, isNot(TextDecoration.underline));
+    expect(Material.maybeOf(tester.element(titleText)), isNotNull);
+  });
+
   testWidgets('the route sheet has no bookmark and no rename (D-19, D-35)', (
     tester,
   ) async {
