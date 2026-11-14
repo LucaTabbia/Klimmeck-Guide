@@ -71,7 +71,7 @@ class CompanionSection extends StatelessWidget {
                       vitalities: vitalities,
                       onToggle: isOnMission
                           ? ignoreMissionLockedToggle
-                          : (petId) => _toggle(context, character, petId),
+                          : (petId) => toggle(context, character, petId),
                       onShowDetails: onShowDetails,
                     ),
                   );
@@ -90,8 +90,9 @@ class CompanionSection extends StatelessWidget {
       );
 
   /// Con un'operazione in corso il tocco non fa nulla e si riprova dopo
-  /// l'esito (IN-04); altrimenti l'aptica conferma l'intento.
-  void _toggle(BuildContext context, Character character, String petId) {
+  /// l'esito (IN-04); altrimenti l'aptica conferma l'intento. Lo stesso tocco
+  /// per la pergamena e per il segnalibro dei dettagli (D-22).
+  static void toggle(BuildContext context, Character character, String petId) {
     final intent = context.read<CompanionCubit>().toggle(character, petId);
     if (intent == CompanionToggleIntent.ignoredPending) return;
     HapticFeedback.lightImpact();

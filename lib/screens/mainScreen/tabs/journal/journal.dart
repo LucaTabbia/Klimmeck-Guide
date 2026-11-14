@@ -329,7 +329,8 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                       isEquipped: companion.displayedPetId(character) == petId,
                       isPending: companion.pending?.petId == petId,
                       onToggle: canToggle
-                          ? () => context.read<CompanionCubit>().toggle(
+                          ? () => CompanionSection.toggle(
+                              context,
                               character,
                               petId,
                             )
