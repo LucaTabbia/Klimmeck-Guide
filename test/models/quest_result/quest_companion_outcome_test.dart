@@ -22,9 +22,6 @@ void main() {
 
   test('a malformed entry reads null (D-27)', () {
     final malformed = <Object?>[
-      companionOutcomeJson()..remove('name'),
-      companionOutcomeJson(name: '   '),
-      companionOutcomeJson()..['name'] = 7,
       companionOutcomeJson()..['lifePoints'] = '5',
       companionOutcomeJson()..remove('lifeBefore'),
       companionOutcomeJson()..['maxLifePoints'] = null,
@@ -35,6 +32,24 @@ void main() {
 
     for (final json in malformed) {
       expect(QuestCompanionOutcome.tryFromJson(json), isNull, reason: '$json');
+    }
+  });
+
+  test('a blank or missing name reads «Il tuo compagno» and keeps the defeat '
+      '(D-27, D-20)', () {
+    final unnamed = <Map<String, dynamic>>[
+      companionOutcomeJson(lifePoints: 1, defeated: true)..remove('name'),
+      companionOutcomeJson(name: '   ', lifePoints: 1, defeated: true),
+      companionOutcomeJson(lifePoints: 1, defeated: true)..['name'] = 7,
+    ];
+
+    for (final json in unnamed) {
+      final companion = QuestCompanionOutcome.tryFromJson(json);
+
+      expect(companion?.name, 'Il tuo compagno', reason: '$json');
+      expect(companion?.isDefeated, isTrue, reason: '$json');
+      expect(companion?.lifePoints, 1, reason: '$json');
+      expect(companion?.maxLifePoints, 300, reason: '$json');
     }
   });
 

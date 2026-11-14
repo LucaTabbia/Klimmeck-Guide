@@ -156,12 +156,22 @@ void main() {
       );
     });
 
+    test('a blank or missing name reads «Compagno» and keeps the slider '
+        '(D-33, D-20)', () {
+      for (final name in <Object?>['', '   ', 7, null]) {
+        final outcome = MissionFightOutcome.tryFromJson(
+          missionOutcomeJson(companion: missionCompanionJson(name: name)),
+        )!;
+
+        expect(outcome.companion?.name, 'Compagno', reason: '$name');
+        expect(outcome.companion?.petId, 'pet-worg', reason: '$name');
+      }
+    });
+
     test('a malformed companion is null and keeps the outcome (D-33)', () {
       final malformed = [
         missionCompanionJson(pet: null),
         missionCompanionJson(pet: '  '),
-        missionCompanionJson(name: ''),
-        missionCompanionJson(name: 7),
         missionCompanionJson(lifeBefore: 'tanta'),
         missionCompanionJson(maxLifePoints: null),
       ];
