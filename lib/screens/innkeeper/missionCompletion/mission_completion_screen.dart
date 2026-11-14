@@ -57,7 +57,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static String fightTitle(int index, int count) =>
       'Scontro ${index + 1} di $count';
   static const String invalidValuesMessage =
-      'Valori non accettati: controlla il modulo';
+      'Operazione rifiutata: controlla scontri, correzioni e premi';
   static const String notParticipantMessage =
       'Un partecipante non fa più parte della richiesta';
   static const String connectionMessage = 'Connessione assente, riprova';
