@@ -32,6 +32,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
     super.key,
     this.openCompletion = openMissionCompletion,
     this.resumeCardKey,
+    this.resumesAtPlace = false,
   });
 
   static const String title = 'Locanda';
@@ -59,11 +60,19 @@ class InnkeeperPanelScreen extends StatelessWidget {
 
   /// Apre il wizard della missione (21-CONTEXT D-25, D-28); iniettabile per
   /// guidare gli esiti nei test.
-  final Future<CompletionExit?> Function(BuildContext, RequestCard)
+  final Future<CompletionExit?> Function(
+    BuildContext,
+    RequestCard, {
+    bool atPlace,
+  })
   openCompletion;
 
   /// Carta il cui completamento si riapre dopo il teletrasporto (D-28); `null` = nessuno.
   final String? resumeCardKey;
+
+  /// La ripresa segue un teletrasporto annullato: il wizard riapre su «Luogo»
+  /// invece che sul passo servito (UAT 2026-11-14).
+  final bool resumesAtPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -182,14 +191,18 @@ class InnkeeperPanelScreen extends StatelessWidget {
       state.requests,
     ).where((card) => card.cardKey == resumeCardKey).firstOrNull;
     if (card == null) return _showSnackBar(context, goneMessage);
-    unawaited(_complete(context, card));
+    unawaited(_complete(context, card, atPlace: resumesAtPlace));
   }
 
   /// Traduce l'esito del wizard (10-CONTEXT D-13/D-14).
-  Future<void> _complete(BuildContext context, RequestCard card) async {
+  Future<void> _complete(
+    BuildContext context,
+    RequestCard card, {
+    bool atPlace = false,
+  }) async {
     final queue = context.read<PendingRequestsCubit>();
     final messenger = ScaffoldMessenger.of(context);
-    final exit = await openCompletion(context, card);
+    final exit = await openCompletion(context, card, atPlace: atPlace);
     if (!context.mounted) return;
     switch (exit) {
       case CompletionCompleted(:final results):

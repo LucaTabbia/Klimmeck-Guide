@@ -35,7 +35,11 @@ enum MissionPage { place, encounters, fight, prizes, recap }
 /// [MissionParticipantsCubit], [MissionEnemiesCubit], [MissionPrizeOptionsCubit],
 /// [PendingRequestsCubit] e [TeleportModeCubit].
 class MissionCompletionScreen extends StatefulWidget {
-  const MissionCompletionScreen({super.key, required this.card});
+  const MissionCompletionScreen({
+    super.key,
+    required this.card,
+    this.opensAtPlace = false,
+  });
 
   static const String title = 'Completa la missione';
   static const String startLabel = 'Inizia la missione';
@@ -77,6 +81,10 @@ class MissionCompletionScreen extends StatefulWidget {
   };
 
   final RequestCard card;
+
+  /// Dopo un teletrasporto annullato l'oste torna a «Luogo», da dove era
+  /// partito, qualunque sia il passo servito (UAT 2026-11-14).
+  final bool opensAtPlace;
 
   @override
   State<MissionCompletionScreen> createState() =>
@@ -144,7 +152,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
-    final page = _pageOf(draft.step);
+    final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
     _enter(page);
     _loadParticipants(draft);
     if (page == MissionPage.recap) _loadPrizeNames(_characterIdsOf(draft));

@@ -14,10 +14,12 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/tel
 /// Il wizard vive sul Navigator del pannello come il form di Phase 10:
 /// repository, coda e modalità teletrasporto passano con `.value` (Phase 10
 /// D-04); i Cubit del wizard nascono e muoiono con la route (D-28).
+/// [atPlace]: riapre su «Luogo» dopo un teletrasporto annullato.
 Future<CompletionExit?> openMissionCompletion(
   BuildContext panelContext,
-  RequestCard card,
-) {
+  RequestCard card, {
+  bool atPlace = false,
+}) {
   final repository = panelContext.read<InnkeeperRepository>();
   final queue = panelContext.read<PendingRequestsCubit>();
   final teleport = panelContext.read<TeleportModeCubit>();
@@ -52,7 +54,7 @@ Future<CompletionExit?> openMissionCompletion(
               ),
             ),
           ],
-          child: MissionCompletionScreen(card: card),
+          child: MissionCompletionScreen(card: card, opensAtPlace: atPlace),
         ),
       ),
     ),

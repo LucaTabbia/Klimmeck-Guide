@@ -42,8 +42,11 @@ class TeleportModeLanding extends StatelessWidget {
       BlocListener<TeleportModeCubit, TeleportModeState>(
         listenWhen: (previous, current) =>
             previous is! TeleportCancelled && current is TeleportCancelled,
-        listener: (context, state) =>
-            _reopenPanel(context, (state as TeleportCancelled).resumeCardKey),
+        listener: (context, state) => _reopenPanel(
+          context,
+          (state as TeleportCancelled).resumeCardKey,
+          resumesAtPlace: true,
+        ),
       ),
       BlocListener<AuthCubit, AuthState>(
         listenWhen: (previous, current) =>
@@ -65,9 +68,20 @@ class TeleportModeLanding extends StatelessWidget {
 
   /// Prima il riconoscimento, poi la route: un solo pannello per uscita; con
   /// [resumeCardKey] il pannello riapre il completamento di quella carta
-  /// (21-CONTEXT D-28).
-  void _reopenPanel(BuildContext context, String? resumeCardKey) {
+  /// (21-CONTEXT D-28); dopo «Annulla» il wizard riapre su «Luogo» (UAT
+  /// 2026-11-14).
+  void _reopenPanel(
+    BuildContext context,
+    String? resumeCardKey, {
+    bool resumesAtPlace = false,
+  }) {
     context.read<TeleportModeCubit>().acknowledgeExit();
-    unawaited(openInnkeeperPanel(context, resumeCardKey: resumeCardKey));
+    unawaited(
+      openInnkeeperPanel(
+        context,
+        resumeCardKey: resumeCardKey,
+        resumesAtPlace: resumesAtPlace,
+      ),
+    );
   }
 }
