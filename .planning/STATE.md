@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: executing
-stopped_at: "Completed 21-18-PLAN.md (2026-11-14) — device E2E approved, Phase 21 complete"
-last_updated: "2026-11-14T15:51:44.043Z"
+status: completed
+stopped_at: Phase 22 context gathered
+last_updated: "2026-11-14T16:33:41.399Z"
 last_activity: 2026-11-14 -- Phase 21 plan 18 executed (device E2E recorded, requirements and planning documents closed)
 progress:
   total_phases: 5
@@ -90,6 +90,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-14
-Stopped at: Completed 21-18-PLAN.md
-Resume file: None
+Last session: 2026-11-14T16:33:41.394Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-CONTEXT.md
