@@ -83,4 +83,18 @@ void main() {
       );
     }
   });
+
+  test("a mission in progress prints «Missione in corso: aspetta l'esito» "
+      '(D-30)', () {
+    for (final type in [QuestType.hunt, QuestType.story]) {
+      expect(
+        questBlockedReasonOf(
+          QuestAvailability.missionInProgress,
+          minTitle: null,
+          type: type,
+        ),
+        "Missione in corso: aspetta l'esito",
+      );
+    }
+  });
 }
