@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
@@ -15,6 +16,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../helpers/fixtures/pending_request_fixtures.dart';
 import '../helpers/fixtures/quest_result_fixtures.dart';
+import '../helpers/fixtures/travel_fixtures.dart';
 import '../helpers/mocks.dart';
 
 Matcher _failsWith(InnkeeperFailure failure) => throwsA(
@@ -295,6 +297,35 @@ void main() {
           ),
         );
       });
+    });
+  });
+
+  group('listPointsOfInterest', () {
+    test('listPointsOfInterest returns the service list (D-29)', () async {
+      final places = [PointOfInterest.fromJson(pointOfInterestJson())];
+      when(() => graphQl.getPointsOfInterest()).thenAnswer((_) async => places);
+
+      expect(await repository.listPointsOfInterest(), places);
+    });
+
+    test('a FormatException is malformed (D-29)', () async {
+      when(
+        () => graphQl.getPointsOfInterest(),
+      ).thenThrow(const FormatException('pointOfInterests missing'));
+
+      await expectLater(
+        repository.listPointsOfInterest(),
+        _failsWith(InnkeeperFailure.malformed),
+      );
+    });
+
+    test('FORBIDDEN is forbidden (D-29)', () async {
+      when(() => graphQl.getPointsOfInterest()).thenThrow(_coded('FORBIDDEN'));
+
+      await expectLater(
+        repository.listPointsOfInterest(),
+        _failsWith(InnkeeperFailure.forbidden),
+      );
     });
   });
 }
