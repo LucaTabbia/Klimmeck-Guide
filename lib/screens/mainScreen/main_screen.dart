@@ -43,6 +43,7 @@ typedef _SatchelInputs = ({
   PointOfInterest? location,
   bool isTravelling,
   bool isAwaitingAid,
+  bool isOnMission,
 });
 
 class MainScreen extends StatefulWidget {
@@ -148,6 +149,7 @@ class _MainScreenState extends State<MainScreen>
                   cities: state.cities,
                   isTravelling: inputs.isTravelling,
                   isAwaitingAid: inputs.isAwaitingAid,
+                  isOnMission: inputs.isOnMission,
                   isImprisoned: isImprisoned,
                 );
                 return QuestAcceptanceOutcomeListener(
@@ -283,21 +285,28 @@ class _MainScreenState extends State<MainScreen>
       cities: screen.cities,
       isTravelling: inputs.isTravelling,
       isAwaitingAid: inputs.isAwaitingAid,
+      isOnMission: inputs.isOnMission,
       isImprisoned: context.read<PrisonCubit>().state.isImprisoned,
     ).contains(index);
   }
 
-  /// Posizione, viaggio in corso e attesa di soccorso: gli input della
-  /// disponibilità della borsa (D-12, Phase 9 D-16).
+  /// Posizione, viaggio in corso, attesa di soccorso e missione in corso: gli
+  /// input della disponibilità della borsa (D-12, Phase 9 D-16, Phase 21 D-11).
   static _SatchelInputs _satchelInputsOf(CharacterState state) {
     if (state is! CharacterLoaded) {
-      return (location: null, isTravelling: false, isAwaitingAid: false);
+      return (
+        location: null,
+        isTravelling: false,
+        isAwaitingAid: false,
+        isOnMission: false,
+      );
     }
     final status = state.character.status;
     return (
       location: status?.location,
       isTravelling: status?.activeTravel != null,
       isAwaitingAid: status?.awaitingAid != null,
+      isOnMission: status?.missionInProgress ?? false,
     );
   }
 

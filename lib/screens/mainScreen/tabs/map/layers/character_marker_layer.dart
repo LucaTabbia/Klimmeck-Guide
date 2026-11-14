@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -38,6 +39,9 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const String awaitingAidLabel = 'In attesa di soccorso';
 
   static const Key prisonLabelKey = ValueKey('map.prisonLabel');
+
+  /// Solo durante il flusso guidato della Locanda (FE Phase 21 D-16).
+  static const Key missionLabelKey = ValueKey('map.missionLabel');
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
@@ -122,6 +126,14 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               text: CharacterMarkerLayer.awaitingAidLabel,
             ),
           ),
+        if (state.character.status?.guidedMissionInProgress ?? false)
+          _labelMarker(
+            point,
+            const PawnLabel(
+              key: CharacterMarkerLayer.missionLabelKey,
+              text: missionInProgressLabel,
+            ),
+          ),
         if (prisonRemaining != null)
           _labelMarker(
             point,
@@ -173,13 +185,15 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       : formatGameDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
-  /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta) e
-  /// fuori di prigione (quick 261110-cgd).
+  /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta, nessuna
+  /// missione in corso servita dal BE (Phase 21 D-11)) e fuori di prigione
+  /// (quick 261110-cgd).
   /// Pre-controllo: il BE resta giudice (D-14).
   static bool _canStartTravel(CharacterLoaded state, TravelState travel) =>
       state.character.status?.activeTravel == null &&
       state.character.quests?.pendingQuest == null &&
       state.character.status?.awaitingAid == null &&
+      !(state.character.status?.missionInProgress ?? false) &&
       travel is TravelIdle;
 
   /// D-04: col foglio aperto (anche durante il preventivo rinnovato,
