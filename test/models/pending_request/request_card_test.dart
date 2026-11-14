@@ -247,4 +247,22 @@ void main() {
       expect(card.isActionable(serverNow), isFalse);
     });
   });
+
+  group('hasMissionDraft (Phase 21)', () {
+    test('a card with any entry in a started draft has a mission draft '
+        '(D-17, D-18)', () {
+      final [first, second] = worldMissionEntriesJson();
+      second['missionDraftStartedAt'] = '2026-11-14T10:00:00.000Z';
+
+      final card = requestCardsOf(requestsOf([first, second])).single;
+
+      expect(card.hasMissionDraft, isTrue);
+    });
+
+    test('a card without a draft has none', () {
+      final card = requestCardsOf(requestsOf(worldMissionEntriesJson())).single;
+
+      expect(card.hasMissionDraft, isFalse);
+    });
+  });
 }

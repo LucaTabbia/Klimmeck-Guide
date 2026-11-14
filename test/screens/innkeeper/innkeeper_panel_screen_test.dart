@@ -576,6 +576,34 @@ void main() {
     });
   });
 
+  group('draft label (Phase 21)', () {
+    Text completeLabel(WidgetTester tester) => tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(RequestCardView.completeKeyFor(_storyCardKey)),
+        matching: find.byType(Text),
+      ),
+    );
+
+    testWidgets('a card with a started draft reads «Riprendi» (D-17)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson()
+          ..['missionDraftStartedAt'] = '2026-11-14T10:00:00.000Z',
+      ]);
+
+      expect(completeLabel(tester).data, RequestCardView.resumeLabel);
+      expect(completeLabel(tester).data, 'Riprendi');
+    });
+
+    testWidgets('a card without a draft reads «Completa»', (tester) async {
+      await pumpQueue(tester, [pendingRequestJson()]);
+
+      expect(completeLabel(tester).data, RequestCardView.completeLabel);
+      expect(completeLabel(tester).data, 'Completa');
+    });
+  });
+
   group('resume after the Map (Phase 21)', () {
     late List<RequestCard> opened;
     late StreamController<PendingRequestsState> snapshots;

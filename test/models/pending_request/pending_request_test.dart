@@ -132,6 +132,44 @@ void main() {
     });
   });
 
+  group('missionDraftStartedAt (Phase 21)', () {
+    test('reads missionDraftStartedAt when served (D-17)', () {
+      final request = PendingRequest.fromJson(
+        pendingRequestJson()
+          ..['missionDraftStartedAt'] = '2026-11-14T11:00:00.000+01:00',
+      );
+
+      expect(request.missionDraftStartedAt, DateTime.utc(2026, 11, 14, 10));
+      expect(request.missionDraftStartedAt!.isUtc, isTrue);
+    });
+
+    test('absent or malformed missionDraftStartedAt is null and the entry '
+        'survives (D-17, Pitfall 8)', () {
+      for (final raw in <Object?>[null, 'not-a-date', 42, true]) {
+        final json = pendingRequestJson()..['missionDraftStartedAt'] = raw;
+
+        final request = PendingRequest.tryFromJson(json);
+
+        expect(request, isNotNull, reason: '$raw');
+        expect(request!.missionDraftStartedAt, isNull, reason: '$raw');
+      }
+      expect(
+        PendingRequest.fromJson(pendingRequestJson()).missionDraftStartedAt,
+        isNull,
+      );
+    });
+
+    test('two entries differing only in the draft are not equal (D-17)', () {
+      final started = pendingRequestJson()
+        ..['missionDraftStartedAt'] = '2026-11-14T10:00:00.000Z';
+
+      expect(
+        PendingRequest.fromJson(started),
+        isNot(PendingRequest.fromJson(pendingRequestJson())),
+      );
+    });
+  });
+
   group('PendingRequest.tryFromJson', () {
     test('returns the entry for a valid JSON', () {
       expect(PendingRequest.tryFromJson(pendingRequestJson()), isNotNull);
