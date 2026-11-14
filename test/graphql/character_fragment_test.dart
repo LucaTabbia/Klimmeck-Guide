@@ -139,6 +139,24 @@ void main() {
     );
   });
 
+  test('statusFields selects the two mission flags after imprisonedUntil '
+      '(D-16, Pitfall 2)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('imprisonedUntil missionInProgress guidedMissionInProgress'),
+    );
+  });
+
+  test('characterUpdated and character carry the mission flags (D-23)', () {
+    for (final document in [
+      CharacterSubscriptions.characterUpdated,
+      CharacterQueries.getCharacter,
+    ]) {
+      expect(document, contains('missionInProgress'));
+      expect(document, contains('guidedMissionInProgress'));
+    }
+  });
+
   test('statusFields selects unlockedLore (D-01)', () {
     final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 

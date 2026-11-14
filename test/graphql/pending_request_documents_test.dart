@@ -36,6 +36,14 @@ void main() {
       expect('pendingQuest'.allMatches(sharedSelection), hasLength(1));
     });
 
+    test('the queue entry selects missionDraftStartedAt after startDate '
+        '(D-17)', () {
+      expect(
+        sharedSelection,
+        contains('startDate missionDraftStartedAt quest {'),
+      );
+    });
+
     test('never selects the private fields', () {
       for (final field in ['user', 'twitchId', 'pointsSpent', 'road']) {
         expect(sharedSelection, isNot(contains(field)), reason: field);
