@@ -766,6 +766,36 @@ void main() {
       expect(openedAtPlace, [true]);
     });
 
+    testWidgets('a resuming panel hides the queue behind a curtain until the '
+        'wizard is back (UAT 2026-11-14)', (tester) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsOneWidget);
+      expect(find.byKey(GenerateQuestsButton.buttonKey), findsNothing);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+      expect(find.byKey(GenerateQuestsButton.buttonKey), findsOneWidget);
+    });
+
+    testWidgets('a panel that resumes nothing has no curtain', (tester) async {
+      await pumpResuming(tester, null);
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+    });
+
+    testWidgets('a resumed card that is gone lifts the curtain', (
+      tester,
+    ) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      await emitSnapshot(tester, loaded([]));
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+      expect(opened, isEmpty);
+    });
+
     testWidgets('opens it only once across later snapshots (D-28)', (
       tester,
     ) async {
