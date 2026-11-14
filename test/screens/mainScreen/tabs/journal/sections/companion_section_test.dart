@@ -32,8 +32,12 @@ Character _character({
   bool owning = true,
   List<Map<String, dynamic>>? owned,
   Map<String, dynamic>? activeTravel,
+  bool? missionInProgress,
 }) => Character.fromJson({
-  ...travellingCharacterJson(activeTravel: activeTravel),
+  ...travellingCharacterJson(
+    activeTravel: activeTravel,
+    missionInProgress: missionInProgress,
+  ),
   'assets': {
     'pet': switch (equipped) {
       _horse => petJson(),
@@ -398,5 +402,31 @@ void main() {
         verify(() => companionCubit.toggle(character, _horse)).called(1);
       },
     );
+  });
+
+  group('mission in progress (Phase 21)', () {
+    testWidgets('a mission in progress shows «Missione in corso» and ignores '
+        'the toggle (D-12, D-30)', (tester) async {
+      final haptics = recordHaptics(tester);
+      await pump(tester, character: _character(missionInProgress: true));
+
+      expect(find.byKey(CompanionSection.missionLockedKey), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(CompanionSection.missionLockedKey)).data,
+        'Missione in corso',
+      );
+
+      await tapCard(tester, _ownedPet(_cat));
+
+      verifyNever(() => companionCubit.toggle(any(), any()));
+      expect(haptics, isEmpty);
+    });
+
+    testWidgets('no line without a mission (D-12)', (tester) async {
+      await pump(tester);
+
+      expect(find.byKey(CompanionSection.missionLockedKey), findsNothing);
+      expect(find.text('Missione in corso'), findsNothing);
+    });
   });
 }
