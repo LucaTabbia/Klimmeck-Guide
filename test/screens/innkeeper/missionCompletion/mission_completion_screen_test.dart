@@ -508,6 +508,28 @@ void main() {
       );
     }
 
+    testWidgets(
+      'a refused wizard action names fights, corrections and prizes, not a form (D-24)',
+      (tester) async {
+        await openWizard(tester, _ready);
+
+        await emitDraft(
+          tester,
+          _ready.copyWith(
+            failure: InnkeeperFailure.overrideInvalid,
+            failureSerial: 1,
+          ),
+        );
+
+        expect(
+          find.text(
+            'Operazione rifiutata: controlla scontri, correzioni e premi',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('back is blocked while a call is in flight', (tester) async {
       await openWizard(tester, _ready.copyWith(isSubmitting: true));
 
