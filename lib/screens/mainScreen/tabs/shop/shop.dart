@@ -19,8 +19,10 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/tra
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 
 import '../../../../models/character/character.dart';
+import '../../../../models/companion/companion_display_name.dart';
 import '../../../../shared/components/cached_svg.dart';
 import '../../../../shared/components/coins_display.dart';
+import '../../../../shared/components/popup/companion_details_route.dart';
 import '../../../../shared/components/popup/equipment_info_display.dart';
 import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
@@ -176,7 +178,17 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     items: character.assets?.ownedItems ?? const [],
     pets: _ownedPetsOf(character),
     equippedPetId: character.assets?.pet?.id,
+    petNames: _chosenPetNamesOf(character),
   );
+
+  /// Nomi scelti dei compagni posseduti per la lista di vendita (Pitfall 9).
+  Map<String, String> _chosenPetNamesOf(Character character) => {
+    for (final owned in character.assets?.ownedPets ?? const [])
+      if (owned.name != null) owned.pet.id: companionDisplayNameOf(owned),
+  };
+
+  void _showCompanionDetails(Pet pet, String? name) =>
+      showCompanionDetails(context, pet: pet, name: name);
 
   void _showModalShop({
     required bool isBuy,
@@ -204,6 +216,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                       items: stock.items,
                       pets: stock.pets,
                       equippedPetId: stock.equippedPetId,
+                      petNames: stock.petNames,
+                      onCompanionInfo: _showCompanionDetails,
                       selection: isBuy ? _toBuy : _toSell,
                       isBuy: isBuy,
                       onSelect: (selection) => _onSelect(selection, isBuy),
@@ -272,6 +286,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                     },
                     character: character,
                     isAdd: isAddLocal,
+                    onCompanionInfo: _showCompanionDetails,
                   ),
                 ),
                 EditPencilRubber(
@@ -489,10 +504,12 @@ class _SheetStock {
     this.items = const [],
     this.pets = const [],
     this.equippedPetId,
+    this.petNames = const {},
   });
 
   final List<AssetQuantity> equipments;
   final List<AssetQuantity> items;
   final List<Pet> pets;
   final String? equippedPetId;
+  final Map<String, String> petNames;
 }

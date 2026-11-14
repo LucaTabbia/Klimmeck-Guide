@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/companion/companion_display_name.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
@@ -25,6 +26,7 @@ class TransactionModal extends StatefulWidget {
     required this.character,
     this.isAdd,
     required this.onEquipmentInfo,
+    this.onCompanionInfo,
   });
 
   final TradeSelection toBuy;
@@ -34,6 +36,9 @@ class TransactionModal extends StatefulWidget {
   final Character character;
   final bool? isAdd;
   final void Function(EquipmentItem) onEquipmentInfo;
+
+  /// Tocco prolungato su un compagno del carrello: apre il dettaglio (D-35).
+  final void Function(Pet pet, String? name)? onCompanionInfo;
 
   @override
   State<TransactionModal> createState() => _TransactionModalState();
@@ -48,6 +53,12 @@ class _TransactionModalState extends State<TransactionModal> {
 
   late TradeSelection _toBuy;
   late TradeSelection _toSell;
+
+  /// Nomi scelti dei compagni posseduti, per il lato vendita (Pitfall 9).
+  Map<String, String> get _sellNames => {
+    for (final owned in widget.character.assets?.ownedPets ?? const [])
+      if (owned.name != null) owned.pet.id: companionDisplayNameOf(owned),
+  };
 
   @override
   void initState() {
@@ -224,6 +235,7 @@ class _TransactionModalState extends State<TransactionModal> {
     double itemSize, {
     required bool isBuy,
   }) {
+    final names = isBuy ? const <String, String>{} : _sellNames;
     return Column(
       children: [
         for (final asset in selection.assets)
@@ -237,14 +249,28 @@ class _TransactionModalState extends State<TransactionModal> {
             onSelect: (item) => _onSelect(asset, widget.isAdd, isBuy),
           ),
         for (final pet in selection.pets)
-          CompanionRow(
-            key: ValueKey('trade-pet-${pet.id}'),
-            pet: pet,
-            size: itemSize,
-            isBuy: isBuy,
-            onTap: () => _onTapPet(pet, isBuy),
-          ),
+          _buildCompanionRow(pet, itemSize, isBuy: isBuy, name: names[pet.id]),
       ],
+    );
+  }
+
+  Widget _buildCompanionRow(
+    Pet pet,
+    double size, {
+    required bool isBuy,
+    required String? name,
+  }) {
+    final onCompanionInfo = widget.onCompanionInfo;
+    return CompanionRow(
+      key: ValueKey('trade-pet-${pet.id}'),
+      pet: pet,
+      size: size,
+      isBuy: isBuy,
+      name: name,
+      onTap: () => _onTapPet(pet, isBuy),
+      onLongPress: onCompanionInfo == null
+          ? null
+          : () => onCompanionInfo(pet, name),
     );
   }
 

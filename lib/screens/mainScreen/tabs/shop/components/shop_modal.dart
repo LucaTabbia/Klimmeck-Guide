@@ -29,6 +29,8 @@ class ShopModal extends StatefulWidget {
     required this.isAdd,
     required this.onEquipmentInfo,
     this.equippedPetId,
+    this.petNames = const {},
+    this.onCompanionInfo,
   });
 
   final List<AssetQuantity> equipments;
@@ -42,6 +44,12 @@ class ShopModal extends StatefulWidget {
 
   /// Solo sul lato vendita: il compagno al fianco del personaggio (D-07).
   final String? equippedPetId;
+
+  /// Solo sul lato vendita: nome scelto per id del compagno (D-20, Pitfall 9).
+  final Map<String, String> petNames;
+
+  /// Tocco prolungato su un compagno: apre il suo dettaglio (D-35).
+  final void Function(Pet pet, String? name)? onCompanionInfo;
 
   @override
   State<ShopModal> createState() => _ShopModalState();
@@ -208,15 +216,7 @@ class _ShopModalState extends State<ShopModal> {
                     data: Column(
                       children: [
                         for (final pet in widget.pets)
-                          CompanionRow(
-                            key: ValueKey('shop-pet-${pet.id}'),
-                            pet: pet,
-                            size: itemSize,
-                            isBuy: widget.isBuy,
-                            isEquipped: pet.id == widget.equippedPetId,
-                            isSelected: _selection.containsPet(pet.id),
-                            onTap: () => _onTapPet(pet),
-                          ),
+                          _buildCompanionRow(pet, itemSize),
                       ],
                     ),
                   ),
@@ -226,6 +226,24 @@ class _ShopModalState extends State<ShopModal> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildCompanionRow(Pet pet, double size) {
+    final name = widget.isBuy ? null : widget.petNames[pet.id];
+    final onCompanionInfo = widget.onCompanionInfo;
+    return CompanionRow(
+      key: ValueKey('shop-pet-${pet.id}'),
+      pet: pet,
+      size: size,
+      isBuy: widget.isBuy,
+      name: name,
+      isEquipped: pet.id == widget.equippedPetId,
+      isSelected: _selection.containsPet(pet.id),
+      onTap: () => _onTapPet(pet),
+      onLongPress: onCompanionInfo == null
+          ? null
+          : () => onCompanionInfo(pet, name),
     );
   }
 
