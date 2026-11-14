@@ -405,6 +405,28 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
+    testWidgets('a target in flight is announced as a disabled button '
+        '(single-flight)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionDrinking(
+          _herb,
+          targetPetId: _worg,
+          targetName: 'Fenrir',
+        ),
+        targets: [fenrir],
+      );
+
+      expect(
+        tester.getSemantics(find.byKey(PotionSheet.targetKeyOf(_worg))),
+        containsSemantics(
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: false,
+        ),
+      );
+    });
+
     testWidgets('the outcome face of a companion shows its name and its life '
         'bar (D-08)', (tester) async {
       await pumpSheet(
