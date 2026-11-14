@@ -42,6 +42,11 @@ mixin PawnDragging<T extends StatefulWidget> on State<T> {
       return;
     }
 
+    resolvePawnDrop(releasePoint);
+  }
+
+  /// Regola di rilascio: la pedina del giocatore usa la città (Phase 7 D-01); la pedina del teletrasporto la sovrascrive (D-29).
+  void resolvePawnDrop(LatLng releasePoint) {
     final targetCity = MapUtils.dropTargetCity(releasePoint, dropCities);
     onPawnDragEnd(targetCity?.markerLocation?.location, targetCity);
   }
