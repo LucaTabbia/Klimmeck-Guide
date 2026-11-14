@@ -54,6 +54,8 @@ class CharacterFragment {
       }
       potionRecoveryUntil
       imprisonedUntil
+      missionInProgress
+      guidedMissionInProgress
       spellStates {
         usages
         recoveries
