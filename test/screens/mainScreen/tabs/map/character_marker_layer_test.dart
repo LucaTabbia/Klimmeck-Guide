@@ -58,6 +58,8 @@ CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? awaitingAid,
+  bool? missionInProgress,
+  bool? guidedMissionInProgress,
 }) => CharacterLoaded(
   Character.fromJson(
     travellingCharacterJson(
@@ -65,6 +67,8 @@ CharacterLoaded characterLoaded({
       activeTravel: activeTravel,
       pendingQuest: pendingQuest,
       awaitingAid: awaitingAid,
+      missionInProgress: missionInProgress,
+      guidedMissionInProgress: guidedMissionInProgress,
     ),
   ),
 );
@@ -307,6 +311,53 @@ void main() {
       await pumpLayer(tester, character: characterLoaded());
 
       expect(find.byKey(CharacterMarkerLayer.prisonLabelKey), findsNothing);
+    });
+  });
+
+  group('mission in progress (Phase 21)', () {
+    testWidgets('a mission in progress blocks the drag (D-11, D-16)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(missionInProgress: true),
+      );
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(pawnPoint(tester), home);
+    });
+
+    testWidgets('the guided flow shows «Missione in corso» over the pawn '
+        '(D-16)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          missionInProgress: true,
+          guidedMissionInProgress: true,
+        ),
+      );
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.missionLabelKey),
+          matching: find.text('Missione in corso'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a normal mission shows no pawn label (D-16)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          missionInProgress: true,
+          guidedMissionInProgress: false,
+        ),
+      );
+
+      expect(find.byKey(CharacterMarkerLayer.missionLabelKey), findsNothing);
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
     });
   });
 

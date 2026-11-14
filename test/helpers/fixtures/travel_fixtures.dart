@@ -63,7 +63,8 @@ Map<String, dynamic> awaitingAidJson({
 }) => {'quest': quest, 'aidQuest': aidQuest, 'since': since};
 
 /// Personaggio con pedina (infos.sex), posizione sul marker di partenza e,
-/// a scelta, un viaggio, una corsia standard e lo stato di ferito.
+/// a scelta, un viaggio, una corsia standard, lo stato di ferito e i due flag
+/// della missione in corso (FE Phase 21 D-16).
 Map<String, dynamic> travellingCharacterJson({
   String id = 'c-1',
   String locationId = 'city-marker-1',
@@ -72,6 +73,8 @@ Map<String, dynamic> travellingCharacterJson({
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? awaitingAid,
   String? imprisonedUntil,
+  bool? missionInProgress,
+  bool? guidedMissionInProgress,
 }) => {
   'id': id,
   'infos': {'name': 'Aldo', 'sex': 'male'},
@@ -81,6 +84,9 @@ Map<String, dynamic> travellingCharacterJson({
     'activeTravel': activeTravel,
     if (awaitingAid != null) 'awaitingAid': awaitingAid,
     if (imprisonedUntil != null) 'imprisonedUntil': imprisonedUntil,
+    if (missionInProgress != null) 'missionInProgress': missionInProgress,
+    if (guidedMissionInProgress != null)
+      'guidedMissionInProgress': guidedMissionInProgress,
   },
   'quests': {
     'completedQuests': const [],
