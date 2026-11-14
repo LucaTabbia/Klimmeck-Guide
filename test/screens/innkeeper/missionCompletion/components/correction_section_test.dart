@@ -54,14 +54,16 @@ void main() {
     MissionParticipant? participant,
     MissionFightOutcome? outcome,
     MissionCorrection? correction,
+    bool opens = true,
   }) async {
     final served = outcome ?? _outcome();
+    final shown = participant ?? _participant();
     await tester.pumpWidget(
       buildTestApp(
         home: Material(
           child: SingleChildScrollView(
             child: CorrectionSection(
-              participant: participant ?? _participant(),
+              participant: shown,
               outcome: served,
               correction: correction ?? _seeded(served),
               itemNameOf: (itemId) =>
@@ -74,13 +76,33 @@ void main() {
         ),
       ),
     );
+    // una seconda pump sullo stesso albero ritrova la sezione già aperta
+    if (!opens || find.text('Ferite').evaluate().isNotEmpty) return;
+    await tester.tap(
+      find.byKey(CorrectionSection.headerKeyFor(shown.characterId)),
+    );
+    await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the engine line «PV 800 → 700» (D-04)', (tester) async {
+  testWidgets('starts closed under a title with the name and the life change '
+      '(UAT 2026-11-14)', (tester) async {
+    await pumpSection(tester, opens: false);
+
+    expect(find.text('Aldo · PV 800 → 700'), findsOneWidget);
+    expect(find.text('Ferite'), findsNothing);
+    expect(
+      find.byKey(CorrectionSection.hpSliderKeyFor(_participant().characterId)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('shows the engine line «PV 800 → 700» once open (D-04)', (
+    tester,
+  ) async {
     await pumpSection(tester);
 
     expect(find.text('PV 800 → 700'), findsOneWidget);
-    expect(find.text('Aldo'), findsOneWidget);
+    expect(find.text('Ferite'), findsOneWidget);
   });
 
   testWidgets(

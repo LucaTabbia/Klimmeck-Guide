@@ -159,6 +159,12 @@ void main() {
       await pumpStep(tester, _draft(first: 'success'), fightIndex: 1);
 
       expect(find.text(EncountersStep.notSimulatedLabel), findsOneWidget);
+      // UAT 2026-11-14: l'esito sta in alto e al centro, non fra i pulsanti
+      final verdict = tester.getRect(find.byKey(FightStep.verdictKey));
+      final simulate = tester.getRect(find.byKey(FightStep.simulateKey));
+      final page = tester.getRect(find.byType(FightStep));
+      expect(verdict.bottom, lessThan(simulate.top));
+      expect(verdict.center.dx, moreOrLessEquals(page.center.dx, epsilon: 1));
       expect(find.byType(CorrectionSection), findsNothing);
       expect(onPressedOf(tester, MissionCompletionScreen.nextKey), isNull);
     },
