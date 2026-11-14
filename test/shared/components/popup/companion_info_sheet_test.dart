@@ -277,6 +277,8 @@ void main() {
         matching: find.byType(GestureDetector),
       );
       expect(tester.getSize(target.first).height, greaterThanOrEqualTo(44));
+      await tester.ensureVisible(find.byKey(CompanionInfo.renameKey));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(CompanionInfo.renameKey));
 
       expect(taps, 1);
