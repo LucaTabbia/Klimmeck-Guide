@@ -313,6 +313,33 @@ void main() {
     expect(find.text(EncountersStep.removeFightLabel), findsOneWidget);
   });
 
+  testWidgets(
+    'after removing a fight each card keeps the status of its own served fight (D-21, D-24)',
+    (tester) async {
+      await pumpStep(tester, _twoFights);
+
+      await tapKey(tester, EncountersStep.removeFightKeyFor(0));
+
+      expect(
+        inCard(0, find.text(EncountersStep.notSimulatedLabel)),
+        findsOneWidget,
+      );
+      expect(find.text('Vittoria'), findsNothing);
+    },
+  );
+
+  testWidgets('an added fight shows no status (D-24)', (tester) async {
+    await pumpStep(tester, _twoFights);
+
+    await tapKey(tester, EncountersStep.addFightKey);
+
+    expect(
+      inCard(2, find.text(EncountersStep.notSimulatedLabel)),
+      findsNothing,
+    );
+    expect(inCard(2, find.text('Vittoria')), findsNothing);
+  });
+
   testWidgets('«Avanti» sends every fight\'s picks in order (D-02, D-24)', (
     tester,
   ) async {
