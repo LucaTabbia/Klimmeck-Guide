@@ -49,7 +49,10 @@ class QuestResultSheet extends StatefulWidget {
   static const Key hpKey = ValueKey('questResult.hp');
   static const Key injuriesKey = ValueKey('questResult.injuries');
   static const Key healedKey = ValueKey('questResult.healed');
+  static const Key companionLifeKey = ValueKey('questResult.companionLife');
+  static const Key companionDefeatKey = ValueKey('questResult.companionDefeat');
   static const Key reachedCityKey = ValueKey('questResult.reachedCity');
+  static const Key onFootKey = ValueKey('questResult.onFoot');
   static const Key consumablesKey = ValueKey('questResult.consumables');
   static const Key spellsKey = ValueKey('questResult.spells');
   static const Key rewardsKey = ValueKey('questResult.rewards');
@@ -182,13 +185,25 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
           QuestResultSheet.healedKey,
         ),
         ..._injuries(),
+        ..._line(
+          companionFightLifeLine(_result.companion),
+          QuestResultSheet.companionLifeKey,
+        ),
+        ..._line(
+          companionDefeatResultLine(_result.companion, _result.resolvedAt),
+          QuestResultSheet.companionDefeatKey,
+        ),
         ..._line(_reachedCityText(), QuestResultSheet.reachedCityKey),
+        ..._line(onFootLineOf(_result), QuestResultSheet.onFootKey),
         ..._consumables(),
         ..._spells(),
         ..._rewards(),
         ..._line(_xpText(), QuestResultSheet.xpKey),
         ..._line(
-          companionXpGainedLine(_result.petXpGained),
+          companionXpGainedLine(
+            _result.petXpGained,
+            name: _result.companion?.name,
+          ),
           QuestResultSheet.companionXpKey,
         ),
         ..._line(_levelText(), QuestResultSheet.levelKey),
