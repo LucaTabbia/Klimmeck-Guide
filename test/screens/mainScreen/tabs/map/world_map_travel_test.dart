@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_cubit.dart';
@@ -107,6 +108,16 @@ CharacterLoaded characterLoaded({
 );
 
 /// Monta la `WorldMap` reale con i cubit della shell mockati (07-10 la riusa).
+MockQuestAcceptanceCubit _idleAcceptance() {
+  final acceptance = MockQuestAcceptanceCubit();
+  whenListen(
+    acceptance,
+    const Stream<QuestAcceptanceState>.empty(),
+    initialState: const QuestAcceptanceIdle(),
+  );
+  return acceptance;
+}
+
 Future<void> pumpWorldMap(
   WidgetTester tester, {
   required CharacterState character,
@@ -147,6 +158,7 @@ Future<void> pumpWorldMap(
                 clock: FakeServerClockService(DateTime.utc(2026, 11, 10)),
               ),
             ),
+            BlocProvider<QuestAcceptanceCubit>.value(value: _idleAcceptance()),
             BlocProvider<QuestCubit>.value(value: questCubit),
             BlocProvider<WorldMapCubit>.value(value: worldMapCubit),
             BlocProvider<TravelCubit>.value(value: travelCubit),

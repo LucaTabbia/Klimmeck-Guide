@@ -11,6 +11,8 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
@@ -106,6 +108,7 @@ void main() {
   late MockTravelCubit travelCubit;
   late MockTravelProgressCubit progressCubit;
   late MockPrisonCubit prisonCubit;
+  late MockQuestAcceptanceCubit acceptanceCubit;
   late StreamController<PrisonState> prisonStates;
   late StreamController<CharacterState> characterStates;
   late StreamController<TravelState> travelStates;
@@ -118,6 +121,7 @@ void main() {
     travelCubit = MockTravelCubit();
     progressCubit = MockTravelProgressCubit();
     prisonCubit = MockPrisonCubit();
+    acceptanceCubit = MockQuestAcceptanceCubit();
     prisonStates = StreamController<PrisonState>.broadcast();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
@@ -140,9 +144,15 @@ void main() {
     TravelState travel = const TravelIdle(),
     TravelProgressState progress = const TravelProgressIdle(),
     PrisonState prison = const PrisonState(null),
+    QuestAcceptanceState acceptance = const QuestAcceptanceIdle(),
   }) async {
     useLandscapePhone(tester);
     whenListen(prisonCubit, prisonStates.stream, initialState: prison);
+    whenListen(
+      acceptanceCubit,
+      const Stream<QuestAcceptanceState>.empty(),
+      initialState: acceptance,
+    );
     whenListen(characterCubit, characterStates.stream, initialState: character);
     whenListen(travelCubit, travelStates.stream, initialState: travel);
     whenListen(progressCubit, progressStates.stream, initialState: progress);
@@ -154,6 +164,7 @@ void main() {
           BlocProvider<TravelCubit>.value(value: travelCubit),
           BlocProvider<TravelProgressCubit>.value(value: progressCubit),
           BlocProvider<PrisonCubit>.value(value: prisonCubit),
+          BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
         ],
         child: mapHarness([
           CharacterMarkerLayer(
@@ -187,6 +198,33 @@ void main() {
 
   Draggable<Object> pawnDraggable(WidgetTester tester) =>
       tester.widget<Draggable<Object>>(find.byType(Draggable<Object>));
+
+  group('quest being accepted (utente 2026-11-14)', () {
+    testWidgets('shows «In preparazione…» over a pawn that cannot be dragged '
+        'while the server answers', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(),
+        acceptance: const QuestAccepting('h-1'),
+      );
+
+      expect(
+        tester
+            .widget<PawnLabel>(
+              find.byKey(CharacterMarkerLayer.preparingLabelKey),
+            )
+            .text,
+        'In preparazione…',
+      );
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+    });
+
+    testWidgets('shows no preparation label otherwise', (tester) async {
+      await pumpLayer(tester, character: characterLoaded());
+
+      expect(find.byKey(CharacterMarkerLayer.preparingLabelKey), findsNothing);
+    });
+  });
 
   group('free and blocked pawn (D-01)', () {
     testWidgets('a free character can drag the pawn from its location', (

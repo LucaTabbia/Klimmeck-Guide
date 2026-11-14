@@ -343,19 +343,37 @@ void main() {
   });
 
   group('acceptance outcomes', () {
-    testWidgets('only QuestAccepted goes to the map', (tester) async {
+    testWidgets('tearing a quest that travels goes to the map at once, '
+        'before the server answers', (tester) async {
       await pumpBoard(
         tester,
         quests: [buildQuest(id: 'h-1', type: 'hunt')],
       );
+      await openSheet(tester, 'h-1');
 
-      acceptanceStates.add(const QuestAccepting('h-1'));
-      await tester.pump();
-      expect(accepted, 0);
+      await dragSheetLeft(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(accepted, 1);
 
       acceptanceStates.add(const QuestAccepted('h-1'));
       await tester.pump();
       expect(accepted, 1);
+    });
+
+    testWidgets('tearing a story stays on the board', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: [
+          buildQuest(id: 's-paladin', type: 'story', minTitle: 'paladin'),
+        ],
+        character: characterWithLanesJson(title: 'paladin'),
+      );
+      await openSheet(tester, 's-paladin');
+
+      await dragSheetLeft(tester);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(accepted, 0);
     });
 
     testWidgets('a story or worldMission acceptance stays on the board', (
@@ -382,12 +400,15 @@ void main() {
     ) async {
       await pumpBoard(
         tester,
-        quests: [buildQuest(id: 's-1', type: 'story')],
+        quests: [
+          buildQuest(id: 's-paladin', type: 'story', minTitle: 'paladin'),
+        ],
+        character: characterWithLanesJson(title: 'paladin'),
       );
-      await openSheet(tester, 's-1');
+      await openSheet(tester, 's-paladin');
       expect(find.byType(TearablePaper), findsOneWidget);
 
-      acceptanceStates.add(const QuestAccepted('s-1'));
+      acceptanceStates.add(const QuestAccepted('s-paladin'));
       await tester.pumpAndSettle();
 
       expect(find.byType(TearablePaper), findsNothing);
@@ -414,7 +435,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(accepted, 0);
+      expect(accepted, 1);
       expect(paperState.isTorn, isFalse);
       verifyNever(
         () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
