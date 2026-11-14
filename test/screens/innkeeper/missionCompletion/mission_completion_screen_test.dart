@@ -14,6 +14,7 @@ import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/correction_section.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
@@ -827,6 +828,28 @@ void main() {
 
       expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
     });
+
+    testWidgets(
+      'unsaved edits of a fight never follow «Indietro» to an identical fight (D-06)',
+      (tester) async {
+        await openFight(tester, 2);
+        await tapNext(tester);
+        final aldo = tester.widget<CorrectionSection>(
+          find.byType(CorrectionSection).first,
+        );
+        aldo.onChanged(aldo.correction.withHp(500));
+        await tester.pump();
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+        await tapNext(tester);
+
+        final saved = verify(
+          () => draftCubit.saveCorrections(0, captureAny(), step: null),
+        ).captured;
+        expect((saved.last as List<MissionCorrection>).first.hpAfter, 700);
+      },
+    );
 
     testWidgets('«Indietro» from fight 1 goes back to «Scontri»', (
       tester,
