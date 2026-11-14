@@ -40,8 +40,11 @@ String? companionRecoveryTimeLine(Duration? recovery) {
 
 String giveToCompanionLabel(String name) => 'Dai a $name';
 
-String companionNamePromptTitle(String species) =>
-    'Come chiamerai il tuo $species?';
+/// Senza specie servita il titolo resta una frase (D-18).
+String companionNamePromptTitle(String species) {
+  final subject = species.trim().isEmpty ? 'compagno' : species.trim();
+  return 'Come chiamerai il tuo $subject?';
+}
 
 /// Null finché il BE non serve un livello (D-37).
 String? companionLevelLine(int? level) =>
