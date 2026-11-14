@@ -135,7 +135,8 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('the field starts from the current name (D-19)', (tester) async {
+  testWidgets('the field starts from the current name and confirms only a '
+      'changed one (D-19)', (tester) async {
     await pumpSheet(tester, initialName: 'Fenrir');
 
     expect(
@@ -145,6 +146,12 @@ void main() {
           ?.text,
       'Fenrir',
     );
+    expect(buttonOf(tester, CompanionNameSheet.confirmKey).onPressed, isNull);
+
+    await type(tester, '  Fenrir ');
+    expect(buttonOf(tester, CompanionNameSheet.confirmKey).onPressed, isNull);
+
+    await type(tester, 'Zanna');
     expect(
       buttonOf(tester, CompanionNameSheet.confirmKey).onPressed,
       isNotNull,
