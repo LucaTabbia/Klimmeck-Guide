@@ -71,6 +71,17 @@ void main() {
       );
     });
 
+    test('missionInProgress keeps the travel title and says to wait for the '
+        'result (D-30)', () {
+      expect(
+        travelNoticeFor(TravelFailure.missionInProgress),
+        const KGNotification(
+          title: 'Viaggio non partito',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+    });
+
     test('unauthenticated shows no banner', () {
       expect(travelNoticeFor(TravelFailure.unauthenticated), isNull);
     });

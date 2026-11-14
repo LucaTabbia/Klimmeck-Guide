@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/repository/travel_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/questTravelPreviewCubit/quest_travel_preview_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_notice.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fixtures/travel_fixtures.dart';
@@ -78,6 +79,24 @@ void main() {
       QuestTravelPreviewLoading(),
       QuestTravelPreviewFailed(TravelFailure.forbidden),
     ],
+  );
+
+  blocTest<QuestTravelPreviewCubit, QuestTravelPreviewState>(
+    'a quest travel preview refused during a mission is missionInProgress '
+    '(D-23)',
+    setUp: () => stubPreview().thenThrow(
+      const TravelException(TravelFailure.missionInProgress),
+    ),
+    build: build,
+    act: loadQuest,
+    expect: () => const [
+      QuestTravelPreviewLoading(),
+      QuestTravelPreviewFailed(TravelFailure.missionInProgress),
+    ],
+    verify: (_) => expect(
+      travelNoticeFor(TravelFailure.missionInProgress)!.description,
+      "Sei impegnato in una missione: aspetta l'esito",
+    ),
   );
 
   blocTest<QuestTravelPreviewCubit, QuestTravelPreviewState>(
