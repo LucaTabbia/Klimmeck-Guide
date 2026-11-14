@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/equipment_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
@@ -393,7 +394,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      CompanionVitalityScope(child: _buildPage(context));
+
+  Widget _buildPage(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 

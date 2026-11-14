@@ -80,13 +80,13 @@ void main() {
     expect(find.text('life 60'), findsOneWidget);
 
     characterStates.add(CharacterLoaded(_character(currentLifePoints: 40)));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('life 70'), findsOneWidget);
 
     characterStates.add(
       CharacterLoaded(_character(currentLifePoints: 40, equipped: _worg)),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('life 40'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
