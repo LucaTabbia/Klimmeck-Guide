@@ -71,12 +71,6 @@ ElevatedButton _completeButton(WidgetTester tester, String questId) =>
       find.byKey(RequestCardView.completeKeyFor(questId)),
     );
 
-Finder _teleportAction(String cardKey) =>
-    find.byKey(RequestCardView.teleportKeyFor(cardKey));
-
-TextButton _teleportButton(WidgetTester tester, String cardKey) =>
-    tester.widget<TextButton>(_teleportAction(cardKey));
-
 /// Repository letto dal wizard vero (D-28): bozza servita o assente.
 MockInnkeeperRepository _wizardRepository({MissionDraft? draft}) {
   final repository = MockInnkeeperRepository();
@@ -137,13 +131,6 @@ void main() {
       teleportStates.stream,
       initialState: const TeleportIdle(),
     );
-    when(
-      () => teleportCubit.prepare(
-        characterId: any(named: 'characterId'),
-        name: any(named: 'name'),
-        companionIds: any(named: 'companionIds'),
-      ),
-    ).thenAnswer((_) async {});
     authCubit = MockAuthCubit();
     whenListen(
       authCubit,
@@ -281,7 +268,6 @@ void main() {
       'Storia',
       'Aldo',
       'Presente',
-      'Teletrasporta',
       'Completa',
     });
   });
@@ -881,8 +867,12 @@ void main() {
     });
   });
 
-  group('«Teletrasporta» (10-CONTEXT D-15/D-19)', () {
-    testWidgets('a listed card has one action, never its rows', (tester) async {
+  group('teleport from the wizard only (UAT 2026-11-14)', () {
+    final worldMissionCard = find.byKey(
+      RequestCardView.keyFor(worldMissionQuestId),
+    );
+
+    testWidgets('the request card offers no teleport button', (tester) async {
       await pumpQueue(
         tester,
         worldMissionEntriesJson(
@@ -898,10 +888,24 @@ void main() {
         ),
       );
 
-      expect(_teleportAction(worldMissionQuestId), findsOneWidget);
-      expect(_teleportButton(tester, worldMissionQuestId).onPressed, isNotNull);
-      expect(find.text(RequestCardView.teleportLabel), findsOneWidget);
-      expect(find.byType(TextButton), findsOneWidget);
+      expect(
+        find.descendant(
+          of: worldMissionCard,
+          matching: find.text('Teletrasporta'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: worldMissionCard,
+          matching: find.byType(TextButton),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(RequestCardView.completeKeyFor(worldMissionQuestId)),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an awaiting-aid participant hides the card', (tester) async {
@@ -909,31 +913,11 @@ void main() {
         pendingRequestJson(awaitingAid: awaitingAidJson()),
       ]);
 
-      expect(_teleportAction(_storyCardKey), findsNothing);
+      expect(find.byKey(RequestCardView.keyFor(_storyCardKey)), findsNothing);
       expect(find.text('In attesa di soccorso'), findsNothing);
     });
 
-    testWidgets('tapping it reads the first participant with the companions', (
-      tester,
-    ) async {
-      await pumpQueue(tester, worldMissionEntriesJson());
-
-      await tester.tap(_teleportAction(worldMissionQuestId));
-      await tester.pump();
-
-      final companions = verify(
-        () => teleportCubit.prepare(
-          characterId: 'char-bea',
-          name: 'Bea',
-          companionIds: captureAny(named: 'companionIds'),
-        ),
-      ).captured;
-      expect(companions, [
-        ['char-cosimo'],
-      ]);
-    });
-
-    testWidgets('the read shows a progress on its card and locks the others', (
+    testWidgets('a read in flight leaves the cards as they are', (
       tester,
     ) async {
       whenListen(
@@ -948,13 +932,13 @@ void main() {
 
       expect(
         find.descendant(
-          of: find.byKey(RequestCardView.keyFor(worldMissionQuestId)),
+          of: worldMissionCard,
           matching: find.byType(CircularProgressIndicator),
         ),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(_teleportAction(worldMissionQuestId), findsNothing);
-      expect(_teleportButton(tester, _storyCardKey).onPressed, isNull);
+      expect(_completeButton(tester, worldMissionQuestId).onPressed, isNotNull);
+      expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
 
     // il progresso della lettura gira per sempre: niente pumpAndSettle
@@ -1014,7 +998,10 @@ void main() {
       await settleRoute(tester);
     }
 
-    testWidgets('leaving the panel during the read cancels it', (tester) async {
+    // il wizard lasciato durante la sua lettura riporta il pannello in cima:
+    // annullo e avviso restano del pannello
+    testWidgets('leaving the panel during a read left by the wizard cancels '
+        'it', (tester) async {
       await pushPanel(tester, const TeleportPreparing(characterId: 'char-bea'));
 
       await tester.binding.handlePopRoute();
@@ -1036,9 +1023,8 @@ void main() {
       verifyNever(() => teleportCubit.cancel());
     });
 
-    testWidgets('a failed read shows the SnackBar and keeps the panel', (
-      tester,
-    ) async {
+    testWidgets('a read left by the wizard that fails shows the SnackBar and '
+        'keeps the panel', (tester) async {
       await pumpQueue(tester, worldMissionEntriesJson());
 
       teleportStates.add(
