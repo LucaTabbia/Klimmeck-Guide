@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/mission_in_progress.dart';
+import 'package:klimmeck_guide/repository/pet_defeated.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -11,6 +12,7 @@ import 'package:klimmeck_guide/repository/travel_failure.dart'
 const String itemNotUsableCode = 'ITEM_NOT_USABLE';
 const String potionRecoveringCode = 'POTION_RECOVERING';
 const String itemNoEffectCode = 'ITEM_NO_EFFECT';
+const String petPotionRecoveringCode = 'PET_POTION_RECOVERING';
 
 /// Chiave di `extensions` con la fine della ricarica (stringa ISO 8601).
 const String recoveryUntilExtension = 'recoveryUntil';
@@ -19,6 +21,12 @@ const String recoveryUntilExtension = 'recoveryUntil';
 enum ItemUseFailure {
   /// Un'altra pozione è ancora in ricarica.
   potionRecovering,
+
+  /// Compagno sconfitto: solo il riposo (D-06).
+  petDefeated,
+
+  /// Attesa della pozione di quel compagno (D-05).
+  petPotionRecovering,
 
   /// La pozione non cambierebbe nulla: non è consumata.
   noEffect,
@@ -60,6 +68,8 @@ ItemUseFailure itemUseFailureFrom(OperationException exception) {
   }
   return switch (code) {
     potionRecoveringCode => ItemUseFailure.potionRecovering,
+    petDefeatedCode => ItemUseFailure.petDefeated,
+    petPotionRecoveringCode => ItemUseFailure.petPotionRecovering,
     itemNoEffectCode => ItemUseFailure.noEffect,
     awaitingAidCode => ItemUseFailure.awaitingAid,
     missionInProgressCode => ItemUseFailure.missionInProgress,
@@ -71,10 +81,16 @@ ItemUseFailure itemUseFailureFrom(OperationException exception) {
   };
 }
 
-/// Il rifiuto con la data del server quando è una ricarica in corso (D-19).
+const Set<ItemUseFailure> _datedFailures = {
+  ItemUseFailure.potionRecovering,
+  ItemUseFailure.petPotionRecovering,
+};
+
+/// Il rifiuto con la data del server quando è una ricarica in corso, del
+/// personaggio (D-19) o del compagno (D-05).
 ItemUseException itemUseExceptionFrom(OperationException exception) {
   final failure = itemUseFailureFrom(exception);
-  if (failure != ItemUseFailure.potionRecovering) {
+  if (!_datedFailures.contains(failure)) {
     return ItemUseException(failure);
   }
   return ItemUseException(

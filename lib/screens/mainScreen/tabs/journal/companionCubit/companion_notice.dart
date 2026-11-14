@@ -25,6 +25,7 @@ String? _failureLine(PetEquipFailure failure) => switch (failure) {
   PetEquipFailure.notFound => null,
   PetEquipFailure.forbidden => 'Questo personaggio non può farlo',
   PetEquipFailure.missionInProgress => missionInProgressRefusalLine,
+  PetEquipFailure.defeated => 'È ancora sconfitto: aspetta che torni in forze',
   PetEquipFailure.badUserInput => 'Qualcosa è andato storto, riprova',
   PetEquipFailure.unauthenticated => null,
   PetEquipFailure.connection => 'Connessione assente, riprova',
