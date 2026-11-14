@@ -245,6 +245,20 @@ void main() {
     });
   });
 
+  group('chosen companion names (BE Phase 23)', () {
+    test('chosenPetNames maps each named owned companion by pet id, never an '
+        'unnamed one (D-20, Pitfall 9)', () {
+      final assets = CharacterAssets.fromJson({
+        'ownedPets': [
+          ownedPetJson(pet: petJson()),
+          ownedPetJson(pet: catPetJson(), name: 'Micio'),
+        ],
+      });
+
+      expect(assets.chosenPetNames, {'pet-cat': 'Micio'});
+    });
+  });
+
   group('worn equipment (BE Phase 19)', () {
     test('parses the worn equipment from the wornEquipment key (D-04)', () {
       final assets = CharacterAssets.fromJson({
