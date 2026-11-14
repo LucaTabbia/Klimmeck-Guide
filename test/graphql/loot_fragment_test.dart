@@ -121,8 +121,8 @@ void main() {
       );
     });
 
-    test('the registry stays at 46 documents', () {
-      expect(schemaCheckDocuments.length, 46);
+    test('the registry stays at 47 documents (D-29)', () {
+      expect(schemaCheckDocuments.length, 47);
     });
   });
 }
