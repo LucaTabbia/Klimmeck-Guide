@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
@@ -17,6 +18,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_notice.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 
 import '../../../../models/character/character.dart';
 import '../../../../models/companion/companion_display_name.dart';
@@ -30,9 +32,16 @@ import 'components/shop_modal.dart';
 import 'components/transaction_message_bubble.dart';
 
 class Shop extends StatefulWidget {
-  const Shop({super.key, required this.cities});
+  const Shop({
+    super.key,
+    required this.cities,
+    this.isCompanionNamingEnabled = companionCareEnabled,
+  });
 
   final List<City> cities;
+
+  /// Chiede un nome per ogni compagno comprato (D-18); spento fino al gate.
+  final bool isCompanionNamingEnabled;
 
   @override
   State<Shop> createState() => _ShopState();
@@ -41,6 +50,11 @@ class Shop extends StatefulWidget {
 class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   TradeSelection _toBuy = const TradeSelection();
   TradeSelection _toSell = const TradeSelection();
+
+  /// Compagni della transazione in volo, presi alla firma: il personaggio
+  /// aggiornato può arrivare prima della risposta e togliere dal carrello i
+  /// compagni appena comprati.
+  List<Pet> _petsInFlight = const [];
 
   bool? _isAdd;
   bool _showTransactionMessage = false;
@@ -113,6 +127,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   /// Comprare non equipaggia mai (D-08): i compagni viaggiano solo in
   /// `petAssets` del lato giusto.
   void _onConfirm(Coins total, bool isTotalPositive, Character character) {
+    _petsInFlight = _toBuy.pets;
     context.read<TransactionCubit>().doTransaction(
       buildTransactionRequest(
         characterId: character.id,
@@ -342,14 +357,18 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
           });
         }
         if (state is TransactionDone) {
+          final bought = _petsInFlight;
+          _petsInFlight = const [];
           setState(() {
             _toBuy = const TradeSelection();
             _toSell = const TradeSelection();
             _transactionMessage =
                 "Sempre felice di fare affari! Posso esserle ancora utile?";
           });
+          _askNamesAfterFrame(bought);
         }
         if (state is TransactionError) {
+          _petsInFlight = const [];
           setState(() => _showRefusal(state.failure));
         }
       },
@@ -368,6 +387,27 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
         child: _buildShop(),
       ),
     );
+  }
+
+  void _askNamesAfterFrame(List<Pet> bought) {
+    if (!widget.isCompanionNamingEnabled || bought.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _askNames(bought));
+  }
+
+  /// Un foglio del nome per compagno, uno dopo l'altro (D-18); comprare non
+  /// equipaggia mai (Phase 13 D-08), il nome arriva con `characterUpdated`.
+  Future<void> _askNames(List<Pet> bought) async {
+    for (final pet in bought) {
+      if (!mounted) return;
+      final characterState = context.read<CharacterCubit>().state;
+      if (characterState is! CharacterLoaded) return;
+      await showCompanionNameSheet(
+        context,
+        characterId: characterState.character.id,
+        petId: pet.id,
+        species: pet.name ?? '',
+      );
+    }
   }
 
   /// Un nuovo pool della città del marker tiene nell'acquisto solo ciò che

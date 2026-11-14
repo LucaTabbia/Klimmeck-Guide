@@ -84,6 +84,23 @@ CharacterLoaded _characterInCity({
   }),
 );
 
+/// Personaggio con le monete per firmare il carrello.
+CharacterLoaded _payingCharacterInCity({
+  List<Map<String, dynamic>> ownedPets = const [],
+}) {
+  final json = travellingCharacterJson(locationId: 'city-marker-1');
+  return CharacterLoaded(
+    Character.fromJson({
+      ...json,
+      'status': {
+        ...json['status'] as Map<String, dynamic>,
+        'coins': coinsJson(gold: 10),
+      },
+      'assets': {'ownedPets': ownedPets},
+    }),
+  );
+}
+
 Finder _cell(String asset) => find.byWidgetPredicate(
   (widget) => widget is CachedSvg && widget.url == '$_cloudinary$asset',
 );
@@ -166,8 +183,10 @@ void main() {
   Future<void> pumpShop(
     WidgetTester tester, {
     bool isCompanionNamingEnabled = false,
+    Size? physicalSize,
   }) async {
     useLandscapePhone(tester);
+    if (physicalSize != null) tester.view.physicalSize = physicalSize;
     await tester.pumpWidget(
       buildTestApp(
         home: MultiBlocProvider(
@@ -337,12 +356,27 @@ void main() {
       when(
         () => graphQl.getCityShop('city-1'),
       ).thenAnswer((_) async => _stablePool);
+      when(() => characterCubit.state).thenReturn(_payingCharacterInCity());
     });
 
     Finder prompt() => find.byType(CompanionNameSheet);
 
     String? promptedPetOf(WidgetTester tester) =>
         tester.widget<CompanionNameSheet>(prompt()).petId;
+
+    /// Un po' più alto del telefono: con le monete il sacchetto del negozio
+    /// sfora di 6 px col font dei test (difetto preesistente, deferred-items).
+    Future<void> pumpPayingShop(
+      WidgetTester tester, {
+      bool isCompanionNamingEnabled = true,
+    }) async {
+      await pumpShop(
+        tester,
+        isCompanionNamingEnabled: isCompanionNamingEnabled,
+        physicalSize: const Size(2340, 1440),
+      );
+      await tester.pumpAndSettle();
+    }
 
     Future<void> buy(
       WidgetTester tester,
@@ -375,8 +409,7 @@ void main() {
     testWidgets(
       'after a purchase each bought companion gets a name prompt in turn (D-18)',
       (tester) async {
-        await pumpShop(tester, isCompanionNamingEnabled: true);
-        await tester.pumpAndSettle();
+        await pumpPayingShop(tester);
 
         await buy(tester, const TradeSelection().addPet(_horse).addPet(_owl));
 
@@ -401,13 +434,12 @@ void main() {
       'a companion served with the character before the reply still gets '
       'its prompt (D-18)',
       (tester) async {
-        await pumpShop(tester, isCompanionNamingEnabled: true);
-        await tester.pumpAndSettle();
+        await pumpPayingShop(tester);
 
         await buy(
           tester,
           const TradeSelection().addPet(_owl),
-          arrivingFirst: _characterInCity(
+          arrivingFirst: _payingCharacterInCity(
             ownedPets: [
               ownedPetJson(
                 pet: petJson(id: 'pet-owl', name: 'Gufo'),
@@ -421,8 +453,7 @@ void main() {
     );
 
     testWidgets('buying only items opens no prompt (D-18)', (tester) async {
-      await pumpShop(tester, isCompanionNamingEnabled: true);
-      await tester.pumpAndSettle();
+      await pumpPayingShop(tester);
 
       await buy(tester, TradeSelection(assets: [_stablePool.equipment.first]));
 
@@ -432,8 +463,7 @@ void main() {
     testWidgets('with the switch off no prompt opens (Pitfall 3)', (
       tester,
     ) async {
-      await pumpShop(tester);
-      await tester.pumpAndSettle();
+      await pumpPayingShop(tester, isCompanionNamingEnabled: false);
 
       await buy(tester, const TradeSelection().addPet(_horse));
 

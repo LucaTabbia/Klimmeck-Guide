@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
@@ -18,6 +19,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/mission_lines.dart';
 
@@ -39,7 +41,14 @@ import 'components/injury_name_icon.dart';
 import 'cubit/journal_cubit.dart';
 
 class Journal extends StatefulWidget {
-  const Journal({super.key});
+  const Journal({
+    super.key,
+    this.isCompanionNamingEnabled = companionCareEnabled,
+  });
+
+  /// «Dai un nome» / «Cambia nome» nei dettagli del compagno (D-19); spento
+  /// fino al gate.
+  final bool isCompanionNamingEnabled;
 
   @override
   State<Journal> createState() => _JournalState();
@@ -324,12 +333,25 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                               petId,
                             )
                           : null,
+                      onRename: _renameActionOf(character, owned),
                     ),
                   );
                 },
               ),
         );
       },
+    );
+  }
+
+  /// Il nome non è bloccato da «Missione in corso» (D-31).
+  VoidCallback? _renameActionOf(Character character, OwnedPet owned) {
+    if (!widget.isCompanionNamingEnabled) return null;
+    return () => showCompanionNameSheet(
+      context,
+      characterId: character.id,
+      petId: owned.pet.id,
+      species: owned.pet.name ?? '',
+      initialName: owned.name,
     );
   }
 
