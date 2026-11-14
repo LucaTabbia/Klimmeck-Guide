@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
@@ -37,6 +38,10 @@ class Journal extends StatefulWidget {
   @override
   State<Journal> createState() => _JournalState();
 }
+
+/// Missione in corso servita dal backend (Phase 21 D-12): l'armatura non cambia.
+bool _isOnMission(Character character) =>
+    character.status?.missionInProgress ?? false;
 
 class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   List<EquipmentItem> _equippedItems = [];
@@ -164,6 +169,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     double screenWidth,
     double lootSize,
   ) {
+    final isOnMission = _isOnMission(character);
     return Dropdown(
       sectionName: "Armatura",
       data: Padding(
@@ -202,8 +208,16 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                           (index) => ItemRow(
                             assetItem: _filteredItems[index],
                             onLongTap: (item) => _selectEquipment(item),
-                            onSelect: (item) =>
-                                _equipItem(item as EquipmentItem, character),
+                            onSelect: isOnMission
+                                ? null
+                                : (item) => _equipItem(
+                                    item as EquipmentItem,
+                                    character,
+                                  ),
+                            isDisabled: isOnMission,
+                            statusLine: isOnMission
+                                ? missionInProgressLabel
+                                : null,
                             isSelected: _equippedItems.contains(
                               _filteredItems[index],
                             ),
@@ -242,10 +256,12 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                           return SingleChildScrollView(
                             child: EquipmentInfoSheet(
                               equipmentItem: _selectedEquipment!,
-                              onEquip: () => _equipItem(
-                                _selectedEquipment!,
-                                state.character,
-                              ),
+                              onEquip: _isOnMission(state.character)
+                                  ? null
+                                  : () => _equipItem(
+                                      _selectedEquipment!,
+                                      state.character,
+                                    ),
                               isEquipped: _equippedItems.contains(
                                 _selectedEquipment,
                               ),
@@ -328,6 +344,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   void _equipItem(EquipmentItem item, Character character) {
+    if (_isOnMission(character)) return;
     final isCurrentlyEquipped = _equippedItems.contains(item);
     SlotType? targetSlot;
     String? itemIdToSend;

@@ -12,7 +12,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 /// Apre il foglio di dettaglio: il Diario lo ospita nel suo Stack con il cubit
 /// del countdown della sezione (D-09, D-16).
@@ -41,14 +43,21 @@ SpellToggleIntent toggleSpellWithFeedback(
 Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
 
+bool _isOnMission(Character? character) =>
+    character?.status?.missionInProgress ?? false;
+
 /// Sezione «Magie imparate» del Diario (SPELL-01..07). Possiede il countdown:
-/// vive solo mentre la pagina del Diario è a schermo (D-16).
+/// vive solo mentre la pagina del Diario è a schermo (D-16). Bloccata durante
+/// una missione in corso (Phase 21 D-12): il tocco non fa nulla e la sezione
+/// lo dice in testa.
 class SpellsSection extends StatelessWidget {
   const SpellsSection({
     super.key,
     required this.cardSize,
     required this.onShowDetails,
   });
+
+  static const Key missionLockedKey = ValueKey('journal.spells.missionLocked');
 
   final double cardSize;
   final ShowSpellDetails onShowDetails;
@@ -133,29 +142,47 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
       return const SizedBox.shrink();
     }
     final outcome = spells.outcome;
-    return Dropdown(
-      sectionName: 'Magie imparate',
-      data: BlocBuilder<SpellRecoveryCubit, SpellRecoveryState>(
-        builder: (context, recovery) => SpellbookContent(
-          spellbook: spellbook,
-          recoveries: recovery.statuses,
-          cardSize: widget.cardSize,
-          onToggle: (spellId) => toggleSpellWithFeedback(
-            context,
-            character: character,
-            spellId: spellId,
-          ),
-          onShowDetails: (spell) =>
-              widget.onShowDetails(spell, context.read<SpellRecoveryCubit>()),
-          resistSignal: outcome == null || !outcome.springsBack
-              ? null
-              : (spellId: outcome.spellId, sequence: outcome.sequence),
-          useTypeFilter: _useTypeFilter,
-          onUseTypeFilterChanged: _selectUseType,
-        ),
+    final isOnMission = _isOnMission(character);
+    final content = BlocBuilder<SpellRecoveryCubit, SpellRecoveryState>(
+      builder: (context, recovery) => SpellbookContent(
+        spellbook: spellbook,
+        recoveries: recovery.statuses,
+        cardSize: widget.cardSize,
+        onToggle: isOnMission
+            ? _ignoreToggle
+            : (spellId) => toggleSpellWithFeedback(
+                context,
+                character: character,
+                spellId: spellId,
+              ),
+        onShowDetails: (spell) =>
+            widget.onShowDetails(spell, context.read<SpellRecoveryCubit>()),
+        resistSignal: outcome == null || !outcome.springsBack
+            ? null
+            : (spellId: outcome.spellId, sequence: outcome.sequence),
+        useTypeFilter: _useTypeFilter,
+        onUseTypeFilterChanged: _selectUseType,
       ),
     );
+    return Dropdown(
+      sectionName: 'Magie imparate',
+      data: isOnMission ? _missionLocked(content) : content,
+    );
   }
+
+  static void _ignoreToggle(String _) {}
+
+  static Widget _missionLocked(Widget content) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        missionInProgressLabel,
+        key: SpellsSection.missionLockedKey,
+        style: KlimmeckGuideTheme.instance.bodyMedium,
+      ),
+      content,
+    ],
+  );
 }
 
 /// Foglio del long-press legato allo stato vivo (D-09): attiva/in attesa da
@@ -193,7 +220,7 @@ class SpellDetailsSheet extends StatelessWidget {
         recovery: recovery.statusOf(spell.id),
         isActive: spellbook.activeSpellIds.contains(spell.id),
         isPending: spellbook.pending.containsKey(spell.id),
-        onToggle: character == null
+        onToggle: character == null || _isOnMission(character)
             ? null
             : () => toggleSpellWithFeedback(
                 context,
