@@ -2,9 +2,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/equipment_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
@@ -13,6 +17,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_s
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/mission_lines.dart';
 
@@ -45,6 +50,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   EquipmentItem? _selectedEquipment;
   Spell? _selectedSpell;
   SpellRecoveryCubit? _selectedSpellRecovery;
+  String? _selectedCompanionId;
   List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
 
@@ -73,6 +79,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
         _selectedEquipment = null;
         _selectedSpell = null;
         _selectedSpellRecovery = null;
+        _selectedCompanionId = null;
       });
     }
   }
@@ -268,7 +275,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                         return Placeholder();
                       },
                     )
-                  : _buildSpellSheet(),
+                  : _buildSpellSheet() ?? _buildCompanionSheet(),
             ),
           ),
         );
@@ -284,6 +291,53 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       value: recovery,
       child: SpellDetailsSheet(spell: spell),
     );
+  }
+
+  Widget? _buildCompanionSheet() {
+    final petId = _selectedCompanionId;
+    if (petId == null) return null;
+    return BlocBuilder<CharacterCubit, CharacterState>(
+      builder: (context, state) {
+        final character = state is CharacterLoaded ? state.character : null;
+        final owned = character == null ? null : _ownedPetOf(character, petId);
+        if (character == null || owned == null) return const SizedBox.shrink();
+        return BlocBuilder<CompanionCubit, CompanionState>(
+          builder: (context, companion) =>
+              BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
+                builder: (context, vitalities) {
+                  final vitality = vitalities.vitalityOf(petId);
+                  final canToggle =
+                      !character.isOnMission && vitality is! CompanionDefeated;
+                  return SingleChildScrollView(
+                    child: CompanionInfoSheet(
+                      pet: owned.pet,
+                      name: owned.name,
+                      level: owned.level,
+                      xp: owned.xp,
+                      vitality: vitality,
+                      potionWait: vitalities.potionWaitOf(petId),
+                      isEquipped: companion.displayedPetId(character) == petId,
+                      isPending: companion.pending?.petId == petId,
+                      onToggle: canToggle
+                          ? () => context.read<CompanionCubit>().toggle(
+                              character,
+                              petId,
+                            )
+                          : null,
+                    ),
+                  );
+                },
+              ),
+        );
+      },
+    );
+  }
+
+  static OwnedPet? _ownedPetOf(Character character, String petId) {
+    for (final owned in character.assets?.ownedPets ?? const <OwnedPet>[]) {
+      if (owned.pet.id == petId) return owned;
+    }
+    return null;
   }
 
   void _selectSlot(SlotType slotType, Character character) {
@@ -314,6 +368,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       _selectedEquipment = item;
       _selectedSpell = null;
       _selectedSpellRecovery = null;
+      _selectedCompanionId = null;
     });
     _animationController.forward();
   }
@@ -323,6 +378,17 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       _selectedEquipment = null;
       _selectedSpell = spell;
       _selectedSpellRecovery = recovery;
+      _selectedCompanionId = null;
+    });
+    _animationController.forward();
+  }
+
+  void _selectCompanion(String petId) {
+    setState(() {
+      _selectedEquipment = null;
+      _selectedSpell = null;
+      _selectedSpellRecovery = null;
+      _selectedCompanionId = petId;
     });
     _animationController.forward();
   }
@@ -458,7 +524,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                 ),
                                 CompanionSection(
                                   size: lootSize,
-                                  onShowDetails: (_) {},
+                                  onShowDetails: _selectCompanion,
                                 ),
                                 ItemsSection(size: lootSize),
                                 const SizedBox(height: 120),
