@@ -145,6 +145,7 @@ void main() {
     TravelProgressState progress = const TravelProgressIdle(),
     PrisonState prison = const PrisonState(null),
     QuestAcceptanceState acceptance = const QuestAcceptanceIdle(),
+    double zoom = 2,
   }) async {
     useLandscapePhone(tester);
     whenListen(prisonCubit, prisonStates.stream, initialState: prison);
@@ -169,7 +170,7 @@ void main() {
         child: mapHarness([
           CharacterMarkerLayer(
             cities: [cityA, cityB],
-            zoomNotifier: ValueNotifier(2),
+            zoomNotifier: ValueNotifier(zoom),
             mapController: controller,
             bounds: LatLngBounds(
               const LatLng(-90, -180),
@@ -224,6 +225,33 @@ void main() {
 
       expect(find.byKey(CharacterMarkerLayer.preparingLabelKey), findsNothing);
     });
+  });
+
+  group('label distance (UAT 2026-11-14)', () {
+    for (final zoom in [1.0, 4.0, 8.0]) {
+      testWidgets('the label floats 10 px over the pawn at zoom $zoom', (
+        tester,
+      ) async {
+        await pumpLayer(
+          tester,
+          character: characterLoaded(
+            missionInProgress: true,
+            guidedMissionInProgress: true,
+          ),
+          zoom: zoom,
+        );
+
+        final pawn = tester.getRect(find.byKey(CharacterMarkerLayer.pawnKey));
+        final label = tester.getRect(
+          find.descendant(
+            of: find.byKey(CharacterMarkerLayer.missionLabelKey),
+            matching: find.byType(DecoratedBox),
+          ),
+        );
+        expect(pawn.top - label.bottom, moreOrLessEquals(10, epsilon: 0.5));
+        expect(label.center.dx, moreOrLessEquals(pawn.center.dx, epsilon: 0.5));
+      });
+    }
   });
 
   group('free and blocked pawn (D-01)', () {
