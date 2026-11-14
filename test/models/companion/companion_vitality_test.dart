@@ -70,6 +70,21 @@ void main() {
       );
     });
 
+    test('a half point rounds up like the BE Math.round (D-24, Pitfall 8)', () {
+      // BE: max 16, life 3, recoveryTime 9000 ms -> fullLifeAt at +7800 ms;
+      // at +4500 ms Math.round(4500 * 15 / 9000) = round(7.5) = 8 -> 11.
+      final fullLifeAt = t0.add(const Duration(milliseconds: 7800));
+      final owned = ownedWith(
+        currentLifePoints: 3,
+        maxLifePoints: 16,
+        lifeAsOf: t0,
+        fullLifeAt: fullLifeAt,
+      );
+      final now = t0.add(const Duration(milliseconds: 4500));
+
+      expect(companionVitalityOf(owned, now, isEquipped: false).life, 11);
+    });
+
     test('the life never reads full before fullLifeAt (D-09)', () {
       final owned = ownedWith(lifeAsOf: t0, fullLifeAt: exampleFullLifeAt);
       final now = exampleFullLifeAt.subtract(const Duration(seconds: 1));
