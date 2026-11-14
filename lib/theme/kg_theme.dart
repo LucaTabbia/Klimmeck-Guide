@@ -21,6 +21,10 @@ class KlimmeckGuideTheme {
   static const double spacingMd = 16;
   static const double spacingLg = 24;
   static const double spacingXl = 32;
+
+  /// Scritte sopra la Mappa (segnalino e istruzioni della Locanda): il testo
+  /// speciale a 30 copriva la mappa (UAT 2026-11-14).
+  static const double mapNoticeFontSize = 16;
   static const double inputTextHeight = 42;
   static const double inputTextWidth = 250;
   static const List<Shadow> bordersForText = [

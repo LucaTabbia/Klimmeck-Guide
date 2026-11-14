@@ -34,9 +34,10 @@ class TeleportModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(
-      context,
-    ).textTheme.labelLarge?.copyWith(color: KlimmeckGuideTheme.darkWood);
+    final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
+      color: KlimmeckGuideTheme.darkWood,
+      fontSize: KlimmeckGuideTheme.mapNoticeFontSize,
+    );
     final failureText = teleportFailureTextOf(failure);
     return DecoratedBox(
       decoration: BoxDecoration(
