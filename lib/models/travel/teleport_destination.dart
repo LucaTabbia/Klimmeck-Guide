@@ -12,12 +12,17 @@ class TeleportDestination extends Equatable {
     required this.point,
     required this.label,
     required this.isCityMarker,
+    this.typesLine = '',
   });
 
   final String poiId;
   final LatLng point;
   final String label;
   final bool isCityMarker;
+
+  /// Tutti i tipi noti del luogo, «Cimitero · Palude presso Valantar»: l'oste
+  /// li legge toccando il punto (UAT 2026-11-14). Vuota per i marker di città.
+  final String typesLine;
 
   /// Il marker della città; `null` senza marker o senza punto.
   static TeleportDestination? ofCity(City? city) {
@@ -43,11 +48,12 @@ class TeleportDestination extends Equatable {
       point: point,
       label: placeLabelOf(poi),
       isCityMarker: false,
+      typesLine: _typesLineOf(poi),
     );
   }
 
   @override
-  List<Object?> get props => [poiId, point, label, isCityMarker];
+  List<Object?> get props => [poiId, point, label, isCityMarker, typesLine];
 }
 
 /// «Tipo presso città» per un luogo interno (es. «Rovine presso Talmvere»),
@@ -71,9 +77,15 @@ List<TeleportDestination> innerPlacesOf(
 bool _isCityMarker(PointOfInterest poi) =>
     (poi.type ?? const []).contains(PoiType.city);
 
-PoiType? _placeTypeOf(PointOfInterest poi) {
-  for (final type in poi.type ?? const <PoiType>[]) {
-    if (type != PoiType.city && type != PoiType.all) return type;
-  }
-  return null;
+PoiType? _placeTypeOf(PointOfInterest poi) => _placeTypesOf(poi).firstOrNull;
+
+Iterable<PoiType> _placeTypesOf(PointOfInterest poi) =>
+    (poi.type ?? const <PoiType>[]).where(
+      (type) => type != PoiType.city && type != PoiType.all,
+    );
+
+String _typesLineOf(PointOfInterest poi) {
+  final types = _placeTypesOf(poi).map((type) => type.label).join(' · ');
+  final cityName = poi.city?.name;
+  return cityName == null ? types : '$types presso $cityName';
 }
