@@ -18,6 +18,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../../helpers/fakes/fake_server_clock_service.dart';
 import '../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../helpers/fixtures/spell_fixtures.dart';
+import '../../../../helpers/haptic_recorder.dart';
 import '../../../../helpers/journal_harness.dart';
 import '../../../../helpers/mocks.dart';
 
@@ -212,6 +213,18 @@ void main() {
     await tester.pump();
 
     verify(() => companionCubit.toggle(character, _worg)).called(1);
+  });
+
+  testWidgets('the bookmark of the details confirms the toggle with a haptic, '
+      'as the parchment does (D-22)', (tester) async {
+    await pumpJournal(tester);
+    await longPressWorg(tester);
+    final haptics = recordHaptics(tester);
+
+    await tester.tap(_ribbon());
+    await tester.pump();
+
+    expect(haptics, ['HapticFeedbackType.lightImpact']);
   });
 
   testWidgets('the equipped companion opens from the slot bookmarked (D-22)', (
