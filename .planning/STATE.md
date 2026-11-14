@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
-status: completed
-stopped_at: Phase 22 context gathered
-last_updated: "2026-11-14T16:33:41.399Z"
-last_activity: 2026-11-14 -- Phase 21 plan 18 executed (device E2E recorded, requirements and planning documents closed)
+status: executing
+stopped_at: Phase 22 planned (17 plans)
+last_updated: "2026-11-14T17:36:10.829Z"
+last_activity: 2026-11-14 -- Phase 22 planning complete
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 48
+  total_plans: 65
   completed_plans: 48
-  percent: 100
+  percent: 74
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 21 — Innkeeper Mission Completion Flow (↔ BE Phase 22) — COMPLETE on 2026-11-14 on `feat/21-innkeeper-mission-completion` (18/18, device E2E approved); FE PR pending after BE PR #41
+**Current focus:** Phase 22 — Companion Defeat, Rest and Recovery (↔ BE Phase 23) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (17 plans, sequential); ready to execute
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, not planned; milestone close pending
-Phase: 21 of 22 (Innkeeper Mission Completion Flow) — COMPLETE on 2026-11-14 (device E2E approved, `21-HUMAN-UAT.md`); PLANNED on 2026-11-14 on `feat/21-innkeeper-mission-completion` (from `develop` `9e20d310`): context of 2026-11-12 (D-01..D-12) amended on 2026-11-14 after the research and the user answers (D-13..D-30), `21-REPO-RULES.md`, `21-RESEARCH.md`, `21-VALIDATION.md`, 18 plans in sequential waves; BE Phase 22 planned in the same session
-Plan: 18 of 18
-Status: Phase 21 complete at 18/18 — device E2E approved on 2026-11-14 (steps 1–10 pass, optional 11 pass, optional 12 not run by the user's choice), GMFLOW-01..08 complete, VALIDATION approved; registry 54; full suite +4722 green, analyzer 47 info / 0 warning / 0 error. The UAT ran on BE branch `feat/mission-start-push` (BE PR #41, not merged yet): the FE branch now needs PR #41 (`PushEventType.missionStart`, `pointOfInterests.city`, `pendingQuest.quest.infos.type`). The off-screen pawn arrow (last UAT fix) awaits the user's look on the device; the orchestrator's UAT copy awaits review. Closed by the user on 2026-11-14 («Confermo tutto, chiudi la fase»): copy and off-screen pawn arrow (60 px, asset `arrowMap`) confirmed; FE PR #51 is open as a draft towards `develop`, to merge after BE PR #41.
-Last activity: 2026-11-14 -- Phase 21 plan 18 executed (device E2E recorded, requirements and planning documents closed)
-Next step: merge BE PR #41 (`feat/mission-start-push`) FIRST; then open the FE PR `feat/21-innkeeper-mission-completion` → `develop` (the orchestrator opens it as a draft; never `main`); then Phase 22 (discuss/plan) or the milestone v1.1 close.
+Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`, Phase 21 merged with PR #51): context D-01..D-22 amended after the research and the user's answers (D-23..D-35), `22-REPO-RULES.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, 17 plans in sequential waves (01–15 against today's BE, 16–17 gated on the BE Phase 23 merge); BE Phase 23 planned in the same session (18 plans)
+Plan: 0 of 17
+Status: Phase 22 planned — ready to execute
+Last activity: 2026-11-14 -- Phase 22 planning complete
+Next step: execute Phase 22 plans 01–15 (pre-gate) while the BE Phase 23 runs; plans 16–17 (schema gate, device E2E) after the BE Phase 23 PR is merged. The recovery-time table of the 44 pets awaits the user's review (`~/Downloads/klimmeck-tempi-recupero-compagni.md`) before the DB write.
 
 ## Current Milestone
 
@@ -91,5 +91,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-14T16:33:41.394Z
-Stopped at: Phase 22 context gathered
+Stopped at: Phase 22 planned (17 plans)
 Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-CONTEXT.md
