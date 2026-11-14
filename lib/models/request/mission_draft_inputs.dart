@@ -316,16 +316,13 @@ List<MissionFightInput> fightsInputOf(MissionDraft draft) => List.unmodifiable([
     ),
 ]);
 
-/// Nemici nuovi per ogni scontro; uno scontro con gli stessi nemici serviti tiene le sue correzioni servite, gli altri nessuna (il BE invalida, D-24).
+/// Nemici nuovi per ogni scontro, nessuna correzione: il BE tiene quelle del prefisso invariato e invalida dal primo scontro cambiato (D-24).
 List<MissionFightInput> fightsInputWithEnemies(
   MissionDraft draft,
   List<List<MissionEnemyInput>> enemiesPerFight,
 ) => List.unmodifiable([
-  for (final (index, enemies) in enemiesPerFight.indexed)
-    MissionFightInput(
-      enemies: List.unmodifiable(enemies),
-      corrections: _correctionsKeptFor(draft, index, enemies),
-    ),
+  for (final enemies in enemiesPerFight)
+    MissionFightInput(enemies: List.unmodifiable(enemies)),
 ]);
 
 /// Correzioni del solo scontro [fightIndex], sempre la lista completa (un partecipante assente da [corrections] è completato dal suo `effective` servito); gli altri scontri vanno senza correzioni, cioè invariati sul BE, che invalida da sé i successivi (D-24, D-31).
@@ -352,25 +349,6 @@ List<MissionCorrection>? _servedCorrectionsOf(MissionFight fight) {
   );
   if (!isCorrected) return null;
   return _completedCorrections(fight, const []);
-}
-
-List<MissionCorrection>? _correctionsKeptFor(
-  MissionDraft draft,
-  int index,
-  List<MissionEnemyInput> enemies,
-) {
-  if (index >= draft.fights.length) return null;
-  final served = draft.fights[index];
-  if (!_sameEnemies(_enemiesOf(served), enemies)) return null;
-  return _servedCorrectionsOf(served);
-}
-
-bool _sameEnemies(List<MissionEnemyInput> a, List<MissionEnemyInput> b) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }
 
 /// Una correzione per ogni esito servito (quella data o l'effetto servito), poi
