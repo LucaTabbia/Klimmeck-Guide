@@ -328,7 +328,7 @@ List<MissionFightInput> fightsInputWithEnemies(
     ),
 ]);
 
-/// Correzioni dello scontro [fightIndex] sostituite; un partecipante dello scontro assente da [corrections] è completato dal suo `effective` servito, così la lista è sempre completa.
+/// Correzioni del solo scontro [fightIndex], sempre la lista completa (un partecipante assente da [corrections] è completato dal suo `effective` servito); gli altri scontri vanno senza correzioni, cioè invariati sul BE, che invalida da sé i successivi (D-24, D-31).
 List<MissionFightInput> fightsInputWithCorrections(
   MissionDraft draft,
   int fightIndex,
@@ -339,7 +339,7 @@ List<MissionFightInput> fightsInputWithCorrections(
       enemies: _enemiesOf(fight),
       corrections: index == fightIndex
           ? _completedCorrections(fight, corrections)
-          : _servedCorrectionsOf(fight),
+          : null,
     ),
 ]);
 
