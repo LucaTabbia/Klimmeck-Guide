@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/mission_in_progress.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -14,6 +15,9 @@ enum PetEquipFailure {
   /// Vista client stantia: nessun banner, rilettura silenziosa (D-06).
   notFound,
   forbidden,
+
+  /// Missione in corso (BE Phase 22, D-11).
+  missionInProgress,
   badUserInput,
   unauthenticated,
   connection,
@@ -46,6 +50,7 @@ PetEquipFailure petEquipFailureFrom(OperationException exception) {
     petNotOwnedCode => PetEquipFailure.notOwned,
     notFoundCode => PetEquipFailure.notFound,
     forbiddenCode => PetEquipFailure.forbidden,
+    missionInProgressCode => PetEquipFailure.missionInProgress,
     badUserInputCode => PetEquipFailure.badUserInput,
     unauthenticatedCode => PetEquipFailure.unauthenticated,
     _ => PetEquipFailure.unknown,

@@ -1,6 +1,7 @@
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/pet_equip_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 const String companionEquipNoticeTitle = 'Compagno non equipaggiato';
 const String companionUnequipNoticeTitle = 'Compagno non rimosso';
@@ -23,6 +24,7 @@ String? _failureLine(PetEquipFailure failure) => switch (failure) {
   PetEquipFailure.notOwned => null,
   PetEquipFailure.notFound => null,
   PetEquipFailure.forbidden => 'Questo personaggio non può farlo',
+  PetEquipFailure.missionInProgress => missionInProgressRefusalLine,
   PetEquipFailure.badUserInput => 'Qualcosa è andato storto, riprova',
   PetEquipFailure.unauthenticated => null,
   PetEquipFailure.connection => 'Connessione assente, riprova',

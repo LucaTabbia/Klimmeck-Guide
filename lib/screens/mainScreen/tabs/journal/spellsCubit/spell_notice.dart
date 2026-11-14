@@ -2,6 +2,7 @@ import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/spell/spellbook.dart';
 import 'package:klimmeck_guide/repository/spell_equip_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 const String spellEquipNoticeTitle = 'Magia non equipaggiata';
 const String spellUnequipNoticeTitle = 'Magia non tolta';
@@ -36,6 +37,7 @@ String? _failureLine(SpellEquipFailure failure) => switch (failure) {
   SpellEquipFailure.notActive => null,
   SpellEquipFailure.notFound => 'Questa magia non è più disponibile',
   SpellEquipFailure.forbidden => 'Questo personaggio non può farlo',
+  SpellEquipFailure.missionInProgress => missionInProgressRefusalLine,
   SpellEquipFailure.badUserInput => 'Qualcosa è andato storto, riprova',
   SpellEquipFailure.unauthenticated => null,
   SpellEquipFailure.connection => 'Connessione assente, riprova',
