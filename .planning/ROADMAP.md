@@ -157,7 +157,7 @@ Plans:
 - [x] 21-13-PLAN.md — Wizard UI 1: route, host, start, resume, discard, «Luogo»
 - [x] 21-14-PLAN.md — Wizard UI 2: «Scontri» and the fight page with corrections
 - [x] 21-15-PLAN.md — Wizard UI 3: «Premi» and «Riepilogo» with completion
-- [ ] 21-16-PLAN.md — Gate: schema, gated selection, «Completa» wired to the wizard (after the BE Phase 22 merge)
+- [x] 21-16-PLAN.md — Gate: schema, gated selection, «Completa» wired to the wizard (after the BE Phase 22 merge)
 - [ ] 21-17-PLAN.md — Phase 10 form retired, registry, schema check, full suite (after the BE Phase 22 merge)
 - [ ] 21-18-PLAN.md — Device E2E, handoff and closing (after the BE Phase 22 merge, human)
 
@@ -185,7 +185,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 15/18 | In Progress | - |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 16/18 | In Progress | - |
 
 ---
 
