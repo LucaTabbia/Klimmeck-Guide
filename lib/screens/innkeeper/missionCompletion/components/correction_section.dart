@@ -22,6 +22,8 @@ class CorrectionSection extends StatelessWidget {
     required this.onChanged,
   });
 
+  static Key headerKeyFor(String characterId) =>
+      ValueKey('mission.correction.header.$characterId');
   static Key hpSliderKeyFor(String characterId) =>
       ValueKey('mission.correction.hp.$characterId');
 
@@ -36,10 +38,21 @@ class CorrectionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = KlimmeckGuideTheme.instance;
     final simulated = outcome.simulated;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ExpansionTile(
+      key: PageStorageKey<String>(
+        'mission.correction.${participant.characterId}',
+      ),
+      maintainState: true,
+      tilePadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      title: Text(
+        '${participant.name} · PV ${outcome.hpBefore} → ${correction.hpAfter}',
+        key: headerKeyFor(participant.characterId),
+        style: theme.titleMedium,
+      ),
       children: [
-        Text(participant.name, style: theme.titleMedium),
         if (simulated != null)
           Text(
             'PV ${outcome.hpBefore} → ${simulated.hpAfter}',

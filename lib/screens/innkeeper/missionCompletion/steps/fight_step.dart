@@ -29,6 +29,7 @@ class FightStep extends StatefulWidget {
   static const String simulateLabel = 'Simula';
   static const String rerunLabel = 'Rilancia';
   static const String changeEnemiesLabel = 'Cambia nemici';
+  static const Key verdictKey = ValueKey('mission.fight.verdict');
   static const Key simulateKey = ValueKey('mission.fight.simulate');
   static const Key changeEnemiesKey = ValueKey('mission.fight.changeEnemies');
 
@@ -102,25 +103,39 @@ class _FightStepState extends State<FightStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _verdict(fight, theme),
         Expanded(child: _details(fight, theme)),
-        _actions(fight, theme),
+        _actions(fight),
       ],
     );
   }
 
-  Widget _actions(MissionFight fight, KlimmeckGuideTheme theme) {
+  /// L'esito sta in alto e al centro, lontano dai pulsanti (UAT 2026-11-14).
+  Widget _verdict(MissionFight fight, KlimmeckGuideTheme theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          fight.verdict?.label ?? EncountersStep.notSimulatedLabel,
+          key: FightStep.verdictKey,
+          style: theme.titleMedium,
+        ),
+        if (widget.isSubmitting)
+          const Padding(
+            padding: EdgeInsets.only(left: KlimmeckGuideTheme.spacingSm),
+            child: KGLoader(width: _loaderSize, height: _loaderSize),
+          ),
+      ],
+    );
+  }
+
+  Widget _actions(MissionFight fight) {
     return Wrap(
       spacing: KlimmeckGuideTheme.spacingSm,
       runSpacing: KlimmeckGuideTheme.spacingXs,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         const MissionBackButton(),
-        Text(
-          fight.verdict?.label ?? EncountersStep.notSimulatedLabel,
-          style: theme.titleMedium,
-        ),
-        if (widget.isSubmitting)
-          const KGLoader(width: _loaderSize, height: _loaderSize),
         ElevatedButton(
           key: FightStep.simulateKey,
           style: KlimmeckGuideTheme.primaryButtonStyle,
