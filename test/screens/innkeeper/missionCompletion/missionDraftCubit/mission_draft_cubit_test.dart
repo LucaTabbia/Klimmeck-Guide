@@ -335,9 +335,9 @@ void main() {
             fight.toJson(),
         ]);
         expect(
-          (fights[0] as Map<String, dynamic>)['corrections'],
-          hasLength(2),
-          reason: 'fight 0 keeps its served corrections',
+          (fights[0] as Map<String, dynamic>).containsKey('corrections'),
+          isFalse,
+          reason: 'fight 0 is left unchanged on the BE (D-31)',
         );
         expect((fights[1] as Map<String, dynamic>)['corrections'], [
           _aldoCorrectionInFightOne(),

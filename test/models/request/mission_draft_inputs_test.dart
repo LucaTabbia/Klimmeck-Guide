@@ -236,30 +236,56 @@ void main() {
       );
     });
 
-    test('fightsInputWithCorrections replaces only the given fight (D-06)', () {
-      final draft = _draft(
-        fights: [
-          _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
-          _simulatedFight(),
-        ],
-      );
+    test(
+      'fightsInputWithCorrections sends corrections for the given fight only (D-06, D-31)',
+      () {
+        final draft = _draft(
+          fights: [
+            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
+            _simulatedFight(),
+          ],
+        );
 
-      final inputs = fightsInputWithCorrections(draft, 1, [
-        MissionCorrection.fromEffects(
-          _aldo,
-          const MissionFightEffects(hpAfter: 300),
-        ),
-      ]);
+        final inputs = fightsInputWithCorrections(draft, 1, [
+          MissionCorrection.fromEffects(
+            _aldo,
+            const MissionFightEffects(hpAfter: 300),
+          ),
+        ]);
 
-      expect(
-        (_correctionsOf(inputs[0]).first as Map<String, dynamic>)['hpAfter'],
-        650,
-      );
-      expect(
-        (_correctionsOf(inputs[1]).first as Map<String, dynamic>)['hpAfter'],
-        300,
-      );
-    });
+        expect(_fightJson(inputs[0]).containsKey('corrections'), isFalse);
+        expect(_fightJson(inputs[0])['enemies'], [
+          {'enemy': 'enemy-wolf', 'quantity': 3},
+        ]);
+        expect(
+          (_correctionsOf(inputs[1]).first as Map<String, dynamic>)['hpAfter'],
+          300,
+        );
+      },
+    );
+
+    test(
+      'Avanti on fight 1 with fight 2 already corrected sends no corrections for fight 2 (D-24, D-31)',
+      () {
+        final draft = _draft(
+          fights: [
+            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
+            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 600)),
+          ],
+        );
+
+        final inputs = fightsInputWithCorrections(draft, 0, [
+          MissionCorrection.fromEffects(
+            _aldo,
+            const MissionFightEffects(hpAfter: 500),
+          ),
+        ]);
+
+        expect(inputs, hasLength(2));
+        expect(_correctionsOf(inputs[0]).first, containsPair('hpAfter', 500));
+        expect(_fightJson(inputs[1]).containsKey('corrections'), isFalse);
+      },
+    );
 
     test(
       'a fight\'s corrections are always the full list with hpAfter for every participant (D-06, BE handoff)',
