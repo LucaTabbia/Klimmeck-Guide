@@ -11,6 +11,8 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
@@ -58,6 +60,8 @@ CharacterLoaded characterLoaded({
   Map<String, dynamic>? activeTravel,
   Map<String, dynamic>? pendingQuest,
   Map<String, dynamic>? awaitingAid,
+  bool? missionInProgress,
+  bool? guidedMissionInProgress,
 }) => CharacterLoaded(
   Character.fromJson(
     travellingCharacterJson(
@@ -65,6 +69,8 @@ CharacterLoaded characterLoaded({
       activeTravel: activeTravel,
       pendingQuest: pendingQuest,
       awaitingAid: awaitingAid,
+      missionInProgress: missionInProgress,
+      guidedMissionInProgress: guidedMissionInProgress,
     ),
   ),
 );
@@ -102,6 +108,7 @@ void main() {
   late MockTravelCubit travelCubit;
   late MockTravelProgressCubit progressCubit;
   late MockPrisonCubit prisonCubit;
+  late MockQuestAcceptanceCubit acceptanceCubit;
   late StreamController<PrisonState> prisonStates;
   late StreamController<CharacterState> characterStates;
   late StreamController<TravelState> travelStates;
@@ -114,6 +121,7 @@ void main() {
     travelCubit = MockTravelCubit();
     progressCubit = MockTravelProgressCubit();
     prisonCubit = MockPrisonCubit();
+    acceptanceCubit = MockQuestAcceptanceCubit();
     prisonStates = StreamController<PrisonState>.broadcast();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
@@ -136,9 +144,16 @@ void main() {
     TravelState travel = const TravelIdle(),
     TravelProgressState progress = const TravelProgressIdle(),
     PrisonState prison = const PrisonState(null),
+    QuestAcceptanceState acceptance = const QuestAcceptanceIdle(),
+    double zoom = 2,
   }) async {
     useLandscapePhone(tester);
     whenListen(prisonCubit, prisonStates.stream, initialState: prison);
+    whenListen(
+      acceptanceCubit,
+      const Stream<QuestAcceptanceState>.empty(),
+      initialState: acceptance,
+    );
     whenListen(characterCubit, characterStates.stream, initialState: character);
     whenListen(travelCubit, travelStates.stream, initialState: travel);
     whenListen(progressCubit, progressStates.stream, initialState: progress);
@@ -150,11 +165,12 @@ void main() {
           BlocProvider<TravelCubit>.value(value: travelCubit),
           BlocProvider<TravelProgressCubit>.value(value: progressCubit),
           BlocProvider<PrisonCubit>.value(value: prisonCubit),
+          BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
         ],
         child: mapHarness([
           CharacterMarkerLayer(
             cities: [cityA, cityB],
-            zoomNotifier: ValueNotifier(2),
+            zoomNotifier: ValueNotifier(zoom),
             mapController: controller,
             bounds: LatLngBounds(
               const LatLng(-90, -180),
@@ -183,6 +199,60 @@ void main() {
 
   Draggable<Object> pawnDraggable(WidgetTester tester) =>
       tester.widget<Draggable<Object>>(find.byType(Draggable<Object>));
+
+  group('quest being accepted (utente 2026-11-14)', () {
+    testWidgets('shows «In preparazione…» over a pawn that cannot be dragged '
+        'while the server answers', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(),
+        acceptance: const QuestAccepting('h-1'),
+      );
+
+      expect(
+        tester
+            .widget<PawnLabel>(
+              find.byKey(CharacterMarkerLayer.preparingLabelKey),
+            )
+            .text,
+        'In preparazione…',
+      );
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+    });
+
+    testWidgets('shows no preparation label otherwise', (tester) async {
+      await pumpLayer(tester, character: characterLoaded());
+
+      expect(find.byKey(CharacterMarkerLayer.preparingLabelKey), findsNothing);
+    });
+  });
+
+  group('label distance (UAT 2026-11-14)', () {
+    for (final zoom in [1.0, 4.0, 8.0]) {
+      testWidgets('the label floats 5 px over the pawn at zoom $zoom', (
+        tester,
+      ) async {
+        await pumpLayer(
+          tester,
+          character: characterLoaded(
+            missionInProgress: true,
+            guidedMissionInProgress: true,
+          ),
+          zoom: zoom,
+        );
+
+        final pawn = tester.getRect(find.byKey(CharacterMarkerLayer.pawnKey));
+        final label = tester.getRect(
+          find.descendant(
+            of: find.byKey(CharacterMarkerLayer.missionLabelKey),
+            matching: find.byType(DecoratedBox),
+          ),
+        );
+        expect(pawn.top - label.bottom, moreOrLessEquals(5, epsilon: 0.5));
+        expect(label.center.dx, moreOrLessEquals(pawn.center.dx, epsilon: 0.5));
+      });
+    }
+  });
 
   group('free and blocked pawn (D-01)', () {
     testWidgets('a free character can drag the pawn from its location', (
@@ -307,6 +377,90 @@ void main() {
       await pumpLayer(tester, character: characterLoaded());
 
       expect(find.byKey(CharacterMarkerLayer.prisonLabelKey), findsNothing);
+    });
+  });
+
+  group('mission in progress (Phase 21)', () {
+    testWidgets('a mission in progress blocks the drag (D-11, D-16)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(missionInProgress: true),
+      );
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(pawnPoint(tester), home);
+    });
+
+    testWidgets('the guided flow shows «Missione in corso» over the pawn '
+        '(D-16)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          missionInProgress: true,
+          guidedMissionInProgress: true,
+        ),
+      );
+
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+      expect(
+        find.descendant(
+          of: find.byKey(CharacterMarkerLayer.missionLabelKey),
+          matching: find.text('Missione in corso'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a normal mission shows no «Missione in corso» (D-16)', (
+      tester,
+    ) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          missionInProgress: true,
+          guidedMissionInProgress: false,
+        ),
+      );
+
+      expect(find.byKey(CharacterMarkerLayer.missionLabelKey), findsNothing);
+      expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
+      expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+    });
+
+    testWidgets('a hunt in progress reads «Cacciando…» over the pawn '
+        '(UAT 2026-11-14)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          pendingQuest: laneJson(questType: 'hunt'),
+          missionInProgress: true,
+          guidedMissionInProgress: false,
+        ),
+      );
+
+      expect(
+        tester
+            .widget<PawnLabel>(
+              find.byKey(CharacterMarkerLayer.activityLabelKey),
+            )
+            .text,
+        'Cacciando…',
+      );
+      expect(find.byKey(CharacterMarkerLayer.missionLabelKey), findsNothing);
+    });
+
+    testWidgets('a hunt not started yet names no activity', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          pendingQuest: laneJson(questType: 'hunt'),
+          missionInProgress: false,
+        ),
+      );
+
+      expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
     });
   });
 

@@ -16,12 +16,13 @@ import '../helpers/fixtures/travel_fixtures.dart';
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
 
-  test('selects pendingQuest with timing, arrival, points and quest id', () {
+  test('selects pendingQuest with timing, arrival, points, quest id and '
+      'quest type (the pawn names the activity, UAT 2026-11-14)', () {
     expect(
       fields,
       contains(
         'pendingQuest { id startDate arrivedAt waitingTime pointsSpent '
-        'quest { id } }',
+        'quest { id infos { type } } }',
       ),
     );
   });
@@ -137,6 +138,24 @@ void main() {
       CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
       contains('potionRecoveryUntil imprisonedUntil'),
     );
+  });
+
+  test('statusFields selects the two mission flags after imprisonedUntil '
+      '(D-16, Pitfall 2)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('imprisonedUntil missionInProgress guidedMissionInProgress'),
+    );
+  });
+
+  test('characterUpdated and character carry the mission flags (D-23)', () {
+    for (final document in [
+      CharacterSubscriptions.characterUpdated,
+      CharacterQueries.getCharacter,
+    ]) {
+      expect(document, contains('missionInProgress'));
+      expect(document, contains('guidedMissionInProgress'));
+    }
   });
 
   test('statusFields selects unlockedLore (D-01)', () {

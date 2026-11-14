@@ -18,16 +18,20 @@ const Set<int> _shopOnly = {SatchelLayout.shopPageIndex};
 /// Su una città senza negozio per il BE (`City.hasShop`, Necrorian o un pool
 /// svuotato a DB) si chiude solo il Negozio: la Bacheca resta aperta
 /// (Phase 13 D-04).
+/// Durante una missione in corso solo il Negozio si chiude (D-11): la Bacheca
+/// resta leggibile con la riga bloccata.
 Set<int> disabledSatchelPages({
   required PointOfInterest? location,
   required List<City> cities,
   required bool isTravelling,
   bool isAwaitingAid = false,
   bool isImprisoned = false,
+  bool isOnMission = false,
 }) {
   final city = currentCityOf(cities, location);
   if (city == null || isTravelling || isAwaitingAid || isImprisoned) {
     return _boardAndShop;
   }
-  return city.hasShop ? const {} : _shopOnly;
+  if (isOnMission || !city.hasShop) return _shopOnly;
+  return const {};
 }

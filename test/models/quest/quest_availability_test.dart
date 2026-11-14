@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_availability.dart';
 import 'package:klimmeck_guide/models/quest/quest_lane.dart';
+import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 
 import '../../helpers/fixtures/quest_fixtures.dart';
 
@@ -381,6 +383,7 @@ void main() {
       QuestAvailability.noEffect: (true, true),
       QuestAvailability.imprisoned: (true, true),
       QuestAvailability.awaitingRescue: (true, true),
+      QuestAvailability.missionInProgress: (true, true),
     };
 
     test('every availability has a torn decision (quick 261110-mag)', () {
@@ -657,6 +660,162 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('mission in progress (Phase 21)', () {
+    Quest acceptableQuestOf(QuestType type) => switch (type) {
+      QuestType.story || QuestType.worldMission => buildQuest(
+        type: type.name,
+        requiredPoints: 100,
+      ),
+      _ => buildQuest(type: type.name),
+    };
+
+    test('every quest type is blocked while a mission is in progress '
+        '(D-13)', () {
+      const types = [
+        QuestType.hunt,
+        QuestType.enemy,
+        QuestType.boss,
+        QuestType.dungeon,
+        QuestType.heal,
+        QuestType.job,
+        QuestType.study,
+        QuestType.story,
+        QuestType.worldMission,
+      ];
+      for (final type in types) {
+        final quest = acceptableQuestOf(type);
+        expect(
+          availabilityOf(quest, buildViewer()),
+          QuestAvailability.available,
+          reason: '${type.name} without a mission',
+        );
+        final standing = standingOf(quest, buildViewer(isOnMission: true));
+        expect(
+          standing.availability,
+          QuestAvailability.missionInProgress,
+          reason: type.name,
+        );
+        expect(standing.canAccept, isFalse, reason: type.name);
+      }
+    });
+
+    test("the owner's own sheet stays torn for owner (D-13)", () {
+      final viewer = buildViewer(
+        isOnMission: true,
+        quests: buildLanes(pendingQuest: laneJson(questId: 'q-1')),
+      );
+      expect(
+        availabilityOf(buildQuest(type: 'hunt'), viewer),
+        QuestAvailability.tornForOwner,
+      );
+    });
+
+    test('prison wins over the mission line (D-23)', () {
+      expect(
+        availabilityOf(
+          buildQuest(type: 'hunt'),
+          buildViewer(
+            isOnMission: true,
+            imprisonedFor: const Duration(hours: 1),
+          ),
+        ),
+        QuestAvailability.imprisoned,
+      );
+    });
+
+    test('a busy lane wins over the mission line (D-23)', () {
+      final viewer = buildViewer(
+        isOnMission: true,
+        quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
+      );
+      final hunt = standingOf(buildQuest(type: 'hunt'), viewer);
+      expect(hunt.availability, QuestAvailability.laneBusy);
+      expect(hunt.isTorn, isFalse);
+      expect(
+        availabilityOf(buildQuest(type: 'story', requiredPoints: 100), viewer),
+        QuestAvailability.missionInProgress,
+        reason: 'the story lane is free (D-13)',
+      );
+    });
+
+    test('the existing reasons all win over the mission line (D-23)', () {
+      final onMission = buildViewer(isOnMission: true);
+      final cases = [
+        (
+          buildQuest(type: 'hunt', awaitingRescue: true),
+          onMission,
+          QuestAvailability.awaitingRescue,
+        ),
+        (
+          buildQuest(type: 'enemy', minTitle: 'hero'),
+          onMission,
+          QuestAvailability.titleMismatch,
+        ),
+        (
+          buildQuest(
+            type: 'enemy',
+            registered: [
+              {'character': 'c-2', 'title': 'rookie'},
+            ],
+          ),
+          onMission,
+          QuestAvailability.full,
+        ),
+        (
+          buildQuest(type: 'hunt', markerId: 'poi-9'),
+          onMission,
+          QuestAvailability.notInCity,
+        ),
+        (
+          buildQuest(type: 'story', requiredPoints: 3000),
+          buildViewer(isOnMission: true, twitchPoints: 1200),
+          QuestAvailability.insufficientPoints,
+        ),
+        (
+          buildQuest(type: 'heal', noEffect: true),
+          onMission,
+          QuestAvailability.noEffect,
+        ),
+      ];
+      for (final (quest, viewer, expected) in cases) {
+        expect(availabilityOf(quest, viewer), expected, reason: expected.name);
+      }
+    });
+
+    test('a mission in progress tears the sheet (D-13)', () {
+      final standing = standingOf(
+        buildQuest(type: 'hunt'),
+        buildViewer(isOnMission: true),
+      );
+      expect(standing.isTorn, isTrue);
+    });
+
+    test('QuestViewer.of reads the served flag, never the lanes (D-16)', () {
+      final served = characterWithLanesJson();
+      final onMission = QuestViewer.of(
+        character: Character.fromJson({
+          ...served,
+          'status': {
+            ...served['status'] as Map<String, dynamic>,
+            'missionInProgress': true,
+          },
+        }),
+        twitchPoints: 500,
+        cityPointIds: const {'poi-1'},
+      );
+      expect(onMission.isOnMission, isTrue);
+
+      final busyLane = QuestViewer.of(
+        character: Character.fromJson(
+          characterWithLanesJson(pendingQuest: laneJson(questId: 'other')),
+        ),
+        twitchPoints: 500,
+        cityPointIds: const {'poi-1'},
+      );
+      expect(busyLane.isOnMission, isFalse);
     });
   });
 

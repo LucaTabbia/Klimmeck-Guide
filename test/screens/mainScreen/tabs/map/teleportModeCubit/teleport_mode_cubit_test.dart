@@ -4,18 +4,22 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/models/travel/teleport_target.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fixtures/pending_request_fixtures.dart';
+import '../../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../../helpers/mocks.dart';
 
 const beaId = 'char-bea';
 const cosimoId = 'char-cosimo';
 const valantarMarkerId = 'poi-valantar-marker';
 const borgoMarkerId = 'poi-borgo-marker';
+const resumeCardKey = 'quest-world-1';
 
 City cityWithMarker(String id, String markerId) => City.fromJson({
   'id': id,
@@ -24,6 +28,11 @@ City cityWithMarker(String id, String markerId) => City.fromJson({
     'location': [1.0, 2.0],
   },
 });
+
+PointOfInterest placeOf({
+  required String id,
+  List<String> types = const ['ruins'],
+}) => PointOfInterest.fromJson(pointOfInterestJson(id: id, types: types));
 
 Character beaCharacter({Object? sex = 'female'}) {
   final json = participantCharacterJson(
@@ -49,12 +58,18 @@ void main() {
     fallbackName: 'Bea',
     companionIds: const [cosimoId],
   )!;
+  final ruins = placeOf(id: 'poi-ruins-1');
+  final cave = placeOf(id: 'poi-forest-1', types: const ['forest']);
+  final toRuins = TeleportDestination.ofPlace(ruins)!;
 
   setUp(() {
     repository = MockInnkeeperRepository();
     when(
       () => repository.readCharacter(beaId),
     ).thenAnswer((_) async => beaCharacter());
+    when(
+      () => repository.listPointsOfInterest(),
+    ).thenAnswer((_) async => const <PointOfInterest>[]);
     when(
       () => repository.teleport(
         characterId: any(named: 'characterId'),
@@ -100,6 +115,65 @@ void main() {
       act: (cubit) => cubit.prepare(characterId: beaId, name: 'Bea'),
       expect: () => [const TeleportPreparing(characterId: beaId), activeBea],
       verify: (_) => verify(() => repository.readCharacter(beaId)).called(1),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'prepare reads the character then the places and carries the inner places (D-01, D-29)',
+      build: build,
+      setUp: () => when(() => repository.listPointsOfInterest()).thenAnswer(
+        (_) async => [
+          placeOf(id: valantarMarkerId, types: const ['city']),
+          ruins,
+          cave,
+        ],
+      ),
+      act: (cubit) => cubit.prepare(characterId: beaId, name: 'Bea'),
+      expect: () => [
+        const TeleportPreparing(characterId: beaId),
+        TeleportActive(
+          target: bea,
+          places: [toRuins, TeleportDestination.ofPlace(cave)!],
+        ),
+      ],
+      verify: (_) => verifyInOrder([
+        () => repository.readCharacter(beaId),
+        () => repository.listPointsOfInterest(),
+      ]),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'a failed places read leaves the city teleport working (D-29)',
+      build: build,
+      setUp: () => when(
+        () => repository.listPointsOfInterest(),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.connection)),
+      act: (cubit) async {
+        await cubit.prepare(characterId: beaId, name: 'Bea');
+        await cubit.teleportTo(TeleportDestination.ofCity(borgo)!);
+      },
+      expect: () => [
+        const TeleportPreparing(characterId: beaId),
+        activeBea,
+        TeleportActive(target: bea, isTeleporting: true),
+        TeleportSucceeded(target: bea),
+      ],
+      verify: (_) => verify(
+        () => repository.teleport(characterId: beaId, poiId: borgoMarkerId),
+      ).called(1),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'prepare keeps the resumeCardKey on the active state (D-28)',
+      build: build,
+      act: (cubit) => cubit.prepare(
+        characterId: beaId,
+        name: 'Bea',
+        resumeCardKey: resumeCardKey,
+      ),
+      expect: () => [
+        const TeleportPreparing(characterId: beaId),
+        TeleportActive(target: bea, resumeCardKey: resumeCardKey),
+      ],
     );
 
     blocTest<TeleportModeCubit, TeleportModeState>(
@@ -179,10 +253,90 @@ void main() {
 
   group('teleportTo', () {
     blocTest<TeleportModeCubit, TeleportModeState>(
+      'teleportTo an inner place sends its poiId for every participant (D-01)',
+      build: build,
+      seed: () => TeleportActive(target: beaGroup, places: [toRuins]),
+      act: (cubit) => cubit.teleportTo(toRuins),
+      expect: () => [
+        TeleportActive(
+          target: beaGroup,
+          places: [toRuins],
+          isTeleporting: true,
+        ),
+        TeleportSucceeded(target: beaGroup),
+      ],
+      verify: (_) => verifyInOrder([
+        () => repository.teleport(characterId: beaId, poiId: 'poi-ruins-1'),
+        () => repository.teleport(characterId: cosimoId, poiId: 'poi-ruins-1'),
+      ]),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'the current place makes no call (D-01, Phase 10 C16)',
+      build: build,
+      seed: () => activeBea,
+      act: (cubit) => cubit.teleportTo(
+        TeleportDestination(
+          poiId: bea.location.id,
+          point: bea.location.location!,
+          label: 'Rovine presso Valantar',
+          isCityMarker: false,
+        ),
+      ),
+      expect: () => <TeleportModeState>[],
+      verify: (_) => verifyNever(
+        () => repository.teleport(
+          characterId: any(named: 'characterId'),
+          poiId: any(named: 'poiId'),
+        ),
+      ),
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'success carries the resumeCardKey (D-28, Pitfall 1)',
+      build: build,
+      seed: () => TeleportActive(target: bea, resumeCardKey: resumeCardKey),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
+      expect: () => [
+        TeleportActive(
+          target: bea,
+          resumeCardKey: resumeCardKey,
+          isTeleporting: true,
+        ),
+        TeleportSucceeded(target: bea, resumeCardKey: resumeCardKey),
+      ],
+    );
+
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'a refusal keeps the places and the resumeCardKey (D-28)',
+      build: build,
+      setUp: () => stubTeleportFailure(InnkeeperFailure.questInProgress),
+      seed: () => TeleportActive(
+        target: bea,
+        places: [toRuins],
+        resumeCardKey: resumeCardKey,
+      ),
+      act: (cubit) => cubit.teleportTo(toRuins),
+      expect: () => [
+        TeleportActive(
+          target: bea,
+          places: [toRuins],
+          resumeCardKey: resumeCardKey,
+          isTeleporting: true,
+        ),
+        TeleportActive(
+          target: bea,
+          places: [toRuins],
+          resumeCardKey: resumeCardKey,
+          failure: InnkeeperFailure.questInProgress,
+        ),
+      ],
+    );
+    blocTest<TeleportModeCubit, TeleportModeState>(
       'a drop on the current city makes no call and keeps the mode (C16)',
       build: build,
       seed: () => activeBea,
-      act: (cubit) => cubit.teleportTo(valantar),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(valantar)!),
       expect: () => <TeleportModeState>[],
       verify: (_) => verifyNever(
         () => repository.teleport(
@@ -196,7 +350,7 @@ void main() {
       'a drop on another city teleports at once (D-16)',
       build: build,
       seed: () => activeBea,
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: bea, isTeleporting: true),
         TeleportSucceeded(target: bea),
@@ -210,7 +364,7 @@ void main() {
       'a group drop moves the target and then every companion (UAT 2026-11-01)',
       build: build,
       seed: () => TeleportActive(target: beaGroup),
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: beaGroup, isTeleporting: true),
         TeleportSucceeded(target: beaGroup),
@@ -228,7 +382,7 @@ void main() {
         () => repository.teleport(characterId: cosimoId, poiId: borgoMarkerId),
       ).thenThrow(const InnkeeperException(InnkeeperFailure.questInProgress)),
       seed: () => TeleportActive(target: beaGroup),
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: beaGroup, isTeleporting: true),
         TeleportActive(
@@ -243,7 +397,7 @@ void main() {
       build: build,
       setUp: () => stubTeleportFailure(InnkeeperFailure.questInProgress),
       seed: () => activeBea,
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: bea, isTeleporting: true),
         TeleportActive(target: bea, failure: InnkeeperFailure.questInProgress),
@@ -257,7 +411,7 @@ void main() {
         target: bea,
         failure: InnkeeperFailure.questInProgress,
       ),
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: bea, isTeleporting: true),
         TeleportSucceeded(target: bea),
@@ -269,7 +423,7 @@ void main() {
       build: build,
       setUp: () => stubTeleportFailure(InnkeeperFailure.forbidden),
       seed: () => activeBea,
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => [
         TeleportActive(target: bea, isTeleporting: true),
         const TeleportIdle(),
@@ -280,7 +434,7 @@ void main() {
       'a drop while a teleport is in flight is ignored',
       build: build,
       seed: () => TeleportActive(target: bea, isTeleporting: true),
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => <TeleportModeState>[],
       verify: (_) => verifyNever(
         () => repository.teleport(
@@ -293,7 +447,7 @@ void main() {
     blocTest<TeleportModeCubit, TeleportModeState>(
       'a drop outside the mode is ignored',
       build: build,
-      act: (cubit) => cubit.teleportTo(borgo),
+      act: (cubit) => cubit.teleportTo(TeleportDestination.ofCity(borgo)!),
       expect: () => <TeleportModeState>[],
       verify: (_) => verifyNever(
         () => repository.teleport(
@@ -305,6 +459,14 @@ void main() {
   });
 
   group('cancelToPanel (UAT 2026-11-01)', () {
+    blocTest<TeleportModeCubit, TeleportModeState>(
+      'cancel carries the resumeCardKey (D-28, Pitfall 1)',
+      build: build,
+      seed: () => TeleportActive(target: bea, resumeCardKey: resumeCardKey),
+      act: (cubit) => cubit.cancelToPanel(),
+      expect: () => [const TeleportCancelled(resumeCardKey: resumeCardKey)],
+    );
+
     blocTest<TeleportModeCubit, TeleportModeState>(
       '«Annulla» from the map leaves towards the panel',
       build: build,
@@ -369,7 +531,7 @@ void main() {
       },
       seed: () => activeBea,
       act: (cubit) async {
-        unawaited(cubit.teleportTo(borgo));
+        unawaited(cubit.teleportTo(TeleportDestination.ofCity(borgo)!));
         cubit.cancel();
         await Future<void>.delayed(const Duration(milliseconds: 30));
       },

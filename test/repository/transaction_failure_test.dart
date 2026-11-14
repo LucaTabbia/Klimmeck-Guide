@@ -47,6 +47,13 @@ void main() {
       });
     });
 
+    test('MISSION_IN_PROGRESS maps to missionInProgress (D-11)', () {
+      expect(
+        transactionFailureFrom(_withCode('MISSION_IN_PROGRESS')),
+        TransactionFailure.missionInProgress,
+      );
+    });
+
     test(
       'the Phase 12 shop codes are domain failures, never unknown (D-06)',
       () {

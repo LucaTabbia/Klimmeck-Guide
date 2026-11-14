@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/repository/character_imprisoned.dart';
+import 'package:klimmeck_guide/repository/mission_in_progress.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_api_exception.dart'
     show unauthenticatedCode;
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -41,6 +42,9 @@ enum TransactionFailure {
 
   /// Il personaggio è in prigione (quick 261110-cgd).
   imprisoned,
+
+  /// Missione in corso (BE Phase 22, D-11): banner, mai il fumetto.
+  missionInProgress,
   notFound,
   forbidden,
 
@@ -70,6 +74,7 @@ TransactionFailure transactionFailureFrom(OperationException exception) {
     petAlreadyOwnedCode => TransactionFailure.petAlreadyOwned,
     petNotOwnedCode => TransactionFailure.petNotOwned,
     characterImprisonedCode => TransactionFailure.imprisoned,
+    missionInProgressCode => TransactionFailure.missionInProgress,
     notFoundCode => TransactionFailure.notFound,
     forbiddenCode => TransactionFailure.forbidden,
     badUserInputCode => TransactionFailure.badUserInput,

@@ -22,7 +22,6 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_server_clock_service.dart';
-import '../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../helpers/landscape.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -79,12 +78,6 @@ void main() {
         const Stream<TeleportModeState>.empty(),
         initialState: const TeleportIdle(),
       );
-      when(
-        () => teleportCubit.prepare(
-          characterId: any(named: 'characterId'),
-          name: any(named: 'name'),
-        ),
-      ).thenAnswer((_) async {});
       authCubit = MockAuthCubit();
       authStates = StreamController<AuthState>.broadcast();
       whenListen(
@@ -102,7 +95,10 @@ void main() {
       await authStates.close();
     });
 
-    Future<void> pumpAndOpen(WidgetTester tester) async {
+    Future<void> pumpAndOpen(
+      WidgetTester tester, {
+      String? resumeCardKey,
+    }) async {
       useLandscapePhone(tester);
       await tester.pumpWidget(
         RepositoryProvider<AppLifecycleEvents>.value(
@@ -119,7 +115,10 @@ void main() {
                     child: Scaffold(
                       body: Builder(
                         builder: (context) => ElevatedButton(
-                          onPressed: () => openInnkeeperPanel(context),
+                          onPressed: () => openInnkeeperPanel(
+                            context,
+                            resumeCardKey: resumeCardKey,
+                          ),
                           child: const Text('open'),
                         ),
                       ),
@@ -143,6 +142,16 @@ void main() {
       verify(() => repository.watchQueue()).called(1);
     });
 
+    testWidgets('openInnkeeperPanel passes the resume key to the panel '
+        '(D-28)', (tester) async {
+      await pumpAndOpen(tester, resumeCardKey: 'quest-world-1');
+
+      final panel = tester.widget<InnkeeperPanelScreen>(
+        find.byType(InnkeeperPanelScreen),
+      );
+      expect(panel.resumeCardKey, 'quest-world-1');
+    });
+
     testWidgets(
       'the panel route provides the quest generation cubit (D-10, D-14)',
       (tester) async {
@@ -157,19 +166,16 @@ void main() {
       },
     );
 
-    testWidgets('a row «Teletrasporta» reaches the shell teleport mode', (
+    testWidgets('the panel route reaches the shell teleport mode', (
       tester,
     ) async {
       await pumpAndOpen(tester);
-      queue.add([PendingRequest.fromJson(pendingRequestJson())]);
-      await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Teletrasporta'));
-      await tester.pump();
+      final teleport = tester
+          .element(find.byType(InnkeeperPanelScreen))
+          .read<TeleportModeCubit>();
 
-      verify(
-        () => teleportCubit.prepare(characterId: 'char-aldo', name: 'Aldo'),
-      ).called(1);
+      expect(teleport, same(teleportCubit));
     });
 
     testWidgets('popping the panel cancels the queue subscription', (

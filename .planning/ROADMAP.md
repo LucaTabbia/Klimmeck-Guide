@@ -7,7 +7,7 @@
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 🚧 **v1.1 Healing & Models** — Phases 18–21 (started 2026-11-10; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 not planned yet) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
+- 🚧 **v1.1 Healing & Models** — Phases 18–22 (started 2026-11-10; Phase 22 — companion defeat, rest and recovery — added 2026-11-14; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 planned and complete 2026-11-14) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -43,7 +43,8 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 18: Heal Quests by City Size** — Quest and result sheets consume the new `prizes.cure` (HP ceiling share + `canHeal` list, backend-owned): the sheet of a quest with a cure lists only the viewer's own injuries that it heals («Cura le tue ferite: …», no line when none) plus the life row («Vita: almeno il 50%»); the result sheet lists the injuries actually healed («Guarite: …») from `QuestResult.injuriesHealed`; content by city size (lists ≤20/≤40/all with lore touches, 2/5/8 h, descriptions) lives at DB; heal potions drunk from the Journal (tap → in-world confirmation → `useItem`) with the backend's global recovery (`CharacterStatus.potionRecoveryUntil`, countdown «pronta fra …», «Ricarica: …» on item rows, 30 min–24 h at DB) and the lore «Il limite del corpo» unlocked by the first potion. BE companion: BE Phase 18. _(added 2026-11-09; planned now, executed after the Phase 12 Hardening merge, user decision)_ (completed 2026-11-11)
 - [x] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_ (completed 2026-11-11)
 - [x] **Phase 20: Rank-Specific Prizes for Group Quests** — A group quest carries a prize for each rank that can join it: the adventurer gets a prize fit for an adventurer, the mage in the same quest a prize fit for a mage; backend-owned, the sheets show the viewer the prize of their own rank. Needs a BE companion phase. _(added 2026-11-11)_ (completed 2026-11-13)
-- [ ] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11)_
+- [x] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11; completed 2026-11-14)_
+- [ ] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14)_
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -130,14 +131,43 @@ Plans:
 
 ### Phase 21: Innkeeper Mission Completion Flow
 **Goal**: The innkeeper completes a story or worldMission quest from the Inn through a guided flow instead of the current plain form: (1) teleport the participants to a POI/city; (2) pick the enemies from a list — quantity and kind — filtered by the rank of the mission and the type of the POI; (3) run a combat simulation with the backend combat engine that does **not** write its outcome on the characters; (4) fix the outcome by hand where needed (remove the injuries in excess, set each character's life with a slider); (5) choose the prizes per character (coins, xp, items, pets, spells) from a list already filtered to the prizes suited to that character's rank (Phase 20); (6) complete the quest, which updates the playing characters. The backend stays the source of truth: simulation, enemy lists and the final write are server-side, the app only drives the steps.
-**Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE companion phase (to be added on the BE roadmap: enemy list by rank/POI type, dry-run simulation, completion with manual outcome and per-character prizes)
-**Scope**: TBD
-**Requirements**: TBD
-**Success Criteria** (what must be TRUE): TBD (run /gsd-discuss-phase 21)
-**Plans**: 0 plans
+**Depends on**: Phase 10 (Admin Panel — Inn queue, completion form, teleport), Phase 9 (combat result sheet), Phase 19 (cleaned models), Phase 20 (rank-specific prizes: the filtered list of the prize step), BE Phase 22 «Completamento guidato delle missioni» (BE-GMFLOW-01..07, opened 2026-11-12: enemy list by rank/POI type, dry-run simulation, draft, completion with manual outcome and per-character prizes)
+**Scope**: decisions D-01..D-30 of `21-CONTEXT.md` (discuss 2026-11-12, amended 2026-11-14 after the research); BE companion: BE Phase 22 «Completamento guidato delle missioni»
+**Requirements**: GMFLOW-01, GMFLOW-02, GMFLOW-03, GMFLOW-04, GMFLOW-05, GMFLOW-06, GMFLOW-07, GMFLOW-08
+**Success Criteria** (what must be TRUE):
+  1. The innkeeper teleports the group to a city or an inner POI from the wizard and comes back to the wizard of that request.
+  2. The wizard starts, resumes at the served step (also from another device) and discards the draft; simulations, corrections and prizes are read from and saved to the backend, never computed in the app.
+  3. The mission is completed from the recap with a confirmation and the players get the usual result sheet; the Phase 10 form is gone.
+  4. A character with a mission in progress sees the notice and cannot travel, accept quests, trade, change equipment, companion or spells, nor drink potions; a refusal shows the wait banner.
+  5. Schema check green on the merged BE Phase 22 SDL and device E2E passed.
+**Plans**: 18 plans (sequential waves; 01–15 work against today's BE, 16–18 gated by the BE Phase 22 merge)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+- [x] 21-01-PLAN.md — Mission lock plumbing I: status flags, shared code and copy, travel and acceptance refusals
+- [x] 21-02-PLAN.md — Mission lock plumbing II: shop, spell and companion refusals
+- [x] 21-03-PLAN.md — Equipment refusal made visible: repository, classifier, Journal notice
+- [x] 21-04-PLAN.md — Players' lock on the Board, the Map pawn and the satchel
+- [x] 21-05-PLAN.md — Players' lock in the Journal and the potion refusal
+- [x] 21-06-PLAN.md — Inner-place data: POI labels, place names, teleport destination, POI document
+- [x] 21-07-PLAN.md — Teleport mode over destinations and the card to resume
+- [x] 21-08-PLAN.md — Map: inner-POI layer and the teleport-only drop rule
+- [x] 21-09-PLAN.md — Return to the wizard after the Map and the «Riprendi» flag
+- [x] 21-10-PLAN.md — Mission draft models and wire inputs
+- [x] 21-11-PLAN.md — Mission documents, registry, service and repository operations
+- [x] 21-12-PLAN.md — Wizard Cubits: draft, participants, enemies, prize options
+- [x] 21-13-PLAN.md — Wizard UI 1: route, host, start, resume, discard, «Luogo»
+- [x] 21-14-PLAN.md — Wizard UI 2: «Scontri» and the fight page with corrections
+- [x] 21-15-PLAN.md — Wizard UI 3: «Premi» and «Riepilogo» with completion
+- [x] 21-16-PLAN.md — Gate: schema, gated selection, «Completa» wired to the wizard (after the BE Phase 22 merge)
+- [x] 21-17-PLAN.md — Phase 10 form retired, registry, schema check, full suite (after the BE Phase 22 merge)
+- [x] 21-18-PLAN.md — Device E2E, handoff and closing (after the BE Phase 22 merge, human)
+
+### Phase 22: Companion Defeat, Rest and Recovery
+**Goal**: The companions (pets) a character has equipped can be defeated, rested and healed. (1) A companion that reaches 0 life during a fight is unequipped automatically at the end of the fight and can be equipped again only when it is back to full life; the wait is proportional to its rarity and power. (2) A companion that is only hurt can be unequipped and put to rest: it regains life for as long as it rests, in proportion to the time (user example, 2026-11-14: a companion that takes 100 minutes to go from 1 to 100 life, put to rest at 20 life and left for 20 minutes, has 40 life when equipped again), so the time to a full recovery is proportional to the life to regain. (3) A hurt companion can instead be healed with potions, with the same rule as the potions on the character (wait time included). The backend stays the source of truth: defeat, recovery times, life regained and the potion rule are server-side; the app shows the state and drives the actions.
+**Depends on**: Phase 13 (companions in the Journal), Phase 18 (Journal potions and their wait), Phase 19 (companion model, companion xp), Phase 9 (result sheet), Phase 21 (mission lock on the companion; guided completion writes the companions' state), a BE companion phase (BE Phase 23 «Sconfitta, riposo e recupero dei compagni», added 2026-11-14)
+**Scope**: to be fixed in the discuss (interactive). Open points to bring there: where the companion's life and recovery are shown (Journal, result sheet), what the player sees for a defeated companion and for a resting one, potions on the companion, the notice when a companion is unequipped by a defeat, the innkeeper's guided flow and the companions.
+**Requirements**: TBD (defined at planning)
+**Plans**: TBD
 
 ## Progress
 
@@ -163,7 +193,8 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 0/0 | Not planned | — |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 0/0 | Not started | - |
 
 ---
 

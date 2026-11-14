@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -12,6 +13,7 @@ import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
 import '../../../characterCubit/character_cubit.dart';
 import '../../../prisonCubit/prison_cubit.dart';
+import '../../../questAcceptanceCubit/quest_acceptance_cubit.dart';
 import '../../../travelCubit/travel_cubit.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
 import '../utils/map_constants.dart';
@@ -38,6 +40,18 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const String awaitingAidLabel = 'In attesa di soccorso';
 
   static const Key prisonLabelKey = ValueKey('map.prisonLabel');
+
+  /// Quest strappata dal Tabellone, in attesa della risposta del server
+  /// (utente 2026-11-14).
+  static const Key preparingLabelKey = ValueKey('map.preparingLabel');
+  static const String preparingLabel = 'In preparazione…';
+
+  /// Missione normale in corso: cosa sta facendo il personaggio (UAT
+  /// 2026-11-14).
+  static const Key activityLabelKey = ValueKey('map.activityLabel');
+
+  /// Solo durante il flusso guidato della Locanda (FE Phase 21 D-16).
+  static const Key missionLabelKey = ValueKey('map.missionLabel');
 
   final List<City> cities;
   final ValueNotifier<double> zoomNotifier;
@@ -81,11 +95,21 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
                   builder: (context, travel) =>
                       BlocSelector<PrisonCubit, PrisonState, Duration?>(
                         selector: (prison) => prison.remaining,
-                        builder: (context, prisonRemaining) => _buildIdlePawn(
-                          characterState,
-                          travel,
-                          prisonRemaining: prisonRemaining,
-                        ),
+                        builder: (context, prisonRemaining) =>
+                            BlocSelector<
+                              QuestAcceptanceCubit,
+                              QuestAcceptanceState,
+                              bool
+                            >(
+                              selector: (acceptance) =>
+                                  acceptance is QuestAccepting,
+                              builder: (context, isPreparing) => _buildIdlePawn(
+                                characterState,
+                                travel,
+                                prisonRemaining: prisonRemaining,
+                                isPreparing: isPreparing,
+                              ),
+                            ),
                       ),
                 ),
         );
@@ -97,6 +121,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     CharacterLoaded state,
     TravelState travel, {
     required Duration? prisonRemaining,
+    required bool isPreparing,
   }) {
     final location = state.character.status!.location!.location!;
     final point = dragPoint ?? _confirmingDestination(travel) ?? location;
@@ -105,21 +130,49 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       markers: [
         Marker(
           point: point,
+          width: pawnMarkerBoxSize,
+          height: pawnMarkerBoxSize,
           child: _scaled(
             _buildDraggablePawn(
               pawnPath,
               canDrag:
-                  prisonRemaining == null && _canStartTravel(state, travel),
+                  prisonRemaining == null &&
+                  !isPreparing &&
+                  _canStartTravel(state, travel),
               onTap: _cityTapOf(state, travel),
             ),
           ),
         ),
+        if (isPreparing)
+          _labelMarker(
+            point,
+            const PawnLabel(
+              key: CharacterMarkerLayer.preparingLabelKey,
+              text: CharacterMarkerLayer.preparingLabel,
+            ),
+          ),
         if (state.character.status?.awaitingAid != null)
           _labelMarker(
             point,
             const PawnLabel(
               key: CharacterMarkerLayer.awaitingAidLabelKey,
               text: CharacterMarkerLayer.awaitingAidLabel,
+            ),
+          ),
+        if (state.character.status?.guidedMissionInProgress ?? false)
+          _labelMarker(
+            point,
+            const PawnLabel(
+              key: CharacterMarkerLayer.missionLabelKey,
+              text: missionInProgressLabel,
+            ),
+          ),
+        if (_activityLabelOf(state) case final activity?)
+          _labelMarker(
+            point,
+            PawnLabel(
+              key: CharacterMarkerLayer.activityLabelKey,
+              text: activity,
             ),
           ),
         if (prisonRemaining != null)
@@ -134,15 +187,21 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     );
   }
 
+  /// Solo a missione davvero cominciata e fuori dal flusso dell'oste, che ha
+  /// la sua etichetta.
+  static String? _activityLabelOf(CharacterLoaded state) {
+    final character = state.character;
+    if (!character.isOnMission) return null;
+    if (character.status?.guidedMissionInProgress ?? false) return null;
+    return missionActivityLabelOf(
+      character.quests?.pendingQuest?.quest?.infos?.type,
+    );
+  }
+
   /// Etichetta che fluttua sopra la pedina (attesa di soccorso, prigione,
   /// tempo del viaggio).
-  static Marker _labelMarker(LatLng point, Widget label) => Marker(
-    point: point,
-    width: PawnLabel.markerWidth,
-    height: PawnLabel.markerHeight,
-    alignment: Alignment.topCenter,
-    child: Align(alignment: Alignment.topCenter, child: label),
-  );
+  Marker _labelMarker(LatLng point, Widget label) =>
+      pawnLabelMarker(point: point, zoom: widget.zoomNotifier, label: label);
 
   /// D-08/D-13: in viaggio (libero o verso una quest) la pedina sta sul punto
   /// interpolato, senza trascinamento né tap; sopra fluttua solo il tempo
@@ -156,7 +215,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     final pawnPath = state.character.infos!.sex!.pawnPath;
     return MarkerLayer(
       markers: [
-        Marker(point: point, child: _scaled(_pawn(pawnPath))),
+        Marker(
+          point: point,
+          width: pawnMarkerBoxSize,
+          height: pawnMarkerBoxSize,
+          child: _scaled(_pawn(pawnPath)),
+        ),
         _labelMarker(
           point,
           PawnLabel(
@@ -173,13 +237,15 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       : formatGameDuration(progress.remainingTime);
 
   /// D-01: si trascina solo da fermi (nessun viaggio, nessuna missione standard,
-  /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta) e
-  /// fuori di prigione (quick 261110-cgd).
+  /// nessuna attesa di soccorso (Phase 9 D-16), nessuna conferma aperta, nessuna
+  /// missione in corso servita dal BE (Phase 21 D-11)) e fuori di prigione
+  /// (quick 261110-cgd).
   /// Pre-controllo: il BE resta giudice (D-14).
   static bool _canStartTravel(CharacterLoaded state, TravelState travel) =>
       state.character.status?.activeTravel == null &&
       state.character.quests?.pendingQuest == null &&
       state.character.status?.awaitingAid == null &&
+      !state.character.isOnMission &&
       travel is TravelIdle;
 
   /// D-04: col foglio aperto (anche durante il preventivo rinnovato,

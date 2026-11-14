@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
+import 'package:klimmeck_guide/repository/equipment_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/item_use_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
@@ -172,7 +173,9 @@ class AuthenticatedShell extends StatelessWidget {
             characterId: characterId,
           ),
         ),
-        BlocProvider<JournalCubit>(create: (_) => JournalCubit(graphQl)),
+        BlocProvider<JournalCubit>(
+          create: (_) => JournalCubit(EquipmentRepository(graphQl: graphQl)),
+        ),
         BlocProvider<NotificationPreferencesCubit>(
           create: (_) => NotificationPreferencesCubit(
             notificationPreferencesStore,

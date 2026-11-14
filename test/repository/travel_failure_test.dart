@@ -50,6 +50,20 @@ void main() {
       );
     });
 
+    test(
+      'MISSION_IN_PROGRESS maps to missionInProgress (D-11, D-12, D-23)',
+      () {
+        expect(
+          travelFailureFrom(_withCode('MISSION_IN_PROGRESS')),
+          TravelFailure.missionInProgress,
+        );
+
+        final exception = travelExceptionFrom(_withCode('MISSION_IN_PROGRESS'));
+        expect(exception.failure, TravelFailure.missionInProgress);
+        expect(exception.imprisonedUntil, isNull);
+      },
+    );
+
     test('BAD_USER_INPUT maps to badUserInput (D-13)', () {
       expect(
         travelFailureFrom(_withCode('BAD_USER_INPUT')),

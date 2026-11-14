@@ -34,9 +34,10 @@ class TeleportModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(
-      context,
-    ).textTheme.labelLarge?.copyWith(color: KlimmeckGuideTheme.darkWood);
+    final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
+      color: KlimmeckGuideTheme.darkWood,
+      fontSize: KlimmeckGuideTheme.mapNoticeFontSize,
+    );
     final failureText = teleportFailureTextOf(failure);
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -63,7 +64,7 @@ class TeleportModeChip extends StatelessWidget {
 
   String get _instruction => isTeleporting
       ? 'Teletrasporto in corso…'
-      : 'Trascina $characterName su una città';
+      : 'Trascina $characterName su una città o un luogo';
 
   Widget _buildCancel(TextStyle? labelStyle) {
     return Semantics(

@@ -4,17 +4,23 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
+import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
-import 'package:klimmeck_guide/models/request/complete_pending_request_input.dart';
+import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_sync_exceptions.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../helpers/fixtures/mission_fixtures.dart';
 import '../helpers/fixtures/pending_request_fixtures.dart';
 import '../helpers/fixtures/quest_result_fixtures.dart';
+import '../helpers/fixtures/travel_fixtures.dart';
 import '../helpers/mocks.dart';
 
 Matcher _failsWith(InnkeeperFailure failure) => throwsA(
@@ -31,18 +37,22 @@ void main() {
   late MockKlimmeckGraphQl graphQl;
   late InnkeeperRepository repository;
 
-  const input = CompletePendingRequestInput(
-    pendingQuestId: 'pq-story-1',
-    outcomes: [],
-  );
   const teleportRequest = TravelRequest(
     id: 'char-bea',
     poiId: 'poi-borgo-marker',
   );
 
+  const saveInput = SaveMissionDraftInput(pendingQuestId: 'pq-world-1');
+  const simulateInput = SimulateMissionFightInput(
+    pendingQuestId: 'pq-world-1',
+    fightIndex: 0,
+    enemies: [MissionEnemyInput(enemyId: 'enemy-wolf', quantity: 3)],
+  );
+
   setUpAll(() {
-    registerFallbackValue(input);
     registerFallbackValue(teleportRequest);
+    registerFallbackValue(saveInput);
+    registerFallbackValue(simulateInput);
   });
 
   setUp(() {
@@ -154,32 +164,6 @@ void main() {
         repository.readCharacter('char-bea'),
         _failsWith(InnkeeperFailure.unknown),
       );
-    });
-  });
-
-  group('complete', () {
-    test('sends the input and returns the created results', () async {
-      final results = [QuestResult.tryFromJson(gmCompletedResultJson())!];
-      when(
-        () => graphQl.completePendingRequest(input),
-      ).thenAnswer((_) async => results);
-
-      expect(await repository.complete(input), results);
-      verify(() => graphQl.completePendingRequest(input)).called(1);
-    });
-
-    final byCode = {
-      'OUTCOME_OVERRIDE_INVALID': InnkeeperFailure.overrideInvalid,
-      'NOT_FOUND': InnkeeperFailure.notFound,
-    };
-    byCode.forEach((code, failure) {
-      test('maps $code to ${failure.name}', () async {
-        when(
-          () => graphQl.completePendingRequest(any()),
-        ).thenThrow(_coded(code));
-
-        await expectLater(repository.complete(input), _failsWith(failure));
-      });
     });
   });
 
@@ -295,6 +279,235 @@ void main() {
           ),
         );
       });
+    });
+  });
+
+  group('listPointsOfInterest', () {
+    test('listPointsOfInterest returns the service list (D-29)', () async {
+      final places = [PointOfInterest.fromJson(pointOfInterestJson())];
+      when(() => graphQl.getPointsOfInterest()).thenAnswer((_) async => places);
+
+      expect(await repository.listPointsOfInterest(), places);
+    });
+
+    test('a FormatException is malformed (D-29)', () async {
+      when(
+        () => graphQl.getPointsOfInterest(),
+      ).thenThrow(const FormatException('pointOfInterests missing'));
+
+      await expectLater(
+        repository.listPointsOfInterest(),
+        _failsWith(InnkeeperFailure.malformed),
+      );
+    });
+
+    test('FORBIDDEN is forbidden (D-29)', () async {
+      when(() => graphQl.getPointsOfInterest()).thenThrow(_coded('FORBIDDEN'));
+
+      await expectLater(
+        repository.listPointsOfInterest(),
+        _failsWith(InnkeeperFailure.forbidden),
+      );
+    });
+  });
+
+  group('guided mission (Phase 21)', () {
+    const pendingQuestId = 'pq-world-1';
+    final draft = MissionDraft.tryFromJson(missionDraftJson())!;
+
+    test('readMissionDraft returns the served draft (D-09)', () async {
+      when(
+        () => graphQl.getMissionDraft(pendingQuestId),
+      ).thenAnswer((_) async => draft);
+
+      expect(await repository.readMissionDraft(pendingQuestId), draft);
+    });
+
+    test('readMissionDraft returns null when the BE has no draft '
+        '(D-09)', () async {
+      when(
+        () => graphQl.getMissionDraft(pendingQuestId),
+      ).thenAnswer((_) async => null);
+
+      expect(await repository.readMissionDraft(pendingQuestId), isNull);
+    });
+
+    test('a malformed draft is malformed (Pitfall 8)', () async {
+      when(
+        () => graphQl.getMissionDraft(pendingQuestId),
+      ).thenThrow(const FormatException('missionDraft malformed'));
+
+      await expectLater(
+        repository.readMissionDraft(pendingQuestId),
+        _failsWith(InnkeeperFailure.malformed),
+      );
+    });
+
+    test('startMissionDraft returns the created draft (D-28)', () async {
+      when(
+        () => graphQl.startMissionDraft(pendingQuestId),
+      ).thenAnswer((_) async => draft);
+
+      expect(await repository.startMissionDraft(pendingQuestId), draft);
+    });
+
+    test('NOT_FOUND on start is notFound (D-25)', () async {
+      when(
+        () => graphQl.startMissionDraft(pendingQuestId),
+      ).thenThrow(_coded('NOT_FOUND'));
+
+      await expectLater(
+        repository.startMissionDraft(pendingQuestId),
+        _failsWith(InnkeeperFailure.notFound),
+      );
+    });
+
+    test('QUEST_IN_PROGRESS on start is questInProgress', () async {
+      when(
+        () => graphQl.startMissionDraft(pendingQuestId),
+      ).thenThrow(_coded('QUEST_IN_PROGRESS'));
+
+      await expectLater(
+        repository.startMissionDraft(pendingQuestId),
+        _failsWith(InnkeeperFailure.questInProgress),
+      );
+    });
+
+    test('saveMissionDraft sends the input and returns the draft '
+        '(D-18)', () async {
+      when(
+        () => graphQl.saveMissionDraft(saveInput),
+      ).thenAnswer((_) async => draft);
+
+      expect(await repository.saveMissionDraft(saveInput), draft);
+      verify(() => graphQl.saveMissionDraft(saveInput)).called(1);
+    });
+
+    test('OUTCOME_OVERRIDE_INVALID on save is overrideInvalid '
+        '(D-14, D-15)', () async {
+      when(
+        () => graphQl.saveMissionDraft(any()),
+      ).thenThrow(_coded('OUTCOME_OVERRIDE_INVALID'));
+
+      await expectLater(
+        repository.saveMissionDraft(saveInput),
+        _failsWith(InnkeeperFailure.overrideInvalid),
+      );
+    });
+
+    test('simulateMissionFight returns the simulated draft (D-04)', () async {
+      when(
+        () => graphQl.simulateMissionFight(simulateInput),
+      ).thenAnswer((_) async => draft);
+
+      expect(await repository.simulateMissionFight(simulateInput), draft);
+    });
+
+    test('a timeout on simulate is timedOut', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.simulateMissionFight(any()),
+        ).thenAnswer((_) => Completer<MissionDraft>().future);
+        Object? failure;
+
+        repository
+            .simulateMissionFight(simulateInput)
+            .then<void>((_) {}, onError: (Object error) => failure = error);
+        async.elapse(InnkeeperRepository.defaultTimeout);
+
+        expect(
+          failure,
+          isA<InnkeeperException>().having(
+            (e) => e.failure,
+            'failure',
+            InnkeeperFailure.timedOut,
+          ),
+        );
+      });
+    });
+
+    test('discard true completes (D-09)', () async {
+      when(
+        () => graphQl.discardMissionDraft(pendingQuestId),
+      ).thenAnswer((_) async => true);
+
+      await repository.discardMissionDraft(pendingQuestId);
+
+      verify(() => graphQl.discardMissionDraft(pendingQuestId)).called(1);
+    });
+
+    test('discard false is declined', () async {
+      when(
+        () => graphQl.discardMissionDraft(pendingQuestId),
+      ).thenAnswer((_) async => false);
+
+      await expectLater(
+        repository.discardMissionDraft(pendingQuestId),
+        _failsWith(InnkeeperFailure.declined),
+      );
+    });
+
+    test('completeGuidedMission returns the created results (D-08)', () async {
+      final results = [QuestResult.tryFromJson(gmCompletedResultJson())!];
+      when(
+        () => graphQl.completeGuidedMission(pendingQuestId),
+      ).thenAnswer((_) async => results);
+
+      expect(await repository.completeGuidedMission(pendingQuestId), results);
+    });
+
+    test('listMissionEnemies forwards showAll (D-03)', () async {
+      final enemies = [MissionEnemy.tryFromJson(missionEnemyJson())!];
+      when(
+        () => graphQl.getMissionEnemies(pendingQuestId, showAll: true),
+      ).thenAnswer((_) async => enemies);
+
+      expect(
+        await repository.listMissionEnemies(pendingQuestId, showAll: true),
+        enemies,
+      );
+      verify(
+        () => graphQl.getMissionEnemies(pendingQuestId, showAll: true),
+      ).called(1);
+    });
+
+    test('listMissionEnemies asks the default list (D-03)', () async {
+      when(
+        () => graphQl.getMissionEnemies(pendingQuestId, showAll: false),
+      ).thenAnswer((_) async => const []);
+
+      expect(await repository.listMissionEnemies(pendingQuestId), isEmpty);
+    });
+
+    test('readMissionPrizeOptions passes the options through (D-07)', () async {
+      final options = MissionPrizeOptions.tryFromJson(
+        missionPrizeOptionsJson(),
+      )!;
+      when(
+        () => graphQl.getMissionPrizeOptions(
+          pendingQuestId: pendingQuestId,
+          characterId: 'char-aldo',
+        ),
+      ).thenAnswer((_) async => options);
+
+      expect(
+        await repository.readMissionPrizeOptions(
+          pendingQuestId: pendingQuestId,
+          characterId: 'char-aldo',
+        ),
+        options,
+      );
+    });
+
+    test('FORBIDDEN on complete is forbidden (T-21-35)', () async {
+      when(
+        () => graphQl.completeGuidedMission(pendingQuestId),
+      ).thenThrow(_coded('FORBIDDEN'));
+
+      await expectLater(
+        repository.completeGuidedMission(pendingQuestId),
+        _failsWith(InnkeeperFailure.forbidden),
+      );
     });
   });
 }

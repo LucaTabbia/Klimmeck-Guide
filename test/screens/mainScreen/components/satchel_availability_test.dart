@@ -191,6 +191,32 @@ void main() {
     });
   });
 
+  group('mission in progress (Phase 21)', () {
+    test('a mission in progress closes the shop only (D-11)', () {
+      expect(
+        disabledSatchelPages(
+          location: poi('city-marker-1'),
+          cities: cities,
+          isTravelling: false,
+          isOnMission: true,
+        ),
+        {SatchelLayout.shopPageIndex},
+      );
+    });
+
+    test('travel still closes both during a mission (D-11)', () {
+      expect(
+        disabledSatchelPages(
+          location: poi('city-marker-1'),
+          cities: cities,
+          isTravelling: true,
+          isOnMission: true,
+        ),
+        boardAndShop,
+      );
+    });
+  });
+
   test('boardPageIndex is the page of the Bacheca entry', () {
     final board = SatchelLayout.entries.firstWhere((e) => e.label == 'Bacheca');
     expect(SatchelLayout.boardPageIndex, 4);

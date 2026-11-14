@@ -12,9 +12,10 @@ class TeleportModeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(
-      context,
-    ).textTheme.labelLarge?.copyWith(color: KlimmeckGuideTheme.parchment);
+    final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
+      color: KlimmeckGuideTheme.parchment,
+      fontSize: KlimmeckGuideTheme.mapNoticeFontSize,
+    );
     return DecoratedBox(
       key: badgeKey,
       decoration: BoxDecoration(

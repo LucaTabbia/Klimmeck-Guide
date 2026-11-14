@@ -19,7 +19,8 @@ void main() {
       final others = TransactionFailure.values.where(
         (failure) =>
             failure != TransactionFailure.shopNotInCity &&
-            failure != TransactionFailure.imprisoned,
+            failure != TransactionFailure.imprisoned &&
+            failure != TransactionFailure.missionInProgress,
       );
       for (final failure in others) {
         expect(transactionNoticeFor(failure), isNull, reason: failure.name);
@@ -56,6 +57,17 @@ void main() {
       );
     });
 
+    test('missionInProgress is a shop banner with the wait line '
+        '(D-11, D-30)', () {
+      expect(
+        transactionNoticeFor(TransactionFailure.missionInProgress),
+        const KGNotification(
+          title: 'Negozio non disponibile',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+    });
+
     test('BAD_USER_INPUT raises no banner (D-13)', () {
       expect(transactionNoticeFor(TransactionFailure.badUserInput), isNull);
     });
@@ -76,11 +88,19 @@ void main() {
       final others = TransactionFailure.values.where(
         (failure) =>
             failure != TransactionFailure.shopNotInCity &&
-            failure != TransactionFailure.imprisoned,
+            failure != TransactionFailure.imprisoned &&
+            failure != TransactionFailure.missionInProgress,
       );
       for (final failure in others) {
         expect(shopkeeperRefusalLine(failure), isNotNull, reason: failure.name);
       }
+    });
+
+    test('missionInProgress has no shopkeeper bubble (D-30)', () {
+      expect(
+        shopkeeperRefusalLine(TransactionFailure.missionInProgress),
+        isNull,
+      );
     });
 
     test(

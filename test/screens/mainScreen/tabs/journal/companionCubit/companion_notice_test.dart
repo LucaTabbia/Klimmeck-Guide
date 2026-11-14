@@ -88,5 +88,30 @@ void main() {
         );
       });
     });
+
+    test('a companion refused during a mission shows the wait line '
+        '(D-11, D-30)', () {
+      expect(
+        companionNoticeFor(
+          _outcome(failure: PetEquipFailure.missionInProgress),
+        ),
+        const KGNotification(
+          title: 'Compagno non equipaggiato',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+      expect(
+        companionNoticeFor(
+          _outcome(
+            operation: CompanionOperation.unequip,
+            failure: PetEquipFailure.missionInProgress,
+          ),
+        ),
+        const KGNotification(
+          title: 'Compagno non rimosso',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+    });
   });
 }

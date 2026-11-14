@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/pending_request/queued_travel.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest_capacity.dart';
+import 'package:klimmeck_guide/models/utc_instant.dart';
 
 /// Quest di una voce della coda del GM (selezione snella, 10-RESEARCH F3).
 class PendingRequestQuest extends Equatable {
@@ -98,6 +99,7 @@ class PendingRequest extends Equatable {
     required this.startDate,
     required this.quest,
     required this.character,
+    this.missionDraftStartedAt,
   });
 
   final String id;
@@ -106,6 +108,9 @@ class PendingRequest extends Equatable {
   final DateTime? startDate;
   final PendingRequestQuest quest;
   final PendingRequestCharacter character;
+
+  /// Bozza del flusso guidato avviata (BE Phase 22, D-17): la carta legge «Riprendi». Selezionato solo dopo il gate.
+  final DateTime? missionDraftStartedAt;
 
   factory PendingRequest.fromJson(Map<String, dynamic> json) {
     final startDate = json['startDate'] as String?;
@@ -118,6 +123,7 @@ class PendingRequest extends Equatable {
       character: PendingRequestCharacter.fromJson(
         json['character'] as Map<String, dynamic>,
       ),
+      missionDraftStartedAt: utcInstantOrNull(json['missionDraftStartedAt']),
     );
   }
 
@@ -132,5 +138,11 @@ class PendingRequest extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, startDate, quest, character];
+  List<Object?> get props => [
+    id,
+    startDate,
+    quest,
+    character,
+    missionDraftStartedAt,
+  ];
 }

@@ -14,6 +14,7 @@ import '../../../../models/quest/board_policy.dart';
 import '../../../../models/quest/quest.dart';
 import '../../../../models/quest/quest_state_label.dart';
 import '../../../../models/travel/active_travel.dart';
+import '../../../../models/travel/teleport_destination.dart';
 import '../../../../models/travel/travel_destination.dart';
 import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
@@ -31,12 +32,14 @@ import 'components/teleport_mode_chip.dart';
 import 'components/travel_confirmation_sheet.dart';
 import 'components/unknown_city_modal.dart';
 import 'cubit/world_map_cubit.dart';
+import 'layers/pawn_pointer_layer.dart';
 import 'layers/character_marker_layer.dart';
 import 'layers/city_markers_layer.dart';
 import 'layers/quest_info_overlay.dart';
 import 'layers/quest_markers_layer.dart';
 import 'layers/quest_paper_layer.dart';
 import 'layers/teleport_pawn_layer.dart';
+import 'layers/teleport_poi_layer.dart';
 import 'layers/travel_route_layer.dart';
 import 'mapAvailabilityCubit/map_availability_cubit.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
@@ -289,24 +292,27 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         onDragEnd: _handleCharacterDragEnd,
         onCityTap: _openCityLore,
       ),
+      const PawnPointerLayer(),
       QuestPaperLayer(onOpen: _openFromPaper),
       _buildQuestOverlay(),
     ];
   }
 
-  /// 10-CONTEXT D-15/D-20/C14: solo la pedina scelta e le città come bersagli.
+  /// 10-CONTEXT D-15/D-20/C14, D-01/D-29: pedina, città e luoghi interni come bersagli.
   List<Widget> _teleportLayers(TeleportActive state) {
     return [
       _buildMapImage(),
       CityMarkersLayer(cities: widget.cities, zoomNotifier: _zoomNotifier),
+      TeleportPoiLayer(places: state.places, zoomNotifier: _zoomNotifier),
       TeleportPawnLayer(
         target: state.target,
+        places: state.places,
         cities: widget.cities,
         zoomNotifier: _zoomNotifier,
         mapController: _mapController,
         canDrag: !state.isTeleporting,
         onDragUpdate: _handleCharacterDragUpdate,
-        onDragEnd: _handleTeleportDragEnd,
+        onDrop: _handleTeleportDrop,
       ),
     ];
   }
@@ -331,7 +337,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         child: Padding(
           padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingLg),
           child: TeleportModeChip(
-            characterName: state.target.name,
+            characterName: state.target.label,
             failure: state.failure,
             isTeleporting: state.isTeleporting,
             onCancel: context.read<TeleportModeCubit>().cancelToPanel,
@@ -516,11 +522,11 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _showTravelConfirmation(travelCubit, destination);
   }
 
-  /// C16: il cubit ignora la città in cui il personaggio si trova già.
-  void _handleTeleportDragEnd(LatLng? _, City? targetCity) {
+  /// C16: il cubit ignora il luogo in cui il gruppo si trova già.
+  void _handleTeleportDrop(TeleportDestination? destination) {
     _endPawnDrag();
-    if (targetCity == null) return;
-    context.read<TeleportModeCubit>().teleportTo(targetCity);
+    if (destination == null) return;
+    context.read<TeleportModeCubit>().teleportTo(destination);
   }
 
   /// D-03/D-04: foglio di pergamena con la rotta visibile dietro (barriera

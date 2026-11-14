@@ -52,6 +52,31 @@ Character _character({
   ],
 );
 
+/// Lo stesso personaggio di [_character] con una missione in corso (D-12).
+Character _characterOnMission() {
+  final json = spellbookCharacterJson(
+    spellStates: [
+      spellStateJson(
+        usages: 1,
+        recoveries: const [
+          '2026-10-27T10:12:00.000Z',
+          '2026-10-27T10:42:00.000Z',
+        ],
+        active: true,
+        spell: _spellJson('a'),
+      ),
+      _fullState(_spellJson('b')),
+    ],
+  );
+  return Character.fromJson({
+    ...json,
+    'status': {
+      ...json['status'] as Map<String, dynamic>,
+      'missionInProgress': true,
+    },
+  });
+}
+
 /// Stato a usi pieni, senza ricariche in corso.
 Map<String, dynamic> _fullState(
   Map<String, dynamic> spell, {
@@ -523,6 +548,53 @@ void main() {
       verify(() => spellsCubit.toggle(_character(), 'spell-a')).called(1);
       expect(haptics, ['HapticFeedbackType.lightImpact']);
       expect(sheet.recovery, isA<SpellRecoveryCountdown>());
+    });
+  });
+
+  group('mission in progress (Phase 21)', () {
+    testWidgets('a mission in progress shows «Missione in corso» and ignores '
+        'the toggle (D-12, D-30)', (tester) async {
+      final haptics = recordHaptics(tester);
+      useCharacter(_characterOnMission());
+      await pumpSection(tester);
+
+      expect(
+        tester.widget<Text>(find.byKey(SpellsSection.missionLockedKey)).data,
+        'Missione in corso',
+      );
+
+      await tapAndSettle(tester, _row('b'));
+      await tapAndSettle(tester, _slot('a'));
+
+      verifyNever(() => spellsCubit.toggle(any(), any()));
+      expect(haptics, isEmpty);
+    });
+
+    testWidgets('no line without a mission (D-12)', (tester) async {
+      await pumpSection(tester);
+
+      expect(find.byKey(SpellsSection.missionLockedKey), findsNothing);
+    });
+
+    testWidgets('the details sheet has no toggle during a mission (D-12)', (
+      tester,
+    ) async {
+      useCharacter(_characterOnMission());
+      await pumpSpellsHarness(
+        tester,
+        BlocProvider<SpellRecoveryCubit>(
+          create: (_) => SpellRecoveryCubit(clock: clock)
+            ..follow(
+              SpellRecoveryCubit.inputsOf(Spellbook.of(_characterOnMission())),
+            ),
+          child: SpellDetailsSheet(spell: _spellA),
+        ),
+        wrap: withProviders,
+      );
+      await tester.pumpAndSettle();
+
+      final sheet = tester.widget<SpellInfoSheet>(find.byType(SpellInfoSheet));
+      expect(sheet.onToggle, isNull);
     });
   });
 }

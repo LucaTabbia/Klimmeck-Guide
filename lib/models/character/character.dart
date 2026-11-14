@@ -20,6 +20,10 @@ class Character extends Equatable {
   final CharacterQuests? quests;
   final CharacterAssets? assets;
 
+  /// Missione in corso servita dal BE (Phase 21 D-12, D-16): unico lettore
+  /// del blocco di Diario, Bacheca, borsa e viaggio.
+  bool get isOnMission => status?.missionInProgress ?? false;
+
   factory Character.fromJson(Map<String, dynamic> json) => Character(
     id: json["id"],
     infos: json['infos'] != null

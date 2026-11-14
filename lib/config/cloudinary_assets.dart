@@ -21,6 +21,9 @@ class CloudinaryAssets {
 
   // ============== Icons ==============
   static const String arrowDown = 'v1794355792/arrowDown_iqsrzb.svg';
+
+  /// Stessa freccia col bordo più spesso, per la Mappa (UAT 2026-11-14).
+  static const String arrowMap = 'v1794671761/arrowMap_ucuc2f.svg';
   static const String healEffect = 'v1757660480/healEffect_jc9bsg.svg';
   static const String completeTransaction =
       'v1757683133/completeTransaction_kptwjx.svg';

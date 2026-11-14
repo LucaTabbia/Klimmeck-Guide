@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
@@ -16,13 +17,14 @@ import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/generate_quests_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/request_card_view.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
-import 'package:klimmeck_guide/screens/innkeeper/request_completion_route.dart';
-import 'package:klimmeck_guide/screens/innkeeper/request_completion_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
@@ -30,6 +32,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fixtures/mission_fixtures.dart';
 import '../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../helpers/landscape.dart';
@@ -57,18 +60,46 @@ List<PendingRequest> _queue(List<Map<String, dynamic>> entries) =>
     List.unmodifiable(entries.map(PendingRequest.fromJson));
 
 typedef _CompletionOpener =
-    Future<CompletionExit?> Function(BuildContext context, RequestCard card);
+    Future<CompletionExit?> Function(
+      BuildContext context,
+      RequestCard card, {
+      bool atPlace,
+    });
 
 ElevatedButton _completeButton(WidgetTester tester, String questId) =>
     tester.widget<ElevatedButton>(
       find.byKey(RequestCardView.completeKeyFor(questId)),
     );
 
-Finder _teleportAction(String cardKey) =>
-    find.byKey(RequestCardView.teleportKeyFor(cardKey));
+/// Repository letto dal wizard vero (D-28): bozza servita o assente.
+MockInnkeeperRepository _wizardRepository({MissionDraft? draft}) {
+  final repository = MockInnkeeperRepository();
+  when(() => repository.readMissionDraft(any())).thenAnswer((_) async => draft);
+  when(
+    () => repository.readCharacter(any()),
+  ).thenAnswer((_) async => Character.fromJson(participantCharacterJson()));
+  when(
+    () => repository.listPointsOfInterest(),
+  ).thenAnswer((_) async => const []);
+  when(
+    () => repository.listMissionEnemies(any(), showAll: any(named: 'showAll')),
+  ).thenAnswer((_) async => const []);
+  return repository;
+}
 
-TextButton _teleportButton(WidgetTester tester, String cardKey) =>
-    tester.widget<TextButton>(_teleportAction(cardKey));
+Finder _stepHeader(String title) => find.byWidgetPredicate(
+  (widget) => widget is MissionStepHeader && widget.title == title,
+);
+
+/// Bozza della story di [pendingRequestJson] ferma al passo [step].
+MissionDraft _storyDraftAt(String step) => MissionDraft.tryFromJson(
+  missionDraftJson(
+    quest: storyQuestId,
+    questType: 'story',
+    step: step,
+    participants: [missionParticipantJson(pendingQuest: _storyCardKey)],
+  ),
+)!;
 
 void main() {
   setUpAll(() => registerFallbackValue(<String>[]));
@@ -100,13 +131,6 @@ void main() {
       teleportStates.stream,
       initialState: const TeleportIdle(),
     );
-    when(
-      () => teleportCubit.prepare(
-        characterId: any(named: 'characterId'),
-        name: any(named: 'name'),
-        companionIds: any(named: 'companionIds'),
-      ),
-    ).thenAnswer((_) async {});
     authCubit = MockAuthCubit();
     whenListen(
       authCubit,
@@ -121,10 +145,12 @@ void main() {
   Future<void> pumpPanel(
     WidgetTester tester,
     PendingRequestsState state, {
-    _CompletionOpener openCompletion = openRequestCompletion,
+    _CompletionOpener? openCompletion,
     InnkeeperRepository? repository,
     Stream<PendingRequestsState> states = const Stream.empty(),
     QuestGenerationState generationState = const QuestGenerationIdle(),
+    String? resumeCardKey,
+    bool resumesAtPlace = false,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, states, initialState: state);
@@ -142,7 +168,13 @@ void main() {
         BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
         BlocProvider<QuestGenerationCubit>.value(value: generationCubit),
       ],
-      child: InnkeeperPanelScreen(openCompletion: openCompletion),
+      child: openCompletion == null
+          ? InnkeeperPanelScreen(resumeCardKey: resumeCardKey)
+          : InnkeeperPanelScreen(
+              openCompletion: openCompletion,
+              resumeCardKey: resumeCardKey,
+              resumesAtPlace: resumesAtPlace,
+            ),
     );
     await tester.pumpWidget(
       buildTestApp(
@@ -160,7 +192,7 @@ void main() {
     WidgetTester tester,
     List<Map<String, dynamic>> entries, {
     DateTime? serverNow,
-    _CompletionOpener openCompletion = openRequestCompletion,
+    _CompletionOpener? openCompletion,
     InnkeeperRepository? repository,
     Stream<PendingRequestsState> states = const Stream.empty(),
   }) => pumpPanel(
@@ -236,7 +268,6 @@ void main() {
       'Storia',
       'Aldo',
       'Presente',
-      'Teletrasporta',
       'Completa',
     });
   });
@@ -326,7 +357,7 @@ void main() {
     });
 
     _CompletionOpener exitWith(CompletionExit? exit) =>
-        (_, _) async => exit;
+        (_, _, {atPlace = false}) async => exit;
 
     testWidgets('a story with a present participant can be completed', (
       tester,
@@ -369,18 +400,45 @@ void main() {
       );
     });
 
-    testWidgets('tapping it opens the completion form', (tester) async {
-      final repository = MockInnkeeperRepository();
-      when(
-        () => repository.readCharacter('char-aldo'),
-      ).thenAnswer((_) async => Character.fromJson(participantCharacterJson()));
+    testWidgets('tapping «Completa» opens the mission wizard (D-25, D-28)', (
+      tester,
+    ) async {
+      final repository = _wizardRepository();
       await pumpQueue(tester, [pendingRequestJson()], repository: repository);
 
       await tester.tap(completeStory);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
 
-      expect(find.byType(RequestCompletionScreen), findsOneWidget);
+      expect(find.byType(MissionCompletionScreen), findsOneWidget);
+      expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
+      verify(() => repository.readMissionDraft(_storyCardKey)).called(1);
+    });
+
+    testWidgets('a failed teleport read under the wizard shows its notice once '
+        '(D-28)', (tester) async {
+      await pumpQueue(tester, [
+        pendingRequestJson(),
+      ], repository: _wizardRepository(draft: _storyDraftAt('teleport')));
+      await tester.tap(completeStory);
+      await tester.pumpAndSettle();
+
+      teleportStates.add(
+        const TeleportPreparationFailed(
+          characterId: 'char-aldo',
+          failure: InnkeeperFailure.connection,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+      final notice = find.text(InnkeeperPanelScreen.teleportUnavailableMessage);
+      expect(notice, findsOneWidget);
+
+      for (var second = 0; second < 8; second++) {
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      expect(notice, findsNothing, reason: 'no second notice queued');
+      expect(find.byType(MissionCompletionScreen), findsOneWidget);
     });
 
     testWidgets('a completion hides the card and shows the results', (
@@ -439,7 +497,7 @@ void main() {
       await pumpQueue(
         tester,
         [pendingRequestJson()],
-        openCompletion: (_, _) => exit.future,
+        openCompletion: (_, _, {atPlace = false}) => exit.future,
         states: states.stream,
       );
 
@@ -572,8 +630,249 @@ void main() {
     });
   });
 
-  group('«Teletrasporta» (10-CONTEXT D-15/D-19)', () {
-    testWidgets('a listed card has one action, never its rows', (tester) async {
+  group('draft label (Phase 21)', () {
+    Text completeLabel(WidgetTester tester) => tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(RequestCardView.completeKeyFor(_storyCardKey)),
+        matching: find.byType(Text),
+      ),
+    );
+
+    testWidgets('a card with a started draft reads «Riprendi» (D-17)', (
+      tester,
+    ) async {
+      await pumpQueue(tester, [
+        pendingRequestJson()
+          ..['missionDraftStartedAt'] = '2026-11-14T10:00:00.000Z',
+      ]);
+
+      expect(completeLabel(tester).data, RequestCardView.resumeLabel);
+      expect(completeLabel(tester).data, 'Riprendi');
+    });
+
+    testWidgets('a card with a started draft reads «Riprendi» and opens the '
+        'wizard at the served step (D-17, D-28)', (tester) async {
+      await pumpQueue(tester, [
+        pendingRequestJson()
+          ..['missionDraftStartedAt'] = '2026-11-14T10:00:00.000Z',
+      ], repository: _wizardRepository(draft: _storyDraftAt('fights')));
+      expect(completeLabel(tester).data, RequestCardView.resumeLabel);
+
+      await tester.tap(
+        find.byKey(RequestCardView.completeKeyFor(_storyCardKey)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MissionCompletionScreen), findsOneWidget);
+      expect(
+        _stepHeader(MissionCompletionScreen.encountersTitle),
+        findsOneWidget,
+      );
+      expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
+    });
+
+    testWidgets('a card without a draft reads «Completa»', (tester) async {
+      await pumpQueue(tester, [pendingRequestJson()]);
+
+      expect(completeLabel(tester).data, RequestCardView.completeLabel);
+      expect(completeLabel(tester).data, 'Completa');
+    });
+  });
+
+  group('resume after the Map (Phase 21)', () {
+    late List<RequestCard> opened;
+    late List<bool> openedAtPlace;
+    late StreamController<PendingRequestsState> snapshots;
+
+    setUp(() {
+      opened = [];
+      openedAtPlace = [];
+      snapshots = StreamController<PendingRequestsState>.broadcast();
+      addTearDown(snapshots.close);
+      when(() => cubit.refetch()).thenAnswer((_) async {});
+    });
+
+    Future<CompletionExit?> recordOpening(
+      BuildContext _,
+      RequestCard card, {
+      bool atPlace = false,
+    }) {
+      opened.add(card);
+      openedAtPlace.add(atPlace);
+      return Future.value();
+    }
+
+    PendingRequestsState loaded(
+      List<Map<String, dynamic>> entries, {
+      DateTime? serverNow,
+    }) => PendingRequestsState(
+      serverNow: serverNow ?? _now,
+      requests: _queue(entries),
+      isLoaded: true,
+    );
+
+    Future<void> pumpResuming(
+      WidgetTester tester,
+      String? resumeCardKey, {
+      bool resumesAtPlace = false,
+    }) => pumpPanel(
+      tester,
+      PendingRequestsState(serverNow: _now),
+      openCompletion: recordOpening,
+      states: snapshots.stream,
+      resumeCardKey: resumeCardKey,
+      resumesAtPlace: resumesAtPlace,
+    );
+
+    Future<void> emitSnapshot(
+      WidgetTester tester,
+      PendingRequestsState state,
+    ) async {
+      snapshots.add(state);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens the completion of the resumed card after the first '
+        'snapshot (D-28, Pitfall 1)', (tester) async {
+      await pumpResuming(tester, _storyCardKey);
+      expect(opened, isEmpty);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened.map((card) => card.cardKey), [_storyCardKey]);
+      expect(openedAtPlace, [false]);
+    });
+
+    testWidgets('after a cancelled teleport the resumed wizard opens on the '
+        'place step (UAT 2026-11-14)', (tester) async {
+      await pumpResuming(tester, _storyCardKey, resumesAtPlace: true);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(openedAtPlace, [true]);
+    });
+
+    testWidgets('a resuming panel hides the queue behind a curtain until the '
+        'wizard is back (UAT 2026-11-14)', (tester) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsOneWidget);
+      expect(find.byKey(GenerateQuestsButton.buttonKey), findsNothing);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+      expect(find.byKey(GenerateQuestsButton.buttonKey), findsOneWidget);
+    });
+
+    testWidgets('a panel that resumes nothing has no curtain', (tester) async {
+      await pumpResuming(tester, null);
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+    });
+
+    testWidgets('a resumed card that is gone lifts the curtain', (
+      tester,
+    ) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      await emitSnapshot(tester, loaded([]));
+
+      expect(find.byKey(InnkeeperPanelScreen.resumeCurtainKey), findsNothing);
+      expect(opened, isEmpty);
+    });
+
+    testWidgets('opens it only once across later snapshots (D-28)', (
+      tester,
+    ) async {
+      await pumpResuming(tester, _storyCardKey);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+      await emitSnapshot(
+        tester,
+        loaded([
+          pendingRequestJson(),
+        ], serverNow: _now.add(const Duration(minutes: 1))),
+      );
+
+      expect(opened, hasLength(1));
+    });
+
+    testWidgets('finds a card that is not actionable in the raw requests '
+        '(D-28, Pitfall 5)', (tester) async {
+      await pumpResuming(tester, worldMissionQuestId);
+
+      await emitSnapshot(
+        tester,
+        loaded(
+          worldMissionEntriesJson(
+            travels: {
+              'Cosimo': queuedTravelJson(
+                endTime: _now.add(const Duration(minutes: 12)),
+              ),
+            },
+          ),
+        ),
+      );
+
+      expect(opened.map((card) => card.cardKey), [worldMissionQuestId]);
+      expect(
+        find.byKey(RequestCardView.keyFor(worldMissionQuestId)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a card gone from the queue shows «Richiesta non più '
+        'disponibile» (D-28)', (tester) async {
+      await pumpResuming(tester, 'quest-gone');
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened, isEmpty);
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text(InnkeeperPanelScreen.goneMessage),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the resume after the Map opens the mission wizard (D-28)', (
+      tester,
+    ) async {
+      final repository = _wizardRepository(draft: _storyDraftAt('teleport'));
+      await pumpPanel(
+        tester,
+        PendingRequestsState(serverNow: _now),
+        repository: repository,
+        states: snapshots.stream,
+        resumeCardKey: _storyCardKey,
+      );
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(find.byType(MissionCompletionScreen), findsOneWidget);
+      expect(_stepHeader(MissionCompletionScreen.placeTitle), findsOneWidget);
+      verify(() => repository.readMissionDraft(_storyCardKey)).called(1);
+    });
+
+    testWidgets('without a resume key nothing opens (PQ7)', (tester) async {
+      await pumpResuming(tester, null);
+
+      await emitSnapshot(tester, loaded([pendingRequestJson()]));
+
+      expect(opened, isEmpty);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+  });
+
+  group('teleport from the wizard only (UAT 2026-11-14)', () {
+    final worldMissionCard = find.byKey(
+      RequestCardView.keyFor(worldMissionQuestId),
+    );
+
+    testWidgets('the request card offers no teleport button', (tester) async {
       await pumpQueue(
         tester,
         worldMissionEntriesJson(
@@ -589,10 +888,24 @@ void main() {
         ),
       );
 
-      expect(_teleportAction(worldMissionQuestId), findsOneWidget);
-      expect(_teleportButton(tester, worldMissionQuestId).onPressed, isNotNull);
-      expect(find.text(RequestCardView.teleportLabel), findsOneWidget);
-      expect(find.byType(TextButton), findsOneWidget);
+      expect(
+        find.descendant(
+          of: worldMissionCard,
+          matching: find.text('Teletrasporta'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: worldMissionCard,
+          matching: find.byType(TextButton),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(RequestCardView.completeKeyFor(worldMissionQuestId)),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an awaiting-aid participant hides the card', (tester) async {
@@ -600,31 +913,11 @@ void main() {
         pendingRequestJson(awaitingAid: awaitingAidJson()),
       ]);
 
-      expect(_teleportAction(_storyCardKey), findsNothing);
+      expect(find.byKey(RequestCardView.keyFor(_storyCardKey)), findsNothing);
       expect(find.text('In attesa di soccorso'), findsNothing);
     });
 
-    testWidgets('tapping it reads the first participant with the companions', (
-      tester,
-    ) async {
-      await pumpQueue(tester, worldMissionEntriesJson());
-
-      await tester.tap(_teleportAction(worldMissionQuestId));
-      await tester.pump();
-
-      final companions = verify(
-        () => teleportCubit.prepare(
-          characterId: 'char-bea',
-          name: 'Bea',
-          companionIds: captureAny(named: 'companionIds'),
-        ),
-      ).captured;
-      expect(companions, [
-        ['char-cosimo'],
-      ]);
-    });
-
-    testWidgets('the read shows a progress on its card and locks the others', (
+    testWidgets('a read in flight leaves the cards as they are', (
       tester,
     ) async {
       whenListen(
@@ -639,20 +932,14 @@ void main() {
 
       expect(
         find.descendant(
-          of: find.byKey(RequestCardView.keyFor(worldMissionQuestId)),
+          of: worldMissionCard,
           matching: find.byType(CircularProgressIndicator),
         ),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(_teleportAction(worldMissionQuestId), findsNothing);
-      expect(_teleportButton(tester, _storyCardKey).onPressed, isNull);
+      expect(_completeButton(tester, worldMissionQuestId).onPressed, isNotNull);
+      expect(_completeButton(tester, _storyCardKey).onPressed, isNotNull);
     });
-
-    // il progresso della lettura gira per sempre: niente pumpAndSettle
-    Future<void> settleRoute(WidgetTester tester) async {
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-    }
 
     Future<void> pushPanel(
       WidgetTester tester,
@@ -702,14 +989,17 @@ void main() {
         ),
       );
       await tester.tap(find.text('apri'));
-      await settleRoute(tester);
+      await tester.pumpAndSettle();
     }
 
-    testWidgets('leaving the panel during the read cancels it', (tester) async {
+    // il wizard lasciato durante la sua lettura riporta il pannello in cima:
+    // annullo e avviso restano del pannello
+    testWidgets('leaving the panel during a read left by the wizard cancels '
+        'it', (tester) async {
       await pushPanel(tester, const TeleportPreparing(characterId: 'char-bea'));
 
       await tester.binding.handlePopRoute();
-      await settleRoute(tester);
+      await tester.pumpAndSettle();
 
       expect(find.byType(InnkeeperPanelScreen), findsNothing);
       verify(() => teleportCubit.cancel()).called(1);
@@ -727,9 +1017,8 @@ void main() {
       verifyNever(() => teleportCubit.cancel());
     });
 
-    testWidgets('a failed read shows the SnackBar and keeps the panel', (
-      tester,
-    ) async {
+    testWidgets('a read left by the wizard that fails shows the SnackBar and '
+        'keeps the panel', (tester) async {
       await pumpQueue(tester, worldMissionEntriesJson());
 
       teleportStates.add(

@@ -31,6 +31,17 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **RANKP-03**: Result sheet: one dungeon-turn line (dungeon and dungeon aid) printed from the BE fields, lenient parsing, the stages line kept as fallback
 - [x] **RANKP-04**: Schema gate on the merged BE SDL, schema check green, device E2E covering rank blocks, mixed boss, dungeon aid by turns and the aid fixes visible on the FE
 
+### Innkeeper Mission Completion Flow (Phase 21, added 2026-11-14)
+
+- [x] **GMFLOW-01**: Step 1: the group pawn drops on city markers and inner POIs (POI layer in teleport mode, own drop rule), skip when the group already stands on the place; after the Map round trip the Locanda reopens the wizard of that request
+- [x] **GMFLOW-02**: Wizard shell over the served draft: explicit start, resume at the served step from any device, back navigation, discard with confirmation, exits when the request is gone; no local persistence
+- [x] **GMFLOW-03**: Encounters: one or several fights, each with enemies × quantity picked from the served list (search, «Mostra tutti»); the app never filters by rank, habitat or POI type
+- [x] **GMFLOW-04**: Per fight: «Simula» / «Rilancia» on the BE engine, outcome read as served, corrections within served bounds (life slider, injuries of this mission removable, consumables and spells), invalidation shown from the served draft
+- [x] **GMFLOW-05**: Prizes per character: served prefilled rank block, entries removable, additions from the served catalogue, free coins and xp
+- [x] **GMFLOW-06**: Completion: recap, explicit confirmation, `completeGuidedMission`, results recap, failure mapping per code; the Phase 10 override form is retired
+- [x] **GMFLOW-07**: Players: the two served mission flags read live; pawn label only for the guided flow; travel, acceptance, shop, equipment, companion, spells and potions hidden or disabled in every mission in progress; `MISSION_IN_PROGRESS` mapped in every classifier of the locked actions
+- [x] **GMFLOW-08**: Schema gate on the merged BE Phase 22 SDL, schema check green, full suite, device E2E with an innkeeper and a participant
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -69,8 +80,16 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | RANKP-02 | Phase 20 | Complete |
 | RANKP-03 | Phase 20 | Complete |
 | RANKP-04 | Phase 20 | Complete |
+| GMFLOW-01 | Phase 21 | Complete |
+| GMFLOW-02 | Phase 21 | Complete |
+| GMFLOW-03 | Phase 21 | Complete |
+| GMFLOW-04 | Phase 21 | Complete |
+| GMFLOW-05 | Phase 21 | Complete |
+| GMFLOW-06 | Phase 21 | Complete |
+| GMFLOW-07 | Phase 21 | Complete |
+| GMFLOW-08 | Phase 21 | Complete |
 
-**Coverage:** 14 / 14 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20). No orphans. No duplicates.
+**Coverage:** 22 / 22 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21). No orphans. No duplicates.
 
 ---
 

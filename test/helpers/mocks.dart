@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
+import 'package:klimmeck_guide/repository/equipment_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/item_use_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
@@ -25,9 +26,12 @@ import 'package:klimmeck_guide/repository/travel_repository.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/questGenerationCubit/quest_generation_cubit.dart';
-import 'package:klimmeck_guide/screens/innkeeper/requestCompletionCubit/request_completion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/cubit/main_screen_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
@@ -36,6 +40,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
@@ -106,6 +111,8 @@ class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockCompanionRepository extends Mock implements CompanionRepository {}
 
+class MockEquipmentRepository extends Mock implements EquipmentRepository {}
+
 class MockItemUseRepository extends Mock implements ItemUseRepository {}
 
 class MockPushDeviceRepository extends Mock implements PushDeviceRepository {}
@@ -166,6 +173,9 @@ class MockCompanionCubit extends MockCubit<CompanionState>
 
 class MockPotionCubit extends MockCubit<PotionState> implements PotionCubit {}
 
+class MockJournalCubit extends MockCubit<JournalState>
+    implements JournalCubit {}
+
 class MockPrisonCubit extends MockCubit<PrisonState> implements PrisonCubit {}
 
 class MockTravelProgressCubit extends MockCubit<TravelProgressState>
@@ -177,11 +187,20 @@ class MockWorldMapCubit extends MockCubit<WorldMapState>
 class MockPendingRequestsCubit extends MockCubit<PendingRequestsState>
     implements PendingRequestsCubit {}
 
-class MockRequestCompletionCubit extends MockCubit<RequestCompletionState>
-    implements RequestCompletionCubit {}
-
 class MockQuestGenerationCubit extends MockCubit<QuestGenerationState>
     implements QuestGenerationCubit {}
 
 class MockTeleportModeCubit extends MockCubit<TeleportModeState>
     implements TeleportModeCubit {}
+
+class MockMissionDraftCubit extends MockCubit<MissionDraftState>
+    implements MissionDraftCubit {}
+
+class MockMissionParticipantsCubit extends MockCubit<MissionParticipantsState>
+    implements MissionParticipantsCubit {}
+
+class MockMissionEnemiesCubit extends MockCubit<MissionEnemiesState>
+    implements MissionEnemiesCubit {}
+
+class MockMissionPrizeOptionsCubit extends MockCubit<MissionPrizeOptionsState>
+    implements MissionPrizeOptionsCubit {}

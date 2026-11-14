@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell/spell_state.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
+import 'package:klimmeck_guide/models/utc_instant.dart';
 
 import '../coins.dart';
 import '../enums/title_type.dart';
@@ -25,6 +26,8 @@ class CharacterStatus extends Equatable {
     this.unlockedLore = const [],
     this.potionRecoveryUntil,
     this.imprisonedUntil,
+    this.missionInProgress = false,
+    this.guidedMissionInProgress = false,
   });
 
   final int? xp;
@@ -59,6 +62,14 @@ class CharacterStatus extends Equatable {
   /// passata = libero. Nessuno sweep la azzera: il client si libera da sé.
   final DateTime? imprisonedUntil;
 
+  /// Missione in corso, guidata o normale (BE Phase 22, D-12/D-16): blocca
+  /// Diario, Bacheca e negozio. Letto dal server, mai dedotto dalle corsie.
+  final bool missionInProgress;
+
+  /// Flusso guidato dell'oste aperto su una richiesta del personaggio (D-16):
+  /// solo l'etichetta della pedina.
+  final bool guidedMissionInProgress;
+
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
         location: json['location'] != null
@@ -76,8 +87,10 @@ class CharacterStatus extends Equatable {
         spellStates: _spellStatesFrom(json['spellStates']),
         awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
         unlockedLore: _unlockedLoreFrom(json['unlockedLore']),
-        potionRecoveryUntil: _instantOrNull(json['potionRecoveryUntil']),
-        imprisonedUntil: _instantOrNull(json['imprisonedUntil']),
+        potionRecoveryUntil: utcInstantOrNull(json['potionRecoveryUntil']),
+        imprisonedUntil: utcInstantOrNull(json['imprisonedUntil']),
+        missionInProgress: json['missionInProgress'] == true,
+        guidedMissionInProgress: json['guidedMissionInProgress'] == true,
       );
 
   static List<SpellState> _spellStatesFrom(Object? json) {
@@ -91,10 +104,6 @@ class CharacterStatus extends Equatable {
     if (json is! List) return const [];
     return List<String>.unmodifiable(json.whereType<String>());
   }
-
-  /// Una data illeggibile vale `null`: il personaggio sopravvive.
-  static DateTime? _instantOrNull(Object? json) =>
-      json is String ? DateTime.tryParse(json)?.toUtc() : null;
 
   Map<String, dynamic> toJson() => {
     "location": location?.toJson(),
@@ -112,6 +121,8 @@ class CharacterStatus extends Equatable {
     "unlockedLore": unlockedLore,
     "potionRecoveryUntil": potionRecoveryUntil?.toUtc().toIso8601String(),
     "imprisonedUntil": imprisonedUntil?.toUtc().toIso8601String(),
+    "missionInProgress": missionInProgress,
+    "guidedMissionInProgress": guidedMissionInProgress,
   };
 
   CharacterStatus copyWith({
@@ -141,6 +152,8 @@ class CharacterStatus extends Equatable {
       unlockedLore: unlockedLore,
       potionRecoveryUntil: potionRecoveryUntil,
       imprisonedUntil: imprisonedUntil,
+      missionInProgress: missionInProgress,
+      guidedMissionInProgress: guidedMissionInProgress,
     );
   }
 
@@ -161,5 +174,7 @@ class CharacterStatus extends Equatable {
     unlockedLore,
     potionRecoveryUntil,
     imprisonedUntil,
+    missionInProgress,
+    guidedMissionInProgress,
   ];
 }

@@ -59,12 +59,14 @@ Character _character({
   String? potionRecoveryUntil,
   Map<String, dynamic>? awaitingAid,
   Map<String, dynamic>? activeTravel,
+  bool missionInProgress = false,
 }) => journalCharacter(
   spellbook: spellbookCharacterJson(),
   ownedItems: _ownedItems(herbQuantity: herbQuantity),
   potionRecoveryUntil: potionRecoveryUntil,
   awaitingAid: awaitingAid,
   activeTravel: activeTravel,
+  missionInProgress: missionInProgress,
 );
 
 Finder _card(String id) => find.byKey(ValueKey(id));
@@ -333,6 +335,65 @@ void main() {
     await tapAndSettle(tester, _card(_herb));
 
     expect(find.byType(PotionSheet), findsOneWidget);
+  });
+
+  group('mission in progress (Phase 21)', () {
+    const missionLine = 'Missione in corso';
+
+    testWidgets('a heal potion is disabled with «Missione in corso» '
+        '(D-12, D-30)', (tester) async {
+      useCharacter(_character(missionInProgress: true));
+      await pumpItems(tester);
+
+      for (final id in [_herb, _balm]) {
+        expect(_statusTextOf(tester, id), missionLine, reason: id);
+        expect(
+          _opacityOf(tester, id),
+          KlimmeckGuideTheme.pendingInkOpacity,
+          reason: id,
+        );
+      }
+      expect(_statusOf(_plain), findsNothing);
+      expect(_statusOf(_food), findsNothing);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.byType(PotionSheet), findsNothing);
+      verifyNever(() => potionCubit.reset());
+      verifyNever(() => potionCubit.drink(any()));
+    });
+
+    testWidgets('awaiting aid keeps the read-only row (D-23)', (tester) async {
+      useCharacter(
+        _character(awaitingAid: awaitingAidJson(), missionInProgress: true),
+      );
+      await pumpItems(tester);
+
+      expect(_statusOf(_herb), findsNothing);
+      expect(_statusOf(_balm), findsNothing);
+      expect(_opacityOf(tester, _herb), 1);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.byType(PotionSheet), findsNothing);
+      verifyNever(() => potionCubit.reset());
+    });
+
+    testWidgets('the countdown is not shown while the mission locks the '
+        'potion (D-12)', (tester) async {
+      useCharacter(
+        _character(
+          potionRecoveryUntil: _recoveryEndIn(const Duration(minutes: 72)),
+          missionInProgress: true,
+        ),
+      );
+      await pumpItems(tester);
+
+      expect(find.text(_readyIn72), findsNothing);
+      expect(_statusTextOf(tester, _herb), missionLine);
+      expect(_statusTextOf(tester, _balm), missionLine);
+      await unmount(tester);
+    });
   });
 
   group('drag to dismiss (D-18)', () {

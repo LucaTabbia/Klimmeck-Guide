@@ -54,6 +54,8 @@ class CharacterFragment {
       }
       potionRecoveryUntil
       imprisonedUntil
+      missionInProgress
+      guidedMissionInProgress
       spellStates {
         usages
         recoveries
@@ -114,6 +116,9 @@ class CharacterFragment {
         pointsSpent
         quest {
           id
+          infos {
+            type
+          }
         }
       }
       activeStoryQuest {

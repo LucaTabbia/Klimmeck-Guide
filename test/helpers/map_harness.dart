@@ -10,6 +10,7 @@ Widget mapHarness(
   List<Widget> layers, {
   MapController? controller,
   VoidCallback? onMapReady,
+  double initialZoom = 2,
 }) => buildTestApp(
   home: SizedBox(
     width: 780,
@@ -19,7 +20,7 @@ Widget mapHarness(
       options: MapOptions(
         crs: const Epsg4326(),
         initialCenter: const LatLng(0, 0),
-        initialZoom: 2,
+        initialZoom: initialZoom,
         onMapReady: onMapReady,
       ),
       children: layers,

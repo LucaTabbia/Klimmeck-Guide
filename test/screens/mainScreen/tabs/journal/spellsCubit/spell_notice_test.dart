@@ -101,6 +101,29 @@ void main() {
       );
     });
 
+    test('a spell refused during a mission shows the wait line under the '
+        'action title (D-11, D-30)', () {
+      expect(
+        spellNoticeFor(_outcome(failure: SpellEquipFailure.missionInProgress)),
+        const KGNotification(
+          title: 'Magia non equipaggiata',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+      expect(
+        spellNoticeFor(
+          _outcome(
+            operation: SpellOperation.unequip,
+            failure: SpellEquipFailure.missionInProgress,
+          ),
+        ),
+        const KGNotification(
+          title: 'Magia non tolta',
+          description: "Sei impegnato in una missione: aspetta l'esito",
+        ),
+      );
+    });
+
     test('no copy leaks a technical token', () {
       for (final failure in SpellEquipFailure.values) {
         final description = spellNoticeFor(

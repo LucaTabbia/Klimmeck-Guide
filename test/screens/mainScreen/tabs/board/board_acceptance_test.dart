@@ -343,19 +343,37 @@ void main() {
   });
 
   group('acceptance outcomes', () {
-    testWidgets('only QuestAccepted goes to the map', (tester) async {
+    testWidgets('tearing a quest that travels goes to the map as soon as the '
+        'sheet has left, before the server answers', (tester) async {
       await pumpBoard(
         tester,
         quests: [buildQuest(id: 'h-1', type: 'hunt')],
       );
+      await openSheet(tester, 'h-1');
 
-      acceptanceStates.add(const QuestAccepting('h-1'));
-      await tester.pump();
-      expect(accepted, 0);
+      await dragSheetLeft(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(accepted, 1);
 
       acceptanceStates.add(const QuestAccepted('h-1'));
       await tester.pump();
       expect(accepted, 1);
+    });
+
+    testWidgets('tearing a story stays on the board', (tester) async {
+      await pumpBoard(
+        tester,
+        quests: [
+          buildQuest(id: 's-paladin', type: 'story', minTitle: 'paladin'),
+        ],
+        character: characterWithLanesJson(title: 'paladin'),
+      );
+      await openSheet(tester, 's-paladin');
+
+      await dragSheetLeft(tester);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(accepted, 0);
     });
 
     testWidgets('a story or worldMission acceptance stays on the board', (
@@ -374,6 +392,26 @@ void main() {
       acceptanceStates.add(const QuestAccepted('w-1'));
       await tester.pump();
 
+      expect(accepted, 0);
+    });
+
+    testWidgets('a story acceptance closes the sheet and stays on the board', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [
+          buildQuest(id: 's-paladin', type: 'story', minTitle: 'paladin'),
+        ],
+        character: characterWithLanesJson(title: 'paladin'),
+      );
+      await openSheet(tester, 's-paladin');
+      expect(find.byType(TearablePaper), findsOneWidget);
+
+      acceptanceStates.add(const QuestAccepted('s-paladin'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TearablePaper), findsNothing);
       expect(accepted, 0);
     });
 
@@ -397,6 +435,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
+      // il rifiuto arriva prima che il foglio sia uscito: si resta sul Tabellone
       expect(accepted, 0);
       expect(paperState.isTorn, isFalse);
       verifyNever(

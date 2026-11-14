@@ -44,6 +44,14 @@ void main() {
     'id': '6712a0c4e1b2c3d4e5f60718',
   };
 
+  const missionStartData = <String, Object?>{
+    'type': 'missionStart',
+    'title': 'La missione comincia',
+    'body': "L'oste ha dato inizio a «La corte del re»",
+    'sentAt': '2026-11-14T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60718',
+  };
+
   late InMemoryActiveUserStore activeUser;
   late InMemoryNotificationPreferencesStore preferences;
   late RecordingLocalNotificationsPort notifier;
@@ -75,6 +83,7 @@ void main() {
       streamerLiveData,
       ambushDefeatData,
       prisonReleaseData,
+      missionStartData,
     ]) {
       test('shows one notification for ${data['type']} by default', () async {
         await handle(data);

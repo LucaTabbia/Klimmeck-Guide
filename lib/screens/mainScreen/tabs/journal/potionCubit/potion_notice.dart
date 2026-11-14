@@ -1,6 +1,7 @@
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 const String potionNoticeTitle = 'Pozione non bevuta';
 const String _genericLine = 'Qualcosa è andato storto, riprova';
@@ -14,6 +15,7 @@ KGNotification? potionNoticeFor(ItemUseFailure failure, {Duration? remaining}) {
     ItemUseFailure.unauthenticated => null,
     ItemUseFailure.potionRecovering => _recoveringLine(remaining),
     ItemUseFailure.noEffect => 'Questa pozione non ti farebbe nulla adesso',
+    ItemUseFailure.missionInProgress => missionInProgressRefusalLine,
     ItemUseFailure.awaitingAid ||
     ItemUseFailure.notOwned ||
     ItemUseFailure.notUsable ||

@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/spell.dart';
+import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/equipment_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_section.dart';
@@ -11,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubi
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
@@ -162,6 +165,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     double screenWidth,
     double lootSize,
   ) {
+    final isOnMission = character.isOnMission;
     return Dropdown(
       sectionName: "Armatura",
       data: Padding(
@@ -200,8 +204,16 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                           (index) => ItemRow(
                             assetItem: _filteredItems[index],
                             onLongTap: (item) => _selectEquipment(item),
-                            onSelect: (item) =>
-                                _equipItem(item as EquipmentItem, character),
+                            onSelect: isOnMission
+                                ? null
+                                : (item) => _equipItem(
+                                    item as EquipmentItem,
+                                    character,
+                                  ),
+                            isDisabled: isOnMission,
+                            statusLine: isOnMission
+                                ? missionInProgressLabel
+                                : null,
                             isSelected: _equippedItems.contains(
                               _filteredItems[index],
                             ),
@@ -240,10 +252,12 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                           return SingleChildScrollView(
                             child: EquipmentInfoSheet(
                               equipmentItem: _selectedEquipment!,
-                              onEquip: () => _equipItem(
-                                _selectedEquipment!,
-                                state.character,
-                              ),
+                              onEquip: state.character.isOnMission
+                                  ? null
+                                  : () => _equipItem(
+                                      _selectedEquipment!,
+                                      state.character,
+                                    ),
                               isEquipped: _equippedItems.contains(
                                 _selectedEquipment,
                               ),
@@ -326,6 +340,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   void _equipItem(EquipmentItem item, Character character) {
+    if (character.isOnMission) return;
     final isCurrentlyEquipped = _equippedItems.contains(item);
     SlotType? targetSlot;
     String? itemIdToSend;
@@ -368,78 +383,93 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
         );
   }
 
+  void _onEquipRefused(BuildContext context, JournalEquipRefused refused) {
+    final notice = equipmentNoticeFor(refused.failure);
+    if (notice == null) return;
+    context.read<InAppNotificationsCubit>().publishNotice(
+      notice,
+      dedupKey: 'equip|${refused.failure.name}|${refused.sequence}',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocBuilder<CharacterCubit, CharacterState>(
-      builder: (context, state) {
-        if (state is CharacterLoaded) {
-          Character character = state.character;
+    return BlocListener<JournalCubit, JournalState>(
+      listenWhen: (previous, current) =>
+          current is JournalEquipRefused && previous != current,
+      listener: (context, state) =>
+          _onEquipRefused(context, state as JournalEquipRefused),
+      child: BlocBuilder<CharacterCubit, CharacterState>(
+        builder: (context, state) {
+          if (state is CharacterLoaded) {
+            Character character = state.character;
 
-          _equippedItems = (character.assets?.wornEquipment?.values ?? [])
-              .whereType<EquipmentItem>()
-              .toList();
+            _equippedItems = (character.assets?.wornEquipment?.values ?? [])
+                .whereType<EquipmentItem>()
+                .toList();
 
-          if (_selectedSlot == null && _filteredItems.isEmpty) {
-            _filteredItems = _equippedItems;
-          }
+            if (_selectedSlot == null && _filteredItems.isEmpty) {
+              _filteredItems = _equippedItems;
+            }
 
-          if (_selectedSlot == null && _filteredItems != _equippedItems) {
-            _filteredItems = _equippedItems;
-          }
-          return GestureDetector(
-            onTap: () => _animationController.reverse(),
-            child: BackgroundImage(
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50),
-                    child: Container(
-                      color: KlimmeckGuideTheme.parchment,
-                      height: MediaQuery.of(context).size.height,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(height: 40),
-                              _buildLifePointsSection(),
-                              TextSection(
-                                sectionName: "XP ottenuti",
-                                data: character.status?.xp?.toString() ?? "0",
-                              ),
-                              _buildCoinsSection(),
-                              _buildInjuriesSection(),
-                              SpellsSection(
-                                cardSize: lootSize,
-                                onShowDetails: _selectSpell,
-                              ),
-                              _buildArmorSection(
-                                character,
-                                screenWidth,
-                                lootSize,
-                              ),
-                              CompanionSection(size: lootSize),
-                              ItemsSection(size: lootSize),
-                              const SizedBox(height: 120),
-                            ],
+            if (_selectedSlot == null && _filteredItems != _equippedItems) {
+              _filteredItems = _equippedItems;
+            }
+            return GestureDetector(
+              onTap: () => _animationController.reverse(),
+              child: BackgroundImage(
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
+                      child: Container(
+                        color: KlimmeckGuideTheme.parchment,
+                        height: MediaQuery.of(context).size.height,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(height: 40),
+                                _buildLifePointsSection(),
+                                TextSection(
+                                  sectionName: "XP ottenuti",
+                                  data: character.status?.xp?.toString() ?? "0",
+                                ),
+                                _buildCoinsSection(),
+                                _buildInjuriesSection(),
+                                SpellsSection(
+                                  cardSize: lootSize,
+                                  onShowDetails: _selectSpell,
+                                ),
+                                _buildArmorSection(
+                                  character,
+                                  screenWidth,
+                                  lootSize,
+                                ),
+                                CompanionSection(size: lootSize),
+                                ItemsSection(size: lootSize),
+                                const SizedBox(height: 120),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  _buildInfoSheet(screenWidth),
-                ],
+                    _buildInfoSheet(screenWidth),
+                  ],
+                ),
               ),
-            ),
-          );
-        }
-        return Placeholder();
-      },
+            );
+          }
+          return Placeholder();
+        },
+      ),
     );
   }
 }

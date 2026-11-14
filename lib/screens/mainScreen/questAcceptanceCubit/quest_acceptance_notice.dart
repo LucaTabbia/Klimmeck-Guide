@@ -1,11 +1,25 @@
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/quest/quest_blocked_reason.dart';
+import 'package:klimmeck_guide/models/quest/quest_lane.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/travel/travel_cost_text.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_failure.dart';
+import 'package:klimmeck_guide/utils/mission_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 
 const String questAcceptanceNoticeTitle = 'Missione non accettata';
+const String questAcceptedNoticeTitle = 'Missione accettata';
+
+/// Story e worldMission non viaggiano: aspettano l'oste (Phase 21, utente
+/// 2026-11-14). Nessun banner per le quest che partono verso il marker.
+KGNotification? questAwaitingInnkeeperNoticeFor(QuestType? type) {
+  if (type == null || laneOf(type) == QuestLane.standard) return null;
+  return KGNotification(
+    title: questAcceptedNoticeTitle,
+    description:
+        "L'oste è stato avvisato: la missione comincerà quando la avvia",
+  );
+}
 
 /// Copy di dominio del banner (D-04), provvisoria (D-19). Nessun banner per
 /// UNAUTHENTICATED: il flusso di sessione sta già agendo.
@@ -41,6 +55,7 @@ KGNotification? questAcceptanceNoticeFor(
     QuestAcceptanceFailure.starving => starvingPhrase,
     QuestAcceptanceFailure.noEffect => questNoEffectLine,
     QuestAcceptanceFailure.imprisoned => prisonReleaseLine(imprisonedFor),
+    QuestAcceptanceFailure.missionInProgress => missionInProgressRefusalLine,
     QuestAcceptanceFailure.connection => 'Connessione assente, riprova',
     QuestAcceptanceFailure.timedOut =>
       'Il server non ha risposto in tempo: '

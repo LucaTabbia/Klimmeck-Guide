@@ -3,6 +3,7 @@ import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/mutations/travel_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/point_of_interest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/server_time_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/travel_queries.dart';
 
@@ -175,7 +176,24 @@ void main() {
     });
   });
 
-  test('the schema check registers 46 documents (D-12)', () {
-    expect(schemaCheckDocuments.length, 46);
+  group('ListPointsOfInterest (Phase 21)', () {
+    test('selects id, type, location and the city name for the teleport '
+        '(D-29)', () {
+      expect(
+        _collapsed(PointOfInterestQueries.listPointsOfInterest),
+        contains('pointOfInterests { id type location city { id name } }'),
+      );
+    });
+
+    test('is registered under its operation name (D-29)', () {
+      expect(
+        schemaCheckDocuments['ListPointsOfInterest'],
+        PointOfInterestQueries.listPointsOfInterest,
+      );
+    });
+  });
+
+  test('the schema check registers 54 documents (D-17, D-25, D-29)', () {
+    expect(schemaCheckDocuments.length, 54);
   });
 }

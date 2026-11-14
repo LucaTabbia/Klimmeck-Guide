@@ -29,6 +29,9 @@ enum QuestAvailability {
   /// Da questa quest è nato un soccorso ancora aperto (quick 261113-aql):
   /// foglio strappato per tutti finché il soccorso non si chiude.
   awaitingRescue,
+
+  /// D-13: ogni accettazione o iscrizione è bloccata durante una missione in corso.
+  missionInProgress,
 }
 
 class QuestStanding extends Equatable {
@@ -86,7 +89,8 @@ bool isSheetTorn(
   QuestAvailability.insufficientPoints ||
   QuestAvailability.noEffect ||
   QuestAvailability.imprisoned ||
-  QuestAvailability.awaitingRescue => true,
+  QuestAvailability.awaitingRescue ||
+  QuestAvailability.missionInProgress => true,
 };
 
 /// Requisiti della quest indipendenti dalla corsia, letti anche a corsia occupata.
@@ -129,9 +133,10 @@ QuestAvailability _availabilityOf(Quest quest, QuestViewer viewer) {
     return QuestAvailability.notInCity;
   }
   if (_lacksPoints(quest, viewer)) return QuestAvailability.insufficientPoints;
-  return quest.noEffect
-      ? QuestAvailability.noEffect
-      : QuestAvailability.available;
+  if (quest.noEffect) return QuestAvailability.noEffect;
+  // D-23: i motivi esistenti vincono, come i codici del BE.
+  if (viewer.isOnMission) return QuestAvailability.missionInProgress;
+  return QuestAvailability.available;
 }
 
 /// Con la forma Phase 7 (`Int`) una capienza 0 non è un difetto: decide il BE.

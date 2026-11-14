@@ -106,6 +106,28 @@ void main() {
       );
     });
 
+    test('missionInProgress shows the wait line for every quest type '
+        '(D-13, D-30)', () {
+      for (final type in [
+        QuestType.story,
+        QuestType.worldMission,
+        QuestType.hunt,
+        null,
+      ]) {
+        expect(
+          questAcceptanceNoticeFor(
+            QuestAcceptanceFailure.missionInProgress,
+            type: type,
+          ),
+          const KGNotification(
+            title: 'Missione non accettata',
+            description: "Sei impegnato in una missione: aspetta l'esito",
+          ),
+          reason: '$type',
+        );
+      }
+    });
+
     test('unauthenticated has no banner', () {
       expect(
         questAcceptanceNoticeFor(QuestAcceptanceFailure.unauthenticated),
@@ -122,6 +144,26 @@ void main() {
         expect(description, isNot(contains('Error')));
         expect(description, isNot(contains('code')));
       }
+    });
+  });
+
+  group('questAwaitingInnkeeperNoticeFor', () {
+    test('tells a story or worldMission player to wait for the innkeeper', () {
+      for (final type in [QuestType.story, QuestType.worldMission]) {
+        expect(
+          questAwaitingInnkeeperNoticeFor(type),
+          KGNotification(
+            title: 'Missione accettata',
+            description:
+                "L'oste è stato avvisato: la missione comincerà quando la avvia",
+          ),
+        );
+      }
+    });
+
+    test('has no banner for a quest that travels or of unknown type', () {
+      expect(questAwaitingInnkeeperNoticeFor(QuestType.hunt), isNull);
+      expect(questAwaitingInnkeeperNoticeFor(null), isNull);
     });
   });
 }

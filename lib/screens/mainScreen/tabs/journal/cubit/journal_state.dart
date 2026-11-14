@@ -1,31 +1,26 @@
 part of 'journal_cubit.dart';
 
-@immutable
-abstract class JournalState extends Equatable {
+sealed class JournalState extends Equatable {
   const JournalState();
 
   @override
   List<Object?> get props => [];
 }
 
-class JournalInitial extends JournalState {}
-
-class JournalLoadData extends JournalState {
-  final Equipment equipment;
-
-  const JournalLoadData(this.equipment);
-
-  @override
-  List<Object?> get props => [equipment];
+/// Nessun rifiuto da mostrare: lo stato dell'equipaggiamento arriva solo da
+/// `characterUpdated`.
+final class JournalIdle extends JournalState {
+  const JournalIdle();
 }
 
-class JournalLoading extends JournalState {}
+/// Cambio di equipaggiamento rifiutato (LB-1); [sequence] rende distinti due
+/// rifiuti uguali consecutivi.
+final class JournalEquipRefused extends JournalState {
+  const JournalEquipRefused({required this.failure, required this.sequence});
 
-class JournalError extends JournalState {
-  final String errorMessage;
-
-  const JournalError(this.errorMessage);
+  final EquipmentFailure failure;
+  final int sequence;
 
   @override
-  List<Object?> get props => [errorMessage];
+  List<Object?> get props => [failure, sequence];
 }

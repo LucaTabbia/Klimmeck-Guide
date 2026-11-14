@@ -32,8 +32,9 @@ class Board extends StatefulWidget {
   /// Città caricate dal MainScreen: dicono se il personaggio è su un marker (D-11).
   final List<City> cities;
 
-  /// Chiamata su QuestAccepted di una quest con viaggio (D-03): il MainScreen
-  /// passa alla mappa. Story e worldMission restano sulla Board (UAT 2026-11-01).
+  /// Chiamata allo strappo di una quest con viaggio (D-03, utente 2026-11-14):
+  /// il MainScreen passa alla mappa senza aspettare il server. Story e
+  /// worldMission restano sulla Board (UAT 2026-11-01).
   final VoidCallback? onQuestAccepted;
 
   @override
@@ -210,10 +211,11 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   }
 
   /// Solo ciò che richiede la Board montata; banner, refresh e reset sono in
-  /// QuestAcceptanceOutcomeListener (MainScreen).
+  /// QuestAcceptanceOutcomeListener (MainScreen). Story e worldMission
+  /// accettate chiudono il foglio: aspettano l'oste (utente 2026-11-14).
   void _onAcceptanceOutcome(BuildContext context, QuestAcceptanceState state) {
     if (state is QuestAccepted) {
-      if (_needsTravel(context, state.questId)) widget.onQuestAccepted?.call();
+      if (!_needsTravel(context, state.questId)) _animationController.reverse();
     } else if (state is QuestAcceptanceFailed) {
       _tearKey.currentState?.recompose();
     }
@@ -333,6 +335,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       // trascina né si accetta.
       isEnabled: isIdle && !selected.noEffect && !selected.awaitingRescue,
       onTorn: () => _accept(viewer, selected),
+      onExited: () => _leaveForTheMap(selected),
       child: ColoredBox(
         color: Colors.transparent,
         child: BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
@@ -351,6 +354,17 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
   void _accept(QuestViewer viewer, Quest quest) => context
       .read<QuestAcceptanceCubit>()
       .accept(characterId: viewer.characterId, questId: quest.id);
+
+  /// Uscito il foglio strappato, una quest che viaggia porta alla mappa senza
+  /// aspettare il server: lì la pedina attende con «In preparazione…»; un
+  /// rifiuto già arrivato lascia sul Tabellone (utente 2026-11-14).
+  void _leaveForTheMap(Quest quest) {
+    if (!_needsTravel(context, quest.id)) return;
+    if (context.read<QuestAcceptanceCubit>().state is QuestAcceptanceFailed) {
+      return;
+    }
+    widget.onQuestAccepted?.call();
+  }
 
   void _selectQuest(Quest quest) {
     setState(() {

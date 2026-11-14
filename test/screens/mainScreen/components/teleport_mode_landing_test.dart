@@ -38,6 +38,8 @@ const TeleportTarget _bea = TeleportTarget(
   sex: SexType.female,
 );
 
+const String _resumeCardKey = 'quest-world-1';
+
 AuthAuthenticated _sessionAs(RoleType role) => AuthAuthenticated(
   user: buildTestUser(role: role),
   accessToken: testAccessToken,
@@ -199,6 +201,69 @@ void main() {
     verify(() => teleportCubit.acknowledgeExit()).called(1);
     expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  String? resumedCardKey(WidgetTester tester) => tester
+      .widget<InnkeeperPanelScreen>(find.byType(InnkeeperPanelScreen))
+      .resumeCardKey;
+
+  bool resumesAtPlace(WidgetTester tester) => tester
+      .widget<InnkeeperPanelScreen>(find.byType(InnkeeperPanelScreen))
+      .resumesAtPlace;
+
+  testWidgets('a success without a resume key reopens the bare panel', (
+    tester,
+  ) async {
+    await pumpLanding(tester);
+    await emit(tester, const TeleportActive(target: _bea));
+
+    await emit(tester, const TeleportSucceeded(target: _bea));
+
+    expect(resumedCardKey(tester), isNull);
+  });
+
+  testWidgets('a cancel without a resume key reopens the bare panel', (
+    tester,
+  ) async {
+    await pumpLanding(tester);
+    await emit(tester, const TeleportActive(target: _bea));
+
+    await emit(tester, const TeleportCancelled());
+
+    expect(resumedCardKey(tester), isNull);
+  });
+
+  testWidgets('success with a resume key reopens the panel for that card '
+      '(D-28)', (tester) async {
+    await pumpLanding(tester);
+    await emit(
+      tester,
+      const TeleportActive(target: _bea, resumeCardKey: _resumeCardKey),
+    );
+
+    await emit(
+      tester,
+      const TeleportSucceeded(target: _bea, resumeCardKey: _resumeCardKey),
+    );
+
+    verify(() => teleportCubit.acknowledgeExit()).called(1);
+    expect(resumedCardKey(tester), _resumeCardKey);
+    expect(resumesAtPlace(tester), isFalse);
+  });
+
+  testWidgets('cancel with a resume key reopens the panel for that card '
+      '(D-28)', (tester) async {
+    await pumpLanding(tester);
+    await emit(
+      tester,
+      const TeleportActive(target: _bea, resumeCardKey: _resumeCardKey),
+    );
+
+    await emit(tester, const TeleportCancelled(resumeCardKey: _resumeCardKey));
+
+    verify(() => teleportCubit.acknowledgeExit()).called(1);
+    expect(resumedCardKey(tester), _resumeCardKey);
+    expect(resumesAtPlace(tester), isTrue);
   });
 
   testWidgets('a lost innkeeper role cancels the mode', (tester) async {

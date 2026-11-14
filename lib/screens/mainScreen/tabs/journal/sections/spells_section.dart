@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/spellb
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
+import 'package:klimmeck_guide/shared/components/mission_locked_section.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
 
@@ -42,13 +43,17 @@ Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
 
 /// Sezione «Magie imparate» del Diario (SPELL-01..07). Possiede il countdown:
-/// vive solo mentre la pagina del Diario è a schermo (D-16).
+/// vive solo mentre la pagina del Diario è a schermo (D-16). Bloccata durante
+/// una missione in corso (Phase 21 D-12): il tocco non fa nulla e la sezione
+/// lo dice in testa.
 class SpellsSection extends StatelessWidget {
   const SpellsSection({
     super.key,
     required this.cardSize,
     required this.onShowDetails,
   });
+
+  static const Key missionLockedKey = ValueKey('journal.spells.missionLocked');
 
   final double cardSize;
   final ShowSpellDetails onShowDetails;
@@ -133,27 +138,36 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
       return const SizedBox.shrink();
     }
     final outcome = spells.outcome;
+    final isOnMission = character.isOnMission;
+    final content = BlocBuilder<SpellRecoveryCubit, SpellRecoveryState>(
+      builder: (context, recovery) => SpellbookContent(
+        spellbook: spellbook,
+        recoveries: recovery.statuses,
+        cardSize: widget.cardSize,
+        onToggle: isOnMission
+            ? ignoreMissionLockedToggle
+            : (spellId) => toggleSpellWithFeedback(
+                context,
+                character: character,
+                spellId: spellId,
+              ),
+        onShowDetails: (spell) =>
+            widget.onShowDetails(spell, context.read<SpellRecoveryCubit>()),
+        resistSignal: outcome == null || !outcome.springsBack
+            ? null
+            : (spellId: outcome.spellId, sequence: outcome.sequence),
+        useTypeFilter: _useTypeFilter,
+        onUseTypeFilterChanged: _selectUseType,
+      ),
+    );
     return Dropdown(
       sectionName: 'Magie imparate',
-      data: BlocBuilder<SpellRecoveryCubit, SpellRecoveryState>(
-        builder: (context, recovery) => SpellbookContent(
-          spellbook: spellbook,
-          recoveries: recovery.statuses,
-          cardSize: widget.cardSize,
-          onToggle: (spellId) => toggleSpellWithFeedback(
-            context,
-            character: character,
-            spellId: spellId,
-          ),
-          onShowDetails: (spell) =>
-              widget.onShowDetails(spell, context.read<SpellRecoveryCubit>()),
-          resistSignal: outcome == null || !outcome.springsBack
-              ? null
-              : (spellId: outcome.spellId, sequence: outcome.sequence),
-          useTypeFilter: _useTypeFilter,
-          onUseTypeFilterChanged: _selectUseType,
-        ),
-      ),
+      data: isOnMission
+          ? MissionLockedSection(
+              lineKey: SpellsSection.missionLockedKey,
+              child: content,
+            )
+          : content,
     );
   }
 }
@@ -193,7 +207,7 @@ class SpellDetailsSheet extends StatelessWidget {
         recovery: recovery.statusOf(spell.id),
         isActive: spellbook.activeSpellIds.contains(spell.id),
         isPending: spellbook.pending.containsKey(spell.id),
-        onToggle: character == null
+        onToggle: character == null || character.isOnMission
             ? null
             : () => toggleSpellWithFeedback(
                 context,

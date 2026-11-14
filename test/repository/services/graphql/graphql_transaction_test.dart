@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
+import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql_error_code.dart';
@@ -87,6 +89,46 @@ void main() {
       await expectLater(
         buildGraphQl().doTransaction(request),
         throwsFormatException,
+      );
+    });
+  });
+
+  group('equipItem', () {
+    final equipRequest = EquipItemRequest(
+      id: 'c-1',
+      itemId: 'e-1',
+      slotType: SlotType.values.first,
+    );
+
+    test('sends equipItem with the request and returns successful', () async {
+      handler = (_) => Stream.value(
+        dataResponse({
+          'equipItem': {'response': 'ok', 'successful': true},
+        }),
+      );
+
+      final successful = await buildGraphQl().equipItem(equipRequest);
+
+      final operation = requests.single.operation.document.definitions
+          .whereType<OperationDefinitionNode>()
+          .first;
+      expect(operation.name?.value, 'equipItem');
+      expect(requests.single.variables['request'], equipRequest.toJson());
+      expect(successful, isTrue);
+    });
+
+    test('keeps the OperationException code (LB-1)', () async {
+      handler = (_) => Stream.value(errorCodeResponse('MISSION_IN_PROGRESS'));
+
+      await expectLater(
+        buildGraphQl().equipItem(equipRequest),
+        throwsA(
+          isA<OperationException>().having(
+            graphQlErrorCode,
+            'code',
+            'MISSION_IN_PROGRESS',
+          ),
+        ),
       );
     });
   });

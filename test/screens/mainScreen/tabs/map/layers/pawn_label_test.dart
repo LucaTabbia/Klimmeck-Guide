@@ -5,7 +5,11 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.d
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 
 void main() {
-  Future<RenderParagraph> pumpLabel(WidgetTester tester, String text) async {
+  Future<RenderParagraph> pumpLabel(
+    WidgetTester tester,
+    String text, {
+    int maxLines = 1,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Center(
@@ -14,7 +18,7 @@ void main() {
             height: PawnLabel.markerHeight,
             child: Align(
               alignment: Alignment.topCenter,
-              child: PawnLabel(text: text),
+              child: PawnLabel(text: text, maxLines: maxLines),
             ),
           ),
         ),
@@ -32,6 +36,19 @@ void main() {
 
     expect(paragraph.maxLines, 1);
     expect(paragraph.didExceedMaxLines, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a place with many types keeps its city on the lines it is '
+      'given (UAT 2026-11-14)', (tester) async {
+    final paragraph = await pumpLabel(
+      tester,
+      'Portale demoniaco · Foresta · Isola di Belleholm\npresso Danmil Urvyn',
+      maxLines: 3,
+    );
+
+    expect(paragraph.didExceedMaxLines, isFalse);
+    expect(paragraph.text.toPlainText(), contains('presso Danmil Urvyn'));
     expect(tester.takeException(), isNull);
   });
 

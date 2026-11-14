@@ -46,6 +46,13 @@ void main() {
       });
     });
 
+    test('MISSION_IN_PROGRESS maps to missionInProgress (D-13)', () {
+      expect(
+        questAcceptanceFailureFrom(_withCode('MISSION_IN_PROGRESS')),
+        QuestAcceptanceFailure.missionInProgress,
+      );
+    });
+
     test('maps TRAVEL_STARVING to starving (D-06)', () {
       expect(
         questAcceptanceFailureFrom(_withCode('TRAVEL_STARVING')),

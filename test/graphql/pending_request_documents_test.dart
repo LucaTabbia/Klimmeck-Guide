@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/fragments.dart';
-import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/pending_request_subscriptions.dart';
 
@@ -34,6 +33,14 @@ void main() {
 
       expect(characterSelection, contains('pendingQuest'));
       expect('pendingQuest'.allMatches(sharedSelection), hasLength(1));
+    });
+
+    test('the queue entry selects missionDraftStartedAt after startDate '
+        '(D-17)', () {
+      expect(
+        sharedSelection,
+        contains('startDate missionDraftStartedAt quest {'),
+      );
     });
 
     test('never selects the private fields', () {
@@ -91,37 +98,15 @@ void main() {
     });
   });
 
-  group('CompletePendingRequest', () {
-    final operation = _operationOf(
-      PendingRequestMutations.completePendingRequest,
-    );
-    final document = _collapsed(PendingRequestMutations.completePendingRequest);
-
-    test('is a mutation with a typed input', () {
-      expect(operation.type, OperationType.mutation);
-      expect(operation.name?.value, 'CompletePendingRequest');
-      final variable = operation.variableDefinitions.single;
-      final type = variable.type as NamedTypeNode;
-      expect(variable.variable.name.value, 'input');
-      expect(type.name.value, 'CompletePendingRequestInput');
-      expect(type.isNonNull, isTrue);
-    });
-
-    test('returns the created results with the quest result fragment', () {
-      expect(
-        document,
+  test('the completion form document is gone (D-25)', () {
+    expect(
+      schemaCheckDocuments,
+      isNot(
         contains(
-          'completePendingRequest(input: \$input) '
-          '{ ${_collapsed(QuestResultFragment.fields)} }',
+          'Complete'
+          'PendingRequest',
         ),
-      );
-    });
-
-    test('is registered in the schema check', () {
-      expect(
-        schemaCheckDocuments['CompletePendingRequest'],
-        PendingRequestMutations.completePendingRequest,
-      );
-    });
+      ),
+    );
   });
 }

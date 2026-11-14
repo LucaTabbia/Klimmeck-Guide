@@ -48,6 +48,7 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
 
   void _onOutcome(BuildContext context, QuestAcceptanceState state) {
     if (state is QuestAcceptanceFailed) _announce(context, state);
+    if (state is QuestAccepted) _announceWait(context, state);
     if (_leavesStaleList(state)) _refreshQuests(context);
     context.read<QuestAcceptanceCubit>().reset();
   }
@@ -60,6 +61,17 @@ class QuestAcceptanceOutcomeListener extends StatelessWidget {
 
   void _refreshQuests(BuildContext context) =>
       context.read<QuestCubit>().refreshQuests(cityId: _currentCityId(context));
+
+  void _announceWait(BuildContext context, QuestAccepted state) {
+    final notice = questAwaitingInnkeeperNoticeFor(
+      _questById(context, state.questId)?.infos?.type,
+    );
+    if (notice == null) return;
+    context.read<InAppNotificationsCubit>().publishNotice(
+      notice,
+      dedupKey: 'quest-accepted|${state.questId}',
+    );
+  }
 
   void _announce(BuildContext context, QuestAcceptanceFailed state) {
     final notice = questAcceptanceNoticeFor(

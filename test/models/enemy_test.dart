@@ -42,7 +42,7 @@ void main() {
 
   test('parses a locations list and drops an unknown name (D-16)', () {
     final enemy = enemyWith({
-      'locations': ['city', 'demonicPortal'],
+      'locations': ['city', 'moon'],
     });
 
     expect(enemy.locations, isA<List<PoiType>>());

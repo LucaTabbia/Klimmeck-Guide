@@ -33,7 +33,7 @@ void main() {
 
     test('drops a type name this client does not know (D-08, D-16)', () {
       final parsed = poiWith({
-        'type': ['city', 'demonicPortal'],
+        'type': ['city', 'moon'],
         'location': [1.0, 2.0],
       });
 

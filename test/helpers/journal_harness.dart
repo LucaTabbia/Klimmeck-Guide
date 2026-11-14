@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
@@ -34,7 +35,8 @@ const _healEffectUrl =
 /// [spellbook] è una mappa di `spellbookCharacterJson(...)`; [ownedItems] sono
 /// le voci `{'item': …, 'quantity': …}` della sezione «Oggetti».
 /// [potionRecoveryUntil], [awaitingAid] e [activeTravel] entrano nello status
-/// solo se passati.
+/// solo se passati; [missionInProgress] è il flag servito della missione in
+/// corso. [wornEquipment] e [ownedEquipments] sono le armature del manichino.
 Character journalCharacter({
   required Map<String, dynamic> spellbook,
   List<Map<String, dynamic>> ownedItems = const [],
@@ -42,6 +44,9 @@ Character journalCharacter({
   String? potionRecoveryUntil,
   Map<String, dynamic>? awaitingAid,
   Map<String, dynamic>? activeTravel,
+  bool missionInProgress = false,
+  Map<String, dynamic> wornEquipment = const {},
+  List<Map<String, dynamic>> ownedEquipments = const [],
 }) => Character.fromJson({
   ...spellbook,
   'infos': {'name': 'Aria', 'sex': 'male'},
@@ -55,11 +60,12 @@ Character journalCharacter({
     'potionRecoveryUntil': ?potionRecoveryUntil,
     'awaitingAid': ?awaitingAid,
     'activeTravel': ?activeTravel,
+    'missionInProgress': missionInProgress,
   },
   'assets': {
     ...spellbook['assets'] as Map<String, dynamic>,
-    'wornEquipment': <String, dynamic>{},
-    'ownedEquipments': <Map<String, dynamic>>[],
+    'wornEquipment': wornEquipment,
+    'ownedEquipments': ownedEquipments,
     'ownedItems': ownedItems,
   },
 });
@@ -109,6 +115,17 @@ PotionCubit idlePotionCubit() {
   return cubit;
 }
 
+/// Nessun cambio di equipaggiamento rifiutato.
+JournalCubit idleJournalCubit() {
+  final cubit = MockJournalCubit();
+  whenListen(
+    cubit,
+    const Stream<JournalState>.empty(),
+    initialState: const JournalIdle(),
+  );
+  return cubit;
+}
+
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
 /// Come in produzione, il Diario sta sotto PotionOutcomeListener: i banner dei
 /// rifiuti vanno a [notices].
@@ -118,6 +135,7 @@ Future<void> pumpJournalPage(
   required SpellsCubit spellsCubit,
   CompanionCubit? companionCubit,
   PotionCubit? potionCubit,
+  JournalCubit? journalCubit,
   InAppNotificationsCubit? notices,
   FakeServerClockService? clock,
 }) async {
@@ -136,6 +154,9 @@ Future<void> pumpJournalPage(
             ),
             BlocProvider<PotionCubit>.value(
               value: potionCubit ?? idlePotionCubit(),
+            ),
+            BlocProvider<JournalCubit>.value(
+              value: journalCubit ?? idleJournalCubit(),
             ),
             BlocProvider<InAppNotificationsCubit>.value(
               value: notices ?? MockInAppNotificationsCubit(),

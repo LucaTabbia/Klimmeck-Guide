@@ -14,12 +14,14 @@ typedef NotificationPopup =
 /// risultato alla coda dei risultati (Phase 9 D-06/D-11).
 /// `ambushDefeat` (Phase 16 D-02) come `travelEnd`: la mappa e la camera sulla
 /// pedina che riparte dal punto dell'imboscata; così anche `prisonRelease`
-/// (quick 261110-prp): la pedina di nuovo libera.
+/// (quick 261110-prp): la pedina di nuovo libera, e `missionStart` (Phase 21):
+/// la pedina con «Missione in corso».
 const Map<NotificationCategory, NotificationPopup> defaultNotificationPopups = {
   NotificationCategory.travelEnd: focusCharacterOnMap,
   NotificationCategory.questEnd: requestQuestResult,
   NotificationCategory.ambushDefeat: focusCharacterOnMap,
   NotificationCategory.prisonRelease: focusCharacterOnMap,
+  NotificationCategory.missionStart: focusCharacterOnMap,
 };
 
 /// D-15/D-16: vale per il tap sulla notifica di sistema e sul banner in-app.

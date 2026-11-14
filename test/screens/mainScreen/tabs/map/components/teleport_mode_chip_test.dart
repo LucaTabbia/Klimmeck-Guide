@@ -73,13 +73,26 @@ void main() {
       );
     }
 
-    testWidgets('invites to drag the character and offers Annulla', (
-      tester,
-    ) async {
+    testWidgets(
+      'invites to drag the character on a city or a place and offers Annulla (D-29)',
+      (tester) async {
+        await pumpChip(tester);
+
+        expect(
+          find.text('Trascina Bea su una città o un luogo'),
+          findsOneWidget,
+        );
+        expect(find.text('Annulla'), findsOneWidget);
+      },
+    );
+
+    testWidgets('writes the instruction and Annulla in the small map size '
+        '(UAT 2026-11-14)', (tester) async {
       await pumpChip(tester);
 
-      expect(find.text('Trascina Bea su una città'), findsOneWidget);
-      expect(find.text('Annulla'), findsOneWidget);
+      for (final text in tester.widgetList<Text>(find.byType(Text))) {
+        expect(text.style?.fontSize, KlimmeckGuideTheme.mapNoticeFontSize);
+      }
     });
 
     testWidgets('tapping Annulla cancels', (tester) async {
@@ -112,7 +125,7 @@ void main() {
       await pumpChip(tester, isTeleporting: true);
 
       expect(find.text('Teletrasporto in corso…'), findsOneWidget);
-      expect(find.text('Trascina Bea su una città'), findsNothing);
+      expect(find.text('Trascina Bea su una città o un luogo'), findsNothing);
     });
 
     testWidgets('shows the failure line in the error style', (tester) async {

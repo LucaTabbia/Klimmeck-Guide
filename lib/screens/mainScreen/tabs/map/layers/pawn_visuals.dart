@@ -1,5 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../../theme/kg_theme.dart';
 import '../utils/map_constants.dart';
@@ -8,9 +11,41 @@ import '../utils/map_constants.dart';
 double pawnScaleForZoom(double zoom) =>
     (zoom * 0.05 + 0.4) * 0.08 * MapConstants.characterMarkerSize;
 
+/// Lato del marker che ospita la pedina prima della scala dello zoom: la
+/// pedina ci sta dentro, quindi è anche la sua altezza a scala 1.
+const double pawnMarkerBoxSize = 30;
+
+/// Spazio fra la cima della pedina e la sua etichetta, uguale a ogni zoom
+/// (UAT 2026-11-14).
+const double pawnLabelGap = 5;
+
+/// Marker dell'etichetta di una pedina su [point]: la pedina cresce con lo
+/// zoom attorno al suo punto, l'etichetta la segue restando a [pawnLabelGap].
+Marker pawnLabelMarker({
+  required LatLng point,
+  required ValueListenable<double> zoom,
+  required Widget label,
+}) => Marker(
+  point: point,
+  width: PawnLabel.markerWidth,
+  height: PawnLabel.markerHeight,
+  alignment: Alignment.topCenter,
+  child: ValueListenableBuilder<double>(
+    valueListenable: zoom,
+    builder: (_, zoom, anchored) => Transform.translate(
+      offset: Offset(
+        0,
+        -(pawnScaleForZoom(zoom) * pawnMarkerBoxSize / 2 + pawnLabelGap),
+      ),
+      child: anchored,
+    ),
+    child: Align(alignment: Alignment.bottomCenter, child: label),
+  ),
+);
+
 /// Etichetta sopra la pedina: solo testo, non intercetta i gesti della mappa.
 class PawnLabel extends StatelessWidget {
-  const PawnLabel({super.key, required this.text});
+  const PawnLabel({super.key, required this.text, this.maxLines = 1});
 
   /// Ingombro del marker che ospita l'etichetta sulla mappa.
   static const double markerWidth = 260;
@@ -20,6 +55,9 @@ class PawnLabel extends StatelessWidget {
   static const double _minFontSize = 8;
 
   final String text;
+
+  /// Più di una riga solo per i tipi di un luogo, che vanno a capo sulla città.
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +74,8 @@ class PawnLabel extends StatelessWidget {
           ),
           child: AutoSizeText(
             text,
-            maxLines: 1,
+            maxLines: maxLines,
+            textAlign: TextAlign.center,
             minFontSize: _minFontSize,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: KlimmeckGuideTheme.darkWood,
