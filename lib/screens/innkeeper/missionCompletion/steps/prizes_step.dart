@@ -34,11 +34,14 @@ class PrizesStep extends StatefulWidget {
   });
 
   static const String addPrizeLabel = 'Aggiungi premio';
+  static const String addCureLabel = 'Aggiungi cura';
   static const String coinsHeading = 'Monete';
   static const String xpLabel = 'PE';
   static const String removeTooltip = 'Rimuovi';
   static Key addPrizeKeyFor(String characterId) =>
       ValueKey('mission.prizes.add.$characterId');
+  static Key addCureKeyFor(String characterId) =>
+      ValueKey('mission.prizes.addCure.$characterId');
 
   /// `coin` = `gold` | `silver` | `copper`.
   static Key coinFieldKeyFor(String characterId, String coin) =>
@@ -213,7 +216,10 @@ class _PrizesStepState extends State<PrizesStep> {
       () => _header(participant, options),
       () => _coinsRow(id),
       () => _xpField(id),
-      if (prize.cure) () => _cureRow(id),
+      if (prize.cure)
+        () => _cureRow(id, options)
+      else if (options?.blockCure != null)
+        () => _addCureRow(id),
       if (isLoading)
         () => const KGLoader(height: _loaderHeight)
       else ...[
@@ -309,8 +315,10 @@ class _PrizesStepState extends State<PrizesStep> {
     );
   }
 
-  Widget _cureRow(String characterId) {
-    final cure = widget.draft.prizeOf(characterId)?.cure;
+  /// Il testo legge la cura del blocco: quella servita è `null` dopo una
+  /// rimozione salvata (D-22).
+  Widget _cureRow(String characterId, MissionPrizeOptions? options) {
+    final cure = options?.blockCure ?? widget.draft.prizeOf(characterId)?.cure;
     return _removable(
       onRemove: () => _update(characterId, (prize) => prize.withoutCure()),
       child: Text(
@@ -319,6 +327,17 @@ class _PrizesStepState extends State<PrizesStep> {
       ),
     );
   }
+
+  Widget _addCureRow(String characterId) => Align(
+    alignment: Alignment.centerLeft,
+    child: TextButton(
+      key: PrizesStep.addCureKeyFor(characterId),
+      onPressed: widget.isSubmitting
+          ? null
+          : () => _update(characterId, (prize) => prize.withCure()),
+      child: const Text(PrizesStep.addCureLabel),
+    ),
+  );
 
   Widget _itemRow(
     String characterId,

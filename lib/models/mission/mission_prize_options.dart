@@ -7,11 +7,13 @@ import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/mission/mission_entries.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/quest/quest_cure.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 
 /// Catalogo dei premi di un personaggio servito dal BE (D-07): già filtrato
 /// per rango, l'app lo mostra com'è e non filtra mai (regola 4). Il blocco
-/// serve solo a dare un nome alle voci della bozza (D-22).
+/// serve solo a dare un nome alle voci della bozza e a dire se la cura si può
+/// rimettere (D-22).
 class MissionPrizeOptions extends Equatable {
   const MissionPrizeOptions({
     required this.characterId,
@@ -24,6 +26,7 @@ class MissionPrizeOptions extends Equatable {
     this.blockItems = const [],
     this.blockPet,
     this.blockSpell,
+    this.blockCure,
   });
 
   final String characterId;
@@ -38,6 +41,9 @@ class MissionPrizeOptions extends Equatable {
   final List<AssetItem> blockItems;
   final Pet? blockPet;
   final Spell? blockSpell;
+
+  /// Cura del blocco: il BE accetta `cure: true` solo quando c'è.
+  final QuestCure? blockCure;
 
   /// Equipaggiamento e loot serviti, poi le voci del blocco non già elencate.
   List<AssetItem> get catalogueItems {
@@ -92,6 +98,7 @@ class MissionPrizeOptions extends Equatable {
       blockItems: _blockItemsOf(blockJson),
       blockPet: Pet.tryFromEntryJson(blockJson['pet']),
       blockSpell: _spellOrNull(blockJson['spell']),
+      blockCure: QuestCure.tryFromJson(blockJson['cure']),
     );
   }
 
@@ -134,5 +141,6 @@ class MissionPrizeOptions extends Equatable {
     blockItems,
     blockPet,
     blockSpell,
+    blockCure,
   ];
 }

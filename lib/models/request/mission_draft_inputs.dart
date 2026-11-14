@@ -207,6 +207,8 @@ class MissionPrizeInput extends Equatable {
 
   MissionPrizeInput withSpell(String? spellId) => _copy(spellId: () => spellId);
 
+  MissionPrizeInput withCure() => _copy(cure: true);
+
   MissionPrizeInput withoutCure() => _copy(cure: false);
 
   MissionPrizeItem? _itemOf(String itemId) {
