@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -19,6 +20,7 @@ class PotionSheet extends StatelessWidget {
     super.key,
     required this.item,
     required this.maxLifePoints,
+    this.targets = const [],
   });
 
   final LootItem item;
@@ -26,6 +28,9 @@ class PotionSheet extends StatelessWidget {
   /// Vita massima letta dal personaggio prima di aprire il foglio: l'esito
   /// del backend non la porta. Ignota o non positiva = nessuna barra.
   final int? maxLifePoints;
+
+  /// Compagni che possono bere, letti all'apertura del foglio (D-08).
+  final List<CompanionPotionTarget> targets;
 
   static const Key drinkKey = ValueKey('potion.drink');
   static const Key notNowKey = ValueKey('potion.notNow');
