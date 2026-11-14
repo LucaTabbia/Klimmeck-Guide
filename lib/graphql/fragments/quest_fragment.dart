@@ -2,12 +2,14 @@ import 'coins_fragment.dart';
 import 'equipment_fragment.dart';
 import 'location_fragment.dart';
 import 'loot_fragment.dart';
+import 'pet_fragment.dart';
 
 /// Selezione di una quest condivisa dalla lista e dalla subscription
 /// `questUpdated`: una sola forma, un solo parser. Nemici con quantità e xp
-/// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06). La cura
-/// in premio e `noEffect` per il viewer sono della BE Phase 18 (18-CONTEXT
-/// D-01, D-20); `awaitingRescue`, uguale per tutti, del quick 261113-aql.
+/// (BE Phase 13 D-01), annuncio (D-05), compagno in premio (D-06) con i campi
+/// della carta (Phase 22 D-35). La cura in premio e `noEffect` per il viewer
+/// sono della BE Phase 18 (18-CONTEXT D-01, D-20); `awaitingRescue`, uguale
+/// per tutti, del quick 261113-aql.
 class QuestFragment {
   static const String fields =
       '''
@@ -93,8 +95,7 @@ class QuestFragment {
         }
       }
       pet {
-        id
-        name
+        ${PetFragment.fields}
       }
       cure {
         lifePointsShare

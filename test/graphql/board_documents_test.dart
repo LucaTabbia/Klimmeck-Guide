@@ -83,14 +83,20 @@ void main() {
       expect(document, contains('title type description enemies {'));
     });
 
-    test('selects the companion prize (D-06)', () {
-      expect(document, contains('pet { id name }'));
+    test('selects the companion prize (D-06, D-35)', () {
+      expect(
+        document,
+        contains('pet { ${_collapsed(PetFragment.fields).trim()} }'),
+      );
     });
 
     test('the prizes select cure { lifePointsShare canHeal } (D-01)', () {
       expect(
         _collapsed(QuestFragment.fields),
-        contains('pet { id name } cure { lifePointsShare canHeal }'),
+        contains(
+          'pet { ${_collapsed(PetFragment.fields).trim()} } '
+          'cure { lifePointsShare canHeal }',
+        ),
       );
     });
 
