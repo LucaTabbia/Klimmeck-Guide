@@ -29,6 +29,7 @@ Future<void> _open(WidgetTester tester) async {
             alignment: Alignment.topLeft,
             child: GestureDetector(
               key: _openKey,
+              behavior: HitTestBehavior.opaque,
               onTap: () =>
                   showCompanionDetails(context, pet: _worg, name: 'Fenrir'),
               child: const SizedBox(width: 60, height: 60),
