@@ -13,8 +13,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/tel
 /// orologio del server e la modalità teletrasporto della shell (D-15) si
 /// leggono qui dal chiamante e passano con `.value`. `AppLifecycleEvents` e
 /// `AuthCubit` stanno sopra MaterialApp. `QuestGenerationCubit` vive con la
-/// route (14-CONTEXT D-10).
-Future<void> openInnkeeperPanel(BuildContext context) {
+/// route (14-CONTEXT D-10). [resumeCardKey] riapre il completamento di quella
+/// carta dopo il teletrasporto (21-CONTEXT D-28).
+Future<void> openInnkeeperPanel(BuildContext context, {String? resumeCardKey}) {
   final repository = context.read<InnkeeperRepository>();
   final clock = context.read<ServerClockService>();
   final teleport = context.read<TeleportModeCubit>();
@@ -37,7 +38,7 @@ Future<void> openInnkeeperPanel(BuildContext context) {
                 create: (_) => QuestGenerationCubit(repository: repository),
               ),
             ],
-            child: const InnkeeperPanelScreen(),
+            child: InnkeeperPanelScreen(resumeCardKey: resumeCardKey),
           ),
         ),
       ),

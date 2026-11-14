@@ -11,7 +11,8 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/tel
 
 /// Atterraggio della modalità teletrasporto (10-CONTEXT D-15/D-17): chiude le
 /// route radice (il pannello) e salta alla Mappa; al successo riapre il
-/// pannello; un ruolo perso annulla. Come `NotificationIntentLanding`, montato
+/// pannello (con la carta da riprendere, 21-CONTEXT D-28); un ruolo perso
+/// annulla. Come `NotificationIntentLanding`, montato
 /// solo dove esiste il PageView.
 class TeleportModeLanding extends StatelessWidget {
   const TeleportModeLanding({
@@ -34,13 +35,15 @@ class TeleportModeLanding extends StatelessWidget {
       BlocListener<TeleportModeCubit, TeleportModeState>(
         listenWhen: (previous, current) =>
             previous is! TeleportSucceeded && current is TeleportSucceeded,
-        listener: (context, _) => _reopenPanel(context),
+        listener: (context, state) =>
+            _reopenPanel(context, (state as TeleportSucceeded).resumeCardKey),
       ),
       // UAT 2026-11-01: anche «Annulla» riporta alla Locanda.
       BlocListener<TeleportModeCubit, TeleportModeState>(
         listenWhen: (previous, current) =>
             previous is! TeleportCancelled && current is TeleportCancelled,
-        listener: (context, _) => _reopenPanel(context),
+        listener: (context, state) =>
+            _reopenPanel(context, (state as TeleportCancelled).resumeCardKey),
       ),
       BlocListener<AuthCubit, AuthState>(
         listenWhen: (previous, current) =>
@@ -60,9 +63,11 @@ class TeleportModeLanding extends StatelessWidget {
     pageController.jumpToPage(NotificationIntentLanding.worldMapPageIndex);
   }
 
-  /// Prima il riconoscimento, poi la route: un solo pannello per uscita.
-  void _reopenPanel(BuildContext context) {
+  /// Prima il riconoscimento, poi la route: un solo pannello per uscita; con
+  /// [resumeCardKey] il pannello riapre il completamento di quella carta
+  /// (21-CONTEXT D-28).
+  void _reopenPanel(BuildContext context, String? resumeCardKey) {
     context.read<TeleportModeCubit>().acknowledgeExit();
-    unawaited(openInnkeeperPanel(context));
+    unawaited(openInnkeeperPanel(context, resumeCardKey: resumeCardKey));
   }
 }

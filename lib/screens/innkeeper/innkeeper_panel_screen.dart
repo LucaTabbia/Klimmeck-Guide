@@ -30,6 +30,7 @@ class InnkeeperPanelScreen extends StatelessWidget {
   const InnkeeperPanelScreen({
     super.key,
     this.openCompletion = openRequestCompletion,
+    this.resumeCardKey,
   });
 
   static const String title = 'Locanda';
@@ -59,6 +60,9 @@ class InnkeeperPanelScreen extends StatelessWidget {
   final Future<CompletionExit?> Function(BuildContext, RequestCard)
   openCompletion;
 
+  /// Carta il cui completamento si riapre dopo il teletrasporto (D-28); `null` = nessuno.
+  final String? resumeCardKey;
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -67,6 +71,11 @@ class InnkeeperPanelScreen extends StatelessWidget {
           listenWhen: (previous, current) =>
               !previous.isForbidden && current.isForbidden,
           listener: (context, _) => _closeUnavailable(context),
+        ),
+        BlocListener<PendingRequestsCubit, PendingRequestsState>(
+          listenWhen: (previous, current) =>
+              resumeCardKey != null && !previous.isLoaded && current.isLoaded,
+          listener: _resume,
         ),
         BlocListener<AuthCubit, AuthState>(
           listenWhen: (previous, current) =>
@@ -154,6 +163,16 @@ class InnkeeperPanelScreen extends StatelessWidget {
       name: first.name,
       companionIds: [for (final companion in companions) companion.id],
     );
+  }
+
+  /// Dopo la Mappa (21-CONTEXT D-28, Pitfall 1/5): la carta si ricostruisce
+  /// dalle richieste grezze del primo snapshot, anche se non è azionabile.
+  void _resume(BuildContext context, PendingRequestsState state) {
+    final card = requestCardsOf(
+      state.requests,
+    ).where((card) => card.cardKey == resumeCardKey).firstOrNull;
+    if (card == null) return _showSnackBar(context, goneMessage);
+    unawaited(_complete(context, card));
   }
 
   /// Traduce l'esito del form (10-CONTEXT D-13/D-14).
