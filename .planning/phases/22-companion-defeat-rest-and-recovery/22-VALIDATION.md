@@ -88,7 +88,7 @@ created: 2026-11-14
 | 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ⬜ pending |
 | 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ⬜ pending |
 | 22-17-01 | 17 | 17 | PET-09 | T-22-56, T-22-58 | names only, no secrets | docs | `gate re-check of 22-17 + secrets grep = 0` | ❌ (created in Task 1) | ⬜ pending |
-| 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–8` | ❌ (created in 22-17) | ⬜ pending |
+| 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–9` | ❌ (created in 22-17) | ⬜ pending |
 | 22-17-03 | 17 | 17 | PET-01..PET-10 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
