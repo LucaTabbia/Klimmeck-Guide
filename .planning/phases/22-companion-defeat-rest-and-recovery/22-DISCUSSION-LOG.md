@@ -51,3 +51,6 @@ Wire shape, lazy vs sweep recovery, push scheduling, rename gesture, prompt plac
 
 ## Deferred Ideas
 Companion portrait on the Profile; push for hurt companions at the end of the rest.
+
+## Companion cards (user message at the end)
+User: companion cards restyled like the spell and equipment cards, long press opens the details (D-22).

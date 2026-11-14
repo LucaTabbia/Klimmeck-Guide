@@ -1,6 +1,6 @@
 # Phase 22: Companion Defeat, Rest and Recovery - Context
 
-**Gathered:** 2026-11-14 (interactive discuss, joint with the BE Phase 23 «Sconfitta, riposo e recupero dei compagni»; this file is authoritative for both, same numbering D-01..D-21)
+**Gathered:** 2026-11-14 (interactive discuss, joint with the BE Phase 23 «Sconfitta, riposo e recupero dei compagni»; this file is authoritative for both, same numbering D-01..D-21; D-22 is FE-only)
 **Status:** Ready for planning — branch `feat/22-companion-defeat-rest-and-recovery` stacked on `feat/21-innkeeper-mission-completion` (FE PR #51 draft); BE branch `feat/23-sconfitta-riposo-recupero-compagni` stacked on `feat/mission-start-push` (BE PR #41). **No UI phase** (same rule as the previous phases: every visual Claude builds is provisional).
 
 <domain>
@@ -55,6 +55,9 @@ Out of scope: the real combat engine and the floor engine of the dungeons (the u
 - **D-20 (user):** sentences, buttons and pushes use the name alone («Dai a Fenrir», «Fenrir è stato sconfitto», «Fenrir è di nuovo in forze»); on the Journal parchment the name is the title and the species sits below, smaller («Worg»). Without a name everything reads the species as today.
 - **D-21 (user):** the name follows the same rules as the character's name (length, allowed characters, the server-side content filter of the character creation); a refused name shows the notice and can be retried or skipped.
 
+### Companion cards (added by the user at the end of the discuss)
+- **D-22 (user, verbatim: «Rivedremo anche lo stile delle card pet nei menù, perché devono avere lo stesso stile delle altre (magie e quipaggiamenti) e al tocco prolungato aprire i dettagli (come equipaggiamenti e magie)»):** the companion cards in the menus (Journal list and slot, shop, prize lists) take the **same style as the spell and equipment cards**, and a **long press opens the details** as for equipment and spells (same gesture, same kind of sheet). The details sheet is the natural home of life, recovery, attack/defense and of the rename of D-19; the tap stays equip/unequip.
+
 ### Claude's Discretion (technical defaults, to be declared in the plans)
 - Wire shape, decided with the BE in the plan: fields on `OwnedPet` (name, defeated marker, the dates the FE interpolates from, the potion wait date), the recovery time on `Pet`, the target of `useItem`, the companion entries of `QuestResult` / ambush report / mission draft, codes of the refusals (defeated companion equipped, potion on a defeated or full companion, companion potion wait, name refused).
 - How the BE computes the resting life (lazy at read/write vs sweep) and schedules the «in forze» push.
@@ -94,6 +97,7 @@ Out of scope: the real combat engine and the floor engine of the dungeons (the u
 - `lib/screens/mainScreen/tabs/journal/components/potion_sheet.dart`, `sections/items_section.dart`, `lib/repository/item_use_repository.dart` / `item_use_failure.dart`, `pet_equip_failure.dart`
 - `lib/shared/components/popup/ambush_report_carousel.dart`, `quest_result_sheet.dart`, `screens/mainScreen/questResultsCubit/`, `components/quest_result_presenter.dart`
 - `lib/models/notification_category.dart`, settings `notification_preferences_section.dart`, `notification_popup_registry.dart`
+- Spell and equipment cards with their long-press details sheets (the style and gesture D-22 copies)
 - `TravelProgressCubit` (interpolation between server dates) as the pattern for the live life; character name input and its failures (character creation) for the companion name
 
 ### Established Patterns
