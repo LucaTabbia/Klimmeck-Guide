@@ -21,6 +21,7 @@ class TeleportPoiLayer extends StatefulWidget {
 
   static const double dotSize = 14;
   static const double _tapTarget = 44;
+  static const int _typesMaxLines = 3;
 
   final List<TeleportDestination> places;
   final ValueNotifier<double> zoomNotifier;
@@ -55,6 +56,7 @@ class _TeleportPoiLayerState extends State<TeleportPoiLayer> {
                 alignment: Alignment.topCenter,
                 child: PawnLabel(
                   key: TeleportPoiLayer.typesLabelKey,
+                  maxLines: TeleportPoiLayer._typesMaxLines,
                   text: shown.typesLine.isEmpty ? shown.label : shown.typesLine,
                 ),
               ),

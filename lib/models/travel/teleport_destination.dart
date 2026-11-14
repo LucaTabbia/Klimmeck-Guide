@@ -20,8 +20,8 @@ class TeleportDestination extends Equatable {
   final String label;
   final bool isCityMarker;
 
-  /// Tutti i tipi noti del luogo, «Cimitero · Palude presso Valantar»: l'oste
-  /// li legge toccando il punto (UAT 2026-11-14). Vuota per i marker di città.
+  /// Tutti i tipi noti del luogo e, a capo, «presso Valantar»: l'oste li legge
+  /// toccando il punto (UAT 2026-11-14). Vuota per i marker di città.
   final String typesLine;
 
   /// Il marker della città; `null` senza marker o senza punto.
@@ -87,5 +87,5 @@ Iterable<PoiType> _placeTypesOf(PointOfInterest poi) =>
 String _typesLineOf(PointOfInterest poi) {
   final types = _placeTypesOf(poi).map((type) => type.label).join(' · ');
   final cityName = poi.city?.name;
-  return cityName == null ? types : '$types presso $cityName';
+  return cityName == null ? types : '$types\npresso $cityName';
 }

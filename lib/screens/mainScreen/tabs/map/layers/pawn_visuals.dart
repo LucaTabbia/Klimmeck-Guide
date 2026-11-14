@@ -10,7 +10,7 @@ double pawnScaleForZoom(double zoom) =>
 
 /// Etichetta sopra la pedina: solo testo, non intercetta i gesti della mappa.
 class PawnLabel extends StatelessWidget {
-  const PawnLabel({super.key, required this.text});
+  const PawnLabel({super.key, required this.text, this.maxLines = 1});
 
   /// Ingombro del marker che ospita l'etichetta sulla mappa.
   static const double markerWidth = 260;
@@ -20,6 +20,9 @@ class PawnLabel extends StatelessWidget {
   static const double _minFontSize = 8;
 
   final String text;
+
+  /// Più di una riga solo per i tipi di un luogo, che vanno a capo sulla città.
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +39,8 @@ class PawnLabel extends StatelessWidget {
           ),
           child: AutoSizeText(
             text,
-            maxLines: 1,
+            maxLines: maxLines,
+            textAlign: TextAlign.center,
             minFontSize: _minFontSize,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: KlimmeckGuideTheme.darkWood,

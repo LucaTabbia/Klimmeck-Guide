@@ -65,7 +65,7 @@ void main() {
           point: LatLng(12, 22),
           label: 'Rovine presso Talmvere',
           isCityMarker: false,
-          typesLine: 'Rovine presso Talmvere',
+          typesLine: 'Rovine\npresso Talmvere',
         ),
       );
     });
@@ -75,7 +75,7 @@ void main() {
         TeleportDestination.ofPlace(
           poiOf(types: ['all', 'graveyard', 'cave', 'swamp']),
         )?.typesLine,
-        'Cimitero · Palude presso Talmvere',
+        'Cimitero · Palude\npresso Talmvere',
       );
       expect(
         TeleportDestination.ofPlace(

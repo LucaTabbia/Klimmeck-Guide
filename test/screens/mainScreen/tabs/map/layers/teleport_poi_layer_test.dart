@@ -14,7 +14,7 @@ const TeleportDestination ruins = TeleportDestination(
   point: LatLng(10, 20),
   label: 'Rovine presso Aldheim',
   isCityMarker: false,
-  typesLine: 'Rovine · Cimitero presso Aldheim',
+  typesLine: 'Rovine · Cimitero\npresso Aldheim',
 );
 
 const TeleportDestination cave = TeleportDestination(
@@ -78,7 +78,7 @@ void main() {
         tester
             .widget<PawnLabel>(find.byKey(TeleportPoiLayer.typesLabelKey))
             .text,
-        'Rovine · Cimitero presso Aldheim',
+        'Rovine · Cimitero\npresso Aldheim',
       );
 
       await tester.tap(find.byKey(TeleportPoiLayer.placeKeyFor(ruins.poiId)));
