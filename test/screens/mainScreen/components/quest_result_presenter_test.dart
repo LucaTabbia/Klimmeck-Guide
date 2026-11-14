@@ -565,18 +565,45 @@ void main() {
       expect(_carousel, findsOneWidget);
     });
 
-    testWidgets('an ambush arrival on the free map suppresses nothing (D-06)', (
-      tester,
-    ) async {
+    testWidgets('a live ambush with the Map free suppresses the ambush|<id> '
+        'banner (Pitfall 5, D-30)', (tester) async {
       await h.pump(tester);
       await h.enterMap(tester);
-      h.pending.results = [_won('a1')];
+      h.pending.results = [_won('result-1')];
 
-      await h.arrive(tester, _won('a1'));
+      await h.arrive(tester, _won('result-1'));
 
       expect(_carousel, findsOneWidget);
+      verify(() => h.notices.suppress('ambush|result-1')).called(1);
+      verifyNoBanner();
+    });
+
+    testWidgets('a live ambush away from the Map leaves the push banner alone '
+        '(D-14)', (tester) async {
+      await h.pump(tester);
+      h.pending.results = [_won('result-1')];
+      await h.enterMap(tester, isMapPage: false);
+
+      await h.arrive(tester, _won('result-1'));
+
+      expect(_carousel, findsNothing);
       verifyNoSuppression();
       verifyNoBanner();
+    });
+
+    testWidgets('an unseen ambush arriving mid-travel opens on the Map '
+        '(D-15, D-28)', (tester) async {
+      await h.pump(tester);
+      await h.emitCharacter(
+        tester,
+        CharacterLoaded(Character.fromJson(travellingCharacterJson())),
+      );
+      await h.enterMap(tester);
+      h.pending.results = [_lost('result-1')];
+
+      await h.arrive(tester, _lost('result-1'));
+
+      expect(_carousel, findsOneWidget);
     });
 
     testWidgets('the carousel waits for the travel flow to end (D-06)', (
