@@ -51,9 +51,9 @@ created: 2026-11-14
 | 22-04-01 | 04 | 4 | PET-03 | T-22-14 | spell sheet unchanged | widget | `flutter test test/shared/components/popup test/screens/mainScreen/tabs/journal` | ❌ W0 | ✅ green |
 | 22-04-02 | 04 | 4 | PET-03, PET-10 | T-22-12, T-22-13 | only https / Cloudinary-relative images | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/mainScreen/tabs/shop` | ✅ extend | ✅ green |
 | 22-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 04 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-05-01 | 05 | 5 | PET-03, PET-10 | T-22-15, T-22-16 | switch off pinned; plain-text rendering | unit + widget | `flutter test test/config test/shared/components/popup` | ❌ W0 | ⬜ pending |
-| 22-05-02 | 05 | 5 | PET-03 | T-22-17 | route sheet read-only, no rename | widget | `flutter test test/shared/components/popup` | ❌ W0 | ⬜ pending |
-| 22-05-03 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 05 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-05-01 | 05 | 5 | PET-03, PET-10 | T-22-15, T-22-16 | switch off pinned; plain-text rendering | unit + widget | `flutter test test/config test/shared/components/popup` | ❌ W0 | ✅ green |
+| 22-05-02 | 05 | 5 | PET-03 | T-22-17 | route sheet read-only, no rename | widget | `flutter test test/shared/components/popup` | ❌ W0 | ✅ green |
+| 22-05-03 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 05 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-06-01 | 06 | 6 | PET-02, PET-10 | T-22-18, T-22-20 | defeated parchment not tappable | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
 | 22-06-02 | 06 | 6 | PET-03 | T-22-19 | bookmark off on mission and when defeated | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 | ⬜ pending |
 | 22-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 06 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -105,7 +105,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit_test.dart`, `companion_vitality_scope_test.dart`; `MockCompanionVitalityCubit` — 22-03-03
 - [x] `ownedPetJson` gains `level` / `maxLifePoints` (keys only when non-null) — 22-03-02
 - [x] `test/shared/components/popup/details_sheet_frame_test.dart` — 22-04-01
-- [ ] `test/config/companion_care_test.dart`, `test/shared/components/popup/companion_info_sheet_test.dart` — 22-05-01; `companion_details_route_test.dart` — 22-05-02
+- [x] `test/config/companion_care_test.dart`, `test/shared/components/popup/companion_info_sheet_test.dart` — 22-05-01; `companion_details_route_test.dart` — 22-05-02
 - [ ] `test/screens/mainScreen/tabs/journal/components/owned_companion_row_test.dart` — 22-06-01; `test/screens/mainScreen/tabs/journal/journal_companion_details_test.dart` — 22-06-02
 - [x] `test/models/companion/companion_potion_target_test.dart` — 22-10-01
 - [ ] `test/graphql/rename_pet_document_test.dart`, `test/models/request/rename_pet_request_test.dart`, `test/repository/services/graphql/graphql_rename_pet_test.dart` — 22-11-01
