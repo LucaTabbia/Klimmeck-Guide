@@ -197,7 +197,7 @@ void main() {
     );
 
     test(
-      'fightsInputWithEnemies keeps the corrections of unchanged fights only (D-24)',
+      'fightsInputWithEnemies sends no corrections, the BE keeps the unchanged prefix (D-24)',
       () {
         final draft = _draft(
           fights: [
@@ -213,12 +213,35 @@ void main() {
         ]);
 
         expect(inputs, hasLength(3));
-        expect(_correctionsOf(inputs[0]), hasLength(2));
+        expect(_fightJson(inputs[0]).containsKey('corrections'), isFalse);
         expect(_fightJson(inputs[1]).containsKey('corrections'), isFalse);
         expect(_fightJson(inputs[1])['enemies'], [
           {'enemy': 'enemy-wolf', 'quantity': 4},
         ]);
         expect(_fightJson(inputs[2]).containsKey('corrections'), isFalse);
+      },
+    );
+
+    test(
+      'changing the enemies of fight 1 sends no corrections for a corrected fight 2 (D-24)',
+      () {
+        final draft = _draft(
+          fights: [
+            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
+            _simulatedFight(
+              enemies: [_bandit()],
+              aldoCorrected: missionEffectsJson(hpAfter: 600),
+            ),
+          ],
+        );
+
+        final inputs = fightsInputWithEnemies(draft, [
+          [const MissionEnemyInput(enemyId: 'enemy-wolf', quantity: 5)],
+          [const MissionEnemyInput(enemyId: 'enemy-bandit', quantity: 1)],
+        ]);
+
+        expect(inputs, hasLength(2));
+        expect(_fightJson(inputs[1]).containsKey('corrections'), isFalse);
       },
     );
 
