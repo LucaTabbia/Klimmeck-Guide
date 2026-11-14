@@ -66,9 +66,9 @@ created: 2026-11-14
 | 22-09-01 | 09 | 9 | PET-04 | T-22-29 | every new code has a banner | unit | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/mainScreen/components` | ✅ extend | ✅ green |
 | 22-09-02 | 09 | 9 | PET-04 | T-22-26, T-22-27, T-22-28 | UseItem document unchanged; single-flight | unit + bloc | `flutter test test/repository test/graphql test/screens/mainScreen` | ✅ extend | ✅ green |
 | 22-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 09 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-10-01 | 10 | 10 | PET-04, PET-10 | T-22-30, T-22-31 | no target with the switch off | unit + widget | `flutter test test/models/companion test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
-| 22-10-02 | 10 | 10 | PET-04 | T-22-32 | targets disabled in flight | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ extend | ⬜ pending |
-| 22-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 10 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-10-01 | 10 | 10 | PET-04, PET-10 | T-22-30, T-22-31 | no target with the switch off | unit + widget | `flutter test test/models/companion test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ✅ green |
+| 22-10-02 | 10 | 10 | PET-04 | T-22-32 | targets disabled in flight | widget | `flutter test test/screens/mainScreen/tabs/journal` | ✅ extend | ✅ green |
+| 22-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 10 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-11-01 | 11 | 11 | PET-05 | T-22-35 | RenamePet registered, never sent pre-gate | document pin | `flutter test test/graphql test/models/request test/repository/services/graphql test/tool` | ❌ W0 | ⬜ pending |
 | 22-11-02 | 11 | 11 | PET-05 | T-22-33, T-22-34, T-22-36 | classifier per code; no name logs | unit + bloc | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/auth` | ❌ W0 | ⬜ pending |
 | 22-11-03 | 11 | 11 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 11 of 17" .planning/STATE.md` | — | ⬜ pending |
