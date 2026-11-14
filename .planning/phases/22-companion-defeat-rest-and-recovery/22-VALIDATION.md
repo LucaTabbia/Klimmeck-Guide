@@ -72,9 +72,9 @@ created: 2026-11-14
 | 22-11-01 | 11 | 11 | PET-05 | T-22-35 | RenamePet registered, never sent pre-gate | document pin | `flutter test test/graphql test/models/request test/repository/services/graphql test/tool` | ✅ | ✅ green |
 | 22-11-02 | 11 | 11 | PET-05 | T-22-33, T-22-34, T-22-36 | classifier per code; no name logs | unit + bloc | `flutter test test/repository test/screens/mainScreen/tabs/journal test/screens/auth` | ✅ | ✅ green |
 | 22-11-03 | 11 | 11 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 11 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-12-01 | 12 | 12 | PET-05 | T-22-37, T-22-40 | form rules block confirm; single-flight | widget | `flutter test test/shared/components/popup` | ❌ W0 | ⬜ pending |
-| 22-12-02 | 12 | 12 | PET-05 | T-22-38, T-22-39 | prompts behind the switch, own character only | widget | `flutter test test/screens/mainScreen` | ✅ extend | ⬜ pending |
-| 22-12-03 | 12 | 12 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 12 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-12-01 | 12 | 12 | PET-05 | T-22-37, T-22-40 | form rules block confirm; single-flight | widget | `flutter test test/shared/components/popup` | ✅ | ✅ green |
+| 22-12-02 | 12 | 12 | PET-05 | T-22-38, T-22-39 | prompts behind the switch, own character only | widget | `flutter test test/screens/mainScreen` | ✅ extend | ✅ green |
+| 22-12-03 | 12 | 12 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 12 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-13-01 | 13 | 13 | PET-06 | T-22-41 | malformed companion keeps the result | unit | `flutter test test/models test/shared/components/popup test/screens/mainScreen/questResultsCubit` | ❌ W0 + ✅ extend | ⬜ pending |
 | 22-13-02 | 13 | 13 | PET-06 | T-22-42, T-22-43 | defeat duration from resolvedAt, no clock | unit + widget | `flutter test test/utils test/shared/components/popup test/screens/mainScreen/components` | ✅ extend | ⬜ pending |
 | 22-13-03 | 13 | 13 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 13 of 17" .planning/STATE.md` | — | ⬜ pending |
@@ -110,7 +110,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/models/companion/companion_potion_target_test.dart` — 22-10-01
 - [x] `test/graphql/rename_pet_document_test.dart`, `test/models/request/rename_pet_request_test.dart`, `test/repository/services/graphql/graphql_rename_pet_test.dart` — 22-11-01
 - [x] `test/repository/pet_rename_failure_test.dart`, `test/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit_test.dart`, `companion_name_notice_test.dart`; `MockCompanionNameCubit` — 22-11-02
-- [ ] `test/shared/components/popup/companion_name_sheet_test.dart` — 22-12-01
+- [x] `test/shared/components/popup/companion_name_sheet_test.dart` — 22-12-01
 - [ ] `test/models/quest_result/quest_companion_outcome_test.dart`; `companionOutcomeJson` and the optional `companion` / `onFoot` fixture keys — 22-13-01
 - [ ] `missionCompanionJson` and the optional `companion` / `companionLifeAfter` fixture keys — 22-15-01
 - No framework install, no golden test (none exist).
