@@ -41,6 +41,43 @@ class MissionSpellUsage extends Equatable {
   List<Object?> get props => [spellId, usages];
 }
 
+/// Compagno di un partecipante all'inizio dello scontro (`MissionCompanion`):
+/// vita e massimo serviti dal BE, mai calcolati (D-17, D-33).
+class MissionCompanion extends Equatable {
+  const MissionCompanion({
+    required this.petId,
+    required this.name,
+    required this.lifeBefore,
+    required this.maxLifePoints,
+  });
+
+  final String petId;
+  final String name;
+  final int lifeBefore;
+  final int maxLifePoints;
+
+  /// Confine di parsing: un compagno malformato vale `null` (D-33).
+  static MissionCompanion? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final petId = json['pet'];
+    final name = json['name'];
+    final lifeBefore = missionIntOf(json['lifeBefore']);
+    final maxLifePoints = missionIntOf(json['maxLifePoints']);
+    if (petId is! String || petId.trim().isEmpty) return null;
+    if (name is! String || name.trim().isEmpty) return null;
+    if (lifeBefore == null || maxLifePoints == null) return null;
+    return MissionCompanion(
+      petId: petId,
+      name: name,
+      lifeBefore: lifeBefore,
+      maxLifePoints: maxLifePoints,
+    );
+  }
+
+  @override
+  List<Object?> get props => [petId, name, lifeBefore, maxLifePoints];
+}
+
 /// Effetto di uno scontro su un personaggio, simulato dal motore o corretto dall'oste.
 class MissionFightEffects extends Equatable {
   const MissionFightEffects({
@@ -48,6 +85,7 @@ class MissionFightEffects extends Equatable {
     this.injuriesAdded = const [],
     this.consumablesUsed = const [],
     this.spellsUsed = const [],
+    this.companionLifeAfter,
   });
 
   final int hpAfter;
@@ -56,6 +94,9 @@ class MissionFightEffects extends Equatable {
   final List<InjuryType> injuriesAdded;
   final List<MissionItemUsage> consumablesUsed;
   final List<MissionSpellUsage> spellsUsed;
+
+  /// `null` = nessun compagno nello scontro (D-33).
+  final int? companionLifeAfter;
 
   /// Confine di parsing: senza `hpAfter` vale `null`.
   static MissionFightEffects? tryFromJson(Object? json) {
@@ -73,6 +114,7 @@ class MissionFightEffects extends Equatable {
         json['spellsUsed'],
         MissionSpellUsage.tryFromJson,
       ),
+      companionLifeAfter: missionIntOf(json['companionLifeAfter']),
     );
   }
 
@@ -82,6 +124,7 @@ class MissionFightEffects extends Equatable {
     injuriesAdded,
     consumablesUsed,
     spellsUsed,
+    companionLifeAfter,
   ];
 }
 
@@ -97,6 +140,7 @@ class MissionFightOutcome extends Equatable {
     this.spellsAvailable = const [],
     this.simulated,
     this.corrected,
+    this.companion,
   });
 
   final String characterId;
@@ -112,6 +156,9 @@ class MissionFightOutcome extends Equatable {
 
   /// `null` = nessuna correzione dell'oste.
   final MissionFightEffects? corrected;
+
+  /// `null` = nessun compagno nello scontro (D-12, D-33).
+  final MissionCompanion? companion;
 
   /// Effetto che vale per lo scontro: la correzione vince sulla simulazione (D-06).
   MissionFightEffects? get effective => corrected ?? simulated;
@@ -136,6 +183,7 @@ class MissionFightOutcome extends Equatable {
       ),
       simulated: MissionFightEffects.tryFromJson(json['simulated']),
       corrected: MissionFightEffects.tryFromJson(json['corrected']),
+      companion: MissionCompanion.tryFromJson(json['companion']),
     );
   }
 
@@ -148,6 +196,7 @@ class MissionFightOutcome extends Equatable {
     spellsAvailable,
     simulated,
     corrected,
+    companion,
   ];
 }
 
