@@ -187,7 +187,7 @@ Plans:
 - [x] 22-08-PLAN.md — Companion cards in the quest-sheet prize and the innkeeper prize rows
 - [x] 22-09-PLAN.md — Companion potion plumbing: target, refusals, PotionCubit.give
 - [x] 22-10-PLAN.md — Potion sheet with companion targets
-- [ ] 22-11-PLAN.md — Companion name plumbing: RenamePet, classifier, Cubit
+- [x] 22-11-PLAN.md — Companion name plumbing: RenamePet, classifier, Cubit
 - [ ] 22-12-PLAN.md — Name prompt sheet and its entry points
 - [ ] 22-13-PLAN.md — Result sheet: companion life, defeat, xp and walk on foot
 - [ ] 22-14-PLAN.md — Ambush and «in forze» notification categories
@@ -220,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 10/17 | In Progress | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 11/17 | In Progress | - |
 
 ---
 
