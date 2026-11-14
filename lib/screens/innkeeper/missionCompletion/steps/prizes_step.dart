@@ -402,7 +402,7 @@ class _PrizesStepState extends State<PrizesStep> {
             child: QuantityStepper(
               label: '',
               value: item.quantity,
-              min: 1,
+              min: minPrizeItemQuantity,
               max: maxPrizeItemQuantity,
               onChanged: (quantity) => _update(
                 characterId,

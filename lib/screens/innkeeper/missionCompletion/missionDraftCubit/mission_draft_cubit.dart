@@ -76,8 +76,8 @@ class MissionDraftCubit extends Cubit<MissionDraftState>
     ),
   );
 
-  /// La sezione degli scontri è sostituita per intero: le correzioni servite
-  /// restano solo sugli scontri coi nemici invariati, il BE invalida il resto.
+  /// La sezione degli scontri è sostituita per intero senza correzioni: il BE
+  /// tiene quelle del prefisso invariato e invalida il resto (D-24).
   Future<void> saveFights(
     List<List<MissionEnemyInput>> enemiesPerFight, {
     MissionDraftStep? step,
@@ -85,7 +85,7 @@ class MissionDraftCubit extends Cubit<MissionDraftState>
     (draft) => SaveMissionDraftInput(
       pendingQuestId: _pendingQuestId,
       step: step,
-      fights: fightsInputWithEnemies(draft, enemiesPerFight),
+      fights: fightsInputWithEnemies(enemiesPerFight),
     ),
   );
 

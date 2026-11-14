@@ -34,10 +34,6 @@ class MissionQueries {
         title
         maxRarity
         block {
-          prizeCoins {
-            ${CoinsFragment.fields}
-          }
-          xpPrize
           prizeItem {
             quantity
             item {

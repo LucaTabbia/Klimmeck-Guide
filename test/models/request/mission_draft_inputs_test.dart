@@ -29,11 +29,6 @@ Map<String, dynamic> _wolves({int quantity = 3}) => missionFightEnemyJson(
   quantity: quantity,
 );
 
-Map<String, dynamic> _bandit() => missionFightEnemyJson(
-  enemy: missionEnemyJson(id: 'enemy-bandit', name: 'Bandito'),
-  quantity: 1,
-);
-
 /// Scontro simulato per Aldo e Bea; [aldoCorrected] / [beaCorrected] aggiungono la correzione servita.
 Map<String, dynamic> _simulatedFight({
   List<Map<String, dynamic>>? enemies,
@@ -151,61 +146,9 @@ void main() {
 
   group('fights section from the served draft', () {
     test(
-      'fightsInputOf keeps served enemies and served corrections (D-24)',
-      () {
-        final inputs = fightsInputOf(
-          _draft(
-            fights: [
-              _simulatedFight(
-                aldoCorrected: missionEffectsJson(hpAfter: 650),
-                beaCorrected: missionEffectsJson(
-                  hpAfter: 800,
-                  injuriesAdded: const [],
-                ),
-              ),
-              _simulatedFight(enemies: [_bandit()]),
-            ],
-          ),
-        );
-
-        expect(inputs, hasLength(2));
-        expect(_fightJson(inputs[0])['enemies'], [
-          {'enemy': 'enemy-wolf', 'quantity': 3},
-        ]);
-        expect(_correctionsOf(inputs[0]), [
-          {
-            'characterId': _aldo,
-            'hpAfter': 650,
-            'injuries': ['crushedRightHand'],
-            'consumablesUsed': <Object>[],
-            'spellsUsed': <Object>[],
-          },
-          {
-            'characterId': _bea,
-            'hpAfter': 800,
-            'injuries': <String>[],
-            'consumablesUsed': <Object>[],
-            'spellsUsed': <Object>[],
-          },
-        ]);
-        expect(_fightJson(inputs[1]).containsKey('corrections'), isFalse);
-        expect(_fightJson(inputs[1])['enemies'], [
-          {'enemy': 'enemy-bandit', 'quantity': 1},
-        ]);
-      },
-    );
-
-    test(
       'fightsInputWithEnemies sends no corrections, the BE keeps the unchanged prefix (D-24)',
       () {
-        final draft = _draft(
-          fights: [
-            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
-            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 600)),
-          ],
-        );
-
-        final inputs = fightsInputWithEnemies(draft, [
+        final inputs = fightsInputWithEnemies([
           [const MissionEnemyInput(enemyId: 'enemy-wolf', quantity: 3)],
           [const MissionEnemyInput(enemyId: 'enemy-wolf', quantity: 4)],
           [const MissionEnemyInput(enemyId: 'enemy-bandit', quantity: 1)],
@@ -221,38 +164,12 @@ void main() {
       },
     );
 
-    test(
-      'changing the enemies of fight 1 sends no corrections for a corrected fight 2 (D-24)',
-      () {
-        final draft = _draft(
-          fights: [
-            _simulatedFight(aldoCorrected: missionEffectsJson(hpAfter: 650)),
-            _simulatedFight(
-              enemies: [_bandit()],
-              aldoCorrected: missionEffectsJson(hpAfter: 600),
-            ),
-          ],
-        );
-
-        final inputs = fightsInputWithEnemies(draft, [
-          [const MissionEnemyInput(enemyId: 'enemy-wolf', quantity: 5)],
-          [const MissionEnemyInput(enemyId: 'enemy-bandit', quantity: 1)],
-        ]);
-
-        expect(inputs, hasLength(2));
-        expect(_fightJson(inputs[1]).containsKey('corrections'), isFalse);
-      },
-    );
-
     test('zero fights is an empty fights list (D-24)', () {
-      final draft = _draft(fights: [_simulatedFight()]);
-
-      expect(fightsInputOf(_draft()), isEmpty);
-      expect(fightsInputWithEnemies(draft, const []), isEmpty);
+      expect(fightsInputWithEnemies(const []), isEmpty);
       expect(
         SaveMissionDraftInput(
           pendingQuestId: 'pq-1',
-          fights: fightsInputWithEnemies(draft, const []),
+          fights: fightsInputWithEnemies(const []),
         ).toJson(),
         {'pendingQuestId': 'pq-1', 'fights': <Object>[]},
       );
@@ -324,24 +241,14 @@ void main() {
             const MissionFightEffects(hpAfter: 500),
           ),
         ]);
-        final served = fightsInputOf(draft);
+        final corrections = _correctionsOf(
+          replaced.single,
+        ).cast<Map<String, dynamic>>();
 
-        for (final inputs in [replaced, served]) {
-          final corrections = _correctionsOf(
-            inputs.single,
-          ).cast<Map<String, dynamic>>();
-          expect(corrections.map((c) => c['characterId']), [_aldo, _bea]);
-          expect(corrections.every((c) => c.containsKey('hpAfter')), isTrue);
-          expect(corrections.last['hpAfter'], 820);
-        }
-        expect(
-          _correctionsOf(replaced.single).first,
-          containsPair('hpAfter', 500),
-        );
-        expect(
-          _correctionsOf(served.single).first,
-          containsPair('hpAfter', 650),
-        );
+        expect(corrections.map((c) => c['characterId']), [_aldo, _bea]);
+        expect(corrections.every((c) => c.containsKey('hpAfter')), isTrue);
+        expect(corrections.first['hpAfter'], 500);
+        expect(corrections.last['hpAfter'], 820);
       },
     );
   });

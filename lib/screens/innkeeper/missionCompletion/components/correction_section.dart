@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
+import 'package:klimmeck_guide/models/mission/mission_limits.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/injury_chips.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
@@ -84,13 +85,13 @@ class CorrectionSection extends StatelessWidget {
   List<Widget> _lifePoints(KlimmeckGuideTheme theme) {
     final max = participant.maxLifePoints;
     return [
-      if (max > 1)
+      if (max > minLifeAfterFight)
         Slider(
           key: hpSliderKeyFor(participant.characterId),
-          min: 1,
+          min: minLifeAfterFight.toDouble(),
           max: max.toDouble(),
-          divisions: max - 1,
-          value: correction.hpAfter.clamp(1, max).toDouble(),
+          divisions: max - minLifeAfterFight,
+          value: correction.hpAfter.clamp(minLifeAfterFight, max).toDouble(),
           label: '${correction.hpAfter}',
           onChanged: (value) => onChanged(correction.withHp(value.round())),
         ),

@@ -241,7 +241,7 @@ void main() {
     ];
 
     blocTest<MissionDraftCubit, MissionDraftState>(
-      'saveFights rebuilds the fights from the served draft (D-02, D-24)',
+      'saveFights sends the new enemies and no corrections, even after a corrected fight (D-02, D-24)',
       build: build,
       seed: () => MissionDraftReady(draft: _withFights),
       act: (cubit) => cubit.saveFights(picks, step: MissionDraftStep.fights),
@@ -253,8 +253,17 @@ void main() {
         'pendingQuestId': _pendingQuestId,
         'step': 'fights',
         'fights': [
-          for (final fight in fightsInputWithEnemies(_withFights, picks))
-            fight.toJson(),
+          {
+            'enemies': [
+              {'enemy': 'enemy-wolf', 'quantity': 3},
+            ],
+          },
+          {
+            'enemies': [
+              {'enemy': 'enemy-goblin', 'quantity': 4},
+              {'enemy': 'enemy-wolf', 'quantity': 1},
+            ],
+          },
         ],
       }),
     );

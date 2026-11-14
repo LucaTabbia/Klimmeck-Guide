@@ -183,13 +183,13 @@ class MissionPrizeInput extends Equatable {
     return _copy(
       items: [
         ...items,
-        MissionPrizeItem(itemId: itemId, quantity: 1),
+        MissionPrizeItem(itemId: itemId, quantity: minPrizeItemQuantity),
       ],
     );
   }
 
   MissionPrizeInput withItemQuantity(String itemId, int quantity) {
-    final bounded = quantity.clamp(1, maxPrizeItemQuantity);
+    final bounded = quantity.clamp(minPrizeItemQuantity, maxPrizeItemQuantity);
     return _copy(
       items: [
         for (final item in items)
@@ -309,18 +309,8 @@ class SimulateMissionFightInput extends Equatable {
   List<Object?> get props => [pendingQuestId, fightIndex, enemies];
 }
 
-/// Sezione `fights` ricostruita dalla bozza servita: nemici serviti; per uno scontro con almeno un `corrected` la lista COMPLETA, una correzione per partecipante dall'effetto `effective` (corrected ?? simulated), sempre con `hpAfter` (regola del handoff BE).
-List<MissionFightInput> fightsInputOf(MissionDraft draft) => List.unmodifiable([
-  for (final fight in draft.fights)
-    MissionFightInput(
-      enemies: _enemiesOf(fight),
-      corrections: _servedCorrectionsOf(fight),
-    ),
-]);
-
 /// Nemici nuovi per ogni scontro, nessuna correzione: il BE tiene quelle del prefisso invariato e invalida dal primo scontro cambiato (D-24).
 List<MissionFightInput> fightsInputWithEnemies(
-  MissionDraft draft,
   List<List<MissionEnemyInput>> enemiesPerFight,
 ) => List.unmodifiable([
   for (final enemies in enemiesPerFight)
@@ -345,16 +335,7 @@ List<MissionFightInput> fightsInputWithCorrections(
 List<MissionEnemyInput> _enemiesOf(MissionFight fight) =>
     List.unmodifiable(fight.enemies.map(MissionEnemyInput.of));
 
-List<MissionCorrection>? _servedCorrectionsOf(MissionFight fight) {
-  final isCorrected = fight.outcomes.any(
-    (outcome) => outcome.corrected != null,
-  );
-  if (!isCorrected) return null;
-  return _completedCorrections(fight, const []);
-}
-
-/// Una correzione per ogni esito servito (quella data o l'effetto servito), poi
-/// le correzioni date per personaggi senza esito servito.
+/// Una correzione per ogni esito servito: quella data o l'effetto servito.
 List<MissionCorrection> _completedCorrections(
   MissionFight fight,
   List<MissionCorrection> given,
@@ -362,11 +343,9 @@ List<MissionCorrection> _completedCorrections(
   final byCharacter = {
     for (final correction in given) correction.characterId: correction,
   };
-  final servedIds = {for (final outcome in fight.outcomes) outcome.characterId};
   return List.unmodifiable([
     for (final outcome in fight.outcomes)
       byCharacter[outcome.characterId] ?? _servedCorrectionOf(outcome),
-    ...given.where((correction) => !servedIds.contains(correction.characterId)),
   ]);
 }
 
