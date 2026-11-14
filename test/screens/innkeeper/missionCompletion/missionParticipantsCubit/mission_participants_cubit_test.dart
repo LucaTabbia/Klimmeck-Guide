@@ -108,7 +108,7 @@ void main() {
     );
 
     blocTest<MissionParticipantsCubit, MissionParticipantsState>(
-      'a failed read of the places is failed',
+      'a failed read of the places loads the participants with no places (D-31)',
       setUp: () => when(
         () => repository.listPointsOfInterest(),
       ).thenThrow(const InnkeeperException(InnkeeperFailure.timedOut)),
@@ -116,7 +116,10 @@ void main() {
       act: (cubit) => cubit.load(const [_aldo]),
       expect: () => [
         const MissionParticipantsLoading(),
-        const MissionParticipantsFailed(failure: InnkeeperFailure.timedOut),
+        MissionParticipantsLoaded(
+          characters: {_aldo: _aldoAtRuins},
+          places: const {},
+        ),
       ],
     );
   });

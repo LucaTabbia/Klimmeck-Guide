@@ -623,6 +623,24 @@ void main() {
       },
     );
 
+    testWidgets('«Riprova» on «Luogo» reads the participants again (D-31)', (
+      tester,
+    ) async {
+      whenListen(
+        participantsCubit,
+        const Stream<MissionParticipantsState>.empty(),
+        initialState: const MissionParticipantsFailed(
+          failure: InnkeeperFailure.timedOut,
+        ),
+      );
+      await openWizard(tester, _ready);
+
+      await tester.tap(find.byKey(PlaceStep.retryKey));
+      await tester.pump();
+
+      verify(() => participantsCubit.load([_aldo, _bea])).called(2);
+    });
+
     testWidgets('a refused «Resta qui» stays on «Luogo» (T-21-46)', (
       tester,
     ) async {

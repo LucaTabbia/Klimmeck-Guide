@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 
@@ -51,10 +53,12 @@ MissionParticipantsLoaded _loaded({String beaLocation = _ruins}) =>
 void main() {
   late int teleports;
   late List<String> stays;
+  late int retries;
 
   setUp(() {
     teleports = 0;
     stays = [];
+    retries = 0;
   });
 
   Future<void> pumpStep(
@@ -72,6 +76,7 @@ void main() {
             isSubmitting: isSubmitting,
             onTeleport: () => teleports++,
             onStay: stays.add,
+            onRetry: () => retries++,
           ),
         ),
       ),
@@ -124,13 +129,35 @@ void main() {
   });
 
   testWidgets(
-    'while the participants load the buttons are disabled (rule 2: explicit action only)',
+    'while the participants load the city teleport stays enabled and «Resta qui» waits (D-31)',
     (tester) async {
       await pumpStep(tester, const MissionParticipantsLoading());
 
-      expect(onPressedOf(tester, PlaceStep.teleportKey), isNull);
+      expect(onPressedOf(tester, PlaceStep.teleportKey), isNotNull);
       expect(onPressedOf(tester, PlaceStep.stayKey), isNull);
       expect(find.text('Aldo'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a failed participants read keeps the city teleport and offers «Riprova» (D-31)',
+    (tester) async {
+      await pumpStep(
+        tester,
+        const MissionParticipantsFailed(failure: InnkeeperFailure.connection),
+      );
+
+      expect(onPressedOf(tester, PlaceStep.teleportKey), isNotNull);
+      expect(onPressedOf(tester, PlaceStep.stayKey), isNull);
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(PlaceStep.retryKey));
+
+      expect(retries, 1);
+      expect(find.text(MissionCompletionScreen.retryLabel), findsOneWidget);
     },
   );
 
