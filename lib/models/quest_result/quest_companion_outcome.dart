@@ -1,0 +1,66 @@
+import 'package:equatable/equatable.dart';
+
+/// Il compagno nell'esito (BE Phase 23, D-27): servito ogni volta che ha
+/// combattuto; nome mostrato già risolto dal backend.
+class QuestCompanionOutcome extends Equatable {
+  const QuestCompanionOutcome({
+    required this.name,
+    required this.lifeBefore,
+    required this.lifePoints,
+    required this.maxLifePoints,
+    this.isDefeated = false,
+    this.fullLifeAt,
+  });
+
+  final String name;
+  final int lifeBefore;
+  final int lifePoints;
+  final int maxLifePoints;
+  final bool isDefeated;
+
+  /// Istante UTC del ritorno in forze; `null` quando non servito.
+  final DateTime? fullLifeAt;
+
+  /// Confine di parsing: una voce malformata vale null e l'esito resta (D-27).
+  static QuestCompanionOutcome? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final name = json['name'];
+    final lifeBefore = json['lifeBefore'];
+    final lifePoints = json['lifePoints'];
+    final maxLifePoints = json['maxLifePoints'];
+    if (name is! String || name.trim().isEmpty) return null;
+    if (lifeBefore is! num || lifePoints is! num || maxLifePoints is! num) {
+      return null;
+    }
+    return QuestCompanionOutcome(
+      name: name.trim(),
+      lifeBefore: lifeBefore.toInt(),
+      lifePoints: lifePoints.toInt(),
+      maxLifePoints: maxLifePoints.toInt(),
+      isDefeated: json['defeated'] == true,
+      fullLifeAt: _instantOf(json['fullLifeAt']),
+    );
+  }
+
+  static DateTime? _instantOf(Object? value) =>
+      value is String ? DateTime.tryParse(value)?.toUtc() : null;
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'lifeBefore': lifeBefore,
+    'lifePoints': lifePoints,
+    'maxLifePoints': maxLifePoints,
+    'defeated': isDefeated,
+    'fullLifeAt': fullLifeAt?.toUtc().toIso8601String(),
+  };
+
+  @override
+  List<Object?> get props => [
+    name,
+    lifeBefore,
+    lifePoints,
+    maxLifePoints,
+    isDefeated,
+    fullLifeAt,
+  ];
+}
