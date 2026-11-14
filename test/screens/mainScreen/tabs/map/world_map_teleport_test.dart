@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
@@ -314,6 +315,10 @@ void main() {
 
       expect(find.byKey(TeleportModeBadge.badgeKey), findsOneWidget);
       expect(find.text(TeleportModeBadge.label), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text(TeleportModeBadge.label)).style?.fontSize,
+        KlimmeckGuideTheme.mapNoticeFontSize,
+      );
     });
 
     testWidgets('outside teleport mode there is no badge', (tester) async {

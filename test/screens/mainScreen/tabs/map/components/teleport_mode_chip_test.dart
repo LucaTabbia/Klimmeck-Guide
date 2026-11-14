@@ -86,6 +86,15 @@ void main() {
       },
     );
 
+    testWidgets('writes the instruction and Annulla in the small map size '
+        '(UAT 2026-11-14)', (tester) async {
+      await pumpChip(tester);
+
+      for (final text in tester.widgetList<Text>(find.byType(Text))) {
+        expect(text.style?.fontSize, KlimmeckGuideTheme.mapNoticeFontSize);
+      }
+    });
+
     testWidgets('tapping Annulla cancels', (tester) async {
       await pumpChip(tester);
 
