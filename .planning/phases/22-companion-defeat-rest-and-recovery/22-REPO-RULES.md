@@ -92,3 +92,9 @@ The contract is the SDL of the BE `23-RESEARCH.md` §Q12 (read it from the BE wo
 - **Registry:** 54 → 55 (`RenamePet`); every test that pins the count is updated RED-first in the plan that adds the document (Pitfall 10).
 - **Requirements:** PET-01..PET-09 of `22-RESEARCH.md` §Phase Requirements; the first plan writes them in `.planning/REQUIREMENTS.md` and in the ROADMAP (Pitfall 14).
 - Copy: the copy table of `22-RESEARCH.md` (provisional) with D-30 («Imboscate») and D-28 («Prosegui a piedi»); no other new copy. Plan order: the 15 plans of `22-RESEARCH.md` §Recommended plan order (22-14 and 22-15 may merge; `OwnedPet.id` dropped from 22-01).
+
+### Companion levels (D-37, D-38 — added on 2026-11-14 during the execution)
+
+- Wire additions on `OwnedPet`: `level: Int!`, `maxLifePoints: Int!` (the companion's own max). Modelled lenient pre-gate (`level` null → hidden; `maxLifePoints` null → the species' `pet.maxLifePoints`), selected only in the gate plan.
+- ONE getter for «the companion's max life» (owned max, else species max): the vitality rule, the Journal lines, the potion targets, the details sheet and the innkeeper slider all read it; no widget reads `pet.maxLifePoints` for an owned companion. The catalogue card (shop, prizes) shows the species' base.
+- The app never computes a level, a threshold or a max. Copy: «Livello N» (details sheet; next to the species on the Journal parchment). Requirement PET-10.
