@@ -16,12 +16,13 @@ import '../helpers/fixtures/travel_fixtures.dart';
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
 
-  test('selects pendingQuest with timing, arrival, points and quest id', () {
+  test('selects pendingQuest with timing, arrival, points, quest id and '
+      'quest type (the pawn names the activity, UAT 2026-11-14)', () {
     expect(
       fields,
       contains(
         'pendingQuest { id startDate arrivedAt waitingTime pointsSpent '
-        'quest { id } }',
+        'quest { id infos { type } } }',
       ),
     );
   });

@@ -94,13 +94,17 @@ Map<String, dynamic> laneJson({
   String? startDate = '2026-10-21T10:00:00.000Z',
   String? arrivedAt,
   int pointsSpent = 0,
+  String? questType,
 }) => {
   'id': id,
   'startDate': startDate,
   'arrivedAt': arrivedAt,
   'waitingTime': 60000.0,
   'pointsSpent': pointsSpent,
-  'quest': {'id': questId},
+  'quest': {
+    'id': questId,
+    if (questType != null) 'infos': {'type': questType},
+  },
 };
 
 Map<String, dynamic> characterWithLanesJson({

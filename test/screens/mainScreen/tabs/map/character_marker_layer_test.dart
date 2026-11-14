@@ -385,7 +385,9 @@ void main() {
       );
     });
 
-    testWidgets('a normal mission shows no pawn label (D-16)', (tester) async {
+    testWidgets('a normal mission shows no «Missione in corso» (D-16)', (
+      tester,
+    ) async {
       await pumpLayer(
         tester,
         character: characterLoaded(
@@ -395,7 +397,42 @@ void main() {
       );
 
       expect(find.byKey(CharacterMarkerLayer.missionLabelKey), findsNothing);
+      expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
       expect(pawnDraggable(tester).maxSimultaneousDrags, 0);
+    });
+
+    testWidgets('a hunt in progress reads «Cacciando…» over the pawn '
+        '(UAT 2026-11-14)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          pendingQuest: laneJson(questType: 'hunt'),
+          missionInProgress: true,
+          guidedMissionInProgress: false,
+        ),
+      );
+
+      expect(
+        tester
+            .widget<PawnLabel>(
+              find.byKey(CharacterMarkerLayer.activityLabelKey),
+            )
+            .text,
+        'Cacciando…',
+      );
+      expect(find.byKey(CharacterMarkerLayer.missionLabelKey), findsNothing);
+    });
+
+    testWidgets('a hunt not started yet names no activity', (tester) async {
+      await pumpLayer(
+        tester,
+        character: characterLoaded(
+          pendingQuest: laneJson(questType: 'hunt'),
+          missionInProgress: false,
+        ),
+      );
+
+      expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
     });
   });
 
