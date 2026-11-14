@@ -5,8 +5,9 @@ import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
 import 'package:klimmeck_guide/models/request/create_character_request.dart';
+import 'package:klimmeck_guide/utils/name_rules.dart' as name_rules;
 
-enum NameError { required, tooShort, tooLong, invalidCharacters }
+export 'package:klimmeck_guide/utils/name_rules.dart' show NameError;
 
 enum AgeError { required, notANumber, outOfRange }
 
@@ -23,12 +24,9 @@ class CharacterDraft extends Equatable {
     this.background = '',
   });
 
-  static const int nameMinLength = 2;
-  static const int nameMaxLength = 20;
+  static const int nameMinLength = name_rules.nameMinLength;
+  static const int nameMaxLength = name_rules.nameMaxLength;
   static const int backgroundMaxLength = 500;
-  static final RegExp _nameCharset = RegExp(r"^[\p{L}'’\- ]+$", unicode: true);
-  static final RegExp _letter = RegExp(r'\p{L}', unicode: true);
-  static final RegExp _whitespaceRun = RegExp(r'\s+');
 
   final SexType? sex;
   final String name;
@@ -38,7 +36,7 @@ class CharacterDraft extends Equatable {
   final String ageText;
   final String background;
 
-  String get normalizedName => name.trim().replaceAll(_whitespaceRun, ' ');
+  String get normalizedName => name_rules.normalizedNameOf(name);
   int? get age => int.tryParse(ageText.trim());
   String get trimmedBackground => background.trim();
 
@@ -46,16 +44,7 @@ class CharacterDraft extends Equatable {
   bool get isBackgroundTooLong =>
       trimmedBackground.length > backgroundMaxLength;
 
-  NameError? get nameError {
-    final normalized = normalizedName;
-    if (normalized.isEmpty) return NameError.required;
-    if (normalized.length < nameMinLength) return NameError.tooShort;
-    if (normalized.length > nameMaxLength) return NameError.tooLong;
-    if (!_nameCharset.hasMatch(normalized) || !_letter.hasMatch(normalized)) {
-      return NameError.invalidCharacters;
-    }
-    return null;
-  }
+  name_rules.NameError? get nameError => name_rules.nameErrorOf(name);
 
   /// Null senza tratti: il campo età resta disabilitato finché non esiste una
   /// razza con tratti noti (D-10).
