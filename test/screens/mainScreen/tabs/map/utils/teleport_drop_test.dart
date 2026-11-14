@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/map_constants.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/map_utils.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/utils/teleport_drop.dart';
 import 'package:latlong2/latlong.dart';
@@ -46,11 +47,13 @@ void main() {
     LatLng releasePoint, {
     List<TeleportDestination> places = const [],
     List<City> cities = const [],
+    double zoom = MapConstants.cityVisibleZoom,
   }) => teleportDropTarget(
     releasePoint: releasePoint,
     places: places,
     cities: cities,
     toScreen: toScreen,
+    zoom: zoom,
   );
 
   group('teleportDropTarget', () {
@@ -95,6 +98,25 @@ void main() {
       final target = dropAt(const LatLng(0, -15), cities: [aldheim, valdoria]);
 
       expect(target, TeleportDestination.ofCity(valdoria));
+    });
+
+    test(
+      'below the city zoom a drop near a hidden place resolves to the city (D-29)',
+      () {
+        final target = dropAt(
+          const LatLng(0, 3),
+          places: [ruins],
+          cities: [aldheim, valdoria],
+          zoom: MapConstants.cityVisibleZoom - 0.1,
+        );
+
+        expect(target, TeleportDestination.ofCity(aldheim));
+      },
+    );
+
+    test('places are droppable exactly where their dots show (D-29)', () {
+      expect(innerPlacesVisibleAt(MapConstants.cityVisibleZoom), isTrue);
+      expect(innerPlacesVisibleAt(MapConstants.cityVisibleZoom - 0.1), isFalse);
     });
 
     test('without cities and places the result is null', () {
