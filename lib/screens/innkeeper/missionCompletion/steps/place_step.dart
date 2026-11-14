@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -65,6 +66,7 @@ class PlaceStep extends StatelessWidget {
         Wrap(
           spacing: KlimmeckGuideTheme.spacingSm,
           children: [
+            const MissionBackButton(),
             ElevatedButton(
               key: teleportKey,
               style: KlimmeckGuideTheme.primaryButtonStyle,

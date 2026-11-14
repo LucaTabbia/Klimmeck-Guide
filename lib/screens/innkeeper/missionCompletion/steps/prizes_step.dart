@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/prize_catalogue_sheet.dart';
@@ -191,6 +192,7 @@ class _PrizesStepState extends State<PrizesStep> {
             ),
             Row(
               children: [
+                const MissionBackButton(),
                 const Spacer(),
                 ElevatedButton(
                   key: MissionCompletionScreen.nextKey,

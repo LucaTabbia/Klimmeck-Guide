@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
@@ -52,7 +53,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static const String discardTitle = 'Scartare la bozza?';
   static const String discardBody =
       'I partecipanti tornano liberi; il teletrasporto resta.';
-  static const String backLabel = 'Indietro';
+  static const String backLabel = MissionBackButton.label;
   static const String nextLabel = 'Avanti';
   static const String retryLabel = 'Riprova';
   static const String placeTitle = 'Luogo';
@@ -69,7 +70,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static const String genericMessage = 'Qualcosa è andato storto, riprova';
   static const Key startKey = ValueKey('mission.start');
   static const Key discardKey = ValueKey('mission.discard');
-  static const Key backKey = ValueKey('mission.back');
+  static const Key backKey = MissionBackButton.buttonKey;
   static const Key nextKey = ValueKey('mission.next');
   static const Key retryKey = ValueKey('mission.retry');
 
@@ -260,6 +261,9 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     return Theme(
       data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
       child: Scaffold(
+        // «Scontri» in orizzontale non ha altezza da cedere alla tastiera: la
+        // ricerca sta in cima e la lista resta sotto (UAT 2026-11-14).
+        resizeToAvoidBottomInset: _page != MissionPage.encounters,
         appBar: AppBar(
           title: const Text(MissionCompletionScreen.title),
           actions: [
@@ -313,8 +317,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
             ],
           ),
           const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-          Expanded(child: _buildPage(ready)),
-          _buildBottomBar(ready),
+          Expanded(
+            child: MissionBackScope(
+              onBack: _page != MissionPage.place && !ready.isSubmitting
+                  ? () => _goBack(ready.draft)
+                  : null,
+              child: _buildPage(ready),
+            ),
+          ),
         ],
       ),
     );
@@ -467,19 +477,6 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     ),
     _ => const SizedBox.shrink(),
   };
-
-  Widget _buildBottomBar(MissionDraftReady ready) {
-    final canGoBack = _page != MissionPage.place && !ready.isSubmitting;
-    return Row(
-      children: [
-        OutlinedButton(
-          key: MissionCompletionScreen.backKey,
-          onPressed: canGoBack ? () => _goBack(ready.draft) : null,
-          child: const Text(MissionCompletionScreen.backLabel),
-        ),
-      ],
-    );
-  }
 
   void _goBack(MissionDraft draft) =>
       setState(() => _enterPrevious(draft.fights.length));

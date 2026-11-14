@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
@@ -119,6 +120,7 @@ class RecapStep extends StatelessWidget {
             ),
             Row(
               children: [
+                const MissionBackButton(),
                 const Spacer(),
                 ElevatedButton(
                   key: completeKey,

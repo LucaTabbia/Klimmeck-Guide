@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/correction_section.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
@@ -101,8 +102,8 @@ class _FightStepState extends State<FightStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _actions(fight, theme),
         Expanded(child: _details(fight, theme)),
+        _actions(fight, theme),
       ],
     );
   }
@@ -113,6 +114,7 @@ class _FightStepState extends State<FightStep> {
       runSpacing: KlimmeckGuideTheme.spacingXs,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        const MissionBackButton(),
         Text(
           fight.verdict?.label ?? EncountersStep.notSimulatedLabel,
           style: theme.titleMedium,

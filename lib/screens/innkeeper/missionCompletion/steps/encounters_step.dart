@@ -3,6 +3,7 @@ import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
 import 'package:klimmeck_guide/models/mission/mission_limits.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_picker.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
@@ -155,6 +156,7 @@ class _EncountersStepState extends State<EncountersStep> {
         ),
         Row(
           children: [
+            const MissionBackButton(),
             TextButton(
               key: EncountersStep.addFightKey,
               onPressed: _canAddFight ? _addFight : null,
