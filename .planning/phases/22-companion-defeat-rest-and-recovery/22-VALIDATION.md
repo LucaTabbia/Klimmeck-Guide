@@ -78,9 +78,9 @@ created: 2026-11-14
 | 22-13-01 | 13 | 13 | PET-06 | T-22-41 | malformed companion keeps the result | unit | `flutter test test/models test/shared/components/popup test/screens/mainScreen/questResultsCubit` | ❌ W0 + ✅ extend | ✅ green |
 | 22-13-02 | 13 | 13 | PET-06 | T-22-42, T-22-43 | defeat duration from resolvedAt, no clock | unit + widget | `flutter test test/utils test/shared/components/popup test/screens/mainScreen/components` | ✅ extend | ✅ green |
 | 22-13-03 | 13 | 13 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 13 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-14-01 | 14 | 14 | PET-07 | T-22-44, T-22-45, T-22-46 | ambush toggle keeps its storage key | unit + widget | `flutter test test/models test/repository/storage test/repository/services/push test/screens/mainScreen/tabs/settings test/screens/mainScreen/components` | ✅ extend | ⬜ pending |
-| 22-14-02 | 14 | 14 | PET-07 | T-22-47 | no double notice | widget | `flutter test test/screens/mainScreen` | ✅ extend | ⬜ pending |
-| 22-14-03 | 14 | 14 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 14 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-14-01 | 14 | 14 | PET-07 | T-22-44, T-22-45, T-22-46 | ambush toggle keeps its storage key | unit + widget | `flutter test test/models test/repository/storage test/repository/services/push test/screens/mainScreen/tabs/settings test/screens/mainScreen/components` | ✅ extend | ✅ green |
+| 22-14-02 | 14 | 14 | PET-07 | T-22-47 | no double notice | widget | `flutter test test/screens/mainScreen` | ✅ extend | ✅ green |
+| 22-14-03 | 14 | 14 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 14 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-15-01 | 15 | 15 | PET-08 | T-22-49 | companionLifeAfter sent only when set | unit | `flutter test test/models test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 22-15-02 | 15 | 15 | PET-08 | T-22-48, T-22-50 | slider within served bounds | widget | `flutter test test/screens/innkeeper` | ✅ extend | ⬜ pending |
 | 22-15-03 | 15 | 15 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 15 of 17" .planning/STATE.md` | — | ⬜ pending |

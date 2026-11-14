@@ -190,7 +190,7 @@ Plans:
 - [x] 22-11-PLAN.md — Companion name plumbing: RenamePet, classifier, Cubit
 - [x] 22-12-PLAN.md — Name prompt sheet and its entry points
 - [x] 22-13-PLAN.md — Result sheet: companion life, defeat, xp and walk on foot
-- [ ] 22-14-PLAN.md — Ambush and «in forze» notification categories
+- [x] 22-14-PLAN.md — Ambush and «in forze» notification categories
 - [ ] 22-15-PLAN.md — Innkeeper companion life slider
 - [ ] 22-16-PLAN.md — Gate: schema, gated selections, UseItem target, switch (after the BE Phase 23 merge)
 - [ ] 22-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 23 merge, human)
@@ -220,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 13/17 | In Progress | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 14/17 | In Progress | - |
 
 ---
 
