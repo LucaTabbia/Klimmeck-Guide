@@ -343,8 +343,8 @@ void main() {
   });
 
   group('acceptance outcomes', () {
-    testWidgets('tearing a quest that travels goes to the map at once, '
-        'before the server answers', (tester) async {
+    testWidgets('tearing a quest that travels goes to the map as soon as the '
+        'sheet has left, before the server answers', (tester) async {
       await pumpBoard(
         tester,
         quests: [buildQuest(id: 'h-1', type: 'hunt')],
@@ -435,7 +435,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(accepted, 1);
+      // il rifiuto arriva prima che il foglio sia uscito: si resta sul Tabellone
+      expect(accepted, 0);
       expect(paperState.isTorn, isFalse);
       verifyNever(
         () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),

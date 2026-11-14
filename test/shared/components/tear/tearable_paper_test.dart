@@ -15,6 +15,7 @@ const _light = 'HapticFeedbackType.lightImpact';
 
 Widget _harness({
   required VoidCallback onTorn,
+  VoidCallback? onExited,
   bool canTear = true,
   bool isEnabled = true,
 }) => buildTestApp(
@@ -24,6 +25,7 @@ Widget _harness({
       height: 300,
       child: TearablePaper(
         onTorn: onTorn,
+        onExited: onExited,
         canTear: canTear,
         isEnabled: isEnabled,
         child: const ColoredBox(
@@ -117,6 +119,45 @@ void main() {
     await tester.drag(paper, const Offset(-300, 0));
     await tester.pumpAndSettle();
     expect(torn, 1);
+  });
+
+  testWidgets('the exit is reported only when the body has left the screen '
+      '(UAT 2026-11-14)', (tester) async {
+    final events = <String>[];
+    recordHaptics(tester);
+    await tester.pumpWidget(
+      _harness(
+        onTorn: () => events.add('torn'),
+        onExited: () => events.add('exited'),
+      ),
+    );
+
+    await tester.drag(paper, const Offset(-300, 0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(events, ['torn']);
+
+    await tester.pumpAndSettle();
+    expect(events, ['torn', 'exited']);
+  });
+
+  testWidgets('a paper recomposed while leaving reports no exit', (
+    tester,
+  ) async {
+    final events = <String>[];
+    recordHaptics(tester);
+    await tester.pumpWidget(
+      _harness(onTorn: () {}, onExited: () => events.add('exited')),
+    );
+
+    await tester.drag(paper, const Offset(-300, 0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    tester.state<TearablePaperState>(paper).recompose();
+    await tester.pumpAndSettle();
+
+    expect(events, isEmpty);
   });
 
   testWidgets('recompose restores the paper and allows a new tear', (
