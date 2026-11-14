@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_pointer_layer.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
@@ -25,7 +26,7 @@ void main() {
   setUp(() {
     characterCubit = MockCharacterCubit();
     progressCubit = MockTravelProgressCubit();
-    seedSvgCache([CloudinaryAssets.arrowDown]);
+    seedSvgCache([CloudinaryAssets.arrowMap]);
   });
 
   Future<MapController> pumpLayer(WidgetTester tester) async {
@@ -79,6 +80,14 @@ void main() {
 
     final arrow = find.byKey(PawnPointerLayer.arrowKey);
     expect(arrow, findsOneWidget);
+    expect(
+      tester
+          .widget<CachedSvg>(
+            find.descendant(of: arrow, matching: find.byType(CachedSvg)),
+          )
+          .url,
+      CloudinaryAssets.url('v1794671761/arrowMap_ucuc2f.svg'),
+    );
     final map = tester.getRect(find.byType(FlutterMap));
     final centre = tester.getCenter(arrow);
     expect(centre.dx - map.left, moreOrLessEquals(50, epsilon: 1));
