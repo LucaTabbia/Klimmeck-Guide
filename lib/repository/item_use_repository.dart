@@ -18,9 +18,10 @@ class ItemUseRepository {
   final KlimmeckGraphQl _graphQl;
   final Duration timeout;
 
-  Future<UseItemResult> useItem(String itemId) async {
+  /// [petId] = compagno bersaglio (D-23); senza, beve il personaggio.
+  Future<UseItemResult> useItem(String itemId, {String? petId}) async {
     try {
-      return await _graphQl.useItem(itemId).timeout(timeout);
+      return await _graphQl.useItem(itemId, petId: petId).timeout(timeout);
     } on OperationException catch (error) {
       throw itemUseExceptionFrom(error);
     } on TimeoutException {

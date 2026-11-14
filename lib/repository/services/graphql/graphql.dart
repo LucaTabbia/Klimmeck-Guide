@@ -875,11 +875,13 @@ class KlimmeckGraphQl {
   /// Beve una pozione (BE Phase 18, D-11): la risposta serve solo al
   /// riscontro, lo stato arriva da `characterUpdated`. Lancia
   /// [OperationException] o [FormatException] per una risposta malformata.
-  Future<UseItemResult> useItem(String itemId) async {
+  /// `petId` = compagno bersaglio (D-23), mandato solo con un bersaglio; il
+  /// documento lo dichiara dal gate (Pitfall 2).
+  Future<UseItemResult> useItem(String itemId, {String? petId}) async {
     final data = _dataOrThrow(
       await performMutation(
         query: CharacterMutations.useItem,
-        variables: {'itemId': itemId},
+        variables: {'itemId': itemId, if (petId != null) 'petId': petId},
       ),
     );
     final result = data['useItem'];
