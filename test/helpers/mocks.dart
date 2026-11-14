@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
+import 'package:klimmeck_guide/repository/equipment_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/item_use_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
@@ -105,6 +106,8 @@ class MockQuestResultRepository extends Mock implements QuestResultRepository {}
 class MockSpellsRepository extends Mock implements SpellsRepository {}
 
 class MockCompanionRepository extends Mock implements CompanionRepository {}
+
+class MockEquipmentRepository extends Mock implements EquipmentRepository {}
 
 class MockItemUseRepository extends Mock implements ItemUseRepository {}
 
