@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,20 +56,23 @@ Map<String, dynamic> _worgJson({bool defeated = false}) => ownedPetJson(
   fullLifeAt: spellFixtureNow.add(_restLeft).toIso8601String(),
 );
 
-Character _character({bool defeated = false, bool missionInProgress = false}) =>
-    journalCharacter(
-      spellbook: {
-        ...spellbookCharacterJson(),
-        'assets': {
-          'pet': petJson(),
-          'ownedPets': [
-            ownedPetJson(pet: petJson()),
-            _worgJson(defeated: defeated),
-          ],
-        },
-      },
-      missionInProgress: missionInProgress,
-    );
+Character _character({
+  bool defeated = false,
+  bool missionInProgress = false,
+  bool ownsWorg = true,
+}) => journalCharacter(
+  spellbook: {
+    ...spellbookCharacterJson(),
+    'assets': {
+      'pet': petJson(),
+      'ownedPets': [
+        ownedPetJson(pet: petJson()),
+        if (ownsWorg) _worgJson(defeated: defeated),
+      ],
+    },
+  },
+  missionInProgress: missionInProgress,
+);
 
 Finder _ownedPet(String petId) => find.byKey(ValueKey('owned-pet-$petId'));
 
@@ -121,6 +126,7 @@ void main() {
     bool defeated = false,
     bool missionInProgress = false,
     bool isCompanionNamingEnabled = false,
+    Stream<CharacterState> updates = const Stream.empty(),
   }) async {
     final character = _character(
       defeated: defeated,
@@ -128,7 +134,7 @@ void main() {
     );
     whenListen(
       characterCubit,
-      const Stream<CharacterState>.empty(),
+      updates,
       initialState: CharacterLoaded(character),
     );
     await pumpJournalPage(
@@ -308,6 +314,34 @@ void main() {
     expect(prompt.initialName, 'Zanna');
     expect(find.text('Come chiamerai il tuo Worg?'), findsOneWidget);
   });
+
+  testWidgets(
+    'the details slide away when their companion leaves the owned list '
+    '(D-22)',
+    (tester) async {
+      final updates = StreamController<CharacterState>.broadcast();
+      addTearDown(updates.close);
+      await pumpJournal(tester, updates: updates.stream);
+      await longPressWorg(tester);
+      final panel = tester.element(
+        find
+            .ancestor(
+              of: find.byType(CompanionInfoSheet),
+              matching: find.byType(Positioned),
+            )
+            .first,
+      );
+
+      updates.add(CharacterLoaded(_character(ownsWorg: false)));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompanionInfoSheet), findsNothing);
+      expect(
+        (panel.widget as Positioned).top,
+        tester.view.physicalSize.height / tester.view.devicePixelRatio,
+      );
+    },
+  );
 
   testWidgets('a tap outside the companion sheet closes it (D-22)', (
     tester,
