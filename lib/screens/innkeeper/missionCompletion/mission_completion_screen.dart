@@ -1,0 +1,336 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
+import 'package:klimmeck_guide/models/pending_request/request_card.dart';
+import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
+import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
+import 'package:klimmeck_guide/shared/components/kg_loader.dart';
+import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
+
+/// Pagine del wizard: navigazione locale, mai salvata (la bozza servita tiene
+/// il passo, D-09).
+enum MissionPage { place, encounters, fight, prizes, recap }
+
+/// Completamento guidato della missione (D-09, D-11, D-28): utility screen
+/// sopra la bozza servita. Esce con un [CompletionExit] come il form di
+/// Phase 10. Richiede sopra di sé [MissionDraftCubit],
+/// [MissionParticipantsCubit], [PendingRequestsCubit] e [TeleportModeCubit].
+class MissionCompletionScreen extends StatefulWidget {
+  const MissionCompletionScreen({super.key, required this.card});
+
+  static const String title = 'Completa la missione';
+  static const String startLabel = 'Inizia la missione';
+  static const String startNote =
+      "Da ora i partecipanti non possono viaggiare, accettare missioni, comprare o cambiare equipaggiamento fino all'esito";
+  static const String leaveNote =
+      'La bozza resta salvata: puoi riprenderla dalla Locanda';
+  static const String discardLabel = 'Scarta la bozza';
+  static const String discardTitle = 'Scartare la bozza?';
+  static const String discardBody =
+      'I partecipanti tornano liberi; il teletrasporto resta.';
+  static const String backLabel = 'Indietro';
+  static const String nextLabel = 'Avanti';
+  static const String retryLabel = 'Riprova';
+  static const String placeTitle = 'Luogo';
+  static const String encountersTitle = 'Scontri';
+  static const String prizesTitle = 'Premi';
+  static const String recapTitle = 'Riepilogo';
+  static String fightTitle(int index, int count) =>
+      'Scontro ${index + 1} di $count';
+  static const String invalidValuesMessage =
+      'Valori non accettati: controlla il modulo';
+  static const String notParticipantMessage =
+      'Un partecipante non fa più parte della richiesta';
+  static const String connectionMessage = 'Connessione assente, riprova';
+  static const String genericMessage = 'Qualcosa è andato storto, riprova';
+  static const Key startKey = ValueKey('mission.start');
+  static const Key discardKey = ValueKey('mission.discard');
+  static const Key backKey = ValueKey('mission.back');
+  static const Key nextKey = ValueKey('mission.next');
+  static const Key retryKey = ValueKey('mission.retry');
+
+  final RequestCard card;
+
+  @override
+  State<MissionCompletionScreen> createState() =>
+      _MissionCompletionScreenState();
+}
+
+class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
+  MissionPage _page = MissionPage.place;
+  final int _fightIndex = 0;
+  bool _hasLeft = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = context.read<MissionDraftCubit>().state;
+    if (state is MissionDraftReady) _openServedStep(state.draft);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PendingRequestsCubit, PendingRequestsState>(
+          listenWhen: (_, current) => _isRequestGone(current),
+          listener: (_, _) => _leave(const CompletionGone()),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: (previous, current) =>
+              previous is! MissionDraftReady && current is MissionDraftReady,
+          listener: (_, state) => setState(
+            () => _openServedStep((state as MissionDraftReady).draft),
+          ),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: _isExitOrNewFailure,
+          listener: _onDraftOutcome,
+        ),
+        BlocListener<TeleportModeCubit, TeleportModeState>(
+          listenWhen: (previous, current) =>
+              current is TeleportPreparationFailed && previous != current,
+          listener: (context, _) => _showSnackBar(
+            context,
+            InnkeeperPanelScreen.teleportUnavailableMessage,
+          ),
+        ),
+      ],
+      child: BlocBuilder<MissionDraftCubit, MissionDraftState>(
+        builder: (context, state) => PopScope(
+          canPop: !_isCallInFlight(state),
+          child: _buildScaffold(context, state),
+        ),
+      ),
+    );
+  }
+
+  /// Pitfall 5: conta la coda grezza, non le carte azionabili.
+  bool _isRequestGone(PendingRequestsState state) =>
+      state.isLoaded && !state.requests.any(_belongsToCard);
+
+  bool _belongsToCard(PendingRequest request) =>
+      widget.card.questType == QuestType.worldMission
+      ? request.quest.id == widget.card.questId
+      : request.id == widget.card.pendingQuestId;
+
+  /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
+  /// (D-18): i salvataggi successivi non spostano l'oste.
+  void _openServedStep(MissionDraft draft) {
+    _page = _pageOf(draft.step);
+    context.read<MissionParticipantsCubit>().load([
+      for (final participant in draft.participants) participant.characterId,
+    ]);
+  }
+
+  static MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
+    MissionDraftStep.fights => MissionPage.encounters,
+    MissionDraftStep.prizes => MissionPage.prizes,
+    MissionDraftStep.recap => MissionPage.recap,
+    MissionDraftStep.teleport || null => MissionPage.place,
+  };
+
+  static bool _isCallInFlight(MissionDraftState state) => switch (state) {
+    MissionDraftReady(:final isSubmitting) => isSubmitting,
+    MissionDraftAbsent(:final isStarting) => isStarting,
+    _ => false,
+  };
+
+  static int? _failureSerialOf(MissionDraftState state) => switch (state) {
+    MissionDraftReady(:final failureSerial) => failureSerial,
+    MissionDraftAbsent(:final failureSerial) => failureSerial,
+    _ => null,
+  };
+
+  static bool _isExitOrNewFailure(
+    MissionDraftState previous,
+    MissionDraftState current,
+  ) => switch (current) {
+    MissionDraftReady(failure: _?) || MissionDraftAbsent(failure: _?) =>
+      _failureSerialOf(previous) != _failureSerialOf(current),
+    MissionDraftCompleted() ||
+    MissionDraftDiscarded() ||
+    MissionDraftLoadFailed() => true,
+    _ => false,
+  };
+
+  void _onDraftOutcome(BuildContext context, MissionDraftState state) {
+    switch (state) {
+      case MissionDraftCompleted(:final results):
+        _leave(CompletionCompleted(results));
+      case MissionDraftDiscarded():
+        _leave(null);
+      case MissionDraftLoadFailed(:final failure):
+        final exit = _exitOf(failure);
+        if (exit != null) _leave(exit);
+      case MissionDraftReady(:final failure?) ||
+          MissionDraftAbsent(:final failure?):
+        final exit = _exitOf(failure);
+        if (exit != null) return _leave(exit);
+        _showSnackBar(context, _lineOf(failure));
+      case MissionDraftReady() || MissionDraftAbsent() || MissionDraftLoading():
+        return;
+    }
+  }
+
+  /// D-25: NOT_FOUND toglie la carta, QUEST_IN_PROGRESS rilegge la coda,
+  /// FORBIDDEN chiude il pannello; gli altri codici restano nel wizard.
+  static CompletionExit? _exitOf(InnkeeperFailure failure) => switch (failure) {
+    InnkeeperFailure.notFound => const CompletionGone(),
+    InnkeeperFailure.questInProgress => const CompletionBusy(),
+    InnkeeperFailure.forbidden => const CompletionForbidden(),
+    _ => null,
+  };
+
+  static String _lineOf(InnkeeperFailure failure) => switch (failure) {
+    InnkeeperFailure.overrideInvalid =>
+      MissionCompletionScreen.invalidValuesMessage,
+    InnkeeperFailure.notParticipant =>
+      MissionCompletionScreen.notParticipantMessage,
+    InnkeeperFailure.connection => MissionCompletionScreen.connectionMessage,
+    _ => MissionCompletionScreen.genericMessage,
+  };
+
+  /// Una sola uscita: coda e risposta possono chiudere il wizard insieme.
+  void _leave(CompletionExit? exit) {
+    if (_hasLeft) return;
+    _hasLeft = true;
+    Navigator.of(context).pop(exit);
+  }
+
+  static void _showSnackBar(BuildContext context, String message) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+
+  Widget _buildScaffold(BuildContext context, MissionDraftState state) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(MissionCompletionScreen.title),
+        actions: [
+          if (state is MissionDraftReady)
+            TextButton(
+              key: MissionCompletionScreen.discardKey,
+              onPressed: state.isSubmitting ? null : _confirmDiscard,
+              child: const Text(MissionCompletionScreen.discardLabel),
+            ),
+        ],
+      ),
+      body: DecoratedBox(
+        decoration: KlimmeckGuideTheme.getParchmentBackground(),
+        child: SafeArea(child: _buildBody(context, state)),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, MissionDraftState state) {
+    return switch (state) {
+      MissionDraftReady() => _buildReady(state),
+      MissionDraftAbsent(:final isStarting) => StartStep(
+        isStarting: isStarting,
+        onStart: context.read<MissionDraftCubit>().start,
+      ),
+      MissionDraftLoadFailed(:final failure) => _LoadFailed(
+        message: _lineOf(failure),
+      ),
+      MissionDraftLoading() ||
+      MissionDraftCompleted() ||
+      MissionDraftDiscarded() => const Center(child: KGLoader()),
+    };
+  }
+
+  Widget _buildReady(MissionDraftReady ready) {
+    final theme = KlimmeckGuideTheme.instance;
+    return Padding(
+      padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingMd),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MissionStepHeader(
+            stepNumber: _page.index + 1,
+            title: _titleOf(ready.draft),
+          ),
+          Text(MissionCompletionScreen.leaveNote, style: theme.bodyMedium),
+          const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+          Expanded(child: _buildPage()),
+          _buildBottomBar(ready),
+        ],
+      ),
+    );
+  }
+
+  String _titleOf(MissionDraft draft) => switch (_page) {
+    MissionPage.place => MissionCompletionScreen.placeTitle,
+    MissionPage.encounters => MissionCompletionScreen.encountersTitle,
+    MissionPage.fight => MissionCompletionScreen.fightTitle(
+      _fightIndex,
+      draft.fights.length,
+    ),
+    MissionPage.prizes => MissionCompletionScreen.prizesTitle,
+    MissionPage.recap => MissionCompletionScreen.recapTitle,
+  };
+
+  Widget _buildPage() => const SizedBox.shrink();
+
+  Widget _buildBottomBar(MissionDraftReady ready) {
+    final canGoBack = _page != MissionPage.place && !ready.isSubmitting;
+    return Row(
+      children: [
+        OutlinedButton(
+          key: MissionCompletionScreen.backKey,
+          onPressed: canGoBack ? _goBack : null,
+          child: const Text(MissionCompletionScreen.backLabel),
+        ),
+      ],
+    );
+  }
+
+  void _goBack() => setState(() => _page = MissionPage.values[_page.index - 1]);
+
+  /// D-11: scartare libera i partecipanti; il teletrasporto fatto resta.
+  Future<void> _confirmDiscard() async {
+    final confirmed = await showDestructiveConfirmation(
+      context,
+      title: MissionCompletionScreen.discardTitle,
+      body: MissionCompletionScreen.discardBody,
+      confirmLabel: MissionCompletionScreen.discardLabel,
+    );
+    if (!confirmed || !mounted) return;
+    await context.read<MissionDraftCubit>().discard();
+  }
+}
+
+class _LoadFailed extends StatelessWidget {
+  const _LoadFailed({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, style: KlimmeckGuideTheme.instance.bodyMedium),
+          const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+          ElevatedButton(
+            key: MissionCompletionScreen.retryKey,
+            style: KlimmeckGuideTheme.primaryButtonStyle,
+            onPressed: () => context.read<MissionDraftCubit>().load(),
+            child: const Text(MissionCompletionScreen.retryLabel),
+          ),
+        ],
+      ),
+    );
+  }
+}
