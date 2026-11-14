@@ -676,14 +676,16 @@ void main() {
     });
 
     testWidgets(
-      '«Avanti» on «Scontri» saves the fights and opens «Scontro 1 di N» (D-02)',
+      '«Avanti» on «Scontri» saves the fights with step fights and opens «Scontro 1 di N» (D-02, D-24)',
       (tester) async {
         await openWizard(tester, _twoFightsReady);
 
         await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
         await tester.pumpAndSettle();
 
-        verify(() => draftCubit.saveFights(any(), step: null)).called(1);
+        verify(
+          () => draftCubit.saveFights(any(), step: MissionDraftStep.fights),
+        ).called(1);
         expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
       },
     );

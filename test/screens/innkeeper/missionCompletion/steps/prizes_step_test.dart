@@ -336,6 +336,29 @@ void main() {
     },
   );
 
+  testWidgets(
+    '«Avanti» to the recap waits while a fight has no verdict (D-24)',
+    (tester) async {
+      await pumpStep(
+        tester,
+        MissionDraft.tryFromJson(
+          missionDraftJson(
+            step: 'prizes',
+            fights: [missionFightJson()],
+            prizes: [missionPrizeJson()],
+          ),
+        )!,
+      );
+
+      expect(
+        tester
+            .widget<ElevatedButton>(find.byKey(MissionCompletionScreen.nextKey))
+            .onPressed,
+        isNull,
+      );
+    },
+  );
+
   testWidgets('nothing is built from the served block (D-22)', (tester) async {
     await pumpStep(tester, _draftWith(const []));
 

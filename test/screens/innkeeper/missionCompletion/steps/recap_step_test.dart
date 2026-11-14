@@ -313,6 +313,19 @@ void main() {
     );
   });
 
+  testWidgets('a fight with no verdict disables «Completa» (D-24)', (
+    tester,
+  ) async {
+    await pumpStep(tester, _draft(fights: [_fights.first, missionFightJson()]));
+
+    expect(
+      tester
+          .widget<ElevatedButton>(find.byKey(RecapStep.completeKey))
+          .onPressed,
+      isNull,
+    );
+  });
+
   testWidgets(
     'a defeat still completes: no reject or aid action exists (D-05)',
     (tester) async {

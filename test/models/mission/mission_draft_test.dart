@@ -112,6 +112,24 @@ void main() {
       expect(draft.step, MissionDraftStep.teleport);
     });
 
+    test('allFightsSimulated is false while a fight has no verdict (D-24)', () {
+      MissionDraft draftWith(List<Map<String, dynamic>> fights) =>
+          MissionDraft.tryFromJson(missionDraftJson(fights: fights))!;
+
+      expect(draftWith(const []).allFightsSimulated, isTrue);
+      expect(
+        draftWith([missionFightJson(verdict: 'success')]).allFightsSimulated,
+        isTrue,
+      );
+      expect(
+        draftWith([
+          missionFightJson(verdict: 'success'),
+          missionFightJson(),
+        ]).allFightsSimulated,
+        isFalse,
+      );
+    });
+
     test('prizeOf finds a character\'s prize', () {
       final draft = MissionDraft.tryFromJson(
         missionDraftJson(
