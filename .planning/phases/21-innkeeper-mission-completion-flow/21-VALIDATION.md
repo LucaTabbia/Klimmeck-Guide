@@ -87,9 +87,9 @@ created: 2026-11-14
 | 21-10-01 | 10 | 10 | GMFLOW-02..05 | T-21-31, T-21-33 | malformed draft entry dropped, never the draft | unit | `flutter test test/models` | ❌ W0 mission_fixtures, test/models/mission/* | ✅ green |
 | 21-10-02 | 10 | 10 | GMFLOW-03..05 | T-21-32, T-21-34 | inputs rebuilt from the served draft, full corrections list with hpAfter for every participant; BE caps in one file | unit | `flutter test test/models` | ❌ W0 mission_draft_inputs_test | ✅ green |
 | 21-10-03 | 10 | 10 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-10-SUMMARY.md && grep -q "Plan: 10 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-11-01 | 11 | 11 | GMFLOW-02..06 | T-21-37 | eight documents registered (55), no gated selection | document pin | `flutter test test/graphql test/tool` | ❌ W0 mission_documents_test | ⬜ pending |
-| 21-11-02 | 11 | 11 | GMFLOW-02..06 | T-21-35, T-21-36, T-21-38 | innkeeper-only ops through _guard, no payload logs | unit | `flutter test test/repository` | ❌ W0 graphql_mission_test | ⬜ pending |
-| 21-11-03 | 11 | 11 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-11-SUMMARY.md && grep -q "Plan: 11 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-11-01 | 11 | 11 | GMFLOW-02..06 | T-21-37 | eight documents registered (55), no gated selection | document pin | `flutter test test/graphql test/tool` | ❌ W0 mission_documents_test | ✅ green |
+| 21-11-02 | 11 | 11 | GMFLOW-02..06 | T-21-35, T-21-36, T-21-38 | innkeeper-only ops through _guard, no payload logs | unit | `flutter test test/repository` | ❌ W0 graphql_mission_test | ✅ green |
+| 21-11-03 | 11 | 11 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-11-SUMMARY.md && grep -q "Plan: 11 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-12-01 | 12 | 12 | GMFLOW-02, GMFLOW-04..06 | T-21-40, T-21-41, T-21-42 | served draft replaces state; one call at a time | bloc | `flutter test test/screens/innkeeper/missionCompletion` | ❌ W0 mission_draft_cubit_test | ⬜ pending |
 | 21-12-02 | 12 | 12 | GMFLOW-03, GMFLOW-05 | T-21-39 | no client filter on enemies/prizes | bloc | `flutter test test/screens/innkeeper` | ❌ W0 three cubit tests | ⬜ pending |
 | 21-12-03 | 12 | 12 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-12-SUMMARY.md && grep -q "Plan: 12 of 18" .planning/STATE.md` | — | ⬜ pending |

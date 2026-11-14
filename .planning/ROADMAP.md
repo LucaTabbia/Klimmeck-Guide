@@ -152,7 +152,7 @@ Plans:
 - [x] 21-08-PLAN.md — Map: inner-POI layer and the teleport-only drop rule
 - [x] 21-09-PLAN.md — Return to the wizard after the Map and the «Riprendi» flag
 - [x] 21-10-PLAN.md — Mission draft models and wire inputs
-- [ ] 21-11-PLAN.md — Mission documents, registry, service and repository operations
+- [x] 21-11-PLAN.md — Mission documents, registry, service and repository operations
 - [ ] 21-12-PLAN.md — Wizard Cubits: draft, participants, enemies, prize options
 - [ ] 21-13-PLAN.md — Wizard UI 1: route, host, start, resume, discard, «Luogo»
 - [ ] 21-14-PLAN.md — Wizard UI 2: «Scontri» and the fight page with corrections
@@ -185,7 +185,7 @@ Plans:
 | 18. Heal Quests by City Size | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
-| 21. Innkeeper Mission Completion Flow | v1.1 | 10/18 | In Progress | - |
+| 21. Innkeeper Mission Completion Flow | v1.1 | 11/18 | In Progress | - |
 
 ---
 
