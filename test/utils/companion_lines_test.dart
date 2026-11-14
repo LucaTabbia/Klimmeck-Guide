@@ -74,6 +74,17 @@ void main() {
     expect(companionNameFieldLabel, 'Nome');
   });
 
+  test('without a species the prompt reads «Come chiamerai il tuo '
+      'compagno?» (D-18)', () {
+    for (final species in ['', '   ']) {
+      expect(
+        companionNamePromptTitle(species),
+        'Come chiamerai il tuo compagno?',
+        reason: '«$species»',
+      );
+    }
+  });
+
   test('rename label «Dai un nome» / «Cambia nome» (D-19)', () {
     expect(renameCompanionLabel(hasName: false), 'Dai un nome');
     expect(renameCompanionLabel(hasName: true), 'Cambia nome');
