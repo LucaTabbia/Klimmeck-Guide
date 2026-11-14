@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/pending_request/queued_travel.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest_capacity.dart';
+import 'package:klimmeck_guide/models/utc_instant.dart';
 
 /// Quest di una voce della coda del GM (selezione snella, 10-RESEARCH F3).
 class PendingRequestQuest extends Equatable {
@@ -122,12 +123,9 @@ class PendingRequest extends Equatable {
       character: PendingRequestCharacter.fromJson(
         json['character'] as Map<String, dynamic>,
       ),
-      missionDraftStartedAt: _instantOrNull(json['missionDraftStartedAt']),
+      missionDraftStartedAt: utcInstantOrNull(json['missionDraftStartedAt']),
     );
   }
-
-  static DateTime? _instantOrNull(Object? json) =>
-      json is String ? DateTime.tryParse(json)?.toUtc() : null;
 
   /// Confine di parsing per voce (Phase 9 IN-04): una voce malformata vale `null` e il chiamante la salta, la lista sopravvive.
   static PendingRequest? tryFromJson(Object? json) {

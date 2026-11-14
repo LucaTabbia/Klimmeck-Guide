@@ -9,7 +9,3 @@ List<T> missionEntriesOf<T>(
 
 /// Intero servito o `null` (mai un'eccezione).
 int? missionIntOf(Object? json) => json is num ? json.toInt() : null;
-
-/// Istante servito in UTC o `null`.
-DateTime? missionInstantOf(Object? json) =>
-    json is String ? DateTime.tryParse(json)?.toUtc() : null;

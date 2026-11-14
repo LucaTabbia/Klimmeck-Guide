@@ -8,8 +8,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/companion_content.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
-import 'package:klimmeck_guide/theme/kg_theme.dart';
-import 'package:klimmeck_guide/utils/mission_lines.dart';
+import 'package:klimmeck_guide/shared/components/mission_locked_section.dart';
 
 Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
@@ -48,7 +47,7 @@ class CompanionSection extends StatelessWidget {
         selector: _characterOf,
         builder: (context, character) {
           if (character == null) return const SizedBox.shrink();
-          final isOnMission = character.status?.missionInProgress ?? false;
+          final isOnMission = character.isOnMission;
           return BlocBuilder<CompanionCubit, CompanionState>(
             builder: (context, companion) {
               final content = CompanionContent(
@@ -60,31 +59,22 @@ class CompanionSection extends StatelessWidget {
                 pendingPetId: companion.pending?.petId,
                 cardSize: size,
                 onToggle: isOnMission
-                    ? _ignoreToggle
+                    ? ignoreMissionLockedToggle
                     : (petId) => _toggle(context, character, petId),
               );
               return Dropdown(
                 sectionName: 'Compagno',
-                data: isOnMission ? _missionLocked(content) : content,
+                data: isOnMission
+                    ? MissionLockedSection(
+                        lineKey: missionLockedKey,
+                        child: content,
+                      )
+                    : content,
               );
             },
           );
         },
       );
-
-  static void _ignoreToggle(String _) {}
-
-  static Widget _missionLocked(Widget content) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        missionInProgressLabel,
-        key: missionLockedKey,
-        style: KlimmeckGuideTheme.instance.bodyMedium,
-      ),
-      content,
-    ],
-  );
 
   /// Con un'operazione in corso il tocco non fa nulla e si riprova dopo
   /// l'esito (IN-04); altrimenti l'aptica conferma l'intento.

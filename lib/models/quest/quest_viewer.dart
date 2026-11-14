@@ -27,7 +27,7 @@ class QuestViewer extends Equatable {
     cityPointIds: cityPointIds,
     twitchPoints: twitchPoints,
     imprisonedFor: imprisonedFor,
-    isOnMission: character.status?.missionInProgress ?? false,
+    isOnMission: character.isOnMission,
   );
 
   final String characterId;

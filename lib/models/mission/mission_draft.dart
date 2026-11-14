@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_entries.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize.dart';
+import 'package:klimmeck_guide/models/utc_instant.dart';
 
 /// Passo raggiunto dal wizard, salvato sulla bozza (D-18).
 enum MissionDraftStep { teleport, fights, prizes, recap }
@@ -115,8 +116,8 @@ class MissionDraft extends Equatable {
       questType: QuestType.values.asNameMap()[json['questType']],
       step: MissionDraftStep.values.asNameMap()[json['step']],
       placeId: placeId is String ? placeId : null,
-      startedAt: missionInstantOf(json['startedAt']),
-      updatedAt: missionInstantOf(json['updatedAt']),
+      startedAt: utcInstantOrNull(json['startedAt']),
+      updatedAt: utcInstantOrNull(json['updatedAt']),
       participants: missionEntriesOf(
         json['participants'],
         MissionParticipant.tryFromJson,

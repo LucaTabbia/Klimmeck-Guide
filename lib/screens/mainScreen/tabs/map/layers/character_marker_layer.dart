@@ -193,7 +193,7 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
       state.character.status?.activeTravel == null &&
       state.character.quests?.pendingQuest == null &&
       state.character.status?.awaitingAid == null &&
-      !(state.character.status?.missionInProgress ?? false) &&
+      !state.character.isOnMission &&
       travel is TravelIdle;
 
   /// D-04: col foglio aperto (anche durante il preventivo rinnovato,

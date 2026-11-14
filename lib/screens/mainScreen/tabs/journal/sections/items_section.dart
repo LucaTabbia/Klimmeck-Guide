@@ -168,7 +168,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     if (potion == null || isAwaitingAid) {
       return _itemRow(item, quantity);
     }
-    if (character.status?.missionInProgress ?? false) {
+    if (character.isOnMission) {
       return _itemRow(
         item,
         quantity,

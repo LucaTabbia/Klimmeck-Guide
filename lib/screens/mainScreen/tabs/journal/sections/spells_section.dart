@@ -11,10 +11,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/spellb
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
+import 'package:klimmeck_guide/shared/components/mission_locked_section.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
-import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
-import 'package:klimmeck_guide/utils/mission_lines.dart';
 
 /// Apre il foglio di dettaglio: il Diario lo ospita nel suo Stack con il cubit
 /// del countdown della sezione (D-09, D-16).
@@ -42,9 +41,6 @@ SpellToggleIntent toggleSpellWithFeedback(
 
 Character? _characterOf(CharacterState state) =>
     state is CharacterLoaded ? state.character : null;
-
-bool _isOnMission(Character? character) =>
-    character?.status?.missionInProgress ?? false;
 
 /// Sezione «Magie imparate» del Diario (SPELL-01..07). Possiede il countdown:
 /// vive solo mentre la pagina del Diario è a schermo (D-16). Bloccata durante
@@ -142,14 +138,14 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
       return const SizedBox.shrink();
     }
     final outcome = spells.outcome;
-    final isOnMission = _isOnMission(character);
+    final isOnMission = character.isOnMission;
     final content = BlocBuilder<SpellRecoveryCubit, SpellRecoveryState>(
       builder: (context, recovery) => SpellbookContent(
         spellbook: spellbook,
         recoveries: recovery.statuses,
         cardSize: widget.cardSize,
         onToggle: isOnMission
-            ? _ignoreToggle
+            ? ignoreMissionLockedToggle
             : (spellId) => toggleSpellWithFeedback(
                 context,
                 character: character,
@@ -166,23 +162,14 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
     );
     return Dropdown(
       sectionName: 'Magie imparate',
-      data: isOnMission ? _missionLocked(content) : content,
+      data: isOnMission
+          ? MissionLockedSection(
+              lineKey: SpellsSection.missionLockedKey,
+              child: content,
+            )
+          : content,
     );
   }
-
-  static void _ignoreToggle(String _) {}
-
-  static Widget _missionLocked(Widget content) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        missionInProgressLabel,
-        key: SpellsSection.missionLockedKey,
-        style: KlimmeckGuideTheme.instance.bodyMedium,
-      ),
-      content,
-    ],
-  );
 }
 
 /// Foglio del long-press legato allo stato vivo (D-09): attiva/in attesa da
@@ -220,7 +207,7 @@ class SpellDetailsSheet extends StatelessWidget {
         recovery: recovery.statusOf(spell.id),
         isActive: spellbook.activeSpellIds.contains(spell.id),
         isPending: spellbook.pending.containsKey(spell.id),
-        onToggle: character == null || _isOnMission(character)
+        onToggle: character == null || character.isOnMission
             ? null
             : () => toggleSpellWithFeedback(
                 context,

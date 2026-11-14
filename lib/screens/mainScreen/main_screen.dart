@@ -306,7 +306,7 @@ class _MainScreenState extends State<MainScreen>
       location: status?.location,
       isTravelling: status?.activeTravel != null,
       isAwaitingAid: status?.awaitingAid != null,
-      isOnMission: status?.missionInProgress ?? false,
+      isOnMission: state.character.isOnMission,
     );
   }
 

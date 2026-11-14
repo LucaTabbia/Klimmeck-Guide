@@ -39,10 +39,6 @@ class Journal extends StatefulWidget {
   State<Journal> createState() => _JournalState();
 }
 
-/// Missione in corso servita dal backend (Phase 21 D-12): l'armatura non cambia.
-bool _isOnMission(Character character) =>
-    character.status?.missionInProgress ?? false;
-
 class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   List<EquipmentItem> _equippedItems = [];
   EquipmentItem? _selectedEquipment;
@@ -169,7 +165,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     double screenWidth,
     double lootSize,
   ) {
-    final isOnMission = _isOnMission(character);
+    final isOnMission = character.isOnMission;
     return Dropdown(
       sectionName: "Armatura",
       data: Padding(
@@ -256,7 +252,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                           return SingleChildScrollView(
                             child: EquipmentInfoSheet(
                               equipmentItem: _selectedEquipment!,
-                              onEquip: _isOnMission(state.character)
+                              onEquip: state.character.isOnMission
                                   ? null
                                   : () => _equipItem(
                                       _selectedEquipment!,
@@ -344,7 +340,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   void _equipItem(EquipmentItem item, Character character) {
-    if (_isOnMission(character)) return;
+    if (character.isOnMission) return;
     final isCurrentlyEquipped = _equippedItems.contains(item);
     SlotType? targetSlot;
     String? itemIdToSend;

@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/spell/spell_state.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
+import 'package:klimmeck_guide/models/utc_instant.dart';
 
 import '../coins.dart';
 import '../enums/title_type.dart';
@@ -86,8 +87,8 @@ class CharacterStatus extends Equatable {
         spellStates: _spellStatesFrom(json['spellStates']),
         awaitingAid: AwaitingAid.tryFromJson(json['awaitingAid']),
         unlockedLore: _unlockedLoreFrom(json['unlockedLore']),
-        potionRecoveryUntil: _instantOrNull(json['potionRecoveryUntil']),
-        imprisonedUntil: _instantOrNull(json['imprisonedUntil']),
+        potionRecoveryUntil: utcInstantOrNull(json['potionRecoveryUntil']),
+        imprisonedUntil: utcInstantOrNull(json['imprisonedUntil']),
         missionInProgress: json['missionInProgress'] == true,
         guidedMissionInProgress: json['guidedMissionInProgress'] == true,
       );
@@ -103,10 +104,6 @@ class CharacterStatus extends Equatable {
     if (json is! List) return const [];
     return List<String>.unmodifiable(json.whereType<String>());
   }
-
-  /// Una data illeggibile vale `null`: il personaggio sopravvive.
-  static DateTime? _instantOrNull(Object? json) =>
-      json is String ? DateTime.tryParse(json)?.toUtc() : null;
 
   Map<String, dynamic> toJson() => {
     "location": location?.toJson(),
