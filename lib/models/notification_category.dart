@@ -2,13 +2,16 @@
 /// esplicita: rinominare un valore non deve orfanare i dati salvati.
 /// `ambushDefeat` (Phase 16 D-02): sconfitta in un'imboscata, titolo e testo dal BE.
 /// `prisonRelease` (quick 261110-prp): fine della prigionia, titolo e testo dal BE.
+/// `missionStart` (Phase 21): l'oste avvia la story o la worldMission in coda,
+/// titolo e testo dal BE.
 enum NotificationCategory {
   travelEnd('travel_end', 'travelEnd'),
   streamerLive('streamer_live', 'streamerLive'),
   questEnd('quest_end', 'questEnd'),
   questCancelled('quest_cancelled', 'questCancelled'),
   ambushDefeat('ambush_defeat', 'ambushDefeat'),
-  prisonRelease('prison_release', 'prisonRelease');
+  prisonRelease('prison_release', 'prisonRelease'),
+  missionStart('mission_start', 'missionStart');
 
   const NotificationCategory(this.storageKey, this.wireType);
 

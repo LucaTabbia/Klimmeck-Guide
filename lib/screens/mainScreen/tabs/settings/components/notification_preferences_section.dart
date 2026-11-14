@@ -48,5 +48,6 @@ class NotificationPreferencesSection extends StatelessWidget {
     NotificationCategory.questCancelled => 'Missione annullata',
     NotificationCategory.ambushDefeat => 'Imboscate',
     NotificationCategory.prisonRelease => 'Uscita di prigione',
+    NotificationCategory.missionStart => 'Inizio missione',
   };
 }
