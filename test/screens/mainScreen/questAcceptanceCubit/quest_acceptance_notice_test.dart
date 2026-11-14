@@ -146,4 +146,24 @@ void main() {
       }
     });
   });
+
+  group('questAwaitingInnkeeperNoticeFor', () {
+    test('tells a story or worldMission player to wait for the innkeeper', () {
+      for (final type in [QuestType.story, QuestType.worldMission]) {
+        expect(
+          questAwaitingInnkeeperNoticeFor(type),
+          KGNotification(
+            title: 'Missione accettata',
+            description:
+                "L'oste è stato avvisato: la missione comincerà quando la avvia",
+          ),
+        );
+      }
+    });
+
+    test('has no banner for a quest that travels or of unknown type', () {
+      expect(questAwaitingInnkeeperNoticeFor(QuestType.hunt), isNull);
+      expect(questAwaitingInnkeeperNoticeFor(null), isNull);
+    });
+  });
 }

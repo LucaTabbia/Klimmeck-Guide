@@ -295,6 +295,26 @@ void main() {
     );
   });
 
+  testWidgets('an accepted story tells the player to wait for the innkeeper', (
+    tester,
+  ) async {
+    await pumpListener(tester);
+
+    await emit(tester, const QuestAccepted('s-1'));
+
+    verify(
+      () => notices.publishNotice(
+        KGNotification(
+          title: 'Missione accettata',
+          description:
+              "L'oste è stato avvisato: la missione comincerà quando la avvia",
+        ),
+        dedupKey: 'quest-accepted|s-1',
+      ),
+    ).called(1);
+    verify(() => acceptance.reset()).called(1);
+  });
+
   testWidgets('an acceptance in flight does nothing', (tester) async {
     await pumpListener(tester);
 

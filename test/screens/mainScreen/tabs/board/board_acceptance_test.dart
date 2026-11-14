@@ -377,6 +377,23 @@ void main() {
       expect(accepted, 0);
     });
 
+    testWidgets('a story acceptance closes the sheet and stays on the board', (
+      tester,
+    ) async {
+      await pumpBoard(
+        tester,
+        quests: [buildQuest(id: 's-1', type: 'story')],
+      );
+      await openSheet(tester, 's-1');
+      expect(find.byType(TearablePaper), findsOneWidget);
+
+      acceptanceStates.add(const QuestAccepted('s-1'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TearablePaper), findsNothing);
+      expect(accepted, 0);
+    });
+
     testWidgets('a rejection recomposes the paper and leaves the rest alone', (
       tester,
     ) async {
