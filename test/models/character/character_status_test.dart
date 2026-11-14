@@ -361,6 +361,74 @@ void main() {
     });
   });
 
+  group('mission flags (BE Phase 22)', () {
+    CharacterStatus statusWith(Map<String, dynamic> flags) =>
+        CharacterStatus.fromJson({...statusJson(), ...flags});
+
+    test('reads missionInProgress and guidedMissionInProgress as served '
+        '(D-16)', () {
+      final both = statusWith({
+        'missionInProgress': true,
+        'guidedMissionInProgress': true,
+      });
+      final normal = statusWith({
+        'missionInProgress': true,
+        'guidedMissionInProgress': false,
+      });
+
+      expect(both.missionInProgress, isTrue);
+      expect(both.guidedMissionInProgress, isTrue);
+      expect(normal.missionInProgress, isTrue);
+      expect(normal.guidedMissionInProgress, isFalse);
+    });
+
+    test('absent or malformed flags read false (D-16)', () {
+      final absent = CharacterStatus.fromJson(statusJson());
+      expect(absent.missionInProgress, isFalse);
+      expect(absent.guidedMissionInProgress, isFalse);
+
+      for (final Object? malformed in ['yes', null, 1]) {
+        final status = statusWith({
+          'missionInProgress': malformed,
+          'guidedMissionInProgress': malformed,
+        });
+
+        expect(status.missionInProgress, isFalse);
+        expect(status.guidedMissionInProgress, isFalse);
+        expect(status.location!.id, 'city-marker-1');
+      }
+    });
+
+    test('toJson round trip keeps both flags (D-16)', () {
+      final status = statusWith({
+        'missionInProgress': true,
+        'guidedMissionInProgress': true,
+      });
+
+      expect(CharacterStatus.fromJson(status.toJson()), status);
+      expect(status.toJson()['missionInProgress'], isTrue);
+      expect(status.toJson()['guidedMissionInProgress'], isTrue);
+    });
+
+    test('copyWith keeps both flags (D-16)', () {
+      final copy = statusWith({
+        'missionInProgress': true,
+        'guidedMissionInProgress': true,
+      }).copyWith(xp: 5);
+
+      expect(copy.xp, 5);
+      expect(copy.missionInProgress, isTrue);
+      expect(copy.guidedMissionInProgress, isTrue);
+    });
+
+    test('props tell two statuses apart by each flag (D-16)', () {
+      final idle = CharacterStatus.fromJson(statusJson());
+
+      expect(statusWith({'missionInProgress': true}) == idle, isFalse);
+      expect(statusWith({'guidedMissionInProgress': true}) == idle, isFalse);
+    });
+  });
+
   group('potionRecoveryUntil (BE Phase 18)', () {
     const recoveryEndWire = '2026-10-27T10:30:00.000Z';
     final recoveryEnd = DateTime.utc(2026, 10, 27, 10, 30);
