@@ -69,9 +69,9 @@ created: 2026-11-14
 | 21-04-01 | 04 | 4 | GMFLOW-07 | T-21-11 | every quest blocked from the served flag only, mission line after the existing reasons (D-23) | unit | `flutter test test/models/quest` | ✅ extend | ✅ green |
 | 21-04-02 | 04 | 4 | GMFLOW-07 | T-21-12, T-21-13, T-21-14 | shop closed, drag blocked, pawn label only for the guided flow, no chrome | widget | `flutter test test/screens/mainScreen` | ✅ extend | ✅ green |
 | 21-04-03 | 04 | 4 | GMFLOW-07 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-04-SUMMARY.md && grep -q "Plan: 04 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-05-01 | 05 | 5 | GMFLOW-07 | T-21-16 | potions locked; potion refusal visible | unit + widget | `flutter test test/repository/item_use_failure_test.dart test/screens/mainScreen/tabs/journal` | ✅ extend | ⬜ pending |
-| 21-05-02 | 05 | 5 | GMFLOW-07 | T-21-15, T-21-17 | armour/companion/spells locked in-world, equip never sent | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 journal_mission_lock_test | ⬜ pending |
-| 21-05-03 | 05 | 5 | GMFLOW-07 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-05-SUMMARY.md && grep -q "Plan: 05 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-05-01 | 05 | 5 | GMFLOW-07 | T-21-16 | potions locked; potion refusal visible | unit + widget | `flutter test test/repository/item_use_failure_test.dart test/screens/mainScreen/tabs/journal` | ✅ extend | ✅ green |
+| 21-05-02 | 05 | 5 | GMFLOW-07 | T-21-15, T-21-17 | armour/companion/spells locked in-world, equip never sent | widget | `flutter test test/screens/mainScreen/tabs/journal` | ❌ W0 journal_mission_lock_test | ✅ green |
+| 21-05-03 | 05 | 5 | GMFLOW-07 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-05-SUMMARY.md && grep -q "Plan: 05 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-06-01 | 06 | 6 | GMFLOW-01 | T-21-18 | unknown POI type dropped, demonicPortal kept | unit | `flutter test test/models` | ❌ W0 poi_type_test, teleport_destination_test | ⬜ pending |
 | 21-06-02 | 06 | 6 | GMFLOW-01 | T-21-20 | document registered (47) with pins | document pin | `flutter test test/tool test/graphql` | ✅ extend | ⬜ pending |
 | 21-06-03 | 06 | 6 | GMFLOW-01 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-06-SUMMARY.md && grep -q "Plan: 06 of 18" .planning/STATE.md` | — | ⬜ pending |
