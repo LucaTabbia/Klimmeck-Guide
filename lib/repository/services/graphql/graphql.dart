@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
@@ -11,6 +12,7 @@ import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/mission_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/point_of_interest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
@@ -31,6 +33,9 @@ import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/lore.dart';
+import 'package:klimmeck_guide/models/mission/mission_draft.dart';
+import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
+import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
@@ -42,6 +47,7 @@ import 'package:klimmeck_guide/models/request/create_character_request.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
 import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
+import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
@@ -268,6 +274,145 @@ class KlimmeckGraphQl {
     }
     return created;
   }
+
+  /// Bozza del flusso guidato della richiesta (D-09, D-18): null se l'oste
+  /// non l'ha ancora iniziata. Lancia [OperationException] o
+  /// [FormatException].
+  Future<MissionDraft?> getMissionDraft(String pendingQuestId) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        MissionQueries.getMissionDraft,
+        variables: {'pendingQuestId': pendingQuestId},
+      ),
+    );
+    final draft = data['missionDraft'];
+    if (draft == null) return null;
+    return _missionDraftFrom(draft, 'missionDraft');
+  }
+
+  /// Crea la bozza dalla pagina «Inizia la missione» (D-28). Lancia
+  /// [OperationException] o [FormatException].
+  Future<MissionDraft> startMissionDraft(String pendingQuestId) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: MissionMutations.startMissionDraft,
+        variables: {'pendingQuestId': pendingQuestId},
+      ),
+    );
+    return _missionDraftFrom(data['startMissionDraft'], 'startMissionDraft');
+  }
+
+  /// Salva il passo del flusso guidato (D-06, D-18): vince l'ultima
+  /// scrittura. Lancia [OperationException] o [FormatException].
+  Future<MissionDraft> saveMissionDraft(SaveMissionDraftInput input) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: MissionMutations.saveMissionDraft,
+        variables: {'input': input.toJson()},
+      ),
+    );
+    return _missionDraftFrom(data['saveMissionDraft'], 'saveMissionDraft');
+  }
+
+  /// Simulazione a secco di uno scontro (D-02, D-04): l'esito arriva nella
+  /// bozza. Lancia [OperationException] o [FormatException].
+  Future<MissionDraft> simulateMissionFight(
+    SimulateMissionFightInput input,
+  ) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: MissionMutations.simulateMissionFight,
+        variables: {'input': input.toJson()},
+      ),
+    );
+    return _missionDraftFrom(
+      data['simulateMissionFight'],
+      'simulateMissionFight',
+    );
+  }
+
+  /// Scarta la bozza (D-09): `successful` del BE. Lancia
+  /// [OperationException] o [FormatException].
+  Future<bool> discardMissionDraft(String pendingQuestId) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: MissionMutations.discardMissionDraft,
+        variables: {'pendingQuestId': pendingQuestId},
+      ),
+    );
+    final result = data['discardMissionDraft'];
+    final successful = result is Map<String, dynamic>
+        ? result['successful']
+        : null;
+    if (successful is! bool) {
+      throw const FormatException('discardMissionDraft malformed');
+    }
+    return successful;
+  }
+
+  /// Completa la missione dalla bozza (D-05, D-08): i risultati creati, voce
+  /// per voce (una voce malformata è scartata). Lancia [OperationException] o
+  /// [FormatException].
+  Future<List<QuestResult>> completeGuidedMission(String pendingQuestId) async {
+    final data = _dataOrThrow(
+      await performMutation(
+        query: MissionMutations.completeGuidedMission,
+        variables: {'pendingQuestId': pendingQuestId},
+      ),
+    );
+    final entries = data['completeGuidedMission'];
+    if (entries is! List) {
+      throw const FormatException('completeGuidedMission missing');
+    }
+    return List.unmodifiable(
+      entries.map(QuestResult.tryFromJson).whereType<QuestResult>(),
+    );
+  }
+
+  /// Nemici proposti all'oste nell'ordine del BE (D-03, D-19): l'app non li
+  /// filtra mai; un nemico illeggibile è scartato, la lista resta. Lancia
+  /// [OperationException] o [FormatException].
+  Future<List<MissionEnemy>> getMissionEnemies(
+    String pendingQuestId, {
+    bool showAll = false,
+  }) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        MissionQueries.listMissionEnemies,
+        variables: {'pendingQuestId': pendingQuestId, 'showAll': showAll},
+      ),
+    );
+    final entries = data['missionEnemies'];
+    if (entries is! List) {
+      throw const FormatException('missionEnemies missing');
+    }
+    return List.unmodifiable(
+      entries.map(MissionEnemy.tryFromJson).whereType<MissionEnemy>(),
+    );
+  }
+
+  /// Blocco del rango del personaggio e catalogo filtrato dal BE (D-07,
+  /// D-22). Lancia [OperationException] o [FormatException].
+  Future<MissionPrizeOptions> getMissionPrizeOptions({
+    required String pendingQuestId,
+    required String characterId,
+  }) async {
+    final data = _dataOrThrow(
+      await performQuery(
+        MissionQueries.getMissionPrizeOptions,
+        variables: {
+          'characterId': characterId,
+          'pendingQuestId': pendingQuestId,
+        },
+      ),
+    );
+    return MissionPrizeOptions.tryFromJson(data['missionPrizeOptions']) ??
+        (throw const FormatException('missionPrizeOptions malformed'));
+  }
+
+  MissionDraft _missionDraftFrom(Object? json, String field) =>
+      MissionDraft.tryFromJson(json) ??
+      (throw FormatException('$field malformed'));
 
   List<PendingRequest> _pendingRequestsFrom(Object? json) {
     if (json is! List) throw const FormatException('pendingRequests missing');
