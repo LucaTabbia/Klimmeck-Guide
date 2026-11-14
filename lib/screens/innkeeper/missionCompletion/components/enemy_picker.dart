@@ -8,17 +8,13 @@ import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Lista dei nemici serviti dal BE, nel suo ordine (D-03, D-19): l'app cerca
-/// solo per nome e chiede l'intero bestiario con «Mostra tutti». Una lettura
-/// fallita senza nemici mostra l'errore e «Riprova», mai una lista vuota muta.
+/// Lista dei nemici serviti dal BE, nel suo ordine (D-03, D-19); ricerca e
+/// «Mostra tutti» stanno in `EnemySearchBar`. Una lettura fallita senza nemici
+/// mostra l'errore e «Riprova», mai una lista vuota muta.
 class EnemyPicker extends StatelessWidget {
   const EnemyPicker({super.key, required this.onPick});
 
-  static const String searchLabel = 'Cerca';
-  static const String showAllLabel = 'Mostra tutti';
   static const String legendaryLabel = 'Leggendario';
-  static const Key searchKey = ValueKey('mission.enemies.search');
-  static const Key showAllKey = ValueKey('mission.enemies.showAll');
   static const Key retryKey = ValueKey('mission.enemies.retry');
   static Key enemyKeyFor(String enemyId) =>
       ValueKey('mission.enemies.row.$enemyId');
@@ -37,27 +33,6 @@ class EnemyPicker extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: searchKey,
-                    decoration: const InputDecoration(
-                      labelText: searchLabel,
-                      isDense: true,
-                    ),
-                    onChanged: cubit.setQuery,
-                  ),
-                ),
-                const SizedBox(width: KlimmeckGuideTheme.spacingSm),
-                FilterChip(
-                  key: showAllKey,
-                  label: const Text(showAllLabel),
-                  selected: state.showAll,
-                  onSelected: cubit.setShowAll,
-                ),
-              ],
-            ),
             if (state.isLoading && visible.isEmpty)
               const KGLoader(height: _portraitHeight),
             if (state.failure case final failure? when state.enemies.isEmpty)

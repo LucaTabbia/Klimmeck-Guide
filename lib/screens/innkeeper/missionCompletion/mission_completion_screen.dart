@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
@@ -256,21 +257,24 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       ).showSnackBar(SnackBar(content: Text(message)));
 
   Widget _buildScaffold(BuildContext context, MissionDraftState state) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(MissionCompletionScreen.title),
-        actions: [
-          if (state is MissionDraftReady)
-            TextButton(
-              key: MissionCompletionScreen.discardKey,
-              onPressed: state.isSubmitting ? null : _confirmDiscard,
-              child: const Text(MissionCompletionScreen.discardLabel),
-            ),
-        ],
-      ),
-      body: DecoratedBox(
-        decoration: KlimmeckGuideTheme.getParchmentBackground(),
-        child: SafeArea(child: _buildBody(context, state)),
+    return Theme(
+      data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(MissionCompletionScreen.title),
+          actions: [
+            if (state is MissionDraftReady)
+              TextButton(
+                key: MissionCompletionScreen.discardKey,
+                onPressed: state.isSubmitting ? null : _confirmDiscard,
+                child: const Text(MissionCompletionScreen.discardLabel),
+              ),
+          ],
+        ),
+        body: DecoratedBox(
+          decoration: KlimmeckGuideTheme.getParchmentBackground(),
+          child: SafeArea(child: _buildBody(context, state)),
+        ),
       ),
     );
   }
@@ -298,11 +302,16 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MissionStepHeader(
-            stepNumber: _page.index + 1,
-            title: _titleOf(ready.draft),
+          Row(
+            children: [
+              MissionStepHeader(
+                stepNumber: _page.index + 1,
+                title: _titleOf(ready.draft),
+              ),
+              const SizedBox(width: KlimmeckGuideTheme.spacingMd),
+              Expanded(child: _buildHeaderSide(theme)),
+            ],
           ),
-          Text(MissionCompletionScreen.leaveNote, style: theme.bodyMedium),
           const SizedBox(height: KlimmeckGuideTheme.spacingSm),
           Expanded(child: _buildPage(ready)),
           _buildBottomBar(ready),
@@ -447,6 +456,17 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     if (state is! MissionDraftReady || state.failureSerial != serial) return;
     setState(() => _enter(next, fightIndex: fightIndex));
   }
+
+  /// Accanto al contatore dei passi: la ricerca dei nemici su «Scontri», la
+  /// nota della bozza su «Luogo», nulla sulle pagine fitte (UAT 2026-11-14).
+  Widget _buildHeaderSide(KlimmeckGuideTheme theme) => switch (_page) {
+    MissionPage.encounters => const EnemySearchBar(),
+    MissionPage.place => Text(
+      MissionCompletionScreen.leaveNote,
+      style: theme.bodyMedium,
+    ),
+    _ => const SizedBox.shrink(),
+  };
 
   Widget _buildBottomBar(MissionDraftReady ready) {
     final canGoBack = _page != MissionPage.place && !ready.isSubmitting;

@@ -242,6 +242,32 @@ class KlimmeckGuideTheme {
     disabledForegroundColor: darkWood,
   );
 
+  /// Pulsanti raccolti per le pagine fitte in orizzontale (wizard dell'oste):
+  /// il testo speciale a 30 riempiva lo schermo (UAT 2026-11-14).
+  static ThemeData compactButtonsOf(ThemeData base) {
+    final style = ButtonStyle(
+      textStyle: WidgetStatePropertyAll(
+        base.textTheme.labelLarge?.copyWith(fontSize: mapNoticeFontSize),
+      ),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: spacingMd, vertical: spacingXs),
+      ),
+      minimumSize: const WidgetStatePropertyAll(Size(44, 40)),
+      visualDensity: VisualDensity.compact,
+    );
+    return base.copyWith(
+      textButtonTheme: TextButtonThemeData(
+        style: style.merge(base.textButtonTheme.style),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: style.merge(base.elevatedButtonTheme.style),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: style.merge(base.outlinedButtonTheme.style),
+      ),
+    );
+  }
+
   static OutlineInputBorder _sheetBorder(Color color, {double width = 1}) =>
       OutlineInputBorder(
         borderRadius: const BorderRadius.all(Radius.circular(spacingSm)),
