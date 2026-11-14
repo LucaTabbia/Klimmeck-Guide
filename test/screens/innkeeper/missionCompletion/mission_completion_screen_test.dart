@@ -4,6 +4,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
@@ -313,6 +316,34 @@ void main() {
 
       expect(find.text(MissionCompletionScreen.leaveNote), findsOneWidget);
       expect(find.byKey(MissionCompletionScreen.discardKey), findsOneWidget);
+    });
+
+    testWidgets('«Scontri» puts the enemy search beside the step counter and '
+        'drops the leave note (UAT 2026-11-14)', (tester) async {
+      await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+      final header = tester.getRect(_headerText('Passo 2 di 5 · Scontri'));
+      final search = tester.getRect(find.byKey(EnemySearchBar.searchKey));
+      expect(search.left, greaterThan(header.right));
+      expect(search.top, lessThan(header.bottom));
+      expect(search.bottom, greaterThan(header.top));
+      expect(find.text(MissionCompletionScreen.leaveNote), findsNothing);
+    });
+
+    testWidgets('the wizard buttons are written in the compact size '
+        '(UAT 2026-11-14)', (tester) async {
+      await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
+
+      for (final label in [
+        MissionCompletionScreen.backLabel,
+        MissionCompletionScreen.nextLabel,
+        EncountersStep.addFightLabel,
+      ]) {
+        final style = DefaultTextStyle.of(
+          tester.element(find.text(label)),
+        ).style;
+        expect(style.fontSize, KlimmeckGuideTheme.mapNoticeFontSize);
+      }
     });
 
     testWidgets('«Indietro» is disabled on «Luogo»', (tester) async {

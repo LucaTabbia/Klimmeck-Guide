@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/mission/mission_enemy.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_picker.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
@@ -54,7 +55,12 @@ void main() {
         home: Scaffold(
           body: BlocProvider<MissionEnemiesCubit>.value(
             value: enemiesCubit,
-            child: EnemyPicker(onPick: picks.add),
+            child: Column(
+              children: [
+                const EnemySearchBar(),
+                Expanded(child: EnemyPicker(onPick: picks.add)),
+              ],
+            ),
           ),
         ),
       ),
@@ -87,10 +93,10 @@ void main() {
   testWidgets('typing in «Cerca» sets the name query (D-03)', (tester) async {
     await pumpPicker(tester, MissionEnemiesState(enemies: [_wolf]));
 
-    await tester.enterText(find.byKey(EnemyPicker.searchKey), 'lu');
+    await tester.enterText(find.byKey(EnemySearchBar.searchKey), 'lu');
 
     verify(() => enemiesCubit.setQuery('lu')).called(1);
-    expect(find.text(EnemyPicker.searchLabel), findsOneWidget);
+    expect(find.text(EnemySearchBar.searchLabel), findsOneWidget);
   });
 
   testWidgets('only the visible enemies are listed (D-03)', (tester) async {
@@ -108,11 +114,11 @@ void main() {
   ) async {
     await pumpPicker(tester, MissionEnemiesState(enemies: [_wolf]));
 
-    await tester.tap(find.byKey(EnemyPicker.showAllKey));
+    await tester.tap(find.byKey(EnemySearchBar.showAllKey));
     await tester.pump();
 
     verify(() => enemiesCubit.setShowAll(true)).called(1);
-    expect(find.text(EnemyPicker.showAllLabel), findsOneWidget);
+    expect(find.text(EnemySearchBar.showAllLabel), findsOneWidget);
   });
 
   testWidgets('a legendary enemy shows «Leggendario» (D-19)', (tester) async {
