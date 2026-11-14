@@ -116,6 +116,9 @@ class CharacterFragment {
         pointsSpent
         quest {
           id
+          infos {
+            type
+          }
         }
       }
       activeStoryQuest {

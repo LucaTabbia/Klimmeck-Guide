@@ -46,6 +46,10 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const Key preparingLabelKey = ValueKey('map.preparingLabel');
   static const String preparingLabel = 'In preparazione…';
 
+  /// Missione normale in corso: cosa sta facendo il personaggio (UAT
+  /// 2026-11-14).
+  static const Key activityLabelKey = ValueKey('map.activityLabel');
+
   /// Solo durante il flusso guidato della Locanda (FE Phase 21 D-16).
   static const Key missionLabelKey = ValueKey('map.missionLabel');
 
@@ -161,6 +165,14 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               text: missionInProgressLabel,
             ),
           ),
+        if (_activityLabelOf(state) case final activity?)
+          _labelMarker(
+            point,
+            PawnLabel(
+              key: CharacterMarkerLayer.activityLabelKey,
+              text: activity,
+            ),
+          ),
         if (prisonRemaining != null)
           _labelMarker(
             point,
@@ -170,6 +182,17 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
             ),
           ),
       ],
+    );
+  }
+
+  /// Solo a missione davvero cominciata e fuori dal flusso dell'oste, che ha
+  /// la sua etichetta.
+  static String? _activityLabelOf(CharacterLoaded state) {
+    final character = state.character;
+    if (!character.isOnMission) return null;
+    if (character.status?.guidedMissionInProgress ?? false) return null;
+    return missionActivityLabelOf(
+      character.quests?.pendingQuest?.quest?.infos?.type,
     );
   }
 
