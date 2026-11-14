@@ -84,9 +84,9 @@ created: 2026-11-14
 | 21-09-01 | 09 | 9 | GMFLOW-01, GMFLOW-02 | T-21-28, T-21-29 | card rebuilt from the fresh snapshot, reopened once | widget | `flutter test test/screens/innkeeper test/screens/mainScreen/components` | ✅ extend | ✅ green |
 | 21-09-02 | 09 | 9 | GMFLOW-02 | T-21-27, T-21-30 | draft marker modelled, not selected pre-gate | unit + widget | `flutter test test/models/pending_request test/screens/innkeeper` | ✅ extend | ✅ green |
 | 21-09-03 | 09 | 9 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-09-SUMMARY.md && grep -q "Plan: 09 of 18" .planning/STATE.md` | — | ✅ green |
-| 21-10-01 | 10 | 10 | GMFLOW-02..05 | T-21-31, T-21-33 | malformed draft entry dropped, never the draft | unit | `flutter test test/models` | ❌ W0 mission_fixtures, test/models/mission/* | ⬜ pending |
-| 21-10-02 | 10 | 10 | GMFLOW-03..05 | T-21-32, T-21-34 | inputs rebuilt from the served draft, full corrections list with hpAfter for every participant; BE caps in one file | unit | `flutter test test/models` | ❌ W0 mission_draft_inputs_test | ⬜ pending |
-| 21-10-03 | 10 | 10 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-10-SUMMARY.md && grep -q "Plan: 10 of 18" .planning/STATE.md` | — | ⬜ pending |
+| 21-10-01 | 10 | 10 | GMFLOW-02..05 | T-21-31, T-21-33 | malformed draft entry dropped, never the draft | unit | `flutter test test/models` | ❌ W0 mission_fixtures, test/models/mission/* | ✅ green |
+| 21-10-02 | 10 | 10 | GMFLOW-03..05 | T-21-32, T-21-34 | inputs rebuilt from the served draft, full corrections list with hpAfter for every participant; BE caps in one file | unit | `flutter test test/models` | ❌ W0 mission_draft_inputs_test | ✅ green |
+| 21-10-03 | 10 | 10 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-10-SUMMARY.md && grep -q "Plan: 10 of 18" .planning/STATE.md` | — | ✅ green |
 | 21-11-01 | 11 | 11 | GMFLOW-02..06 | T-21-37 | eight documents registered (55), no gated selection | document pin | `flutter test test/graphql test/tool` | ❌ W0 mission_documents_test | ⬜ pending |
 | 21-11-02 | 11 | 11 | GMFLOW-02..06 | T-21-35, T-21-36, T-21-38 | innkeeper-only ops through _guard, no payload logs | unit | `flutter test test/repository` | ❌ W0 graphql_mission_test | ⬜ pending |
 | 21-11-03 | 11 | 11 | GMFLOW-02 | — | bookkeeping only | docs | `test -f .planning/phases/21-innkeeper-mission-completion-flow/21-11-SUMMARY.md && grep -q "Plan: 11 of 18" .planning/STATE.md` | — | ⬜ pending |
@@ -118,8 +118,8 @@ created: 2026-11-14
 
 ## Wave 0 Requirements
 
-- [x] `test/helpers/fixtures/mission_fixtures.dart` — `missionDraftJson({step, fights, …})`, `missionFightJson`, `simulatedOutcomeJson`, `missionEnemyJson`, `prizeOptionsJson`, `pointOfInterestJson` — planned: 21-10 Task 1 (`pointOfInterestJson` in `travel_fixtures.dart`, 21-06 Task 1)
-- [x] `test/models/mission/*_test.dart` — fromJson/toJson/Equatable/lenient per entry — planned: 21-10
+- [x] `test/helpers/fixtures/mission_fixtures.dart` — `missionDraftJson({step, fights, …})`, `missionFightJson`, `simulatedOutcomeJson`, `missionEnemyJson`, `prizeOptionsJson`, `pointOfInterestJson` — planned: 21-10 Task 1 (`pointOfInterestJson` in `travel_fixtures.dart`, 21-06 Task 1) — delivered in 21-10
+- [x] `test/models/mission/*_test.dart` — fromJson/toJson/Equatable/lenient per entry — planned: 21-10 — delivered in 21-10
 - [x] `test/screens/innkeeper/missionCompletion/**` — cubits (bloc_test) and pages (widget) — planned: 21-12..21-15
 - [x] `test/screens/mainScreen/tabs/map/layers/teleport_poi_layer_test.dart`, `utils/teleport_drop_test.dart` — planned: 21-08
 - [x] `test/repository/equipment_failure_test.dart`, `equipment_repository_test.dart` (21-03); `test/utils/mission_lines_test.dart` (21-01)
