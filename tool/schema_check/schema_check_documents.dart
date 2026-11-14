@@ -1,5 +1,6 @@
 import 'package:klimmeck_guide/graphql/mutations/auth_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
+import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/pending_request_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_mutations.dart';
@@ -11,6 +12,7 @@ import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/equipment_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/loot_item_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/lore_queries.dart';
+import 'package:klimmeck_guide/graphql/queries/mission_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/pending_request_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/point_of_interest_queries.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_queries.dart';
@@ -39,9 +41,12 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// i due cataloghi globali di equipaggiamento e loot (BE D-20: deprecati,
 /// nessun consumer); la Phase 14 aggiunge `GenerateQuests`;
 /// la Phase 15 aggiunge `GetQuestTravelPreview`; la Phase 18 aggiunge
-/// `UseItem`; la Phase 21 aggiunge `ListPointsOfInterest`; ogni documento
-/// futuro va
-/// aggiunto qui (il test `schema_check_documents_test.dart` lo impone).
+/// `UseItem`; la Phase 21 aggiunge `ListPointsOfInterest` e i documenti del
+/// flusso guidato (`GetMissionDraft`, `ListMissionEnemies`,
+/// `GetMissionPrizeOptions`, `StartMissionDraft`, `SaveMissionDraft`,
+/// `SimulateMissionFight`, `DiscardMissionDraft`, `CompleteGuidedMission`);
+/// ogni documento futuro va aggiunto qui (il test
+/// `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
   'GetCity': CityQueries.getCity,
@@ -63,6 +68,9 @@ final Map<String, String> schemaCheckDocuments = {
   'ListUnacknowledgedQuestResults':
       QuestResultQueries.listUnacknowledgedQuestResults,
   'GetPendingRequests': PendingRequestQueries.getPendingRequests,
+  'GetMissionDraft': MissionQueries.getMissionDraft,
+  'ListMissionEnemies': MissionQueries.listMissionEnemies,
+  'GetMissionPrizeOptions': MissionQueries.getMissionPrizeOptions,
   'lores': LoreQueries.getAllLores,
   'lore': LoreQueries.getLoreById,
   'CreateCharacter': CharacterMutations.createCharacter,
@@ -79,6 +87,11 @@ final Map<String, String> schemaCheckDocuments = {
   'GenerateQuests': QuestMutations.generateQuests,
   'AcknowledgeQuestResult': QuestResultMutations.acknowledgeQuestResult,
   'CompletePendingRequest': PendingRequestMutations.completePendingRequest,
+  'StartMissionDraft': MissionMutations.startMissionDraft,
+  'SaveMissionDraft': MissionMutations.saveMissionDraft,
+  'SimulateMissionFight': MissionMutations.simulateMissionFight,
+  'DiscardMissionDraft': MissionMutations.discardMissionDraft,
+  'CompleteGuidedMission': MissionMutations.completeGuidedMission,
   'StartTravel': TravelMutations.startTravel,
   'TeleportCharacter': TravelMutations.teleportCharacter,
   'RegisterPushDevice': PushMutations.registerPushDevice,
