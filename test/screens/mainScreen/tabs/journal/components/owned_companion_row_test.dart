@@ -25,6 +25,7 @@ OwnedPet _owned({
   int? ownMaxLifePoints,
   int xp = 40,
   num? speedModifier,
+  bool isDefeated = false,
 }) => OwnedPet(
   pet: Pet.fromJson(
     petJson(
@@ -40,6 +41,7 @@ OwnedPet _owned({
   name: name,
   level: level,
   ownMaxLifePoints: ownMaxLifePoints,
+  isDefeated: isDefeated,
 );
 
 Finder _row() => find.byKey(const ValueKey('owned-pet-$_worg'));
@@ -138,6 +140,19 @@ void main() {
             .first,
       );
       expect(fade.opacity, KlimmeckGuideTheme.pendingInkOpacity);
+
+      await tester.tap(_row());
+      await tester.pumpAndSettle();
+
+      expect(taps, 0);
+    },
+  );
+
+  testWidgets(
+    'a companion served defeated is not tappable before its vitality is '
+    'computed (D-02)',
+    (tester) async {
+      await pump(tester, owned: _owned(isDefeated: true));
 
       await tester.tap(_row());
       await tester.pumpAndSettle();

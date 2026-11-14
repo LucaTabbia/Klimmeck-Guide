@@ -219,6 +219,25 @@ void main() {
     });
   });
 
+  test('vitalityFor never serves the vitality of an older entry of the same '
+      'companion (D-02)', () {
+    fakeAsync((async) {
+      startAt(_t0);
+      final followed = _resting();
+      cubit.follow([followed]);
+      final served = _owned(
+        currentLifePoints: 1,
+        defeated: true,
+        lifeAsOf: _t0,
+        fullLifeAt: _t0.add(const Duration(hours: 3)),
+      );
+
+      expect(cubit.state.vitalityFor(followed), isA<CompanionResting>());
+      expect(cubit.state.vitalityFor(served), isNull);
+      cubit.close();
+    });
+  });
+
   test('an offset change recomputes at once (D-24)', () {
     fakeAsync((async) {
       startAt(_t0);
