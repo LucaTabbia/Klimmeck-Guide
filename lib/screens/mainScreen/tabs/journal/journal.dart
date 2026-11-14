@@ -355,6 +355,14 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     );
   }
 
+  /// Venduto o perso mentre i suoi dettagli sono aperti: il foglio si chiude.
+  bool _hasLostSelectedCompanion(CharacterState state) {
+    final petId = _selectedCompanionId;
+    return petId != null &&
+        state is CharacterLoaded &&
+        _ownedPetOf(state.character, petId) == null;
+  }
+
   static OwnedPet? _ownedPetOf(Character character, String petId) {
     for (final owned in character.assets?.ownedPets ?? const <OwnedPet>[]) {
       if (owned.pet.id == petId) return owned;
@@ -489,11 +497,19 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocListener<JournalCubit, JournalState>(
-      listenWhen: (previous, current) =>
-          current is JournalEquipRefused && previous != current,
-      listener: (context, state) =>
-          _onEquipRefused(context, state as JournalEquipRefused),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<JournalCubit, JournalState>(
+          listenWhen: (previous, current) =>
+              current is JournalEquipRefused && previous != current,
+          listener: (context, state) =>
+              _onEquipRefused(context, state as JournalEquipRefused),
+        ),
+        BlocListener<CharacterCubit, CharacterState>(
+          listenWhen: (_, current) => _hasLostSelectedCompanion(current),
+          listener: (_, _) => _animationController.reverse(),
+        ),
+      ],
       child: BlocBuilder<CharacterCubit, CharacterState>(
         builder: (context, state) {
           if (state is CharacterLoaded) {
