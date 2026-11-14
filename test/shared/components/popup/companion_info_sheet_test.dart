@@ -220,11 +220,19 @@ void main() {
   });
 
   testWidgets(
-    'speed, attack, defense and experience moved here from the card (D-22)',
+    'attack, defense and experience in the text, the speed once on the '
+    'card (D-22)',
     (tester) async {
       await _pump(tester, pet: _worg(speedModifier: 2), xp: 3);
 
-      expect(_textOf(tester, CompanionInfo.speedKey), 'Velocità ×2');
+      expect(find.text('Velocità ×2'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(CompanionCard),
+          matching: find.text('Velocità ×2'),
+        ),
+        findsOneWidget,
+      );
       expect(
         _textOf(tester, CompanionInfo.attackKey),
         'Attacco: tagliente 12, fuoco 5',
@@ -242,7 +250,7 @@ void main() {
   ) async {
     await _pump(tester, pet: Pet.fromJson(catPetJson()));
 
-    expect(find.byKey(CompanionInfo.speedKey), findsNothing);
+    expect(find.textContaining('Velocità'), findsNothing);
     expect(find.byKey(CompanionInfo.attackKey), findsNothing);
     expect(find.byKey(CompanionInfo.defenseKey), findsNothing);
     expect(find.byKey(CompanionInfo.xpKey), findsNothing);

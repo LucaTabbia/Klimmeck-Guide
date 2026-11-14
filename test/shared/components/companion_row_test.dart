@@ -68,9 +68,19 @@ void main() {
     expect(_coinsDisplay(tester).coins, _horse.sellPrice);
   });
 
-  testWidgets('shows the speed line only for a mount (D-07)', (tester) async {
+  testWidgets('a mount prints its speed once, on the card (D-07, D-22)', (
+    tester,
+  ) async {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
-    expect(tester.widget<Text>(_speedLine).data, 'Velocità ×2');
+    expect(_speedLine, findsNothing);
+    expect(find.text('Velocità ×2'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CompanionCard),
+        matching: find.text('Velocità ×2'),
+      ),
+      findsOneWidget,
+    );
 
     await _pump(tester, CompanionRow(pet: _cat, size: _rowSize));
     expect(find.textContaining('Velocità'), findsNothing);
@@ -103,7 +113,7 @@ void main() {
       CompanionRow(pet: _horse, size: _rowSize, onTap: () => taps++),
     );
 
-    await tester.tap(_speedLine);
+    await tester.tap(find.byType(CompanionCard));
 
     expect(taps, 1);
   });
@@ -113,7 +123,10 @@ void main() {
   ) async {
     final pictured = Pet.fromJson(petJson(imagePath: _horseImage));
 
-    await _pump(tester, CompanionRow(pet: pictured, size: _rowSize));
+    await _pump(
+      tester,
+      CompanionRow(pet: pictured, size: _rowSize, isEquipped: true),
+    );
 
     final card = find.byType(CompanionCard);
     expect(card, findsOneWidget);
@@ -121,7 +134,7 @@ void main() {
     expect(tester.widget<CompanionCard>(card).size, _rowSize);
     expect(
       tester.getTopRight(card).dx,
-      lessThanOrEqualTo(tester.getTopLeft(_speedLine).dx),
+      lessThanOrEqualTo(tester.getTopLeft(find.text(companionEquippedMark)).dx),
     );
     expect(
       tester.getTopRight(card).dx,
@@ -196,11 +209,14 @@ void main() {
     ) async {
       final pet = Pet.fromJson(petJson(rarity: 'legendary'));
 
-      await _pump(tester, CompanionRow(pet: pet, size: _rowSize));
+      await _pump(
+        tester,
+        CompanionRow(pet: pet, size: _rowSize, isEquipped: true),
+      );
 
       expect(titleColor(tester), RarityType.legendary.color);
       expect(
-        tester.widget<Text>(_speedLine).style,
+        tester.widget<Text>(find.text(companionEquippedMark)).style,
         KlimmeckGuideTheme.instance.bodyMedium,
       );
     });
@@ -284,27 +300,23 @@ void main() {
 
         expect(find.textContaining('Attacco'), findsNothing);
         expect(find.textContaining('Difesa'), findsNothing);
-        expect(_speedLine, findsOneWidget);
+        expect(find.text('Velocità ×2'), findsOneWidget);
       },
     );
 
-    testWidgets(
-      'the lines sit between the speed and the equipped mark (D-13)',
-      (tester) async {
-        await _pump(
-          tester,
-          CompanionRow(pet: armed, size: _rowSize, isEquipped: true),
-        );
+    testWidgets('the lines sit above the equipped mark (D-13)', (tester) async {
+      await _pump(
+        tester,
+        CompanionRow(pet: armed, size: _rowSize, isEquipped: true),
+      );
 
-        final tops = [
-          top(tester, _speedLine),
-          top(tester, attackLine),
-          top(tester, defenseLine),
-          top(tester, find.text(companionEquippedMark)),
-        ];
-        expect(tops, [...tops]..sort());
-        expect(tops.toSet(), hasLength(4));
-      },
-    );
+      final tops = [
+        top(tester, attackLine),
+        top(tester, defenseLine),
+        top(tester, find.text(companionEquippedMark)),
+      ];
+      expect(tops, [...tops]..sort());
+      expect(tops.toSet(), hasLength(3));
+    });
   });
 }
