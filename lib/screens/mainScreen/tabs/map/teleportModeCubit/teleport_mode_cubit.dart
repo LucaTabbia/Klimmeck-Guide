@@ -10,9 +10,9 @@ import 'package:klimmeck_guide/shared/bloc/safe_emit.dart';
 part 'teleport_mode_state.dart';
 
 /// Modalità teletrasporto del GM (10-CONTEXT D-15..D-20), a livello di shell:
-/// il pannello chiama `prepare`, la Mappa `teleportTo`/`cancelToPanel`, la
-/// shell `cancel` (altro tab, ruolo perso), l'atterraggio del MainScreen
-/// `acknowledgeExit`. Nessuna conferma (D-16); il BE resta
+/// il wizard della Locanda chiama `prepare`, la Mappa
+/// `teleportTo`/`cancelToPanel`, la shell `cancel` (altro tab, ruolo perso),
+/// l'atterraggio del MainScreen `acknowledgeExit`. Nessuna conferma (D-16); il BE resta
 /// giudice (ADMIN-04/07). Un Cubit non chiama Cubit: il resto lo orchestra la UI.
 class TeleportModeCubit extends Cubit<TeleportModeState>
     with SafeEmit<TeleportModeState> {

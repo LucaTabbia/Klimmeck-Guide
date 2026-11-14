@@ -53,7 +53,7 @@ final class TeleportActive extends TeleportModeState {
   final List<TeleportDestination> places;
 
   /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
-  /// `null` per il «Teletrasporta» della carta.
+  /// `null` se non c'è un wizard da riaprire.
   final String? resumeCardKey;
   final bool isTeleporting;
   final InnkeeperFailure? failure;
@@ -87,7 +87,7 @@ final class TeleportSucceeded extends TeleportModeState {
   final TeleportTarget target;
 
   /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
-  /// `null` per il «Teletrasporta» della carta.
+  /// `null` se non c'è un wizard da riaprire.
   final String? resumeCardKey;
 
   @override
@@ -100,7 +100,7 @@ final class TeleportCancelled extends TeleportModeState {
   const TeleportCancelled({this.resumeCardKey});
 
   /// Carta della Locanda il cui wizard si riapre all'atterraggio (D-28):
-  /// `null` per il «Teletrasporta» della carta.
+  /// `null` se non c'è un wizard da riaprire.
   final String? resumeCardKey;
 
   @override
