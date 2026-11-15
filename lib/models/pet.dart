@@ -19,6 +19,7 @@ class Pet extends Equatable {
     this.speedModifier,
     this.sellable,
     this.recoveryTime,
+    this.known = true,
   });
 
   final String? imagePath;
@@ -39,6 +40,10 @@ class Pet extends Equatable {
   /// Tempo dal minimo alla vita piena in millisecondi (D-01, D-25); null =
   /// non curato: il FE non lo usa mai per calcolare una data.
   final int? recoveryTime;
+
+  /// Il viewer ha sbloccato la lore del compagno (BE, per viewer); `false` →
+  /// sagoma nera e nessun dettaglio. Il FE non lo decide.
+  final bool known;
 
   Duration? get recoveryDuration =>
       recoveryTime == null ? null : Duration(milliseconds: recoveryTime!);
@@ -61,7 +66,11 @@ class Pet extends Equatable {
     speedModifier: (json['speedModifier'] as num?)?.toDouble(),
     sellable: json['sellable'] as bool?,
     recoveryTime: _positiveMillisOf(json['recoveryTime']),
+    known: _knownOf(json['known']),
   );
+
+  /// Assente o non booleano → noto: un BE senza il campo non oscura nulla.
+  static bool _knownOf(Object? value) => value is bool ? value : true;
 
   static int? _positiveMillisOf(Object? value) =>
       value is num && value > 0 ? value.toInt() : null;
@@ -101,6 +110,7 @@ class Pet extends Equatable {
     "speedModifier": speedModifier,
     "sellable": sellable,
     "recoveryTime": recoveryTime,
+    "known": known,
   };
 
   Pet copyWith({
@@ -117,6 +127,7 @@ class Pet extends Equatable {
     double? speedModifier,
     bool? sellable,
     int? recoveryTime,
+    bool? known,
   }) {
     return Pet(
       imagePath: imagePath ?? this.imagePath,
@@ -132,6 +143,7 @@ class Pet extends Equatable {
       speedModifier: speedModifier ?? this.speedModifier,
       sellable: sellable ?? this.sellable,
       recoveryTime: recoveryTime ?? this.recoveryTime,
+      known: known ?? this.known,
     );
   }
 
@@ -150,5 +162,6 @@ class Pet extends Equatable {
     speedModifier,
     sellable,
     recoveryTime,
+    known,
   ];
 }
