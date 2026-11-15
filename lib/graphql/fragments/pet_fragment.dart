@@ -7,6 +7,7 @@ class PetFragment {
   /// `maxXp`, `attack`, `defense` e `rarity` sono della BE Phase 19
   /// (19-CONTEXT D-12, D-13, D-20); `rarity` può essere null.
   /// `recoveryTime` della BE Phase 23 (D-25), solo letto nel dettaglio.
+  /// `known` risolto dal BE per viewer (lore sbloccata): sagoma e dettagli.
   static const String fields =
       '''
     id
@@ -30,5 +31,6 @@ class PetFragment {
       ${DamagesFragment.fields}
     }
     rarity
+    known
   ''';
 }
