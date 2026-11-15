@@ -48,3 +48,5 @@ Plans: 23-01 wire boundary + requirements → 23-02 spell model → 23-03 quest 
 
 - **Origin lore (D-24):** BE adds `Spell.relatedLore`; the unlock is server-side. FE work only if the research shows that a lore unlocked by a learned spell is not already surfaced by the existing lore-unlock path (verify, do not assume); `relatedLore` on the spell is selected only if a consumer needs it.
 - D-22 and D-23 are DB content of the orchestrator: no FE work.
+- **Superseded inherited lines:** the lines of `22-REPO-RULES.md` «No new Cloudinary asset id» and the asset registry count of Phase 22 do NOT apply here: this phase adds the eleven ids of the table above.
+- **Scope note (plan checker, accepted):** 23-03 Task 1 (rename `magic` → `arcane`, 13 files) and 23-01 Task 2 (12 files) are mechanical renames over listed sites; they stay as planned.
