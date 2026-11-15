@@ -16,10 +16,11 @@ const _blankSpell = Spell(
   id: 'spell-blank',
   name: null,
   description: null,
+  origin: null,
   useType: null,
   energyDamage: null,
   requiredLearnTime: null,
-  minXpToLearn: null,
+  minLevelToLearn: null,
   recoveryTime: null,
   maxUsages: null,
 );
@@ -53,7 +54,7 @@ void main() {
   testWidgets('shows every detail of a recovering spell', (tester) async {
     await _pump(
       tester,
-      _fireDart,
+      Spell.fromJson(spellJson(minLevelToLearn: 6)),
       usages: 1,
       recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
     );
@@ -64,7 +65,10 @@ void main() {
     expect(find.text('Uso: Attacco'), findsOneWidget);
     expect(find.text('Usi massimi: 3'), findsOneWidget);
     expect(find.text('Recupero: 2 h'), findsOneWidget);
-    expect(find.text('Per impararla: 100 XP · 1 h di studio'), findsOneWidget);
+    expect(
+      find.text('Per impararla: Livello 6 · 1 h di studio'),
+      findsOneWidget,
+    );
     expect(find.text('Usi: 1/3 · prossimo tra 12 min'), findsOneWidget);
     expect(find.byType(CachedSvg), findsNWidgets(2));
   });

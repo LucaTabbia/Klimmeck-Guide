@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/energy_damage.dart';
 import 'package:klimmeck_guide/models/enums/energy_type.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
@@ -174,33 +175,58 @@ void main() {
       );
     });
 
-    test('spellLearnLabel with XP and study time', () {
-      expect(spellLearnLabel(spell), 'Per impararla: 100 XP · 1 h di studio');
-    });
-
-    test('spellLearnLabel with XP only', () {
+    test('spellLearnLabel with level and study time (D-07)', () {
       expect(
-        spellLearnLabel(Spell.fromJson(spellJson(requiredLearnTime: null))),
-        'Per impararla: 100 XP',
+        spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
+        'Per impararla: Livello 6 · 1 h di studio',
       );
     });
 
-    test('spellLearnLabel with study time only', () {
+    test('spellLearnLabel with the level only (D-07)', () {
       expect(
-        spellLearnLabel(Spell.fromJson(spellJson(minXpToLearn: null))),
-        'Per impararla: 1 h di studio',
+        spellLearnLabel(
+          Spell.fromJson(
+            spellJson(minLevelToLearn: 6, requiredLearnTime: null),
+          ),
+        ),
+        'Per impararla: Livello 6',
       );
+    });
+
+    test('spellLearnLabel with study time only (D-07)', () {
+      expect(spellLearnLabel(spell), 'Per impararla: 1 h di studio');
+    });
+
+    test('a zero or negative level prints no level part (D-08)', () {
+      for (final level in [0, -2]) {
+        expect(
+          spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: level))),
+          'Per impararla: 1 h di studio',
+          reason: '$level',
+        );
+      }
     });
 
     test('spellLearnLabel without requirements', () {
       expect(
-        spellLearnLabel(
-          Spell.fromJson(
-            spellJson(minXpToLearn: null, requiredLearnTime: null),
-          ),
-        ),
+        spellLearnLabel(Spell.fromJson(spellJson(requiredLearnTime: null))),
         isNull,
       );
+    });
+
+    test('the learn line never mentions XP (D-08)', () {
+      expect(
+        spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
+        isNot(contains('XP')),
+      );
+    });
+
+    test('spellOriginLabel reads Origine: Arcana, Sciamanica, Vuoto and null '
+        'without origin (D-06)', () {
+      expect(spellOriginLabel(SpellOrigin.arcane), 'Origine: Arcana');
+      expect(spellOriginLabel(SpellOrigin.shamanic), 'Origine: Sciamanica');
+      expect(spellOriginLabel(SpellOrigin.theVoid), 'Origine: Vuoto');
+      expect(spellOriginLabel(null), isNull);
     });
 
     test('spellRecoveryLabel is null at full usages', () {

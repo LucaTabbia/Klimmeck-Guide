@@ -14,7 +14,8 @@ Map<String, dynamic> spellJson({
   String? energy = 'fire',
   int? power = 12,
   String? useType = 'attack',
-  int? minXpToLearn = 100,
+  Object? origin,
+  Object? minLevelToLearn,
   int? requiredLearnTime = 3600000,
 }) => {
   'id': id,
@@ -23,7 +24,8 @@ Map<String, dynamic> spellJson({
   'useType': useType,
   'maxUsages': maxUsages,
   'recoveryTime': recoveryTime,
-  'minXpToLearn': minXpToLearn,
+  if (origin != null) 'origin': origin,
+  if (minLevelToLearn != null) 'minLevelToLearn': minLevelToLearn,
   'requiredLearnTime': requiredLearnTime,
   'energyDamage': energy == null ? null : {'type': energy, 'power': power},
 };
