@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/fragments.dart';
+import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/quest_result_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/quest_result_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/quest_result_subscriptions.dart';
@@ -116,8 +117,39 @@ void main() {
     test('selects the ambush report with its two cities (D-01)', () {
       expect(
         sharedSelection,
-        contains('ambush { at nearCity { id name } reachedCity { id name } }'),
+        contains(
+          'ambush { at nearCity { id name } reachedCity { id name } onFoot }',
+        ),
       );
+    });
+
+    group('every result document', () {
+      final documents = {
+        'GetQuestResult': QuestResultQueries.getQuestResult,
+        'ListUnacknowledgedQuestResults':
+            QuestResultQueries.listUnacknowledgedQuestResults,
+        'OnQuestResultReceived': QuestResultSubscriptions.questResultReceived,
+        'CompleteGuidedMission': MissionMutations.completeGuidedMission,
+      };
+
+      for (final MapEntry(key: name, value: document) in documents.entries) {
+        test('$name selects the companion outcome with lifeBefore (D-27)', () {
+          expect(
+            _collapsed(document),
+            contains(
+              'petXpGained companion { name lifeBefore lifePoints '
+              'maxLifePoints defeated fullLifeAt }',
+            ),
+          );
+        });
+
+        test('$name selects onFoot in the ambush report (D-28)', () {
+          expect(
+            _collapsed(document),
+            contains('reachedCity { id name } onFoot }'),
+          );
+        });
+      }
     });
 
     test('selects petXpGained after xpAfter (D-03)', () {

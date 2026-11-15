@@ -75,26 +75,31 @@ void main() {
     expect(cityShop, contains('equipType accessoryUseTypes'));
   });
 
-  test('GetCityShop selects pets through PetFragment with maxLifePoints and '
-      'imagePath (D-09, D-34)', () {
+  test('GetCityShop selects pets through PetFragment with maxLifePoints, '
+      'imagePath and recoveryTime (D-09, D-25, D-34)', () {
     expect(cityShop, contains('pets { $petFields }'));
     expect(petFields, contains('maxLifePoints'));
     expect(petFields, contains('imagePath'));
     expect(cityShop, contains('maxLifePoints'));
     expect(cityShop, contains('imagePath'));
-    expect(cityShop, isNot(contains('recoveryTime')));
+    expect(cityShop, contains('recoveryTime'));
+  });
+
+  test('PetFragment selects recoveryTime after the gate (D-25)', () {
+    expect(petFields, contains('maxLifePoints recoveryTime attack {'));
   });
 
   test('PetFragment selects id, name, imagePath, speed, sellable, both '
-      'prices, maxXp, maxLifePoints, attack, defense and rarity '
-      '(D-12, D-20, D-09, D-34)', () {
+      'prices, maxXp, maxLifePoints, recoveryTime, attack, defense and rarity '
+      '(D-12, D-20, D-09, D-25, D-34)', () {
     final damages = _collapsed(DamagesFragment.fields);
 
     expect(
       petFields,
       'id name imagePath speedModifier sellable '
       'buyPrice { gold silver copper } sellPrice { gold silver copper } '
-      'maxXp maxLifePoints attack { $damages } defense { $damages } rarity',
+      'maxXp maxLifePoints recoveryTime attack { $damages } '
+      'defense { $damages } rarity',
     );
   });
 
