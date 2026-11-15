@@ -22,12 +22,12 @@ Out of scope: any effect of the origin on combat (the origin is a classification
 - Assets with masks built on `feColorMatrix` filters are flattened with headless Chrome before the upload; the user uploads to Cloudinary and gives the new ids, wired in TDD in `lib/config/cloudinary_assets.dart`.
 
 ### Spell origin
-- **D-01 (user):** every spell carries an origin; the macro-class order is origin → use → energy. The origins are three: `void`, `magic`, `shamanic` (wire values; BE enum next to `UseType`).
-- **D-02 (user):** every spell at DB is reviewed and given its origin «sulla base della descrizione». The orchestrator proposes the table (96 spells today), the user reviews it before the write. First reading: about 6 void, about 8 shamanic, about 82 magic.
+- **D-01 (user):** every spell carries an origin; the macro-class order is origin → use → energy. The origins are three: `void`, `arcane`, `shamanic` (wire values; BE enum next to `UseType`). **Amended 2026-11-15 (user: «arcane (cambia da magic, troppo generico)»):** the origin is `arcane`, not `magic`; the quest type keeps its name `magic` and teaches the `arcane` origin.
+- **D-02 (user):** every spell at DB is reviewed and given its origin «sulla base della descrizione». The orchestrator proposes the table (96 spells today), the user reviews it before the write. First reading: about 6 void, about 8 shamanic, about 82 arcane.
 - **D-03 (user, «Circa 30 per origine»):** the DB is filled with new spells until `void` and `shamanic` hold about 30 spells each (about 45 new spells), covering the 9 uses with several energies per use and spread over the levels. Same fields and same balance rules as today's catalogue (power, usages, learn time, recovery); the table is reviewed by the user before the write.
 - **D-04 (assumption, stated to the user):** the origin has no effect on combat, on who can learn a spell or on the spell slots. Enemy spells get an origin like any other spell.
-- **D-05 (user, «Icona, ve le mando»):** the app shows the origin with an **icon**, like use and energy; the user sends three icons. The UI plan that draws the origin is gated on those three assets (masks and filters checked, flattened at 1000 px if needed). Until they arrive the model and the wire carry the origin and nothing draws it.
-- **D-06 (user):** Italian names of the origins: «Arcana» (`magic`), «Sciamanica» (`shamanic`), «Vuoto» (`void`).
+- **D-05 (user, «Icona, ve le mando»):** the app shows the origin with an **icon**, like use and energy. The three icons arrived on 2026-11-15 (`arcaneOrigin`, `shamanicOrigin`, `voidOrigin`: each with a mask over `feColorMatrix` filters, flattened at 1000 px into `~/Downloads/<name>_flat.svg`); the UI plan needs only their Cloudinary ids.
+- **D-06 (user):** Italian names of the origins: «Arcana» (`arcane`), «Sciamanica» (`shamanic`), «Vuoto» (`void`).
 
 ### Minimum level instead of minimum xp
 - **D-07 (user):** «Le magie non devono più avere un minimo xp per impararle, ma un minimo livello, quindi rivedi il parametro in base alla tabella dei livelli personaggio». `minXpToLearn` is replaced by a minimum level (name fixed in the plan, e.g. `minLevelToLearn`); non-additive SDL change. Conversion of today's values through the BE level table (`level-table.ts`): the level whose `minXp` is the highest one not above the spell's xp (4 000 → level 6, 12 000 → level 10, 20 000 → level 12, 30 000 → level 15, 50 000 → level 20). The converted table goes to the user with the origin table (one review).
@@ -35,7 +35,7 @@ Out of scope: any effect of the origin on combat (the origin is a classification
 
 ### Quest types `shamanic` and `void`
 - **D-09 (user):** two new quest types, `shamanic` and `void`. «Funzioneranno esattamente come la missione magic»: same lane, same acceptance (no registration), same duration model, same study-lore pool, same spell draw at the end.
-- **D-10 (user):** «Ognuna di loro insegnerà una magia sulla base del tipo (adesso magic le insegna tutte)»: the draw of a `magic` quest takes only spells of origin `magic`, `shamanic` only `shamanic`, `void` only `void`; the level gate of D-07 applies to all three.
+- **D-10 (user):** «Ognuna di loro insegnerà una magia sulla base del tipo (adesso magic le insegna tutte)»: the draw of a `magic` quest takes only spells of origin `arcane`, `shamanic` only `shamanic`, `void` only `void`; the level gate of D-07 applies to all three.
 - **D-11 (user):** the `void` quest exists only in Necrorian. The `shamanic` quest is available in the two new capitals (Murnborim, `aarakocraCapital`; Thengran, `dragonbornCapital`) and is acceptable from rank mage up. These are DB quests like today's «Iniziazione arcana a Valantar» (the only `magic` quest at DB, `minTitle: mage`, `spellDraw: true`): the orchestrator writes one `void` quest in Necrorian and one `shamanic` quest in each capital, texts reviewed by the user.
 - **D-12 (user):** «nessuna quest a Necrorian dovrebbe venir creata con rango minimo inferiore a mage»: the generator never creates a quest in or for Necrorian with a minimum title below mage (today Necrorian has no quest at DB). The `void` quest follows the same floor.
 - **D-13 (user):** Italian names of the quest types: «Magia» stays, the new ones are «Rito sciamanico» and «Rito del Vuoto».
@@ -82,7 +82,7 @@ Wire shape and field names, where the origin sits in the BE model, how the gener
 ## Specific Ideas
 
 - One review for the user: a single table with origin, converted level and the new spells.
-- The three origin icons are the only asset still owed by the user (D-05).
+- Eleven flattened files await the user's upload to Cloudinary (eight of D-19, three origin icons of D-05); the ids are the only thing still owed.
 
 </specifics>
 
