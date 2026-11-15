@@ -96,6 +96,13 @@ class CharacterFragment {
       ownedPets {
         xp
         currentLifePoints
+        name
+        defeated
+        lifeAsOf
+        fullLifeAt
+        potionRecoveryUntil
+        level
+        maxLifePoints
         pet {
           ${PetFragment.fields}
         }

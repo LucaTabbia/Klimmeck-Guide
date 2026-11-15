@@ -6,6 +6,7 @@ class PetFragment {
   /// D-34; emenda Phase 13 D-13), velocità solo stampata (D-11).
   /// `maxXp`, `attack`, `defense` e `rarity` sono della BE Phase 19
   /// (19-CONTEXT D-12, D-13, D-20); `rarity` può essere null.
+  /// `recoveryTime` della BE Phase 23 (D-25), solo letto nel dettaglio.
   static const String fields =
       '''
     id
@@ -21,6 +22,7 @@ class PetFragment {
     }
     maxXp
     maxLifePoints
+    recoveryTime
     attack {
       ${DamagesFragment.fields}
     }
