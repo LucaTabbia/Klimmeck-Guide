@@ -52,9 +52,9 @@ created: 2026-11-15
 | 23-04-02 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?4 of 8" .planning/STATE.md` | — | ✅ green |
 | 23-05-01 | 05 | 5 | ORIGIN-04 | T-23-18, T-23-19 | replaced id pinned; eight ids audited once each | unit + audit | `flutter test test/models/enums/city_type_test.dart test/models/city_test.dart test/screens/mainScreen/tabs/map/layers/city_markers_layer_test.dart` + audit of 23-05 | ✅ extend | ✅ green |
 | 23-05-02 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?5 of 8" .planning/STATE.md` | — | ✅ green |
-| 23-06-01 | 06 | 6 | ORIGIN-05 | T-23-23 | icon ids only as constants | unit | `flutter test test/models/enums test/models/spell_test.dart` | ✅ extend | ⬜ pending |
-| 23-06-02 | 06 | 6 | ORIGIN-05 | T-23-21, T-23-22, T-23-24 | no overflow at 48 px; no origin → drawn as before | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/innkeeper` | ✅ extend | ⬜ pending |
-| 23-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?6 of 8" .planning/STATE.md` | — | ⬜ pending |
+| 23-06-01 | 06 | 6 | ORIGIN-05 | T-23-23 | icon ids only as constants | unit | `flutter test test/models/enums test/models/spell_test.dart` | ✅ extend | ✅ green |
+| 23-06-02 | 06 | 6 | ORIGIN-05 | T-23-21, T-23-22, T-23-24 | no overflow at 48 px; no origin → drawn as before | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/innkeeper` | ✅ extend | ✅ green |
+| 23-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?6 of 8" .planning/STATE.md` | — | ✅ green |
 | 23-07-01 | 07 | 7 | ORIGIN-06, ORIGIN-01, ORIGIN-02, ORIGIN-05 | T-23-25, T-23-26, T-23-27, T-23-28, T-23-29 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-07 + flutter test test/graphql` | ✅ extend | ⬜ pending |
 | 23-07-02 | 07 | 7 | ORIGIN-06 | T-23-25 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite` | ✅ | ⬜ pending |
 | 23-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?7 of 8" .planning/STATE.md` | — | ⬜ pending |
@@ -74,7 +74,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/helpers/fixtures/spell_fixtures.dart` — `spellJson` loses `minXpToLearn` and gains `origin` / `minLevelToLearn` (keys only when non-null) — 23-02-01
 - [x] Cache seeds of the four rite sheets in `board/sheet_test.dart`, `board/board_test.dart` and of the void sheet in `map/quest_paper_layer_test.dart` — 23-03-02
 - [x] Cache seeds of the three city markers in `city_markers_layer_test.dart` — 23-04-01
-- [ ] Cache seeds of the three origin icons in `spell_card_test.dart`, `spell_info_test.dart`, `spell_info_sheet_test.dart` — 23-06-02
+- [x] Cache seeds of the three origin icons in `spell_card_test.dart`, `spell_info_test.dart`, `spell_info_sheet_test.dart` — 23-06-02
 - No framework install, no golden test (none exist).
 
 ---
