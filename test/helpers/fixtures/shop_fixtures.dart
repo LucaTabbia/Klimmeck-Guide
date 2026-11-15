@@ -19,6 +19,7 @@ Map<String, dynamic> petJson({
   Object? maxLifePoints,
   Object? recoveryTime,
   String? imagePath,
+  Object? known,
 }) => {
   'id': id,
   'name': name,
@@ -33,6 +34,7 @@ Map<String, dynamic> petJson({
   if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
   if (recoveryTime != null) 'recoveryTime': recoveryTime,
   if (imagePath != null) 'imagePath': imagePath,
+  if (known != null) 'known': known,
 };
 
 /// Compagno posseduto nella forma della BE Phase 19 (D-03).

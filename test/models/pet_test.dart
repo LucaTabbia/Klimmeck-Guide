@@ -231,4 +231,31 @@ void main() {
       expect(pet, isNot(Pet.fromJson(petJson(recoveryTime: 1))));
     });
   });
+
+  group('known (lore unlocked, UAT 2026-11-15)', () {
+    test('reads known from the wire (served per viewer by the BE)', () {
+      expect(Pet.fromJson(petJson(known: false)).known, isFalse);
+      expect(Pet.fromJson(petJson(known: true)).known, isTrue);
+    });
+
+    test('a missing or non-boolean known reads true, so an older BE never '
+        'hides a companion', () {
+      for (final value in <Object?>[null, 'false', 0]) {
+        expect(
+          Pet.fromJson(petJson(known: value)).known,
+          isTrue,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('toJson round trip keeps known and known is part of the props', () {
+      final unknown = Pet.fromJson(petJson(known: false));
+
+      expect(unknown.toJson()['known'], isFalse);
+      expect(Pet.fromJson(unknown.toJson()), unknown);
+      expect(unknown, isNot(Pet.fromJson(petJson(known: true))));
+      expect(unknown.copyWith(known: true).known, isTrue);
+    });
+  });
 }
