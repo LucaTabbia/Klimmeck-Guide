@@ -3,7 +3,8 @@ import 'damage_fragment.dart';
 class SpellFragment {
   static const String name = 'SpellFields';
 
-  static const String definition = '''
+  static const String definition =
+      '''
     fragment $name on Spell {
       id
       name
@@ -44,4 +45,3 @@ class SpellFragment {
     }
   ''';
 }
-
