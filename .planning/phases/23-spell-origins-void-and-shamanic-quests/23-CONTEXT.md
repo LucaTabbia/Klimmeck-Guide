@@ -93,3 +93,15 @@ Wire shape and field names, where the origin sits in the BE model, how the gener
 - `shamanic`/`void` quests in other cities.
 
 </deferred>
+
+<amendments>
+## Amendments of 2026-11-15 (user, after the research) — these WIN over the text above
+
+- **D-20 (user: «anche il tipo di quest, per evitare confusione»):** the quest type `magic` is renamed `arcane` too. The three school types are `arcane`, `shamanic`, `void`, and each draws the origin of the same name. Every mention of the quest type `magic` above reads `arcane`. Non-additive for stored data: the quests and results at DB carrying `magic` are migrated; the label «Magia» stays (D-13) and the sheet assets keep their names.
+- **D-21 (user):** the eleven Cloudinary ids are given (D-05, D-19 closed):
+  `arcaneOrigin` `v1794764154/arcaneOrigin_retjhh.svg`; `shamanicOrigin` `v1794764172/shamanicOrigin_vkxq6d.svg`; `voidOrigin` `v1794764163/voidOrigin_mxgwls.svg`; `aarakocraVillage` `v1794764202/aarakocraVillage_z7n1rz.svg`; `dragonbornVillage` `v1794764212/dragonbornVillage_doclsu.svg`; `aarakocraCapital` `v1794764223/aarakocraCapital_affl5r.svg`; `dragonbornCapital` `v1794764233/dragonbornCapital_uyedhh.svg`; `shamanicTornSheet` `v1794764330/tornShamanicSheet_exdyou.svg`; `voidTornSheet` `v1794764340/tornVoidSheet_h4sp3g.svg`; `shamanicSheet` `v1794764350/shamanicSheet_ytxu1n.svg`; `voidSheet` `v1794764361/voidSheet_iyocqb.svg`. No stand-in ids.
+- **D-22 (user: «Le heal delle due nuove capitali diventano pari a quelle di una città (non di una capitale), idem i negozi»):** Murnborim and Thengran keep size `capital` (D-16) but their heal quests and their shops are those of a **city**. DB content written by the orchestrator; if any code derives heal or shop content from the size, the two types follow the city tier.
+- **D-23 (user):** the lore of the cities whose type changed (Murnborim, Thengran, Veg Faldir) is rewritten to reflect the new type, using the world-building document for a better description. DB content, reviewed by the user.
+- **D-24 (user: «Quando impari la prima magia void sblocchi la lore sul Vuoto (se non c'è è da creare. Idem vale per le altre 2 origini»):** learning the first spell of an origin unlocks the lore of that origin (three lore entries, created at DB where missing). Ruling: `Spell.relatedLore` (list of lore ids, like `LootItem.relatedLore` and the pets' lore), unlocked whenever a spell is learned through any path (quest draw, rank prize, innkeeper prize); every spell of an origin points to the lore of its origin at DB, so the first one unlocks it and the following ones change nothing. The app shows the unlock as it shows every other lore unlock.
+
+</amendments>

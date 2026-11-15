@@ -26,3 +26,25 @@ The general sections of `.planning/phases/22-companion-defeat-rest-and-recovery/
 | Schema gate | SDL with both BE PR #43 and BE Phase 24 | `tool/schema_check/`, 55 documents |
 
 Plans: 23-01 wire boundary + requirements → 23-02 spell model → 23-03 quest types → 23-04 city types → 23-05 asset ids (user) → 23-06 origin drawing (icon ids) → 23-07 schema gate + selections (after the BE Phase 24 merge) → 23-08 device E2E + closing (human).
+
+## Amendments of 2026-11-15 (user decisions D-20..D-24 of 23-CONTEXT.md) — these WIN over the table above
+
+- **Quest type renamed (D-20):** `QuestType.magic` becomes `QuestType.arcane` (wire `arcane`); the three school types are `arcane`, `shamanic`, `theVoid` (wire `void`). Label «Magia» stays; `CloudinaryAssets.magicSheet` / `magicTornSheet` keep their names. Until the BE Phase 24 boot the DB still holds `magic`: `fromWire` reads the legacy wire value `magic` as `arcane` (lenient, one line, with a test), and nothing ever writes `magic`.
+- **Asset ids (D-21): all eleven are given, no stand-in ids and no guard test.** 23-05 and 23-06 are not blocked.
+
+| Constant | Id |
+|---|---|
+| `arcaneOrigin` | `v1794764154/arcaneOrigin_retjhh.svg` |
+| `shamanicOrigin` | `v1794764172/shamanicOrigin_vkxq6d.svg` |
+| `voidOrigin` | `v1794764163/voidOrigin_mxgwls.svg` |
+| `aarakocraVillage` (replaces the old id) | `v1794764202/aarakocraVillage_z7n1rz.svg` |
+| `dragonbornVillage` | `v1794764212/dragonbornVillage_doclsu.svg` |
+| `aarakocraCapital` | `v1794764223/aarakocraCapital_affl5r.svg` |
+| `dragonbornCapital` | `v1794764233/dragonbornCapital_uyedhh.svg` |
+| `shamanicTornSheet` | `v1794764330/tornShamanicSheet_exdyou.svg` |
+| `voidTornSheet` | `v1794764340/tornVoidSheet_h4sp3g.svg` |
+| `shamanicSheet` | `v1794764350/shamanicSheet_ytxu1n.svg` |
+| `voidSheet` | `v1794764361/voidSheet_iyocqb.svg` |
+
+- **Origin lore (D-24):** BE adds `Spell.relatedLore`; the unlock is server-side. FE work only if the research shows that a lore unlocked by a learned spell is not already surfaced by the existing lore-unlock path (verify, do not assume); `relatedLore` on the spell is selected only if a consumer needs it.
+- D-22 and D-23 are DB content of the orchestrator: no FE work.
