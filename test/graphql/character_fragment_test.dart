@@ -167,6 +167,30 @@ void main() {
     );
   });
 
+  test('SpellFragment.fields no longer selects minXpToLearn (D-07, '
+      'Pitfall 2)', () {
+    for (final selection in [
+      SpellFragment.fields,
+      CharacterFragment.statusFields,
+      CharacterFragment.assetsFields,
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(selection, isNot(contains('minXpToLearn')));
+    }
+  });
+
+  test('origin and minLevelToLearn are not selected before the gate (D-01, '
+      'D-07, Pitfall 2)', () {
+    for (final selection in [
+      SpellFragment.fields,
+      SpellFragment.simpleFields,
+    ]) {
+      expect(selection, isNot(contains(RegExp(r'\borigin\b'))));
+      expect(selection, isNot(contains('minLevelToLearn')));
+    }
+  });
+
   test('a recorded characterUpdated payload parses its awaitingAid', () {
     final character = Character.fromJson(
       travellingCharacterJson(awaitingAid: awaitingAidJson()),
