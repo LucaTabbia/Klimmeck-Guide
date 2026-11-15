@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, complete on 2026-11-15 (17/17 plans, device E2E passed); milestone close pending
 Phase: 23 of 23 (Spell Origins, Void and Shamanic Quests) — in progress on `feat/23-spell-origins-void-and-shamanic-quests` (stacked on `feat/22-companion-defeat-rest-and-recovery`)
-Plan: 4 of 8
-Status: Phase 23 in progress — plans 23-01..23-04 done on 2026-11-15 (wire boundary; spell origin and minimum level, unselected; `QuestType.magic` renamed `arcane` with the legacy wire `magic` still read, rites `shamanic` and `theVoid` (wire `void`) with their sheets; city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their real marker ids); next 23-05 (aarakocra village id). Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10). Analyzer 47 info / 0 warning / 0 error.
-Last activity: 2026-11-15 -- Plan 23-04 complete (city types aarakocraCapital, dragonbornCapital, dragonbornVillage)
+Plan: 5 of 8
+Status: Phase 23 in progress — plans 23-01..23-05 done on 2026-11-15 (wire boundary; spell origin and minimum level, unselected; `QuestType.magic` renamed `arcane` with the legacy wire `magic` still read, rites `shamanic` and `theVoid` (wire `void`) with their sheets; city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their real marker ids; `aarakocraVillage` re-pointed to its new file, the eight sheet and city ids of D-21 audited once each); next 23-06 (origin drawing). Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10). Analyzer 47 info / 0 warning / 0 error.
+Last activity: 2026-11-15 -- Plan 23-05 complete (aarakocra village redrawn, eight ids audited)
 Next step: merge of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, carries `Pet.known` selected by the FE; the user takes it out of draft); then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` (never `main`); then the v1.1 milestone close.
 
 ## Current Milestone
@@ -93,5 +93,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-15T16:04:36.000Z
-Stopped at: Completed 23-04-PLAN.md
+Stopped at: Completed 23-05-PLAN.md
 Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-HUMAN-UAT.md
