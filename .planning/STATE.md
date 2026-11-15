@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, complete on 2026-11-15 (17/17 plans, device E2E passed); milestone close pending
 Phase: 23 of 23 (Spell Origins, Void and Shamanic Quests) — in progress on `feat/23-spell-origins-void-and-shamanic-quests` (stacked on `feat/22-companion-defeat-rest-and-recovery`)
-Plan: 1 of 8
+Plan: 2 of 8
 Status: Phase 23 in progress — plan 23-01 done on 2026-11-15 (ORIGIN-01..06 in REQUIREMENTS, `QuestType.wireName` / `fromWire` wire boundary, behaviour unchanged); next 23-02 (spell model). Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10). Analyzer 47 info / 0 warning / 0 error.
 Last activity: 2026-11-15 -- Plan 23-01 complete (quest type wire boundary)
 Next step: merge of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, carries `Pet.known` selected by the FE; the user takes it out of draft); then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` (never `main`); then the v1.1 milestone close.
