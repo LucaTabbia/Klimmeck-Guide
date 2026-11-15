@@ -1,25 +1,6 @@
-import 'damage_fragment.dart';
-
+/// Selezioni di una magia; i campi della BE Phase 24 entrano solo al gate
+/// 23-07.
 class SpellFragment {
-  static const String name = 'SpellFields';
-
-  static const String definition =
-      '''
-    fragment $name on Spell {
-      id
-      name
-      description
-      useType
-      maxUsages
-      minXpToLearn
-      recoveryTime
-      requiredLearnTime
-      energyDamage {
-        ${DamageFragment.fields}
-      }
-    }
-  ''';
-
   static const String simpleFields = '''
     id
     name
@@ -36,7 +17,6 @@ class SpellFragment {
     description
     useType
     maxUsages
-    minXpToLearn
     recoveryTime
     requiredLearnTime
     energyDamage {
