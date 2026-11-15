@@ -39,6 +39,8 @@ void main() {
         QuestType.job,
         QuestType.study,
         QuestType.arcane,
+        QuestType.shamanic,
+        QuestType.theVoid,
         QuestType.crime,
         QuestType.guard,
         null,

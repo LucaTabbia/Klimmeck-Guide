@@ -105,6 +105,23 @@ void main() {
       );
     });
 
+    test('the rites are repeatable standard-lane quests without registration '
+        '(D-09)', () {
+      final viewer = buildViewer(
+        quests: buildLanes(completedQuestIds: ['q-1']),
+      );
+      for (final type in [QuestType.shamanic, QuestType.theVoid]) {
+        expect(laneOf(type), QuestLane.standard, reason: type.name);
+        expect(nonRepeatableQuestTypes, isNot(contains(type)));
+        expect(registeredQuestTypes, isNot(contains(type)));
+        expect(
+          availabilityOf(buildQuest(type: type.wireName), viewer),
+          QuestAvailability.available,
+          reason: type.name,
+        );
+      }
+    });
+
     test(
       'arcane is a repeatable standard-lane quest (quick 261110-mag, D-20)',
       () {
@@ -403,6 +420,24 @@ void main() {
           reason: '${availability.name} with a requirement failing',
         );
       });
+    });
+
+    test('a rite above the viewer title is torn and whole once the rank is '
+        'reached (D-11)', () {
+      for (final type in ['shamanic', 'void']) {
+        final below = standingOf(
+          buildQuest(type: type, minTitle: 'mage'),
+          buildViewer(title: TitleType.paladin),
+        );
+        final reached = standingOf(
+          buildQuest(type: type, minTitle: 'mage'),
+          buildViewer(title: TitleType.mage),
+        );
+        expect(below.availability, QuestAvailability.titleMismatch);
+        expect(below.isTorn, isTrue, reason: type);
+        expect(reached.availability, QuestAvailability.available);
+        expect(reached.isTorn, isFalse, reason: type);
+      }
     });
 
     test('a quest above the viewer title is torn (quick 261110-mag)', () {

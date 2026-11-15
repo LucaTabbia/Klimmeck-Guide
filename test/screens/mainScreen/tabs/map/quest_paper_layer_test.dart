@@ -112,7 +112,7 @@ void main() {
   });
 
   testWidgets('a started void rite draws the void sheet on the Map paper '
-      '(D-14)', (tester) async {
+      'and reads Studiando (D-14, Pitfall 3)', (tester) async {
     seedSvgCache([CloudinaryAssets.voidSheet]);
     await pumpLayer(
       tester,
@@ -134,6 +134,7 @@ void main() {
       ),
     );
     expect(svg.url, CloudinaryAssets.url(CloudinaryAssets.voidSheet));
+    expect(find.text('Studiando…'), findsOneWidget);
   });
 
   testWidgets('reads In viaggio while the start date is null', (tester) async {

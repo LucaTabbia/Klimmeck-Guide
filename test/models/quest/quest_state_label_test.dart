@@ -130,6 +130,11 @@ void main() {
     },
   );
 
+  test('a started rite reads like a study (D-09, Pitfall 3)', () {
+    expect(questStateLabel(lane(), buildQuest(type: 'shamanic')), 'Studiando…');
+    expect(questStateLabel(lane(), buildQuest(type: 'void')), 'Studiando…');
+  });
+
   test('a started lane keeps the per-type label even with arrivedAt', () {
     expect(
       questStateLabel(
