@@ -47,9 +47,52 @@ Future<void> _pump(
 
 void main() {
   setUp(
-    () =>
-        seedSvgCache([CloudinaryAssets.fireEnergy, CloudinaryAssets.attackUse]),
+    () => seedSvgCache([
+      CloudinaryAssets.fireEnergy,
+      CloudinaryAssets.attackUse,
+      CloudinaryAssets.arcaneOrigin,
+      CloudinaryAssets.shamanicOrigin,
+      CloudinaryAssets.voidOrigin,
+    ]),
   );
+
+  testWidgets(
+    'the origin row sits before the use row with its icon (D-05, D-06)',
+    (tester) async {
+      await _pump(
+        tester,
+        Spell.fromJson(spellJson(origin: 'shamanic')),
+        usages: 1,
+        recovery: const SpellRecoveryFull(),
+      );
+
+      final origin = find.text('Origine: Sciamanica');
+      expect(origin, findsOneWidget);
+      expect(find.byType(CachedSvg), findsNWidgets(3));
+      expect(
+        tester.getTopLeft(origin).dy,
+        lessThan(tester.getTopLeft(find.text('Uso: Attacco')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Dardo di fuoco')).dy,
+        lessThan(tester.getTopLeft(origin).dy),
+      );
+    },
+  );
+
+  testWidgets('a spell without origin shows no origin row (D-05)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _fireDart,
+      usages: 1,
+      recovery: const SpellRecoveryFull(),
+    );
+
+    expect(find.textContaining('Origine'), findsNothing);
+    expect(find.byType(CachedSvg), findsNWidgets(2));
+  });
 
   testWidgets('shows every detail of a recovering spell', (tester) async {
     await _pump(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/shared/components/animated_pencil_text.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
@@ -18,6 +19,7 @@ Future<void> _pump(
   Spell spell, {
   bool? isMarked,
   int? usages,
+  double size = 120,
 }) async {
   await tester.pumpWidget(
     buildTestApp(
@@ -25,7 +27,7 @@ Future<void> _pump(
         body: Center(
           child: SpellCard(
             spell: spell,
-            size: 120,
+            size: size,
             isMarked: isMarked,
             usages: usages,
           ),
@@ -37,6 +39,13 @@ Future<void> _pump(
 
 final _fireDart = Spell.fromJson(spellJson());
 
+List<CachedSvg> _icons(WidgetTester tester) => tester
+    .widgetList<CachedSvg>(find.byType(CachedSvg))
+    .where(
+      (svg) => svg.url != CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet),
+    )
+    .toList();
+
 BookmarkRibbon _ribbon(WidgetTester tester) =>
     tester.widget<BookmarkRibbon>(find.byType(BookmarkRibbon));
 
@@ -47,8 +56,95 @@ void main() {
       CloudinaryAssets.bookmarkRed,
       CloudinaryAssets.fireEnergy,
       CloudinaryAssets.attackUse,
+      CloudinaryAssets.arcaneOrigin,
+      CloudinaryAssets.shamanicOrigin,
+      CloudinaryAssets.voidOrigin,
     ]),
   );
+
+  group('origin', () {
+    testWidgets(
+      'the origin icon is drawn first, before use and energy (D-01, D-05)',
+      (tester) async {
+        await _pump(tester, Spell.fromJson(spellJson(origin: 'void')));
+
+        final urls = tester
+            .widgetList<CachedSvg>(find.byType(CachedSvg))
+            .map((svg) => svg.url)
+            .toList();
+        expect(urls, [
+          CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet),
+          SpellOrigin.theVoid.imagePath,
+          CloudinaryAssets.url(CloudinaryAssets.attackUse),
+          CloudinaryAssets.url(CloudinaryAssets.fireEnergy),
+        ]);
+      },
+    );
+
+    testWidgets('three icons shrink to fit the card (D-05, Pitfall 5)', (
+      tester,
+    ) async {
+      await _pump(tester, Spell.fromJson(spellJson(origin: 'void')));
+
+      final icons = _icons(tester);
+      expect(icons, hasLength(3));
+      for (final icon in icons) {
+        expect(icon.width, 120 / 3.2);
+        expect(icon.height, 120 / 3.2);
+      }
+    });
+
+    testWidgets(
+      'three icons never overflow the smallest card in use (D-05, Pitfall 5)',
+      (tester) async {
+        await _pump(
+          tester,
+          Spell.fromJson(spellJson(origin: 'shamanic')),
+          size: 48,
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Dardo di fuoco'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a spell without origin keeps its two icons at today\'s size (D-05)',
+      (tester) async {
+        await _pump(tester, _fireDart);
+
+        final icons = _icons(tester);
+        expect(icons, hasLength(2));
+        for (final icon in icons) {
+          expect(icon.width, 120 / 2.5);
+          expect(icon.height, 120 / 2.5);
+        }
+        final originUrls = SpellOrigin.values.map((origin) => origin.imagePath);
+        expect(
+          icons.map((icon) => icon.url),
+          isNot(anyElement(isIn(originUrls))),
+        );
+      },
+    );
+
+    testWidgets('an origin with one other icon keeps today\'s size (D-05)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        Spell.fromJson(spellJson(origin: 'arcane', energy: null)),
+      );
+
+      final icons = _icons(tester);
+      expect(icons.map((icon) => icon.url), [
+        SpellOrigin.arcane.imagePath,
+        CloudinaryAssets.url(CloudinaryAssets.attackUse),
+      ]);
+      for (final icon in icons) {
+        expect(icon.width, 120 / 2.5);
+      }
+    });
+  });
 
   group('content', () {
     testWidgets('shows name and power, no bookmark and no counter', (

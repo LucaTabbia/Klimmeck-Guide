@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/popup/spell_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/spell_info.dart';
@@ -18,6 +20,7 @@ final _fireDart = Spell.fromJson(spellJson());
 
 Future<void> _pump(
   WidgetTester tester, {
+  Spell? spell,
   bool isActive = false,
   bool isPending = false,
   VoidCallback? onToggle,
@@ -28,7 +31,7 @@ Future<void> _pump(
       home: Scaffold(
         body: SingleChildScrollView(
           child: SpellInfoSheet(
-            spell: _fireDart,
+            spell: spell ?? _fireDart,
             usages: 1,
             recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
             isActive: isActive,
@@ -58,6 +61,7 @@ void main() {
       CloudinaryAssets.bookmarkRed,
       CloudinaryAssets.fireEnergy,
       CloudinaryAssets.attackUse,
+      CloudinaryAssets.arcaneOrigin,
     ]),
   );
 
@@ -75,6 +79,23 @@ void main() {
       expect(_ribbon(tester).isMarked, isFalse);
       expect(_ribbon(tester).left, 20);
     });
+
+    testWidgets(
+      'the details sheet draws the origin on the card and in the details (D-05)',
+      (tester) async {
+        await _pump(
+          tester,
+          spell: Spell.fromJson(spellJson(origin: 'arcane')),
+          onToggle: () {},
+        );
+
+        final originIcons = tester
+            .widgetList<CachedSvg>(find.byType(CachedSvg))
+            .where((svg) => svg.url == SpellOrigin.arcane.imagePath);
+        expect(originIcons, hasLength(2));
+        expect(find.text('Origine: Arcana'), findsOneWidget);
+      },
+    );
 
     testWidgets('has no app chrome', (tester) async {
       await _pump(tester, onToggle: () {});
