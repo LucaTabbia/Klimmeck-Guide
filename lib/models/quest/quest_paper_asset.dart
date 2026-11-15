@@ -74,7 +74,7 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.announcementSheet1,
             CloudinaryAssets.announcementSheet2,
           ],
-  QuestType.magic =>
+  QuestType.arcane =>
     isTorn
         ? const [CloudinaryAssets.magicTornSheet]
         : const [CloudinaryAssets.magicSheet],

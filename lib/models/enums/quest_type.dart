@@ -9,7 +9,7 @@ enum QuestType {
   dungeon(imageId: CloudinaryAssets.dungeonPawn),
   story(imageId: CloudinaryAssets.storyPawn),
   study(imageId: ''),
-  magic(imageId: ''),
+  arcane(imageId: ''),
   heal(imageId: ''),
   job(imageId: ''),
   crime(imageId: ''),
@@ -30,7 +30,7 @@ enum QuestType {
     QuestType.dungeon => 'Dungeon',
     QuestType.story => 'Storia',
     QuestType.study => 'Studio',
-    QuestType.magic => 'Magia',
+    QuestType.arcane => 'Magia',
     QuestType.heal => 'Cura',
     QuestType.job => 'Lavoro',
     QuestType.crime => 'Crimine',
@@ -43,7 +43,12 @@ enum QuestType {
   /// col backend, in lettura e in scrittura.
   String get wireName => name;
 
+  /// Nome con cui il backend serviva il tipo `arcane` prima della BE Phase 24
+  /// (D-20): solo letto, mai scritto.
+  static const String _legacyArcaneWireName = 'magic';
+
   static QuestType? fromWire(Object? value) {
+    if (value == _legacyArcaneWireName) return arcane;
     for (final type in values) {
       if (type.wireName == value) return type;
     }
