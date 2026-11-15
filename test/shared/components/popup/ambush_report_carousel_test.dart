@@ -261,7 +261,7 @@ void main() {
   group('AmbushReportCarousel companion fate (BE Phase 23)', () {
     testWidgets('an ambush page prints the companion defeat and «Prosegui a '
         'piedi» (D-10, D-28)', (tester) async {
-      final json = ambushLostResultJson()
+      final json = ambushWonResultJson(resolvedAt: '2026-10-27T11:40:00.000Z')
         ..['ambush']['onFoot'] = true
         ..['companion'] = companionOutcomeJson(
           name: 'Ronzinante',
