@@ -1,4 +1,5 @@
 import 'package:klimmeck_guide/models/energy_damage.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
@@ -54,6 +55,10 @@ String? spellDamageLabel(EnergyDamage? damage, {UseType? useType}) {
   return '$prefix: ${type.label} $power';
 }
 
+/// Origine della magia (D-06), prima dell'uso.
+String? spellOriginLabel(SpellOrigin? origin) =>
+    origin == null ? null : 'Origine: ${origin.label}';
+
 String? spellUseTypeLabel(UseType? useType) =>
     useType == null ? null : 'Uso: ${useType.label}';
 
@@ -61,12 +66,13 @@ String? spellMaxUsagesLabel(int? maxUsages) =>
     maxUsages == null ? null : 'Usi massimi: $maxUsages';
 
 /// `requiredLearnTime` letto in millisecondi come `recoveryTime` (assunzione
-/// A3, da confermare nel handoff BE 9.1).
+/// A3, da confermare nel handoff BE 9.1). Il livello minimo è quello servito
+/// (D-07): mai un confronto col personaggio (D-08).
 String? spellLearnLabel(Spell spell) {
-  final xp = spell.minXpToLearn;
+  final level = spell.minLevelToLearn;
   final learnTime = spell.requiredLearnTime;
   final parts = [
-    if (xp != null) '$xp XP',
+    if (level != null && level > 0) 'Livello $level',
     if (learnTime != null)
       '${formatGameDuration(Duration(milliseconds: learnTime))} di studio',
   ];
