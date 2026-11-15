@@ -64,4 +64,34 @@ void main() {
       );
     });
   });
+
+  group('new city types (Phase 23)', () {
+    test(
+      'Murnborim, Thengran and Veg Faldir parse with their new types (D-15)',
+      () {
+        final murnborim = City.tryFromJson({
+          'id': 'c',
+          'type': 'aarakocraCapital',
+          'size': 'capital',
+        });
+        final thengran = City.tryFromJson({
+          'id': 'c',
+          'type': 'dragonbornCapital',
+          'size': 'capital',
+        });
+        final vegFaldir = City.tryFromJson({
+          'id': 'c',
+          'type': 'dragonbornVillage',
+          'size': 'village',
+        });
+
+        expect(murnborim?.type, CityType.aarakocraCapital);
+        expect(murnborim?.size, CitySizeType.capital);
+        expect(thengran?.type, CityType.dragonbornCapital);
+        expect(thengran?.size, CitySizeType.capital);
+        expect(vegFaldir?.type, CityType.dragonbornVillage);
+        expect(vegFaldir?.size, CitySizeType.village);
+      },
+    );
+  });
 }
