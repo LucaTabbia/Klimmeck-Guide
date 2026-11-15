@@ -20,13 +20,46 @@ void main() {
 
     test('the magic quest is labelled Magia (quick 261110-mag)', () {
       expect(QuestType.magic.label, 'Magia');
-      expect(QuestType.values.byName('magic'), QuestType.magic);
+      expect(QuestType.fromWire('magic'), QuestType.magic);
     });
 
     test('every quest type has a non-empty label', () {
       for (final type in QuestType.values) {
         expect(type.label, isNotEmpty, reason: type.name);
       }
+    });
+  });
+
+  group('wire boundary', () {
+    test('every quest type round-trips through its wire name (D-09)', () {
+      for (final type in QuestType.values) {
+        expect(QuestType.fromWire(type.wireName), type, reason: type.name);
+      }
+    });
+
+    test('the wire names are the thirteen names served today (D-09)', () {
+      expect(QuestType.values.map((type) => type.wireName), [
+        'hunt',
+        'aid',
+        'enemy',
+        'worldMission',
+        'boss',
+        'dungeon',
+        'story',
+        'study',
+        'magic',
+        'heal',
+        'job',
+        'crime',
+        'guard',
+      ]);
+    });
+
+    test('fromWire reads null for an unknown or non-string value (D-09)', () {
+      expect(QuestType.fromWire('treasure'), isNull);
+      expect(QuestType.fromWire(null), isNull);
+      expect(QuestType.fromWire(7), isNull);
+      expect(QuestType.fromWire(''), isNull);
     });
   });
 }

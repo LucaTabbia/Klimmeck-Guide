@@ -97,6 +97,14 @@ void main() {
       expect(request.character.awaitingAid, isA<AwaitingAid>());
     });
 
+    test('the quest type is read through its wire name (D-09)', () {
+      final request = PendingRequest.fromJson(
+        pendingRequestJson(questType: 'magic'),
+      );
+
+      expect(request.quest.type, QuestType.magic);
+    });
+
     test('an unknown quest type keeps the entry with a null type', () {
       final request = PendingRequest.fromJson(
         pendingRequestJson(questType: 'emperorQuest'),

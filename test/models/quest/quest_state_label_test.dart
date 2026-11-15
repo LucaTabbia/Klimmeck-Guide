@@ -19,7 +19,7 @@ void main() {
   test('while travelling the label is In viaggio for every type', () {
     for (final type in QuestType.values) {
       expect(
-        questStateLabel(lane(startDate: null), buildQuest(type: type.name)),
+        questStateLabel(lane(startDate: null), buildQuest(type: type.wireName)),
         'In viaggio',
         reason: type.name,
       );
@@ -111,7 +111,7 @@ void main() {
     };
     expected.forEach((type, label) {
       expect(
-        questStateLabel(lane(), buildQuest(type: type.name)),
+        questStateLabel(lane(), buildQuest(type: type.wireName)),
         label,
         reason: type.name,
       );

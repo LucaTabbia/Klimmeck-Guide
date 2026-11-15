@@ -150,6 +150,21 @@ void main() {
       expect(Quest.tryFromJson(questJson(type: 'treasure')), isNull);
     });
 
+    test('QuestInfos stays strict on an unknown type and null on an absent '
+        'one (D-09, Pitfall 4)', () {
+      expect(
+        () => QuestInfos.fromJson({'type': 'treasure'}),
+        throwsArgumentError,
+      );
+      expect(QuestInfos.fromJson({}).type, isNull);
+    });
+
+    test('QuestInfos writes the wire name of its type (D-09)', () {
+      final infos = QuestInfos.fromJson({'type': 'worldMission'});
+
+      expect(infos.toJson()['type'], 'worldMission');
+    });
+
     test('returns null for an unknown minTitle', () {
       expect(Quest.tryFromJson(questJson(minTitle: 'wizard')), isNull);
     });

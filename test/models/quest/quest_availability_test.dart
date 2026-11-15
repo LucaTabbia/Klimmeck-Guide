@@ -666,10 +666,10 @@ void main() {
   group('mission in progress (Phase 21)', () {
     Quest acceptableQuestOf(QuestType type) => switch (type) {
       QuestType.story || QuestType.worldMission => buildQuest(
-        type: type.name,
+        type: type.wireName,
         requiredPoints: 100,
       ),
-      _ => buildQuest(type: type.name),
+      _ => buildQuest(type: type.wireName),
     };
 
     test('every quest type is blocked while a mission is in progress '

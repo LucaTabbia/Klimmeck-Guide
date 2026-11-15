@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart'
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result_quest.dart';
 
 import '../../helpers/fixtures/lore_fixtures.dart';
 import '../../helpers/fixtures/quest_fixtures.dart';
@@ -224,6 +225,27 @@ void main() {
 
       expect(result.quest!.type, isNull);
       expect(result.quest!.title, 'Lupi di Valantar');
+    });
+
+    test('a non-string quest type reads null (D-09)', () {
+      final quest = QuestResultQuest.fromJson({
+        'id': 'q',
+        'type': 7,
+        'title': 't',
+      });
+
+      expect(quest.type, isNull);
+      expect(quest.title, 't');
+    });
+
+    test('the result snapshot writes the wire name of its type (D-09)', () {
+      final quest = QuestResultQuest.fromJson({
+        'id': 'q',
+        'type': 'magic',
+        'title': 't',
+      });
+
+      expect(quest.toJson()['type'], 'magic');
     });
 
     test('a spell usage with a null spell survives', () {
