@@ -3,7 +3,7 @@ phase: 22
 slug: companion-defeat-rest-and-recovery
 status: planned
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-14
 ---
 
@@ -84,9 +84,9 @@ created: 2026-11-14
 | 22-15-01 | 15 | 15 | PET-08 | T-22-49 | companionLifeAfter sent only when set | unit | `flutter test test/models test/screens/innkeeper` | ✅ extend | ✅ green |
 | 22-15-02 | 15 | 15 | PET-08 | T-22-48, T-22-50 | slider within served bounds | widget | `flutter test test/screens/innkeeper` | ✅ extend | ✅ green |
 | 22-15-03 | 15 | 15 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 15 of 17" .planning/STATE.md` | — | ✅ green |
-| 22-16-01 | 16 | 16 | PET-09, PET-10 | T-22-51, T-22-52, T-22-53, T-22-55 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 22-16 + flutter test test/graphql` | ✅ | ⬜ pending |
-| 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ⬜ pending |
-| 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ⬜ pending |
+| 22-16-01 | 16 | 16 | PET-09, PET-10 | T-22-51, T-22-52, T-22-53, T-22-55 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 22-16 + flutter test test/graphql` | ✅ | ✅ green |
+| 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ✅ green |
+| 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-17-01 | 17 | 17 | PET-09 | T-22-56, T-22-58 | names only, no secrets | docs | `gate re-check of 22-17 + secrets grep = 0` | ❌ (created in Task 1) | ⬜ pending |
 | 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–9` | ❌ (created in 22-17) | ⬜ pending |
 | 22-17-03 | 17 | 17 | PET-01..PET-10 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ⬜ pending |

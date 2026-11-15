@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, not planned; milestone close pending
 Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`, Phase 21 merged with PR #51): context D-01..D-22 amended after the research and the user's answers (D-23..D-35), `22-REPO-RULES.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, 17 plans in sequential waves (01–15 against today's BE, 16–17 gated on the BE Phase 23 merge); BE Phase 23 planned in the same session (18 plans)
-Plan: 15 of 17
-Status: Phase 22 paused at 15/17 — pre-gate plans 01–15 executed, code review fixed (13 fixed, 5 not needed, 2 deferred to the device UAT: A-05, A-09), verification passed_with_gaps (V-01: one test gesture to tidy in the gate plan), security secured-pre-gate (0 open, 11 gated); full suite 5010 green, analyzer 47 info / 0 warning / 0 error, registry 55; `companionCareEnabled` false. Plans 22-16 (schema gate) and 22-17 (device E2E) wait for the BE Phase 23 PR merged on `develop`.
+Plan: 16 of 17
+Status: Phase 22 at 16/17 — schema gate 22-16 passed on 2026-11-15 against the merged BE Phase 23 SDL (PR #42 on BE `develop`): every companion field selected, `UseItem` sends `$petId`, `companionCareEnabled` true, V-01 fixed; schema check 55 × OK, full suite 5024 green, analyzer 47 info / 0 warning / 0 error. The branch now needs a BE with Phase 23.
 Last activity: 2026-11-14 -- Phase 22 planning complete
-Next step: finish and merge the BE Phase 23 PR; then 22-16 (gate: select the new fields, declare `$petId` on `UseItem` in the same commit that flips the switch, fix V-01), then 22-17 (device E2E, 9 steps). Before the UAT: the user approves the recovery-time table (`~/Downloads/klimmeck-tempi-recupero-compagni.md`) and the orchestrator writes it to the DB. Open product question: xp of a companion defeated on an early dungeon floor.
+Next step: 22-17 (device E2E, 9 steps) against a BE running Phase 23. Before the UAT: the user approves the recovery-time table (`~/Downloads/klimmeck-tempi-recupero-compagni.md`) and the orchestrator writes it to the DB (`pets.recoveryTime`, ms). Open product question: xp of a companion defeated on an early dungeon floor.
 
 ## Current Milestone
 
