@@ -7,7 +7,8 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/spell_lines.dart';
 
 /// Dettaglio di una magia nel foglio del long-press (D-09): presentazione pura,
-/// ogni riga compare solo se il catalogo ne fornisce il dato.
+/// ogni riga compare solo se il catalogo ne fornisce il dato; origine prima
+/// dell'uso (D-05).
 class SpellInfo extends StatelessWidget {
   const SpellInfo({
     super.key,
@@ -26,6 +27,8 @@ class SpellInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final energyType = spell.energyDamage?.type;
     final name = spell.name;
+    final origin = spell.origin;
+    final originLabel = spellOriginLabel(origin);
     final useType = spell.useType;
     final useTypeLabel = spellUseTypeLabel(useType);
     final description = spell.description;
@@ -39,6 +42,8 @@ class SpellInfo extends StatelessWidget {
             iconUrl: energyType?.imagePath,
             child: name == null ? null : _title(name),
           ),
+        if (originLabel != null)
+          _iconRow(iconUrl: origin?.imagePath, child: _line(originLabel)),
         if (useTypeLabel != null)
           _iconRow(iconUrl: useType?.imagePath, child: _line(useTypeLabel)),
         if (description != null) _line(description),
