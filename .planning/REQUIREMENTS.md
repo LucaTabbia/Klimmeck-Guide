@@ -55,6 +55,15 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **PET-09**: Schema gate on the merged BE Phase 23 SDL (gated selections, `UseItem` target, the one switch flipped, registry 55, schema check, full suite) and device E2E
 - [x] **PET-10**: Companion levels: `OwnedPet.level` and the companion's own `maxLifePoints` read from the wire (lenient: level hidden while absent, the species' max as fallback) through one getter used by every reader of the companion's max; «Livello N» shown in the details sheet and next to the species on the Journal parchment; the app never computes a level, a threshold or a max
 
+### Spell Origins, Void and Shamanic Quests (Phase 23, added 2026-11-15)
+
+- [ ] **ORIGIN-01**: `SpellOrigin` (wire `void` / `arcane` / `shamanic`, Dart `theVoid` / `arcane` / `shamanic`, labels «Vuoto» / «Arcana» / «Sciamanica») parsed leniently on `Spell.origin` through an explicit wire name; an unknown or absent origin reads null, the spell stays and nothing is drawn for it
+- [ ] **ORIGIN-02**: A spell prints the minimum **level** the backend sends («Per impararla: Livello N · … di studio»); `minXpToLearn` leaves the model, the fragments and the copy; the app never computes or compares a level
+- [ ] **ORIGIN-03**: The three school quest types are `arcane` (renamed from `magic`, label «Magia», the legacy wire value `magic` still read as `arcane` and never written), `shamanic` («Rito sciamanico») and `void` («Rito del Vuoto», Dart `theVoid`): the two new types behave exactly like the arcane one (standard lane, repeatable, unregistered, service sheet, «Studiando…», torn until the rank) with their own whole and torn sheets; the quest type crosses the wire only through `wireName` / `fromWire`
+- [ ] **ORIGIN-04**: City types `aarakocraCapital`, `dragonbornCapital` (marker 39) and `dragonbornVillage` (marker 30) parse and draw; visibility by the served size, no `alwaysVisible`; `aarakocraVillage` drawn with the new file
+- [ ] **ORIGIN-05**: The origin icon sits before the use and energy icons wherever a spell is drawn with icons (spell card, spell details with «Origine: …»); three icons never overflow the card; a spell without origin is drawn as before
+- [ ] **ORIGIN-06**: Schema gate on the merged BE Phase 24 SDL (`origin` and `minLevelToLearn` selected, registry 55, schema check, full suite) and device E2E, the origin lore unlocked by the first learned spell of an origin included (surfaced by the existing lore-unlock path, no new selection)
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -111,8 +120,14 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | PET-08 | Phase 22 | Complete |
 | PET-09 | Phase 22 | Complete |
 | PET-10 | Phase 22 | Complete |
+| ORIGIN-01 | Phase 23 | Pending |
+| ORIGIN-02 | Phase 23 | Pending |
+| ORIGIN-03 | Phase 23 | Pending |
+| ORIGIN-04 | Phase 23 | Pending |
+| ORIGIN-05 | Phase 23 | Pending |
+| ORIGIN-06 | Phase 23 | Pending |
 
-**Coverage:** 32 / 32 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22). No orphans. No duplicates.
+**Coverage:** 38 / 38 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 6 ORIGIN → Phase 23). No orphans. No duplicates.
 
 ---
 
