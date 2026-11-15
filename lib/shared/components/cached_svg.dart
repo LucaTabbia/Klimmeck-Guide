@@ -17,6 +17,7 @@ class CachedSvg extends StatefulWidget {
   final double? width;
   final double? height;
   final BoxFit fit;
+  final AlignmentGeometry alignment;
 
   const CachedSvg({
     super.key,
@@ -24,6 +25,7 @@ class CachedSvg extends StatefulWidget {
     this.width,
     this.height,
     this.fit = BoxFit.contain,
+    this.alignment = Alignment.center,
   });
 
   @override
@@ -75,6 +77,7 @@ class _CachedSvgState extends State<CachedSvg> {
       width: widget.width,
       height: widget.height,
       fit: widget.fit,
+      alignment: widget.alignment,
     );
   }
 }

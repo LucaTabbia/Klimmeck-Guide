@@ -73,6 +73,7 @@ class CompanionNameSheet extends StatefulWidget {
 
 class _CompanionNameSheetState extends State<CompanionNameSheet> {
   static const Size _minTapTarget = Size(44, 44);
+  static const double _roomyHeight = 150;
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.initialName,
@@ -108,6 +109,8 @@ class _CompanionNameSheetState extends State<CompanionNameSheet> {
     Navigator.of(context).pop();
   }
 
+  /// Pergamena ancorata in alto: il bordo strappato resta in vista e il
+  /// contenuto parte sotto di esso.
   Widget _parchment(BuildContext context, CompanionNameState state) {
     final width = MediaQuery.sizeOf(context).width;
     return Stack(
@@ -117,17 +120,31 @@ class _CompanionNameSheetState extends State<CompanionNameSheet> {
             url: CloudinaryAssets.url(CloudinaryAssets.bottomEmptySheet),
             width: width,
             fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
           ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width / 7,
-            vertical: KlimmeckGuideTheme.spacingXs,
+          padding: EdgeInsets.only(
+            left: width / 7,
+            right: width / 7,
+            top: _topMargin(context),
+            bottom: KlimmeckGuideTheme.spacingXs,
           ),
           child: SingleChildScrollView(child: _content(context, state)),
         ),
       ],
     );
+  }
+
+  /// Il margine sotto il bordo strappato cede quando la tastiera lascia
+  /// troppo poco spazio: il campo resta in vista (Pitfall 6).
+  double _topMargin(BuildContext context) {
+    final free =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    return free < _roomyHeight
+        ? KlimmeckGuideTheme.spacingXs
+        : KlimmeckGuideTheme.spacingLg;
   }
 
   Widget _content(BuildContext context, CompanionNameState state) {
