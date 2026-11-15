@@ -164,12 +164,17 @@ void main() {
       expect(companionXpGainedLine(0, name: 'Fenrir'), isNull);
     });
 
-    test('«Prosegui a piedi» only when on foot (D-28)', () {
+    test('«Prosegui a piedi» only when on foot and still travelling '
+        '(D-28)', () {
       final onFoot = questResult(
+        ambushWonResultJson()..['ambush']['onFoot'] = true,
+      );
+      final carried = questResult(
         ambushLostResultJson()..['ambush']['onFoot'] = true,
       );
 
       expect(onFootLineOf(onFoot), 'Prosegui a piedi');
+      expect(onFootLineOf(carried), isNull);
       expect(onFootLineOf(questResult(ambushLostResultJson())), isNull);
       expect(onFootLineOf(questResult(questResultJson())), isNull);
     });

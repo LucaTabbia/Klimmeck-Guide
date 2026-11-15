@@ -1273,7 +1273,20 @@ void main() {
       );
     });
 
-    testWidgets('«Prosegui a piedi» sits right after «Portato a …» (D-28)', (
+    testWidgets('«Prosegui a piedi» shows while the travel goes on (D-28)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(ambushWonResultJson()..['ambush']['onFoot'] = true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(textOf(tester, QuestResultSheet.onFootKey), 'Prosegui a piedi');
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsNothing);
+    });
+
+    testWidgets('«Portato a …» stands alone when carried to a city (D-28)', (
       tester,
     ) async {
       await _pump(
@@ -1282,11 +1295,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(textOf(tester, QuestResultSheet.onFootKey), 'Prosegui a piedi');
-      expect(
-        tester.getTopLeft(find.byKey(QuestResultSheet.reachedCityKey)).dy,
-        lessThan(tester.getTopLeft(find.byKey(QuestResultSheet.onFootKey)).dy),
-      );
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.onFootKey), findsNothing);
     });
   });
 
