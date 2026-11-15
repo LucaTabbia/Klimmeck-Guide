@@ -82,6 +82,11 @@ class CloudinaryAssets {
       'v1794303777/tornAnnouncementSheet2_ayfvwu.svg';
   static const String magicSheet = 'v1794357947/magicSheet_lkkqp3.svg';
   static const String magicTornSheet = 'v1794321051/tornMagicSheet_f8gu75.svg';
+  static const String shamanicSheet = 'v1794764350/shamanicSheet_ytxu1n.svg';
+  static const String shamanicTornSheet =
+      'v1794764330/tornShamanicSheet_exdyou.svg';
+  static const String voidSheet = 'v1794764361/voidSheet_iyocqb.svg';
+  static const String voidTornSheet = 'v1794764340/tornVoidSheet_h4sp3g.svg';
   static const String huntSheet1 = 'v1794324911/gameSheet1_togp4w.svg';
   static const String huntSheet2 = 'v1794324912/gameSheet2_zrmzpe.svg';
   static const String huntTornSheet1 = 'v1794324905/tornGameSheet1_ruztfx.svg';

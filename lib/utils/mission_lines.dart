@@ -12,7 +12,10 @@ String? missionActivityLabelOf(QuestType? type) => switch (type) {
   QuestType.aid => 'Soccorrendo…',
   QuestType.enemy || QuestType.boss => 'Combattendo…',
   QuestType.dungeon => 'Esplorando…',
-  QuestType.study || QuestType.arcane => 'Studiando…',
+  QuestType.study ||
+  QuestType.arcane ||
+  QuestType.shamanic ||
+  QuestType.theVoid => 'Studiando…',
   QuestType.heal => 'In cura…',
   QuestType.job => 'Lavorando…',
   QuestType.crime => 'Tramando…',
