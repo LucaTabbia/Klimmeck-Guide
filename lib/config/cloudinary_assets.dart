@@ -158,6 +158,11 @@ class CloudinaryAssets {
   static const String femaleMannequin =
       'v1757660559/femaleMannequin_y04ola.svg';
 
+  // ============== Spell Origins ==============
+  static const String arcaneOrigin = 'v1794764154/arcaneOrigin_retjhh.svg';
+  static const String shamanicOrigin = 'v1794764172/shamanicOrigin_vkxq6d.svg';
+  static const String voidOrigin = 'v1794764163/voidOrigin_mxgwls.svg';
+
   // ============== Use Types ==============
   static const String defenseUse = 'v1757660804/defenseUse_tuhdja.svg';
   static const String attackUse = 'v1757660802/attackUse_plbzx7.svg';
