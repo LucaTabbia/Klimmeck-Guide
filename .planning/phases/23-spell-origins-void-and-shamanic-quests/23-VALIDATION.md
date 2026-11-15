@@ -44,10 +44,10 @@ created: 2026-11-15
 | 23-02-01 | 02 | 2 | ORIGIN-01, ORIGIN-02 | T-23-06, T-23-07, T-23-08 | lenient origin and level; no level comparison; nothing selected | unit + widget | `flutter test test/models test/utils test/shared test/graphql test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ✅ green |
 | 23-02-02 | 02 | 2 | ORIGIN-02 | T-23-05 | `minXpToLearn` selected nowhere; Phase 24 fields unselected | document pin | `flutter test test/graphql test/tool test/models` | ✅ extend | ✅ green |
 | 23-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?2 of 8" .planning/STATE.md` | — | ✅ green |
-| 23-03-01 | 03 | 3 | ORIGIN-03 | T-23-09, T-23-10 | legacy `magic` read as `arcane`, never written | unit + widget | `flutter test test/models test/utils test/screens/mainScreen/tabs/board` | ✅ extend | ⬜ pending |
-| 23-03-02 | 03 | 3 | ORIGIN-03 | T-23-10, T-23-11 | wire `void` ↔ `theVoid`; ids only as constants | unit + widget | `flutter test test/models test/utils test/screens/mainScreen/tabs/board test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart` | ✅ extend | ⬜ pending |
-| 23-03-03 | 03 | 3 | ORIGIN-03 | T-23-12, T-23-13 | rites torn below the rank; «Studiando…» proven RED-first | unit + widget | `flutter test test/models/quest test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart test/screens/mainScreen/tabs/board` | ✅ extend | ⬜ pending |
-| 23-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?3 of 8" .planning/STATE.md` | — | ⬜ pending |
+| 23-03-01 | 03 | 3 | ORIGIN-03 | T-23-09, T-23-10 | legacy `magic` read as `arcane`, never written | unit + widget | `flutter test test/models test/utils test/screens/mainScreen/tabs/board` | ✅ extend | ✅ green |
+| 23-03-02 | 03 | 3 | ORIGIN-03 | T-23-10, T-23-11 | wire `void` ↔ `theVoid`; ids only as constants | unit + widget | `flutter test test/models test/utils test/screens/mainScreen/tabs/board test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart` | ✅ extend | ✅ green |
+| 23-03-03 | 03 | 3 | ORIGIN-03 | T-23-12, T-23-13 | rites torn below the rank; «Studiando…» proven RED-first | unit + widget | `flutter test test/models/quest test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart test/screens/mainScreen/tabs/board` | ✅ extend | ✅ green |
+| 23-03-04 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?3 of 8" .planning/STATE.md` | — | ✅ green |
 | 23-04-01 | 04 | 4 | ORIGIN-04 | T-23-14, T-23-16, T-23-17 | new city types parse; visibility only from the served size | unit + widget | `flutter test test/models test/screens/mainScreen/tabs/map` | ✅ extend | ⬜ pending |
 | 23-04-02 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?4 of 8" .planning/STATE.md` | — | ⬜ pending |
 | 23-05-01 | 05 | 5 | ORIGIN-04 | T-23-18, T-23-19 | replaced id pinned; eight ids audited once each | unit + audit | `flutter test test/models/enums/city_type_test.dart test/models/city_test.dart test/screens/mainScreen/tabs/map/layers/city_markers_layer_test.dart` + audit of 23-05 | ✅ extend | ⬜ pending |
@@ -72,7 +72,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 
 - [x] `test/models/enums/spell_origin_test.dart` — 23-02-01 (icons added in 23-06-01)
 - [x] `test/helpers/fixtures/spell_fixtures.dart` — `spellJson` loses `minXpToLearn` and gains `origin` / `minLevelToLearn` (keys only when non-null) — 23-02-01
-- [ ] Cache seeds of the four rite sheets in `board/sheet_test.dart`, `board/board_test.dart` and of the void sheet in `map/quest_paper_layer_test.dart` — 23-03-02
+- [x] Cache seeds of the four rite sheets in `board/sheet_test.dart`, `board/board_test.dart` and of the void sheet in `map/quest_paper_layer_test.dart` — 23-03-02
 - [ ] Cache seeds of the three city markers in `city_markers_layer_test.dart` — 23-04-01
 - [ ] Cache seeds of the three origin icons in `spell_card_test.dart`, `spell_info_test.dart`, `spell_info_sheet_test.dart` — 23-06-02
 - No framework install, no golden test (none exist).

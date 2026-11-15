@@ -213,7 +213,7 @@ _Amended 2026-11-15 (D-01, D-20..D-24 of `23-CONTEXT.md`): the origin `magic` re
 Plans:
 - [x] 23-01-PLAN.md — Requirements and the quest type wire boundary (wireName / fromWire)
 - [x] 23-02-PLAN.md — Spell model: origin and minimum level (lenient, unselected), minXpToLearn removed
-- [ ] 23-03-PLAN.md — Quest types: magic renamed arcane, the shamanic and void rites with their sheets
+- [x] 23-03-PLAN.md — Quest types: magic renamed arcane, the shamanic and void rites with their sheets
 - [ ] 23-04-PLAN.md — City types: aarakocraCapital, dragonbornCapital, dragonbornVillage with their markers
 - [ ] 23-05-PLAN.md — Asset ids: the aarakocra village redrawn, audit of the eight sheet and city ids
 - [ ] 23-06-PLAN.md — Origin drawing: icon ids, origin first on the spell card, origin row in the details
@@ -246,7 +246,7 @@ Plans:
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
-| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 2/8 | In Progress | - |
+| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 3/8 | In Progress | - |
 
 ---
 
