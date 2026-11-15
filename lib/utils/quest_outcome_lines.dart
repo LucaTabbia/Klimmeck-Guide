@@ -72,9 +72,13 @@ String? companionDefeatResultLine(
 const String onFootLine = 'Prosegui a piedi';
 
 /// [onFootLine] quando l'imboscata ha lasciato il personaggio senza
-/// cavalcatura (D-28).
-String? onFootLineOf(QuestResult result) =>
-    result.ambush?.isOnFoot == true ? onFootLine : null;
+/// cavalcatura e il viaggio prosegue (D-28): chi è stato portato in una
+/// città non cammina più.
+String? onFootLineOf(QuestResult result) {
+  final ambush = result.ambush;
+  if (ambush == null || !ambush.isOnFoot) return null;
+  return ambush.reachedCity == null ? onFootLine : null;
+}
 
 /// Riga dei turni di una dungeon o di un'aid di dungeon (D-21): stampa i
 /// numeri del BE così come arrivano, mai un turno in più né una quota.
