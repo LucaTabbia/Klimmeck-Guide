@@ -28,7 +28,7 @@ class PendingRequestQuest extends Equatable {
       PendingRequestQuest(
         id: json['id'] as String,
         title: json['title'] as String,
-        type: QuestType.values.asNameMap()[json['type']],
+        type: QuestType.fromWire(json['type']),
         requiredAdventurers: AdventurerSlot.listFrom(
           json['requiredAdventurers'],
         ),

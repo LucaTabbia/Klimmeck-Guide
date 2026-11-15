@@ -113,7 +113,7 @@ class MissionDraft extends Equatable {
     return MissionDraft(
       id: id,
       questId: questId,
-      questType: QuestType.values.asNameMap()[json['questType']],
+      questType: QuestType.fromWire(json['questType']),
       step: MissionDraftStep.values.asNameMap()[json['step']],
       placeId: placeId is String ? placeId : null,
       startedAt: utcInstantOrNull(json['startedAt']),

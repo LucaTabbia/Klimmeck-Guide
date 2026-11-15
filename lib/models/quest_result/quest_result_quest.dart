@@ -15,17 +15,16 @@ class QuestResultQuest extends Equatable {
   final String title;
 
   factory QuestResultQuest.fromJson(Map<String, dynamic> json) {
-    final type = json['type'];
     return QuestResultQuest(
       id: json['id'] as String,
-      type: type is String ? QuestType.values.asNameMap()[type] : null,
+      type: QuestType.fromWire(json['type']),
       title: json['title'] as String,
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'type': type?.name,
+    'type': type?.wireName,
     'title': title,
   };
 

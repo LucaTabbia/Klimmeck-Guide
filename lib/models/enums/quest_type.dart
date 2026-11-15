@@ -38,4 +38,15 @@ enum QuestType {
   };
 
   const QuestType({required String imageId}) : _imageId = imageId;
+
+  /// Nome del tipo sul filo: l'unico modo in cui il tipo attraversa il confine
+  /// col backend, in lettura e in scrittura.
+  String get wireName => name;
+
+  static QuestType? fromWire(Object? value) {
+    for (final type in values) {
+      if (type.wireName == value) return type;
+    }
+    return null;
+  }
 }
