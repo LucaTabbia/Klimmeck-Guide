@@ -27,7 +27,7 @@ key-decisions:
   - "PET-03 kept In Progress: the user passed step 8 but the unknown companion silhouette and the shop buy list long press are not seen on the device; PET-09 follows it"
   - "Gap of step 8 not blocking by the orchestrator's choice; the user decides whether to see it on the device or accept it"
   - "Phase 22 line and Progress row of the ROADMAP not marked complete (status partial); the 17 plan boxes ticked"
-requirements-completed: [PET-01, PET-02, PET-04, PET-05, PET-06, PET-07, PET-08, PET-10]
+requirements-completed: [PET-01, PET-02, PET-03, PET-04, PET-05, PET-06, PET-07, PET-08, PET-09, PET-10]
 duration: 15min
 completed: 2026-11-15
 ---
@@ -104,3 +104,17 @@ None. Push texts and «Prosegui a piedi» not contested; only the condition of �
 
 - Files exist: 22-HUMAN-UAT.md, BACKEND-NOTES.md, 22-VALIDATION.md, 22-17-SUMMARY.md.
 - Commits exist: 344192c4, 042920cc.
+
+## Gap closed (2026-11-15, after Task 3)
+
+The sections above are the record at the end of Task 3; this one supersedes their «partial» / «open» wording.
+
+- **Step 8 re-run on the device.** The user authorized the change of the dev bypass identity and redid step 8 as a second character (a player, at Valantar, who knows only four companions). Passes given by the orchestrator: shop buy list — Levriero and Cammello as black silhouettes with the name visible, a long press opens nothing, a short tap selects; Cavallo leggero and Falco with image and details; sheet of the quest «UAT 22 — Il dono dell'Alce» with the prize Alce as a silhouette with no details; Journal with the character's own companions drawn as usual. User: «pass». Orchestrator probe: the BE served `known: true` only for the four companions whose lore was unlocked.
+- **Records.** `22-HUMAN-UAT.md`: step 8 `pass`, no open gap, `status: complete`. `22-VALIDATION.md`: approved 2026-11-15. `BACKEND-NOTES.md` §3: `Pet.known` seen on the device as a player.
+- **Requirements.** PET-03 and PET-09 marked complete (`requirements mark-complete`): PET-01..PET-10 all complete; frontmatter `requirements-completed` of this file extended accordingly.
+- **Phase.** ROADMAP: Phase 22 complete (17/17, 2026-11-15). STATE: phase complete, the device-gap blocker removed, the product notes kept; `progress` counters set by hand to 5 / 5 phases and 65 / 65 plans (PLAN and SUMMARY files counted on disk for Phases 18–22).
+- **DB.** Restored by the orchestrator after the UAT on the user's order («Ripristina tutto»): the three «UAT 22» quests, the day's results and the test companions removed; life, injuries, coins, items and position of the two characters and the companion list of the Valantar shop put back. Kept at DB: the recovery times of the 44 companions and the magic quest put back during the UAT. Backup kept by the orchestrator outside the repo.
+- **BE.** CI of PR #43 green on its last push (HEAD 3d2e1f1e), reported by the orchestrator.
+- **Still open, not gaps of this phase:** the product notes above (character creation shown with the tunnel down; `Pet.known` for the streamer in the innkeeper wizard, BACKEND-NOTES §4.7).
+
+Next: merge of BE PR #43 (the user takes it out of draft) → FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` → v1.1 milestone close.

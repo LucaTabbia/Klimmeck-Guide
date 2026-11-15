@@ -7,7 +7,7 @@
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 🚧 **v1.1 Healing & Models** — Phases 18–22 (started 2026-11-10; Phase 22 — companion defeat, rest and recovery — added 2026-11-14; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 planned and complete 2026-11-14) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
+- 🚧 **v1.1 Healing & Models** — Phases 18–22 (started 2026-11-10; Phase 22 — companion defeat, rest and recovery — added 2026-11-14 and complete 2026-11-15; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 planned and complete 2026-11-14) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -44,7 +44,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 19: Model Review (frontend companion)** — The app follows the cleaned BE models (BE Phase 19) with no visible change except the companion xp: `Enemy.weaknesses { base, energy }`, `ownedPets` entries with `xp`/`currentLifePoints` (companion row «Esperienza: N / maxXp», result line «Il tuo compagno guadagna N PE» from `QuestResult.petXpGained`), `Pet.attack`/`Pet.defense`, `wornEquipment`/`feet`, one `spellStates` list with `active` (Journal spells section), no `PointOfInterest.quest`, `Lore.imagePath`; plus the FE-only fragile-parser fixes (`PointOfInterest.type`). Non-additive contract: gated plans after the BE Phase 19 merge. _(added 2026-11-09, executes after Phase 18)_ (completed 2026-11-11)
 - [x] **Phase 20: Rank-Specific Prizes for Group Quests** — A group quest carries a prize for each rank that can join it: the adventurer gets a prize fit for an adventurer, the mage in the same quest a prize fit for a mage; backend-owned, the sheets show the viewer the prize of their own rank. Needs a BE companion phase. _(added 2026-11-11)_ (completed 2026-11-13)
 - [x] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11; completed 2026-11-14)_
-- [ ] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14)_
+- [x] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14; completed 2026-11-15)_
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -220,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | In Progress (gap: step 8 on the device) | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 
 ---
 

@@ -40,7 +40,7 @@ Selection points:
 
 ## 3. UAT outcome (FE Phase 22, 2026-11-15)
 
-BE under test: branch `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, not merged), HEAD `3d2e1f1e`, on top of `develop` `5ff0bdb9` (BE PR #42, Phase 23). Three additions landed on that branch during the UAT: companion xp only from the fights it leaves standing (`bf812a33`), omitted innkeeper corrections = simulated (`9106b66e`), `Pet.known: Boolean!` (`e4268b72`). SDL: one line (`known`) added against `develop`; FE schema check re-run by the orchestrator: 55 × OK. Full record: `22-HUMAN-UAT.md` (`status: partial`). Steps 1–7 and 9 passed; step 8 has two points still to see on the device.
+BE under test: branch `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, not merged), HEAD `3d2e1f1e`, on top of `develop` `5ff0bdb9` (BE PR #42, Phase 23). Three additions landed on that branch during the UAT: companion xp only from the fights it leaves standing (`bf812a33`), omitted innkeeper corrections = simulated (`9106b66e`), `Pet.known: Boolean!` (`e4268b72`). SDL: one line (`known`) added against `develop`; FE schema check re-run by the orchestrator: 55 × OK. Full record: `22-HUMAN-UAT.md` (`status: complete`). Steps 1–9 passed; step 8 was closed on the device as a player after the first run. CI of PR #43 green on its last push (HEAD `3d2e1f1e`), reported by the orchestrator.
 
 Outcome of the steps that touch the BE (user words in «», the rest observed by the orchestrator at DB / logs):
 
@@ -52,7 +52,8 @@ Outcome of the steps that touch the BE (user words in «», the rest observed by
 - **`ambush` and `petRecovered` pushes (steps 5, 6):** the `ambush` pushes arrived; the «in forze» push arrived after the orchestrator moved the dates back (sweep at 16:13); with «Compagno in forze» off no push arrived and «Imboscate» kept its choice. Push texts not contested.
 - **Guided completion with the companion correction (step 7):** pass; at DB the outcome is `gmCompleted`, the participant's companion defeated and out of the slot, 0 xp to the companion (new rule).
 - **Companion levels (step 9):** pass; xp raised at DB past a threshold, the phone showed the new level and max without a touch.
-- **`Pet.known` (step 8, new in this UAT):** asked by the user («Se non hai ancora ottenuto la lore corrispondente, il foglio non si deve aprire per dare il dettaglio e l'immagine deve essere nera (come succede per gli enemies).»). The FE selects it through `PetFragment` (UF-01 in `22-UAT-FIXES.md`). Not yet seen on the device: the UAT identity is the innkeeper, for whom every companion is known.
+- **`Pet.known` (step 8, new in this UAT):** asked by the user («Se non hai ancora ottenuto la lore corrispondente, il foglio non si deve aprire per dare il dettaglio e l'immagine deve essere nera (come succede per gli enemies).»). The FE selects it through `PetFragment` (UF-01 in `22-UAT-FIXES.md`). Not seen in the first run: the UAT identity was the innkeeper, for whom every companion is known.
+- **`Pet.known` seen on the device as a player (step 8 re-run, 2026-11-15):** pass («pass»). With a second character on a player identity at Valantar that knows four companions, the BE served `known: true` only for the four companions whose lore was unlocked (orchestrator probe); on the phone the unknown ones (shop buy list, quest-sheet prize) were black silhouettes with the name visible and no details on long press, the known ones had image and details, the character's own companions in the Journal were drawn as usual.
 
 ## 4. Questions and notes for the BE
 

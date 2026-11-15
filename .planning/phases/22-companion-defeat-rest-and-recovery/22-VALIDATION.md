@@ -1,7 +1,7 @@
 ---
 phase: 22
 slug: companion-defeat-rest-and-recovery
-status: planned
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-14
@@ -88,8 +88,8 @@ created: 2026-11-14
 | 22-16-02 | 16 | 16 | PET-09 | T-22-54 | switch flipped only after the SDL proof | gate | `flutter test test/graphql test/config + schema check 55 × OK + full suite` | ✅ | ✅ green |
 | 22-16-03 | 16 | 16 | — | — | N/A (bookkeeping) | docs | `grep -q "Plan: 16 of 17" .planning/STATE.md` | — | ✅ green |
 | 22-17-01 | 17 | 17 | PET-09 | T-22-56, T-22-58 | names only, no secrets | docs | `gate re-check of 22-17 + secrets grep = 0` | ✅ created in Task 1 | ✅ green |
-| 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–9` | ✅ created in 22-17 | ✅ green (steps 1–7, 9 pass; step 8 pass with two points to see on the device: gap open, PET-03 / PET-09 in progress) |
-| 22-17-03 | 17 | 17 | PET-01..PET-10 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ✅ green (`status: partial`) |
+| 22-17-02 | 17 | 17 | PET-01..PET-08, PET-10 | T-22-59, T-22-60 | refusal probes on device | manual | `22-HUMAN-UAT.md steps 1–9` | ✅ created in 22-17 | ✅ green (steps 1–9 pass; step 8 closed on the device on 2026-11-15 as a player) |
+| 22-17-03 | 17 | 17 | PET-01..PET-10 | T-22-57 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 22-HUMAN-UAT.md` | — | ✅ green (`status: complete`) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -142,4 +142,4 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] Feedback latency < 120s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending — device E2E run on 2026-11-15 (`22-HUMAN-UAT.md`, `status: partial`): steps 1–7 and 9 passed, step 8 passed by the user with two points still to see on the device (unknown companion silhouette, long press in the shop buy list). Approval set when the user rules on that gap.
+**Approval:** approved 2026-11-15 — Device E2E passed on 2026-11-15 (`22-HUMAN-UAT.md`, steps 1–9).
