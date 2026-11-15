@@ -1,9 +1,10 @@
-/// Selezioni di una magia; i campi della BE Phase 24 entrano solo al gate
-/// 23-07.
+/// Selezioni di una magia; origine e livello minimo della BE Phase 24
+/// selezionati dal gate 23-07.
 class SpellFragment {
   static const String simpleFields = '''
     id
     name
+    origin
     useType
     energyDamage {
       type
@@ -15,8 +16,10 @@ class SpellFragment {
     id
     name
     description
+    origin
     useType
     maxUsages
+    minLevelToLearn
     recoveryTime
     requiredLearnTime
     energyDamage {

@@ -31,6 +31,7 @@ class EquipmentFragment {
     addedSpell {
       id
       name
+      origin
       useType
       energyDamage {
         type
