@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 
 void main() {
@@ -36,5 +37,36 @@ void main() {
     for (final value in <Object?>['chaos', null, 7]) {
       expect(SpellOrigin.fromWire(value), isNull, reason: '$value');
     }
+  });
+
+  test('the origin icons point to their files (D-05, D-21)', () {
+    expect(
+      CloudinaryAssets.arcaneOrigin,
+      'v1794764154/arcaneOrigin_retjhh.svg',
+    );
+    expect(
+      CloudinaryAssets.shamanicOrigin,
+      'v1794764172/shamanicOrigin_vkxq6d.svg',
+    );
+    expect(CloudinaryAssets.voidOrigin, 'v1794764163/voidOrigin_mxgwls.svg');
+  });
+
+  test('every origin has its own icon (D-05)', () {
+    expect(
+      SpellOrigin.arcane.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.arcaneOrigin),
+    );
+    expect(
+      SpellOrigin.shamanic.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.shamanicOrigin),
+    );
+    expect(
+      SpellOrigin.theVoid.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.voidOrigin),
+    );
+    expect(
+      SpellOrigin.values.map((origin) => origin.imagePath).toSet(),
+      hasLength(3),
+    );
   });
 }
