@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: Phase 22 planned (17 plans)
-last_updated: "2026-11-14T17:36:10.829Z"
-last_activity: 2026-11-14 -- Phase 22 planning complete
+stopped_at: Completed 22-17-PLAN.md (device E2E partial, one gap open)
+last_updated: "2026-11-15T16:00:00.000Z"
+last_activity: 2026-11-15 -- Phase 22 device E2E recorded (22-17)
 progress:
   total_phases: 5
   completed_phases: 4
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 22 — Companion Defeat, Rest and Recovery (↔ BE Phase 23) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (17 plans, sequential); ready to execute
+**Current focus:** Phase 22 — Companion Defeat, Rest and Recovery (↔ BE Phase 23) — 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery`; device E2E of 2026-11-15 partial with one gap open (step 8 on the device)
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, not planned; milestone close pending
-Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — PLANNED on 2026-11-14 on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`, Phase 21 merged with PR #51): context D-01..D-22 amended after the research and the user's answers (D-23..D-35), `22-REPO-RULES.md`, `22-RESEARCH.md`, `22-VALIDATION.md`, 17 plans in sequential waves (01–15 against today's BE, 16–17 gated on the BE Phase 23 merge); BE Phase 23 planned in the same session (18 plans)
-Plan: 16 of 17
-Status: Phase 22 at 16/17 — schema gate 22-16 passed on 2026-11-15 against the merged BE Phase 23 SDL (PR #42 on BE `develop`): every companion field selected, `UseItem` sends `$petId`, `companionCareEnabled` true, V-01 fixed; schema check 55 × OK, full suite 5024 green, analyzer 47 info / 0 warning / 0 error. The branch now needs a BE with Phase 23.
-Last activity: 2026-11-14 -- Phase 22 planning complete
-Next step: 22-17 (device E2E, 9 steps) against a BE running Phase 23. Before the UAT: the user approves the recovery-time table (`~/Downloads/klimmeck-tempi-recupero-compagni.md`) and the orchestrator writes it to the DB (`pets.recoveryTime`, ms). Open product question: xp of a companion defeated on an early dungeon floor.
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, 17/17 plans executed on 2026-11-15 with one device gap open; milestone close pending
+Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`); gate 22-16 passed on 2026-11-15 against the merged BE Phase 23 SDL; device E2E 22-17 on 2026-11-15 partial (one gap, step 8)
+Plan: 17 of 17
+Status: Phase 22 at 17/17 plans executed, one gap open — device E2E on 2026-11-15 (`22-HUMAN-UAT.md`, `status: partial`) against BE `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, HEAD 3d2e1f1e, on top of `develop` `5ff0bdb9`): steps 1–7 and 9 passed; step 8 passed by the user but two points are still to see on the device (black silhouette / no details of an unknown companion, long press in the shop buy list), so PET-03 and PET-09 stay In Progress, the other eight PET requirements complete. Fixes made in TDD during the UAT (keyboard under a sheet, name sheet top edge, «Prosegui a piedi» only when the travel goes on, unknown companions via `Pet.known`); suite 5041 green, analyzer 47 info / 0 warning / 0 error, schema check 55 × OK on the SDL with `Pet.known`.
+Last activity: 2026-11-15 -- Phase 22 device E2E recorded (22-17)
+Next step: the user rules on the step 8 gap (see it on the device with an identity that has not unlocked the companion's lore, or accept it); merge of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, carries `Pet.known` selected by the FE); then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` opened by the user (never `main`); then the v1.1 milestone close.
 
 ## Current Milestone
 
@@ -61,6 +61,8 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **Auto-realignment after a network loss** (18-13 step 3): after the USB tunnel came back the app had not realigned by itself within ~40 s (restarted); not reproduced in a controlled way — investigate the WS reconnection/refetch.
 - **Phase 19 device notes** (19-13, not blockers): long «Attacco» lines shrink and the common ink is close to the normal ink (the user found both fine); the abandon button of the map sheet may flash next to «In combattimento…» for a solo quest (pre-existing); pets as quest prizes (BE D-28) not seen on the device yet; the unregistered flags UF-19-01..03 of the security audit accepted as they are; the innkeeper's test character carries two more injuries from this UAT (`missingLeftHand`, `brokenRightLeg`).
 - **Phase 20 device notes** (20-04, not blockers): the «Soccorso in corso» lock of quick 261113-aql is NOT live on an open Board (declared limit: it shows at the next read of `quests` or right after a refused accept); open questions for the user — the banner copy on a refused locked quest (today the shared «Missione non disponibile, avvisa il locandiere»), and `Quest.rankPrizes` readable by every authenticated user (BE). Not seen on the device, covered by tests: the Map sheet of a rank-block quest, a result without turns, the wounded's «Sei stato salvato» (DB only).
+- **Phase 22 device gap** (22-17, step 8; not blocking by the orchestrator's choice, the user decides): the black silhouette / no details of an unknown companion (`Pet.known`, UF-01) and the long press in the shop buy list are not seen on the device yet (the UAT identity is the innkeeper, who sees every companion as known).
+- **Phase 22 product notes** (22-17): with the `adb reverse` tunnel down the app, not reaching the BE, showed the character creation instead of an offline state (pre-existing, to review); if the BE resolves `Pet.known` for the streamer, prize companions unknown to the streamer show as silhouettes in the innkeeper wizard.
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
@@ -90,6 +92,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-14T16:33:41.394Z
-Stopped at: Phase 22 planned (17 plans)
-Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-CONTEXT.md
+Last session: 2026-11-15T16:00:00.000Z
+Stopped at: Completed 22-17-PLAN.md (device E2E partial, one gap open)
+Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-HUMAN-UAT.md

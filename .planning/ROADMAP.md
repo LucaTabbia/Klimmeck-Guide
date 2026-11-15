@@ -193,7 +193,7 @@ Plans:
 - [x] 22-14-PLAN.md — Ambush and «in forze» notification categories
 - [x] 22-15-PLAN.md — Innkeeper companion life slider
 - [x] 22-16-PLAN.md — Gate: schema, gated selections, UseItem target, switch (after the BE Phase 23 merge)
-- [ ] 22-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 23 merge, human)
+- [x] 22-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 23 merge, human)
 
 ## Progress
 
@@ -220,7 +220,7 @@ Plans:
 | 19. Model Review (companion) | v1.1 | 13/13 | Complete | 2026-11-11 |
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
-| 22. Companion Defeat, Rest and Recovery | v1.1 | 16/17 | In Progress | - |
+| 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | In Progress (gap: step 8 on the device) | - |
 
 ---
 

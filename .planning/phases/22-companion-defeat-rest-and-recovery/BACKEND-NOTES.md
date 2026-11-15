@@ -40,7 +40,19 @@ Selection points:
 
 ## 3. UAT outcome (FE Phase 22, 2026-11-15)
 
-Filled by plan 22-17.
+BE under test: branch `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, not merged), HEAD `3d2e1f1e`, on top of `develop` `5ff0bdb9` (BE PR #42, Phase 23). Three additions landed on that branch during the UAT: companion xp only from the fights it leaves standing (`bf812a33`), omitted innkeeper corrections = simulated (`9106b66e`), `Pet.known: Boolean!` (`e4268b72`). SDL: one line (`known`) added against `develop`; FE schema check re-run by the orchestrator: 55 × OK. Full record: `22-HUMAN-UAT.md` (`status: partial`). Steps 1–7 and 9 passed; step 8 has two points still to see on the device.
+
+Outcome of the steps that touch the BE (user words in «», the rest observed by the orchestrator at DB / logs):
+
+- **Defeat and `PET_DEFEATED` (step 1):** pass. The user ruled «Se il pet viene sconfitto non ottiene xp. Li ottiene solo quando vince.»: in the hunt the defeated companion had taken 1 xp and levelled up under the old rule; the new rule is `bf812a33`. The equip probe answered `PET_DEFEATED`.
+- **Resting anchor and dates (step 2):** pass; the life rose on the phone between `lifeAsOf` and `fullLifeAt` and the re-equip kept it.
+- **Companion potion and its wait (step 3):** pass; probes `PET_DEFEATED` on the defeated companion and `PET_POTION_RECOVERING` with `extensions.recoveryUntil` on the one in its wait.
+- **`renamePet` and `PET_NAME_INVALID` (step 4):** pass. The server refusal cannot be reached from the phone (the client applies the same form rules); probe `PET_NAME_INVALID` by the orchestrator. The prize companion is a 20 % roll: a won outcome was seeded to see the prompt after «Continua». Rename during a mission tried at step 7 (not locked).
+- **Ambush reports mid-travel, recomputed / redirected travel (step 5):** pass. Defeat in an ambush → carried back to a city; win with the mount fallen → on foot, arrival moved from 17:04 to 18:59; little food → redirected to Valantar. The FE printed «Prosegui a piedi» together with «Portato a Valantar»: fixed on the FE (the line only when the travel goes on); the BE `onFoot` value itself is unchanged. With the Map open the carousel opened and no banner doubled it. The fight outcome is a roll (several attempts needed). The pawn jump-back (B-09) was not reported.
+- **`ambush` and `petRecovered` pushes (steps 5, 6):** the `ambush` pushes arrived; the «in forze» push arrived after the orchestrator moved the dates back (sweep at 16:13); with «Compagno in forze» off no push arrived and «Imboscate» kept its choice. Push texts not contested.
+- **Guided completion with the companion correction (step 7):** pass; at DB the outcome is `gmCompleted`, the participant's companion defeated and out of the slot, 0 xp to the companion (new rule).
+- **Companion levels (step 9):** pass; xp raised at DB past a threshold, the phone showed the new level and max without a touch.
+- **`Pet.known` (step 8, new in this UAT):** asked by the user («Se non hai ancora ottenuto la lore corrispondente, il foglio non si deve aprire per dare il dettaglio e l'immagine deve essere nera (come succede per gli enemies).»). The FE selects it through `PetFragment` (UF-01 in `22-UAT-FIXES.md`). Not yet seen on the device: the UAT identity is the innkeeper, for whom every companion is known.
 
 ## 4. Questions and notes for the BE
 
@@ -49,4 +61,6 @@ Filled by plan 22-17.
 3. Travels in flight at the deploy: travels without `status.activeTravel.mount` are not recomputed and their held ambush reports are delivered at arrival / teleport; the FE handles both paths (carousel mid-travel or at arrival).
 4. Pawn jump-back (BE B-09, deferred): a late sweep resolution moves `startTime` back to the ambush instant; watched at step 5.
 5. Rules of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, not merged at the time of writing): companion xp from the fights fought only in a sequence; correction fields omitted or null = simulated. The FE reads the served xp and always resends the simulated companion life, so no FE change is needed. PR #43 should be merged before the FE PR.
-6. Copy the user changed at the UAT: recorded in §3.
+6. Copy the user changed at the UAT: none. The push texts were not contested; the only change is FE-side (the «Prosegui a piedi» line only when the travel goes on).
+7. `Pet.known` for the streamer: the innkeeper's prize rows and catalogue select `known` through the shared fragment. If the BE resolves it for the streamer's own viewer, prize companions whose lore the streamer has not unlocked show as silhouettes with no details in the wizard: confirm whether the innkeeper should see them all as known.
+8. PR #43 now also carries `Pet.known`, which the FE selects: it must be merged on `develop` before the FE PR (an FE build against a BE without `known` loses the companion queries).
