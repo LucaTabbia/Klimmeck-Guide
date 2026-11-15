@@ -276,16 +276,22 @@ void main() {
   });
 
   testWidgets(
-    'the details offer «Dai un nome» or «Cambia nome» only with the switch '
-    'on (D-19, Pitfall 3)',
+    'the details offer no rename entry with the switch off (D-19, Pitfall 3)',
     (tester) async {
       await pumpJournal(tester);
       await longPressWorg(tester);
 
       expect(sheet(tester).onRename, isNull);
       expect(find.byKey(CompanionInfo.renameKey), findsNothing);
+    },
+  );
 
+  testWidgets(
+    'the details offer «Cambia nome» with the switch on (D-19, Pitfall 3)',
+    (tester) async {
       await pumpJournal(tester, isCompanionNamingEnabled: true);
+      expect(find.byType(CompanionInfoSheet), findsNothing);
+
       await longPressWorg(tester);
 
       expect(sheet(tester).onRename, isNotNull);
