@@ -2,8 +2,8 @@
 phase: 23
 slug: spell-origins-void-and-shamanic-quests
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-11-15
 ---
 
@@ -55,9 +55,9 @@ created: 2026-11-15
 | 23-06-01 | 06 | 6 | ORIGIN-05 | T-23-23 | icon ids only as constants | unit | `flutter test test/models/enums test/models/spell_test.dart` | ✅ extend | ✅ green |
 | 23-06-02 | 06 | 6 | ORIGIN-05 | T-23-21, T-23-22, T-23-24 | no overflow at 48 px; no origin → drawn as before | widget | `flutter test test/shared test/screens/mainScreen/tabs/journal test/screens/innkeeper` | ✅ extend | ✅ green |
 | 23-06-03 | 06 | 6 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?6 of 8" .planning/STATE.md` | — | ✅ green |
-| 23-07-01 | 07 | 7 | ORIGIN-06, ORIGIN-01, ORIGIN-02, ORIGIN-05 | T-23-25, T-23-26, T-23-27, T-23-28, T-23-29 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-07 + flutter test test/graphql` | ✅ extend | ⬜ pending |
-| 23-07-02 | 07 | 7 | ORIGIN-06 | T-23-25 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite` | ✅ | ⬜ pending |
-| 23-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?7 of 8" .planning/STATE.md` | — | ⬜ pending |
+| 23-07-01 | 07 | 7 | ORIGIN-06, ORIGIN-01, ORIGIN-02, ORIGIN-05 | T-23-25, T-23-26, T-23-27, T-23-28, T-23-29 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-07 + flutter test test/graphql` | ✅ extend | ✅ green |
+| 23-07-02 | 07 | 7 | ORIGIN-06 | T-23-25 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite` | ✅ | ✅ green |
+| 23-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?7 of 8" .planning/STATE.md` | — | ✅ green |
 | 23-08-01 | 08 | 8 | ORIGIN-06 | T-23-31, T-23-33 | names only, no secrets | docs | `gate re-check of 23-08 + secrets grep = 0` | ❌ created in Task 1 | ⬜ pending |
 | 23-08-02 | 08 | 8 | ORIGIN-01..ORIGIN-05 | T-23-34, T-23-35 | rank floor and origin pool seen on the device | manual | `23-HUMAN-UAT.md steps 1–8` | ❌ created in 23-08 | ⬜ pending |
 | 23-08-03 | 08 | 8 | ORIGIN-01..ORIGIN-06 | T-23-32 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 23-HUMAN-UAT.md` | — | ⬜ pending |
