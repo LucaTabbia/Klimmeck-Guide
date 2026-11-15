@@ -99,10 +99,10 @@ void main() {
 
     test('the quest type is read through its wire name (D-09)', () {
       final request = PendingRequest.fromJson(
-        pendingRequestJson(questType: 'magic'),
+        pendingRequestJson(questType: 'arcane'),
       );
 
-      expect(request.quest.type, QuestType.magic);
+      expect(request.quest.type, QuestType.arcane);
     });
 
     test('an unknown quest type keeps the entry with a null type', () {

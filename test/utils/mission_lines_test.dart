@@ -27,7 +27,7 @@ void main() {
         QuestType.boss: 'Combattendo…',
         QuestType.dungeon: 'Esplorando…',
         QuestType.study: 'Studiando…',
-        QuestType.magic: 'Studiando…',
+        QuestType.arcane: 'Studiando…',
         QuestType.heal: 'In cura…',
         QuestType.job: 'Lavorando…',
         QuestType.crime: 'Tramando…',

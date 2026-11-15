@@ -18,9 +18,9 @@ void main() {
       expect(QuestType.guard.label, 'Guardia');
     });
 
-    test('the magic quest is labelled Magia (quick 261110-mag)', () {
-      expect(QuestType.magic.label, 'Magia');
-      expect(QuestType.fromWire('magic'), QuestType.magic);
+    test('the arcane quest type keeps the label Magia (D-13, D-20)', () {
+      expect(QuestType.arcane.label, 'Magia');
+      expect(QuestType.fromWire('arcane'), QuestType.arcane);
     });
 
     test('every quest type has a non-empty label', () {
@@ -37,7 +37,7 @@ void main() {
       }
     });
 
-    test('the wire names are the thirteen names served today (D-09)', () {
+    test('the wire names of the thirteen types (D-09, D-20)', () {
       expect(QuestType.values.map((type) => type.wireName), [
         'hunt',
         'aid',
@@ -47,12 +47,24 @@ void main() {
         'dungeon',
         'story',
         'study',
-        'magic',
+        'arcane',
         'heal',
         'job',
         'crime',
         'guard',
       ]);
+    });
+
+    test('the legacy wire value magic reads as arcane (D-20)', () {
+      expect(QuestType.fromWire('magic'), QuestType.arcane);
+    });
+
+    test('nothing writes magic: the wire name of arcane is arcane (D-20)', () {
+      expect(QuestType.arcane.wireName, 'arcane');
+      expect(
+        QuestType.values.map((type) => type.wireName),
+        isNot(contains('magic')),
+      );
     });
 
     test('fromWire reads null for an unknown or non-string value (D-09)', () {

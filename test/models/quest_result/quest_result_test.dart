@@ -241,11 +241,11 @@ void main() {
     test('the result snapshot writes the wire name of its type (D-09)', () {
       final quest = QuestResultQuest.fromJson({
         'id': 'q',
-        'type': 'magic',
+        'type': 'arcane',
         'title': 't',
       });
 
-      expect(quest.toJson()['type'], 'magic');
+      expect(quest.toJson()['type'], 'arcane');
     });
 
     test('a spell usage with a null spell survives', () {

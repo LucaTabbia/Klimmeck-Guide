@@ -147,14 +147,17 @@ void main() {
       ]);
     });
 
-    test('magic uses its own whole and torn sheets (quick 261110-mag)', () {
-      expect(questPaperAssetIds(QuestType.magic, isTorn: false), [
-        CloudinaryAssets.magicSheet,
-      ]);
-      expect(questPaperAssetIds(QuestType.magic, isTorn: true), [
-        CloudinaryAssets.magicTornSheet,
-      ]);
-    });
+    test(
+      'arcane uses the magic sheets, whole and torn (quick 261110-mag, D-20)',
+      () {
+        expect(questPaperAssetIds(QuestType.arcane, isTorn: false), [
+          CloudinaryAssets.magicSheet,
+        ]);
+        expect(questPaperAssetIds(QuestType.arcane, isTorn: true), [
+          CloudinaryAssets.magicTornSheet,
+        ]);
+      },
+    );
 
     test('a null type falls back to the quest family', () {
       expect(questPaperAssetIds(null, isTorn: false), [

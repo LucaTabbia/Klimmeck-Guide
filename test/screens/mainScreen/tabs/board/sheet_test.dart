@@ -51,16 +51,20 @@ void main() {
     ]),
   );
 
-  testWidgets('a magic quest shows its own sheet (quick 261110-mag)', (
-    tester,
-  ) async {
-    final magic = buildQuest(id: 'm-1', type: 'magic');
-    await _pump(tester, magic, isTorn: false);
-    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
+  testWidgets(
+    'an arcane quest shows the magic sheet (quick 261110-mag, D-20)',
+    (tester) async {
+      final arcane = buildQuest(id: 'm-1', type: 'arcane');
+      await _pump(tester, arcane, isTorn: false);
+      expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
 
-    await _pump(tester, magic, isTorn: true);
-    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicTornSheet));
-  });
+      await _pump(tester, arcane, isTorn: true);
+      expect(
+        _url(tester),
+        CloudinaryAssets.url(CloudinaryAssets.magicTornSheet),
+      );
+    },
+  );
 
   testWidgets('a torn boss shows a torn boss paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);

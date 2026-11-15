@@ -64,10 +64,10 @@ void main() {
 
     test('the quest type is read through its wire name (D-09)', () {
       final draft = MissionDraft.tryFromJson(
-        missionDraftJson(questType: 'magic'),
+        missionDraftJson(questType: 'arcane'),
       )!;
 
-      expect(draft.questType, QuestType.magic);
+      expect(draft.questType, QuestType.arcane);
     });
 
     test('an unknown step reads null and the draft survives (Pitfall 8)', () {

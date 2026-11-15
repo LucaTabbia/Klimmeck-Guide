@@ -105,18 +105,21 @@ void main() {
       );
     });
 
-    test('magic is a repeatable standard-lane quest (quick 261110-mag)', () {
-      expect(laneOf(QuestType.magic), QuestLane.standard);
-      expect(nonRepeatableQuestTypes, isNot(contains(QuestType.magic)));
-      expect(registeredQuestTypes, isNot(contains(QuestType.magic)));
-      final viewer = buildViewer(
-        quests: buildLanes(completedQuestIds: ['q-1']),
-      );
-      expect(
-        availabilityOf(buildQuest(type: 'magic'), viewer),
-        QuestAvailability.available,
-      );
-    });
+    test(
+      'arcane is a repeatable standard-lane quest (quick 261110-mag, D-20)',
+      () {
+        expect(laneOf(QuestType.arcane), QuestLane.standard);
+        expect(nonRepeatableQuestTypes, isNot(contains(QuestType.arcane)));
+        expect(registeredQuestTypes, isNot(contains(QuestType.arcane)));
+        final viewer = buildViewer(
+          quests: buildLanes(completedQuestIds: ['q-1']),
+        );
+        expect(
+          availabilityOf(buildQuest(type: 'arcane'), viewer),
+          QuestAvailability.available,
+        );
+      },
+    );
 
     test('story needs the exact title', () {
       final quest = buildQuest(
@@ -404,7 +407,7 @@ void main() {
 
     test('a quest above the viewer title is torn (quick 261110-mag)', () {
       final standing = standingOf(
-        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildQuest(type: 'arcane', minTitle: 'mage'),
         buildViewer(title: TitleType.paladin),
       );
       expect(standing.availability, QuestAvailability.titleMismatch);
@@ -414,7 +417,7 @@ void main() {
     test('the same quest is whole once the title is reached '
         '(quick 261110-mag)', () {
       final standing = standingOf(
-        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildQuest(type: 'arcane', minTitle: 'mage'),
         buildViewer(title: TitleType.mage),
       );
       expect(standing.availability, QuestAvailability.available);
@@ -448,7 +451,7 @@ void main() {
       final viewer = buildViewer(
         quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
       );
-      final standing = standingOf(buildQuest(type: 'magic'), viewer);
+      final standing = standingOf(buildQuest(type: 'arcane'), viewer);
       expect(standing.availability, QuestAvailability.laneBusy);
       expect(standing.isTorn, isFalse);
     });

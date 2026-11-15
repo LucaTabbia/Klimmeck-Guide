@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
@@ -163,6 +164,14 @@ void main() {
       final infos = QuestInfos.fromJson({'type': 'worldMission'});
 
       expect(infos.toJson()['type'], 'worldMission');
+    });
+
+    test('a quest served with the legacy type magic parses as arcane and '
+        'writes arcane (D-20)', () {
+      final infos = buildQuest(type: 'magic').infos!;
+
+      expect(infos.type, QuestType.arcane);
+      expect(infos.toJson()['type'], 'arcane');
     });
 
     test('returns null for an unknown minTitle', () {

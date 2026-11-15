@@ -119,13 +119,16 @@ void main() {
     expect(questStateLabel(lane(), null), 'In corso…');
   });
 
-  test('a started magic quest reads like a study (quick 261110-mag)', () {
-    expect(
-      questStateLabel(lane(), buildQuest(type: 'magic')),
-      questStateLabel(lane(), buildQuest(type: 'study')),
-    );
-    expect(questStateLabel(lane(), buildQuest(type: 'magic')), 'Studiando…');
-  });
+  test(
+    'a started arcane quest reads like a study (quick 261110-mag, D-20)',
+    () {
+      expect(
+        questStateLabel(lane(), buildQuest(type: 'arcane')),
+        questStateLabel(lane(), buildQuest(type: 'study')),
+      );
+      expect(questStateLabel(lane(), buildQuest(type: 'arcane')), 'Studiando…');
+    },
+  );
 
   test('a started lane keeps the per-type label even with arrivedAt', () {
     expect(
