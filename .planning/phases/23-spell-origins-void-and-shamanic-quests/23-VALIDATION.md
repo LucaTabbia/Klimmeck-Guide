@@ -38,9 +38,9 @@ created: 2026-11-15
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 23-01-01 | 01 | 1 | ORIGIN-01..ORIGIN-06 | T-23-03 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-6] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 6)` | ✅ | ⬜ pending |
-| 23-01-02 | 01 | 1 | ORIGIN-03 | T-23-01, T-23-02 | unknown quest type still drops only that quest; wire names pinned | unit | `flutter test test/models test/utils test/screens/mainScreen/tabs/board test/screens/innkeeper` | ✅ extend | ⬜ pending |
-| 23-01-03 | 01 | 1 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?1 of 8" .planning/STATE.md` | — | ⬜ pending |
+| 23-01-01 | 01 | 1 | ORIGIN-01..ORIGIN-06 | T-23-03 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-6] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 6)` | ✅ | ✅ green |
+| 23-01-02 | 01 | 1 | ORIGIN-03 | T-23-01, T-23-02 | unknown quest type still drops only that quest; wire names pinned | unit | `flutter test test/models test/utils test/screens/mainScreen/tabs/board test/screens/innkeeper` | ✅ extend | ✅ green |
+| 23-01-03 | 01 | 1 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?1 of 8" .planning/STATE.md` | — | ✅ green |
 | 23-02-01 | 02 | 2 | ORIGIN-01, ORIGIN-02 | T-23-06, T-23-07, T-23-08 | lenient origin and level; no level comparison; nothing selected | unit + widget | `flutter test test/models test/utils test/shared test/graphql test/screens/mainScreen/tabs/journal` | ❌ W0 + ✅ extend | ⬜ pending |
 | 23-02-02 | 02 | 2 | ORIGIN-02 | T-23-05 | `minXpToLearn` selected nowhere; Phase 24 fields unselected | document pin | `flutter test test/graphql test/tool test/models` | ✅ extend | ⬜ pending |
 | 23-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?2 of 8" .planning/STATE.md` | — | ⬜ pending |

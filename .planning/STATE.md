@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 22 — Companion Defeat, Rest and Recovery (↔ BE Phase 23) — complete on 2026-11-15: 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery`, device E2E passed (steps 1–9)
+**Current focus:** Phase 23 — Spell Origins, Void and Shamanic Quests (↔ BE Phase 24) — in progress on `feat/23-spell-origins-void-and-shamanic-quests`
 
 ## Current Position
 
 Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, complete on 2026-11-15 (17/17 plans, device E2E passed); milestone close pending
-Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`); gate 22-16 passed on 2026-11-15 against the merged BE Phase 23 SDL; device E2E 22-17 passed on 2026-11-15 (steps 1–9); phase complete
-Plan: 17 of 17
-Status: Phase 22 complete — device E2E on 2026-11-15 (`22-HUMAN-UAT.md`, `status: complete`) against BE `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, HEAD 3d2e1f1e, on top of `develop` `5ff0bdb9`): steps 1–9 passed; the two points of step 8 left by the first run (black silhouette / no details of an unknown companion, long press in the shop buy list) were seen by the user as a second character on a player identity («pass»), so PET-01..PET-10 are all complete. CI of BE PR #43 green on its last push. The DB was restored after the UAT on the user's order (the recovery times of the 44 companions and the magic quest put back stay at DB). Fixes made in TDD during the UAT (keyboard under a sheet, name sheet top edge, «Prosegui a piedi» only when the travel goes on, unknown companions via `Pet.known`); suite 5041 green, analyzer 47 info / 0 warning / 0 error, schema check 55 × OK on the SDL with `Pet.known`.
-Last activity: 2026-11-15 -- Phase 22 complete, device gap of step 8 closed
+Phase: 23 of 23 (Spell Origins, Void and Shamanic Quests) — in progress on `feat/23-spell-origins-void-and-shamanic-quests` (stacked on `feat/22-companion-defeat-rest-and-recovery`)
+Plan: 1 of 8
+Status: Phase 23 in progress — plan 23-01 done on 2026-11-15 (ORIGIN-01..06 in REQUIREMENTS, `QuestType.wireName` / `fromWire` wire boundary, behaviour unchanged); next 23-02 (spell model). Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10). Analyzer 47 info / 0 warning / 0 error.
+Last activity: 2026-11-15 -- Plan 23-01 complete (quest type wire boundary)
 Next step: merge of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, carries `Pet.known` selected by the FE; the user takes it out of draft); then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` (never `main`); then the v1.1 milestone close.
 
 ## Current Milestone
@@ -93,5 +93,5 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 ## Session Continuity
 
 Last session: 2026-11-15T16:04:36.000Z
-Stopped at: Phase 22 complete (device gap of step 8 closed)
+Stopped at: Completed 23-01-PLAN.md
 Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-HUMAN-UAT.md
