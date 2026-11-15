@@ -9,6 +9,7 @@ class AmbushReport extends Equatable {
     required this.at,
     required this.nearCity,
     this.reachedCity,
+    this.isOnFoot = false,
   });
 
   final DateTime at;
@@ -16,6 +17,10 @@ class AmbushReport extends Equatable {
 
   /// `null` in vittoria: il viaggio non cambia (16-CONTEXT D-04).
   final AmbushCity? reachedCity;
+
+  /// Il compagno da cavalcatura è caduto: si prosegue a piedi (BE Phase 23,
+  /// D-28); assente o illeggibile vale false.
+  final bool isOnFoot;
 
   factory AmbushReport.fromJson(Map<String, dynamic> json) {
     final reached = json['reachedCity'];
@@ -25,6 +30,7 @@ class AmbushReport extends Equatable {
       reachedCity: reached == null
           ? null
           : AmbushCity.fromJson(reached as Map<String, dynamic>),
+      isOnFoot: json['onFoot'] == true,
     );
   }
 
@@ -32,8 +38,9 @@ class AmbushReport extends Equatable {
     'at': at.toUtc().toIso8601String(),
     'nearCity': nearCity.toJson(),
     'reachedCity': reachedCity?.toJson(),
+    'onFoot': isOnFoot,
   };
 
   @override
-  List<Object?> get props => [at, nearCity, reachedCity];
+  List<Object?> get props => [at, nearCity, reachedCity, isOnFoot];
 }

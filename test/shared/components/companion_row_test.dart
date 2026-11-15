@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -29,19 +31,31 @@ Future<void> _pump(WidgetTester tester, CompanionRow row) async {
 CoinsDisplay _coinsDisplay(WidgetTester tester) =>
     tester.widget<CoinsDisplay>(find.byType(CoinsDisplay));
 
+const _horseId = 'pet-travel-horse';
+const _horseImage = 'v1/pets/horse.svg';
+final _speedLine = find.byKey(const ValueKey('companion-speed-$_horseId'));
+
+CardLabel _cardLabel(WidgetTester tester, Key key) =>
+    tester.widget<CardLabel>(find.byKey(key));
+
 void main() {
   setUp(
     () => seedSvgCache([
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
+      CloudinaryAssets.emptyCardSheet,
+      _horseImage,
     ]),
   );
 
   testWidgets('shows the name and the buy price (D-07)', (tester) async {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
-    expect(find.text('Cavallo da viaggio'), findsOneWidget);
+    expect(
+      _cardLabel(tester, CompanionCard.titleKeyOf(_horseId)).text,
+      'Cavallo da viaggio',
+    );
     expect(_coinsDisplay(tester).coins, _horse.buyPrice);
   });
 
@@ -54,9 +68,19 @@ void main() {
     expect(_coinsDisplay(tester).coins, _horse.sellPrice);
   });
 
-  testWidgets('shows the speed line only for a mount (D-07)', (tester) async {
+  testWidgets('a mount prints its speed once, on the card (D-07, D-22)', (
+    tester,
+  ) async {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+    expect(_speedLine, findsNothing);
     expect(find.text('Velocità ×2'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CompanionCard),
+        matching: find.text('Velocità ×2'),
+      ),
+      findsOneWidget,
+    );
 
     await _pump(tester, CompanionRow(pet: _cat, size: _rowSize));
     expect(find.textContaining('Velocità'), findsNothing);
@@ -89,41 +113,141 @@ void main() {
       CompanionRow(pet: _horse, size: _rowSize, onTap: () => taps++),
     );
 
-    await tester.tap(find.text('Cavallo da viaggio'));
+    await tester.tap(find.byType(CompanionCard));
 
     expect(taps, 1);
   });
 
-  testWidgets('is text-only: no image (D-13)', (tester) async {
+  testWidgets('shows the companion card before the texts (D-22, D-34)', (
+    tester,
+  ) async {
+    final pictured = Pet.fromJson(petJson(imagePath: _horseImage));
+
+    await _pump(
+      tester,
+      CompanionRow(pet: pictured, size: _rowSize, isEquipped: true),
+    );
+
+    final card = find.byType(CompanionCard);
+    expect(card, findsOneWidget);
+    expect(find.byKey(CompanionCard.imageKeyOf(_horseId)), findsOneWidget);
+    expect(tester.widget<CompanionCard>(card).size, _rowSize);
+    expect(
+      tester.getTopRight(card).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.text(companionEquippedMark)).dx),
+    );
+    expect(
+      tester.getTopRight(card).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.byType(CoinsDisplay)).dx),
+    );
+  });
+
+  testWidgets('the long press calls onLongPress, the tap stays onTap (D-22)', (
+    tester,
+  ) async {
+    var taps = 0;
+    var longPresses = 0;
+    await _pump(
+      tester,
+      CompanionRow(
+        pet: _horse,
+        size: _rowSize,
+        onTap: () => taps++,
+        onLongPress: () => longPresses++,
+      ),
+    );
+
+    await tester.longPress(find.byType(CompanionCard));
+    expect(longPresses, 1);
+    expect(taps, 0);
+
+    await tester.tap(find.byType(CompanionCard));
+    expect(taps, 1);
+    expect(longPresses, 1);
+  });
+
+  testWidgets('the long press opens nothing for a companion whose lore is not '
+      'unlocked; the tap still selects (UAT 2026-11-15)', (tester) async {
+    var taps = 0;
+    var longPresses = 0;
+    await _pump(
+      tester,
+      CompanionRow(
+        pet: _horse.copyWith(known: false),
+        size: _rowSize,
+        onTap: () => taps++,
+        onLongPress: () => longPresses++,
+      ),
+    );
+
+    await tester.longPress(find.byType(CompanionCard));
+    await tester.tap(find.byType(CompanionCard));
+
+    expect(longPresses, 0);
+    expect(taps, 1);
+  });
+
+  testWidgets(
+    'a given name is the card title and the species sits below (D-20)',
+    (tester) async {
+      await _pump(
+        tester,
+        CompanionRow(pet: _horse, size: _rowSize, name: 'Fulmine'),
+      );
+
+      expect(
+        _cardLabel(tester, CompanionCard.titleKeyOf(_horseId)).text,
+        'Fulmine',
+      );
+      expect(
+        _cardLabel(tester, CompanionCard.speciesKeyOf(_horseId)).text,
+        'Cavallo da viaggio',
+      );
+    },
+  );
+
+  testWidgets('the texts carry no name line: the card holds the title (D-34)', (
+    tester,
+  ) async {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
-    expect(find.byType(Image), findsNothing);
+    expect(find.text('Cavallo da viaggio'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CompanionCard),
+        matching: find.text('Cavallo da viaggio'),
+      ),
+      findsOneWidget,
+    );
   });
 
   group('rarity (D-20)', () {
-    TextStyle? nameStyle(WidgetTester tester) =>
-        tester.widget<Text>(find.text('Cavallo da viaggio')).style;
+    Color? titleColor(WidgetTester tester) =>
+        _cardLabel(tester, CompanionCard.titleKeyOf(_horseId)).color;
 
-    testWidgets('draws the name in the colour of the rarity (D-20)', (
+    testWidgets('draws the card title in the colour of the rarity (D-20)', (
       tester,
     ) async {
       final pet = Pet.fromJson(petJson(rarity: 'legendary'));
 
-      await _pump(tester, CompanionRow(pet: pet, size: _rowSize));
+      await _pump(
+        tester,
+        CompanionRow(pet: pet, size: _rowSize, isEquipped: true),
+      );
 
-      expect(nameStyle(tester)?.color, RarityType.legendary.color);
+      expect(titleColor(tester), RarityType.legendary.color);
       expect(
-        tester.widget<Text>(find.text('Velocità ×2')).style,
+        tester.widget<Text>(find.text(companionEquippedMark)).style,
         KlimmeckGuideTheme.instance.bodyMedium,
       );
     });
 
-    testWidgets('a pet without rarity keeps the name style of today (D-20)', (
+    testWidgets('a pet without rarity keeps the default card ink (D-20)', (
       tester,
     ) async {
       await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
 
-      expect(nameStyle(tester), KlimmeckGuideTheme.instance.bodyMedium);
+      expect(titleColor(tester), isNull);
     });
   });
 
@@ -201,24 +325,19 @@ void main() {
       },
     );
 
-    testWidgets(
-      'the lines sit between the speed and the equipped mark (D-13)',
-      (tester) async {
-        await _pump(
-          tester,
-          CompanionRow(pet: armed, size: _rowSize, isEquipped: true),
-        );
+    testWidgets('the lines sit above the equipped mark (D-13)', (tester) async {
+      await _pump(
+        tester,
+        CompanionRow(pet: armed, size: _rowSize, isEquipped: true),
+      );
 
-        final tops = [
-          top(tester, find.text('Cavallo da viaggio')),
-          top(tester, find.text('Velocità ×2')),
-          top(tester, attackLine),
-          top(tester, defenseLine),
-          top(tester, find.text(companionEquippedMark)),
-        ];
-        expect(tops, [...tops]..sort());
-        expect(tops.toSet(), hasLength(5));
-      },
-    );
+      final tops = [
+        top(tester, attackLine),
+        top(tester, defenseLine),
+        top(tester, find.text(companionEquippedMark)),
+      ];
+      expect(tops, [...tops]..sort());
+      expect(tops.toSet(), hasLength(3));
+    });
   });
 }

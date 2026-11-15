@@ -18,6 +18,8 @@ class Pet extends Equatable {
     this.rarity,
     this.speedModifier,
     this.sellable,
+    this.recoveryTime,
+    this.known = true,
   });
 
   final String? imagePath;
@@ -34,6 +36,17 @@ class Pet extends Equatable {
   /// Moltiplicatore servito dal BE: null per un compagno non da sella (D-07); il FE non calcola mai la velocità (D-11).
   final double? speedModifier;
   final bool? sellable;
+
+  /// Tempo dal minimo alla vita piena in millisecondi (D-01, D-25); null =
+  /// non curato: il FE non lo usa mai per calcolare una data.
+  final int? recoveryTime;
+
+  /// Il viewer ha sbloccato la lore del compagno (BE, per viewer); `false` →
+  /// sagoma nera e nessun dettaglio. Il FE non lo decide.
+  final bool known;
+
+  Duration? get recoveryDuration =>
+      recoveryTime == null ? null : Duration(milliseconds: recoveryTime!);
 
   factory Pet.fromJson(Map<String, dynamic> json) => Pet(
     id: json["id"],
@@ -52,7 +65,15 @@ class Pet extends Equatable {
     maxLifePoints: json["maxLifePoints"]?.toInt(),
     speedModifier: (json['speedModifier'] as num?)?.toDouble(),
     sellable: json['sellable'] as bool?,
+    recoveryTime: _positiveMillisOf(json['recoveryTime']),
+    known: _knownOf(json['known']),
   );
+
+  /// Assente o non booleano → noto: un BE senza il campo non oscura nulla.
+  static bool _knownOf(Object? value) => value is bool ? value : true;
+
+  static int? _positiveMillisOf(Object? value) =>
+      value is num && value > 0 ? value.toInt() : null;
 
   static Damages? _damagesFrom(Object? json) =>
       json is Map<String, dynamic> ? Damages.fromJson(json) : null;
@@ -88,6 +109,8 @@ class Pet extends Equatable {
     "imagePath": imagePath,
     "speedModifier": speedModifier,
     "sellable": sellable,
+    "recoveryTime": recoveryTime,
+    "known": known,
   };
 
   Pet copyWith({
@@ -103,6 +126,8 @@ class Pet extends Equatable {
     int? maxLifePoints,
     double? speedModifier,
     bool? sellable,
+    int? recoveryTime,
+    bool? known,
   }) {
     return Pet(
       imagePath: imagePath ?? this.imagePath,
@@ -117,6 +142,8 @@ class Pet extends Equatable {
       maxLifePoints: maxLifePoints ?? this.maxLifePoints,
       speedModifier: speedModifier ?? this.speedModifier,
       sellable: sellable ?? this.sellable,
+      recoveryTime: recoveryTime ?? this.recoveryTime,
+      known: known ?? this.known,
     );
   }
 
@@ -134,5 +161,7 @@ class Pet extends Equatable {
     maxLifePoints,
     speedModifier,
     sellable,
+    recoveryTime,
+    known,
   ];
 }

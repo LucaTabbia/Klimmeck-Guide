@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
@@ -36,24 +39,38 @@ LootItem? _potionOf(AssetItem item) {
 /// Sezione «Oggetti» del Diario. Possiede il countdown delle pozioni: vive
 /// solo mentre la pagina del Diario è a schermo (Phase 18 D-12). Le pozioni
 /// heal con una ricarica si bevono toccandone la pergamena, anche in viaggio,
-/// mai in attesa di soccorso (D-11).
+/// mai in attesa di soccorso (D-11). Durante l'attesa del personaggio la
+/// pergamena resta toccabile se un compagno può bere (D-32), solo a cura dei
+/// compagni accesa (Pitfall 3).
 class ItemsSection extends StatelessWidget {
-  const ItemsSection({super.key, required this.size});
+  const ItemsSection({
+    super.key,
+    required this.size,
+    this.isCompanionCareEnabled = companionCareEnabled,
+  });
 
   final double size;
+  final bool isCompanionCareEnabled;
 
   @override
   Widget build(BuildContext context) => BlocProvider<PotionRecoveryCubit>(
     create: (context) =>
         PotionRecoveryCubit(clock: context.read<ServerClockService>()),
-    child: _ItemsSectionBody(size: size),
+    child: _ItemsSectionBody(
+      size: size,
+      isCompanionCareEnabled: isCompanionCareEnabled,
+    ),
   );
 }
 
 class _ItemsSectionBody extends StatefulWidget {
-  const _ItemsSectionBody({required this.size});
+  const _ItemsSectionBody({
+    required this.size,
+    required this.isCompanionCareEnabled,
+  });
 
   final double size;
+  final bool isCompanionCareEnabled;
 
   @override
   State<_ItemsSectionBody> createState() => _ItemsSectionBodyState();
@@ -132,36 +149,59 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
               onTap: (effect) => setState(() => _selectedEffect = effect),
               getImage: (effect) => effect.imagePath,
             ),
-          BlocBuilder<PotionRecoveryCubit, PotionRecoveryState>(
-            builder: (context, recovery) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final owned in shownItems)
-                  if (owned.item case final item?)
-                    _row(
-                      context,
-                      character: character,
-                      item: item,
-                      quantity: owned.quantity,
-                      remaining: recovery.remaining,
-                    ),
-              ],
-            ),
+          BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
+            builder: (context, vitalities) =>
+                BlocBuilder<PotionRecoveryCubit, PotionRecoveryState>(
+                  builder: (context, recovery) {
+                    final targets = _targetsOf(character, vitalities);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final owned in shownItems)
+                          if (owned.item case final item?)
+                            _row(
+                              context,
+                              character: character,
+                              item: item,
+                              quantity: owned.quantity,
+                              remaining: recovery.remaining,
+                              targets: targets,
+                            ),
+                      ],
+                    );
+                  },
+                ),
           ),
         ],
       ),
     );
   }
 
-  /// Quattro fatti dai modelli, nulla di calcolato: pozione (effetto +
-  /// ricarica), attesa di soccorso, missione in corso (Phase 21 D-12),
-  /// countdown della ricarica (D-11, D-12).
+  /// I compagni che potrebbero bere, letti dalla vita servita (D-07, D-32);
+  /// nessuno a cura spenta (Pitfall 3).
+  List<CompanionPotionTarget> _targetsOf(
+    Character character,
+    CompanionVitalityState vitalities,
+  ) {
+    if (!widget.isCompanionCareEnabled) return const [];
+    return companionPotionTargetsOf(
+      character.assets?.ownedPets ?? const [],
+      vitalityOf: vitalities.vitalityOf,
+      potionWaitOf: vitalities.potionWaitOf,
+    );
+  }
+
+  /// Fatti dai modelli, nulla di calcolato: pozione (effetto + ricarica),
+  /// attesa di soccorso, missione in corso (Phase 21 D-12), countdown della
+  /// ricarica (D-11, D-12) e compagni che possono bere durante l'attesa del
+  /// personaggio (D-32).
   Widget _row(
     BuildContext context, {
     required Character character,
     required AssetItem item,
     required int? quantity,
     required Duration? remaining,
+    required List<CompanionPotionTarget> targets,
   }) {
     final potion = _potionOf(item);
     final isAwaitingAid = character.status?.awaitingAid != null;
@@ -176,18 +216,15 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
         statusLine: missionInProgressLabel,
       );
     }
-    if (remaining != null) {
-      return _itemRow(
-        item,
-        quantity,
-        isDisabled: true,
-        statusLine: potionReadyInLine(remaining),
-      );
+    final statusLine = remaining == null ? null : potionReadyInLine(remaining);
+    if (statusLine != null && targets.isEmpty) {
+      return _itemRow(item, quantity, isDisabled: true, statusLine: statusLine);
     }
     return _itemRow(
       item,
       quantity,
-      onSelect: (_) => _confirmDrink(context, character, potion),
+      statusLine: statusLine,
+      onSelect: (_) => _confirmDrink(context, character, potion, targets),
     );
   }
 
@@ -207,14 +244,17 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     statusLine: statusLine,
   );
 
-  /// Il foglio vive sul navigator radice, fuori dai provider della shell: il
-  /// cubit della shell gli arriva per valore, la vita massima per parametro.
+  /// Il foglio vive sul navigator radice, fuori dai provider della shell: i
+  /// cubit gli arrivano per valore, la vita massima e i compagni che possono
+  /// bere per parametro (letti all'apertura).
   void _confirmDrink(
     BuildContext context,
     Character character,
     LootItem potion,
+    List<CompanionPotionTarget> targets,
   ) {
     final potionCubit = context.read<PotionCubit>()..reset();
+    final recoveryCubit = context.read<PotionRecoveryCubit>();
     HapticFeedback.lightImpact();
     showModalBottomSheet<void>(
       useSafeArea: false,
@@ -222,14 +262,18 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
       backgroundColor: Colors.transparent,
       context: context,
-      builder: (_) => BlocProvider.value(
-        value: potionCubit,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider<PotionCubit>.value(value: potionCubit),
+          BlocProvider<PotionRecoveryCubit>.value(value: recoveryCubit),
+        ],
         child: NotificationListener<DraggableScrollableNotification>(
           onNotification: (_) => potionCubit.state is PotionDrinking,
           child: PaperSheetModal(
             child: PotionSheet(
               item: potion,
               maxLifePoints: character.status?.maxLifePoints,
+              targets: targets,
             ),
           ),
         ),

@@ -192,7 +192,57 @@ void main() {
     final pet = PetFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
     expect(assets, contains('pet { $pet }'));
-    expect(assets, contains('ownedPets { xp currentLifePoints pet { $pet } }'));
+    expect(
+      assets,
+      contains(
+        'ownedPets { xp currentLifePoints name defeated lifeAsOf fullLifeAt '
+        'potionRecoveryUntil level maxLifePoints pet { $pet } }',
+      ),
+    );
+  });
+
+  test('ownedPets selects the companion state, level and own max after '
+      'currentLifePoints (D-09, D-24, D-37, Pitfall 1)', () {
+    final ownedPets = CharacterFragment.assetsFields
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .split('ownedPets {')
+        .last;
+
+    expect(
+      ownedPets,
+      startsWith(
+        ' xp currentLifePoints name defeated lifeAsOf fullLifeAt '
+        'potionRecoveryUntil level maxLifePoints pet {',
+      ),
+    );
+  });
+
+  test('character and characterUpdated carry lifeAsOf (D-24)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(
+        RegExp(r'\blifeAsOf\b').allMatches(document),
+        hasLength(1),
+        reason: document,
+      );
+    }
+  });
+
+  test('ownedPets and the equipped pet carry maxLifePoints and imagePath '
+      '(D-09, D-34)', () {
+    final assets = CharacterFragment.assetsFields.replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    final ownedPets = assets.split('ownedPets {').last;
+    final equippedPet = assets.split(' pet { ')[1];
+
+    expect(ownedPets, contains('maxLifePoints'));
+    expect(ownedPets, contains('imagePath'));
+    expect(equippedPet, contains('maxLifePoints'));
+    expect(equippedPet, contains('imagePath'));
   });
 
   group('worn equipment (BE Phase 19)', () {

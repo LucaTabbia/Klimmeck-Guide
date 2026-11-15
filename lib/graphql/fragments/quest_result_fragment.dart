@@ -14,6 +14,7 @@ import 'loot_fragment.dart';
 /// `injuriesHealed` è della BE Phase 18 (18-CONTEXT D-02); `arrested`,
 /// `coinsLost` e `guardEncounter` sono della quick 261110-cgd (BE §1.6).
 /// `petXpGained` è della BE Phase 19 (19-CONTEXT D-03): i PE del compagno.
+/// `companion` e `ambush.onFoot` sono della BE Phase 23 (D-27, D-28).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -89,6 +90,14 @@ class QuestResultFragment {
     xpGained
     xpAfter
     petXpGained
+    companion {
+      name
+      lifeBefore
+      lifePoints
+      maxLifePoints
+      defeated
+      fullLifeAt
+    }
     levelBefore
     levelAfter
     titleBefore
@@ -129,6 +138,7 @@ class QuestResultFragment {
         id
         name
       }
+      onFoot
     }
   ''';
 }

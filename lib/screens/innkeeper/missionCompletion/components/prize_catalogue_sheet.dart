@@ -6,11 +6,13 @@ import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_details_route.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Catalogo dei premi servito dal BE (D-07): l'app lo mostra com'è, la
 /// ricerca filtra solo la vista per nome (regola 4). Toccare una voce la
-/// passa a chi chiama e chiude il foglio.
+/// passa a chi chiama e chiude il foglio; il tocco prolungato su un compagno
+/// ne apre il dettaglio (Phase 22 D-35).
 class PrizeCatalogueSheet extends StatefulWidget {
   const PrizeCatalogueSheet({
     super.key,
@@ -107,6 +109,8 @@ class _PrizeCatalogueSheetState extends State<PrizeCatalogueSheet> {
                         size: _entrySize,
                         showCoins: false,
                         onTap: () => _pick(widget.onPickPet, pets[index]),
+                        onLongPress: () =>
+                            showCompanionDetails(context, pet: pets[index]),
                       ),
                     ),
                     ListView.builder(

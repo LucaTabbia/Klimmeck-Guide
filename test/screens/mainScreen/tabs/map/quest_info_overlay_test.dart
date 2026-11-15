@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/quest_info_overlay.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/tear/tearable_paper.dart';
 
@@ -102,7 +104,7 @@ void main() {
       ),
     );
 
-    final line = tester.widget<Text>(find.byKey(QuestInfoSheet.petPrizeKey));
-    expect(line.data, 'Compagno in premio: Gufo reale');
+    final title = find.byKey(CompanionCard.titleKeyOf('pet-owl'));
+    expect(tester.widget<CardLabel>(title).text, 'Gufo reale');
   });
 }

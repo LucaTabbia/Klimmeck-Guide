@@ -75,22 +75,37 @@ void main() {
     expect(cityShop, contains('equipType accessoryUseTypes'));
   });
 
-  test('GetCityShop selects pets through PetFragment without imagePath '
-      '(D-13)', () {
+  test('GetCityShop selects pets through PetFragment with maxLifePoints, '
+      'imagePath and recoveryTime (D-09, D-25, D-34)', () {
     expect(cityShop, contains('pets { $petFields }'));
-    expect(cityShop, isNot(contains('imagePath')));
+    expect(petFields, contains('maxLifePoints'));
+    expect(petFields, contains('imagePath'));
+    expect(cityShop, contains('maxLifePoints'));
+    expect(cityShop, contains('imagePath'));
+    expect(cityShop, contains('recoveryTime'));
   });
 
-  test('PetFragment selects id, name, speed, sellable, both prices, maxXp, '
-      'attack, defense and rarity (D-12, D-20)', () {
+  test('PetFragment selects recoveryTime after the gate (D-25)', () {
+    expect(petFields, contains('maxLifePoints recoveryTime attack {'));
+  });
+
+  test('PetFragment selects id, name, imagePath, speed, sellable, both '
+      'prices, maxXp, maxLifePoints, recoveryTime, attack, defense, rarity '
+      'and known (D-12, D-20, D-09, D-25, D-34)', () {
     final damages = _collapsed(DamagesFragment.fields);
 
     expect(
       petFields,
-      'id name speedModifier sellable '
+      'id name imagePath speedModifier sellable '
       'buyPrice { gold silver copper } sellPrice { gold silver copper } '
-      'maxXp attack { $damages } defense { $damages } rarity',
+      'maxXp maxLifePoints recoveryTime attack { $damages } '
+      'defense { $damages } rarity known',
     );
+  });
+
+  test('PetFragment selects known, so every companion card can draw the '
+      'silhouette (UAT 2026-11-15)', () {
+    expect(petFields, endsWith('rarity known'));
   });
 
   test('cities selects size and hasShop for the satchel gate (D-04)', () {
@@ -126,9 +141,9 @@ void main() {
     expect(schemaCheckDocuments['UnequipPet'], CharacterMutations.unequipPet);
   });
 
-  test('the global catalogue queries left the registry (D-01)', () {
+  test('the global catalogue queries left the registry (D-01, D-19)', () {
     expect(schemaCheckDocuments, isNot(contains('equipmentAssetsQuantity')));
     expect(schemaCheckDocuments, isNot(contains('lootAssetsQuantity')));
-    expect(schemaCheckDocuments.length, 54);
+    expect(schemaCheckDocuments.length, 55);
   });
 }

@@ -42,6 +42,19 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **GMFLOW-07**: Players: the two served mission flags read live; pawn label only for the guided flow; travel, acceptance, shop, equipment, companion, spells and potions hidden or disabled in every mission in progress; `MISSION_IN_PROGRESS` mapped in every classifier of the locked actions
 - [x] **GMFLOW-08**: Schema gate on the merged BE Phase 22 SDL, schema check green, full suite, device E2E with an innkeeper and a participant
 
+### Companion Defeat, Rest and Recovery (Phase 22, added 2026-11-14)
+
+- [x] **PET-01**: Companion state parsed leniently on `OwnedPet` (name, defeated, `lifeAsOf`, `fullLifeAt`, `potionRecoveryUntil`) and `Pet` (`recoveryTime`, `maxLifePoints`, `imagePath`); the catalogue pet id is the only key; one display-name function (name, else species) for every wording; vitality (life now, resting or defeated, remaining, potion wait) derived only from served dates and the server clock, never from `recoveryTime`
+- [x] **PET-02**: Journal «Compagno»: «Vita: x / max» rising live while resting, «A riposo: in forze fra …», a defeated parchment faded and not tappable with «Sconfitto: torna fra …» and re-enabled locally at `fullLifeAt`; the slot shows the equipped companion's life; the name is the title and the species sits below
+- [x] **PET-03**: Companion cards with the pet image, restyled like spell and equipment cards, in the Journal, the shop list and basket, the quest-sheet prize and the innkeeper prize rows; a long press opens the companion details sheet (life, rest, potion wait, recovery time, attack, defense, speed, xp, rename entry); the result sheet keeps its text line
+- [x] **PET-04**: Potion sheet: «Bevi» plus one «Dai a <nome>» parchment per eligible companion (not defeated, below full life, no wait of its own); the potion row is tappable when the character or a companion can drink and «Bevi» is disabled during the character's wait; `useItem` with the target pet; `PET_DEFEATED`, `PET_POTION_RECOVERING` and `ITEM_NO_EFFECT` mapped with the companion's name; `PET_DEFEATED` on `equipPet` mapped
+- [x] **PET-05**: Companion name: prompt after a shop purchase and after a result with a prize companion (one each, skippable), rename from the details sheet, the character-name form rules client-side (2–20 characters: letters, spaces, apostrophes, hyphens), `PET_NAME_INVALID` notice with retry or skip, not locked by «Missione in corso»; a named companion reads its name in every wording, the shop sell list included
+- [x] **PET-06**: Result sheet and ambush pages: the companion life line when its life dropped, the defeat line with the duration `fullLifeAt − resolvedAt`, the xp line with the name, «Prosegui a piedi» from `AmbushReport.onFoot`
+- [x] **PET-07**: Ambushes and pushes: unseen ambush reports opened at the Map also mid-travel (existing queue), the recomputed or redirected travel read from the stream, one «Imboscate» category accepting `ambush` and `ambushDefeat` with the banner suppressed when the carousel opens live, a new «Compagno in forze» category (`petRecovered`) with its toggle
+- [x] **PET-08**: Innkeeper corrections: a companion life slider next to the character's within served bounds (1 = defeated, marker «Sconfitto»), sent as `companionLifeAfter` in the per-fight correction only when the participant has a companion
+- [x] **PET-09**: Schema gate on the merged BE Phase 23 SDL (gated selections, `UseItem` target, the one switch flipped, registry 55, schema check, full suite) and device E2E
+- [x] **PET-10**: Companion levels: `OwnedPet.level` and the companion's own `maxLifePoints` read from the wire (lenient: level hidden while absent, the species' max as fallback) through one getter used by every reader of the companion's max; «Livello N» shown in the details sheet and next to the species on the Journal parchment; the app never computes a level, a threshold or a max
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -88,8 +101,18 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | GMFLOW-06 | Phase 21 | Complete |
 | GMFLOW-07 | Phase 21 | Complete |
 | GMFLOW-08 | Phase 21 | Complete |
+| PET-01 | Phase 22 | Complete |
+| PET-02 | Phase 22 | Complete |
+| PET-03 | Phase 22 | Complete |
+| PET-04 | Phase 22 | Complete |
+| PET-05 | Phase 22 | Complete |
+| PET-06 | Phase 22 | Complete |
+| PET-07 | Phase 22 | Complete |
+| PET-08 | Phase 22 | Complete |
+| PET-09 | Phase 22 | Complete |
+| PET-10 | Phase 22 | Complete |
 
-**Coverage:** 22 / 22 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21). No orphans. No duplicates.
+**Coverage:** 32 / 32 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22). No orphans. No duplicates.
 
 ---
 

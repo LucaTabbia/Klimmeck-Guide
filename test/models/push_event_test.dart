@@ -68,10 +68,41 @@ void main() {
         'body': 'Sei stato sconfitto: la via torna verso Bosa',
       });
 
-      expect(event?.category, NotificationCategory.ambushDefeat);
+      expect(event?.category, NotificationCategory.ambush);
       expect(event?.id, characterId);
       expect(event?.title, 'Imboscata!');
       expect(event?.body, 'Sei stato sconfitto: la via torna verso Bosa');
+    });
+
+    test('an ambushDefeat push still parses and dedups as ambush|<id> '
+        '(D-30)', () {
+      final legacy = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'ambushDefeat',
+        'id': 'r-1',
+      });
+      final current = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'ambush',
+        'id': 'r-1',
+      });
+
+      expect(legacy?.category, NotificationCategory.ambush);
+      expect(legacy?.dedupKey, 'ambush|r-1');
+      expect(current?.dedupKey, 'ambush|r-1');
+    });
+
+    test('a petRecovered push parses with its id (D-11)', () {
+      final event = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'petRecovered',
+        'title': 'Compagno in forze',
+        'body': 'Fenrir è di nuovo in forze',
+        'id': 'c-1',
+      });
+
+      expect(event?.category, NotificationCategory.petRecovered);
+      expect(event?.id, 'c-1');
     });
 
     test('drops an id sent with a streamer live broadcast', () {

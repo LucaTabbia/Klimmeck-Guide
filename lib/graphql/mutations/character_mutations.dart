@@ -70,11 +70,21 @@ class CharacterMutations {
       }
     }''';
 
-  /// Beve una pozione dal Diario (BE Phase 18): l'identità è il bearer, si
-  /// manda solo l'id dell'oggetto.
+  /// Nome del compagno (BE Phase 23, D-19): `id` = personaggio, `petId` = id a
+  /// catalogo (D-23).
+  static const String renamePet = r'''
+    mutation RenamePet($request: RenamePetRequest!) {
+      renamePet(request: $request) {
+        response
+        successful
+      }
+    }''';
+
+  /// Beve una pozione dal Diario (BE Phase 18): l'identità è il bearer;
+  /// `petId` = compagno bersaglio, opzionale (BE Phase 23, D-23).
   static const String useItem = r'''
-    mutation UseItem($itemId: ID!) {
-      useItem(itemId: $itemId) {
+    mutation UseItem($itemId: ID!, $petId: ID) {
+      useItem(itemId: $itemId, petId: $petId) {
         hpBefore
         hpAfter
         injuriesHealed

@@ -17,11 +17,13 @@ class PotionOutcomeListener extends StatelessWidget {
 
   /// Dopo questi rifiuti la vista può essere stantia (oggetto non più
   /// posseduto) o l'esito incerto (timeout, esito illeggibile dopo che il
-  /// server l'ha applicato): rilettura silenziosa.
+  /// server l'ha applicato) o il compagno sconfitto (D-06): rilettura
+  /// silenziosa.
   static const Set<ItemUseFailure> _staleViewFailures = {
     ItemUseFailure.notOwned,
     ItemUseFailure.timedOut,
     ItemUseFailure.unknown,
+    ItemUseFailure.petDefeated,
   };
 
   @override
@@ -38,6 +40,7 @@ class PotionOutcomeListener extends StatelessWidget {
       remaining: refused.recoveryUntil?.difference(
         context.read<ServerClockService>().now(),
       ),
+      targetName: refused.targetName,
     );
     if (notice != null) {
       context.read<InAppNotificationsCubit>().publishNotice(

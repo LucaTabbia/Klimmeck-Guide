@@ -1,8 +1,10 @@
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/enums/dungeon_turn_kind.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/utils/game_duration_format.dart';
 
 // Copy provvisoria (quick 261110-cgd): righe del foglio esiti per l'arresto
 // della crime e lo scontro della guard. Il FE non ricava nulla: la durata
@@ -32,10 +34,51 @@ String? guardEncounterLine(QuestResult result) {
   };
 }
 
-/// «Il tuo compagno guadagna N PE» (D-03): il numero servito dal backend,
-/// nessuna riga a zero.
-String? companionXpGainedLine(int petXpGained) =>
-    petXpGained > 0 ? 'Il tuo compagno guadagna $petXpGained PE' : null;
+/// «Il tuo compagno guadagna N PE» (D-03), «Fenrir guadagna N PE» quando
+/// l'esito serve il nome (D-20, D-27): il numero servito dal backend, nessuna
+/// riga a zero.
+String? companionXpGainedLine(int petXpGained, {String? name}) {
+  if (petXpGained <= 0) return null;
+  final subject = name == null || name.trim().isEmpty
+      ? QuestCompanionOutcome.unnamedLabel
+      : name.trim();
+  return '$subject guadagna $petXpGained PE';
+}
+
+/// «Fenrir: 120 / 300 di vita» (D-10): solo se il compagno è sceso di vita
+/// senza cadere.
+String? companionFightLifeLine(QuestCompanionOutcome? companion) {
+  if (companion == null || companion.isDefeated) return null;
+  if (companion.lifePoints >= companion.lifeBefore) return null;
+  return '${companion.name}: ${companion.lifePoints} / '
+      '${companion.maxLifePoints} di vita';
+}
+
+/// Sconfitta del compagno (D-10, D-27): la durata è `fullLifeAt − resolvedAt`,
+/// un fatto datato e mai contato da adesso (Pitfall 7). Senza una data utile
+/// resta la sola sconfitta.
+String? companionDefeatResultLine(
+  QuestCompanionOutcome? companion,
+  DateTime resolvedAt,
+) {
+  if (companion == null || !companion.isDefeated) return null;
+  final defeat = '${companion.name} è stato sconfitto';
+  final fullLifeAt = companion.fullLifeAt;
+  if (fullLifeAt == null || !fullLifeAt.isAfter(resolvedAt)) return defeat;
+  final rest = formatGameDuration(fullLifeAt.difference(resolvedAt));
+  return '$defeat: riposa e tornerà fra $rest';
+}
+
+const String onFootLine = 'Prosegui a piedi';
+
+/// [onFootLine] quando l'imboscata ha lasciato il personaggio senza
+/// cavalcatura e il viaggio prosegue (D-28): chi è stato portato in una
+/// città non cammina più.
+String? onFootLineOf(QuestResult result) {
+  final ambush = result.ambush;
+  if (ambush == null || !ambush.isOnFoot) return null;
+  return ambush.reachedCity == null ? onFootLine : null;
+}
 
 /// Riga dei turni di una dungeon o di un'aid di dungeon (D-21): stampa i
 /// numeri del BE così come arrivano, mai un turno in più né una quota.

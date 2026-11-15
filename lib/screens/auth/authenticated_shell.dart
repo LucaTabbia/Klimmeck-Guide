@@ -40,6 +40,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
@@ -274,6 +275,10 @@ class AuthenticatedShell extends StatelessWidget {
         ),
         BlocProvider<CompanionCubit>(
           create: (_) => CompanionCubit(CompanionRepository(graphQl: graphQl)),
+        ),
+        BlocProvider<CompanionNameCubit>(
+          create: (_) =>
+              CompanionNameCubit(CompanionRepository(graphQl: graphQl)),
         ),
         BlocProvider<PotionCubit>(
           create: (_) => PotionCubit(ItemUseRepository(graphQl: graphQl)),

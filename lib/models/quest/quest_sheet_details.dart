@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import '../enemy.dart';
 import '../enums/quest_type.dart';
 import '../enums/title_type.dart';
+import '../pet.dart';
 import '../quantity_line.dart';
 import '../travel/travel_preview.dart';
 import 'adventurer_slot.dart';
@@ -67,7 +68,7 @@ class QuestSheetDetails extends Equatable {
     required this.enemyLines,
     required this.strongestEnemy,
     this.isStrongestEnemyKnown = true,
-    required this.petPrizeLine,
+    required this.petPrize,
     required this.travelLine,
   });
 
@@ -117,7 +118,7 @@ class QuestSheetDetails extends Equatable {
       enemyLines: enemyLinesOf(enemies),
       strongestEnemy: strongest?.enemy,
       isStrongestEnemyKnown: strongest?.known ?? true,
-      petPrizeLine: _petPrizeLine(quest.prizes?.pet?.name),
+      petPrize: _petPrizeOf(quest.prizes?.pet),
       travelLine: family == QuestSheetFamily.narrative
           ? null
           : QuestTravelLine.of(travelPreview),
@@ -143,7 +144,10 @@ class QuestSheetDetails extends Equatable {
 
   /// Il ritratto segue il `known` del più forte (D-08): `false` → sagoma nera.
   final bool isStrongestEnemyKnown;
-  final String? petPrizeLine;
+
+  /// Premio compagno (D-06): la carta lo mostra con il tocco prolungato
+  /// (Phase 22 D-35); null senza compagno o senza nome.
+  final Pet? petPrize;
 
   /// Riga «Viaggio» (D-04): mai sulle narrative (story e worldMission non
   /// viaggiano).
@@ -163,7 +167,7 @@ class QuestSheetDetails extends Equatable {
     enemyLines,
     strongestEnemy,
     isStrongestEnemyKnown,
-    petPrizeLine,
+    petPrize,
     travelLine,
   ];
 }
@@ -174,9 +178,7 @@ bool _drawsSeats(QuestType? type) =>
     registeredQuestTypes.contains(type) &&
     !isSinglePlayerQuest(type);
 
-/// Copy provvisoria (D-06): solo testo, nessuna immagine.
-String? _petPrizeLine(String? name) =>
-    name == null || name.isEmpty ? null : 'Compagno in premio: $name';
+Pet? _petPrizeOf(Pet? pet) => pet?.name?.isNotEmpty ?? false ? pet : null;
 
 String? _requiredTitleText(QuestType? type, TitleType? minTitle) {
   if (minTitle == null) return null;

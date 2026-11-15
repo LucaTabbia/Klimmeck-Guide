@@ -45,8 +45,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// flusso guidato (`GetMissionDraft`, `ListMissionEnemies`,
 /// `GetMissionPrizeOptions`, `StartMissionDraft`, `SaveMissionDraft`,
 /// `SimulateMissionFight`, `DiscardMissionDraft`, `CompleteGuidedMission`);
-/// ogni documento futuro va aggiunto qui (il test
-/// `schema_check_documents_test.dart` lo impone).
+/// la Phase 22 aggiunge `RenamePet`; ogni documento futuro va aggiunto qui
+/// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
   'GetCity': CityQueries.getCity,
@@ -82,6 +82,7 @@ final Map<String, String> schemaCheckDocuments = {
   'EquipPet': CharacterMutations.equipPet,
   'UnequipPet': CharacterMutations.unequipPet,
   'UseItem': CharacterMutations.useItem,
+  'RenamePet': CharacterMutations.renamePet,
   'AcceptQuest': QuestMutations.acceptQuest,
   'AbandonQuest': QuestMutations.abandonQuest,
   'GenerateQuests': QuestMutations.generateQuests,

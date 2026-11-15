@@ -137,6 +137,82 @@ void main() {
       expect(fight.enemies.single.quantity, 1);
     });
 
+    test('reads the companion of a participant at the start of the fight '
+        '(D-33)', () {
+      final outcome = MissionFightOutcome.tryFromJson(
+        missionOutcomeJson(
+          companion: missionCompanionJson(lifeBefore: 120, maxLifePoints: 300),
+        ),
+      )!;
+
+      expect(
+        outcome.companion,
+        const MissionCompanion(
+          petId: 'pet-worg',
+          name: 'Fenrir',
+          lifeBefore: 120,
+          maxLifePoints: 300,
+        ),
+      );
+    });
+
+    test('a blank or missing name reads «Compagno» and keeps the slider '
+        '(D-33, D-20)', () {
+      for (final name in <Object?>['', '   ', 7, null]) {
+        final outcome = MissionFightOutcome.tryFromJson(
+          missionOutcomeJson(companion: missionCompanionJson(name: name)),
+        )!;
+
+        expect(outcome.companion?.name, 'Compagno', reason: '$name');
+        expect(outcome.companion?.petId, 'pet-worg', reason: '$name');
+      }
+    });
+
+    test('a malformed companion is null and keeps the outcome (D-33)', () {
+      final malformed = [
+        missionCompanionJson(pet: null),
+        missionCompanionJson(pet: '  '),
+        missionCompanionJson(lifeBefore: 'tanta'),
+        missionCompanionJson(maxLifePoints: null),
+      ];
+
+      for (final companion in malformed) {
+        final outcome = MissionFightOutcome.tryFromJson(
+          missionOutcomeJson(companion: companion),
+        )!;
+        expect(outcome.companion, isNull, reason: '$companion');
+        expect(outcome.hpBefore, 800);
+      }
+      final notAMap = MissionFightOutcome.tryFromJson({
+        ...missionOutcomeJson(),
+        'companion': 'pet-worg',
+      })!;
+      expect(notAMap.companion, isNull);
+    });
+
+    test('no companion when absent (D-12, D-33)', () {
+      final outcome = MissionFightOutcome.tryFromJson(missionOutcomeJson())!;
+
+      expect(outcome.companion, isNull);
+    });
+
+    test('effects read companionLifeAfter when served, null otherwise '
+        '(D-33)', () {
+      final served = MissionFightEffects.tryFromJson(
+        missionEffectsJson(companionLifeAfter: 1),
+      )!;
+      final absent = MissionFightEffects.tryFromJson(missionEffectsJson())!;
+      final malformed = MissionFightEffects.tryFromJson({
+        ...missionEffectsJson(),
+        'companionLifeAfter': 'poca',
+      })!;
+
+      expect(served.companionLifeAfter, 1);
+      expect(absent.companionLifeAfter, isNull);
+      expect(malformed.companionLifeAfter, isNull);
+      expect(malformed.hpAfter, 700);
+    });
+
     test('a legendary enemy reads isLegendary (D-19)', () {
       final legendary = MissionEnemy.tryFromJson(
         missionEnemyJson(id: 'enemy-dragon', name: 'Drago', legendary: true),

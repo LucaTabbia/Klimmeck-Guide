@@ -9,8 +9,16 @@ void main() {
   test('UseItem is a named mutation with the itemId variable (D-11)', () {
     final document = _collapsed(CharacterMutations.useItem);
 
-    expect(document, contains(r'mutation UseItem($itemId: ID!)'));
-    expect(document, contains(r'useItem(itemId: $itemId)'));
+    expect(document, contains(r'mutation UseItem($itemId: ID!'));
+    expect(document, contains(r'useItem(itemId: $itemId'));
+  });
+
+  test('UseItem declares the optional petId and passes it (D-23, '
+      'Pitfall 2)', () {
+    final document = _collapsed(CharacterMutations.useItem);
+
+    expect(document, contains(r'mutation UseItem($itemId: ID!, $petId: ID)'));
+    expect(document, contains(r'useItem(itemId: $itemId, petId: $petId)'));
   });
 
   test('selects the outcome fields and the unlocked lore refs (D-11)', () {

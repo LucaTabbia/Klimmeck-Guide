@@ -1,10 +1,16 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/equipment_notice.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/companion_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
@@ -12,6 +18,8 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/spells_s
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellRecoveryCubit/spell_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:klimmeck_guide/utils/mission_lines.dart';
 
@@ -33,7 +41,14 @@ import 'components/injury_name_icon.dart';
 import 'cubit/journal_cubit.dart';
 
 class Journal extends StatefulWidget {
-  const Journal({super.key});
+  const Journal({
+    super.key,
+    this.isCompanionNamingEnabled = companionCareEnabled,
+  });
+
+  /// «Dai un nome» / «Cambia nome» nei dettagli del compagno (D-19); spento
+  /// fino al gate.
+  final bool isCompanionNamingEnabled;
 
   @override
   State<Journal> createState() => _JournalState();
@@ -44,6 +59,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   EquipmentItem? _selectedEquipment;
   Spell? _selectedSpell;
   SpellRecoveryCubit? _selectedSpellRecovery;
+  String? _selectedCompanionId;
   List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
 
@@ -72,6 +88,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
         _selectedEquipment = null;
         _selectedSpell = null;
         _selectedSpellRecovery = null;
+        _selectedCompanionId = null;
       });
     }
   }
@@ -267,7 +284,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                         return Placeholder();
                       },
                     )
-                  : _buildSpellSheet(),
+                  : _buildSpellSheet() ?? _buildCompanionSheet(),
             ),
           ),
         );
@@ -283,6 +300,76 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       value: recovery,
       child: SpellDetailsSheet(spell: spell),
     );
+  }
+
+  Widget? _buildCompanionSheet() {
+    final petId = _selectedCompanionId;
+    if (petId == null) return null;
+    return BlocBuilder<CharacterCubit, CharacterState>(
+      builder: (context, state) {
+        final character = state is CharacterLoaded ? state.character : null;
+        final owned = character == null ? null : _ownedPetOf(character, petId);
+        if (character == null || owned == null) return const SizedBox.shrink();
+        return BlocBuilder<CompanionCubit, CompanionState>(
+          builder: (context, companion) =>
+              BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
+                builder: (context, vitalities) {
+                  final vitality = vitalities.vitalityFor(owned);
+                  final canToggle =
+                      !character.isOnMission &&
+                      !isCompanionDefeated(owned, vitality);
+                  return SingleChildScrollView(
+                    child: CompanionInfoSheet(
+                      pet: owned.pet,
+                      name: owned.name,
+                      level: owned.level,
+                      xp: owned.xp,
+                      vitality: vitality,
+                      potionWait: vitalities.potionWaitOf(petId),
+                      isEquipped: companion.displayedPetId(character) == petId,
+                      isPending: companion.pending?.petId == petId,
+                      onToggle: canToggle
+                          ? () => CompanionSection.toggle(
+                              context,
+                              character,
+                              petId,
+                            )
+                          : null,
+                      onRename: _renameActionOf(character, owned),
+                    ),
+                  );
+                },
+              ),
+        );
+      },
+    );
+  }
+
+  /// Il nome non è bloccato da «Missione in corso» (D-31).
+  VoidCallback? _renameActionOf(Character character, OwnedPet owned) {
+    if (!widget.isCompanionNamingEnabled) return null;
+    return () => showCompanionNameSheet(
+      context,
+      characterId: character.id,
+      petId: owned.pet.id,
+      species: owned.pet.name ?? '',
+      initialName: owned.name,
+    );
+  }
+
+  /// Venduto o perso mentre i suoi dettagli sono aperti: il foglio si chiude.
+  bool _hasLostSelectedCompanion(CharacterState state) {
+    final petId = _selectedCompanionId;
+    return petId != null &&
+        state is CharacterLoaded &&
+        _ownedPetOf(state.character, petId) == null;
+  }
+
+  static OwnedPet? _ownedPetOf(Character character, String petId) {
+    for (final owned in character.assets?.ownedPets ?? const <OwnedPet>[]) {
+      if (owned.pet.id == petId) return owned;
+    }
+    return null;
   }
 
   void _selectSlot(SlotType slotType, Character character) {
@@ -313,6 +400,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       _selectedEquipment = item;
       _selectedSpell = null;
       _selectedSpellRecovery = null;
+      _selectedCompanionId = null;
     });
     _animationController.forward();
   }
@@ -322,6 +410,17 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
       _selectedEquipment = null;
       _selectedSpell = spell;
       _selectedSpellRecovery = recovery;
+      _selectedCompanionId = null;
+    });
+    _animationController.forward();
+  }
+
+  void _selectCompanion(String petId) {
+    setState(() {
+      _selectedEquipment = null;
+      _selectedSpell = null;
+      _selectedSpellRecovery = null;
+      _selectedCompanionId = petId;
     });
     _animationController.forward();
   }
@@ -393,15 +492,26 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      CompanionVitalityScope(child: _buildPage(context));
+
+  Widget _buildPage(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final lootSize = (screenWidth - 180) / 5;
 
-    return BlocListener<JournalCubit, JournalState>(
-      listenWhen: (previous, current) =>
-          current is JournalEquipRefused && previous != current,
-      listener: (context, state) =>
-          _onEquipRefused(context, state as JournalEquipRefused),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<JournalCubit, JournalState>(
+          listenWhen: (previous, current) =>
+              current is JournalEquipRefused && previous != current,
+          listener: (context, state) =>
+              _onEquipRefused(context, state as JournalEquipRefused),
+        ),
+        BlocListener<CharacterCubit, CharacterState>(
+          listenWhen: (_, current) => _hasLostSelectedCompanion(current),
+          listener: (_, _) => _animationController.reverse(),
+        ),
+      ],
       child: BlocBuilder<CharacterCubit, CharacterState>(
         builder: (context, state) {
           if (state is CharacterLoaded) {
@@ -452,7 +562,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                                   screenWidth,
                                   lootSize,
                                 ),
-                                CompanionSection(size: lootSize),
+                                CompanionSection(
+                                  size: lootSize,
+                                  onShowDetails: _selectCompanion,
+                                ),
                                 ItemsSection(size: lootSize),
                                 const SizedBox(height: 120),
                               ],

@@ -4,14 +4,20 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
+import 'package:klimmeck_guide/models/request/rename_pet_request.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/pet_equip_failure.dart';
+import 'package:klimmeck_guide/repository/pet_rename_failure.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/mocks.dart';
 
 Matcher _failsWith(PetEquipFailure failure) => throwsA(
   isA<PetEquipException>().having((e) => e.failure, 'failure', failure),
+);
+
+Matcher _renameFailsWith(PetRenameFailure failure) => throwsA(
+  isA<PetRenameException>().having((e) => e.failure, 'failure', failure),
 );
 
 OperationException _coded(String code) => OperationException(
@@ -27,6 +33,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const EquipPetRequest(id: '', petId: ''));
     registerFallbackValue(const UnequipPetRequest(id: ''));
+    registerFallbackValue(const RenamePetRequest(id: '', petId: '', name: ''));
   });
 
   setUp(() {
@@ -128,5 +135,82 @@ void main() {
       repository.unequip(characterId: 'c-1'),
       _failsWith(PetEquipFailure.unknown),
     );
+  });
+
+  group('rename', () {
+    Future<void> renameWorg() => repository.rename(
+      characterId: 'c-1',
+      petId: 'pet-worg',
+      name: 'Fenrir',
+    );
+
+    test('rename sends RenamePetRequest and completes on successful '
+        '(D-19)', () async {
+      when(() => graphQl.renamePet(any())).thenAnswer((_) async => true);
+
+      await renameWorg();
+
+      verify(
+        () => graphQl.renamePet(
+          const RenamePetRequest(id: 'c-1', petId: 'pet-worg', name: 'Fenrir'),
+        ),
+      ).called(1);
+    });
+
+    test('successful false is declined (D-19)', () async {
+      when(() => graphQl.renamePet(any())).thenAnswer((_) async => false);
+
+      await expectLater(
+        renameWorg(),
+        _renameFailsWith(PetRenameFailure.declined),
+      );
+    });
+
+    test('a timeout is timedOut (D-19)', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.renamePet(any()),
+        ).thenAnswer((_) => Completer<bool>().future);
+        Object? failure;
+
+        renameWorg().then<void>(
+          (_) {},
+          onError: (Object error) => failure = error,
+        );
+        async.elapse(CompanionRepository.defaultTimeout);
+
+        expect(
+          failure,
+          isA<PetRenameException>().having(
+            (e) => e.failure,
+            'failure',
+            PetRenameFailure.timedOut,
+          ),
+        );
+      });
+    });
+
+    test('a refusal becomes PetRenameException with its failure '
+        '(D-31)', () async {
+      when(
+        () => graphQl.renamePet(any()),
+      ).thenThrow(_coded('PET_NAME_INVALID'));
+
+      await expectLater(
+        renameWorg(),
+        _renameFailsWith(PetRenameFailure.nameInvalid),
+      );
+    });
+
+    test('any other error becomes unknown (D-19)', () async {
+      when(
+        () => graphQl.renamePet(any()),
+      ).thenThrow(const FormatException('renamePet malformed'));
+
+      await expectLater(
+        renameWorg(),
+        _renameFailsWith(PetRenameFailure.unknown),
+      );
+    });
   });
 }

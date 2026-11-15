@@ -38,6 +38,15 @@ void main() {
       expect(requests.single.variables, {'itemId': 'l-herb'});
     });
 
+    test('a target pet travels as petId only when given (D-23)', () async {
+      await buildGraphQl().useItem('l-herb', petId: 'pet-worg');
+
+      expect(requests.single.variables, {
+        'itemId': 'l-herb',
+        'petId': 'pet-worg',
+      });
+    });
+
     test('returns the parsed UseItemResult (D-11)', () async {
       final result = await buildGraphQl().useItem('l-herb');
 

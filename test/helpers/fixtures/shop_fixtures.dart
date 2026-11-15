@@ -16,6 +16,10 @@ Map<String, dynamic> petJson({
   Map<String, dynamic>? attack,
   Map<String, dynamic>? defense,
   String? rarity,
+  Object? maxLifePoints,
+  Object? recoveryTime,
+  String? imagePath,
+  Object? known,
 }) => {
   'id': id,
   'name': name,
@@ -27,6 +31,10 @@ Map<String, dynamic> petJson({
   if (attack != null) 'attack': attack,
   if (defense != null) 'defense': defense,
   if (rarity != null) 'rarity': rarity,
+  if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
+  if (recoveryTime != null) 'recoveryTime': recoveryTime,
+  if (imagePath != null) 'imagePath': imagePath,
+  if (known != null) 'known': known,
 };
 
 /// Compagno posseduto nella forma della BE Phase 19 (D-03).
@@ -34,10 +42,24 @@ Map<String, dynamic> ownedPetJson({
   Map<String, dynamic>? pet,
   int xp = 0,
   int currentLifePoints = 10,
+  Object? name,
+  Object? defeated,
+  Object? lifeAsOf,
+  Object? fullLifeAt,
+  Object? potionRecoveryUntil,
+  Object? level,
+  Object? maxLifePoints,
 }) => {
   'pet': pet ?? petJson(),
   'xp': xp,
   'currentLifePoints': currentLifePoints,
+  if (name != null) 'name': name,
+  if (defeated != null) 'defeated': defeated,
+  if (lifeAsOf != null) 'lifeAsOf': lifeAsOf,
+  if (fullLifeAt != null) 'fullLifeAt': fullLifeAt,
+  if (potionRecoveryUntil != null) 'potionRecoveryUntil': potionRecoveryUntil,
+  if (level != null) 'level': level,
+  if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
 };
 
 /// Compagno non da sella (gatto): nessuna velocità (D-07).

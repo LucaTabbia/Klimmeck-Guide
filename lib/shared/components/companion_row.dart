@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import '../../models/pet.dart';
 import '../../theme/kg_theme.dart';
 import '../../utils/item_lines.dart';
+import 'cards/companion_card.dart';
+import 'cards/companion_details_gesture.dart';
 import 'coins_display.dart';
 
-/// Riga di un compagno (negozio e Diario): nome nel colore della rarità,
-/// prezzo, velocità solo per un compagno da sella, attacco e difesa quando
-/// serviti, marcatore se equipaggiato. Solo testo, nessuna immagine (D-13).
-/// Visual provvisorio.
+/// Riga di un compagno (negozio, carrello, premi dell'oste): carta con immagine
+/// e nome (D-22, D-34), prezzo e righe di testo; la velocità sta solo sulla
+/// carta. Il tocco seleziona, il tocco prolungato apre il dettaglio (D-35).
 class CompanionRow extends StatelessWidget {
   const CompanionRow({
     super.key,
@@ -18,7 +19,9 @@ class CompanionRow extends StatelessWidget {
     this.showCoins = true,
     this.isEquipped = false,
     this.isSelected = false,
+    this.name,
     this.onTap,
+    this.onLongPress,
   });
 
   final Pet pet;
@@ -27,13 +30,18 @@ class CompanionRow extends StatelessWidget {
   final bool showCoins;
   final bool isEquipped;
   final bool isSelected;
+
+  /// Nome scelto del compagno posseduto (D-20); `null` = la specie.
+  final String? name;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: companionDetailsGesture(pet, onLongPress),
       child: Container(
         color: isSelected
             ? KlimmeckGuideTheme.primaryGold.withAlpha(100)
@@ -41,6 +49,7 @@ class CompanionRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
         child: Row(
           children: [
+            CompanionCard(pet: pet, size: size, name: name),
             if (showCoins)
               CoinsDisplay(
                 coins: isBuy ? pet.buyPrice : pet.sellPrice,
@@ -59,21 +68,13 @@ class CompanionRow extends StatelessWidget {
   }
 
   Widget _buildTexts() {
-    final speed = companionSpeedLabel(pet);
     final attack = petAttackLine(pet);
     final defense = petDefenseLine(pet);
-    final rarity = pet.rarity;
     final style = KlimmeckGuideTheme.instance.bodyMedium;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          pet.name ?? '',
-          style: rarity == null ? style : style.copyWith(color: rarity.color),
-        ),
-        if (speed != null)
-          Text(speed, key: ValueKey('companion-speed-${pet.id}'), style: style),
         if (attack != null)
           Text(
             attack,

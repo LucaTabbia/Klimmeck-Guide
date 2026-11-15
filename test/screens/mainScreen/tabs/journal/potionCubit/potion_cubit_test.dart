@@ -11,6 +11,8 @@ import '../../../../../helpers/fixtures/potion_fixtures.dart';
 import '../../../../../helpers/mocks.dart';
 
 const _herb = 'l-herb';
+const _worg = 'pet-worg';
+const _worgName = 'Fulmine';
 
 void main() {
   late MockItemUseRepository repository;
@@ -24,7 +26,7 @@ void main() {
   PotionCubit build() => PotionCubit(repository);
 
   When<Future<UseItemResult>> stubUseItem() =>
-      when(() => repository.useItem(any()));
+      when(() => repository.useItem(any(), petId: any(named: 'petId')));
 
   test('starts idle', () {
     final cubit = build();
@@ -122,6 +124,82 @@ void main() {
     verify(() => repository.useItem(_herb)).called(1);
     verifyNever(() => repository.useItem('l-other'));
     expect(cubit.state, PotionDrunk(_herb, result));
+    await cubit.close();
+  });
+
+  blocTest<PotionCubit, PotionState>(
+    'give sends the target and emits Drinking → Drunk with the target '
+    '(D-07, D-23)',
+    setUp: () => stubUseItem().thenAnswer((_) async => result),
+    build: build,
+    act: (cubit) => cubit.give(_herb, petId: _worg, targetName: _worgName),
+    expect: () => [
+      const PotionDrinking(_herb, targetPetId: _worg, targetName: _worgName),
+      PotionDrunk(_herb, result, targetPetId: _worg, targetName: _worgName),
+    ],
+    verify: (_) =>
+        verify(() => repository.useItem(_herb, petId: _worg)).called(1),
+  );
+
+  blocTest<PotionCubit, PotionState>(
+    'a refused give carries the target name and the served wait (D-05, D-32)',
+    setUp: () => stubUseItem().thenThrow(
+      ItemUseException(
+        ItemUseFailure.petPotionRecovering,
+        recoveryUntil: recoveryEnd,
+      ),
+    ),
+    build: build,
+    act: (cubit) => cubit.give(_herb, petId: _worg, targetName: _worgName),
+    expect: () => [
+      const PotionDrinking(_herb, targetPetId: _worg, targetName: _worgName),
+      PotionRefused(
+        _herb,
+        ItemUseFailure.petPotionRecovering,
+        recoveryUntil: recoveryEnd,
+        sequence: 1,
+        targetPetId: _worg,
+        targetName: _worgName,
+      ),
+    ],
+  );
+
+  blocTest<PotionCubit, PotionState>(
+    'drink keeps no target (Phase 18 D-11)',
+    setUp: () => stubUseItem().thenAnswer((_) async => result),
+    build: build,
+    act: (cubit) => cubit.drink(_herb),
+    expect: () => [
+      isA<PotionDrinking>()
+          .having((s) => s.targetPetId, 'targetPetId', isNull)
+          .having((s) => s.targetName, 'targetName', isNull),
+      isA<PotionDrunk>()
+          .having((s) => s.targetPetId, 'targetPetId', isNull)
+          .having((s) => s.targetName, 'targetName', isNull),
+    ],
+    verify: (_) => verify(() => repository.useItem(_herb)).called(1),
+  );
+
+  test('a second give or drink while one is in flight is ignored '
+      '(single-flight)', () async {
+    final pending = Completer<UseItemResult>();
+    stubUseItem().thenAnswer((_) => pending.future);
+    final cubit = build();
+
+    final first = cubit.give(_herb, petId: _worg, targetName: _worgName);
+    await cubit.give('l-other', petId: _worg, targetName: _worgName);
+    await cubit.drink('l-other');
+    pending.complete(result);
+    await first;
+
+    verify(() => repository.useItem(_herb, petId: _worg)).called(1);
+    verifyNever(
+      () => repository.useItem('l-other', petId: any(named: 'petId')),
+    );
+    expect(
+      cubit.state,
+      PotionDrunk(_herb, result, targetPetId: _worg, targetName: _worgName),
+    );
     await cubit.close();
   });
 

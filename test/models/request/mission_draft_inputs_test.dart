@@ -144,6 +144,67 @@ void main() {
     });
   });
 
+  group('companion life correction', () {
+    test('fromEffects copies the companion life (D-17)', () {
+      final correction = MissionCorrection.fromEffects(
+        _aldo,
+        const MissionFightEffects(hpAfter: 600, companionLifeAfter: 120),
+      );
+
+      expect(correction.companionLifeAfter, 120);
+      expect(correction.toJson()['companionLifeAfter'], 120);
+    });
+
+    test('withCompanionLife changes only the companion life (D-17)', () {
+      final served = MissionCorrection.fromEffects(
+        _aldo,
+        const MissionFightEffects(
+          hpAfter: 600,
+          injuriesAdded: [InjuryType.crushedRightHand],
+          companionLifeAfter: 120,
+        ),
+      );
+
+      final corrected = served.withCompanionLife(1);
+
+      expect(corrected.companionLifeAfter, 1);
+      expect(corrected.hpAfter, 600);
+      expect(corrected.injuries, [InjuryType.crushedRightHand]);
+      expect(corrected, isNot(served));
+    });
+
+    test('other corrections keep the companion life (D-17)', () {
+      final corrected =
+          MissionCorrection.fromEffects(
+                _aldo,
+                const MissionFightEffects(hpAfter: 600, companionLifeAfter: 90),
+              )
+              .withHp(500)
+              .withInjuryToggled(InjuryType.blackEye)
+              .withConsumableUsed(potionItemId, 1)
+              .withSpellUsed(fireballSpellId, 1);
+
+      expect(corrected.companionLifeAfter, 90);
+    });
+
+    test('toJson sends companionLifeAfter only when set (D-33, Pitfall 1)', () {
+      final withoutCompanion = MissionCorrection.fromEffects(
+        _aldo,
+        const MissionFightEffects(hpAfter: 600),
+      );
+
+      expect(withoutCompanion.companionLifeAfter, isNull);
+      expect(
+        withoutCompanion.toJson().containsKey('companionLifeAfter'),
+        isFalse,
+      );
+      expect(
+        withoutCompanion.withCompanionLife(42).toJson()['companionLifeAfter'],
+        42,
+      );
+    });
+  });
+
   group('fights section from the served draft', () {
     test(
       'fightsInputWithEnemies sends no corrections, the BE keeps the unchanged prefix (D-24)',

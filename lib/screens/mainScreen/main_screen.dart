@@ -190,8 +190,11 @@ class _MainScreenState extends State<MainScreen>
     );
   }
 
+  /// Le pagine non si ridimensionano con la tastiera: la apre solo un
+  /// foglio, che si solleva da sé.
   Widget _buildPagesWithSatchel(List<City> cities, Set<int> disabledPages) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         alignment: Alignment.topLeft,
         children: [

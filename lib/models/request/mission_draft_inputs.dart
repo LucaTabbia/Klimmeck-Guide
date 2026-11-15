@@ -33,6 +33,7 @@ class MissionCorrection extends Equatable {
     this.injuries = const [],
     this.consumablesUsed = const {},
     this.spellsUsed = const {},
+    this.companionLifeAfter,
   });
 
   factory MissionCorrection.fromEffects(
@@ -48,6 +49,7 @@ class MissionCorrection extends Equatable {
     spellsUsed: Map.unmodifiable({
       for (final usage in effects.spellsUsed) usage.spellId: usage.usages,
     }),
+    companionLifeAfter: effects.companionLifeAfter,
   );
 
   final String characterId;
@@ -61,6 +63,9 @@ class MissionCorrection extends Equatable {
 
   /// Id della magia → usi consumati.
   final Map<String, int> spellsUsed;
+
+  /// `null` = nessun compagno nello scontro: la chiave non parte (D-33).
+  final int? companionLifeAfter;
 
   MissionCorrection withHp(int hp) => _copy(hpAfter: hp);
 
@@ -76,17 +81,22 @@ class MissionCorrection extends Equatable {
   MissionCorrection withSpellUsed(String spellId, int usages) =>
       _copy(spellsUsed: {...spellsUsed, spellId: usages});
 
+  MissionCorrection withCompanionLife(int life) =>
+      _copy(companionLifeAfter: life);
+
   MissionCorrection _copy({
     int? hpAfter,
     List<InjuryType>? injuries,
     Map<String, int>? consumablesUsed,
     Map<String, int>? spellsUsed,
+    int? companionLifeAfter,
   }) => MissionCorrection(
     characterId: characterId,
     hpAfter: hpAfter ?? this.hpAfter,
     injuries: List.unmodifiable(injuries ?? this.injuries),
     consumablesUsed: Map.unmodifiable(consumablesUsed ?? this.consumablesUsed),
     spellsUsed: Map.unmodifiable(spellsUsed ?? this.spellsUsed),
+    companionLifeAfter: companionLifeAfter ?? this.companionLifeAfter,
   );
 
   Map<String, dynamic> toJson() => {
@@ -102,6 +112,7 @@ class MissionCorrection extends Equatable {
       for (final MapEntry(key: spell, value: usages) in spellsUsed.entries)
         if (usages > 0) {'spell': spell, 'usages': usages},
     ],
+    if (companionLifeAfter case final life?) 'companionLifeAfter': life,
   };
 
   @override
@@ -111,6 +122,7 @@ class MissionCorrection extends Equatable {
     injuries,
     consumablesUsed,
     spellsUsed,
+    companionLifeAfter,
   ];
 }
 

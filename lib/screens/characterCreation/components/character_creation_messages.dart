@@ -4,17 +4,9 @@ import 'package:klimmeck_guide/repository/character_creation_failure.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_draft.dart';
 
-const String backgroundTooLongMessage = 'Massimo 500 caratteri';
+export 'package:klimmeck_guide/utils/name_rules.dart' show NameErrorMessage;
 
-extension NameErrorMessage on NameError {
-  /// Null quando il campo è solo vuoto: "Crea" resta disabilitato senza rimproveri.
-  String? get message => switch (this) {
-    NameError.required => null,
-    NameError.tooShort => 'Il nome deve avere almeno 2 lettere',
-    NameError.tooLong => 'Il nome può avere al massimo 20 caratteri',
-    NameError.invalidCharacters => 'Solo lettere, spazi, apostrofi e trattini',
-  };
-}
+const String backgroundTooLongMessage = 'Massimo 500 caratteri';
 
 String? ageErrorMessage(AgeError error, RaceTraits traits) => switch (error) {
   AgeError.required => null,

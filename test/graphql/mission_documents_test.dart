@@ -36,7 +36,8 @@ void main() {
       expect(
         draftSelection,
         contains(
-          'outcomes { character hpBefore injuriesBefore '
+          'outcomes { character hpBefore '
+          'companion { pet name lifeBefore maxLifePoints } injuriesBefore '
           'consumablesAvailable { item quantity } '
           'spellsAvailable { spell usages }',
         ),
@@ -49,14 +50,14 @@ void main() {
       expect(
         draftSelection,
         contains(
-          'simulated { hpAfter injuriesAdded '
+          'simulated { hpAfter companionLifeAfter injuriesAdded '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );
       expect(
         draftSelection,
         contains(
-          'corrected { hpAfter injuriesAdded '
+          'corrected { hpAfter companionLifeAfter injuriesAdded '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );
@@ -81,6 +82,18 @@ void main() {
         contains('enemies { quantity enemy { $enemySelection } }'),
       );
     });
+  });
+
+  test('the fight outcome selects the companion and companionLifeAfter in '
+      'simulated and corrected (D-33)', () {
+    expect(
+      draftSelection,
+      contains('hpBefore companion { pet name lifeBefore maxLifePoints }'),
+    );
+    expect(
+      RegExp(r'hpAfter companionLifeAfter ').allMatches(draftSelection),
+      hasLength(2),
+    );
   });
 
   group('MissionEnemyFragment', () {

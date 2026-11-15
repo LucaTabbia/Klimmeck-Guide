@@ -75,4 +75,24 @@ void main() {
     expect(AmbushReport.fromJson(won.toJson()), won);
     expect(AmbushReport.fromJson(lost.toJson()), lost);
   });
+
+  test('onFoot is read leniently, default false (D-28)', () {
+    expect(
+      AmbushReport.fromJson(ambushReportJson(onFoot: true)).isOnFoot,
+      isTrue,
+    );
+    expect(AmbushReport.fromJson(ambushReportJson()).isOnFoot, isFalse);
+    for (final flag in <Object?>['yes', null, 1]) {
+      final json = ambushReportJson()..['onFoot'] = flag;
+
+      expect(AmbushReport.fromJson(json).isOnFoot, isFalse, reason: '$flag');
+    }
+  });
+
+  test('onFoot round-trips and is part of the props (D-28)', () {
+    final onFoot = AmbushReport.fromJson(ambushReportJson(onFoot: true));
+
+    expect(AmbushReport.fromJson(onFoot.toJson()), onFoot);
+    expect(onFoot, isNot(AmbushReport.fromJson(ambushReportJson())));
+  });
 }

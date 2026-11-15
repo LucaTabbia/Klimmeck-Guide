@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notif
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/potion_outcome_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -128,7 +129,8 @@ JournalCubit idleJournalCubit() {
 
 /// Il Diario intero con i provider che legge, in landscape, ad animazioni finite.
 /// Come in produzione, il Diario sta sotto PotionOutcomeListener: i banner dei
-/// rifiuti vanno a [notices].
+/// rifiuti vanno a [notices]. [companionNameCubit] serve solo con
+/// [isCompanionNamingEnabled] (il foglio del nome lo legge dalla shell).
 Future<void> pumpJournalPage(
   WidgetTester tester, {
   required CharacterCubit characterCubit,
@@ -138,6 +140,8 @@ Future<void> pumpJournalPage(
   JournalCubit? journalCubit,
   InAppNotificationsCubit? notices,
   FakeServerClockService? clock,
+  CompanionNameCubit? companionNameCubit,
+  bool isCompanionNamingEnabled = false,
 }) async {
   useLandscapePhone(tester);
   seedJournalSvgs();
@@ -161,8 +165,14 @@ Future<void> pumpJournalPage(
             BlocProvider<InAppNotificationsCubit>.value(
               value: notices ?? MockInAppNotificationsCubit(),
             ),
+            if (companionNameCubit != null)
+              BlocProvider<CompanionNameCubit>.value(value: companionNameCubit),
           ],
-          child: const PotionOutcomeListener(child: Scaffold(body: Journal())),
+          child: PotionOutcomeListener(
+            child: Scaffold(
+              body: Journal(isCompanionNamingEnabled: isCompanionNamingEnabled),
+            ),
+          ),
         ),
       ),
     ),

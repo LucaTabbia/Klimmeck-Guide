@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/lore.dart';
 import 'package:klimmeck_guide/models/quest/quest_enemy.dart';
 import 'package:klimmeck_guide/models/quest_result/ambush_report.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_quest.dart';
@@ -53,6 +54,7 @@ class QuestResult extends Equatable {
     this.coinsLost,
     this.guardEncounter = false,
     this.petXpGained = 0,
+    this.companion,
     this.turnsTotal,
     this.turnsCompleted,
     this.lastTurn,
@@ -101,6 +103,10 @@ class QuestResult extends Equatable {
   /// PE guadagnati dal compagno al fianco (BE Phase 19, D-03): il guadagno
   /// effettivo deciso dal backend; assente o illeggibile vale 0.
   final int petXpGained;
+
+  /// Il compagno che ha combattuto (BE Phase 23, D-27); `null` quando non
+  /// servito o malformato.
+  final QuestCompanionOutcome? companion;
   final int levelBefore;
   final int levelAfter;
 
@@ -183,6 +189,7 @@ class QuestResult extends Equatable {
       xpGained: (json['xpGained'] as num).toInt(),
       xpAfter: (json['xpAfter'] as num).toInt(),
       petXpGained: _nonNegativeInt(json['petXpGained']),
+      companion: QuestCompanionOutcome.tryFromJson(json['companion']),
       levelBefore: (json['levelBefore'] as num).toInt(),
       levelAfter: (json['levelAfter'] as num).toInt(),
       titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
@@ -264,6 +271,7 @@ class QuestResult extends Equatable {
     'xpGained': xpGained,
     'xpAfter': xpAfter,
     'petXpGained': petXpGained,
+    'companion': companion?.toJson(),
     'levelBefore': levelBefore,
     'levelAfter': levelAfter,
     'titleBefore': titleBefore?.name,
@@ -313,6 +321,7 @@ class QuestResult extends Equatable {
     xpGained,
     xpAfter,
     petXpGained,
+    companion,
     levelBefore,
     levelAfter,
     titleBefore,

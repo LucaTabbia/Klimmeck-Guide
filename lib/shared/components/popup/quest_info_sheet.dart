@@ -1,10 +1,15 @@
+import 'dart:math' show max, min;
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_details_gesture.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_details_route.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
@@ -65,7 +70,6 @@ class QuestInfoSheet extends StatelessWidget {
   static const String recommendedLootTitle = 'Consigliati';
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
-  static const int _petPrizeMaxLines = 3;
   static const double _coinsShare = 0.5;
   static const double _coinsShareBesideItemAndCompanion = 0.35;
 
@@ -416,7 +420,8 @@ class QuestInfoSheet extends StatelessWidget {
         ),
         Expanded(
           child: LayoutBuilder(
-            builder: (context, constraints) => _prizeRow(details, constraints),
+            builder: (context, constraints) =>
+                _prizeRow(context, details, constraints),
           ),
         ),
       ],
@@ -424,14 +429,24 @@ class QuestInfoSheet extends StatelessWidget {
   }
 
   /// Il compagno sta nella riga dei premi: sotto, le monete non ci stanno (D-06).
-  /// La carta resta quadrata; con oggetto e compagno le monete cedono spazio.
-  Widget _prizeRow(QuestSheetDetails details, BoxConstraints constraints) {
+  /// Le carte restano quadrate; con oggetto e compagno le monete cedono spazio
+  /// e non vanno mai oltre quello che le carte lasciano (Phase 22 D-35).
+  Widget _prizeRow(
+    BuildContext context,
+    QuestSheetDetails details,
+    BoxConstraints constraints,
+  ) {
     final prizes = quest!.prizes!;
     final hasItemAndCompanion =
-        prizes.prizeItem != null && details.petPrizeLine != null;
+        prizes.prizeItem != null && details.petPrize != null;
     final coinsShare = hasItemAndCompanion
         ? _coinsShareBesideItemAndCompanion
         : _coinsShare;
+    final cardCount = [prizes.prizeItem, details.petPrize].nonNulls.length;
+    final coinsWidth = min(
+      constraints.maxWidth * coinsShare,
+      max(0.0, constraints.maxWidth - cardCount * constraints.maxHeight),
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -439,7 +454,7 @@ class QuestInfoSheet extends StatelessWidget {
           CoinsDisplay(
             coins: prizes.prizeCoins!,
             height: constraints.maxHeight,
-            width: constraints.maxWidth * coinsShare,
+            width: coinsWidth,
           ),
         if (prizes.prizeItem != null)
           SizedBox(
@@ -455,15 +470,17 @@ class QuestInfoSheet extends StatelessWidget {
                     size: constraints.maxHeight,
                   ),
           ),
-        if (details.petPrizeLine != null)
-          Flexible(
-            child: Text(
-              details.petPrizeLine!,
-              key: petPrizeKey,
-              maxLines: _petPrizeMaxLines,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: KlimmeckGuideTheme.instance.bodyLarge,
+        if (details.petPrize case final pet?)
+          SizedBox(
+            key: petPrizeKey,
+            width: constraints.maxHeight,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: companionDetailsGesture(
+                pet,
+                () => showCompanionDetails(context, pet: pet),
+              ),
+              child: CompanionCard(pet: pet, size: constraints.maxHeight),
             ),
           ),
       ],

@@ -8,9 +8,13 @@ import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/quest/quest_viewer.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -116,6 +120,9 @@ Finder _inFamily(Key familyKey, Key lineKey) =>
 
 String? _textOf(WidgetTester tester, Key key) =>
     tester.widget<Text>(find.byKey(key)).data;
+
+String _prizeCompanionTitleOf(WidgetTester tester, String petId) =>
+    tester.widget<CardLabel>(find.byKey(CompanionCard.titleKeyOf(petId))).text;
 
 Finder _travelLineIn(Key familyKey) => find.descendant(
   of: find.byKey(familyKey),
@@ -527,19 +534,71 @@ void main() {
   group('companion prize', () {
     const owl = {'id': 'pet-owl', 'name': 'Gufo reale'};
 
-    testWidgets(
-      'shows «Compagno in premio» when the prize carries a pet (D-06)',
-      (tester) async {
-        await _pump(tester, buildQuest(prizes: {'pet': owl}));
-
-        final line = find.byKey(QuestInfoSheet.petPrizeKey);
-        expect(line, findsOneWidget);
-        expect(
-          tester.widget<Text>(line).data,
-          'Compagno in premio: Gufo reale',
-        );
-      },
+    setUp(
+      () => seedSvgCache([
+        CloudinaryAssets.emptySheet,
+        CloudinaryAssets.emptyCardSheet,
+      ]),
     );
+
+    testWidgets('the prize companion is a card with its name (D-34, D-35)', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(prizes: {'pet': owl}));
+
+      final card = find.descendant(
+        of: find.byKey(QuestInfoSheet.petPrizeKey),
+        matching: find.byType(CompanionCard),
+      );
+      expect(card, findsOneWidget);
+      expect(_prizeCompanionTitleOf(tester, 'pet-owl'), 'Gufo reale');
+      expect(find.textContaining('Compagno in premio'), findsNothing);
+    });
+
+    testWidgets('a long press on the prize companion opens its details '
+        '(D-35)', (tester) async {
+      await _pump(tester, buildQuest(prizes: {'pet': owl}));
+      final prize = find.byKey(QuestInfoSheet.petPrizeKey);
+      await tester.ensureVisible(prize);
+      await tester.pumpAndSettle();
+
+      await tester.longPress(prize);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompanionInfoSheet), findsOneWidget);
+    });
+
+    testWidgets('a prize companion whose lore is not unlocked is a silhouette '
+        'and its long press opens nothing (UAT 2026-11-15)', (tester) async {
+      const owlImage = 'v1/pets/owl.svg';
+      seedSvgCache([owlImage]);
+      await _pump(
+        tester,
+        buildQuest(
+          prizes: {
+            'pet': {...owl, 'imagePath': owlImage, 'known': false},
+          },
+        ),
+      );
+      final prize = find.byKey(QuestInfoSheet.petPrizeKey);
+      await tester.ensureVisible(prize);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<EnemyPortrait>(
+              find.byKey(CompanionCard.imageKeyOf('pet-owl')),
+            )
+            .known,
+        isFalse,
+      );
+      expect(_prizeCompanionTitleOf(tester, 'pet-owl'), 'Gufo reale');
+
+      await tester.longPress(prize);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompanionInfoSheet), findsNothing);
+    });
 
     testWidgets('no companion line without a pet (D-06)', (tester) async {
       await _pump(tester, buildQuest(prizes: {'xpPrize': 10}));
@@ -1223,8 +1282,8 @@ void main() {
           await _pump(tester, quest, viewer: viewer);
 
           expect(
-            _textOf(tester, QuestInfoSheet.petPrizeKey),
-            'Compagno in premio: Gufo reale',
+            _prizeCompanionTitleOf(tester, 'pet-owl'),
+            'Gufo reale',
             reason: '${viewer?.title}',
           );
           expect(
@@ -1257,8 +1316,8 @@ void main() {
           viewer: buildViewer(title: TitleType.paladin),
         );
 
-        expect(find.text('Compagno in premio: Draghetto'), findsNothing);
-        expect(find.text('Compagno in premio: Gufo reale'), findsOneWidget);
+        expect(find.byKey(CompanionCard.titleKeyOf('pet-drake')), findsNothing);
+        expect(_prizeCompanionTitleOf(tester, 'pet-owl'), 'Gufo reale');
       },
     );
 

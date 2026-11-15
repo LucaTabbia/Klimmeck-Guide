@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/notification_category.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_end_event.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/shared/components/popup/ambush_report_carousel.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_result_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -22,9 +24,17 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// coda sbloccata da una morte; banner o soppressione per gli arrivi live;
 /// pop esterno → di nuovo in coda, mai confermato.
 class QuestResultPresenter extends StatefulWidget {
-  const QuestResultPresenter({super.key, required this.child});
+  const QuestResultPresenter({
+    super.key,
+    required this.child,
+    this.isCompanionNamingEnabled = companionCareEnabled,
+  });
 
   final Widget child;
+
+  /// Chiede il nome del compagno vinto prima del foglio successivo (D-18);
+  /// spento fino al gate.
+  final bool isCompanionNamingEnabled;
 
   @override
   State<QuestResultPresenter> createState() => _QuestResultPresenterState();
@@ -113,9 +123,9 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     final arrival = state.arrival;
     if (arrival == null || state.arrivalSerial == _handledArrival) return;
     _handledArrival = state.arrivalSerial;
-    // D-06: l'arrivo lo annuncia travelEnd, nessun banner «Missione conclusa»
-    // per i report.
-    if (arrival.isAmbush) return;
+    // D-06: nessun banner «Missione conclusa» per i report; lo annuncia il
+    // push dell'imboscata, nascosto se il carosello si apre ora (22 D-30).
+    if (arrival.isAmbush) return _suppressAmbushBanner(arrival);
     final event = questEndEventOf(arrival);
     final notices = context.read<InAppNotificationsCubit>();
     if (_isSheetGround()) {
@@ -124,6 +134,14 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
     }
     if (!_isQuestEndBannerEnabled) return;
     notices.publish(event);
+  }
+
+  /// Pitfall 5 (Phase 22): carosello e banner del push mai insieme.
+  void _suppressAmbushBanner(QuestResult arrival) {
+    if (!_isSheetGround()) return;
+    context.read<InAppNotificationsCubit>().suppress(
+      '${NotificationCategory.ambush.wireType}|${arrival.id}',
+    );
   }
 
   bool get _isQuestEndBannerEnabled => context
@@ -201,15 +219,49 @@ class _QuestResultPresenterState extends State<QuestResultPresenter> {
         ),
       ),
     );
-    _isPresenting = false;
-    if (_results.isClosed) return;
+    if (_results.isClosed) {
+      _isPresenting = false;
+      return;
+    }
     if (isClosedByButton == true) {
       _results.closed(head.id);
+      await _askPrizeName(head);
     } else {
       _results.dismissedExternally(head.id);
     }
+    _isPresenting = false;
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryPresent());
   }
+
+  /// Il foglio del nome del compagno vinto fa parte della presentazione: il
+  /// foglio successivo aspetta che si chiuda (D-18). `rewards.pet` c'è solo
+  /// quando il backend ha davvero aggiunto il compagno; mai per un'imboscata,
+  /// per un altro personaggio (T-22-38) o per un compagno che ha già un nome.
+  Future<void> _askPrizeName(QuestResult result) async {
+    final pet = result.rewards.pet;
+    final character = _lastLoadedCharacter;
+    if (!widget.isCompanionNamingEnabled ||
+        result.isAmbush ||
+        pet == null ||
+        character == null ||
+        character.id != result.characterId ||
+        _hasNamed(character, pet.id) ||
+        !mounted) {
+      return;
+    }
+    await showCompanionNameSheet(
+      context,
+      characterId: character.id,
+      petId: pet.id,
+      species: pet.name ?? '',
+    );
+  }
+
+  static bool _hasNamed(Character character, String petId) =>
+      character.assets?.ownedPets.any(
+        (owned) => owned.pet.id == petId && owned.name != null,
+      ) ??
+      false;
 
   /// Nome solo per il personaggio della shell (D-14, C7): un foglio storico
   /// di un altro personaggio resta senza nome.

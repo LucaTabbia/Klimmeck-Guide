@@ -42,9 +42,10 @@ void main() {
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: true,
       NotificationCategory.questCancelled: true,
-      NotificationCategory.ambushDefeat: true,
+      NotificationCategory.ambush: true,
       NotificationCategory.prisonRelease: true,
       NotificationCategory.missionStart: true,
+      NotificationCategory.petRecovered: true,
     });
   });
 
@@ -69,7 +70,7 @@ void main() {
   test('stores the ambush toggle under ambush_defeat (D-02)', () async {
     await store.setEnabled(
       testUserId,
-      NotificationCategory.ambushDefeat,
+      NotificationCategory.ambush,
       enabled: false,
     );
 
@@ -77,6 +78,19 @@ void main() {
       'klimmeck.notifications.user-test-id.ambush_defeat': false,
     });
   });
+
+  test(
+    'an ambush toggle saved before the rename is still read (D-30)',
+    () async {
+      backing.values['klimmeck.notifications.user-test-id.ambush_defeat'] =
+          false;
+
+      expect(
+        await store.isEnabled(testUserId, NotificationCategory.ambush),
+        isFalse,
+      );
+    },
+  );
 
   test('a new store over the same backing reads the saved value', () async {
     await store.setEnabled(
@@ -94,9 +108,10 @@ void main() {
       NotificationCategory.streamerLive: true,
       NotificationCategory.questEnd: false,
       NotificationCategory.questCancelled: true,
-      NotificationCategory.ambushDefeat: true,
+      NotificationCategory.ambush: true,
       NotificationCategory.prisonRelease: true,
       NotificationCategory.missionStart: true,
+      NotificationCategory.petRecovered: true,
     });
   });
 

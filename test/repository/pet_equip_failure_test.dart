@@ -38,6 +38,13 @@ void main() {
       );
     });
 
+    test('PET_DEFEATED on equipPet maps to defeated (D-02)', () {
+      expect(
+        petEquipFailureFrom(_withCode('PET_DEFEATED')),
+        PetEquipFailure.defeated,
+      );
+    });
+
     test('maps a link error without code to connection', () {
       final exception = OperationException(
         linkException: ServerException(

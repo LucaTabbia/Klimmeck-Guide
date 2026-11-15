@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/lore_type.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result_kind.dart';
@@ -698,6 +699,47 @@ void main() {
         questResult(questResultJson(petXpGained: 12)),
         isNot(questResult(questResultJson(petXpGained: 5))),
       );
+    });
+  });
+
+  group('companion outcome (BE Phase 23)', () {
+    test('companion is read when served and null when absent (D-27)', () {
+      final served = questResult(
+        questResultJson(companion: companionOutcomeJson()),
+      );
+
+      expect(
+        served.companion,
+        const QuestCompanionOutcome(
+          name: 'Fenrir',
+          lifeBefore: 300,
+          lifePoints: 120,
+          maxLifePoints: 300,
+        ),
+      );
+      expect(questResult(questResultJson()).companion, isNull);
+    });
+
+    test('a malformed companion keeps the result (D-27)', () {
+      for (final malformed in <Object?>[
+        companionOutcomeJson()..remove('lifeBefore'),
+        companionOutcomeJson()..['lifePoints'] = '5',
+        'Fenrir',
+      ]) {
+        final json = questResultJson()..['companion'] = malformed;
+
+        expect(QuestResult.tryFromJson(json), isNotNull, reason: '$malformed');
+        expect(QuestResult.tryFromJson(json)!.companion, isNull);
+      }
+    });
+
+    test('the companion round-trips and is part of the props (D-27)', () {
+      final served = questResult(
+        questResultJson(companion: companionOutcomeJson()),
+      );
+
+      expect(questResult(served.toJson()), served);
+      expect(served, isNot(questResult(questResultJson())));
     });
   });
 

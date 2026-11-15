@@ -76,11 +76,14 @@ void main() {
     ItemUseFailure failure, {
     DateTime? recoveryUntil,
     int sequence = 1,
+    String? targetName,
   }) => PotionRefused(
     _herb,
     failure,
     recoveryUntil: recoveryUntil,
     sequence: sequence,
+    targetPetId: targetName == null ? null : 'pet-worg',
+    targetName: targetName,
   );
 
   void verifyNoNotice() => verifyNever(
@@ -203,6 +206,47 @@ void main() {
     await emit(tester, refused(ItemUseFailure.noEffect, sequence: 2));
 
     verifyNever(() => characterCubit.refreshCharacter());
+  });
+
+  testWidgets('a refused companion potion shows «Pozione non data» with the '
+      'name (D-32)', (tester) async {
+    await pumpListener(tester);
+
+    await emit(tester, refused(ItemUseFailure.noEffect, targetName: 'Fulmine'));
+
+    verify(
+      () => notices.publishNotice(
+        const KGNotification(
+          title: 'Pozione non data',
+          description: 'Questa pozione non farebbe nulla a Fulmine adesso',
+        ),
+        dedupKey: any(named: 'dedupKey'),
+      ),
+    ).called(1);
+  });
+
+  testWidgets('a defeated companion refusal also rereads the character '
+      '(D-06)', (tester) async {
+    await pumpListener(tester);
+
+    await emit(
+      tester,
+      refused(ItemUseFailure.petDefeated, targetName: 'Fulmine'),
+    );
+
+    verify(() => characterCubit.refreshCharacter()).called(1);
+    final notice =
+        verify(
+              () => notices.publishNotice(
+                captureAny(),
+                dedupKey: any(named: 'dedupKey'),
+              ),
+            ).captured.single
+            as KGNotification;
+    expect(
+      notice.description,
+      'Fulmine è sconfitto: solo il riposo lo rimette in forze',
+    );
   });
 
   testWidgets('mounting with a refusal already in the state publishes nothing '

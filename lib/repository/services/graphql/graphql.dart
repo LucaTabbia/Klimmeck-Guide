@@ -46,6 +46,7 @@ import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/models/request/equip_pet_request.dart';
 import 'package:klimmeck_guide/models/request/equip_spell_request.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/models/request/rename_pet_request.dart';
 import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/request/travel_request.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
@@ -872,14 +873,24 @@ class KlimmeckGraphQl {
     request.toJson(),
   );
 
+  /// Dà un nome a un compagno posseduto (D-19), stesso contratto di
+  /// [equipPet]: il nome arriva solo da `characterUpdated`.
+  Future<bool> renamePet(RenamePetRequest request) => _successfulMutation(
+    CharacterMutations.renamePet,
+    'renamePet',
+    request.toJson(),
+  );
+
   /// Beve una pozione (BE Phase 18, D-11): la risposta serve solo al
   /// riscontro, lo stato arriva da `characterUpdated`. Lancia
   /// [OperationException] o [FormatException] per una risposta malformata.
-  Future<UseItemResult> useItem(String itemId) async {
+  /// `petId` = compagno bersaglio (D-23), mandato solo con un bersaglio; il
+  /// documento lo dichiara dal gate (Pitfall 2).
+  Future<UseItemResult> useItem(String itemId, {String? petId}) async {
     final data = _dataOrThrow(
       await performMutation(
         query: CharacterMutations.useItem,
-        variables: {'itemId': itemId},
+        variables: {'itemId': itemId, if (petId != null) 'petId': petId},
       ),
     );
     final result = data['useItem'];

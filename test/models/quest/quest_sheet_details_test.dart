@@ -499,28 +499,33 @@ void main() {
       expect(QuestSheetDetails.of(buildQuest()).isStrongestEnemyKnown, isTrue);
     });
 
-    test('petPrizeLine reads «Compagno in premio: <nome>» (D-06)', () {
+    test('petPrize is the prize companion (D-35)', () {
       final details = QuestSheetDetails.of(
         buildQuest(
           prizes: {
-            'pet': {'id': 'pet-owl', 'name': 'Gufo reale'},
+            'pet': {
+              'id': 'pet-owl',
+              'name': 'Gufo reale',
+              'imagePath': 'v1/pets/owl.svg',
+            },
           },
         ),
       );
 
-      expect(details.petPrizeLine, 'Compagno in premio: Gufo reale');
+      expect(details.petPrize?.id, 'pet-owl');
+      expect(details.petPrize?.name, 'Gufo reale');
+      expect(details.petPrize?.imagePath, 'v1/pets/owl.svg');
     });
 
-    test('petPrizeLine is null without a pet or a pet name (D-06)', () {
-      expect(QuestSheetDetails.of(buildQuest()).petPrizeLine, isNull);
-      final nameless = QuestSheetDetails.of(
-        buildQuest(
-          prizes: {
-            'pet': {'id': 'pet-owl'},
-          },
-        ),
-      );
-      expect(nameless.petPrizeLine, isNull);
+    test('petPrize is null without a pet or a pet name (D-06)', () {
+      expect(QuestSheetDetails.of(buildQuest()).petPrize, isNull);
+      for (final pet in [
+        {'id': 'pet-owl'},
+        {'id': 'pet-owl', 'name': ''},
+      ]) {
+        final nameless = QuestSheetDetails.of(buildQuest(prizes: {'pet': pet}));
+        expect(nameless.petPrize, isNull, reason: '$pet');
+      }
     });
   });
 

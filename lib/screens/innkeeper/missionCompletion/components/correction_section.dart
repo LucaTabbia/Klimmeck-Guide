@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/mission/mission_limits.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/injury_chips.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/quantity_stepper.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/life_slider.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Correzioni di un personaggio dopo uno scontro simulato (D-06, D-14): ogni
@@ -26,6 +27,12 @@ class CorrectionSection extends StatelessWidget {
       ValueKey('mission.correction.header.$characterId');
   static Key hpSliderKeyFor(String characterId) =>
       ValueKey('mission.correction.hp.$characterId');
+  static Key companionSliderKeyFor(String characterId) =>
+      ValueKey('mission.correction.companion.$characterId');
+  static Key companionDefeatedKeyFor(String characterId) =>
+      ValueKey('mission.correction.companionDefeated.$characterId');
+  static Key companionLifeBeforeKeyFor(String characterId) =>
+      ValueKey('mission.correction.companionLifeBefore.$characterId');
 
   final MissionParticipant participant;
   final MissionFightOutcome outcome;
@@ -57,7 +64,14 @@ class CorrectionSection extends StatelessWidget {
             style: theme.bodyMedium,
           ),
         const _Heading('Punti vita'),
-        ..._lifePoints(theme),
+        LifeSlider(
+          sliderKey: hpSliderKeyFor(participant.characterId),
+          value: correction.hpAfter,
+          max: participant.maxLifePoints,
+          onChanged: (hp) => onChanged(correction.withHp(hp)),
+        ),
+        if (outcome.companion case final companion?)
+          ..._companionLife(companion, theme),
         const _Heading('Ferite'),
         InjuryChips(
           existing: outcome.injuriesBefore,
@@ -92,21 +106,35 @@ class CorrectionSection extends StatelessWidget {
     );
   }
 
-  /// Pitfall 9: con un solo punto vita lo slider non ha divisioni, resta il testo.
-  List<Widget> _lifePoints(KlimmeckGuideTheme theme) {
-    final max = participant.maxLifePoints;
+  /// Vita del compagno dopo lo scontro: il minimo è la sconfitta (D-17).
+  /// Senza proposta del motore né correzione lo slider parte dalla vita prima
+  /// dello scontro, e lo dice.
+  List<Widget> _companionLife(
+    MissionCompanion companion,
+    KlimmeckGuideTheme theme,
+  ) {
+    final proposed = correction.companionLifeAfter;
+    final life = proposed ?? companion.lifeBefore;
     return [
-      if (max > minLifeAfterFight)
-        Slider(
-          key: hpSliderKeyFor(participant.characterId),
-          min: minLifeAfterFight.toDouble(),
-          max: max.toDouble(),
-          divisions: max - minLifeAfterFight,
-          value: correction.hpAfter.clamp(minLifeAfterFight, max).toDouble(),
-          label: '${correction.hpAfter}',
-          onChanged: (value) => onChanged(correction.withHp(value.round())),
+      _Heading('Compagno: ${companion.name}'),
+      LifeSlider(
+        sliderKey: companionSliderKeyFor(participant.characterId),
+        value: life,
+        max: companion.maxLifePoints,
+        onChanged: (value) => onChanged(correction.withCompanionLife(value)),
+      ),
+      if (proposed == null)
+        Text(
+          'Vita prima dello scontro',
+          key: companionLifeBeforeKeyFor(participant.characterId),
+          style: theme.bodyMedium,
         ),
-      Text('${correction.hpAfter} / $max', style: theme.bodyMedium),
+      if (life == minLifeAfterFight)
+        Text(
+          'Sconfitto',
+          key: companionDefeatedKeyFor(participant.characterId),
+          style: theme.bodyMedium,
+        ),
     ];
   }
 }

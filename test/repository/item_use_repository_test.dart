@@ -32,6 +32,16 @@ void main() {
     verify(() => graphQl.useItem('l-herb')).called(1);
   });
 
+  test('useItem forwards the target pet (D-23)', () async {
+    final result = UseItemResult.fromJson(useItemResultJson());
+    when(
+      () => graphQl.useItem(any(), petId: any(named: 'petId')),
+    ).thenAnswer((_) async => result);
+
+    expect(await repository.useItem('l-herb', petId: 'pet-worg'), result);
+    verify(() => graphQl.useItem('l-herb', petId: 'pet-worg')).called(1);
+  });
+
   test(
     'maps a refusal to ItemUseException with its date (D-11, D-19)',
     () async {

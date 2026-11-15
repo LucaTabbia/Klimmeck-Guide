@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/pr
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
+import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
 
 import '../../../../helpers/fixtures/mission_fixtures.dart';
 import '../../../../helpers/fixtures/pending_request_fixtures.dart';
@@ -51,7 +52,10 @@ void main() {
   late List<Spell> spells;
 
   setUp(() {
-    seedSvgCache([CloudinaryAssets.emptyCardSheet]);
+    seedSvgCache([
+      CloudinaryAssets.emptyCardSheet,
+      CloudinaryAssets.emptySheet,
+    ]);
     items = [];
     pets = [];
     spells = [];
@@ -164,6 +168,27 @@ void main() {
     expect(find.byType(PrizeCatalogueSheet), findsNothing);
     expect(pets, isEmpty);
     expect(spells, isEmpty);
+  });
+
+  testWidgets('a long press on a catalogue companion opens its details, '
+      'the tap still picks it (D-35)', (tester) async {
+    await openSheet(tester, _options);
+    await openTab(tester, PrizeCatalogueSheet.petsTab);
+    final cat = find.byType(CompanionRow).first;
+
+    await tester.longPress(cat);
+    await tester.pumpAndSettle();
+    expect(find.byType(CompanionInfoSheet), findsOneWidget);
+    expect(pets, isEmpty);
+
+    await tester.tapAt(const Offset(20, 300));
+    await tester.pumpAndSettle();
+    expect(find.byType(CompanionInfoSheet), findsNothing);
+    await tester.tap(cat);
+    await tester.pumpAndSettle();
+
+    expect(pets.map((pet) => pet.id), ['pet-cat']);
+    expect(find.byType(PrizeCatalogueSheet), findsNothing);
   });
 
   testWidgets('lists are built lazily (ui-ux)', (tester) async {

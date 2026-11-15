@@ -28,6 +28,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acc
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_results_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionCubit/companion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
@@ -188,10 +189,10 @@ void main() {
     expect(find.byType(SplashScreen), findsNothing);
   });
 
-  testWidgets('provides the gameplay cubits and closes them on removal', (
-    tester,
-  ) async {
+  testWidgets('provides the gameplay cubits and closes them on removal '
+      '(D-19)', (tester) async {
     late CharacterCubit characterCubit;
+    late CompanionNameCubit companionNameCubit;
     late QuestCubit questCubit;
     late QuestAcceptanceCubit acceptanceCubit;
     late QuestAbandonCubit abandonCubit;
@@ -205,11 +206,13 @@ void main() {
         acceptanceCubit = context.read<QuestAcceptanceCubit>();
         abandonCubit = context.read<QuestAbandonCubit>();
         mapFocusCubit = context.read<MapFocusCubit>();
+        companionNameCubit = context.read<CompanionNameCubit>();
         return const Text('main');
       },
     );
 
     expect(characterCubit.isClosed, isFalse);
+    expect(companionNameCubit.state, const CompanionNameIdle());
     expect(find.byType(QuestAbandonOutcomeListener), findsOneWidget);
 
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
@@ -219,6 +222,7 @@ void main() {
     expect(acceptanceCubit.isClosed, isTrue);
     expect(abandonCubit.isClosed, isTrue);
     expect(mapFocusCubit.isClosed, isTrue);
+    expect(companionNameCubit.isClosed, isTrue);
   });
 
   testWidgets('provides the travel cubit and closes it on removal', (

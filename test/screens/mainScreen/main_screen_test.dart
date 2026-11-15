@@ -617,6 +617,21 @@ void main() {
         expect(availability.state.isMapPage, isTrue);
       });
 
+      testWidgets('the pages stay still under a sheet keyboard', (
+        tester,
+      ) async {
+        await pumpMainScreen(tester, 'city-marker-1');
+        await loadPages(tester);
+
+        final scaffold = tester.widget<Scaffold>(
+          find.ancestor(
+            of: find.byType(PageView),
+            matching: find.byType(Scaffold),
+          ),
+        );
+        expect(scaffold.resizeToAvoidBottomInset, isFalse);
+      });
+
       testWidgets('a removed main screen is no longer the map page', (
         tester,
       ) async {

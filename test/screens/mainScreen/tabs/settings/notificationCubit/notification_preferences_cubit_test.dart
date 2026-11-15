@@ -13,18 +13,20 @@ NotificationPreferencesState loaded({
   bool streamerLive = true,
   bool questEnd = true,
   bool questCancelled = true,
-  bool ambushDefeat = true,
+  bool ambush = true,
   bool prisonRelease = true,
   bool missionStart = true,
+  bool petRecovered = true,
 }) => NotificationPreferencesState(
   enabled: {
     NotificationCategory.travelEnd: travelEnd,
     NotificationCategory.streamerLive: streamerLive,
     NotificationCategory.questEnd: questEnd,
     NotificationCategory.questCancelled: questCancelled,
-    NotificationCategory.ambushDefeat: ambushDefeat,
+    NotificationCategory.ambush: ambush,
     NotificationCategory.prisonRelease: prisonRelease,
     NotificationCategory.missionStart: missionStart,
+    NotificationCategory.petRecovered: petRecovered,
   },
   isLoaded: true,
 );

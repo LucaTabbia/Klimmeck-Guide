@@ -4,22 +4,51 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fixtures/lore_fixtures.dart';
 import '../../../../../helpers/fixtures/potion_fixtures.dart';
+import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/svg_cache_seed.dart';
 import '../../../../../helpers/test_app.dart';
 
 const String _herb = 'l-herb';
 const Key _openKey = ValueKey('test.openPotionSheet');
+const String _worg = 'pet-worg';
+const String _greyWorg = 'pet-grey-worg';
+
+class _MockPotionRecoveryCubit extends MockCubit<PotionRecoveryState>
+    implements PotionRecoveryCubit {}
+
+CompanionPotionTarget _target(String id, {String? name}) =>
+    CompanionPotionTarget(
+      owned: OwnedPet.tryFromJson(
+        ownedPetJson(
+          pet: petJson(
+            id: id,
+            name: 'Worg',
+            speedModifier: null,
+            maxLifePoints: 100,
+          ),
+          currentLifePoints: 40,
+          name: name,
+        ),
+      )!,
+      life: 40,
+      maxLifePoints: 100,
+    );
 
 void main() {
   final herbs = LootItem.fromJson(healPotionJson());
@@ -35,14 +64,27 @@ void main() {
     ),
   );
 
+  final fenrir = _target(_worg, name: 'Fenrir');
+  final greyWorg = _target(_greyWorg);
+
   late MockPotionCubit cubit;
+  late _MockPotionRecoveryCubit recovery;
   late StreamController<PotionState> states;
 
   setUp(() {
     cubit = MockPotionCubit();
+    recovery = _MockPotionRecoveryCubit();
     states = StreamController<PotionState>.broadcast();
     addTearDown(states.close);
     when(() => cubit.drink(any())).thenAnswer((_) async {});
+    when(
+      () => cubit.give(
+        any(),
+        petId: any(named: 'petId'),
+        targetName: any(named: 'targetName'),
+      ),
+    ).thenAnswer((_) async {});
+    seedSvgCache([CloudinaryAssets.emptyCardSheet]);
   });
 
   Future<void> pumpSheet(
@@ -51,9 +93,16 @@ void main() {
     Stream<PotionState>? stream,
     LootItem? item,
     int? maxLifePoints = 12,
+    List<CompanionPotionTarget> targets = const [],
+    Duration? characterWait,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, stream ?? states.stream, initialState: state);
+    whenListen(
+      recovery,
+      const Stream<PotionRecoveryState>.empty(),
+      initialState: PotionRecoveryState(characterWait),
+    );
     await tester.pumpWidget(
       buildTestApp(
         home: Builder(
@@ -62,12 +111,18 @@ void main() {
               key: _openKey,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => BlocProvider<PotionCubit>.value(
-                    value: cubit,
+                  builder: (_) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider<PotionCubit>.value(value: cubit),
+                      BlocProvider<PotionRecoveryCubit>.value(value: recovery),
+                    ],
                     child: Scaffold(
-                      body: PotionSheet(
-                        item: item ?? herbs,
-                        maxLifePoints: maxLifePoints,
+                      body: SingleChildScrollView(
+                        child: PotionSheet(
+                          item: item ?? herbs,
+                          maxLifePoints: maxLifePoints,
+                          targets: targets,
+                        ),
                       ),
                     ),
                   ),
@@ -91,6 +146,9 @@ void main() {
 
   TextButton buttonOf(WidgetTester tester, Key key) =>
       tester.widget<TextButton>(find.byKey(key));
+
+  GestureDetector targetOf(WidgetTester tester, String petId) => tester
+      .widget<GestureDetector>(find.byKey(PotionSheet.targetKeyOf(petId)));
 
   testWidgets(
     'asks Bevi <nome>? with the Cura and Ricarica lines and the two actions (D-18)',
@@ -259,5 +317,135 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(44), reason: '$key');
       expect(size.width, greaterThanOrEqualTo(44), reason: '$key');
     }
+  });
+
+  group('companion targets (D-08)', () {
+    testWidgets('with no eligible companion the sheet is today\'s (D-08)', (
+      tester,
+    ) async {
+      await pumpSheet(tester, state: const PotionIdle());
+
+      expect(find.textContaining('Dai a'), findsNothing);
+      expect(find.byKey(PotionSheet.characterWaitKey), findsNothing);
+      expect(buttonOf(tester, PotionSheet.drinkKey).onPressed, isNotNull);
+    });
+
+    testWidgets('one «Dai a <nome>» parchment per eligible companion '
+        '(D-08, D-20)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionIdle(),
+        targets: [fenrir, greyWorg],
+      );
+
+      expect(find.byKey(PotionSheet.targetKeyOf(_worg)), findsOneWidget);
+      expect(find.byKey(PotionSheet.targetKeyOf(_greyWorg)), findsOneWidget);
+      expect(find.text('Dai a Fenrir'), findsOneWidget);
+      expect(find.text('Dai a Worg'), findsOneWidget);
+      expect(find.text('Vita: 40 / 100'), findsNWidgets(2));
+      for (final petId in [_worg, _greyWorg]) {
+        final size = tester.getSize(find.byKey(PotionSheet.targetKeyOf(petId)));
+        expect(size.height, greaterThanOrEqualTo(44), reason: petId);
+      }
+    });
+
+    testWidgets('tapping a companion parchment gives the potion to it (D-07)', (
+      tester,
+    ) async {
+      await pumpSheet(
+        tester,
+        state: const PotionIdle(),
+        targets: [fenrir, greyWorg],
+      );
+
+      await tester.ensureVisible(find.byKey(PotionSheet.targetKeyOf(_worg)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(PotionSheet.targetKeyOf(_worg)));
+      await tester.pump();
+
+      verify(
+        () => cubit.give(_herb, petId: _worg, targetName: 'Fenrir'),
+      ).called(1);
+      verifyNever(() => cubit.drink(any()));
+    });
+
+    testWidgets('«Bevi» is disabled with the countdown during the character\'s '
+        'wait (D-32)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionIdle(),
+        targets: [fenrir],
+        characterWait: const Duration(minutes: 72),
+      );
+
+      expect(buttonOf(tester, PotionSheet.drinkKey).onPressed, isNull);
+      expect(buttonOf(tester, PotionSheet.notNowKey).onPressed, isNotNull);
+      expect(
+        tester.widget<Text>(find.byKey(PotionSheet.characterWaitKey)).data,
+        'pronta fra 1 h 12 min',
+      );
+      expect(targetOf(tester, _worg).onTap, isNotNull);
+    });
+
+    testWidgets('targets and «Bevi» are disabled while the potion is in flight '
+        '(single-flight)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionDrinking(
+          _herb,
+          targetPetId: _worg,
+          targetName: 'Fenrir',
+        ),
+        targets: [fenrir, greyWorg],
+      );
+
+      expect(buttonOf(tester, PotionSheet.drinkKey).onPressed, isNull);
+      expect(targetOf(tester, _worg).onTap, isNull);
+      expect(targetOf(tester, _greyWorg).onTap, isNull);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('a target in flight is announced as a disabled button '
+        '(single-flight)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionDrinking(
+          _herb,
+          targetPetId: _worg,
+          targetName: 'Fenrir',
+        ),
+        targets: [fenrir],
+      );
+
+      expect(
+        tester.getSemantics(find.byKey(PotionSheet.targetKeyOf(_worg))),
+        containsSemantics(
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: false,
+        ),
+      );
+    });
+
+    testWidgets('the outcome face of a companion shows its name and its life '
+        'bar (D-08)', (tester) async {
+      await pumpSheet(
+        tester,
+        state: PotionDrunk(
+          _herb,
+          result,
+          targetPetId: _worg,
+          targetName: 'Fenrir',
+        ),
+        targets: [fenrir],
+      );
+
+      expect(find.text('Fenrir'), findsOneWidget);
+      expect(find.text('Erbe da campo'), findsNothing);
+      final bar = tester.widget<HpDeltaBar>(find.byKey(PotionSheet.hpKey));
+      expect(bar.max, 100);
+      expect(find.byKey(PotionSheet.healedKey), findsNothing);
+      expect(find.byKey(PotionSheet.continueKey), findsOneWidget);
+    });
   });
 }

@@ -204,4 +204,58 @@ void main() {
       );
     });
   });
+
+  group('recovery time (BE Phase 23)', () {
+    test('reads recoveryTime in milliseconds as a Duration (D-25)', () {
+      final pet = Pet.fromJson(petJson(recoveryTime: 600000));
+
+      expect(pet.recoveryTime, 600000);
+      expect(pet.recoveryDuration, const Duration(minutes: 10));
+    });
+
+    test('a missing, zero, negative or malformed recoveryTime reads null '
+        '(D-25)', () {
+      for (final value in <Object?>[null, 0, -5, '10']) {
+        final pet = Pet.fromJson(petJson(recoveryTime: value));
+
+        expect(pet.recoveryTime, isNull, reason: '$value');
+        expect(pet.recoveryDuration, isNull, reason: '$value');
+      }
+    });
+
+    test('toJson round trip keeps recoveryTime (D-25)', () {
+      final pet = Pet.fromJson(petJson(recoveryTime: 600000));
+
+      expect(Pet.fromJson(pet.toJson()), pet);
+      expect(pet.toJson()['recoveryTime'], 600000);
+      expect(pet, isNot(Pet.fromJson(petJson(recoveryTime: 1))));
+    });
+  });
+
+  group('known (lore unlocked, UAT 2026-11-15)', () {
+    test('reads known from the wire (served per viewer by the BE)', () {
+      expect(Pet.fromJson(petJson(known: false)).known, isFalse);
+      expect(Pet.fromJson(petJson(known: true)).known, isTrue);
+    });
+
+    test('a missing or non-boolean known reads true, so an older BE never '
+        'hides a companion', () {
+      for (final value in <Object?>[null, 'false', 0]) {
+        expect(
+          Pet.fromJson(petJson(known: value)).known,
+          isTrue,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('toJson round trip keeps known and known is part of the props', () {
+      final unknown = Pet.fromJson(petJson(known: false));
+
+      expect(unknown.toJson()['known'], isFalse);
+      expect(Pet.fromJson(unknown.toJson()), unknown);
+      expect(unknown, isNot(Pet.fromJson(petJson(known: true))));
+      expect(unknown.copyWith(known: true).known, isTrue);
+    });
+  });
 }

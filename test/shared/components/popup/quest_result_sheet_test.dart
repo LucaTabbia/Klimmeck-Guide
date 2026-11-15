@@ -1166,6 +1166,140 @@ void main() {
     });
   });
 
+  group('companion fate (BE Phase 23)', () {
+    String? textOf(WidgetTester tester, Key key) =>
+        tester.widget<Text>(find.byKey(key)).data;
+
+    QuestResult withCompanion(Map<String, dynamic> companion) =>
+        questResult(questResultJson(petXpGained: 12, companion: companion));
+
+    testWidgets('prints the companion life line when its life dropped (D-10)', (
+      tester,
+    ) async {
+      await _pump(tester, withCompanion(companionOutcomeJson()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        textOf(tester, QuestResultSheet.companionLifeKey),
+        'Fenrir: 120 / 300 di vita',
+      );
+      expect(find.byKey(QuestResultSheet.companionDefeatKey), findsNothing);
+      expect(
+        tester.getTopLeft(find.byKey(QuestResultSheet.injuriesKey)).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(QuestResultSheet.companionLifeKey)).dy,
+        ),
+      );
+    });
+
+    testWidgets('prints the defeat line, not the life line, when defeated '
+        '(D-10)', (tester) async {
+      await _pump(
+        tester,
+        withCompanion(
+          companionOutcomeJson(
+            lifePoints: 0,
+            defeated: true,
+            fullLifeAt: '2026-10-27T22:00:00.000Z',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        textOf(tester, QuestResultSheet.companionDefeatKey),
+        'Fenrir è stato sconfitto: riposa e tornerà fra 10 h',
+      );
+      expect(find.byKey(QuestResultSheet.companionLifeKey), findsNothing);
+    });
+
+    testWidgets('the defeat duration is fullLifeAt − resolvedAt, never from '
+        'now (Pitfall 7, D-27)', (tester) async {
+      // fullLifeAt is weeks before the wall clock of the run: a duration
+      // counted from now would read «0 min».
+      await _pump(
+        tester,
+        withCompanion(
+          companionOutcomeJson(
+            lifePoints: 0,
+            defeated: true,
+            fullLifeAt: '2026-10-27T22:00:00.000Z',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(hours: 5));
+
+      expect(
+        textOf(tester, QuestResultSheet.companionDefeatKey),
+        'Fenrir è stato sconfitto: riposa e tornerà fra 10 h',
+      );
+    });
+
+    testWidgets('nothing about the companion when unharmed (D-10)', (
+      tester,
+    ) async {
+      await _pump(tester, withCompanion(companionOutcomeJson(lifePoints: 300)));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.companionLifeKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.companionDefeatKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.onFootKey), findsNothing);
+    });
+
+    testWidgets('the xp line names the companion (D-20)', (tester) async {
+      await _pump(tester, withCompanion(companionOutcomeJson()));
+      await tester.pumpAndSettle();
+
+      expect(
+        textOf(tester, QuestResultSheet.companionXpKey),
+        'Fenrir guadagna 12 PE',
+      );
+    });
+
+    testWidgets('the companion prize stays a text line (D-35)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(rewardPet: _owl, companion: companionOutcomeJson()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        textOf(tester, QuestResultSheet.petRewardKey),
+        'Compagno ottenuto: Gufo reale',
+      );
+    });
+
+    testWidgets('«Prosegui a piedi» shows while the travel goes on (D-28)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(ambushWonResultJson()..['ambush']['onFoot'] = true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(textOf(tester, QuestResultSheet.onFootKey), 'Prosegui a piedi');
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsNothing);
+    });
+
+    testWidgets('«Portato a …» stands alone when carried to a city (D-28)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(ambushLostResultJson()..['ambush']['onFoot'] = true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.reachedCityKey), findsOneWidget);
+      expect(find.byKey(QuestResultSheet.onFootKey), findsNothing);
+    });
+  });
+
   group('dungeon turns (Phase 20)', () {
     const turnsKey = QuestResultSheet.turnsKey;
 

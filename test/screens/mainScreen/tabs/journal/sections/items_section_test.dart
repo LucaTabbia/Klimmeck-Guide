@@ -2,15 +2,19 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/repository/item_use_failure.dart';
+import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -18,10 +22,13 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fakes/fake_server_clock_service.dart';
 import '../../../../../helpers/fixtures/potion_fixtures.dart';
+import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/fixtures/spell_fixtures.dart';
 import '../../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../../helpers/journal_harness.dart';
+import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/test_app.dart';
 
 const String _herb = 'l-herb';
 const String _balm = 'l-balm';
@@ -68,6 +75,37 @@ Character _character({
   activeTravel: activeTravel,
   missionInProgress: missionInProgress,
 );
+
+const String _worg = 'pet-worg';
+
+/// Compagno equipaggiato sotto la vita piena: può bere (D-07).
+Character _characterWithCompanion({
+  int currentLifePoints = 40,
+  String? potionRecoveryUntil,
+  bool missionInProgress = false,
+}) {
+  final worg = petJson(id: _worg, name: 'Worg', maxLifePoints: 100);
+  final spellbook = spellbookCharacterJson();
+  return journalCharacter(
+    spellbook: {
+      ...spellbook,
+      'assets': {
+        ...spellbook['assets'] as Map<String, dynamic>,
+        'pet': worg,
+        'ownedPets': [
+          ownedPetJson(
+            pet: worg,
+            currentLifePoints: currentLifePoints,
+            name: 'Fenrir',
+          ),
+        ],
+      },
+    },
+    ownedItems: _ownedItems(),
+    potionRecoveryUntil: potionRecoveryUntil,
+    missionInProgress: missionInProgress,
+  );
+}
 
 Finder _card(String id) => find.byKey(ValueKey(id));
 
@@ -509,6 +547,120 @@ void main() {
           dedupKey: any(named: 'dedupKey'),
         ),
       ).called(1);
+    });
+  });
+
+  group('companion targets on the potion row (D-32)', () {
+    Future<void> pumpSection(
+      WidgetTester tester, {
+      bool isCompanionCareEnabled = true,
+    }) async {
+      useLandscapePhone(tester);
+      seedJournalSvgs();
+      await tester.pumpWidget(
+        buildTestApp(
+          home: RepositoryProvider<ServerClockService>.value(
+            value: clock,
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<CharacterCubit>.value(value: characterCubit),
+                BlocProvider<PotionCubit>.value(value: potionCubit),
+              ],
+              child: CompanionVitalityScope(
+                child: Scaffold(
+                  body: SingleChildScrollView(
+                    child: ItemsSection(
+                      size: 120,
+                      isCompanionCareEnabled: isCompanionCareEnabled,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapAndSettle(tester, find.text('Oggetti'));
+    }
+
+    final inTheWait = _recoveryEndIn(const Duration(minutes: 72));
+
+    testWidgets("the row stays disabled during the character's wait with no "
+        'eligible companion (Phase 18 D-12)', (tester) async {
+      useCharacter(
+        _characterWithCompanion(
+          currentLifePoints: 100,
+          potionRecoveryUntil: inTheWait,
+        ),
+      );
+      await pumpSection(tester);
+
+      expect(_statusTextOf(tester, _herb), _readyIn72);
+      expect(_opacityOf(tester, _herb), KlimmeckGuideTheme.pendingInkOpacity);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.byType(PotionSheet), findsNothing);
+      verifyNever(() => potionCubit.reset());
+      await unmount(tester);
+    });
+
+    testWidgets("the row is tappable during the character's wait when a "
+        'companion can drink (D-05, D-32)', (tester) async {
+      useCharacter(_characterWithCompanion(potionRecoveryUntil: inTheWait));
+      await pumpSection(tester);
+
+      expect(_statusTextOf(tester, _herb), _readyIn72);
+      expect(_opacityOf(tester, _herb), 1);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      final sheet = tester.widget<PotionSheet>(find.byType(PotionSheet));
+      expect(sheet.targets.map((target) => target.petId), [_worg]);
+      expect(sheet.targets.single.life, 40);
+      expect(sheet.targets.single.maxLifePoints, 100);
+      await unmount(tester);
+    });
+
+    testWidgets('with the switch off no companion makes the row tappable '
+        '(Pitfall 3)', (tester) async {
+      useCharacter(_characterWithCompanion(potionRecoveryUntil: inTheWait));
+      await pumpSection(tester, isCompanionCareEnabled: false);
+
+      expect(_statusTextOf(tester, _herb), _readyIn72);
+      expect(_opacityOf(tester, _herb), KlimmeckGuideTheme.pendingInkOpacity);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.byType(PotionSheet), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('with the switch off a ready potion opens a sheet with no '
+        'target (Pitfall 3)', (tester) async {
+      useCharacter(_characterWithCompanion());
+      await pumpSection(tester, isCompanionCareEnabled: false);
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(
+        tester.widget<PotionSheet>(find.byType(PotionSheet)).targets,
+        isEmpty,
+      );
+    });
+
+    testWidgets('on mission the row stays disabled with an eligible companion '
+        '(Phase 21 D-12)', (tester) async {
+      useCharacter(_characterWithCompanion(missionInProgress: true));
+      await pumpSection(tester);
+
+      expect(_statusTextOf(tester, _herb), 'Missione in corso');
+
+      await tapAndSettle(tester, _card(_herb));
+
+      expect(find.byType(PotionSheet), findsNothing);
+      verifyNever(() => potionCubit.reset());
     });
   });
 
