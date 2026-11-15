@@ -47,4 +47,26 @@ void main() {
       CloudinaryAssets.url(CloudinaryAssets.dragonbornVillage),
     );
   });
+
+  test('the aarakocra village is drawn with its new file (D-17, D-21)', () {
+    expect(
+      CloudinaryAssets.aarakocraVillage,
+      'v1794764202/aarakocraVillage_z7n1rz.svg',
+    );
+    expect(CityType.aarakocraVillage.size, 30);
+    expect(
+      CityType.aarakocraVillage.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.aarakocraVillage),
+    );
+  });
+
+  test(
+    'the village and the capital of the aarakocra are two different drawings (D-17)',
+    () {
+      expect(
+        CloudinaryAssets.aarakocraVillage,
+        isNot(CloudinaryAssets.aarakocraCapital),
+      );
+    },
+  );
 }
