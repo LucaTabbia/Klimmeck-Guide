@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/repository/pet_rename_failure.dart';
@@ -86,6 +87,23 @@ void main() {
     await tester.enterText(find.byKey(CompanionNameSheet.fieldKey), text);
     await tester.pump();
   }
+
+  testWidgets('keeps the torn top edge of the parchment in view', (
+    tester,
+  ) async {
+    await pumpSheet(tester);
+
+    final parchment = tester.widget<SvgPicture>(
+      find.descendant(
+        of: find.byType(CompanionNameSheet),
+        matching: find.byType(SvgPicture),
+      ),
+    );
+    expect(parchment.alignment, Alignment.topCenter);
+    final sheetTop = tester.getTopLeft(find.byType(CompanionNameSheet)).dy;
+    final fieldTop = tester.getTopLeft(find.byKey(CompanionNameSheet.fieldKey));
+    expect(fieldTop.dy - sheetTop, greaterThanOrEqualTo(24));
+  });
 
   testWidgets('the prompt names the species (D-18)', (tester) async {
     await pumpSheet(tester);
