@@ -176,6 +176,14 @@ void main() {
       expect(document, contains('spells {'));
     });
 
+    test('the prize spells select their origin (D-05)', () {
+      final document = _collapsed(MissionQueries.getMissionPrizeOptions);
+
+      expect(document, contains('spell { id name origin useType'));
+      expect(document, contains('spells { id name origin useType'));
+      expect(document, isNot(contains('minLevelToLearn')));
+    });
+
     test('DiscardMissionDraft returns the common response (D-09)', () {
       expect(
         _collapsed(MissionMutations.discardMissionDraft),

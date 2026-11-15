@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dar
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 
 import '../helpers/fixtures/travel_fixtures.dart';
 
@@ -180,14 +181,49 @@ void main() {
     }
   });
 
-  test('origin and minLevelToLearn are not selected before the gate (D-01, '
-      'D-07, Pitfall 2)', () {
+  test('SpellFragment.fields selects origin after description and '
+      'minLevelToLearn after maxUsages (D-01, D-07)', () {
+    expect(
+      SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' '),
+      contains(
+        'description origin useType maxUsages minLevelToLearn '
+        'recoveryTime',
+      ),
+    );
+  });
+
+  test('character and characterUpdated carry origin and minLevelToLearn '
+      '(D-01, D-07)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(document, contains(RegExp(r'\borigin\b')));
+      expect(document, contains('minLevelToLearn'));
+    }
+  });
+
+  test('a recorded characterUpdated payload parses the origin and the '
+      'minimum level of its spells (D-01, D-07)', () {
+    final character = Character.fromJson(_recordedCharacterUpdated);
+    final spells = character.status!.spellStates.map((state) => state.spell);
+
+    expect(spells.map((spell) => spell.origin), [
+      SpellOrigin.theVoid,
+      SpellOrigin.shamanic,
+    ]);
+    expect(spells.map((spell) => spell.minLevelToLearn), [6, 1]);
+  });
+
+  test("no document selects minXpToLearn or the spell's relatedLore "
+      '(D-07, D-24)', () {
     for (final selection in [
       SpellFragment.fields,
       SpellFragment.simpleFields,
+      EquipmentFragment.fields,
     ]) {
-      expect(selection, isNot(contains(RegExp(r'\borigin\b'))));
-      expect(selection, isNot(contains('minLevelToLearn')));
+      expect(selection, isNot(contains('minXpToLearn')));
+      expect(selection, isNot(contains('relatedLore')));
     }
   });
 
@@ -350,8 +386,10 @@ const Map<String, dynamic> _recordedCharacterUpdated = {
           'id': 'spell-a',
           'name': 'Nome A',
           'description': 'Descrizione A',
+          'origin': 'void',
           'useType': 'attack',
           'maxUsages': 3,
+          'minLevelToLearn': 6,
           'recoveryTime': 1800000,
           'requiredLearnTime': 3600000,
           'energyDamage': {'type': 'fire', 'power': 12},
@@ -365,8 +403,10 @@ const Map<String, dynamic> _recordedCharacterUpdated = {
           'id': 'spell-b',
           'name': 'Nome B',
           'description': 'Descrizione B',
+          'origin': 'shamanic',
           'useType': 'defense',
           'maxUsages': 2,
+          'minLevelToLearn': 1,
           'recoveryTime': 600000,
           'requiredLearnTime': 3600000,
           'energyDamage': null,
