@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/equipment_item_card.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_info_sheet.dart';
 import 'package:klimmeck_guide/shared/components/popup/quest_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -565,6 +566,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CompanionInfoSheet), findsOneWidget);
+    });
+
+    testWidgets('a prize companion whose lore is not unlocked is a silhouette '
+        'and its long press opens nothing (UAT 2026-11-15)', (tester) async {
+      const owlImage = 'v1/pets/owl.svg';
+      seedSvgCache([owlImage]);
+      await _pump(
+        tester,
+        buildQuest(
+          prizes: {
+            'pet': {...owl, 'imagePath': owlImage, 'known': false},
+          },
+        ),
+      );
+      final prize = find.byKey(QuestInfoSheet.petPrizeKey);
+      await tester.ensureVisible(prize);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<EnemyPortrait>(
+              find.byKey(CompanionCard.imageKeyOf('pet-owl')),
+            )
+            .known,
+        isFalse,
+      );
+      expect(_prizeCompanionTitleOf(tester, 'pet-owl'), 'Gufo reale');
+
+      await tester.longPress(prize);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CompanionInfoSheet), findsNothing);
     });
 
     testWidgets('no companion line without a pet (D-06)', (tester) async {

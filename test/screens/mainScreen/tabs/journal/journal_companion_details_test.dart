@@ -39,36 +39,39 @@ const _defense = <String, dynamic>{
   'energy': [],
 };
 
-Map<String, dynamic> _worgJson({bool defeated = false}) => ownedPetJson(
-  pet: petJson(
-    id: _worg,
-    name: 'Worg',
-    speedModifier: null,
-    maxXp: 300,
-    maxLifePoints: 100,
-    attack: _attack,
-    defense: _defense,
-  ),
-  xp: 40,
-  currentLifePoints: 20,
-  name: 'Zanna',
-  defeated: defeated ? true : null,
-  lifeAsOf: spellFixtureNow.toIso8601String(),
-  fullLifeAt: spellFixtureNow.add(_restLeft).toIso8601String(),
-);
+Map<String, dynamic> _worgJson({bool defeated = false, bool? known}) =>
+    ownedPetJson(
+      pet: petJson(
+        known: known,
+        id: _worg,
+        name: 'Worg',
+        speedModifier: null,
+        maxXp: 300,
+        maxLifePoints: 100,
+        attack: _attack,
+        defense: _defense,
+      ),
+      xp: 40,
+      currentLifePoints: 20,
+      name: 'Zanna',
+      defeated: defeated ? true : null,
+      lifeAsOf: spellFixtureNow.toIso8601String(),
+      fullLifeAt: spellFixtureNow.add(_restLeft).toIso8601String(),
+    );
 
 Character _character({
   bool defeated = false,
   bool missionInProgress = false,
   bool ownsWorg = true,
+  bool? known,
 }) => journalCharacter(
   spellbook: {
     ...spellbookCharacterJson(),
     'assets': {
-      'pet': petJson(),
+      'pet': petJson(known: known),
       'ownedPets': [
-        ownedPetJson(pet: petJson()),
-        if (ownsWorg) _worgJson(defeated: defeated),
+        ownedPetJson(pet: petJson(known: known)),
+        if (ownsWorg) _worgJson(defeated: defeated, known: known),
       ],
     },
   },
@@ -127,11 +130,13 @@ void main() {
     bool defeated = false,
     bool missionInProgress = false,
     bool isCompanionNamingEnabled = false,
+    bool? known,
     Stream<CharacterState> updates = const Stream.empty(),
   }) async {
     final character = _character(
       defeated: defeated,
       missionInProgress: missionInProgress,
+      known: known,
     );
     whenListen(
       characterCubit,
@@ -240,6 +245,28 @@ void main() {
 
     expect(sheet(tester).pet.id, _horse);
     expect(sheet(tester).isEquipped, isTrue);
+  });
+
+  testWidgets('companions whose lore is not unlocked open no details, from '
+      'the list or the slot; the tap still toggles (UAT 2026-11-15)', (
+    tester,
+  ) async {
+    final character = await pumpJournal(tester, known: false);
+    await longPressWorg(tester);
+    final slotCard = find.byKey(const ValueKey('companion-slot-$_horse'));
+    await tester.ensureVisible(slotCard);
+    await tester.pumpAndSettle();
+    await tester.longPress(slotCard);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CompanionInfoSheet), findsNothing);
+
+    await tester.ensureVisible(_ownedPet(_worg));
+    await tester.pumpAndSettle();
+    await tester.tap(_ownedPet(_worg));
+    await tester.pump();
+
+    verify(() => companionCubit.toggle(character, _worg)).called(1);
   });
 
   testWidgets('the bookmark is off for a defeated companion (D-02, D-22)', (

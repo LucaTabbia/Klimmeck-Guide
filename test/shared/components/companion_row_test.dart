@@ -166,6 +166,27 @@ void main() {
     expect(longPresses, 1);
   });
 
+  testWidgets('the long press opens nothing for a companion whose lore is not '
+      'unlocked; the tap still selects (UAT 2026-11-15)', (tester) async {
+    var taps = 0;
+    var longPresses = 0;
+    await _pump(
+      tester,
+      CompanionRow(
+        pet: _horse.copyWith(known: false),
+        size: _rowSize,
+        onTap: () => taps++,
+        onLongPress: () => longPresses++,
+      ),
+    );
+
+    await tester.longPress(find.byType(CompanionCard));
+    await tester.tap(find.byType(CompanionCard));
+
+    expect(longPresses, 0);
+    expect(taps, 1);
+  });
+
   testWidgets(
     'a given name is the card title and the species sits below (D-20)',
     (tester) async {

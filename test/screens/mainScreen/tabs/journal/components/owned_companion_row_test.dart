@@ -26,6 +26,7 @@ OwnedPet _owned({
   int xp = 40,
   num? speedModifier,
   bool isDefeated = false,
+  bool? known,
 }) => OwnedPet(
   pet: Pet.fromJson(
     petJson(
@@ -34,6 +35,7 @@ OwnedPet _owned({
       maxXp: 300,
       maxLifePoints: 100,
       speedModifier: speedModifier,
+      known: known,
     ),
   ),
   xp: xp,
@@ -178,6 +180,19 @@ void main() {
 
     expect(longPresses, 1);
     expect(taps, 0);
+  });
+
+  testWidgets('the long press opens nothing for a companion whose lore is '
+      'not unlocked; the tap still equips (UAT 2026-11-15)', (tester) async {
+    await pump(tester, owned: _owned(known: false));
+
+    await tester.longPress(_row());
+    await tester.pumpAndSettle();
+    await tester.tap(_row());
+    await tester.pumpAndSettle();
+
+    expect(longPresses, 0);
+    expect(taps, 1);
   });
 
   testWidgets(

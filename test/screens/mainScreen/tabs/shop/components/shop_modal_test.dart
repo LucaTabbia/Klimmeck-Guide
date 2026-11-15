@@ -208,6 +208,31 @@ void main() {
     },
   );
 
+  testWidgets(
+    'long press on a companion whose lore is not unlocked asks for no '
+    'details, the tap still selects (UAT 2026-11-15)',
+    (tester) async {
+      final unknownWorg = _worg.copyWith(known: false);
+      final requests = <_InfoRequest>[];
+      final selections = <TradeSelection>[];
+      await pumpShop(
+        tester,
+        pets: [unknownWorg],
+        isAdd: true,
+        onCompanionInfo: (pet, name) => requests.add((pet: pet, name: name)),
+        onSelect: selections.add,
+      );
+      await tapAndSettle(tester, find.text('Compagni'));
+
+      await longPressPet(tester, unknownWorg);
+      expect(requests, isEmpty);
+
+      await tapPet(tester, unknownWorg);
+      expect(selections.last.pets, [unknownWorg]);
+      expect(requests, isEmpty);
+    },
+  );
+
   testWidgets('a vanished effect falls back to «Tutti» for good (WR-02)', (
     tester,
   ) async {
