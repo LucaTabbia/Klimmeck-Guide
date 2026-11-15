@@ -14,7 +14,10 @@ String questStateLabel(PendingQuest lane, Quest? quest) {
     QuestType.job => 'Lavorando…',
     QuestType.heal => 'Guarendo…',
     QuestType.aid => 'Aiutando…',
-    QuestType.study || QuestType.arcane => 'Studiando…',
+    QuestType.study ||
+    QuestType.arcane ||
+    QuestType.shamanic ||
+    QuestType.theVoid => 'Studiando…',
     _ => 'In corso…',
   };
 }
