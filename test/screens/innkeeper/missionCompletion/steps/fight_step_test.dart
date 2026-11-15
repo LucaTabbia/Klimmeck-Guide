@@ -236,4 +236,38 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'correcting the hero resends the simulated companion life (D-33, BE A-08)',
+    (tester) async {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(
+          step: 'fights',
+          participants: [missionParticipantJson()],
+          fights: [
+            missionFightJson(
+              verdict: 'success',
+              outcomes: [
+                missionOutcomeJson(
+                  companion: missionCompanionJson(),
+                  simulated: missionEffectsJson(companionLifeAfter: 120),
+                ),
+              ],
+            ),
+          ],
+        ),
+      )!;
+      await pumpStep(tester, draft);
+      final aldo = sectionOf(tester, _aldo);
+      aldo.onChanged(aldo.correction.withHp(650));
+      await tester.pump();
+
+      await tester.ensureVisible(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+
+      final sentAldo = sent.single.single;
+      expect(sentAldo.hpAfter, 650);
+      expect(sentAldo.toJson()['companionLifeAfter'], 120);
+    },
+  );
 }
