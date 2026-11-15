@@ -90,8 +90,8 @@ void main() {
   });
 
   test('PetFragment selects id, name, imagePath, speed, sellable, both '
-      'prices, maxXp, maxLifePoints, recoveryTime, attack, defense and rarity '
-      '(D-12, D-20, D-09, D-25, D-34)', () {
+      'prices, maxXp, maxLifePoints, recoveryTime, attack, defense, rarity '
+      'and known (D-12, D-20, D-09, D-25, D-34)', () {
     final damages = _collapsed(DamagesFragment.fields);
 
     expect(
@@ -99,8 +99,13 @@ void main() {
       'id name imagePath speedModifier sellable '
       'buyPrice { gold silver copper } sellPrice { gold silver copper } '
       'maxXp maxLifePoints recoveryTime attack { $damages } '
-      'defense { $damages } rarity',
+      'defense { $damages } rarity known',
     );
+  });
+
+  test('PetFragment selects known, so every companion card can draw the '
+      'silhouette (UAT 2026-11-15)', () {
+    expect(petFields, endsWith('rarity known'));
   });
 
   test('cities selects size and hasShop for the satchel gate (D-04)', () {
