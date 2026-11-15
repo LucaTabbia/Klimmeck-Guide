@@ -17,7 +17,7 @@ void main() {
   });
 
   test('every mission that runs by itself names what the character is doing '
-      '(UAT 2026-11-14)', () {
+      '(UAT 2026-11-14, D-09)', () {
     expect(
       {for (final type in QuestType.values) type: missionActivityLabelOf(type)},
       {
@@ -28,6 +28,8 @@ void main() {
         QuestType.dungeon: 'Esplorando…',
         QuestType.study: 'Studiando…',
         QuestType.arcane: 'Studiando…',
+        QuestType.shamanic: 'Studiando…',
+        QuestType.theVoid: 'Studiando…',
         QuestType.heal: 'In cura…',
         QuestType.job: 'Lavorando…',
         QuestType.crime: 'Tramando…',

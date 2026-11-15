@@ -159,6 +159,24 @@ void main() {
       },
     );
 
+    test('the shamanic rite uses its own whole and torn sheets (D-14)', () {
+      expect(questPaperAssetIds(QuestType.shamanic, isTorn: false), [
+        CloudinaryAssets.shamanicSheet,
+      ]);
+      expect(questPaperAssetIds(QuestType.shamanic, isTorn: true), [
+        CloudinaryAssets.shamanicTornSheet,
+      ]);
+    });
+
+    test('the void rite uses its own whole and torn sheets (D-14)', () {
+      expect(questPaperAssetIds(QuestType.theVoid, isTorn: false), [
+        CloudinaryAssets.voidSheet,
+      ]);
+      expect(questPaperAssetIds(QuestType.theVoid, isTorn: true), [
+        CloudinaryAssets.voidTornSheet,
+      ]);
+    });
+
     test('a null type falls back to the quest family', () {
       expect(questPaperAssetIds(null, isTorn: false), [
         CloudinaryAssets.questSheet2,
@@ -224,6 +242,22 @@ void main() {
       expect(
         CloudinaryAssets.magicTornSheet,
         'v1794321051/tornMagicSheet_f8gu75.svg',
+      );
+    });
+
+    test('the rite sheets point to their files (D-14, D-21)', () {
+      expect(
+        CloudinaryAssets.shamanicSheet,
+        'v1794764350/shamanicSheet_ytxu1n.svg',
+      );
+      expect(
+        CloudinaryAssets.shamanicTornSheet,
+        'v1794764330/tornShamanicSheet_exdyou.svg',
+      );
+      expect(CloudinaryAssets.voidSheet, 'v1794764361/voidSheet_iyocqb.svg');
+      expect(
+        CloudinaryAssets.voidTornSheet,
+        'v1794764340/tornVoidSheet_h4sp3g.svg',
       );
     });
 

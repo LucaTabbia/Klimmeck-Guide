@@ -97,6 +97,10 @@ void main() {
       CloudinaryAssets.questSheet2,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
+      CloudinaryAssets.shamanicSheet,
+      CloudinaryAssets.shamanicTornSheet,
+      CloudinaryAssets.voidSheet,
+      CloudinaryAssets.voidTornSheet,
     ]);
     questCubit = MockQuestCubit();
     characterCubit = MockCharacterCubit();
@@ -303,6 +307,21 @@ void main() {
     );
 
     expect(isTorn(tester, 'm-1'), isTrue);
+  });
+
+  testWidgets('a rite above the title is torn until the rank (D-11)', (
+    tester,
+  ) async {
+    await pumpBoard(
+      tester,
+      quests: loaded([
+        _boardQuest('s-1', 'shamanic', minTitle: 'mage'),
+        _boardQuest('v-1', 'void', minTitle: 'mage'),
+      ]),
+    );
+
+    expect(isTorn(tester, 's-1'), isTrue);
+    expect(isTorn(tester, 'v-1'), isTrue);
   });
 
   testWidgets(

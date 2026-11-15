@@ -174,6 +174,20 @@ void main() {
       expect(infos.toJson()['type'], 'arcane');
     });
 
+    test('a void rite parses from the wire value void (D-09)', () {
+      final infos = buildQuest(type: 'void').infos!;
+
+      expect(infos.type, QuestType.theVoid);
+      expect(infos.toJson()['type'], 'void');
+    });
+
+    test('a shamanic rite parses (D-09)', () {
+      final infos = buildQuest(type: 'shamanic').infos!;
+
+      expect(infos.type, QuestType.shamanic);
+      expect(infos.toJson()['type'], 'shamanic');
+    });
+
     test('returns null for an unknown minTitle', () {
       expect(Quest.tryFromJson(questJson(minTitle: 'wizard')), isNull);
     });

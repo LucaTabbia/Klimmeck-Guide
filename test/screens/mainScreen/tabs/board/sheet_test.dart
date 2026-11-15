@@ -48,8 +48,31 @@ void main() {
       ..._bossTorn,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
+      CloudinaryAssets.shamanicSheet,
+      CloudinaryAssets.shamanicTornSheet,
+      CloudinaryAssets.voidSheet,
+      CloudinaryAssets.voidTornSheet,
     ]),
   );
+
+  testWidgets('a shamanic rite and a void rite show their own sheets (D-14)', (
+    tester,
+  ) async {
+    final shamanic = buildQuest(id: 's-1', type: 'shamanic');
+    await _pump(tester, shamanic, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.shamanicSheet));
+    await _pump(tester, shamanic, isTorn: true);
+    expect(
+      _url(tester),
+      CloudinaryAssets.url(CloudinaryAssets.shamanicTornSheet),
+    );
+
+    final rite = buildQuest(id: 'v-1', type: 'void');
+    await _pump(tester, rite, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.voidSheet));
+    await _pump(tester, rite, isTorn: true);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.voidTornSheet));
+  });
 
   testWidgets(
     'an arcane quest shows the magic sheet (quick 261110-mag, D-20)',

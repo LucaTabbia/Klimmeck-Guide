@@ -23,6 +23,11 @@ void main() {
       expect(QuestType.fromWire('arcane'), QuestType.arcane);
     });
 
+    test('the two rites read Rito sciamanico and Rito del Vuoto (D-13)', () {
+      expect(QuestType.shamanic.label, 'Rito sciamanico');
+      expect(QuestType.theVoid.label, 'Rito del Vuoto');
+    });
+
     test('every quest type has a non-empty label', () {
       for (final type in QuestType.values) {
         expect(type.label, isNotEmpty, reason: type.name);
@@ -37,7 +42,7 @@ void main() {
       }
     });
 
-    test('the wire names of the thirteen types (D-09, D-20)', () {
+    test('the wire names of the fifteen types (D-09, D-20)', () {
       expect(QuestType.values.map((type) => type.wireName), [
         'hunt',
         'aid',
@@ -48,11 +53,24 @@ void main() {
         'story',
         'study',
         'arcane',
+        'shamanic',
+        'void',
         'heal',
         'job',
         'crime',
         'guard',
       ]);
+    });
+
+    test('the wire value void reads as theVoid and is written back as void '
+        '(D-09)', () {
+      expect(QuestType.fromWire('void'), QuestType.theVoid);
+      expect(QuestType.theVoid.wireName, 'void');
+      expect(QuestType.fromWire('shamanic'), QuestType.shamanic);
+    });
+
+    test('the Dart name theVoid never crosses the wire (D-09)', () {
+      expect(QuestType.fromWire('theVoid'), isNull);
     });
 
     test('the legacy wire value magic reads as arcane (D-20)', () {
