@@ -4,6 +4,7 @@ import '../../models/pet.dart';
 import '../../theme/kg_theme.dart';
 import '../../utils/item_lines.dart';
 import 'cards/companion_card.dart';
+import 'cards/companion_details_gesture.dart';
 import 'coins_display.dart';
 
 /// Riga di un compagno (negozio, carrello, premi dell'oste): carta con immagine
@@ -40,7 +41,7 @@ class CompanionRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      onLongPress: onLongPress,
+      onLongPress: companionDetailsGesture(pet, onLongPress),
       child: Container(
         color: isSelected
             ? KlimmeckGuideTheme.primaryGold.withAlpha(100)

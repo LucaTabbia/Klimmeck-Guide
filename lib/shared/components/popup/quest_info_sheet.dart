@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_details_gesture.dart';
 import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
@@ -475,7 +476,10 @@ class QuestInfoSheet extends StatelessWidget {
             width: constraints.maxHeight,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onLongPress: () => showCompanionDetails(context, pet: pet),
+              onLongPress: companionDetailsGesture(
+                pet,
+                () => showCompanionDetails(context, pet: pet),
+              ),
               child: CompanionCard(pet: pet, size: constraints.maxHeight),
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_details_gesture.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/companion_lines.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
@@ -43,7 +44,7 @@ class OwnedCompanionRow extends StatelessWidget {
       key: ValueKey('owned-pet-${pet.id}'),
       behavior: HitTestBehavior.opaque,
       onTap: isDefeated ? null : onTap,
-      onLongPress: onLongPress,
+      onLongPress: companionDetailsGesture(pet, onLongPress),
       child: Padding(
         padding: const EdgeInsets.only(top: 10),
         child: Row(

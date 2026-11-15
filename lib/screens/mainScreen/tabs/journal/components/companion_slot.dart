@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/cards/companion_details_gesture.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Lo slot del compagno (D-10, D-17): un solo box, vuoto quando nessuno è al
@@ -48,7 +49,7 @@ class CompanionSlot extends StatelessWidget {
     key: ValueKey('companion-slot-${pet.id}'),
     behavior: HitTestBehavior.opaque,
     onTap: () => onTap(pet.id),
-    onLongPress: () => onLongPress(pet.id),
+    onLongPress: companionDetailsGesture(pet, () => onLongPress(pet.id)),
     child: AnimatedOpacity(
       opacity: isPending ? KlimmeckGuideTheme.pendingInkOpacity : 1,
       duration: KlimmeckGuideTheme.pendingInkDuration,

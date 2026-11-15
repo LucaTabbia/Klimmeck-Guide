@@ -11,7 +11,8 @@ import 'package:klimmeck_guide/utils/item_lines.dart';
 
 /// Carta del compagno (Phase 22 D-22, D-34): immagine, nome scelto o specie nel
 /// colore della rarità, specie sotto quando ha un nome; velocità da sella;
-/// attacco e difesa stanno nel foglio di dettaglio.
+/// attacco e difesa stanno nel foglio di dettaglio. Lore non sbloccata
+/// (`Pet.known == false`) → sagoma nera, nome visibile come per i nemici.
 class CompanionCard extends StatelessWidget {
   const CompanionCard({
     super.key,
@@ -74,6 +75,7 @@ class CompanionCard extends StatelessWidget {
                     key: imageKeyOf(pet.id),
                     imagePath: pet.imagePath,
                     height: size * _imageShare,
+                    known: pet.known,
                   ),
                 CardLabel(
                   key: titleKeyOf(pet.id),
