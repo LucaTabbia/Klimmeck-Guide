@@ -198,13 +198,27 @@ Plans:
 
 ### Phase 23: Spell Origins, Void and Shamanic Quests
 **Goal**: The spells get a macro-class and two new schools of quests. User's words (2026-11-15): «Le magie devono avere una macroclasse (ovvero origin->use->energy). Le origini sono 3: void, magic e shamanic»; every spell at DB is reviewed and given the right origin from its description, and the DB is filled with new spells where some are missing; «Poi dovremo aggiungere due tipi di quest: shamanic e void. Funzioneranno esattamente come la missione magic. Ognuna di loro insegnerà una magia sulla base del tipo (adesso magic le insegna tutte)»; the `void` quest only in Necrorian («nessuna quest a Necrorian dovrebbe venir creata con rango minimo inferiore a mage»); the `shamanic` quest in the two new capitals, acceptable from rank mage up; city `690961bfe74c2f6dfc837d8f` is now `aarakocraCapital`, `690961bf1bf8bb61e5f6af2f` is `dragonbornVillage`, `690961bf31795cde80768bc7` is `dragonbornCapital` (the two capitals have size `capital` and the map size of Talmvere); «Le magie non devono più avere un minimo xp per impararle, ma un minimo livello» (the parameter is reviewed against the character level table). The backend stays the source of truth: origin, teaching rule, quest generation and the level gate are server-side; the app shows the origin, the new quest sheets and the new city types.
+_Amended 2026-11-15 (D-01, D-20..D-24 of `23-CONTEXT.md`): the origin `magic` reads `arcane`, and the quest type `magic` is renamed `arcane` too (label «Magia» kept, the three school types are `arcane`, `shamanic`, `void`); the eleven Cloudinary ids are given (no stand-in ids); learning the first spell of an origin unlocks the lore of that origin (server-side, shown by the existing lore-unlock path); the heal quests and shops of the two new capitals are those of a city and the lore of the three cities is rewritten (DB content)._
 **Depends on**: Phase 8 (spells in the Journal), Phase 14 (generated quests and their sheets), Phase 6 (quest sheets), Phase 7 (map and city markers), Phase 22, a BE companion phase (BE Phase 24 «Origini delle magie, quest void e shamanic»)
-**Scope**: to be fixed in the discuss (interactive, joint with BE Phase 24). Assets handed by the user in `~/Downloads`: `voidSheet.svg`, `tornVoidSheet.svg`, `shamanicSheet.svg`, `tornShamanicSheet.svg`, `aarakocraCapital.svg`, `aarakocraVillage.svg` (replaces the old one), `dragonbornVillage.svg`, `dragonbornCapital.svg` — masks and filters to be checked before the upload.
-**Requirements**: TBD (defined in the plan)
-**Plans**: 0 plans
+**Scope**: decisions D-01..D-24 of `23-CONTEXT.md` (interactive discuss of 2026-11-15, joint with BE Phase 24, amended after the research); BE companion: BE Phase 24 «Origini delle magie, quest void e shamanic». No UI phase.
+**Requirements**: ORIGIN-01, ORIGIN-02, ORIGIN-03, ORIGIN-04, ORIGIN-05, ORIGIN-06
+**Success Criteria** (what must be TRUE):
+  1. Every spell card shows the origin icon before use and energy and the spell details read «Origine: …» and «Per impararla: Livello N · …»; «XP» appears nowhere on a spell and the app compares the level with nothing.
+  2. The Board and the Map draw «Rito sciamanico» and «Rito del Vuoto» on their own sheets, torn until the rank, «Studiando…» while running, exactly like the arcane quest («Magia»), whose stored type `magic` is still read.
+  3. Murnborim and Thengran are on the Map at every zoom at the size of Talmvere, Veg Faldir from the village zoom, Balkuldir with its new drawing.
+  4. The first spell learned of an origin shows its lore unlock on the result sheet and in the Library.
+  5. Schema check green on the merged BE Phase 24 SDL (with BE PR #43) and device E2E passed.
+**Plans**: 8 plans (sequential waves; 01–06 work against today's BE, 07–08 gated by the BE Phase 24 merge)
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 23 to break down)
+- [ ] 23-01-PLAN.md — Requirements and the quest type wire boundary (wireName / fromWire)
+- [ ] 23-02-PLAN.md — Spell model: origin and minimum level (lenient, unselected), minXpToLearn removed
+- [ ] 23-03-PLAN.md — Quest types: magic renamed arcane, the shamanic and void rites with their sheets
+- [ ] 23-04-PLAN.md — City types: aarakocraCapital, dragonbornCapital, dragonbornVillage with their markers
+- [ ] 23-05-PLAN.md — Asset ids: the aarakocra village redrawn, audit of the eight sheet and city ids
+- [ ] 23-06-PLAN.md — Origin drawing: icon ids, origin first on the spell card, origin row in the details
+- [ ] 23-07-PLAN.md — Gate: schema, origin and minimum level selected, schema check, full suite (after the BE Phase 24 merge)
+- [ ] 23-08-PLAN.md — Device E2E, handoff and closing (after the BE Phase 24 merge, human)
 
 ## Progress
 
@@ -232,7 +246,7 @@ Plans:
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
-| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 0/0 | Not started | - |
+| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 0/8 | Planned | - |
 
 ---
 
