@@ -223,7 +223,7 @@ Plans:
 - [x] 23-10-PLAN.md — Models: learning spell on the lane, spell draw, spell found and failed research (lenient, unselected)
 - [x] 23-11-PLAN.md — «Ricercando…» and learning copy rules, the learning countdown cubit
 - [x] 23-12-PLAN.md — Map: learning countdown owned by the Map, pawn and overlay labels of the two parts
-- [ ] 23-13-PLAN.md — Result sheets of a research and of the learning end; research pushes handled as quest ends
+- [x] 23-13-PLAN.md — Result sheets of a research and of the learning end; research pushes handled as quest ends
 - [ ] 23-14-PLAN.md — Gate: research fields on the BE SDL, selections, schema check, full suite (after BE plans 24-13..24-18)
 - [ ] 23-08-PLAN.md — Device E2E, handoff and closing (LAST: after 23-14 and the BE Phase 24 merge, human)
 
@@ -253,7 +253,7 @@ Plans:
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
-| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 11/14 | In Progress | - |
+| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 12/14 | In Progress | - |
 
 ---
 
