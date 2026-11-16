@@ -57,14 +57,14 @@ The backend is the source of truth for every rule: each requirement below descri
 
 ### Spell Origins, Void and Shamanic Quests (Phase 23, added 2026-11-15)
 
-- [ ] **ORIGIN-01**: `SpellOrigin` (wire `void` / `arcane` / `shamanic`, Dart `theVoid` / `arcane` / `shamanic`, labels «Vuoto» / «Arcana» / «Sciamanica») parsed leniently on `Spell.origin` through an explicit wire name; an unknown or absent origin reads null, the spell stays and nothing is drawn for it
-- [ ] **ORIGIN-02**: A spell prints the minimum **level** the backend sends («Per impararla: Livello N», no learn time: D-28); `minXpToLearn` leaves the model, the fragments and the copy; the app never computes or compares a level
-- [ ] **ORIGIN-03**: The three school quest types are `arcane` (renamed from `magic`, label «Magia», the legacy wire value `magic` still read as `arcane` and never written), `shamanic` («Rito sciamanico») and `void` («Rito del Vuoto», Dart `theVoid`): the two new types behave exactly like the arcane one (standard lane, repeatable, unregistered, service sheet, «Ricercando…» while the research runs (D-26, D-32), torn until the rank) with their own whole and torn sheets; the quest type crosses the wire only through `wireName` / `fromWire`
-- [ ] **ORIGIN-04**: City types `aarakocraCapital`, `dragonbornCapital` (marker 39) and `dragonbornVillage` (marker 30) parse and draw; visibility by the served size, no `alwaysVisible`; `aarakocraVillage` drawn with the new file
-- [ ] **ORIGIN-05**: The origin icon sits before the use and energy icons wherever a spell is drawn with icons (spell card, spell details with «Origine: …»); three icons never overflow the card; a spell without origin is drawn as before
-- [ ] **ORIGIN-06**: Schema gate on the merged BE Phase 24 SDL (`origin` and `minLevelToLearn` selected, registry 55, schema check, full suite) and device E2E, the origin lore unlocked by the first learned spell of an origin included (surfaced by the existing lore-unlock path, no new selection)
-- [ ] **ORIGIN-07**: A quest with a spell draw shows its two parts in session from the served pending quest: «Ricercando…» while the draw quest runs (its «Fase di ricerca», D-32) (school types, or `prizes.spellDraw`), and during the learning part the name of the spell being learned with a countdown to `startDate + waitingTime`; `PendingQuest.learningSpell`, `QuestPrizes.spellDraw` parsed leniently; no blocking loading, no app chrome, nothing computed beyond that date (D-26, D-29)
-- [ ] **ORIGIN-08**: The research outcome reaches the player: the result sheet of a research with a spell found shows the spell and its learning time (`QuestResult.spellFound`), a failed research reads its own line (`spellResearchFailed`), the small sheet at the end of the learning reads well without gains; the pushes `spellResearchSucceeded` and `spellResearchFailed` open the result like `questEnd`; schema check green on the BE SDL with the research fields and device E2E (D-29, D-31)
+- [x] **ORIGIN-01**: `SpellOrigin` (wire `void` / `arcane` / `shamanic`, Dart `theVoid` / `arcane` / `shamanic`, labels «Vuoto» / «Arcana» / «Sciamanica») parsed leniently on `Spell.origin` through an explicit wire name; an unknown or absent origin reads null, the spell stays and nothing is drawn for it
+- [x] **ORIGIN-02**: A spell prints the minimum **level** the backend sends («Per impararla: Livello N», no learn time: D-28); `minXpToLearn` leaves the model, the fragments and the copy; the app never computes or compares a level
+- [x] **ORIGIN-03**: The three school quest types are `arcane` (renamed from `magic`, label «Magia», the legacy wire value `magic` still read as `arcane` and never written), `shamanic` («Rito sciamanico») and `void` («Rito del Vuoto», Dart `theVoid`): the two new types behave exactly like the arcane one (standard lane, repeatable, unregistered, service sheet, «Ricercando…» while the research runs (D-26, D-32), torn until the rank) with their own whole and torn sheets; the quest type crosses the wire only through `wireName` / `fromWire`
+- [x] **ORIGIN-04**: City types `aarakocraCapital`, `dragonbornCapital` (marker 39) and `dragonbornVillage` (marker 30) parse and draw; visibility by the served size, no `alwaysVisible`; `aarakocraVillage` drawn with the new file
+- [x] **ORIGIN-05**: The origin icon sits before the use and energy icons wherever a spell is drawn with icons (spell card, spell details with «Origine: …»); three icons never overflow the card; a spell without origin is drawn as before
+- [x] **ORIGIN-06**: Schema gate on the merged BE Phase 24 SDL (`origin` and `minLevelToLearn` selected, registry 55, schema check, full suite) and device E2E, the origin lore unlocked by the first learned spell of an origin included (surfaced by the existing lore-unlock path, no new selection)
+- [x] **ORIGIN-07**: A quest with a spell draw shows its two parts in session from the served pending quest: «Ricercando…» while the draw quest runs (its «Fase di ricerca», D-32) (school types, or `prizes.spellDraw`), and during the learning part the name of the spell being learned with a countdown to `startDate + waitingTime`; `PendingQuest.learningSpell`, `QuestPrizes.spellDraw` parsed leniently; no blocking loading, no app chrome, nothing computed beyond that date (D-26, D-29)
+- [x] **ORIGIN-08**: The research outcome reaches the player: the result sheet of a research with a spell found shows the spell and its learning time (`QuestResult.spellFound`), a failed research reads its own line (`spellResearchFailed`), the small sheet at the end of the learning reads well without gains; the pushes `spellResearchSucceeded` and `spellResearchFailed` open the result like `questEnd`; schema check green on the BE SDL with the research fields and device E2E (D-29, D-31)
 
 ## Future Requirements
 
@@ -122,14 +122,14 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | PET-08 | Phase 22 | Complete |
 | PET-09 | Phase 22 | Complete |
 | PET-10 | Phase 22 | Complete |
-| ORIGIN-01 | Phase 23 | Pending |
-| ORIGIN-02 | Phase 23 | Pending |
-| ORIGIN-03 | Phase 23 | Pending |
-| ORIGIN-04 | Phase 23 | Pending |
-| ORIGIN-05 | Phase 23 | Pending |
-| ORIGIN-06 | Phase 23 | Pending |
-| ORIGIN-07 | Phase 23 | Pending |
-| ORIGIN-08 | Phase 23 | Pending |
+| ORIGIN-01 | Phase 23 | Complete |
+| ORIGIN-02 | Phase 23 | Complete |
+| ORIGIN-03 | Phase 23 | Complete |
+| ORIGIN-04 | Phase 23 | Complete |
+| ORIGIN-05 | Phase 23 | Complete |
+| ORIGIN-06 | Phase 23 | Complete |
+| ORIGIN-07 | Phase 23 | Complete |
+| ORIGIN-08 | Phase 23 | Complete |
 
 **Coverage:** 40 / 40 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 8 ORIGIN → Phase 23). No orphans. No duplicates.
 

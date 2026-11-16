@@ -34,9 +34,25 @@ Names, types and nullability confirmed on the BE branch SDL by the gates of 23-0
 - **Three result sheets of a draw quest:** spell found («Magia scoperta: …» + «Tempo di apprendimento: …» from `spellFound.requiredLearnTime`), research failed («La ricerca non ha rivelato alcuna magia»), learning end (`isLearningEnd` inferred: learned spell, `spellFound` null, no xp, no enemies, life unchanged → no life bar; empty blocks vanish).
 - **Research pushes as quest ends:** both wire types accepted by the `questEnd` category, same toggle, tap and dedup key; banner copy by outcome («Ricerca riuscita» / «Ricerca conclusa» / «Missione conclusa»); an unknown push type is dropped.
 
-## 3. UAT outcome (FE Phase 23)
+## 3. UAT outcome (FE Phase 23, 2026-11-16)
 
-Filled by plan 23-08.
+BE under test: branch `feat/24-origini-magie-quest-void-shamanic` (BE PR #44, draft, not merged), `3f82fa50` at the end of the session (BE D-33 added during the UAT: `a431033f` / `3f82fa50`), booted locally by the orchestrator; device Samsung SM-S938B over USB. Full record: `23-HUMAN-UAT.md` (`status: complete`). Closing gates on the FE branch (plan 23-08): gate re-check `GATE_OK` on `3f82fa50`; schema check against that SDL 55 × OK; analyzer 47 info / 0 warning / 0 error; full suite 5170 green. **The schema check must be repeated on BE `develop` after the merge of PR #44 (orchestrator).**
+
+Outcome of the steps that touch the BE (user words relayed by the orchestrator; DB readings and writes are the orchestrator's):
+
+- **Three city types and their size (step 1):** pass. `cities` serves Murnborim (`aarakocraCapital`), Thengran (`dragonbornCapital`), Veg Faldir (`dragonbornVillage`); the FE marker of the two capitals was raised 39 → 46 at the user's request (`a1df181d`). At DB during the step: lore images of the four changed cities realigned; Thengran and Balkuldir swapped (areas, city POI coordinates, surrounding POIs reassigned, four quest texts renamed).
+- **Origin and level on every spell shape (steps 2, 7):** pass in the Journal (slot, list, details). Infused spell of a shop item: the card overflowed by 20 px on the FE, fixed during the UAT (`776a8303`), re-checked pass. Innkeeper prize spells (`simpleFields`): not run on the device (no story / worldMission request available), covered by FE widget tests.
+- **The three rites and the origin of the spell they teach (steps 3, 4):** pass. Shamanic rite in Thengran: two failed researches, then a spell found, the learning part and the second sheet. Void rite in Necrorian («Memorie di un mago»): pass; the BE was restarted during the learning part and the missions sweep closed the expired learning at boot.
+- **Migrated arcane quest (step 5):** pass at Valantar after the rename.
+- **Origin lore in `unlockedLore` and in `loreUnlocked` (step 6):** pass. The first void spell unlocked «Il Vuoto e l'Abisso dei Diavoli» on the learning-end sheet (`loreUnlocked` of the second result).
+- **Home cities and city tier (step 8):** heal quests, shop and city lore of the capitals: pass. Birth cities of a new dragonborn / aarakocra: not run on the device by user decision, covered by the BE specs `character-creation.resolver.int-spec.ts` and `starting-location.service.int-spec.ts`.
+- **Research and learning flow (steps 9–12):**
+  - Lane, research part: «Ricercando…» on the pawn and in the overlay for the three school rites (pass). `study` with `prizes.spellDraw` and `study` without: not observed on the device.
+  - First sheet (spell found): «Magia scoperta» + «Tempo di apprendimento» with the app open (pass); after it the learning line «Imparando «…»: …» ticked from the re-armed lane (`learningSpell`, `startDate`, `waitingTime`). No banner on the Map because the sheet opens directly: accepted by the user.
+  - Second (learning-end) sheet: small sheet, spell in the Journal, lane freed (pass).
+  - Failed research: sheet «La ricerca non ha rivelato alcuna magia», lane free (pass).
+  - Pushes: `spellResearchFailed` («Ricerca conclusa») received with the app in background INSTEAD of `questEnd` (pass). `spellResearchSucceeded` («Ricerca riuscita») and the learning-end `questEnd` («Missione conclusa») with the app in background: not observed on the device (covered by FE push tests).
+- **DB content decided during the UAT (no code):** research duration of the four school quests 4 h (was 20 h); learn times 30 min (L6) → 12 h (L20); recovery times 15 min (L6) → 8 h (L20). BE D-33: study-lore draw in the school quests at 15 % (study quests keep the configured chance). The user wants no Journal line for the spell being learned; research pushes follow the «Fine quest» toggle (no objection).
 
 ## 4. Questions and notes for the BE
 
@@ -45,4 +61,6 @@ Filled by plan 23-08.
 3. `cities` before the BE boot served the three cities without a known type (fail-closed); after the boot it serves `aarakocraCapital` / `dragonbornCapital` (size `capital`) and `dragonbornVillage` (size `village`) additively.
 4. The learning-end sheet has no discriminator: the FE infers it (`isLearningEnd`: learned spell, `spellFound` null, no xp, no enemies, `hpBefore == hpAfter`). A future explicit field would remove the inference.
 5. Duration wording: the BE push says «30 minuti», the in-app banner «30 min» (`formatGameDuration`); whichever arrives first is shown (dedup on `questEnd|<result id>`).
-6. Open BE note (from the BE handoff): a `knowledge` origin lore may also come from the study-lore pool before the first spell of that origin (user decision).
+6. Open BE note (from the BE handoff): a `knowledge` origin lore may also come from the study-lore pool before the first spell of that origin (user decision); with BE D-33 the study-lore draw of the school quests is 15 %.
+7. After the merge of BE PR #44 on `develop`: re-run the FE schema check on the merged SDL (orchestrator) and `$unset` `minXpToLearn` from `spells`.
+8. The two research pushes in background were not both observed on the device (`spellResearchSucceeded` not seen, `spellResearchFailed` seen): worth a look at the next device session.

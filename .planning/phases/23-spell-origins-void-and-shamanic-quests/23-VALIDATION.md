@@ -1,7 +1,7 @@
 ---
 phase: 23
 slug: spell-origins-void-and-shamanic-quests
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-15
@@ -58,9 +58,9 @@ created: 2026-11-15
 | 23-07-01 | 07 | 7 | ORIGIN-06, ORIGIN-01, ORIGIN-02, ORIGIN-05 | T-23-25, T-23-26, T-23-27, T-23-28, T-23-29 | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-07 + flutter test test/graphql` | ✅ extend | ✅ green |
 | 23-07-02 | 07 | 7 | ORIGIN-06 | T-23-25 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite` | ✅ | ✅ green |
 | 23-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?7 of 8" .planning/STATE.md` | — | ✅ green |
-| 23-08-01 | 08 | 8 | ORIGIN-06 | T-23-31, T-23-33 | names only, no secrets | docs | `gate re-check of 23-08 + secrets grep = 0` | ❌ created in Task 1 | ⬜ pending |
-| 23-08-02 | 08 | 8 | ORIGIN-01..ORIGIN-05 | T-23-34, T-23-35 | rank floor and origin pool seen on the device | manual | `23-HUMAN-UAT.md steps 1–8` | ❌ created in 23-08 | ⬜ pending |
-| 23-08-03 | 08 | 8 | ORIGIN-01..ORIGIN-06 | T-23-32 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 23-HUMAN-UAT.md` | — | ⬜ pending |
+| 23-08-01 | 08 | 8 | ORIGIN-06 | T-23-31, T-23-33 | names only, no secrets | docs | `gate re-check of 23-08 + secrets grep = 0` | ✅ | ✅ green |
+| 23-08-02 | 08 | 8 | ORIGIN-01..ORIGIN-05 | T-23-34, T-23-35 | rank floor and origin pool seen on the device | manual | `23-HUMAN-UAT.md steps 1–8` | ✅ | ✅ green |
+| 23-08-03 | 08 | 8 | ORIGIN-01..ORIGIN-06 | T-23-32 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 23-HUMAN-UAT.md` | — | ✅ green |
 | 23-09-01 | 09 | 8 | ORIGIN-07, ORIGIN-08 | T-23-36 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-8] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 8)` | ✅ | ✅ green |
 | 23-09-02 | 09 | 8 | ORIGIN-02 | T-23-37 | served level printed only; no learn time | unit + widget | `flutter test test/utils/spell_lines_test.dart test/shared/components/spell_info_test.dart` | ✅ extend | ✅ green |
 | 23-09-03 | 09 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 14" .planning/STATE.md` | — | ✅ green |
@@ -102,13 +102,17 @@ Each new test file is created RED-first by the task that needs it (no separate W
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | City markers of Murnborim, Thengran, Veg Faldir and the new Balkuldir drawing, size and zoom | ORIGIN-04 | real Cloudinary files and served sizes | `23-HUMAN-UAT.md` step 1 |
-| Origin icon first, «Origine: …», «Per impararla: Livello N · …», no «XP» | ORIGIN-01, ORIGIN-02, ORIGIN-05 | real served origin and level, real icons | step 2 |
-| Shamanic rite end to end (torn below mage, sheet, «Studiando…», result, shamanic spell) | ORIGIN-03 | BE draw by origin, DB quest, rank floor | step 3 |
+| Origin icon first, «Origine: …», «Per impararla: Livello N» (no learn time, D-28), no «XP» | ORIGIN-01, ORIGIN-02, ORIGIN-05 | real served origin and level, real icons | step 2 |
+| Shamanic rite end to end (torn below mage, sheet, «Ricercando…», results, shamanic spell) | ORIGIN-03 | BE draw by origin, DB quest, rank floor | step 3 |
 | Void rite end to end in Necrorian | ORIGIN-03 | BE draw by origin, DB quest, rank floor | step 4 |
 | Arcane quest after the type migration, old result readable | ORIGIN-03 | BE migration of stored data | step 5 |
 | Origin lore unlocked by the first spell of an origin (result sheet, Library) | ORIGIN-06 | server-side unlock via `Spell.relatedLore` | step 6 |
 | Origin icon on the innkeeper prize cards and a shop item with an infused spell | ORIGIN-05 | real selections at 48 px on the device | step 7 |
 | Home cities, city-tier heal and shops, new city lore (BE rules, observed) | — | BE rules and DB content | step 8 |
+| «Ricercando…» on paper, pawn and overlay; «Studiando…» for a study without the draw | ORIGIN-07 | real served lane and board quest | step 9 |
+| Research succeeded: push, sheet, learning line ticking | ORIGIN-07, ORIGIN-08 | real BE re-arm and FCM | step 10 |
+| End of the learning: push, small sheet, spell in the Journal | ORIGIN-08, ORIGIN-02 | real BE second result and FCM | step 11 |
+| Research failed: push «Ricerca conclusa», sheet, one banner | ORIGIN-08 | real BE draw and FCM | step 12 |
 
 ---
 
@@ -121,4 +125,6 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] Feedback latency < 120s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-16
+
+Device E2E passed on 2026-11-16 (`23-HUMAN-UAT.md`, steps 1–12; parts not run on the device by user decision or not observed are listed there and covered by tests). Closing gates (23-08): gate re-check `GATE_OK` on the BE branch `feat/24-origini-magie-quest-void-shamanic` `3f82fa50`, schema check 55 × OK on that SDL, analyzer 47 info / 0 warning / 0 error, full suite 5170 green. Schema check to be repeated on BE `develop` after the merge of BE PR #44 (orchestrator).
