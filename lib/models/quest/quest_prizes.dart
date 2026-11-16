@@ -14,6 +14,7 @@ class QuestPrizes extends Equatable {
     required this.randomLoot,
     this.pet,
     this.cure,
+    this.spellDraw = false,
   });
 
   final List<AssetQuantity>? randomLoot;
@@ -26,6 +27,10 @@ class QuestPrizes extends Equatable {
 
   /// Cura della quest (BE Phase 18, D-01); `null` = la quest non cura nulla.
   final QuestCure? cure;
+
+  /// Il blocco porta il sorteggio di una magia (BE Phase 24, D-26): la quest
+  /// ha una «Fase di ricerca».
+  final bool spellDraw;
 
   factory QuestPrizes.fromJson(Map<String, dynamic> json) => QuestPrizes(
     prizeCoins: json["prizeCoins"] != null
@@ -40,6 +45,7 @@ class QuestPrizes extends Equatable {
         : null,
     pet: Pet.tryFromJson(json['pet']),
     cure: QuestCure.tryFromJson(json['cure']),
+    spellDraw: json['spellDraw'] == true,
   );
 
   Map<String, dynamic> toJson() => {
@@ -49,6 +55,7 @@ class QuestPrizes extends Equatable {
     "randomLoot": randomLoot,
     "pet": pet?.id,
     "cure": cure?.toJson(),
+    "spellDraw": spellDraw,
   };
 
   QuestPrizes copyWith({
@@ -58,6 +65,7 @@ class QuestPrizes extends Equatable {
     AssetItem? prizeItem,
     Pet? pet,
     QuestCure? cure,
+    bool? spellDraw,
   }) {
     return QuestPrizes(
       randomLoot: randomLoot ?? this.randomLoot,
@@ -66,6 +74,7 @@ class QuestPrizes extends Equatable {
       prizeItem: prizeItem ?? this.prizeItem,
       pet: pet ?? this.pet,
       cure: cure ?? this.cure,
+      spellDraw: spellDraw ?? this.spellDraw,
     );
   }
 
@@ -77,6 +86,7 @@ class QuestPrizes extends Equatable {
     prizeItem,
     pet,
     cure,
+    spellDraw,
   ];
 }
 
