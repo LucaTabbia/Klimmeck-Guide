@@ -61,9 +61,9 @@ created: 2026-11-15
 | 23-08-01 | 08 | 8 | ORIGIN-06 | T-23-31, T-23-33 | names only, no secrets | docs | `gate re-check of 23-08 + secrets grep = 0` | ❌ created in Task 1 | ⬜ pending |
 | 23-08-02 | 08 | 8 | ORIGIN-01..ORIGIN-05 | T-23-34, T-23-35 | rank floor and origin pool seen on the device | manual | `23-HUMAN-UAT.md steps 1–8` | ❌ created in 23-08 | ⬜ pending |
 | 23-08-03 | 08 | 8 | ORIGIN-01..ORIGIN-06 | T-23-32 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 23-HUMAN-UAT.md` | — | ⬜ pending |
-| 23-09-01 | 09 | 8 | ORIGIN-07, ORIGIN-08 | T-23-36 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-8] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 8)` | ✅ | ⬜ pending |
-| 23-09-02 | 09 | 8 | ORIGIN-02 | T-23-37 | served level printed only; no learn time | unit + widget | `flutter test test/utils/spell_lines_test.dart test/shared/components/spell_info_test.dart` | ✅ extend | ⬜ pending |
-| 23-09-03 | 09 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-09-01 | 09 | 8 | ORIGIN-07, ORIGIN-08 | T-23-36 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-8] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 8)` | ✅ | ✅ green |
+| 23-09-02 | 09 | 8 | ORIGIN-02 | T-23-37 | served level printed only; no learn time | unit + widget | `flutter test test/utils/spell_lines_test.dart test/shared/components/spell_info_test.dart` | ✅ extend | ✅ green |
+| 23-09-03 | 09 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 14" .planning/STATE.md` | — | ✅ green |
 | 23-10-01 | 10 | 9 | ORIGIN-07 | T-23-38 | lenient learning spell and spell draw; no exception | unit | `flutter test test/models test/graphql` | ✅ extend | ⬜ pending |
 | 23-10-02 | 10 | 9 | ORIGIN-08 | T-23-38, T-23-39, T-23-40 | lenient spell found and failed research; nothing selected | unit | `flutter test test/models test/graphql` | ✅ extend | ⬜ pending |
 | 23-10-03 | 10 | 9 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?9 of 14" .planning/STATE.md` | — | ⬜ pending |
