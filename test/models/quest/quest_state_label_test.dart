@@ -119,20 +119,63 @@ void main() {
     expect(questStateLabel(lane(), null), 'In corso…');
   });
 
-  test(
-    'a started arcane quest reads like a study (quick 261110-mag, D-20)',
-    () {
+  test('a started school quest reads the research part (D-26, D-32)', () {
+    for (final type in ['arcane', 'shamanic', 'void']) {
       expect(
-        questStateLabel(lane(), buildQuest(type: 'arcane')),
-        questStateLabel(lane(), buildQuest(type: 'study')),
+        questStateLabel(lane(), buildQuest(type: type)),
+        'Ricercando…',
+        reason: type,
       );
-      expect(questStateLabel(lane(), buildQuest(type: 'arcane')), 'Studiando…');
-    },
-  );
+    }
+  });
 
-  test('a started rite reads like a study (D-09, Pitfall 3)', () {
-    expect(questStateLabel(lane(), buildQuest(type: 'shamanic')), 'Studiando…');
-    expect(questStateLabel(lane(), buildQuest(type: 'void')), 'Studiando…');
+  test('a started study quest reads the research part only with a spell '
+      'draw (D-26)', () {
+    expect(
+      questStateLabel(
+        lane(),
+        buildQuest(type: 'study', prizes: {'spellDraw': true}),
+      ),
+      'Ricercando…',
+    );
+    expect(
+      questStateLabel(lane(), buildQuest(type: 'study', prizes: {})),
+      'Studiando…',
+    );
+  });
+
+  test('the learning part reads its own label and wins over the research '
+      '(D-26)', () {
+    final learning = PendingQuest.fromJson(
+      laneJson()
+        ..['learningSpell'] = {'id': 's-1', 'name': 'Dardo'}
+        ..['waitingTime'] = 1800000,
+    );
+    expect(
+      questStateLabel(learning, buildQuest(type: 'arcane')),
+      'Apprendimento…',
+    );
+    expect(questStateLabel(learning, null), 'Apprendimento…');
+  });
+
+  test('travelling and waiting win over the parts (D-26)', () {
+    expect(
+      questStateLabel(lane(startDate: null), buildQuest(type: 'arcane')),
+      'In viaggio',
+    );
+    expect(
+      questStateLabel(
+        waiting(),
+        buildQuest(
+          type: 'study',
+          prizes: {'spellDraw': true},
+          slots: [
+            {'title': null, 'count': 2},
+          ],
+        ),
+      ),
+      startsWith('In attesa del gruppo'),
+    );
   });
 
   test('a started lane keeps the per-type label even with arrivedAt', () {
