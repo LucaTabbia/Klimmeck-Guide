@@ -2,7 +2,7 @@
 phase: 23
 slug: spell-origins-void-and-shamanic-quests
 status: draft
-nyquist_compliant: true
+nyquist_compliant: false
 wave_0_complete: true
 created: 2026-11-15
 ---
@@ -61,6 +61,24 @@ created: 2026-11-15
 | 23-08-01 | 08 | 8 | ORIGIN-06 | T-23-31, T-23-33 | names only, no secrets | docs | `gate re-check of 23-08 + secrets grep = 0` | ❌ created in Task 1 | ⬜ pending |
 | 23-08-02 | 08 | 8 | ORIGIN-01..ORIGIN-05 | T-23-34, T-23-35 | rank floor and origin pool seen on the device | manual | `23-HUMAN-UAT.md steps 1–8` | ❌ created in 23-08 | ⬜ pending |
 | 23-08-03 | 08 | 8 | ORIGIN-01..ORIGIN-06 | T-23-32 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 23-HUMAN-UAT.md` | — | ⬜ pending |
+| 23-09-01 | 09 | 8 | ORIGIN-07, ORIGIN-08 | T-23-36 | requirements Pending only; no mark-complete | docs | `grep -cE '^\| ORIGIN-0[1-8] \| Phase 23 \| Pending \|$' .planning/REQUIREMENTS.md (= 8)` | ✅ | ⬜ pending |
+| 23-09-02 | 09 | 8 | ORIGIN-02 | T-23-37 | served level printed only; no learn time | unit + widget | `flutter test test/utils/spell_lines_test.dart test/shared/components/spell_info_test.dart` | ✅ extend | ⬜ pending |
+| 23-09-03 | 09 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-10-01 | 10 | 9 | ORIGIN-07 | T-23-38 | lenient learning spell and spell draw; no exception | unit | `flutter test test/models test/graphql` | ✅ extend | ⬜ pending |
+| 23-10-02 | 10 | 9 | ORIGIN-08 | T-23-38, T-23-39, T-23-40 | lenient spell found and failed research; nothing selected | unit | `flutter test test/models test/graphql` | ✅ extend | ⬜ pending |
+| 23-10-03 | 10 | 9 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?9 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-11-01 | 11 | 10 | ORIGIN-07 | T-23-42 | part labels from served facts only | unit + bloc | `flutter test test/utils test/models/quest test/screens/mainScreen/tabs/map` | ❌ W0 + ✅ extend | ⬜ pending |
+| 23-11-02 | 11 | 10 | ORIGIN-07 | T-23-41, T-23-43 | countdown on the server clock; display only | unit + bloc | `flutter test test/utils test/models/quest test/screens/mainScreen/tabs/map` | ❌ W0 | ⬜ pending |
+| 23-11-03 | 11 | 10 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 10 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-12-01 | 12 | 11 | ORIGIN-07 | — | countdown owned by the Map; no blocking loading | widget | `flutter test test/screens/mainScreen/tabs/map` | ✅ extend | ⬜ pending |
+| 23-12-02 | 12 | 11 | ORIGIN-07 | — | pawn and overlay labels of the two parts | widget | `flutter test test/screens/mainScreen/tabs/map` | ✅ extend | ⬜ pending |
+| 23-12-03 | 12 | 11 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 11 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-13-01 | 13 | 12 | ORIGIN-08 | — | result sheets printed from served facts | widget | `flutter test test/utils test/shared/components/popup` | ✅ extend | ⬜ pending |
+| 23-13-02 | 13 | 12 | ORIGIN-08 | — | research pushes open the result like questEnd | unit | `flutter test test/models test/repository/services/push test/screens/mainScreen/components` | ✅ extend | ⬜ pending |
+| 23-13-03 | 13 | 12 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 12 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-14-01 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-14 + flutter test test/graphql` | ✅ extend | ⬜ pending |
+| 23-14-02 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | every document valid on the BE SDL | gate | `schema check 55 × OK + full suite` | ✅ | ⬜ pending |
+| 23-14-03 | 14 | 13 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 13 of 14" .planning/STATE.md` | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
