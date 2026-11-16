@@ -709,6 +709,127 @@ void main() {
     });
   });
 
+  group('research outcome (Phase 23 D-29, D-31)', () {
+    String? textOf(WidgetTester tester, Key key) =>
+        tester.widget<Text>(find.byKey(key)).data;
+
+    testWidgets(
+      'a research with a spell found shows the spell and its learning time (D-31)',
+      (tester) async {
+        await _pump(
+          tester,
+          questResult(
+            questResultJson(
+              questType: 'arcane',
+              spellFound: const {
+                'id': 's-1',
+                'name': 'Dardo',
+                'requiredLearnTime': 1800000,
+              },
+            ),
+          ),
+        );
+
+        expect(
+          textOf(tester, QuestResultSheet.spellFoundKey),
+          'Magia scoperta: Dardo',
+        );
+        expect(
+          textOf(tester, QuestResultSheet.spellLearningTimeKey),
+          'Tempo di apprendimento: 30 min',
+        );
+        expect(find.byKey(QuestResultSheet.spellLearnedKey), findsNothing);
+      },
+    );
+
+    testWidgets('a failed research says that no spell was found (D-29)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(questType: 'arcane', spellResearchFailed: true),
+        ),
+      );
+
+      expect(
+        textOf(tester, QuestResultSheet.spellResearchFailedKey),
+        'La ricerca non ha rivelato alcuna magia',
+      );
+      expect(find.byKey(QuestResultSheet.spellFoundKey), findsNothing);
+    });
+
+    testWidgets('an ordinary result shows none of the research lines', (
+      tester,
+    ) async {
+      await _pump(tester, questResult(questResultJson()));
+
+      expect(find.byKey(QuestResultSheet.spellFoundKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.spellLearningTimeKey), findsNothing);
+      expect(find.byKey(QuestResultSheet.spellResearchFailedKey), findsNothing);
+    });
+
+    testWidgets(
+      'the sheet at the end of the learning shows only the spell and its lore (D-31)',
+      (tester) async {
+        await _pump(
+          tester,
+          questResult(
+            questResultJson(
+              questType: 'arcane',
+              hpBefore: 640,
+              hpAfter: 640,
+              injuriesAdded: const [],
+              consumablesUsed: const [],
+              spellsUsed: const [],
+              coins: const {'gold': 0, 'silver': 0, 'copper': 0},
+              rewardItems: const [],
+              xpBefore: 260,
+              xpGained: 0,
+              xpAfter: 260,
+              levelBefore: 2,
+              levelAfter: 2,
+              spellLearned: const {'id': 's-1', 'name': 'Dardo'},
+              loreUnlocked: [loreRefJson()],
+              enemies: const [],
+            ),
+          ),
+        );
+
+        expect(
+          textOf(tester, QuestResultSheet.spellLearnedKey),
+          'Magia appresa: Dardo',
+        );
+        expect(
+          find.byKey(QuestResultSheet.loreUnlockedKeyOf('lore-goblin')),
+          findsOneWidget,
+        );
+        for (final key in [
+          QuestResultSheet.hpKey,
+          QuestResultSheet.rewardsKey,
+          QuestResultSheet.xpKey,
+          QuestResultSheet.levelKey,
+          QuestResultSheet.injuriesKey,
+        ]) {
+          expect(find.byKey(key), findsNothing, reason: '$key');
+        }
+        expect(find.byKey(QuestResultSheet.headerKey), findsOneWidget);
+        expect(find.byKey(QuestResultSheet.questTypeKey), findsOneWidget);
+        expect(find.byKey(QuestResultSheet.continueKey), findsOneWidget);
+      },
+    );
+
+    testWidgets('an ordinary success with unchanged life still shows its life '
+        'bar', (tester) async {
+      await _pump(
+        tester,
+        questResult(questResultJson(hpBefore: 640, hpAfter: 640)),
+      );
+
+      expect(find.byKey(QuestResultSheet.hpKey), findsOneWidget);
+    });
+  });
+
   group('counter', () {
     testWidgets('shows «k di N» in a queue', (tester) async {
       await _pump(
