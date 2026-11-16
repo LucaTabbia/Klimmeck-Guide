@@ -61,6 +61,13 @@ class QuestResultSheet extends StatefulWidget {
   static const Key companionXpKey = ValueKey('questResult.companionXp');
   static const Key levelKey = ValueKey('questResult.level');
   static const Key titleKey = ValueKey('questResult.title');
+  static const Key spellFoundKey = ValueKey('questResult.spellFound');
+  static const Key spellLearningTimeKey = ValueKey(
+    'questResult.spellLearningTime',
+  );
+  static const Key spellResearchFailedKey = ValueKey(
+    'questResult.spellResearchFailed',
+  );
   static const Key spellLearnedKey = ValueKey('questResult.spellLearned');
   static const Key rescuedKey = ValueKey('questResult.rescued');
 
@@ -208,6 +215,15 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ),
         ..._line(_levelText(), QuestResultSheet.levelKey),
         ..._line(_titleText(), QuestResultSheet.titleKey),
+        ..._line(spellFoundLine(_result), QuestResultSheet.spellFoundKey),
+        ..._line(
+          spellLearningTimeLine(_result),
+          QuestResultSheet.spellLearningTimeKey,
+        ),
+        ..._line(
+          spellResearchFailedLine(_result),
+          QuestResultSheet.spellResearchFailedKey,
+        ),
         ..._line(_spellLearnedText(), QuestResultSheet.spellLearnedKey),
         ..._loreUnlockedLines(),
         ..._line(_rescuedText(), QuestResultSheet.rescuedKey),
@@ -319,8 +335,11 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     ];
   }
 
+  /// Foglio della fine dell'apprendimento (D-31): nessuna vita da mostrare.
   List<Widget> _hp() {
-    if (_result.outcome == QuestOutcome.rescued || _result.isDeath) {
+    if (_result.outcome == QuestOutcome.rescued ||
+        _result.isDeath ||
+        _result.isLearningEnd) {
       return const [];
     }
     final before = _result.hpBefore;

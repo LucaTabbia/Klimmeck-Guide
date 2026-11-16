@@ -9,6 +9,8 @@ import 'package:klimmeck_guide/utils/game_duration_format.dart';
 // Copy provvisoria (quick 261110-cgd): righe del foglio esiti per l'arresto
 // della crime e lo scontro della guard. Il FE non ricava nulla: la durata
 // della prigione arriva dallo stato, le monete raddoppiate sono già nei premi.
+// Righe della «Fase di ricerca» (Phase 23 D-29, D-31): magia scoperta, tempo
+// di apprendimento, ricerca senza esito.
 
 const String confiscatedCoinsTitle = 'Monete confiscate';
 
@@ -68,6 +70,29 @@ String? companionDefeatResultLine(
   final rest = formatGameDuration(fullLifeAt.difference(resolvedAt));
   return '$defeat: riposa e tornerà fra $rest';
 }
+
+/// «Magia scoperta: Dardo» (D-31): il FE stampa il servito, non calcola.
+String? spellFoundLine(QuestResult result) {
+  final spell = result.spellFound;
+  if (spell == null) return null;
+  final name = spell.name?.trim() ?? '';
+  return name.isEmpty ? 'Magia scoperta' : 'Magia scoperta: $name';
+}
+
+/// Durata dell'apprendimento della magia scoperta (D-31), da
+/// `requiredLearnTime` in ms: il FE stampa il servito, non calcola.
+String? spellLearningTimeLine(QuestResult result) {
+  final milliseconds = result.spellFound?.requiredLearnTime;
+  if (milliseconds == null || milliseconds <= 0) return null;
+  return 'Tempo di apprendimento: '
+      '${formatGameDuration(Duration(milliseconds: milliseconds))}';
+}
+
+/// Ricerca senza magia (D-29): il FE stampa il servito, non calcola.
+String? spellResearchFailedLine(QuestResult result) =>
+    result.spellResearchFailed
+    ? 'La ricerca non ha rivelato alcuna magia'
+    : null;
 
 const String onFootLine = 'Prosegui a piedi';
 
