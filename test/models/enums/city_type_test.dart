@@ -9,11 +9,13 @@ void main() {
     ]);
   });
 
-  test('the two new capitals use the Talmvere marker size (D-16)', () {
-    expect(CityType.aarakocraCapital.size, 39);
-    expect(CityType.dragonbornCapital.size, 39);
-    expect(CityType.aarakocraCapital.size, CityType.talmvereVillage.size);
-    expect(CityType.dragonbornCapital.size, CityType.talmvereVillage.size);
+  test('the two new capitals stand a little larger than Talmvere (D-16)', () {
+    expect(CityType.aarakocraCapital.size, 46);
+    expect(CityType.dragonbornCapital.size, 46);
+    expect(
+      CityType.aarakocraCapital.size,
+      greaterThan(CityType.talmvereVillage.size),
+    );
   });
 
   test('the dragonborn village uses the village marker size (D-16)', () {
