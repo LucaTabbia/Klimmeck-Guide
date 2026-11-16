@@ -208,7 +208,7 @@ _Amended 2026-11-15 (D-01, D-20..D-24 of `23-CONTEXT.md`): the origin `magic` re
   3. Murnborim and Thengran are on the Map at every zoom at the size of Talmvere, Veg Faldir from the village zoom, Balkuldir with its new drawing.
   4. The first spell learned of an origin shows its lore unlock on the result sheet and in the Library.
   5. Schema check green on the merged BE Phase 24 SDL (with BE PR #43) and device E2E passed.
-**Plans**: 8 plans (sequential waves; 01–06 work against today's BE, 07–08 gated by the BE Phase 24 merge)
+**Plans**: 14 plans (sequential waves; 01–06 work against today's BE, 07 gated by the BE Phase 24 merge; 09–14 added on 2026-11-16 for the research and learning parts, D-26..D-31 — 09–13 work against any BE, 14 gated by the BE research block; 08 runs LAST, after 14)
 
 Plans:
 - [x] 23-01-PLAN.md — Requirements and the quest type wire boundary (wireName / fromWire)
@@ -218,7 +218,13 @@ Plans:
 - [x] 23-05-PLAN.md — Asset ids: the aarakocra village redrawn, audit of the eight sheet and city ids
 - [x] 23-06-PLAN.md — Origin drawing: icon ids, origin first on the spell card, origin row in the details
 - [x] 23-07-PLAN.md — Gate: schema, origin and minimum level selected, schema check, full suite (after the BE Phase 24 merge)
-- [ ] 23-08-PLAN.md — Device E2E, handoff and closing (after the BE Phase 24 merge, human)
+- [ ] 23-09-PLAN.md — Research and learning requirements; the learn time leaves the spell details (D-28)
+- [ ] 23-10-PLAN.md — Models: learning spell on the lane, spell draw, spell found and failed research (lenient, unselected)
+- [ ] 23-11-PLAN.md — «Fase di ricerca» and learning copy rules, the learning countdown cubit
+- [ ] 23-12-PLAN.md — Map: learning countdown owned by the Map, pawn and overlay labels of the two parts
+- [ ] 23-13-PLAN.md — Result sheets of a research and of the learning end; research pushes handled as quest ends
+- [ ] 23-14-PLAN.md — Gate: research fields on the BE SDL, selections, schema check, full suite (after BE plans 24-13..24-18)
+- [ ] 23-08-PLAN.md — Device E2E, handoff and closing (LAST: after 23-14 and the BE Phase 24 merge, human)
 
 ## Progress
 
@@ -246,7 +252,7 @@ Plans:
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
-| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 7/8 | In Progress | - |
+| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 7/14 | In Progress | - |
 
 ---
 
