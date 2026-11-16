@@ -16,10 +16,11 @@ const _blankSpell = Spell(
   id: 'spell-blank',
   name: null,
   description: null,
+  origin: null,
   useType: null,
   energyDamage: null,
   requiredLearnTime: null,
-  minXpToLearn: null,
+  minLevelToLearn: null,
   recoveryTime: null,
   maxUsages: null,
 );
@@ -46,28 +47,75 @@ Future<void> _pump(
 
 void main() {
   setUp(
-    () =>
-        seedSvgCache([CloudinaryAssets.fireEnergy, CloudinaryAssets.attackUse]),
+    () => seedSvgCache([
+      CloudinaryAssets.fireEnergy,
+      CloudinaryAssets.attackUse,
+      CloudinaryAssets.arcaneOrigin,
+      CloudinaryAssets.shamanicOrigin,
+      CloudinaryAssets.voidOrigin,
+    ]),
   );
 
-  testWidgets('shows every detail of a recovering spell', (tester) async {
+  testWidgets(
+    'the origin row sits before the use row with its icon (D-05, D-06)',
+    (tester) async {
+      await _pump(
+        tester,
+        Spell.fromJson(spellJson(origin: 'shamanic')),
+        usages: 1,
+        recovery: const SpellRecoveryFull(),
+      );
+
+      final origin = find.text('Origine: Sciamanica');
+      expect(origin, findsOneWidget);
+      expect(find.byType(CachedSvg), findsNWidgets(3));
+      expect(
+        tester.getTopLeft(origin).dy,
+        lessThan(tester.getTopLeft(find.text('Uso: Attacco')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Dardo di fuoco')).dy,
+        lessThan(tester.getTopLeft(origin).dy),
+      );
+    },
+  );
+
+  testWidgets('a spell without origin shows no origin row (D-05)', (
+    tester,
+  ) async {
     await _pump(
       tester,
       _fireDart,
       usages: 1,
-      recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
+      recovery: const SpellRecoveryFull(),
     );
 
-    expect(find.text('Dardo di fuoco'), findsOneWidget);
-    expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
-    expect(find.text('Attacco: Fuoco 12'), findsOneWidget);
-    expect(find.text('Uso: Attacco'), findsOneWidget);
-    expect(find.text('Usi massimi: 3'), findsOneWidget);
-    expect(find.text('Recupero: 2 h'), findsOneWidget);
-    expect(find.text('Per impararla: 100 XP · 1 h di studio'), findsOneWidget);
-    expect(find.text('Usi: 1/3 · prossimo tra 12 min'), findsOneWidget);
+    expect(find.textContaining('Origine'), findsNothing);
     expect(find.byType(CachedSvg), findsNWidgets(2));
   });
+
+  testWidgets(
+    'shows every detail of a recovering spell, no learn time (D-28)',
+    (tester) async {
+      await _pump(
+        tester,
+        Spell.fromJson(spellJson(minLevelToLearn: 6)),
+        usages: 1,
+        recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
+      );
+
+      expect(find.text('Dardo di fuoco'), findsOneWidget);
+      expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
+      expect(find.text('Attacco: Fuoco 12'), findsOneWidget);
+      expect(find.text('Uso: Attacco'), findsOneWidget);
+      expect(find.text('Usi massimi: 3'), findsOneWidget);
+      expect(find.text('Recupero: 2 h'), findsOneWidget);
+      expect(find.text('Per impararla: Livello 6'), findsOneWidget);
+      expect(find.textContaining('di studio'), findsNothing);
+      expect(find.text('Usi: 1/3 · prossimo tra 12 min'), findsOneWidget);
+      expect(find.byType(CachedSvg), findsNWidgets(2));
+    },
+  );
 
   testWidgets('a full spell shows only its usages as current line', (
     tester,

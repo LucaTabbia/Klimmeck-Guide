@@ -105,18 +105,38 @@ void main() {
       );
     });
 
-    test('magic is a repeatable standard-lane quest (quick 261110-mag)', () {
-      expect(laneOf(QuestType.magic), QuestLane.standard);
-      expect(nonRepeatableQuestTypes, isNot(contains(QuestType.magic)));
-      expect(registeredQuestTypes, isNot(contains(QuestType.magic)));
+    test('the rites are repeatable standard-lane quests without registration '
+        '(D-09)', () {
       final viewer = buildViewer(
         quests: buildLanes(completedQuestIds: ['q-1']),
       );
-      expect(
-        availabilityOf(buildQuest(type: 'magic'), viewer),
-        QuestAvailability.available,
-      );
+      for (final type in [QuestType.shamanic, QuestType.theVoid]) {
+        expect(laneOf(type), QuestLane.standard, reason: type.name);
+        expect(nonRepeatableQuestTypes, isNot(contains(type)));
+        expect(registeredQuestTypes, isNot(contains(type)));
+        expect(
+          availabilityOf(buildQuest(type: type.wireName), viewer),
+          QuestAvailability.available,
+          reason: type.name,
+        );
+      }
     });
+
+    test(
+      'arcane is a repeatable standard-lane quest (quick 261110-mag, D-20)',
+      () {
+        expect(laneOf(QuestType.arcane), QuestLane.standard);
+        expect(nonRepeatableQuestTypes, isNot(contains(QuestType.arcane)));
+        expect(registeredQuestTypes, isNot(contains(QuestType.arcane)));
+        final viewer = buildViewer(
+          quests: buildLanes(completedQuestIds: ['q-1']),
+        );
+        expect(
+          availabilityOf(buildQuest(type: 'arcane'), viewer),
+          QuestAvailability.available,
+        );
+      },
+    );
 
     test('story needs the exact title', () {
       final quest = buildQuest(
@@ -402,9 +422,27 @@ void main() {
       });
     });
 
+    test('a rite above the viewer title is torn and whole once the rank is '
+        'reached (D-11)', () {
+      for (final type in ['shamanic', 'void']) {
+        final below = standingOf(
+          buildQuest(type: type, minTitle: 'mage'),
+          buildViewer(title: TitleType.paladin),
+        );
+        final reached = standingOf(
+          buildQuest(type: type, minTitle: 'mage'),
+          buildViewer(title: TitleType.mage),
+        );
+        expect(below.availability, QuestAvailability.titleMismatch);
+        expect(below.isTorn, isTrue, reason: type);
+        expect(reached.availability, QuestAvailability.available);
+        expect(reached.isTorn, isFalse, reason: type);
+      }
+    });
+
     test('a quest above the viewer title is torn (quick 261110-mag)', () {
       final standing = standingOf(
-        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildQuest(type: 'arcane', minTitle: 'mage'),
         buildViewer(title: TitleType.paladin),
       );
       expect(standing.availability, QuestAvailability.titleMismatch);
@@ -414,7 +452,7 @@ void main() {
     test('the same quest is whole once the title is reached '
         '(quick 261110-mag)', () {
       final standing = standingOf(
-        buildQuest(type: 'magic', minTitle: 'mage'),
+        buildQuest(type: 'arcane', minTitle: 'mage'),
         buildViewer(title: TitleType.mage),
       );
       expect(standing.availability, QuestAvailability.available);
@@ -448,7 +486,7 @@ void main() {
       final viewer = buildViewer(
         quests: buildLanes(pendingQuest: laneJson(questId: 'other')),
       );
-      final standing = standingOf(buildQuest(type: 'magic'), viewer);
+      final standing = standingOf(buildQuest(type: 'arcane'), viewer);
       expect(standing.availability, QuestAvailability.laneBusy);
       expect(standing.isTorn, isFalse);
     });
@@ -666,10 +704,10 @@ void main() {
   group('mission in progress (Phase 21)', () {
     Quest acceptableQuestOf(QuestType type) => switch (type) {
       QuestType.story || QuestType.worldMission => buildQuest(
-        type: type.name,
+        type: type.wireName,
         requiredPoints: 100,
       ),
-      _ => buildQuest(type: type.name),
+      _ => buildQuest(type: type.wireName),
     };
 
     test('every quest type is blocked while a mission is in progress '

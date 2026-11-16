@@ -1,20 +1,27 @@
+import 'package:klimmeck_guide/utils/mission_lines.dart';
+
 import '../enums/quest_type.dart';
 import '../pending_quest.dart';
 import 'quest.dart';
 import 'quest_capacity.dart';
+import 'spell_research.dart';
 
-/// Etichetta di stato del foglio sulla mappa (D-15): nessun countdown.
+/// Etichetta di stato del foglio sulla mappa (D-15): nessun countdown; le due
+/// parti di una quest col sorteggio (D-26) hanno la loro etichetta.
 String questStateLabel(PendingQuest lane, Quest? quest) {
   if (lane.isTravelling) return 'In viaggio';
   if (lane.isWaitingForParty && !_isSolo(quest)) return _waitingLabel(quest);
-  return switch (quest?.infos?.type) {
+  if (lane.isLearning) return spellLearningPaperLabel;
+  final type = quest?.infos?.type;
+  if (isSpellResearchQuest(type, quest?.prizes)) return spellResearchLabel;
+  return switch (type) {
     QuestType.enemy || QuestType.boss => 'In combattimento…',
     QuestType.hunt => 'Cacciando…',
     QuestType.dungeon => 'Esplorando…',
     QuestType.job => 'Lavorando…',
     QuestType.heal => 'Guarendo…',
     QuestType.aid => 'Aiutando…',
-    QuestType.study || QuestType.magic => 'Studiando…',
+    QuestType.study => 'Studiando…',
     _ => 'In corso…',
   };
 }

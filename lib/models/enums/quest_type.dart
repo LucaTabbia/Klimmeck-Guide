@@ -9,13 +9,19 @@ enum QuestType {
   dungeon(imageId: CloudinaryAssets.dungeonPawn),
   story(imageId: CloudinaryAssets.storyPawn),
   study(imageId: ''),
-  magic(imageId: ''),
+  arcane(imageId: ''),
+  shamanic(imageId: ''),
+
+  /// `void` è una parola riservata in Dart: il valore attraversa il filo come
+  /// `void` (D-09).
+  theVoid(imageId: '', wireName: 'void'),
   heal(imageId: ''),
   job(imageId: ''),
   crime(imageId: ''),
   guard(imageId: '');
 
   final String _imageId;
+  final String? _wireName;
 
   String get imagePath =>
       _imageId.isEmpty ? '' : CloudinaryAssets.url(_imageId);
@@ -30,12 +36,32 @@ enum QuestType {
     QuestType.dungeon => 'Dungeon',
     QuestType.story => 'Storia',
     QuestType.study => 'Studio',
-    QuestType.magic => 'Magia',
+    QuestType.arcane => 'Magia',
+    QuestType.shamanic => 'Rito sciamanico',
+    QuestType.theVoid => 'Rito del Vuoto',
     QuestType.heal => 'Cura',
     QuestType.job => 'Lavoro',
     QuestType.crime => 'Crimine',
     QuestType.guard => 'Guardia',
   };
 
-  const QuestType({required String imageId}) : _imageId = imageId;
+  const QuestType({required String imageId, String? wireName})
+    : _imageId = imageId,
+      _wireName = wireName;
+
+  /// Nome del tipo sul filo: l'unico modo in cui il tipo attraversa il confine
+  /// col backend, in lettura e in scrittura.
+  String get wireName => _wireName ?? name;
+
+  /// Nome con cui il backend serviva il tipo `arcane` prima della BE Phase 24
+  /// (D-20): solo letto, mai scritto.
+  static const String _legacyArcaneWireName = 'magic';
+
+  static QuestType? fromWire(Object? value) {
+    if (value == _legacyArcaneWireName) return arcane;
+    for (final type in values) {
+      if (type.wireName == value) return type;
+    }
+    return null;
+  }
 }

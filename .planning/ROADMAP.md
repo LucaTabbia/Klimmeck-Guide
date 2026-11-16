@@ -7,7 +7,7 @@
 ## Milestones
 
 - ✅ **v1.0 Core Loop** — Phases 1–17 (shipped 2026-11-10) — [roadmap archive](milestones/v1.0-ROADMAP.md) · [requirements archive](milestones/v1.0-REQUIREMENTS.md) · [summary](MILESTONES.md)
-- 🚧 **v1.1 Healing & Models** — Phases 18–22 (started 2026-11-10; Phase 22 — companion defeat, rest and recovery — added 2026-11-14 and complete 2026-11-15; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 planned and complete 2026-11-14) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
+- 🚧 **v1.1 Healing & Models** — Phases 18–23 (started 2026-11-10; Phase 23 — spell origins, void and shamanic quests — added 2026-11-15 and complete 2026-11-16; Phase 22 — companion defeat, rest and recovery — added 2026-11-14 and complete 2026-11-15; Phases 18–19 complete 2026-11-11; Phase 20 — rank-specific prizes for group quests — and Phase 21 — innkeeper mission completion flow — added 2026-11-11; Phase 20 planned and complete 2026-11-13, Phase 21 planned and complete 2026-11-14) — heal quests by city size with the Journal potions (↔ BE Phase 18) and the model review companion (↔ BE Phase 19); BE Phase 20 (progressive travel food and life) has no FE phase
 
 ## Phases
 
@@ -45,6 +45,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 20: Rank-Specific Prizes for Group Quests** — A group quest carries a prize for each rank that can join it: the adventurer gets a prize fit for an adventurer, the mage in the same quest a prize fit for a mage; backend-owned, the sheets show the viewer the prize of their own rank. Needs a BE companion phase. _(added 2026-11-11)_ (completed 2026-11-13)
 - [x] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11; completed 2026-11-14)_
 - [x] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14; completed 2026-11-15)_
+- [x] **Phase 23: Spell Origins, Void and Shamanic Quests** — Every spell carries a macro-class on top of its use and energy (origin → use → energy; origins: `void`, `arcane`, `shamanic`); two new quest types, `shamanic` and `void`, work exactly like the `arcane` quest (renamed from `magic`, label «Magia») and teach a spell of their own origin (before, that quest taught them all), with the four new sheet assets; the `void` quest lives only in Necrorian, the `shamanic` quest in the two new capitals (`aarakocraCapital`, `dragonbornCapital`, drawn on the map at the size of Talmvere), both from rank mage up; new city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their assets and the `aarakocraVillage` asset replaced; a spell is learned from a minimum character level, no longer a minimum xp. Needs a BE companion phase (BE Phase 24). _(added 2026-11-15)_ (completed 2026-11-16)
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -195,6 +196,37 @@ Plans:
 - [x] 22-16-PLAN.md — Gate: schema, gated selections, UseItem target, switch (after the BE Phase 23 merge)
 - [x] 22-17-PLAN.md — Device E2E, handoff and closing (after the BE Phase 23 merge, human)
 
+### Phase 23: Spell Origins, Void and Shamanic Quests
+**Goal**: The spells get a macro-class and two new schools of quests. User's words (2026-11-15): «Le magie devono avere una macroclasse (ovvero origin->use->energy). Le origini sono 3: void, magic e shamanic»; every spell at DB is reviewed and given the right origin from its description, and the DB is filled with new spells where some are missing; «Poi dovremo aggiungere due tipi di quest: shamanic e void. Funzioneranno esattamente come la missione magic. Ognuna di loro insegnerà una magia sulla base del tipo (adesso magic le insegna tutte)»; the `void` quest only in Necrorian («nessuna quest a Necrorian dovrebbe venir creata con rango minimo inferiore a mage»); the `shamanic` quest in the two new capitals, acceptable from rank mage up; city `690961bfe74c2f6dfc837d8f` is now `aarakocraCapital`, `690961bf1bf8bb61e5f6af2f` is `dragonbornVillage`, `690961bf31795cde80768bc7` is `dragonbornCapital` (the two capitals have size `capital` and the map size of Talmvere); «Le magie non devono più avere un minimo xp per impararle, ma un minimo livello» (the parameter is reviewed against the character level table). The backend stays the source of truth: origin, teaching rule, quest generation and the level gate are server-side; the app shows the origin, the new quest sheets and the new city types.
+_Amended 2026-11-15 (D-01, D-20..D-24 of `23-CONTEXT.md`): the origin `magic` reads `arcane`, and the quest type `magic` is renamed `arcane` too (label «Magia» kept, the three school types are `arcane`, `shamanic`, `void`); the eleven Cloudinary ids are given (no stand-in ids); learning the first spell of an origin unlocks the lore of that origin (server-side, shown by the existing lore-unlock path); the heal quests and shops of the two new capitals are those of a city and the lore of the three cities is rewritten (DB content)._
+**Depends on**: Phase 8 (spells in the Journal), Phase 14 (generated quests and their sheets), Phase 6 (quest sheets), Phase 7 (map and city markers), Phase 22, a BE companion phase (BE Phase 24 «Origini delle magie, quest void e shamanic»)
+**Scope**: decisions D-01..D-31 of `23-CONTEXT.md` (interactive discuss of 2026-11-15, joint with BE Phase 24, amended after the research); BE companion: BE Phase 24 «Origini delle magie, quest void e shamanic». No UI phase.
+**Requirements**: ORIGIN-01, ORIGIN-02, ORIGIN-03, ORIGIN-04, ORIGIN-05, ORIGIN-06, ORIGIN-07, ORIGIN-08
+**Success Criteria** (what must be TRUE):
+  1. Every spell card shows the origin icon before use and energy and the spell details read «Origine: …» and «Per impararla: Livello N»; «XP» appears nowhere on a spell and the app compares the level with nothing.
+  2. The Board and the Map draw «Rito sciamanico» and «Rito del Vuoto» on their own sheets, torn until the rank, «Ricercando…» while the research runs, exactly like the arcane quest («Magia»), whose stored type `magic` is still read.
+  3. Murnborim and Thengran are on the Map at every zoom at the size of Talmvere, Veg Faldir from the village zoom, Balkuldir with its new drawing.
+  4. The first spell learned of an origin shows its lore unlock on the result sheet and in the Library.
+  5. Schema check green on the merged BE Phase 24 SDL (with BE PR #43) and device E2E passed.
+  6. A draw quest reads «Ricercando…» during its «Fase di ricerca», then the name of the spell being learned with its countdown; the research outcome arrives as a result sheet and a push (spell found, or none), and the end of the learning as a second small sheet.
+**Plans**: 14 plans (sequential waves; 01–06 work against today's BE, 07 gated by the BE Phase 24 merge; 09–14 added on 2026-11-16 for the research and learning parts, D-26..D-31 — 09–13 work against any BE, 14 gated by the BE research block; 08 runs LAST, after 14)
+
+Plans:
+- [x] 23-01-PLAN.md — Requirements and the quest type wire boundary (wireName / fromWire)
+- [x] 23-02-PLAN.md — Spell model: origin and minimum level (lenient, unselected), minXpToLearn removed
+- [x] 23-03-PLAN.md — Quest types: magic renamed arcane, the shamanic and void rites with their sheets
+- [x] 23-04-PLAN.md — City types: aarakocraCapital, dragonbornCapital, dragonbornVillage with their markers
+- [x] 23-05-PLAN.md — Asset ids: the aarakocra village redrawn, audit of the eight sheet and city ids
+- [x] 23-06-PLAN.md — Origin drawing: icon ids, origin first on the spell card, origin row in the details
+- [x] 23-07-PLAN.md — Gate: schema, origin and minimum level selected, schema check, full suite (after the BE Phase 24 merge)
+- [x] 23-09-PLAN.md — Research and learning requirements; the learn time leaves the spell details (D-28)
+- [x] 23-10-PLAN.md — Models: learning spell on the lane, spell draw, spell found and failed research (lenient, unselected)
+- [x] 23-11-PLAN.md — «Ricercando…» and learning copy rules, the learning countdown cubit
+- [x] 23-12-PLAN.md — Map: learning countdown owned by the Map, pawn and overlay labels of the two parts
+- [x] 23-13-PLAN.md — Result sheets of a research and of the learning end; research pushes handled as quest ends
+- [x] 23-14-PLAN.md — Gate: research fields on the BE SDL, selections, schema check, full suite (after BE plans 24-13..24-18)
+- [x] 23-08-PLAN.md — Device E2E, handoff and closing (LAST: after 23-14 and the BE Phase 24 merge, human)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -221,6 +253,7 @@ Plans:
 | 20. Rank-Specific Prizes for Group Quests | v1.1 | 4/4 | Complete | 2026-11-13 |
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
+| 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 
 ---
 

@@ -95,6 +95,22 @@ void main() {
       );
     });
 
+    test('the research pushes are quest ends (D-29, D-31)', () {
+      expect(
+        NotificationCategory.fromWireType('spellResearchSucceeded'),
+        NotificationCategory.questEnd,
+      );
+      expect(
+        NotificationCategory.fromWireType('spellResearchFailed'),
+        NotificationCategory.questEnd,
+      );
+      expect(
+        NotificationCategory.fromWireType('ambushDefeat'),
+        NotificationCategory.ambush,
+      );
+      expect(NotificationCategory.fromWireType('spellResearch'), isNull);
+    });
+
     test('returns null for an unknown backend type', () {
       expect(NotificationCategory.fromWireType('combatResult'), isNull);
     });

@@ -4,27 +4,64 @@ import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/quest_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/quest_result_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/spell_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 
+import '../../tool/schema_check/schema_check_documents.dart';
 import '../helpers/fixtures/travel_fixtures.dart';
 
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
 
-  test('selects pendingQuest with timing, arrival, points, quest id and '
-      'quest type (the pawn names the activity, UAT 2026-11-14)', () {
+  test('the standard lane selects the spell being learned (D-26)', () {
     expect(
       fields,
       contains(
         'pendingQuest { id startDate arrivedAt waitingTime pointsSpent '
+        'learningSpell { id name origin requiredLearnTime } '
         'quest { id infos { type } } }',
       ),
     );
+  });
+
+  test('the GM lanes select no learning spell (D-30)', () {
+    expect(
+      fields.split('activeStoryQuest {').last,
+      isNot(contains('learningSpell')),
+    );
+  });
+
+  test('character and characterUpdated carry the learning spell (D-26)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(
+        document.replaceAll(RegExp(r'\s+'), ' '),
+        contains('learningSpell { id name origin requiredLearnTime }'),
+      );
+    }
+  });
+
+  test('a recorded characterUpdated payload parses the learning part '
+      '(D-26)', () {
+    final character = Character.fromJson(
+      travellingCharacterJson(pendingQuest: _recordedLearningLane),
+    );
+    final lane = character.quests!.pendingQuest!;
+
+    expect(lane.isLearning, isTrue);
+    expect(lane.learningSpell!.name, 'Nome A');
+    expect(lane.learningSpell!.origin, SpellOrigin.arcane);
+    expect(lane.learningSpell!.requiredLearnTime, 1800000);
+    expect(lane.learningEndsAt, DateTime.utc(2026, 11, 16, 11, 30));
   });
 
   for (final lane in ['activeStoryQuest', 'activeWorldMissionQuest']) {
@@ -165,6 +202,96 @@ void main() {
       CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
       contains('active spell { $spell } } unlockedLore }'),
     );
+  });
+
+  test('SpellFragment.fields no longer selects minXpToLearn (D-07, '
+      'Pitfall 2)', () {
+    for (final selection in [
+      SpellFragment.fields,
+      CharacterFragment.statusFields,
+      CharacterFragment.assetsFields,
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(selection, isNot(contains('minXpToLearn')));
+    }
+  });
+
+  test('SpellFragment.fields selects origin after description and '
+      'minLevelToLearn after maxUsages (D-01, D-07)', () {
+    expect(
+      SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' '),
+      contains(
+        'description origin useType maxUsages minLevelToLearn '
+        'recoveryTime',
+      ),
+    );
+  });
+
+  test('character and characterUpdated carry origin and minLevelToLearn '
+      '(D-01, D-07)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(document, contains(RegExp(r'\borigin\b')));
+      expect(document, contains('minLevelToLearn'));
+    }
+  });
+
+  test('a recorded characterUpdated payload parses the origin and the '
+      'minimum level of its spells (D-01, D-07)', () {
+    final character = Character.fromJson(_recordedCharacterUpdated);
+    final spells = character.status!.spellStates.map((state) => state.spell);
+
+    expect(spells.map((spell) => spell.origin), [
+      SpellOrigin.theVoid,
+      SpellOrigin.shamanic,
+    ]);
+    expect(spells.map((spell) => spell.minLevelToLearn), [6, 1]);
+  });
+
+  test("no document selects minXpToLearn or the spell's relatedLore "
+      '(D-07, D-24)', () {
+    for (final selection in [
+      SpellFragment.fields,
+      SpellFragment.simpleFields,
+      EquipmentFragment.fields,
+    ]) {
+      expect(selection, isNot(contains('minXpToLearn')));
+      expect(selection, isNot(contains('relatedLore')));
+    }
+  });
+
+  test('the research and learning fields are selected only where the gate '
+      'put them (D-26, D-31)', () {
+    final homes = {
+      'learningSpell': CharacterFragment.fullFields,
+      'spellDraw': QuestFragment.fields,
+      'spellFound': QuestResultFragment.fields,
+      'spellResearchFailed': QuestResultFragment.fields,
+    };
+    final expectedDocuments = {
+      'learningSpell': {'character', 'characterUpdated'},
+      'spellDraw': {'quests', 'OnQuestUpdated'},
+      'spellFound': _resultDocuments,
+      'spellResearchFailed': _resultDocuments,
+    };
+    homes.forEach((field, home) {
+      final selecting = {
+        for (final MapEntry(key: name, value: document)
+            in schemaCheckDocuments.entries)
+          if (document.contains(field)) name,
+      };
+      final embedding = {
+        for (final MapEntry(key: name, value: document)
+            in schemaCheckDocuments.entries)
+          if (document.contains(home)) name,
+      };
+
+      expect(selecting, expectedDocuments[field], reason: field);
+      expect(selecting, embedding, reason: field);
+    });
   });
 
   test('a recorded characterUpdated payload parses its awaitingAid', () {
@@ -314,6 +441,34 @@ void main() {
   });
 }
 
+/// Documenti che incorporano `QuestResultFragment.fields`.
+const Set<String> _resultDocuments = {
+  'GetQuestResult',
+  'ListUnacknowledgedQuestResults',
+  'OnQuestResultReceived',
+  'CompleteGuidedMission',
+};
+
+/// Corsia standard nella parte di apprendimento, forma del handoff BE §8.6
+/// (id sostituiti): stessa `id`, `startDate` = fine della ricerca.
+const Map<String, dynamic> _recordedLearningLane = {
+  'id': 'pending-quest-1',
+  'startDate': '2026-11-16T11:00:00.000Z',
+  'arrivedAt': '2026-11-16T09:55:00.000Z',
+  'waitingTime': 1800000,
+  'pointsSpent': 0,
+  'learningSpell': {
+    'id': 'spell-a',
+    'name': 'Nome A',
+    'origin': 'arcane',
+    'requiredLearnTime': 1800000,
+  },
+  'quest': {
+    'id': 'quest-1',
+    'infos': {'type': 'arcane'},
+  },
+};
+
 /// `characterUpdated` nella forma della BE Phase 19 (id sostituiti): stati
 /// con la magia intera e `active`, compagni posseduti come voci.
 const Map<String, dynamic> _recordedCharacterUpdated = {
@@ -326,9 +481,10 @@ const Map<String, dynamic> _recordedCharacterUpdated = {
           'id': 'spell-a',
           'name': 'Nome A',
           'description': 'Descrizione A',
+          'origin': 'void',
           'useType': 'attack',
           'maxUsages': 3,
-          'minXpToLearn': 100,
+          'minLevelToLearn': 6,
           'recoveryTime': 1800000,
           'requiredLearnTime': 3600000,
           'energyDamage': {'type': 'fire', 'power': 12},
@@ -342,9 +498,10 @@ const Map<String, dynamic> _recordedCharacterUpdated = {
           'id': 'spell-b',
           'name': 'Nome B',
           'description': 'Descrizione B',
+          'origin': 'shamanic',
           'useType': 'defense',
           'maxUsages': 2,
-          'minXpToLearn': 200,
+          'minLevelToLearn': 1,
           'recoveryTime': 600000,
           'requiredLearnTime': 3600000,
           'energyDamage': null,

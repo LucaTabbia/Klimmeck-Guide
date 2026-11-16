@@ -82,6 +82,11 @@ class CloudinaryAssets {
       'v1794303777/tornAnnouncementSheet2_ayfvwu.svg';
   static const String magicSheet = 'v1794357947/magicSheet_lkkqp3.svg';
   static const String magicTornSheet = 'v1794321051/tornMagicSheet_f8gu75.svg';
+  static const String shamanicSheet = 'v1794764350/shamanicSheet_ytxu1n.svg';
+  static const String shamanicTornSheet =
+      'v1794764330/tornShamanicSheet_exdyou.svg';
+  static const String voidSheet = 'v1794764361/voidSheet_iyocqb.svg';
+  static const String voidTornSheet = 'v1794764340/tornVoidSheet_h4sp3g.svg';
   static const String huntSheet1 = 'v1794324911/gameSheet1_togp4w.svg';
   static const String huntSheet2 = 'v1794324912/gameSheet2_zrmzpe.svg';
   static const String huntTornSheet1 = 'v1794324905/tornGameSheet1_ruztfx.svg';
@@ -152,6 +157,11 @@ class CloudinaryAssets {
   static const String skirt = 'v1757660574/skirt_cfenoz.svg';
   static const String femaleMannequin =
       'v1757660559/femaleMannequin_y04ola.svg';
+
+  // ============== Spell Origins ==============
+  static const String arcaneOrigin = 'v1794764154/arcaneOrigin_retjhh.svg';
+  static const String shamanicOrigin = 'v1794764172/shamanicOrigin_vkxq6d.svg';
+  static const String voidOrigin = 'v1794764163/voidOrigin_mxgwls.svg';
 
   // ============== Use Types ==============
   static const String defenseUse = 'v1757660804/defenseUse_tuhdja.svg';
@@ -237,7 +247,9 @@ class CloudinaryAssets {
   static const String drusteaVillage = 'v1761435123/drusteaVillage_gdtasn.svg';
   static const String drusteaSeaCity = 'v1761435129/drusteaSeaCity_rqwfuc.svg';
   static const String aarakocraVillage =
-      'v1761435120/aarakocraVillage_mykdhv.svg';
+      'v1794764202/aarakocraVillage_z7n1rz.svg';
+  static const String aarakocraCapital =
+      'v1794764223/aarakocraCapital_affl5r.svg';
   static const String valanVillage = 'v1761435122/valanVillage_c8lwqm.svg';
   static const String valanCity = 'v1761435122/valanCity_eu3hx8.svg';
   static const String valanSeaCity = 'v1762562435/valanSeaCity_ilrsu5.svg';
@@ -249,6 +261,10 @@ class CloudinaryAssets {
       'v1761435632/tropicalVillage_atpskz.svg';
   static const String mountainVillage =
       'v1761435131/mountainVillage_sf6dav.svg';
+  static const String dragonbornCapital =
+      'v1794764233/dragonbornCapital_uyedhh.svg';
+  static const String dragonbornVillage =
+      'v1794764212/dragonbornVillage_doclsu.svg';
   static const String northVillage = 'v1761435143/northVillage_pymya2.svg';
   static const String forestVillage = 'v1761435131/forestVillage_efgzxw.svg';
   static const String flameCity = 'v1761435135/flameCity_x3iitp.svg';

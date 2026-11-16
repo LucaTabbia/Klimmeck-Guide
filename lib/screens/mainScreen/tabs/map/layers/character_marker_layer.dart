@@ -9,12 +9,16 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
 import '../../../../../models/quest/board_policy.dart';
+import '../../../../../models/quest/quest.dart';
+import '../../../../../models/quest/spell_research.dart';
 import '../../../../../models/travel/travel_time_format.dart';
 import '../../../../../shared/components/cached_svg.dart';
 import '../../../characterCubit/character_cubit.dart';
 import '../../../prisonCubit/prison_cubit.dart';
 import '../../../questAcceptanceCubit/quest_acceptance_cubit.dart';
+import '../../../questCubit/quest_cubit.dart';
 import '../../../travelCubit/travel_cubit.dart';
+import '../spellLearningCubit/spell_learning_cubit.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
 import '../utils/map_constants.dart';
 import 'pawn_dragging.dart';
@@ -47,7 +51,8 @@ class CharacterMarkerLayer extends StatefulWidget {
   static const String preparingLabel = 'In preparazione…';
 
   /// Missione normale in corso: cosa sta facendo il personaggio (UAT
-  /// 2026-11-14).
+  /// 2026-11-14); le due parti di una quest col sorteggio (Phase 23 D-26,
+  /// D-29).
   static const Key activityLabelKey = ValueKey('map.activityLabel');
 
   /// Solo durante il flusso guidato della Locanda (FE Phase 21 D-16).
@@ -93,28 +98,53 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               ? _buildTravellingPawn(characterState, progress)
               : BlocBuilder<TravelCubit, TravelState>(
                   builder: (context, travel) =>
-                      BlocSelector<PrisonCubit, PrisonState, Duration?>(
-                        selector: (prison) => prison.remaining,
-                        builder: (context, prisonRemaining) =>
-                            BlocSelector<
-                              QuestAcceptanceCubit,
-                              QuestAcceptanceState,
-                              bool
-                            >(
-                              selector: (acceptance) =>
-                                  acceptance is QuestAccepting,
-                              builder: (context, isPreparing) => _buildIdlePawn(
-                                characterState,
-                                travel,
-                                prisonRemaining: prisonRemaining,
-                                isPreparing: isPreparing,
-                              ),
-                            ),
-                      ),
+                      _buildIdlePawnInputs(characterState, travel),
                 ),
         );
       },
     );
+  }
+
+  /// Prigione, quest strappata, quest del Tabellone della corsia e tempo
+  /// dell'apprendimento: ognuno ricostruisce solo la pedina ferma.
+  Widget _buildIdlePawnInputs(CharacterLoaded state, TravelState travel) {
+    final laneQuestId = state.character.quests?.pendingQuest?.quest?.id;
+    return BlocSelector<PrisonCubit, PrisonState, Duration?>(
+      selector: (prison) => prison.remaining,
+      builder: (context, prisonRemaining) =>
+          BlocSelector<QuestAcceptanceCubit, QuestAcceptanceState, bool>(
+            selector: (acceptance) => acceptance is QuestAccepting,
+            builder: (context, isPreparing) =>
+                BlocSelector<QuestCubit, QuestState, Quest?>(
+                  selector: (quests) => _boardQuestOf(quests, laneQuestId),
+                  builder: (context, boardQuest) =>
+                      BlocSelector<
+                        SpellLearningCubit,
+                        SpellLearningState,
+                        Duration?
+                      >(
+                        selector: (learning) => learning.remaining,
+                        builder: (context, learningRemaining) => _buildIdlePawn(
+                          state,
+                          travel,
+                          prisonRemaining: prisonRemaining,
+                          isPreparing: isPreparing,
+                          boardQuest: boardQuest,
+                          learningRemaining: learningRemaining,
+                        ),
+                      ),
+                ),
+          ),
+    );
+  }
+
+  /// La quest del Tabellone della corsia: porta il sorteggio (`prizes`).
+  static Quest? _boardQuestOf(QuestState state, String? questId) {
+    if (questId == null || state is! QuestLoaded) return null;
+    for (final quest in state.quests) {
+      if (quest.id == questId) return quest;
+    }
+    return null;
   }
 
   Widget _buildIdlePawn(
@@ -122,6 +152,8 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
     TravelState travel, {
     required Duration? prisonRemaining,
     required bool isPreparing,
+    required Quest? boardQuest,
+    required Duration? learningRemaining,
   }) {
     final location = state.character.status!.location!.location!;
     final point = dragPoint ?? _confirmingDestination(travel) ?? location;
@@ -167,7 +199,12 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
               text: missionInProgressLabel,
             ),
           ),
-        if (_activityLabelOf(state) case final activity?)
+        if (_activityLabelOf(
+              state,
+              boardQuest: boardQuest,
+              learningRemaining: learningRemaining,
+            )
+            case final activity?)
           _labelMarker(
             point,
             PawnLabel(
@@ -188,14 +225,25 @@ class _CharacterMarkerLayerState extends State<CharacterMarkerLayer>
   }
 
   /// Solo a missione davvero cominciata e fuori dal flusso dell'oste, che ha
-  /// la sua etichetta.
-  static String? _activityLabelOf(CharacterLoaded state) {
+  /// la sua etichetta; l'apprendimento vince sulla ricerca, la ricerca sul
+  /// tipo (D-26, D-29).
+  static String? _activityLabelOf(
+    CharacterLoaded state, {
+    required Quest? boardQuest,
+    required Duration? learningRemaining,
+  }) {
     final character = state.character;
     if (!character.isOnMission) return null;
     if (character.status?.guidedMissionInProgress ?? false) return null;
-    return missionActivityLabelOf(
-      character.quests?.pendingQuest?.quest?.infos?.type,
-    );
+    final lane = character.quests?.pendingQuest;
+    if (lane != null && lane.isLearning) {
+      return spellLearningLine(lane.learningSpell?.name, learningRemaining);
+    }
+    final type = lane?.quest?.infos?.type;
+    if (isSpellResearchQuest(type, boardQuest?.prizes)) {
+      return spellResearchLabel;
+    }
+    return missionActivityLabelOf(type);
   }
 
   /// Etichetta che fluttua sopra la pedina (attesa di soccorso, prigione,

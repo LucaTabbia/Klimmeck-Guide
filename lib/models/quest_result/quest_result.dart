@@ -59,6 +59,8 @@ class QuestResult extends Equatable {
     this.turnsCompleted,
     this.lastTurn,
     this.lastTurnKind,
+    this.spellFound,
+    this.spellResearchFailed = false,
   });
 
   final String id;
@@ -115,6 +117,13 @@ class QuestResult extends Equatable {
   final TitleType? titleAfter;
   final Spell? spellLearned;
 
+  /// Magia scoperta alla fine della ricerca (BE Phase 24, D-31): la si impara
+  /// alla fine della parte di apprendimento; `null` su ogni altro foglio.
+  final Spell? spellFound;
+
+  /// Ricerca vinta senza magia (D-29).
+  final bool spellResearchFailed;
+
   /// Le sole lore sbloccate da questo esito (BE Phase 16, D-04), nell'ordine
   /// del BE: tiro dello studio o prima vittoria su una specie.
   final List<Lore> loreUnlocked;
@@ -154,6 +163,15 @@ class QuestResult extends Equatable {
   bool get hasTitleChanged => titleBefore != titleAfter;
 
   bool get hasRewards => !rewards.isEmpty;
+
+  /// Foglio piccolo della fine dell'apprendimento (D-31): solo la magia e la
+  /// sua lore. Dedotto dai fatti serviti, serve solo a non disegnare la vita.
+  bool get isLearningEnd =>
+      spellLearned != null &&
+      spellFound == null &&
+      xpGained == 0 &&
+      enemies.isEmpty &&
+      hpBefore == hpAfter;
 
   factory QuestResult.fromJson(Map<String, dynamic> json) {
     final kind = QuestResultKind.fromWire(json['kind']);
@@ -195,6 +213,8 @@ class QuestResult extends Equatable {
       titleBefore: TitleType.values.asNameMap()[json['titleBefore']],
       titleAfter: TitleType.values.asNameMap()[json['titleAfter']],
       spellLearned: _spellFrom(json['spellLearned']),
+      spellFound: _spellFrom(json['spellFound']),
+      spellResearchFailed: json['spellResearchFailed'] == true,
       loreUnlocked: Lore.lenientRefsFrom(json['loreUnlocked']),
       enemies: QuestEnemy.lenientListFrom(json['enemies']),
       stagesCleared: _countFrom(json['stagesCleared']),
@@ -279,6 +299,15 @@ class QuestResult extends Equatable {
     'spellLearned': spellLearned == null
         ? null
         : {'id': spellLearned!.id, 'name': spellLearned!.name},
+    'spellFound': spellFound == null
+        ? null
+        : {
+            'id': spellFound!.id,
+            'name': spellFound!.name,
+            'origin': spellFound!.origin?.wireName,
+            'requiredLearnTime': spellFound!.requiredLearnTime,
+          },
+    'spellResearchFailed': spellResearchFailed,
     'loreUnlocked': loreUnlocked
         .map(
           (lore) => {'id': lore.id, 'name': lore.name, 'type': lore.type?.name},
@@ -327,6 +356,8 @@ class QuestResult extends Equatable {
     titleBefore,
     titleAfter,
     spellLearned,
+    spellFound,
+    spellResearchFailed,
     loreUnlocked,
     enemies,
     stagesCleared,

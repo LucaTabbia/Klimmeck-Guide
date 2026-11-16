@@ -111,6 +111,32 @@ void main() {
     expect(find.text('In combattimento…'), findsOneWidget);
   });
 
+  testWidgets('a started void rite draws the void sheet on the Map paper '
+      'and reads Ricercando (D-14, D-26, D-32)', (tester) async {
+    seedSvgCache([CloudinaryAssets.voidSheet]);
+    await pumpLayer(
+      tester,
+      quests: QuestLoaded([buildQuest(id: 'v-1', type: 'void')]),
+      character: characterWith(
+        characterWithLanesJson(
+          pendingQuest: laneJson(
+            questId: 'v-1',
+            startDate: '2026-10-21T10:00:00.000Z',
+          ),
+        ),
+      ),
+    );
+
+    final svg = tester.widget<CachedSvg>(
+      find.descendant(
+        of: find.byKey(QuestPaperLayer.paperKey),
+        matching: find.byType(CachedSvg),
+      ),
+    );
+    expect(svg.url, CloudinaryAssets.url(CloudinaryAssets.voidSheet));
+    expect(find.text('Ricercando…'), findsOneWidget);
+  });
+
   testWidgets('reads In viaggio while the start date is null', (tester) async {
     await pumpLayer(
       tester,

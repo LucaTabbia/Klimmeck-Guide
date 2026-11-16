@@ -11,6 +11,12 @@ class SpellCard extends StatelessWidget {
     CloudinaryAssets.emptyCardSheet,
   );
 
+  /// Una o due icone: la misura di sempre.
+  static const double _iconDivisor = 2.5;
+
+  /// Tre icone — origine, uso, energia — stanno sulla carta solo più piccole (D-05).
+  static const double _crowdedIconDivisor = 3.2;
+
   final Spell spell;
   final double size;
   final int? usages;
@@ -28,8 +34,13 @@ class SpellCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final useType = spell.useType;
-    final energyType = spell.energyDamage?.type;
+    final iconUrls = [
+      spell.origin?.imagePath,
+      spell.useType?.imagePath,
+      spell.energyDamage?.type?.imagePath,
+    ].whereType<String>().toList();
+    final iconSize =
+        size / (iconUrls.length > 2 ? _crowdedIconDivisor : _iconDivisor);
     final power = spell.energyDamage?.power;
     return RepaintBoundary(
       child: SizedBox(
@@ -47,18 +58,8 @@ class SpellCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      if (useType != null)
-                        CachedSvg(
-                          url: useType.imagePath,
-                          height: size / 2.5,
-                          width: size / 2.5,
-                        ),
-                      if (energyType != null)
-                        CachedSvg(
-                          url: energyType.imagePath,
-                          height: size / 2.5,
-                          width: size / 2.5,
-                        ),
+                      for (final url in iconUrls)
+                        CachedSvg(url: url, height: iconSize, width: iconSize),
                     ],
                   ),
                   CardLabel(text: spell.name ?? "", cardSize: size),

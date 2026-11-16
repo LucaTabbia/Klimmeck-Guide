@@ -97,6 +97,10 @@ void main() {
       CloudinaryAssets.questSheet2,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
+      CloudinaryAssets.shamanicSheet,
+      CloudinaryAssets.shamanicTornSheet,
+      CloudinaryAssets.voidSheet,
+      CloudinaryAssets.voidTornSheet,
     ]);
     questCubit = MockQuestCubit();
     characterCubit = MockCharacterCubit();
@@ -295,17 +299,30 @@ void main() {
     expect(isTorn(tester, 'b-paladin'), isFalse);
   });
 
-  testWidgets(
-    'a magic quest above the title is torn until the rank (quick 261110-mag)',
-    (tester) async {
-      await pumpBoard(
-        tester,
-        quests: loaded([_boardQuest('m-1', 'magic', minTitle: 'mage')]),
-      );
+  testWidgets('an arcane quest above the title is torn until the rank '
+      '(quick 261110-mag, D-20)', (tester) async {
+    await pumpBoard(
+      tester,
+      quests: loaded([_boardQuest('m-1', 'arcane', minTitle: 'mage')]),
+    );
 
-      expect(isTorn(tester, 'm-1'), isTrue);
-    },
-  );
+    expect(isTorn(tester, 'm-1'), isTrue);
+  });
+
+  testWidgets('a rite above the title is torn until the rank (D-11)', (
+    tester,
+  ) async {
+    await pumpBoard(
+      tester,
+      quests: loaded([
+        _boardQuest('s-1', 'shamanic', minTitle: 'mage'),
+        _boardQuest('v-1', 'void', minTitle: 'mage'),
+      ]),
+    );
+
+    expect(isTorn(tester, 's-1'), isTrue);
+    expect(isTorn(tester, 'v-1'), isTrue);
+  });
 
   testWidgets(
     'a busy standard lane leaves the sheets whole (quick 261110-mag)',
@@ -314,8 +331,8 @@ void main() {
         tester,
         quests: loaded([
           _boardQuest('h-1', 'hunt'),
-          _boardQuest('m-1', 'magic', minTitle: 'mage'),
-          _boardQuest('m-2', 'magic', minTitle: 'paladin'),
+          _boardQuest('m-1', 'arcane', minTitle: 'mage'),
+          _boardQuest('m-2', 'arcane', minTitle: 'paladin'),
         ]),
         character: characterWithLanesJson(
           title: 'paladin',

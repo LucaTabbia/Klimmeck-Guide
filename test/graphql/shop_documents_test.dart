@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gql/ast.dart';
 import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/damage_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/queries/city_queries.dart';
@@ -69,6 +70,13 @@ void main() {
       '(D-01)', () {
     expect(cityShop, contains('... on EquipmentItem'));
     expect(cityShop, contains('... on LootItem'));
+  });
+
+  test('the infused spell of an equipment selects its origin (D-05)', () {
+    expect(
+      _collapsed(EquipmentFragment.fields),
+      contains('addedSpell { id name origin useType'),
+    );
   });
 
   test('GetCityShop equipment selects accessoryUseTypes (D-15)', () {

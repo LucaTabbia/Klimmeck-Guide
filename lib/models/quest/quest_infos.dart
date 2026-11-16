@@ -31,7 +31,7 @@ class QuestInfos with EquatableMixin {
   factory QuestInfos.fromJson(Map<String, dynamic> json) {
     return QuestInfos(
       title: json["title"],
-      type: json["type"] != null ? QuestType.values.byName(json["type"]) : null,
+      type: _typeOf(json["type"]),
       markerLocation: json["markerLocation"] != null
           ? PointOfInterest.fromJson(json["markerLocation"])
           : null,
@@ -44,9 +44,16 @@ class QuestInfos with EquatableMixin {
     );
   }
 
+  /// Tipo ignoto = quest illeggibile: la scarta `Quest.tryFromJson`.
+  static QuestType? _typeOf(Object? wire) {
+    if (wire == null) return null;
+    return QuestType.fromWire(wire) ??
+        (throw ArgumentError.value(wire, 'type', 'unknown quest type'));
+  }
+
   Map<String, dynamic> toJson() => {
     "title": title,
-    "type": type?.name,
+    "type": type?.wireName,
     "markerLocation": markerLocation?.toJson(),
     "relatedLore": relatedLore?.map((s) => s.id).toList(),
     "timeToComplete": timeToComplete,

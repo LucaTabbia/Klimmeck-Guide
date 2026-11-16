@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Healing & Models
 status: executing
-stopped_at: Phase 22 complete (device gap of step 8 closed)
-last_updated: "2026-11-15T16:04:36.000Z"
-last_activity: 2026-11-15 -- Phase 22 complete, device gap of step 8 closed
+stopped_at: Phase 23 complete (device E2E 2026-11-16)
+last_updated: "2026-11-16T18:00:00.000Z"
+last_activity: 2026-11-16 -- Phase 23 complete, device E2E recorded (23-08)
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 65
-  completed_plans: 65
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 79
+  completed_plans: 79
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-10 at the v1.1 start)
 
 **Core value:** I viewer trasformano il tempo speso a guardare lo stream in progressione di un personaggio RPG persistente, con un loop di gioco che funziona sia durante che fuori dalle live.
-**Current focus:** Phase 22 — Companion Defeat, Rest and Recovery (↔ BE Phase 23) — complete on 2026-11-15: 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery`, device E2E passed (steps 1–9)
+**Current focus:** Phase 23 — Spell Origins, Void and Shamanic Quests (↔ BE Phase 24) — complete on `feat/23-spell-origins-void-and-shamanic-quests`; PRs and the v1.1 milestone close pending
 
 ## Current Position
 
-Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) added on 2026-11-14, complete on 2026-11-15 (17/17 plans, device E2E passed); milestone close pending
-Phase: 22 of 22 (Companion Defeat, Rest and Recovery) — 17/17 plans executed on `feat/22-companion-defeat-rest-and-recovery` (rebased on `develop` `49edca7b`); gate 22-16 passed on 2026-11-15 against the merged BE Phase 23 SDL; device E2E 22-17 passed on 2026-11-15 (steps 1–9); phase complete
-Plan: 17 of 17
-Status: Phase 22 complete — device E2E on 2026-11-15 (`22-HUMAN-UAT.md`, `status: complete`) against BE `fix/23-dungeon-xp-and-innkeeper-corrections` (BE PR #43, draft, HEAD 3d2e1f1e, on top of `develop` `5ff0bdb9`): steps 1–9 passed; the two points of step 8 left by the first run (black silhouette / no details of an unknown companion, long press in the shop buy list) were seen by the user as a second character on a player identity («pass»), so PET-01..PET-10 are all complete. CI of BE PR #43 green on its last push. The DB was restored after the UAT on the user's order (the recovery times of the 44 companions and the magic quest put back stay at DB). Fixes made in TDD during the UAT (keyboard under a sheet, name sheet top edge, «Prosegui a piedi» only when the travel goes on, unknown companions via `Pet.known`); suite 5041 green, analyzer 47 info / 0 warning / 0 error, schema check 55 × OK on the SDL with `Pet.known`.
-Last activity: 2026-11-15 -- Phase 22 complete, device gap of step 8 closed
-Next step: merge of BE PR #43 (`fix/23-dungeon-xp-and-innkeeper-corrections`, carries `Pet.known` selected by the FE; the user takes it out of draft); then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop` (never `main`); then the v1.1 milestone close.
+Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; previous: v1.0 Core Loop, shipped 2026-11-10, tag `v1.0`); both phases complete on 2026-11-11; Phase 20 complete on 2026-11-13; Phase 21 complete on 2026-11-14; Phase 22 (companion defeat, rest and recovery) complete on 2026-11-15 (17/17 plans, device E2E passed); Phase 23 (spell origins, void and shamanic quests) complete on 2026-11-16 (14/14 plans, device E2E passed); milestone close pending
+Phase: 23 of 23 (Spell Origins, Void and Shamanic Quests) — complete on `feat/23-spell-origins-void-and-shamanic-quests` (stacked on `feat/22-companion-defeat-rest-and-recovery`)
+Plan: 14 of 14
+Status: Phase 23 complete — 14/14 plans; ORIGIN-01..ORIGIN-08 complete. Device E2E on 2026-11-16 (`23-HUMAN-UAT.md`, `status: complete`) on a Samsung against the local BE booted from `feat/24-origini-magie-quest-void-shamanic` `3f82fa50` (BE PR #44, draft, not merged): steps 1–12 passed in their observed parts; step 7 (infused spell card 20 px overflow) fixed in TDD during the UAT (`4bcd0d9c` / `776a8303`); capital markers 39 → 46 (`a1df181d`, user). Not run on the device (covered by tests): innkeeper prize cards (step 7), birth cities (step 8, BE specs), `study` with / without the draw (step 9), the background pushes «Ricerca riuscita» (step 10) and the learning-end «Missione conclusa» (step 11). UAT decisions (DB content): school quests research 4 h, learn times 30 min (L6) → 12 h (L20), recovery 15 min (L6) → 8 h (L20); BE D-33 study-lore draw in the school quests at 15 %. Closing gates: `GATE_OK` on `3f82fa50`, schema check 55 × OK, analyzer 47 info / 0 warning / 0 error, suite 5170 green. Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10).
+Last activity: 2026-11-16 -- Plan 23-08 complete (device E2E recorded, Phase 23 closed)
+Next step: merge of the BE Phase 24 PR #44 (`feat/24-origini-magie-quest-void-shamanic`; BE PR #43 is already merged on BE `develop`, merge commit `4b2ed03a`); after the BE #44 merge the orchestrator re-runs the FE schema check on BE `develop` and `$unset`s `minXpToLearn`; then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop`, then the FE PR `feat/23-spell-origins-void-and-shamanic-quests` → `develop` (never `main`; `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`), opened by the user; then the v1.1 milestone close.
 
 ## Current Milestone
 
@@ -53,6 +53,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - 2026-11-11: Phase 20 added (Rank-Specific Prizes for Group Quests): a group quest carries a prize suited to each rank that can join (adventurer and mage in the same quest each get a prize of their rank). Needs a BE companion phase; not discussed nor planned yet.
 - 2026-11-11: Phase 21 added (Innkeeper Mission Completion Flow): guided completion of story/worldMission quests — teleport → enemies by mission rank and POI type → simulated combat (no write on the characters) → manual fixes (injuries, life slider) → prizes per character → completion. Needs a BE companion phase; not discussed nor planned yet.
 - 2026-11-11: the two new phases were swapped right after being added (user decision): prizes by rank first (20), so that the innkeeper's prize step (21) offers a list already filtered by the character's rank.
+- 2026-11-15: Phase 23 added (Spell Origins, Void and Shamanic Quests): spell macro-class origin → use → energy (void, magic, shamanic), `shamanic` and `void` quests like the `magic` one, new city types (`aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage`), minimum level instead of minimum xp to learn a spell. BE companion: BE Phase 24; branch stacked on Phase 22; not discussed nor planned yet.
 
 ## Open Questions / Blockers
 
@@ -62,6 +63,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - **Phase 19 device notes** (19-13, not blockers): long «Attacco» lines shrink and the common ink is close to the normal ink (the user found both fine); the abandon button of the map sheet may flash next to «In combattimento…» for a solo quest (pre-existing); pets as quest prizes (BE D-28) not seen on the device yet; the unregistered flags UF-19-01..03 of the security audit accepted as they are; the innkeeper's test character carries two more injuries from this UAT (`missingLeftHand`, `brokenRightLeg`).
 - **Phase 20 device notes** (20-04, not blockers): the «Soccorso in corso» lock of quick 261113-aql is NOT live on an open Board (declared limit: it shows at the next read of `quests` or right after a refused accept); open questions for the user — the banner copy on a refused locked quest (today the shared «Missione non disponibile, avvisa il locandiere»), and `Quest.rankPrizes` readable by every authenticated user (BE). Not seen on the device, covered by tests: the Map sheet of a rank-block quest, a result without turns, the wounded's «Sei stato salvato» (DB only).
 - **Phase 22 product notes** (22-17): with the `adb reverse` tunnel down the app, not reaching the BE, showed the character creation instead of an offline state (pre-existing, to review); if the BE resolves `Pet.known` for the streamer, prize companions unknown to the streamer show as silhouettes in the innkeeper wizard.
+- **Phase 23 device notes** (23-08, not blockers): the background push «Ricerca riuscita» and the learning-end «Missione conclusa» were not observed on the device (the failed-research push was); the innkeeper prize cards and the `study` quests with / without the draw were not run on the device; the user will rework the UI layouts in a dedicated later phase; the FE legacy read of the quest type `magic` can go once BE `develop` is booted with the Phase 24 migrator.
 - **iOS** never exercised (push, signing, store) — post-v1.0.
 - **Dev setup reminders for the user** (from the Phase 12 UAT): `DEV_AUTH_ENABLED=true` back in the FE `.env`, the tunnel redirect URI removed from the Twitch app, tunnel and emulator stopped.
 
@@ -91,6 +93,6 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 
 ## Session Continuity
 
-Last session: 2026-11-15T16:04:36.000Z
-Stopped at: Phase 22 complete (device gap of step 8 closed)
-Resume file: .planning/phases/22-companion-defeat-rest-and-recovery/22-HUMAN-UAT.md
+Last session: 2026-11-16T18:00:00.000Z
+Stopped at: Completed 23-08-PLAN.md
+Resume file: .planning/phases/23-spell-origins-void-and-shamanic-quests/23-HUMAN-UAT.md

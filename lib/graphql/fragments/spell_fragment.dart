@@ -1,27 +1,10 @@
-import 'damage_fragment.dart';
-
+/// Selezioni di una magia; origine e livello minimo della BE Phase 24
+/// selezionati dal gate 23-07.
 class SpellFragment {
-  static const String name = 'SpellFields';
-
-  static const String definition = '''
-    fragment $name on Spell {
-      id
-      name
-      description
-      useType
-      maxUsages
-      minXpToLearn
-      recoveryTime
-      requiredLearnTime
-      energyDamage {
-        ${DamageFragment.fields}
-      }
-    }
-  ''';
-
   static const String simpleFields = '''
     id
     name
+    origin
     useType
     energyDamage {
       type
@@ -33,9 +16,10 @@ class SpellFragment {
     id
     name
     description
+    origin
     useType
     maxUsages
-    minXpToLearn
+    minLevelToLearn
     recoveryTime
     requiredLearnTime
     energyDamage {
@@ -44,4 +28,3 @@ class SpellFragment {
     }
   ''';
 }
-

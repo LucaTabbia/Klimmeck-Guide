@@ -15,6 +15,8 @@ import 'loot_fragment.dart';
 /// `coinsLost` e `guardEncounter` sono della quick 261110-cgd (BE §1.6).
 /// `petXpGained` è della BE Phase 19 (19-CONTEXT D-03): i PE del compagno.
 /// `companion` e `ambush.onFoot` sono della BE Phase 23 (D-27, D-28).
+/// `spellFound` e `spellResearchFailed` sono della BE Phase 24
+/// (23-CONTEXT D-29, D-31).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -106,6 +108,13 @@ class QuestResultFragment {
       id
       name
     }
+    spellFound {
+      id
+      name
+      origin
+      requiredLearnTime
+    }
+    spellResearchFailed
     loreUnlocked {
       id
       name

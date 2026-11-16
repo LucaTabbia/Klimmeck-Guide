@@ -20,6 +20,7 @@ import '../../../../repository/services/time/server_clock_service.dart';
 import '../../../../shared/components/background_image.dart';
 import '../../../../shared/components/modal/paper_sheet_modal.dart';
 import '../../../../theme/kg_theme.dart';
+import '../../../../utils/mission_lines.dart';
 import '../../characterCubit/character_cubit.dart';
 import '../../characterCubit/character_selectors.dart';
 import '../../questAbandonCubit/quest_abandon_cubit.dart';
@@ -43,6 +44,7 @@ import 'layers/teleport_poi_layer.dart';
 import 'layers/travel_route_layer.dart';
 import 'mapAvailabilityCubit/map_availability_cubit.dart';
 import 'mapFocusCubit/map_focus_cubit.dart';
+import 'spellLearningCubit/spell_learning_cubit.dart';
 import 'teleportModeCubit/teleport_mode_cubit.dart';
 import 'travelProgressCubit/arrival_reread_ledger.dart';
 import 'travelProgressCubit/travel_progress_cubit.dart';
@@ -70,6 +72,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   // Travel state: vive con la mappa, ticchetta solo a mappa montata
   late final TravelProgressCubit _progressCubit;
+
+  /// Tempo che manca all'apprendimento della corsia (D-29), solo a mappa montata.
+  late final SpellLearningCubit _learningCubit;
 
   /// Letto in `initState`: `dispose` non può usare `context.read`.
   late final MapAvailabilityCubit _availability;
@@ -100,6 +105,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _initializeBounds();
     _initializeAnimationControllers();
     _initializeTravelProgress();
+    _initializeSpellLearning();
     _initializeMapOptions();
   }
 
@@ -110,6 +116,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     )..follow(_activeTravelOf(context.read<CharacterCubit>().state));
     // D-10: un arrivo già scaduto al montaggio non passa dal listener.
     _claimArrivalReread();
+  }
+
+  void _initializeSpellLearning() {
+    _learningCubit = SpellLearningCubit(
+      clock: context.read<ServerClockService>(),
+    )..follow(_learningEndOf(context.read<CharacterCubit>().state));
   }
 
   void _initializeBounds() {
@@ -169,13 +181,17 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     _smoothTimer?.cancel();
     _zoomNotifier.dispose();
     _progressCubit.close();
+    _learningCubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<TravelProgressCubit>.value(
-      value: _progressCubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<TravelProgressCubit>.value(value: _progressCubit),
+        BlocProvider<SpellLearningCubit>.value(value: _learningCubit),
+      ],
       child: MultiBlocListener(
         listeners: _buildListeners(),
         child: _buildMap(),
@@ -197,6 +213,12 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
         listenWhen: (previous, current) =>
             _activeTravelOf(previous) != _activeTravelOf(current),
         listener: (_, state) => _progressCubit.follow(_activeTravelOf(state)),
+      ),
+      // D-26: il cambio di parte arriva con `characterUpdated`.
+      BlocListener<CharacterCubit, CharacterState>(
+        listenWhen: (previous, current) =>
+            _learningEndOf(previous) != _learningEndOf(current),
+        listener: (_, state) => _learningCubit.follow(_learningEndOf(state)),
       ),
       // D-10: rilettura silenziosa, non logica di completamento.
       BlocListener<TravelProgressCubit, TravelProgressState>(
@@ -352,21 +374,45 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
     return BlocBuilder<QuestCubit, QuestState>(
       builder: (context, questState) {
         final quest = _currentOf(_selectedQuest, questState);
-        final lane = _selectedLane;
-        return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
-          selector: characterInjuriesOf,
-          builder: (context, injuries) => QuestInfoOverlay(
-            animationController: _questAnimationController,
-            selectedQuest: quest,
-            stateLabel: lane == null ? null : questStateLabel(lane, quest),
-            onAbandon: quest != null && lane?.isWaitingForParty == true
-                ? () => _confirmAbandon(quest)
-                : null,
-            characterInjuries: injuries,
+        return BlocSelector<SpellLearningCubit, SpellLearningState, Duration?>(
+          bloc: _learningCubit,
+          selector: (state) => state.remaining,
+          builder: (context, learningRemaining) => _buildQuestInfoOverlay(
+            quest,
+            _stateLabelOf(_selectedLane, quest, learningRemaining),
           ),
         );
       },
     );
+  }
+
+  Widget _buildQuestInfoOverlay(Quest? quest, String? stateLabel) {
+    return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
+      selector: characterInjuriesOf,
+      builder: (context, injuries) => QuestInfoOverlay(
+        animationController: _questAnimationController,
+        selectedQuest: quest,
+        stateLabel: stateLabel,
+        onAbandon: quest != null && _selectedLane?.isWaitingForParty == true
+            ? () => _confirmAbandon(quest)
+            : null,
+        characterInjuries: injuries,
+      ),
+    );
+  }
+
+  /// La corsia seguita (`_followLane`) è quella corrente: durante
+  /// l'apprendimento il foglio nomina la magia e il tempo che manca (D-29).
+  static String? _stateLabelOf(
+    PendingQuest? lane,
+    Quest? quest,
+    Duration? learningRemaining,
+  ) {
+    if (lane == null) return null;
+    if (lane.isLearning) {
+      return spellLearningLine(lane.learningSpell?.name, learningRemaining);
+    }
+    return questStateLabel(lane, quest);
   }
 
   static Quest? _currentOf(Quest? selected, QuestState state) {
@@ -393,6 +439,9 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   static PendingQuest? _pendingLaneOf(CharacterState state) =>
       state is CharacterLoaded ? state.character.quests?.pendingQuest : null;
+
+  static DateTime? _learningEndOf(CharacterState state) =>
+      _pendingLaneOf(state)?.learningEndsAt;
 
   static int _refetchCountOf(TravelProgressState state) =>
       state is TravelProgressActive ? state.arrivalRefetchCount : 0;

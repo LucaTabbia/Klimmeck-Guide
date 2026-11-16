@@ -68,6 +68,7 @@ class QuestFragment {
         ${CoinsFragment.fields}
       }
       xpPrize
+      spellDraw
       randomLoot {
         quantity
         item {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/quest/adventurer_slot.dart';
 import 'package:klimmeck_guide/models/quest/quest.dart';
@@ -148,6 +149,43 @@ void main() {
   group('Quest.tryFromJson', () {
     test('returns null for an unknown type', () {
       expect(Quest.tryFromJson(questJson(type: 'treasure')), isNull);
+    });
+
+    test('QuestInfos stays strict on an unknown type and null on an absent '
+        'one (D-09, Pitfall 4)', () {
+      expect(
+        () => QuestInfos.fromJson({'type': 'treasure'}),
+        throwsArgumentError,
+      );
+      expect(QuestInfos.fromJson({}).type, isNull);
+    });
+
+    test('QuestInfos writes the wire name of its type (D-09)', () {
+      final infos = QuestInfos.fromJson({'type': 'worldMission'});
+
+      expect(infos.toJson()['type'], 'worldMission');
+    });
+
+    test('a quest served with the legacy type magic parses as arcane and '
+        'writes arcane (D-20)', () {
+      final infos = buildQuest(type: 'magic').infos!;
+
+      expect(infos.type, QuestType.arcane);
+      expect(infos.toJson()['type'], 'arcane');
+    });
+
+    test('a void rite parses from the wire value void (D-09)', () {
+      final infos = buildQuest(type: 'void').infos!;
+
+      expect(infos.type, QuestType.theVoid);
+      expect(infos.toJson()['type'], 'void');
+    });
+
+    test('a shamanic rite parses (D-09)', () {
+      final infos = buildQuest(type: 'shamanic').infos!;
+
+      expect(infos.type, QuestType.shamanic);
+      expect(infos.toJson()['type'], 'shamanic');
     });
 
     test('returns null for an unknown minTitle', () {
@@ -387,6 +425,28 @@ void main() {
 
       expect(quest.prizes?.pet?.name, 'Gufo reale');
       expect(Quest.tryFromJson(json), isNotNull);
+    });
+  });
+
+  group('prizes.spellDraw (BE Phase 24)', () {
+    test('prizes read spellDraw only from a true value (D-26)', () {
+      expect(buildQuest(prizes: {'spellDraw': true}).prizes!.spellDraw, isTrue);
+      for (final value in [false, null, 'true']) {
+        expect(
+          buildQuest(prizes: {'spellDraw': value}).prizes!.spellDraw,
+          isFalse,
+          reason: '$value',
+        );
+      }
+      expect(buildQuest(prizes: {}).prizes!.spellDraw, isFalse);
+    });
+
+    test('spellDraw takes part in equality, toJson and copyWith (D-26)', () {
+      final drawing = buildQuest(prizes: {'spellDraw': true}).prizes!;
+      final plain = buildQuest(prizes: {}).prizes!;
+      expect(drawing == plain, isFalse);
+      expect(drawing.toJson()['spellDraw'], isTrue);
+      expect(plain.copyWith(spellDraw: true), drawing);
     });
   });
 }

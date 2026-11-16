@@ -62,6 +62,14 @@ void main() {
       expect(draft.prizes.single.coins, const Coins(gold: 2));
     });
 
+    test('the quest type is read through its wire name (D-09)', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(questType: 'arcane'),
+      )!;
+
+      expect(draft.questType, QuestType.arcane);
+    });
+
     test('an unknown step reads null and the draft survives (Pitfall 8)', () {
       final draft = MissionDraft.tryFromJson(
         missionDraftJson(step: 'celebration', questType: 'festival'),

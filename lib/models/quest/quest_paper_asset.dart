@@ -74,10 +74,18 @@ List<String> questPaperAssetIds(
             CloudinaryAssets.announcementSheet1,
             CloudinaryAssets.announcementSheet2,
           ],
-  QuestType.magic =>
+  QuestType.arcane =>
     isTorn
         ? const [CloudinaryAssets.magicTornSheet]
         : const [CloudinaryAssets.magicSheet],
+  QuestType.shamanic =>
+    isTorn
+        ? const [CloudinaryAssets.shamanicTornSheet]
+        : const [CloudinaryAssets.shamanicSheet],
+  QuestType.theVoid =>
+    isTorn
+        ? const [CloudinaryAssets.voidTornSheet]
+        : const [CloudinaryAssets.voidSheet],
   QuestType.aid =>
     isTorn
         ? const [CloudinaryAssets.aidTornSheet1, CloudinaryAssets.aidTornSheet2]

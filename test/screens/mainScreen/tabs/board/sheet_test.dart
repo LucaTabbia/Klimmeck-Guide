@@ -48,19 +48,46 @@ void main() {
       ..._bossTorn,
       CloudinaryAssets.magicSheet,
       CloudinaryAssets.magicTornSheet,
+      CloudinaryAssets.shamanicSheet,
+      CloudinaryAssets.shamanicTornSheet,
+      CloudinaryAssets.voidSheet,
+      CloudinaryAssets.voidTornSheet,
     ]),
   );
 
-  testWidgets('a magic quest shows its own sheet (quick 261110-mag)', (
+  testWidgets('a shamanic rite and a void rite show their own sheets (D-14)', (
     tester,
   ) async {
-    final magic = buildQuest(id: 'm-1', type: 'magic');
-    await _pump(tester, magic, isTorn: false);
-    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
+    final shamanic = buildQuest(id: 's-1', type: 'shamanic');
+    await _pump(tester, shamanic, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.shamanicSheet));
+    await _pump(tester, shamanic, isTorn: true);
+    expect(
+      _url(tester),
+      CloudinaryAssets.url(CloudinaryAssets.shamanicTornSheet),
+    );
 
-    await _pump(tester, magic, isTorn: true);
-    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicTornSheet));
+    final rite = buildQuest(id: 'v-1', type: 'void');
+    await _pump(tester, rite, isTorn: false);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.voidSheet));
+    await _pump(tester, rite, isTorn: true);
+    expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.voidTornSheet));
   });
+
+  testWidgets(
+    'an arcane quest shows the magic sheet (quick 261110-mag, D-20)',
+    (tester) async {
+      final arcane = buildQuest(id: 'm-1', type: 'arcane');
+      await _pump(tester, arcane, isTorn: false);
+      expect(_url(tester), CloudinaryAssets.url(CloudinaryAssets.magicSheet));
+
+      await _pump(tester, arcane, isTorn: true);
+      expect(
+        _url(tester),
+        CloudinaryAssets.url(CloudinaryAssets.magicTornSheet),
+      );
+    },
+  );
 
   testWidgets('a torn boss shows a torn boss paper', (tester) async {
     await _pump(tester, buildQuest(id: 'b-1', type: 'boss'), isTorn: true);

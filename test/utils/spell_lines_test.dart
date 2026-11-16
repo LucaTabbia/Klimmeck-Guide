@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/energy_damage.dart';
 import 'package:klimmeck_guide/models/enums/energy_type.dart';
+import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
@@ -174,33 +175,62 @@ void main() {
       );
     });
 
-    test('spellLearnLabel with XP and study time', () {
-      expect(spellLearnLabel(spell), 'Per impararla: 100 XP · 1 h di studio');
-    });
+    test(
+      'the learn line reads the level only, never the learn time (D-28)',
+      () {
+        expect(
+          spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
+          'Per impararla: Livello 6',
+        );
+      },
+    );
 
-    test('spellLearnLabel with XP only', () {
+    test('spellLearnLabel with the level and no learn time (D-07, D-28)', () {
       expect(
-        spellLearnLabel(Spell.fromJson(spellJson(requiredLearnTime: null))),
-        'Per impararla: 100 XP',
+        spellLearnLabel(
+          Spell.fromJson(
+            spellJson(minLevelToLearn: 6, requiredLearnTime: null),
+          ),
+        ),
+        'Per impararla: Livello 6',
       );
     });
 
-    test('spellLearnLabel with study time only', () {
-      expect(
-        spellLearnLabel(Spell.fromJson(spellJson(minXpToLearn: null))),
-        'Per impararla: 1 h di studio',
-      );
+    test('a spell without a level has no learn line even with a learn time '
+        '(D-28)', () {
+      expect(spellLearnLabel(spell), isNull);
+    });
+
+    test('a zero or negative level prints no learn line (D-08, D-28)', () {
+      for (final level in [0, -2]) {
+        expect(
+          spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: level))),
+          isNull,
+          reason: '$level',
+        );
+      }
     });
 
     test('spellLearnLabel without requirements', () {
       expect(
-        spellLearnLabel(
-          Spell.fromJson(
-            spellJson(minXpToLearn: null, requiredLearnTime: null),
-          ),
-        ),
+        spellLearnLabel(Spell.fromJson(spellJson(requiredLearnTime: null))),
         isNull,
       );
+    });
+
+    test('the learn line never mentions XP (D-08)', () {
+      expect(
+        spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
+        isNot(contains('XP')),
+      );
+    });
+
+    test('spellOriginLabel reads Origine: Arcana, Sciamanica, Vuoto and null '
+        'without origin (D-06)', () {
+      expect(spellOriginLabel(SpellOrigin.arcane), 'Origine: Arcana');
+      expect(spellOriginLabel(SpellOrigin.shamanic), 'Origine: Sciamanica');
+      expect(spellOriginLabel(SpellOrigin.theVoid), 'Origine: Vuoto');
+      expect(spellOriginLabel(null), isNull);
     });
 
     test('spellRecoveryLabel is null at full usages', () {

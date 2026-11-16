@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
+import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/utils/quest_outcome_lines.dart';
 
 import '../helpers/fixtures/quest_result_fixtures.dart';
@@ -344,6 +345,67 @@ void main() {
             lastTurn: 8,
             lastTurnKind: 'fight',
           ),
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('research lines (Phase 23 D-29, D-31)', () {
+    QuestResult found(Map<String, dynamic>? spell) =>
+        questResult(questResultJson(spellFound: spell));
+
+    test('names the spell found by the research (D-31)', () {
+      expect(
+        spellFoundLine(found({'id': 's-1', 'name': 'Dardo'})),
+        'Magia scoperta: Dardo',
+      );
+      expect(
+        spellFoundLine(found({'id': 's-1', 'name': '  '})),
+        'Magia scoperta',
+      );
+      expect(
+        spellFoundLine(found({'id': 's-1', 'name': null})),
+        'Magia scoperta',
+      );
+      expect(spellFoundLine(questResult(questResultJson())), isNull);
+    });
+
+    test('prints the learning time of the spell found (D-31)', () {
+      Map<String, dynamic> spell(Object? time) => {
+        'id': 's-1',
+        'name': 'Dardo',
+        'requiredLearnTime': time,
+      };
+
+      expect(
+        spellLearningTimeLine(found(spell(1800000))),
+        'Tempo di apprendimento: 30 min',
+      );
+      expect(
+        spellLearningTimeLine(found(spell(43200000))),
+        'Tempo di apprendimento: 12 h',
+      );
+      for (final time in [null, 0, -1000]) {
+        expect(
+          spellLearningTimeLine(found(spell(time))),
+          isNull,
+          reason: '$time',
+        );
+      }
+      expect(spellLearningTimeLine(questResult(questResultJson())), isNull);
+    });
+
+    test('a failed research has its own line (D-29)', () {
+      expect(
+        spellResearchFailedLine(
+          questResult(questResultJson(spellResearchFailed: true)),
+        ),
+        'La ricerca non ha rivelato alcuna magia',
+      );
+      expect(
+        spellResearchFailedLine(
+          questResult(questResultJson(spellResearchFailed: false)),
         ),
         isNull,
       );

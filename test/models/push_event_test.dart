@@ -105,6 +105,45 @@ void main() {
       expect(event?.id, 'c-1');
     });
 
+    test('a succeeded research push parses as a quest end with the served '
+        'copy (D-29, D-31)', () {
+      const resultId = '6712a0c4e1b2c3d4e5f60799';
+      final event = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'spellResearchSucceeded',
+        'title': 'Ricerca riuscita',
+        'body': "Hai scoperto «Dardo»: l'apprendimento dura 30 minuti.",
+        'id': resultId,
+      });
+
+      expect(event?.category, NotificationCategory.questEnd);
+      expect(event?.title, 'Ricerca riuscita');
+      expect(
+        event?.body,
+        "Hai scoperto «Dardo»: l'apprendimento dura 30 minuti.",
+      );
+      expect(event?.dedupKey, 'questEnd|$resultId');
+      expect(event?.intent.category, NotificationCategory.questEnd);
+      expect(event?.intent.id, resultId);
+    });
+
+    test('a failed research push parses the same way (D-29)', () {
+      const resultId = '6712a0c4e1b2c3d4e5f60799';
+      final event = PushEvent.tryParse({
+        ...travelEndData(),
+        'type': 'spellResearchFailed',
+        'title': 'Ricerca conclusa',
+        'body': "Nessuna magia scoperta: scopri com'è andata la missione.",
+        'id': resultId,
+      });
+
+      expect(event?.category, NotificationCategory.questEnd);
+      expect(event?.title, 'Ricerca conclusa');
+      expect(event?.dedupKey, 'questEnd|$resultId');
+      expect(event?.intent.category, NotificationCategory.questEnd);
+      expect(event?.intent.id, resultId);
+    });
+
     test('drops an id sent with a streamer live broadcast', () {
       final event = PushEvent.tryParse({...streamerLiveData(), 'id': 'x'});
 

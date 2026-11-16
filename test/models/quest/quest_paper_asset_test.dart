@@ -147,12 +147,33 @@ void main() {
       ]);
     });
 
-    test('magic uses its own whole and torn sheets (quick 261110-mag)', () {
-      expect(questPaperAssetIds(QuestType.magic, isTorn: false), [
-        CloudinaryAssets.magicSheet,
+    test(
+      'arcane uses the magic sheets, whole and torn (quick 261110-mag, D-20)',
+      () {
+        expect(questPaperAssetIds(QuestType.arcane, isTorn: false), [
+          CloudinaryAssets.magicSheet,
+        ]);
+        expect(questPaperAssetIds(QuestType.arcane, isTorn: true), [
+          CloudinaryAssets.magicTornSheet,
+        ]);
+      },
+    );
+
+    test('the shamanic rite uses its own whole and torn sheets (D-14)', () {
+      expect(questPaperAssetIds(QuestType.shamanic, isTorn: false), [
+        CloudinaryAssets.shamanicSheet,
       ]);
-      expect(questPaperAssetIds(QuestType.magic, isTorn: true), [
-        CloudinaryAssets.magicTornSheet,
+      expect(questPaperAssetIds(QuestType.shamanic, isTorn: true), [
+        CloudinaryAssets.shamanicTornSheet,
+      ]);
+    });
+
+    test('the void rite uses its own whole and torn sheets (D-14)', () {
+      expect(questPaperAssetIds(QuestType.theVoid, isTorn: false), [
+        CloudinaryAssets.voidSheet,
+      ]);
+      expect(questPaperAssetIds(QuestType.theVoid, isTorn: true), [
+        CloudinaryAssets.voidTornSheet,
       ]);
     });
 
@@ -221,6 +242,22 @@ void main() {
       expect(
         CloudinaryAssets.magicTornSheet,
         'v1794321051/tornMagicSheet_f8gu75.svg',
+      );
+    });
+
+    test('the rite sheets point to their files (D-14, D-21)', () {
+      expect(
+        CloudinaryAssets.shamanicSheet,
+        'v1794764350/shamanicSheet_ytxu1n.svg',
+      );
+      expect(
+        CloudinaryAssets.shamanicTornSheet,
+        'v1794764330/tornShamanicSheet_exdyou.svg',
+      );
+      expect(CloudinaryAssets.voidSheet, 'v1794764361/voidSheet_iyocqb.svg');
+      expect(
+        CloudinaryAssets.voidTornSheet,
+        'v1794764340/tornVoidSheet_h4sp3g.svg',
       );
     });
 
