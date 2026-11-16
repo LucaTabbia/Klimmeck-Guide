@@ -4,6 +4,8 @@ import 'package:gql/language.dart';
 import 'package:klimmeck_guide/graphql/fragments/character_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/equipment_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/pet_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/quest_fragment.dart';
+import 'package:klimmeck_guide/graphql/fragments/quest_result_fragment.dart';
 import 'package:klimmeck_guide/graphql/fragments/spell_fragment.dart';
 import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
@@ -18,15 +20,48 @@ import '../helpers/fixtures/travel_fixtures.dart';
 void main() {
   final fields = CharacterFragment.questsFields.replaceAll(RegExp(r'\s+'), ' ');
 
-  test('selects pendingQuest with timing, arrival, points, quest id and '
-      'quest type (the pawn names the activity, UAT 2026-11-14)', () {
+  test('the standard lane selects the spell being learned (D-26)', () {
     expect(
       fields,
       contains(
         'pendingQuest { id startDate arrivedAt waitingTime pointsSpent '
+        'learningSpell { id name origin requiredLearnTime } '
         'quest { id infos { type } } }',
       ),
     );
+  });
+
+  test('the GM lanes select no learning spell (D-30)', () {
+    expect(
+      fields.split('activeStoryQuest {').last,
+      isNot(contains('learningSpell')),
+    );
+  });
+
+  test('character and characterUpdated carry the learning spell (D-26)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(
+        document.replaceAll(RegExp(r'\s+'), ' '),
+        contains('learningSpell { id name origin requiredLearnTime }'),
+      );
+    }
+  });
+
+  test('a recorded characterUpdated payload parses the learning part '
+      '(D-26)', () {
+    final character = Character.fromJson(
+      travellingCharacterJson(pendingQuest: _recordedLearningLane),
+    );
+    final lane = character.quests!.pendingQuest!;
+
+    expect(lane.isLearning, isTrue);
+    expect(lane.learningSpell!.name, 'Nome A');
+    expect(lane.learningSpell!.origin, SpellOrigin.arcane);
+    expect(lane.learningSpell!.requiredLearnTime, 1800000);
+    expect(lane.learningEndsAt, DateTime.utc(2026, 11, 16, 11, 30));
   });
 
   for (final lane in ['activeStoryQuest', 'activeWorldMissionQuest']) {
@@ -228,18 +263,34 @@ void main() {
     }
   });
 
-  test('no document selects the research and learning fields before the gate '
-      '(D-26, D-31)', () {
-    const gatedFields = [
-      'learningSpell',
-      'spellDraw',
-      'spellFound',
-      'spellResearchFailed',
-    ];
-    schemaCheckDocuments.forEach((name, document) {
-      for (final field in gatedFields) {
-        expect(document, isNot(contains(field)), reason: '$name: $field');
-      }
+  test('the research and learning fields are selected only where the gate '
+      'put them (D-26, D-31)', () {
+    final homes = {
+      'learningSpell': CharacterFragment.fullFields,
+      'spellDraw': QuestFragment.fields,
+      'spellFound': QuestResultFragment.fields,
+      'spellResearchFailed': QuestResultFragment.fields,
+    };
+    final expectedDocuments = {
+      'learningSpell': {'character', 'characterUpdated'},
+      'spellDraw': {'quests', 'OnQuestUpdated'},
+      'spellFound': _resultDocuments,
+      'spellResearchFailed': _resultDocuments,
+    };
+    homes.forEach((field, home) {
+      final selecting = {
+        for (final MapEntry(key: name, value: document)
+            in schemaCheckDocuments.entries)
+          if (document.contains(field)) name,
+      };
+      final embedding = {
+        for (final MapEntry(key: name, value: document)
+            in schemaCheckDocuments.entries)
+          if (document.contains(home)) name,
+      };
+
+      expect(selecting, expectedDocuments[field], reason: field);
+      expect(selecting, embedding, reason: field);
     });
   });
 
@@ -389,6 +440,34 @@ void main() {
     );
   });
 }
+
+/// Documenti che incorporano `QuestResultFragment.fields`.
+const Set<String> _resultDocuments = {
+  'GetQuestResult',
+  'ListUnacknowledgedQuestResults',
+  'OnQuestResultReceived',
+  'CompleteGuidedMission',
+};
+
+/// Corsia standard nella parte di apprendimento, forma del handoff BE §8.6
+/// (id sostituiti): stessa `id`, `startDate` = fine della ricerca.
+const Map<String, dynamic> _recordedLearningLane = {
+  'id': 'pending-quest-1',
+  'startDate': '2026-11-16T11:00:00.000Z',
+  'arrivedAt': '2026-11-16T09:55:00.000Z',
+  'waitingTime': 1800000,
+  'pointsSpent': 0,
+  'learningSpell': {
+    'id': 'spell-a',
+    'name': 'Nome A',
+    'origin': 'arcane',
+    'requiredLearnTime': 1800000,
+  },
+  'quest': {
+    'id': 'quest-1',
+    'infos': {'type': 'arcane'},
+  },
+};
 
 /// `characterUpdated` nella forma della BE Phase 19 (id sostituiti): stati
 /// con la magia intera e `active`, compagni posseduti come voci.

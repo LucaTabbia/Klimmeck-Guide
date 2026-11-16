@@ -143,6 +143,18 @@ void main() {
           );
         });
 
+        test('$name selects the spell found and the failed research after '
+            'the learned spell (D-29, D-31)', () {
+          expect(
+            _collapsed(document),
+            contains(
+              'spellLearned { id name } '
+              'spellFound { id name origin requiredLearnTime } '
+              'spellResearchFailed',
+            ),
+          );
+        });
+
         test('$name selects onFoot in the ambush report (D-28)', () {
           expect(
             _collapsed(document),
@@ -159,7 +171,7 @@ void main() {
     test('selects the lore unlocked by the outcome (D-04)', () {
       expect(
         sharedSelection,
-        contains('spellLearned { id name } loreUnlocked { id name type }'),
+        contains('spellResearchFailed loreUnlocked { id name type }'),
       );
     });
 

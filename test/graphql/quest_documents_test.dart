@@ -29,6 +29,17 @@ void main() {
     }
   });
 
+  test('quest prizes select the spell draw (D-26)', () {
+    final documents = {
+      'quests': QuestQueries.getAllQuests,
+      'OnQuestUpdated': QuestSubscriptions.questUpdated,
+    };
+    for (final MapEntry(key: name, value: document) in documents.entries) {
+      final prizes = _collapsed(document).split('prizes {').last;
+      expect(prizes, contains('xpPrize spellDraw'), reason: name);
+    }
+  });
+
   group('quests query', () {
     test('selects the shared quest fragment', () {
       expect(_collapsed(QuestQueries.getAllQuests), contains(sharedSelection));
