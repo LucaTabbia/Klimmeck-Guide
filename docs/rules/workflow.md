@@ -93,6 +93,18 @@ Durante la fase, GSD genera file in `.planning/phases/NN-<slug>/`:
 
 Commit questi file **insieme** al codice della stessa fase (stesso branch). Non accumularli su `develop`.
 
+## Revisione dei layout (fuori dal ciclo GSD)
+
+Deciso il 2026-11-16: i ritocchi di layout non passano da discuss, ricerca, planner e checker. Sono tanti aggiustamenti piccoli e indipendenti, giudicabili solo sul device.
+
+- **Branch:** `fix/ui-layout-review` da `develop`; una PR verso `develop` a fine giro (o più PR se il giro si allunga). Mai push diretto su `develop` o `main`.
+- **Ciclo:** app sul telefono con hot reload; l'utente dice cosa non va e come lo vuole, si corregge, si ricarica, l'utente conferma. Un ritocco alla volta.
+- **Commit:** uno per ritocco, così un cambio che non convince si toglie da solo.
+- **Test:** errori veri di layout (sbordamenti, testi tagliati, widget fuori dal foglio) → test scritto prima (TDD). Ritocchi di gusto (spazi, misure, allineamenti) → basta l'occhio dell'utente; la suite e `flutter analyze` restano alla baseline.
+- **Traccia:** una riga in `.planning/ROADMAP.md` a fine giro; niente piani né documenti di fase.
+- **Ritorno a GSD:** solo se emerge qualcosa di strutturale (una schermata da ridisegnare, un dato servito dal BE da cambiare): quello si isola in una fase sua.
+- Le regole invalicabili restano: niente UI chrome sul gameplay, niente loading bloccanti in sessione, backend fonte di verità.
+
 ## Secret e .env
 
 - `.env*` **non** in repo (già nel `.gitignore` atteso).
