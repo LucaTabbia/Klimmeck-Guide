@@ -563,6 +563,7 @@ void main() {
 
         learningStates.add(const SpellLearningState(Duration(minutes: 27)));
         await tester.pump();
+        await tester.pump();
 
         expect(activityLabel(tester), 'Imparando «Dardo»: 27 min');
         expect(find.byType(CircularProgressIndicator), findsNothing);
