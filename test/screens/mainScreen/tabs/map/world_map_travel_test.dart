@@ -943,6 +943,102 @@ void main() {
     });
   });
 
+  group('learning part on the Map (Phase 23 D-26, D-29)', () {
+    final arcane = buildQuest(id: 'a-1', type: 'arcane');
+    final serverNow = DateTime.utc(2026, 11, 16, 10, 2);
+    const learningStart = '2026-11-16T10:00:00.000Z';
+    const dardo = {'id': 's-1', 'name': 'Dardo'};
+
+    Map<String, dynamic> arcaneLane({
+      String startDate = learningStart,
+      int waitingTime = 1800000,
+      Map<String, dynamic>? learningSpell = dardo,
+    }) =>
+        laneJson(
+            questId: 'a-1',
+            startDate: startDate,
+            arrivedAt: '2026-11-16T09:30:00.000Z',
+          )
+          ..['waitingTime'] = waitingTime
+          ..['learningSpell'] = learningSpell;
+
+    Future<void> pumpLane(
+      WidgetTester tester,
+      Map<String, dynamic> lane,
+    ) async {
+      seedSvgCache([
+        questPaperAssetId(arcane, isTorn: false),
+        CloudinaryAssets.emptySheet,
+      ]);
+      await pumpWorldMap(
+        tester,
+        character: characterLoaded(pendingQuest: lane),
+        serverNow: serverNow,
+        quests: [arcane],
+      );
+    }
+
+    Future<void> openPaper(WidgetTester tester) async {
+      await tester.tap(find.byKey(QuestPaperLayer.paperKey));
+      await tester.pumpAndSettle();
+    }
+
+    String? overlayLabel(WidgetTester tester) =>
+        tester.widget<Text>(find.byKey(QuestInfoSheet.stateLabelKey)).data;
+
+    testWidgets(
+      'the quest overlay reads the spell being learned and the time left (D-29)',
+      (tester) async {
+        await pumpLane(tester, arcaneLane());
+        await openPaper(tester);
+
+        expect(overlayLabel(tester), 'Imparando «Dardo»: 28 min');
+      },
+    );
+
+    testWidgets(
+      'the overlay turns to the learning line when the part changes in session (D-26, D-29)',
+      (tester) async {
+        await pumpLane(
+          tester,
+          arcaneLane(waitingTime: 3600000, learningSpell: null),
+        );
+        await openPaper(tester);
+        expect(overlayLabel(tester), 'Ricercando…');
+
+        characterStates.add(
+          characterLoaded(
+            pendingQuest: arcaneLane(startDate: '2026-11-16T10:02:00.000Z'),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(overlayLabel(tester), 'Imparando «Dardo»: 30 min');
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'the overlay of a learning already over waits without a time (D-26)',
+      (tester) async {
+        await pumpLane(tester, arcaneLane(waitingTime: 60000));
+        await openPaper(tester);
+
+        expect(overlayLabel(tester), 'Imparando «Dardo»…');
+      },
+    );
+
+    testWidgets(
+      'the paper reads Apprendimento during the learning part (D-26)',
+      (tester) async {
+        await pumpLane(tester, arcaneLane());
+
+        expect(find.text('Apprendimento…'), findsOneWidget);
+      },
+    );
+  });
+
   group('lost ambush reroute (D-03)', () {
     final ambush = pawnAt(midTravel);
     final rerouted = activeTravelJson(
