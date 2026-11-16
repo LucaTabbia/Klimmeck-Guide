@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
+import 'package:klimmeck_guide/models/quest/quest.dart';
 import 'package:klimmeck_guide/models/travel/active_travel.dart';
 import 'package:klimmeck_guide/models/travel/travel_preview.dart';
 import 'package:klimmeck_guide/models/travel/travel_route.dart';
@@ -15,7 +16,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/pawn_visuals.d
 import 'package:klimmeck_guide/screens/mainScreen/questAcceptanceCubit/quest_acceptance_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/layers/character_marker_layer.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/map/spellLearningCubit/spell_learning_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:latlong2/latlong.dart';
@@ -51,6 +54,9 @@ final City cityB = City.fromJson({
   'type': 'drusteaCapital',
   'size': 'capital',
 });
+
+class _MockSpellLearningCubit extends MockCubit<SpellLearningState>
+    implements SpellLearningCubit {}
 
 const LatLng home = LatLng(10, 20);
 const LatLng destination = LatLng(10, 60);
@@ -109,6 +115,9 @@ void main() {
   late MockTravelProgressCubit progressCubit;
   late MockPrisonCubit prisonCubit;
   late MockQuestAcceptanceCubit acceptanceCubit;
+  late MockQuestCubit questCubit;
+  late _MockSpellLearningCubit learningCubit;
+  late StreamController<SpellLearningState> learningStates;
   late StreamController<PrisonState> prisonStates;
   late StreamController<CharacterState> characterStates;
   late StreamController<TravelState> travelStates;
@@ -122,6 +131,9 @@ void main() {
     progressCubit = MockTravelProgressCubit();
     prisonCubit = MockPrisonCubit();
     acceptanceCubit = MockQuestAcceptanceCubit();
+    questCubit = MockQuestCubit();
+    learningCubit = _MockSpellLearningCubit();
+    learningStates = StreamController<SpellLearningState>.broadcast();
     prisonStates = StreamController<PrisonState>.broadcast();
     characterStates = StreamController<CharacterState>.broadcast();
     travelStates = StreamController<TravelState>.broadcast();
@@ -136,6 +148,7 @@ void main() {
     await travelStates.close();
     await progressStates.close();
     await prisonStates.close();
+    await learningStates.close();
   });
 
   Future<void> pumpLayer(
@@ -145,6 +158,8 @@ void main() {
     TravelProgressState progress = const TravelProgressIdle(),
     PrisonState prison = const PrisonState(null),
     QuestAcceptanceState acceptance = const QuestAcceptanceIdle(),
+    List<Quest> quests = const [],
+    SpellLearningState learning = const SpellLearningState(null),
     double zoom = 2,
   }) async {
     useLandscapePhone(tester);
@@ -157,6 +172,12 @@ void main() {
     whenListen(characterCubit, characterStates.stream, initialState: character);
     whenListen(travelCubit, travelStates.stream, initialState: travel);
     whenListen(progressCubit, progressStates.stream, initialState: progress);
+    whenListen(
+      questCubit,
+      const Stream<QuestState>.empty(),
+      initialState: QuestLoaded(quests),
+    );
+    whenListen(learningCubit, learningStates.stream, initialState: learning);
     final controller = MapController();
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -166,6 +187,8 @@ void main() {
           BlocProvider<TravelProgressCubit>.value(value: progressCubit),
           BlocProvider<PrisonCubit>.value(value: prisonCubit),
           BlocProvider<QuestAcceptanceCubit>.value(value: acceptanceCubit),
+          BlocProvider<QuestCubit>.value(value: questCubit),
+          BlocProvider<SpellLearningCubit>.value(value: learningCubit),
         ],
         child: mapHarness([
           CharacterMarkerLayer(
@@ -461,6 +484,97 @@ void main() {
       );
 
       expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
+    });
+  });
+
+  group('research and learning parts (Phase 23 D-26, D-29)', () {
+    const dardo = {'id': 's-1', 'name': 'Dardo'};
+
+    CharacterLoaded onMission(Map<String, dynamic> lane) => characterLoaded(
+      pendingQuest: lane,
+      missionInProgress: true,
+      guidedMissionInProgress: false,
+    );
+
+    Map<String, dynamic> learningLane() =>
+        laneJson(questType: 'arcane')..['learningSpell'] = dardo;
+
+    String? activityLabel(WidgetTester tester) => tester
+        .widget<PawnLabel>(find.byKey(CharacterMarkerLayer.activityLabelKey))
+        .text;
+
+    testWidgets(
+      'a school quest in progress reads the research part above the pawn (D-26)',
+      (tester) async {
+        for (final type in ['arcane', 'shamanic', 'void']) {
+          await pumpLayer(
+            tester,
+            character: onMission(laneJson(questType: type)),
+          );
+
+          expect(activityLabel(tester), 'Ricercando…', reason: type);
+        }
+      },
+    );
+
+    testWidgets(
+      'a study quest reads the research part only when the board quest carries the draw (D-26)',
+      (tester) async {
+        final lane = onMission(laneJson(questType: 'study'));
+
+        await pumpLayer(
+          tester,
+          character: lane,
+          quests: [
+            buildQuest(id: 'q-1', type: 'study', prizes: {'spellDraw': true}),
+          ],
+        );
+        expect(activityLabel(tester), 'Ricercando…');
+
+        await pumpLayer(
+          tester,
+          character: lane,
+          quests: [
+            buildQuest(id: 'q-1', type: 'study', prizes: {'spellDraw': false}),
+          ],
+        );
+        expect(activityLabel(tester), 'Studiando…');
+
+        await pumpLayer(
+          tester,
+          character: lane,
+          quests: [
+            buildQuest(id: 'q-2', type: 'study', prizes: {'spellDraw': true}),
+          ],
+        );
+        expect(activityLabel(tester), 'Studiando…');
+      },
+    );
+
+    testWidgets(
+      'the learning part names the spell and the time left above the pawn (D-29)',
+      (tester) async {
+        await pumpLayer(
+          tester,
+          character: onMission(learningLane()),
+          learning: const SpellLearningState(Duration(minutes: 28)),
+        );
+        expect(activityLabel(tester), 'Imparando «Dardo»: 28 min');
+
+        learningStates.add(const SpellLearningState(Duration(minutes: 27)));
+        await tester.pump();
+
+        expect(activityLabel(tester), 'Imparando «Dardo»: 27 min');
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+      },
+    );
+
+    testWidgets('a learning already over waits without a time (D-26)', (
+      tester,
+    ) async {
+      await pumpLayer(tester, character: onMission(learningLane()));
+
+      expect(activityLabel(tester), 'Imparando «Dardo»…');
     });
   });
 
