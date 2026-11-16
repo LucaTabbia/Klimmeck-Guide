@@ -4,9 +4,11 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
 import 'package:klimmeck_guide/shared/components/popup/equipment_info_sheet.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
+import '../../../helpers/fixtures/spell_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
@@ -25,6 +27,15 @@ final _helmWithoutRarity = EquipmentItem.fromJson(const {
   'equipType': 'helm',
   'rarity': null,
   'damages': {'base': [], 'energy': []},
+});
+
+final _infusedHelm = EquipmentItem.fromJson({
+  'id': 'item-3',
+  'name': 'Elmo del vulcano',
+  'equipType': 'helm',
+  'rarity': 'rare',
+  'damages': {'base': [], 'energy': []},
+  'addedSpell': spellJson(origin: 'arcane'),
 });
 
 EquipmentItem _jewel(String equipType, String name, List<String>? uses) =>
@@ -88,6 +99,10 @@ void main() {
       CloudinaryAssets.helmetType,
       CloudinaryAssets.ringType,
       CloudinaryAssets.necklaceType,
+      CloudinaryAssets.emptyCardSheet,
+      CloudinaryAssets.arcaneOrigin,
+      CloudinaryAssets.attackUse,
+      CloudinaryAssets.fireEnergy,
     ]),
   );
 
@@ -193,4 +208,15 @@ void main() {
     final name = tester.widget<Text>(find.text('Elmo senza rango'));
     expect(name.style?.color, KlimmeckGuideTheme.deepNight);
   });
+
+  testWidgets(
+    'the infused spell card keeps its three icons on the card (D-05)',
+    (tester) async {
+      await _pump(tester, item: _infusedHelm);
+
+      final card = tester.getSize(find.byType(SpellCard));
+      expect(card.width, card.height);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
