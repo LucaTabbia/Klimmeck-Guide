@@ -29,6 +29,10 @@ class EquipmentInfoSheet extends StatefulWidget {
 }
 
 class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
+  /// Spazio fra il divisore e la colonna della magia infusa: la carta misura
+  /// la larghezza che resta, così le icone non escono dal foglio.
+  static const double _infusedSpellGap = 20;
+
   @override
   Widget build(BuildContext context) {
     final svgWidth = MediaQuery.of(context).size.height * 1.3 * (315 / 375);
@@ -299,7 +303,7 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                     width: constraints.maxWidth / 2 - 0.5,
                                     child: Padding(
                                       padding: const EdgeInsets.only(
-                                        left: 20.0,
+                                        left: _infusedSpellGap,
                                       ),
                                       child: Column(
                                         mainAxisAlignment:
@@ -326,7 +330,10 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
                                             spell: widget
                                                 .equipmentItem
                                                 .addedSpell!,
-                                            size: constraints.maxWidth / 2,
+                                            size:
+                                                constraints.maxWidth / 2 -
+                                                0.5 -
+                                                _infusedSpellGap,
                                           ),
                                         ],
                                       ),
