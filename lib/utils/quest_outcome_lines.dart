@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_companion_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
+import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
 
 // Copy provvisoria (quick 261110-cgd): righe del foglio esiti per l'arresto
@@ -79,13 +80,19 @@ String? spellFoundLine(QuestResult result) {
   return name.isEmpty ? 'Magia scoperta' : 'Magia scoperta: $name';
 }
 
-/// Durata dell'apprendimento della magia scoperta (D-31), da
-/// `requiredLearnTime` in ms: il FE stampa il servito, non calcola.
+/// Durata dell'apprendimento della magia scoperta (D-31): il FE stampa il
+/// servito, non calcola.
 String? spellLearningTimeLine(QuestResult result) {
-  final milliseconds = result.spellFound?.requiredLearnTime;
+  final learnTime = spellLearnTimeOf(result.spellFound);
+  return learnTime == null ? null : 'Tempo di apprendimento: $learnTime';
+}
+
+/// `requiredLearnTime` servito (ms) in forma leggibile; `null` se assente o
+/// non positivo (D-31). Condiviso con il banner della ricerca.
+String? spellLearnTimeOf(Spell? spell) {
+  final milliseconds = spell?.requiredLearnTime;
   if (milliseconds == null || milliseconds <= 0) return null;
-  return 'Tempo di apprendimento: '
-      '${formatGameDuration(Duration(milliseconds: milliseconds))}';
+  return formatGameDuration(Duration(milliseconds: milliseconds));
 }
 
 /// Ricerca senza magia (D-29): il FE stampa il servito, non calcola.
