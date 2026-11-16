@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 
+import '../../tool/schema_check/schema_check_documents.dart';
 import '../helpers/fixtures/travel_fixtures.dart';
 
 void main() {
@@ -225,6 +226,21 @@ void main() {
       expect(selection, isNot(contains('minXpToLearn')));
       expect(selection, isNot(contains('relatedLore')));
     }
+  });
+
+  test('no document selects the research and learning fields before the gate '
+      '(D-26, D-31)', () {
+    const gatedFields = [
+      'learningSpell',
+      'spellDraw',
+      'spellFound',
+      'spellResearchFailed',
+    ];
+    schemaCheckDocuments.forEach((name, document) {
+      for (final field in gatedFields) {
+        expect(document, isNot(contains(field)), reason: '$name: $field');
+      }
+    });
   });
 
   test('a recorded characterUpdated payload parses its awaitingAid', () {

@@ -926,4 +926,87 @@ void main() {
       expect(() => result.rewards.items.clear(), throwsUnsupportedError);
     });
   });
+
+  group('spell research (BE Phase 24)', () {
+    const foundSpell = {
+      'id': 's-1',
+      'name': 'Dardo',
+      'origin': 'arcane',
+      'requiredLearnTime': 1800000,
+    };
+
+    Map<String, dynamic> learningEndJson({
+      Map<String, dynamic>? spellLearned = const {'id': 's-1', 'name': 'Dardo'},
+      Map<String, dynamic>? spellFound,
+      int xpGained = 0,
+      List<Object?> enemies = const [],
+      int hpAfter = 900,
+    }) => questResultJson(
+      spellLearned: spellLearned,
+      spellFound: spellFound,
+      xpGained: xpGained,
+      enemies: enemies,
+      hpBefore: 900,
+      hpAfter: hpAfter,
+    );
+
+    test('parses the spell found by the research (D-31)', () {
+      final result = questResult(questResultJson(spellFound: foundSpell));
+      expect(result.spellFound?.name, 'Dardo');
+      expect(result.spellFound?.requiredLearnTime, 1800000);
+      expect(result.spellLearned, isNull);
+    });
+
+    test("reads no spell found and no failed research from a result of "
+        "today's BE (D-29, D-31)", () {
+      final result = questResult(questResultJson());
+      expect(result.spellFound, isNull);
+      expect(result.spellResearchFailed, isFalse);
+    });
+
+    test('a failed research is true only for a true value (D-29)', () {
+      expect(
+        questResult(
+          questResultJson(spellResearchFailed: true),
+        ).spellResearchFailed,
+        isTrue,
+      );
+      for (final value in [false, null, 'true']) {
+        final json = questResultJson()..['spellResearchFailed'] = value;
+        expect(
+          questResult(json).spellResearchFailed,
+          isFalse,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('the small sheet at the end of the learning is recognised (D-31)', () {
+      expect(questResult(learningEndJson()).isLearningEnd, isTrue);
+    });
+
+    test('a sheet with any gain or a fight is not a learning end (D-31)', () {
+      final cases = {
+        'xp gained': learningEndJson(xpGained: 60),
+        'an enemy': learningEndJson(enemies: [questEnemyJson()]),
+        'life changed': learningEndJson(hpAfter: 640),
+        'no spell learned': learningEndJson(spellLearned: null),
+        'a spell found': learningEndJson(spellFound: foundSpell),
+      };
+      cases.forEach((name, json) {
+        expect(questResult(json).isLearningEnd, isFalse, reason: name);
+      });
+    });
+
+    test('spellFound and spellResearchFailed survive toJson -> fromJson and '
+        'take part in equality (D-31)', () {
+      final found = questResult(questResultJson(spellFound: foundSpell));
+      final failed = questResult(questResultJson(spellResearchFailed: true));
+
+      expect(questResult(found.toJson()), found);
+      expect(questResult(failed.toJson()), failed);
+      expect(found == questResult(questResultJson()), isFalse);
+      expect(failed == questResult(questResultJson()), isFalse);
+    });
+  });
 }

@@ -127,6 +127,8 @@ Map<String, dynamic> questResultJson({
   List<String> rescuedCharacters = const [],
   String? acknowledgedAt,
   Map<String, dynamic>? companion,
+  Map<String, dynamic>? spellFound,
+  bool? spellResearchFailed,
 }) => {
   'id': id,
   'outcome': outcome,
@@ -173,6 +175,8 @@ Map<String, dynamic> questResultJson({
   'rescuedCharacters': rescuedCharacters,
   if (acknowledgedAt != null) 'acknowledgedAt': acknowledgedAt,
   if (companion != null) 'companion': companion,
+  if (spellFound != null) 'spellFound': spellFound,
+  if (spellResearchFailed != null) 'spellResearchFailed': spellResearchFailed,
 };
 
 /// Esito di una quest heal vinta (BE Phase 18): vita risalita, una ferita
