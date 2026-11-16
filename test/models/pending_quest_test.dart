@@ -74,4 +74,97 @@ void main() {
       expect(lane.isWaitingForParty, isFalse);
     });
   });
+
+  group('learning part (BE Phase 24)', () {
+    Map<String, dynamic> learningLaneJson({
+      Object? learningSpell = _learningSpellJson,
+      String? startDate = '2026-11-16T10:00:00.000Z',
+      Object? waitingTime = 1800000,
+    }) => laneJson(startDate: startDate)
+      ..['learningSpell'] = learningSpell
+      ..['waitingTime'] = waitingTime;
+
+    test('parses the spell being learned (D-26)', () {
+      final lane = PendingQuest.fromJson(learningLaneJson());
+      expect(lane.learningSpell?.id, 's-1');
+      expect(lane.learningSpell?.name, 'Dardo');
+      expect(lane.isLearning, isTrue);
+    });
+
+    test('reads no learning spell when the key is absent, null or not a map '
+        '(D-26)', () {
+      final payloads = [
+        laneJson(),
+        learningLaneJson(learningSpell: null),
+        learningLaneJson(learningSpell: 's-1'),
+      ];
+      for (final json in payloads) {
+        final lane = PendingQuest.fromJson(json);
+        expect(lane.learningSpell, isNull, reason: '$json');
+        expect(lane.isLearning, isFalse, reason: '$json');
+      }
+    });
+
+    test('the learning part ends at startDate + waitingTime (D-26)', () {
+      expect(
+        PendingQuest.fromJson(learningLaneJson()).learningEndsAt,
+        DateTime.utc(2026, 11, 16, 10, 30),
+      );
+    });
+
+    test('has no learning end outside the learning part or without its '
+        'dates (D-26)', () {
+      expect(PendingQuest.fromJson(laneJson()).learningEndsAt, isNull);
+      expect(
+        PendingQuest.fromJson(learningLaneJson(startDate: null)).learningEndsAt,
+        isNull,
+      );
+      expect(
+        PendingQuest.fromJson(
+          learningLaneJson(waitingTime: null),
+        ).learningEndsAt,
+        isNull,
+      );
+    });
+
+    test(
+      'learningSpell takes part in equality, toJson and copyWith (D-26)',
+      () {
+        final learning = PendingQuest.fromJson(learningLaneJson());
+        final researching = PendingQuest.fromJson(
+          learningLaneJson(learningSpell: null),
+        );
+        expect(learning == researching, isFalse);
+        expect(learning, PendingQuest.fromJson(learningLaneJson()));
+        expect(learning.toJson()['learningSpell'], 's-1');
+        expect(
+          researching.copyWith(learningSpell: learning.learningSpell),
+          learning,
+        );
+      },
+    );
+
+    test(
+      'a travelling or waiting lane is unchanged by the new field (D-26)',
+      () {
+        final travelling = PendingQuest.fromJson(
+          learningLaneJson(startDate: null),
+        );
+        expect(travelling.isTravelling, isTrue);
+        expect(travelling.isWaitingForParty, isFalse);
+        final waiting = PendingQuest.fromJson(
+          laneJson(startDate: null, arrivedAt: '2026-11-16T09:00:00.000Z'),
+        );
+        expect(waiting.isWaitingForParty, isTrue);
+        expect(waiting.isLearning, isFalse);
+      },
+    );
+  });
 }
+
+const Map<String, dynamic> _learningSpellJson = {
+  'id': 's-1',
+  'name': 'Dardo',
+  'origin': 'arcane',
+  'requiredLearnTime': 1800000,
+};

@@ -427,4 +427,26 @@ void main() {
       expect(Quest.tryFromJson(json), isNotNull);
     });
   });
+
+  group('prizes.spellDraw (BE Phase 24)', () {
+    test('prizes read spellDraw only from a true value (D-26)', () {
+      expect(buildQuest(prizes: {'spellDraw': true}).prizes!.spellDraw, isTrue);
+      for (final value in [false, null, 'true']) {
+        expect(
+          buildQuest(prizes: {'spellDraw': value}).prizes!.spellDraw,
+          isFalse,
+          reason: '$value',
+        );
+      }
+      expect(buildQuest(prizes: {}).prizes!.spellDraw, isFalse);
+    });
+
+    test('spellDraw takes part in equality, toJson and copyWith (D-26)', () {
+      final drawing = buildQuest(prizes: {'spellDraw': true}).prizes!;
+      final plain = buildQuest(prizes: {}).prizes!;
+      expect(drawing == plain, isFalse);
+      expect(drawing.toJson()['spellDraw'], isTrue);
+      expect(plain.copyWith(spellDraw: true), drawing);
+    });
+  });
 }
