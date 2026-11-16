@@ -2,7 +2,7 @@
 phase: 23
 slug: spell-origins-void-and-shamanic-quests
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-15
 ---
@@ -76,9 +76,9 @@ created: 2026-11-15
 | 23-13-01 | 13 | 12 | ORIGIN-08 | — | result sheets printed from served facts | widget | `flutter test test/utils test/shared/components/popup` | ✅ extend | ✅ green |
 | 23-13-02 | 13 | 12 | ORIGIN-08 | — | research pushes open the result like questEnd | unit | `flutter test test/models test/repository/services/push test/screens/mainScreen/components` | ✅ extend | ✅ green |
 | 23-13-03 | 13 | 12 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 12 of 14" .planning/STATE.md` | — | ✅ green |
-| 23-14-01 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-14 + flutter test test/graphql` | ✅ extend | ⬜ pending |
-| 23-14-02 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | every document valid on the BE SDL | gate | `schema check 55 × OK + full suite` | ✅ | ⬜ pending |
-| 23-14-03 | 14 | 13 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 13 of 14" .planning/STATE.md` | — | ⬜ pending |
+| 23-14-01 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | gate before any selection; BE read-only | gate + document pin | `schema gate block of 23-14 + flutter test test/graphql` | ✅ extend | ✅ green |
+| 23-14-02 | 14 | 13 | ORIGIN-07, ORIGIN-08 | — | every document valid on the BE SDL | gate | `schema check 55 × OK + full suite` | ✅ | ✅ green |
+| 23-14-03 | 14 | 13 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 13 of 14" .planning/STATE.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -119,6 +119,6 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
