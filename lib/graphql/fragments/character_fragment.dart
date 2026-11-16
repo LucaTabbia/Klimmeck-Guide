@@ -121,6 +121,12 @@ class CharacterFragment {
         arrivedAt
         waitingTime
         pointsSpent
+        learningSpell {
+          id
+          name
+          origin
+          requiredLearnTime
+        }
         quest {
           id
           infos {
