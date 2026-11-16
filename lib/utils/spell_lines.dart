@@ -65,19 +65,12 @@ String? spellUseTypeLabel(UseType? useType) =>
 String? spellMaxUsagesLabel(int? maxUsages) =>
     maxUsages == null ? null : 'Usi massimi: $maxUsages';
 
-/// `requiredLearnTime` letto in millisecondi come `recoveryTime` (assunzione
-/// A3, da confermare nel handoff BE 9.1). Il livello minimo è quello servito
-/// (D-07): mai un confronto col personaggio (D-08).
+/// Il livello minimo è quello servito (D-07): mai un confronto col personaggio
+/// (D-08), mai il tempo di apprendimento (D-28).
 String? spellLearnLabel(Spell spell) {
   final level = spell.minLevelToLearn;
-  final learnTime = spell.requiredLearnTime;
-  final parts = [
-    if (level != null && level > 0) 'Livello $level',
-    if (learnTime != null)
-      '${formatGameDuration(Duration(milliseconds: learnTime))} di studio',
-  ];
-  if (parts.isEmpty) return null;
-  return 'Per impararla: ${parts.join(spellLineSeparator)}';
+  if (level == null || level <= 0) return null;
+  return 'Per impararla: Livello $level';
 }
 
 /// Riga compatta della lista (D-13, D-05, D-24): usi, poi recupero (durata a
