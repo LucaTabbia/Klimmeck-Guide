@@ -68,6 +68,14 @@ void main() {
     'id': '6712a0c4e1b2c3d4e5f60718',
   };
 
+  const spellResearchSucceededData = <String, Object?>{
+    'type': 'spellResearchSucceeded',
+    'title': 'Ricerca riuscita',
+    'body': "Hai scoperto «Dardo»: l'apprendimento dura 30 minuti.",
+    'sentAt': '2026-11-16T12:10:00.000Z',
+    'id': '6712a0c4e1b2c3d4e5f60721',
+  };
+
   late InMemoryActiveUserStore activeUser;
   late InMemoryNotificationPreferencesStore preferences;
   late RecordingLocalNotificationsPort notifier;
@@ -155,6 +163,15 @@ void main() {
       await handle(travelEndData);
 
       expect(notifier.shown, hasLength(1));
+    });
+
+    test('a research push follows the quest end toggle (D-29)', () async {
+      await handle(spellResearchSucceededData);
+      disable('u-1', NotificationCategory.questEnd);
+      await handle(spellResearchSucceededData);
+
+      expect(notifier.shown, hasLength(1));
+      expect(notifier.shown.single.title, 'Ricerca riuscita');
     });
 
     test('drops an unknown type without throwing', () async {
