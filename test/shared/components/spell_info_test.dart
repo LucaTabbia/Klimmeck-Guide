@@ -94,27 +94,28 @@ void main() {
     expect(find.byType(CachedSvg), findsNWidgets(2));
   });
 
-  testWidgets('shows every detail of a recovering spell', (tester) async {
-    await _pump(
-      tester,
-      Spell.fromJson(spellJson(minLevelToLearn: 6)),
-      usages: 1,
-      recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
-    );
+  testWidgets(
+    'shows every detail of a recovering spell, no learn time (D-28)',
+    (tester) async {
+      await _pump(
+        tester,
+        Spell.fromJson(spellJson(minLevelToLearn: 6)),
+        usages: 1,
+        recovery: const SpellRecoveryCountdown(remainingMinutes: 12),
+      );
 
-    expect(find.text('Dardo di fuoco'), findsOneWidget);
-    expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
-    expect(find.text('Attacco: Fuoco 12'), findsOneWidget);
-    expect(find.text('Uso: Attacco'), findsOneWidget);
-    expect(find.text('Usi massimi: 3'), findsOneWidget);
-    expect(find.text('Recupero: 2 h'), findsOneWidget);
-    expect(
-      find.text('Per impararla: Livello 6 · 1 h di studio'),
-      findsOneWidget,
-    );
-    expect(find.text('Usi: 1/3 · prossimo tra 12 min'), findsOneWidget);
-    expect(find.byType(CachedSvg), findsNWidgets(2));
-  });
+      expect(find.text('Dardo di fuoco'), findsOneWidget);
+      expect(find.text('Un dardo che brucia il bersaglio'), findsOneWidget);
+      expect(find.text('Attacco: Fuoco 12'), findsOneWidget);
+      expect(find.text('Uso: Attacco'), findsOneWidget);
+      expect(find.text('Usi massimi: 3'), findsOneWidget);
+      expect(find.text('Recupero: 2 h'), findsOneWidget);
+      expect(find.text('Per impararla: Livello 6'), findsOneWidget);
+      expect(find.textContaining('di studio'), findsNothing);
+      expect(find.text('Usi: 1/3 · prossimo tra 12 min'), findsOneWidget);
+      expect(find.byType(CachedSvg), findsNWidgets(2));
+    },
+  );
 
   testWidgets('a full spell shows only its usages as current line', (
     tester,

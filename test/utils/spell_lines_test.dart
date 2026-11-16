@@ -175,14 +175,17 @@ void main() {
       );
     });
 
-    test('spellLearnLabel with level and study time (D-07)', () {
-      expect(
-        spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
-        'Per impararla: Livello 6 · 1 h di studio',
-      );
-    });
+    test(
+      'the learn line reads the level only, never the learn time (D-28)',
+      () {
+        expect(
+          spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: 6))),
+          'Per impararla: Livello 6',
+        );
+      },
+    );
 
-    test('spellLearnLabel with the level only (D-07)', () {
+    test('spellLearnLabel with the level and no learn time (D-07, D-28)', () {
       expect(
         spellLearnLabel(
           Spell.fromJson(
@@ -193,15 +196,16 @@ void main() {
       );
     });
 
-    test('spellLearnLabel with study time only (D-07)', () {
-      expect(spellLearnLabel(spell), 'Per impararla: 1 h di studio');
+    test('a spell without a level has no learn line even with a learn time '
+        '(D-28)', () {
+      expect(spellLearnLabel(spell), isNull);
     });
 
-    test('a zero or negative level prints no level part (D-08)', () {
+    test('a zero or negative level prints no learn line (D-08, D-28)', () {
       for (final level in [0, -2]) {
         expect(
           spellLearnLabel(Spell.fromJson(spellJson(minLevelToLearn: level))),
-          'Per impararla: 1 h di studio',
+          isNull,
           reason: '$level',
         );
       }
