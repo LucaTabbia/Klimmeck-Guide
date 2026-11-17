@@ -47,6 +47,10 @@ abstract final class SatchelLayout {
   static const double closeColumnWidth = 152;
   static const double maxCellWidth = 152;
 
+  /// Parte dell'angolo in basso a sinistra coperta dal borsello chiuso
+  /// (misurata sul device, revisione layout 2026-11-17).
+  static const Size closedPouchFootprint = Size(110, 110);
+
   static const List<SatchelEntry> entries = [
     SatchelEntry(
       pageIndex: 0,
