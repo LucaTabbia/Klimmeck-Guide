@@ -274,6 +274,13 @@ void main() {
       );
     });
 
+    test('not_following means the viewer does not follow the channel', () {
+      expectLoginError(
+        const LoginNotFollowingException(),
+        arrange: () => browserReturns('klimmeck://auth?error=not_following'),
+      );
+    });
+
     test('a backend error code is surfaced as a failure', () {
       expectLoginError(
         const LoginFailedException('invalid_state'),

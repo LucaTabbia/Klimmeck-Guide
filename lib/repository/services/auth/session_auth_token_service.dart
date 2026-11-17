@@ -263,6 +263,8 @@ class SessionAuthTokenService extends AuthTokenService
         LoginDeniedByUser() => throw const LoginCancelledException(),
         LoginRejectedByBackend(code: twitchNotConfiguredError) =>
           throw const LoginUnavailableException(),
+        LoginRejectedByBackend(code: notFollowingError) =>
+          throw const LoginNotFollowingException(),
         LoginRejectedByBackend(:final code) => throw LoginFailedException(code),
       };
 

@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/repository/services/auth/login_exception.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/sign_in_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/recording_link_opener.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
@@ -19,12 +21,18 @@ const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
 const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
+const _notFollowingMessage =
+    'Non sei ancora un avventuriero sul canale di LordReavor! '
+    'Segui prima il canale per accedere al gioco';
+const _channelLabel = 'Vai al canale di LordReavor';
 
 void main() {
   late MockAuthTokenService service;
+  late RecordingLinkOpener links;
 
   setUp(() {
     service = MockAuthTokenService();
+    links = RecordingLinkOpener();
   });
 
   Future<void> pumpScreen(
@@ -34,7 +42,7 @@ void main() {
     await tester.pumpWidget(
       buildTestApp(
         home: BlocProvider(
-          create: (_) => SignInCubit(service),
+          create: (_) => SignInCubit(service, links),
           child: SignInScreen(notice: notice),
         ),
       ),
@@ -123,6 +131,38 @@ void main() {
 
     expect(find.text(_unavailableError), findsOneWidget);
     expect(find.text(_connectionError), findsNothing);
+  });
+
+  testWidgets('a viewer who does not follow the channel reads the invitation '
+      'and reaches the channel from its button', (tester) async {
+    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    await pumpScreen(tester);
+
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_notFollowingMessage), findsOneWidget);
+    expect(find.text(_connectionError), findsNothing);
+    expect(links.opened, isEmpty);
+
+    await tester.tap(find.text(_channelLabel));
+    await tester.pumpAndSettle();
+
+    expect(links.opened, [TwitchChannel.uri]);
+    expect(find.text(_notFollowingMessage), findsOneWidget);
+  });
+
+  testWidgets('the channel button shows only to who does not follow', (
+    tester,
+  ) async {
+    when(() => service.login()).thenThrow(const LoginFailedException('x'));
+    await pumpScreen(tester);
+    expect(find.text(_channelLabel), findsNothing);
+
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_channelLabel), findsNothing);
   });
 
   testWidgets('cancelled login shows no error', (tester) async {
