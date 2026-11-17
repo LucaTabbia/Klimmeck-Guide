@@ -54,6 +54,34 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+  testWidgets('the loading text stays still while its dots come and go', (
+    tester,
+  ) async {
+    await pumpSplash(tester, state: const SplashInitial());
+    final loadingText = find.textContaining('Caricamento');
+    final still = tester.getRect(loadingText);
+
+    for (var dots = 2; dots <= 4; dots++) {
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+
+      expect(tester.getRect(loadingText), still);
+    }
+  });
+
+  testWidgets('the whole sign fits on the screen, clear of the loading text', (
+    tester,
+  ) async {
+    await pumpSplash(tester, state: const SplashInitial());
+
+    final sign = find.image(const AssetImage('assets/images/splashSign.png'));
+    expect(tester.widget<Image>(sign).fit, BoxFit.contain);
+    final signRect = tester.getRect(sign);
+    final textRect = tester.getRect(find.textContaining('Caricamento'));
+    expect(signRect.top, greaterThanOrEqualTo(16));
+    expect(signRect.bottom, lessThan(textRect.top));
+  });
+
   testWidgets('shows the connection hint and manual sign-in when delayed', (
     tester,
   ) async {
