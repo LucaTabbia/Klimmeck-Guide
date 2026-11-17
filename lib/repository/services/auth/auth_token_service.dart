@@ -61,6 +61,10 @@ enum UnauthenticatedReason {
   /// Ruolo cambiato sul backend (BE Phase 17 `roleChanged`, D-12).
   roleChanged,
 
+  /// L'utente non ha più accesso al canale dello streamer (oggi: non lo segue
+  /// più): il backend ha chiuso ogni sua sessione (`accessLost`).
+  channelAccessLost,
+
   /// Sync in tempo reale persa per ~3 minuti di degrado continuo: SignIn mostra
   /// «Connessione persa, accedi di nuovo.» (Phase 3 D-15).
   syncLost,

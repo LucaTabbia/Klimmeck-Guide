@@ -391,6 +391,7 @@ class SessionAuthTokenService extends AuthTokenService
     return switch (rejection.reason) {
       sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
       sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
+      sessionRevokedReasonAccessLost => UnauthenticatedReason.channelAccessLost,
       _ => UnauthenticatedReason.sessionExpired,
     };
   }

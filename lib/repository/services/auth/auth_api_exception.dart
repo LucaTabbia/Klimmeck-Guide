@@ -11,6 +11,7 @@ const String badRequestCode = 'BAD_REQUEST';
 /// un avviso dedicato; gli altri valori restano leciti e valgono l'avviso neutro.
 const String sessionRevokedReasonNewLogin = 'newLogin';
 const String sessionRevokedReasonRoleChanged = 'roleChanged';
+const String sessionRevokedReasonAccessLost = 'accessLost';
 
 /// Errori di dominio delle operazioni di auth: portano solo codici, mai token.
 sealed class AuthApiException extends Equatable implements Exception {

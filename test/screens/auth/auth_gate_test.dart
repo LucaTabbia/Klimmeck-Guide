@@ -177,6 +177,21 @@ void main() {
     expect(find.text(_expiredNotice), findsNothing);
   });
 
+  testWidgets('a lost channel access shows its notice', (tester) async {
+    await pumpGate(tester);
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(
+        reason: UnauthenticatedReason.channelAccessLost,
+      ),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.channelAccessLost);
+    expect(find.text(_roleChangedNotice), findsNothing);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
   testWidgets('an expired session keeps the neutral notice (D-12)', (
     tester,
   ) async {
