@@ -45,6 +45,6 @@ class ImageWarmer {
 
   Future<File> _download(String url) {
     final fetch = _fetch;
-    return fetch == null ? _manager.getSingleFile(url) : fetch(url);
+    return fetch == null ? _manager.imageFile(url) : fetch(url);
   }
 }
