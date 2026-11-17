@@ -1,6 +1,7 @@
-/// Larghezza in pixel dei raster chiesti a Cloudinary: basta al marker più
-/// grande della mappa allo zoom massimo.
-const int rasterDeliveryWidth = 1024;
+/// Lato in pixel del riquadro in cui Cloudinary fa stare i raster: basta al
+/// marker più grande della mappa allo zoom massimo, e un'immagine alta e
+/// stretta non esce sovradimensionata.
+const int rasterDeliverySide = 1024;
 
 const String _uploadSegment = '/image/upload/';
 
@@ -12,6 +13,6 @@ String rasterDeliveryUrl(String url) {
   if (!isCloudinarySvg) return url;
   return url.replaceFirst(
     _uploadSegment,
-    '${_uploadSegment}f_webp,w_$rasterDeliveryWidth/',
+    '${_uploadSegment}f_webp,c_fit,w_$rasterDeliverySide,h_$rasterDeliverySide/',
   );
 }
