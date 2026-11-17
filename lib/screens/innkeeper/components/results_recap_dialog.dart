@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
+import 'package:klimmeck_guide/shared/components/title_change.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Riepilogo del GM sul pannello (10-CONTEXT D-13): i giocatori ricevono il proprio foglio sul loro device.
@@ -25,6 +26,8 @@ Future<void> showResultsRecap(
               Text(recapNameOf(result, card), style: theme.bodyLarge),
               for (final line in resultRecapLinesOf(result))
                 Text(line, style: theme.bodyMedium),
+              if (result.titleChange case final change?)
+                TitleChange(before: change.before, after: change.after),
             ],
           ],
         ),

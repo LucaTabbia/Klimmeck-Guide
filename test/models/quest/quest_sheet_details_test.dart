@@ -96,6 +96,7 @@ void main() {
         buildQuest(type: 'story', minTitle: 'paladin', requiredPoints: 3000),
         viewer: buildViewer(title: TitleType.mage),
       );
+      expect(details.requiredTitle, TitleType.paladin);
       expect(details.requiredTitleText, 'Titolo richiesto: Paladino');
       expect(details.isTitleIneligible, isTrue);
     });
@@ -105,12 +106,14 @@ void main() {
         buildQuest(type: 'boss', minTitle: 'hero'),
         viewer: buildViewer(title: TitleType.legend),
       );
+      expect(details.requiredTitle, TitleType.hero);
       expect(details.requiredTitleText, 'Titolo minimo: Eroe');
       expect(details.isTitleIneligible, isFalse);
     });
 
     test('no minTitle means no line', () {
       final details = QuestSheetDetails.of(buildQuest(minTitle: null));
+      expect(details.requiredTitle, isNull);
       expect(details.requiredTitleText, isNull);
     });
 
@@ -154,6 +157,7 @@ void main() {
         'Eroe: 0 / 1',
         'Qualsiasi rango: 2 / 2',
       ]);
+      expect(details.slotLines.map((l) => l.seatsText), ['0 / 1', '2 / 2']);
     });
 
     test('legacy slots become a single any-rank line', () {
@@ -196,7 +200,10 @@ void main() {
 
       expect(details.requiredTitleText, 'Titolo minimo: Paladino');
       expect(details.isTitleIneligible, isTrue);
-      expect(details.blockedReason, 'Serve almeno il titolo Paladino');
+      expect(
+        details.blockedReason,
+        'Il tuo titolo non permette questa missione',
+      );
     });
 
     test('a boss keeps its rank-exact slot lines (quick 261111-enm)', () {

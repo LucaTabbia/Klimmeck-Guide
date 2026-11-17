@@ -162,6 +162,15 @@ class QuestResult extends Equatable {
 
   bool get hasTitleChanged => titleBefore != titleAfter;
 
+  /// Passaggio di titolo da disegnare: null se il titolo non cambia o se uno
+  /// dei due è ignoto all'app.
+  ({TitleType before, TitleType after})? get titleChange {
+    final before = titleBefore;
+    final after = titleAfter;
+    if (!hasTitleChanged || before == null || after == null) return null;
+    return (before: before, after: after);
+  }
+
   bool get hasRewards => !rewards.isEmpty;
 
   /// Foglio piccolo della fine dell'apprendimento (D-31): solo la magia e la

@@ -158,6 +158,14 @@ class CloudinaryAssets {
   static const String femaleMannequin =
       'v1757660559/femaleMannequin_y04ola.svg';
 
+  // ============== Title Badges ==============
+  static const String rookieRank = 'v1794917360/rookieRank_uyzpcg.svg';
+  static const String adventurerRank = 'v1794917377/adventurerRank_puudto.svg';
+  static const String paladinRank = 'v1794917343/paladinRank_vjrhdp.svg';
+  static const String mageRank = 'v1794917322/mageRank_lxeico.svg';
+  static const String heroRank = 'v1794917417/heroRank_lvz6fy.svg';
+  static const String legendRank = 'v1794917396/legendRank_gd8ctj.svg';
+
   // ============== Spell Origins ==============
   static const String arcaneOrigin = 'v1794764154/arcaneOrigin_retjhh.svg';
   static const String shamanicOrigin = 'v1794764172/shamanicOrigin_vkxq6d.svg';

@@ -43,7 +43,8 @@ void main() {
       ]);
     });
 
-    test('injuries, level, title and spell appear only when present', () {
+    test('injuries, level and spell appear only when present; the title '
+        'change is drawn with badges, never written', () {
       final lines = resultRecapLinesOf(
         _result(
           injuriesAdded: const ['brokenLeftLeg'],
@@ -59,7 +60,6 @@ void main() {
         'Ferite: Gamba sinistra rotta',
         '+40 XP',
         'Livello 2 → 3',
-        'Titolo: Recluta → Avventuriero',
         'Magia appresa: Lancia di ghiaccio',
       ]);
     });

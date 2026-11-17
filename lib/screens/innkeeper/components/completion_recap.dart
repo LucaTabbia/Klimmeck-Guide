@@ -7,11 +7,11 @@ import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 const String unnamedItemLabel = 'Oggetto';
 const String unnamedSpellLabel = 'Magia sconosciuta';
 
-const String _unknownTitle = 'Sconosciuto';
 const String _fallbackParticipantName = 'Personaggio';
 
 /// Righe dell'esito di un personaggio per il riepilogo del GM (10-CONTEXT
-/// D-13): livello, titolo e magia solo quando cambiano.
+/// D-13): livello e magia solo quando cambiano. Il passaggio di titolo non è
+/// una riga: il riepilogo lo disegna coi badge.
 List<String> resultRecapLinesOf(QuestResult result) => [
   result.outcome.label,
   'PV ${result.hpBefore} → ${result.hpAfter}',
@@ -20,9 +20,6 @@ List<String> resultRecapLinesOf(QuestResult result) => [
   '+${result.xpGained} XP',
   if (result.hasLevelChanged)
     'Livello ${result.levelBefore} → ${result.levelAfter}',
-  if (result.hasTitleChanged)
-    'Titolo: ${result.titleBefore?.label ?? _unknownTitle} → '
-        '${result.titleAfter?.label ?? _unknownTitle}',
   if (result.spellLearned case final spell?)
     'Magia appresa: ${spell.name ?? unnamedSpellLabel}',
 ];

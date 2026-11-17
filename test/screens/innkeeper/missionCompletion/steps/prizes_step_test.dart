@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_limits.dart';
@@ -30,6 +31,7 @@ import '../../../../helpers/landscape.dart';
 import '../../../../helpers/mocks.dart';
 import '../../../../helpers/svg_cache_seed.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/title_badge_finder.dart';
 
 const String _aldo = 'char-aldo';
 const String _horse = 'pet-travel-horse';
@@ -161,6 +163,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(PrizesStep.xpFieldKeyFor(_aldo)), findsOneWidget);
+  });
+
+  testWidgets('the header names the participant and draws the badge of the '
+      'title, never its name', (tester) async {
+    await pumpStep(tester, _prefilled, opens: false);
+
+    expect(
+      tester.widget<Text>(find.byKey(PrizesStep.headerKeyFor(_aldo))).data,
+      'Aldo',
+    );
+    expect(findTitleBadge(TitleType.paladin), findsOneWidget);
+    expect(find.textContaining('Paladino'), findsNothing);
   });
 
   testWidgets('the keyboard hides the button row and never overflows '

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
 
 void main() {
@@ -9,6 +10,17 @@ void main() {
     expect(TitleType.mage.label, 'Mago');
     expect(TitleType.hero.label, 'Eroe');
     expect(TitleType.legend.label, 'Leggenda');
+  });
+
+  test('every title has its own badge on Cloudinary', () {
+    expect(TitleType.values.map((title) => title.badgePath), [
+      CloudinaryAssets.url(CloudinaryAssets.rookieRank),
+      CloudinaryAssets.url(CloudinaryAssets.adventurerRank),
+      CloudinaryAssets.url(CloudinaryAssets.paladinRank),
+      CloudinaryAssets.url(CloudinaryAssets.mageRank),
+      CloudinaryAssets.url(CloudinaryAssets.heroRank),
+      CloudinaryAssets.url(CloudinaryAssets.legendRank),
+    ]);
   });
 
   test('order and byName keep working', () {
