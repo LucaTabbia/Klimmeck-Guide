@@ -229,9 +229,29 @@ void main() {
     expect(links.opened, [TwitchChannel.uri]);
 
     await pumpScreen(tester);
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text(_accessLostNotice), findsNothing);
     expect(find.text(_channelLabel), findsNothing);
+  });
+
+  testWidgets('the lost-access invitation sits where the not-following one '
+      'does, under the login button', (tester) async {
+    await pumpScreen(tester, notice: SignInNotice.channelAccessLost);
+    final lostAccessText = tester.getRect(find.text(_accessLostNotice));
+    final lostAccessButton = tester.getRect(find.text(_channelLabel));
+    final login = tester.getRect(loginButton);
+    expect(lostAccessText.top, greaterThan(login.bottom));
+
+    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(loginButton), login);
+    expect(
+      tester.getRect(find.text(_notFollowingMessage)).top,
+      lostAccessText.top,
+    );
+    expect(tester.getRect(find.text(_channelLabel)), lostAccessButton);
   });
 
   testWidgets('a refused login replaces the lost-access notice: one '

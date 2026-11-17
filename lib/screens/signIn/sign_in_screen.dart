@@ -77,14 +77,14 @@ class SignInScreen extends StatelessWidget {
                       builder: (context, state) => Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _Notice(notice: notice, state: state),
+                          _Notice(notice: notice),
                           _TwitchLoginButton(
                             isLoading: state is SignInInProgress,
                             onPressed: () =>
                                 context.read<SignInCubit>().signInWithTwitch(),
                           ),
                           const SizedBox(height: 16),
-                          _FailureMessage(state: state),
+                          _LoginOutcome(state: state, notice: notice),
                         ],
                       ),
                     ),
@@ -102,11 +102,12 @@ class SignInScreen extends StatelessWidget {
 }
 
 class _Notice extends StatelessWidget {
-  const _Notice({required this.notice, required this.state});
+  const _Notice({required this.notice});
 
   final SignInNotice notice;
-  final SignInState state;
 
+  /// L'accesso perso non ha testo qui: il suo invito sta sotto il pulsante di
+  /// login, dove sta quello di chi non segue ancora il canale.
   String? get _text => switch (notice) {
     SignInNotice.none || SignInNotice.channelAccessLost => null,
     SignInNotice.sessionExpired => _sessionExpiredNotice,
@@ -115,30 +116,20 @@ class _Notice extends StatelessWidget {
     SignInNotice.roleChanged => _roleChangedNotice,
   };
 
-  /// Un login appena respinto mostra già il proprio invito sotto il pulsante.
-  bool get _invitesToFollowAgain =>
-      notice == SignInNotice.channelAccessLost &&
-      state != const SignInFailed(SignInFailure.notFollowingChannel);
-
   @override
   Widget build(BuildContext context) {
-    final Widget content;
-    if (_invitesToFollowAgain) {
-      content = const _FollowChannelInvitation(
-        message: _channelAccessLostNotice,
-      );
-    } else if (_text case final text?) {
-      content = Text(
+    final text = _text;
+    if (text == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
         text,
         textAlign: TextAlign.center,
         style: KlimmeckGuideTheme.instance.errorText.copyWith(
           color: KlimmeckGuideTheme.parchment,
         ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-    return Padding(padding: const EdgeInsets.only(bottom: 16), child: content);
+      ),
+    );
   }
 }
 
@@ -233,10 +224,13 @@ class _ButtonLabel extends StatelessWidget {
   }
 }
 
-class _FailureMessage extends StatelessWidget {
-  const _FailureMessage({required this.state});
+/// Sotto il pulsante di login: l'esito dell'ultimo tentativo oppure, finché non
+/// ce n'è uno fallito, l'invito a chi è stato sloggato per aver lasciato il canale.
+class _LoginOutcome extends StatelessWidget {
+  const _LoginOutcome({required this.state, required this.notice});
 
   final SignInState state;
+  final SignInNotice notice;
 
   @override
   Widget build(BuildContext context) {
@@ -261,6 +255,11 @@ class _FailureMessage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: errorStyle,
         ),
+        _ when notice == SignInNotice.channelAccessLost =>
+          const _FollowChannelInvitation(
+            key: ValueKey(SignInNotice.channelAccessLost),
+            message: _channelAccessLostNotice,
+          ),
         _ => const SizedBox.shrink(),
       },
     );
