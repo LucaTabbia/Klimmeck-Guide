@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   SplashPreloading(:final percent) => _PreloadProgress(
                     percent: percent,
                   ),
-                  _ => const _AnimatedLoadingText(),
+                  _ => const _PreloadProgress(),
                 },
               ),
             ],
@@ -114,10 +114,13 @@ class _ConnectionHint extends StatelessWidget {
 }
 
 /// Scritta di caricamento con, sotto, la percentuale delle immagini scaricate.
+/// La riga della percentuale occupa il suo posto anche da vuota, così insegna
+/// e scritta non si spostano quando il download comincia.
 class _PreloadProgress extends StatelessWidget {
-  const _PreloadProgress({required this.percent});
+  const _PreloadProgress({this.percent});
 
-  final int percent;
+  /// Null finché il download non è cominciato.
+  final int? percent;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +131,7 @@ class _PreloadProgress extends StatelessWidget {
         children: [
           const _AnimatedLoadingText(),
           Text(
-            '$percent%',
+            percent == null ? '' : '$percent%',
             style: KlimmeckGuideTheme.instance.lightText.copyWith(
               color: KlimmeckGuideTheme.parchment,
             ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,6 +97,34 @@ void main() {
     final percentRect = tester.getRect(find.text('42%'));
     expect(percentRect.top, greaterThanOrEqualTo(loadingRect.bottom));
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('the sign and the loading text do not move when the percentage '
+      'appears', (tester) async {
+    final states = StreamController<SplashState>();
+    addTearDown(states.close);
+    whenListen(cubit, states.stream, initialState: const SplashInitial());
+    await tester.pumpWidget(
+      buildTestApp(
+        home: BlocProvider<SplashCubit>.value(
+          value: cubit,
+          child: const SplashScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    final sign = find.image(const AssetImage('assets/images/splashSign.png'));
+    final loadingText = find.textContaining('Caricamento');
+    final signBefore = tester.getRect(sign);
+    final textBefore = tester.getRect(loadingText);
+
+    states.add(const SplashPreloading(42));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('42%'), findsOneWidget);
+    expect(tester.getRect(sign), signBefore);
+    expect(tester.getRect(loadingText), textBefore);
   });
 
   testWidgets('shows no percentage before the download starts', (tester) async {
