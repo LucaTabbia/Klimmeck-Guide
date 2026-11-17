@@ -14,6 +14,10 @@ const String _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 const String _connectionError = 'Errore di connessione, riprova';
 const String _twitchUnavailableError =
     'Login con Twitch non ancora disponibile.';
+const String _notFollowingMessage =
+    'Non sei ancora un avventuriero sul canale di LordReavor! '
+    'Segui prima il canale per accedere al gioco';
+const String _channelLabel = 'Vai al canale di LordReavor';
 const String _termsLabel = 'Termini di servizio';
 const String _privacyLabel = 'Privacy';
 const String _logoAsset = 'assets/icons/appIcon/appIcon.png';
@@ -212,6 +216,10 @@ class _FailureMessage extends StatelessWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       child: switch (state) {
+        SignInFailed(failure: SignInFailure.notFollowingChannel) =>
+          const _FollowChannelInvitation(
+            key: ValueKey(SignInFailure.notFollowingChannel),
+          ),
         SignInFailed(failure: SignInFailure.twitchNotConfigured) => Text(
           _twitchUnavailableError,
           key: const ValueKey(SignInFailure.twitchNotConfigured),
@@ -226,6 +234,42 @@ class _FailureMessage extends StatelessWidget {
         ),
         _ => const SizedBox.shrink(),
       },
+    );
+  }
+}
+
+class _FollowChannelInvitation extends StatelessWidget {
+  const _FollowChannelInvitation({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = KlimmeckGuideTheme.instance;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _notFollowingMessage,
+          textAlign: TextAlign.center,
+          style: theme.errorText.copyWith(color: KlimmeckGuideTheme.parchment),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton(
+          onPressed: () => context.read<SignInCubit>().openChannel(),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 44),
+            side: const BorderSide(color: KlimmeckGuideTheme.primaryGold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
+            ),
+          ),
+          child: Text(
+            _channelLabel,
+            style: theme.titleMedium.copyWith(
+              color: KlimmeckGuideTheme.primaryGold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

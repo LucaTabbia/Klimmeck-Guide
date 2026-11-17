@@ -19,6 +19,12 @@ final class LoginUnavailableException extends LoginException {
   const LoginUnavailableException();
 }
 
+/// L'account Twitch non segue il canale dello streamer: il backend non apre
+/// la sessione.
+final class LoginNotFollowingException extends LoginException {
+  const LoginNotFollowingException();
+}
+
 /// Qualunque altro fallimento, con codice opaco (D-22).
 final class LoginFailedException extends LoginException {
   const LoginFailedException(this.code);
