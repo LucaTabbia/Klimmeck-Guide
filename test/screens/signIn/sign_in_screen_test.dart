@@ -25,6 +25,9 @@ const _notFollowingMessage =
     'Non sei ancora un avventuriero sul canale di LordReavor! '
     'Segui prima il canale per accedere al gioco';
 const _channelLabel = 'Vai al canale di LordReavor';
+const _accessLostNotice =
+    'Non segui più il canale di LordReavor! '
+    'Segui di nuovo il canale per accedere al gioco';
 
 void main() {
   late MockAuthTokenService service;
@@ -211,6 +214,57 @@ void main() {
     await pumpScreen(tester);
     await tester.pump();
     expect(find.text(_newLoginNotice), findsNothing);
+  });
+
+  testWidgets('who was logged out for leaving the channel reads why and '
+      'reaches the channel from the notice', (tester) async {
+    await pumpScreen(tester, notice: SignInNotice.channelAccessLost);
+
+    expect(find.text(_accessLostNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+
+    await tester.tap(find.text(_channelLabel));
+    await tester.pumpAndSettle();
+
+    expect(links.opened, [TwitchChannel.uri]);
+
+    await pumpScreen(tester);
+    await tester.pumpAndSettle();
+    expect(find.text(_accessLostNotice), findsNothing);
+    expect(find.text(_channelLabel), findsNothing);
+  });
+
+  testWidgets('the lost-access invitation sits where the not-following one '
+      'does, under the login button', (tester) async {
+    await pumpScreen(tester, notice: SignInNotice.channelAccessLost);
+    final lostAccessText = tester.getRect(find.text(_accessLostNotice));
+    final lostAccessButton = tester.getRect(find.text(_channelLabel));
+    final login = tester.getRect(loginButton);
+    expect(lostAccessText.top, greaterThan(login.bottom));
+
+    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(loginButton), login);
+    expect(
+      tester.getRect(find.text(_notFollowingMessage)).top,
+      lostAccessText.top,
+    );
+    expect(tester.getRect(find.text(_channelLabel)), lostAccessButton);
+  });
+
+  testWidgets('a refused login replaces the lost-access notice: one '
+      'invitation, one channel button', (tester) async {
+    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    await pumpScreen(tester, notice: SignInNotice.channelAccessLost);
+
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_notFollowingMessage), findsOneWidget);
+    expect(find.text(_accessLostNotice), findsNothing);
+    expect(find.text(_channelLabel), findsOneWidget);
   });
 
   testWidgets('shows the role-changed notice only when requested (D-12)', (

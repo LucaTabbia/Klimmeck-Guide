@@ -60,15 +60,16 @@ class AuthGate extends StatelessWidget {
     );
   }
 
-  static SignInNotice _noticeFor(UnauthenticatedReason reason) =>
-      switch (reason) {
-        UnauthenticatedReason.signedOut => SignInNotice.none,
-        UnauthenticatedReason.sessionExpired => SignInNotice.sessionExpired,
-        UnauthenticatedReason.syncLost => SignInNotice.connectionLost,
-        UnauthenticatedReason.replacedByNewLogin =>
-          SignInNotice.replacedByNewLogin,
-        UnauthenticatedReason.roleChanged => SignInNotice.roleChanged,
-      };
+  static SignInNotice _noticeFor(
+    UnauthenticatedReason reason,
+  ) => switch (reason) {
+    UnauthenticatedReason.signedOut => SignInNotice.none,
+    UnauthenticatedReason.sessionExpired => SignInNotice.sessionExpired,
+    UnauthenticatedReason.syncLost => SignInNotice.connectionLost,
+    UnauthenticatedReason.replacedByNewLogin => SignInNotice.replacedByNewLogin,
+    UnauthenticatedReason.roleChanged => SignInNotice.roleChanged,
+    UnauthenticatedReason.channelAccessLost => SignInNotice.channelAccessLost,
+  };
 
   static bool _leavesSession(AuthState previous, AuthState current) =>
       (current is AuthUnauthenticated && previous is! AuthUnauthenticated) ||

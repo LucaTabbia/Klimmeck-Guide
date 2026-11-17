@@ -17,6 +17,9 @@ const String _twitchUnavailableError =
 const String _notFollowingMessage =
     'Non sei ancora un avventuriero sul canale di LordReavor! '
     'Segui prima il canale per accedere al gioco';
+const String _channelAccessLostNotice =
+    'Non segui più il canale di LordReavor! '
+    'Segui di nuovo il canale per accedere al gioco';
 const String _channelLabel = 'Vai al canale di LordReavor';
 const String _termsLabel = 'Termini di servizio';
 const String _privacyLabel = 'Privacy';
@@ -31,6 +34,7 @@ enum SignInNotice {
   connectionLost,
   replacedByNewLogin,
   roleChanged,
+  channelAccessLost,
 }
 
 /// Utility screen (chrome ammesso): unico entry point del login.
@@ -38,14 +42,6 @@ class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key, this.notice = SignInNotice.none});
 
   final SignInNotice notice;
-
-  String? get _noticeText => switch (notice) {
-    SignInNotice.none => null,
-    SignInNotice.sessionExpired => _sessionExpiredNotice,
-    SignInNotice.connectionLost => _connectionLostNotice,
-    SignInNotice.replacedByNewLogin => _replacedByNewLoginNotice,
-    SignInNotice.roleChanged => _roleChangedNotice,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +73,18 @@ class SignInScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    if (_noticeText case final text?) ...[
-                      Text(
-                        text,
-                        textAlign: TextAlign.center,
-                        style: theme.errorText.copyWith(
-                          color: KlimmeckGuideTheme.parchment,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
                     BlocBuilder<SignInCubit, SignInState>(
                       builder: (context, state) => Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          _Notice(notice: notice),
                           _TwitchLoginButton(
                             isLoading: state is SignInInProgress,
                             onPressed: () =>
                                 context.read<SignInCubit>().signInWithTwitch(),
                           ),
                           const SizedBox(height: 16),
-                          _FailureMessage(state: state),
+                          _LoginOutcome(state: state, notice: notice),
                         ],
                       ),
                     ),
@@ -108,6 +95,38 @@ class SignInScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Notice extends StatelessWidget {
+  const _Notice({required this.notice});
+
+  final SignInNotice notice;
+
+  /// L'accesso perso non ha testo qui: il suo invito sta sotto il pulsante di
+  /// login, dove sta quello di chi non segue ancora il canale.
+  String? get _text => switch (notice) {
+    SignInNotice.none || SignInNotice.channelAccessLost => null,
+    SignInNotice.sessionExpired => _sessionExpiredNotice,
+    SignInNotice.connectionLost => _connectionLostNotice,
+    SignInNotice.replacedByNewLogin => _replacedByNewLoginNotice,
+    SignInNotice.roleChanged => _roleChangedNotice,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _text;
+    if (text == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: KlimmeckGuideTheme.instance.errorText.copyWith(
+          color: KlimmeckGuideTheme.parchment,
         ),
       ),
     );
@@ -205,10 +224,13 @@ class _ButtonLabel extends StatelessWidget {
   }
 }
 
-class _FailureMessage extends StatelessWidget {
-  const _FailureMessage({required this.state});
+/// Sotto il pulsante di login: l'esito dell'ultimo tentativo oppure, finché non
+/// ce n'è uno fallito, l'invito a chi è stato sloggato per aver lasciato il canale.
+class _LoginOutcome extends StatelessWidget {
+  const _LoginOutcome({required this.state, required this.notice});
 
   final SignInState state;
+  final SignInNotice notice;
 
   @override
   Widget build(BuildContext context) {
@@ -219,6 +241,7 @@ class _FailureMessage extends StatelessWidget {
         SignInFailed(failure: SignInFailure.notFollowingChannel) =>
           const _FollowChannelInvitation(
             key: ValueKey(SignInFailure.notFollowingChannel),
+            message: _notFollowingMessage,
           ),
         SignInFailed(failure: SignInFailure.twitchNotConfigured) => Text(
           _twitchUnavailableError,
@@ -232,6 +255,11 @@ class _FailureMessage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: errorStyle,
         ),
+        _ when notice == SignInNotice.channelAccessLost =>
+          const _FollowChannelInvitation(
+            key: ValueKey(SignInNotice.channelAccessLost),
+            message: _channelAccessLostNotice,
+          ),
         _ => const SizedBox.shrink(),
       },
     );
@@ -239,7 +267,9 @@ class _FailureMessage extends StatelessWidget {
 }
 
 class _FollowChannelInvitation extends StatelessWidget {
-  const _FollowChannelInvitation({super.key});
+  const _FollowChannelInvitation({super.key, required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +278,7 @@ class _FollowChannelInvitation extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          _notFollowingMessage,
+          message,
           textAlign: TextAlign.center,
           style: theme.errorText.copyWith(color: KlimmeckGuideTheme.parchment),
         ),

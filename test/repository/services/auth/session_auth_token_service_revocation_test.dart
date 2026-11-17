@@ -320,6 +320,24 @@ void main() {
       });
     });
 
+    test('a cold start refused for a lost channel access ends with '
+        'channelAccessLost', () {
+      fakeAsync((async) {
+        refuseRefresh(
+          'r0',
+          const SessionRejected(
+            sessionRevokedCode,
+            reason: sessionRevokedReasonAccessLost,
+          ),
+        );
+        final service = startService(async);
+
+        expectEndedWith(UnauthenticatedReason.channelAccessLost);
+        expect(states.whereType<AuthAuthenticated>(), isEmpty);
+        service.dispose();
+      });
+    });
+
     test('a cold start refused for a role change ends with roleChanged '
         '(D-12)', () {
       fakeAsync((async) {
