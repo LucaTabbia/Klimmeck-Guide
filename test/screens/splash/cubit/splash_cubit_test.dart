@@ -193,6 +193,27 @@ void main() {
       },
     );
 
+    test('tells how far the folder download is, as a percentage', () async {
+      final reporting = RecordingImageWarmer(
+        progressReports: const [(1, 4), (2, 4), (4, 4)],
+      );
+      final cubit = SplashCubit(rest, warmer: reporting);
+      final states = <SplashState>[];
+      final subscription = cubit.stream.listen(states.add);
+
+      await cubit.getImages('main');
+      await pumpEventQueue();
+
+      expect(states, const [
+        SplashPreloading(25),
+        SplashPreloading(50),
+        SplashPreloading(100),
+        SplashData(),
+      ]);
+      await subscription.cancel();
+      await cubit.close();
+    });
+
     test('an empty folder still reads as the error state (D-22)', () async {
       when(
         () => rest.fetchCloudinarySubfoldersUrls('main'),

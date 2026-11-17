@@ -82,6 +82,27 @@ void main() {
     expect(signRect.bottom, lessThan(textRect.top));
   });
 
+  testWidgets('shows the download percentage under the loading text', (
+    tester,
+  ) async {
+    await pumpSplash(
+      tester,
+      state: const SplashPreloading(42),
+      watchConnection: false,
+    );
+
+    final loadingRect = tester.getRect(find.textContaining('Caricamento'));
+    final percentRect = tester.getRect(find.text('42%'));
+    expect(percentRect.top, greaterThanOrEqualTo(loadingRect.bottom));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('shows no percentage before the download starts', (tester) async {
+    await pumpSplash(tester, state: const SplashInitial());
+
+    expect(find.textContaining('%'), findsNothing);
+  });
+
   testWidgets('shows the connection hint and manual sign-in when delayed', (
     tester,
   ) async {

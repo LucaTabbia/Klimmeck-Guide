@@ -64,10 +64,14 @@ class _SplashScreenState extends State<SplashScreen> {
               Expanded(child: Image.asset(_signAsset, fit: BoxFit.contain)),
               const SizedBox(height: _signToTextGap),
               BlocBuilder<SplashCubit, SplashState>(
-                builder: (context, state) =>
-                    widget.watchConnection && state is SplashNetworkDelayed
-                    ? _ConnectionHint(onManualSignIn: widget.onManualSignIn)
-                    : const _AnimatedLoadingText(),
+                builder: (context, state) => switch (state) {
+                  SplashNetworkDelayed() when widget.watchConnection =>
+                    _ConnectionHint(onManualSignIn: widget.onManualSignIn),
+                  SplashPreloading(:final percent) => _PreloadProgress(
+                    percent: percent,
+                  ),
+                  _ => const _AnimatedLoadingText(),
+                },
               ),
             ],
           ),
@@ -101,6 +105,32 @@ class _ConnectionHint extends StatelessWidget {
             child: Text(
               _manualSignInLabel,
               style: KlimmeckGuideTheme.instance.lightText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Scritta di caricamento con, sotto, la percentuale delle immagini scaricate.
+class _PreloadProgress extends StatelessWidget {
+  const _PreloadProgress({required this.percent});
+
+  final int percent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _AnimatedLoadingText(),
+          Text(
+            '$percent%',
+            style: KlimmeckGuideTheme.instance.lightText.copyWith(
+              color: KlimmeckGuideTheme.parchment,
             ),
           ),
         ],
