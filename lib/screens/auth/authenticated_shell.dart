@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/repository/storage/new_entries_store.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
@@ -116,6 +118,7 @@ class AuthenticatedShell extends StatelessWidget {
     required this.characterId,
     required this.notificationPreferencesStore,
     required this.libraryBookmarksStore,
+    required this.newEntriesStore,
     required this.userId,
     required this.notificationPermission,
     required this.pushMessaging,
@@ -128,6 +131,7 @@ class AuthenticatedShell extends StatelessWidget {
 
   /// Segnalibri «Nuovo» della Biblioteca, per personaggio (Phase 17 D-07).
   final LibraryBookmarksStore libraryBookmarksStore;
+  final NewEntriesStore newEntriesStore;
   final String userId;
 
   /// Permesso notifiche di sistema per la riga di Impostazioni (D-10).
@@ -168,6 +172,10 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<MainScreenCubit>(create: (_) => MainScreenCubit(graphQl)),
         BlocProvider<WorldMapCubit>(create: (_) => WorldMapCubit(graphQl)),
         BlocProvider<ShopCubit>(create: (_) => ShopCubit(graphQl)),
+        BlocProvider<NewEntriesCubit>(
+          create: (_) =>
+              NewEntriesCubit(store: newEntriesStore, characterId: characterId),
+        ),
         BlocProvider<LibraryNewsCubit>(
           create: (_) => LibraryNewsCubit(
             graphQl,

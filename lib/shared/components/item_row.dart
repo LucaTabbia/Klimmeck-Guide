@@ -23,6 +23,11 @@ class ItemRow extends StatelessWidget {
     this.statusLine,
   });
 
+  static const EdgeInsets padding = EdgeInsets.symmetric(
+    vertical: 8.0,
+    horizontal: 12.0,
+  );
+
   final int? quantity;
   final double size;
   final AssetItem assetItem;
@@ -45,7 +50,7 @@ class ItemRow extends StatelessWidget {
     final injuriesLine = lootItem == null ? null : healedInjuriesLine(lootItem);
     final recovery = lootItem == null ? null : recoveryLine(lootItem.recovery);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      padding: padding,
       child: Row(
         children: [
           AnimatedOpacity(

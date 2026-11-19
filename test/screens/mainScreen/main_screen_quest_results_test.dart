@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
@@ -197,6 +198,7 @@ class _MainScreenHarness {
             ),
             BlocProvider<QuestCubit>.value(value: quests),
             BlocProvider<MainScreenCubit>.value(value: mainScreen),
+            BlocProvider<NewEntriesCubit>.value(value: quietNewEntriesCubit()),
             BlocProvider<LibraryNewsCubit>.value(
               value: quietLibraryNewsCubit(),
             ),

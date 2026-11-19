@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
@@ -84,6 +85,7 @@ void seedJournalSvgs() {
     CloudinaryAssets.munitionEffect,
     CloudinaryAssets.explorationEffect,
     CloudinaryAssets.bottomEmptySheet,
+    CloudinaryAssets.newEntrySigil,
   ]);
   final svg =
       File('${Directory.systemTemp.createTempSync('kg_svg').path}/j.svg')
@@ -142,6 +144,7 @@ Future<void> pumpJournalPage(
   FakeServerClockService? clock,
   CompanionNameCubit? companionNameCubit,
   bool isCompanionNamingEnabled = false,
+  NewEntriesCubit? newEntriesCubit,
 }) async {
   useLandscapePhone(tester);
   seedJournalSvgs();
@@ -152,6 +155,9 @@ Future<void> pumpJournalPage(
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
+            BlocProvider<NewEntriesCubit>.value(
+              value: newEntriesCubit ?? quietNewEntriesCubit(),
+            ),
             BlocProvider<SpellsCubit>.value(value: spellsCubit),
             BlocProvider<CompanionCubit>.value(
               value: companionCubit ?? idleCompanionCubit(),

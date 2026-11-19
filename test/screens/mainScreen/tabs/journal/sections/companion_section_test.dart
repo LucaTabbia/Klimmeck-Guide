@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
@@ -131,6 +132,9 @@ void main() {
           child: MultiBlocProvider(
             providers: [
               BlocProvider<CharacterCubit>.value(value: characterCubit),
+              BlocProvider<NewEntriesCubit>.value(
+                value: quietNewEntriesCubit(),
+              ),
               BlocProvider<CompanionCubit>.value(value: companionCubit),
             ],
             child: CompanionVitalityScope(

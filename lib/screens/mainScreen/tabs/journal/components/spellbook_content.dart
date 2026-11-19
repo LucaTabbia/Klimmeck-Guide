@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/models/spell/spell_recovery_status.dart';
@@ -23,6 +24,7 @@ class SpellbookContent extends StatelessWidget {
     this.resistSignal,
     required this.useTypeFilter,
     required this.onUseTypeFilterChanged,
+    this.newSpellIds = const {},
   });
 
   final Spellbook spellbook;
@@ -37,6 +39,9 @@ class SpellbookContent extends StatelessWidget {
   /// Tipo d'uso scelto nei chip; null = «Tutti» (D-22).
   final UseType? useTypeFilter;
   final ValueChanged<UseType?> onUseTypeFilterChanged;
+
+  /// Magie imparate e non ancora viste: portano il sigillo.
+  final Set<String> newSpellIds;
 
   @override
   Widget build(BuildContext context) {
@@ -84,14 +89,18 @@ class SpellbookContent extends StatelessWidget {
 
   Widget _buildRow(SpellbookEntry entry) {
     final spell = entry.spell;
-    return KnownSpellRow(
+    return NewEntryMarked(
       key: ValueKey(spell.id),
-      entry: entry,
-      recovery: recoveries[spell.id] ?? const SpellRecoveryFull(),
-      cardSize: cardSize,
-      onTap: () => onToggle(spell.id),
-      onLongPress: () => onShowDetails(spell),
-      resistTrigger: resistTriggerFor(resistSignal, spell.id),
+      isNew: newSpellIds.contains(spell.id),
+      corner: Offset(cardSize, KnownSpellRow.topPadding),
+      child: KnownSpellRow(
+        entry: entry,
+        recovery: recoveries[spell.id] ?? const SpellRecoveryFull(),
+        cardSize: cardSize,
+        onTap: () => onToggle(spell.id),
+        onLongPress: () => onShowDetails(spell),
+        resistTrigger: resistTriggerFor(resistSignal, spell.id),
+      ),
     );
   }
 }

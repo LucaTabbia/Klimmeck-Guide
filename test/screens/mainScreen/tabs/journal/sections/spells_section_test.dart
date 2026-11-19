@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
@@ -166,6 +167,7 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<CharacterCubit>.value(value: characterCubit),
+            BlocProvider<NewEntriesCubit>.value(value: quietNewEntriesCubit()),
             BlocProvider<SpellsCubit>.value(value: spellsCubit),
           ],
           child: body,

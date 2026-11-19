@@ -26,6 +26,8 @@ class OwnedCompanionRow extends StatelessWidget {
     this.potionWait,
   });
 
+  static const double topPadding = 10;
+
   final OwnedPet owned;
   final bool isDisplayed;
   final bool isPending;
@@ -46,7 +48,7 @@ class OwnedCompanionRow extends StatelessWidget {
       onTap: isDefeated ? null : onTap,
       onLongPress: companionDetailsGesture(pet, onLongPress),
       child: Padding(
-        padding: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.only(top: topPadding),
         child: Row(
           children: [
             AnimatedOpacity(

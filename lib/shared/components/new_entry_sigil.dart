@@ -16,3 +16,37 @@ class NewEntrySigil extends StatelessWidget {
   Widget build(BuildContext context) =>
       CachedSvg(url: url, width: size, height: size);
 }
+
+/// Sovrappone il sigillo a [child] quando la voce è un'aggiunta non ancora
+/// vista. [corner] è l'angolo in alto a destra della carta dentro [child]: il
+/// sigillo vi si appoggia senza coprire i tocchi.
+class NewEntryMarked extends StatelessWidget {
+  const NewEntryMarked({
+    super.key,
+    required this.isNew,
+    required this.corner,
+    required this.child,
+  });
+
+  static const double sigilSize = 30;
+
+  final bool isNew;
+  final Offset corner;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isNew) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          left: corner.dx - sigilSize * 2 / 3,
+          top: corner.dy - sigilSize / 3,
+          child: const IgnorePointer(child: NewEntrySigil(size: sigilSize)),
+        ),
+      ],
+    );
+  }
+}

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
@@ -56,38 +59,52 @@ class CompanionSection extends StatelessWidget {
         builder: (context, character) {
           if (character == null) return const SizedBox.shrink();
           final isOnMission = character.isOnMission;
-          return BlocBuilder<CompanionCubit, CompanionState>(
-            builder: (context, companion) {
-              final content =
-                  BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
-                    builder: (context, vitalities) => CompanionContent(
-                      owned: _ownedPetsOf(character),
-                      displayed: _displayedPet(
-                        character,
-                        companion.displayedPetId(character),
-                      ),
-                      pendingPetId: companion.pending?.petId,
-                      cardSize: size,
-                      vitalities: vitalities,
-                      onToggle: isOnMission
-                          ? ignoreMissionLockedToggle
-                          : (petId) => toggle(context, character, petId),
-                      onShowDetails: onShowDetails,
-                    ),
-                  );
-              return Dropdown(
-                sectionName: 'Compagno',
-                data: isOnMission
-                    ? MissionLockedSection(
-                        lineKey: missionLockedKey,
-                        child: content,
-                      )
-                    : content,
-              );
-            },
+          return NewEntriesBuilder(
+            category: NewEntryCategory.companions,
+            builder: (context, newPetIds) => _buildSection(
+              context,
+              character,
+              isOnMission: isOnMission,
+              newPetIds: newPetIds,
+            ),
           );
         },
       );
+
+  Widget _buildSection(
+    BuildContext context,
+    Character character, {
+    required bool isOnMission,
+    required Set<String> newPetIds,
+  }) => BlocBuilder<CompanionCubit, CompanionState>(
+    builder: (context, companion) {
+      final content =
+          BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
+            builder: (context, vitalities) => CompanionContent(
+              owned: _ownedPetsOf(character),
+              displayed: _displayedPet(
+                character,
+                companion.displayedPetId(character),
+              ),
+              pendingPetId: companion.pending?.petId,
+              cardSize: size,
+              vitalities: vitalities,
+              onToggle: isOnMission
+                  ? ignoreMissionLockedToggle
+                  : (petId) => toggle(context, character, petId),
+              onShowDetails: onShowDetails,
+              newPetIds: newPetIds,
+            ),
+          );
+      return Dropdown(
+        sectionName: 'Compagno',
+        badge: newPetIds.isEmpty ? null : const NewEntrySigil(),
+        data: isOnMission
+            ? MissionLockedSection(lineKey: missionLockedKey, child: content)
+            : content,
+      );
+    },
+  );
 
   /// Con un'operazione in corso il tocco non fa nulla e si riprova dopo
   /// l'esito (IN-04); altrimenti l'aptica conferma l'intento. Lo stesso tocco

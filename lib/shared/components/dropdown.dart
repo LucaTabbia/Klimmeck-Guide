@@ -107,6 +107,7 @@ class Dropdown extends StatefulWidget {
     this.isOpen = false,
     this.onToggle,
     this.maxHeight,
+    this.badge,
   });
 
   final String sectionName;
@@ -114,6 +115,9 @@ class Dropdown extends StatefulWidget {
   final double? maxHeight;
   final bool isOpen;
   final VoidCallback? onToggle;
+
+  /// Segnale accanto al nome: la sezione contiene una novità.
+  final Widget? badge;
 
   @override
   State<Dropdown> createState() => _DropdownState();
@@ -169,6 +173,7 @@ class _DropdownState extends State<Dropdown>
             sectionName: widget.sectionName,
             turns: _sizeFactor.value * 0.5,
             onTap: _toggle,
+            badge: widget.badge,
           ),
         ),
         widget.maxHeight != null

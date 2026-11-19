@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
@@ -147,6 +148,21 @@ MockLibraryNewsCubit quietLibraryNewsCubit() {
     initialState: const <LibraryBook>{},
   );
   when(() => cubit.syncUnlockedLore(any())).thenAnswer((_) async {});
+  return cubit;
+}
+
+class MockNewEntriesCubit extends MockCubit<NewEntriesState>
+    implements NewEntriesCubit {}
+
+/// Aggiunte di Diario e Profilo ferme su [state]: per gli harness che non le
+/// contano. Di default nulla è nuovo.
+MockNewEntriesCubit quietNewEntriesCubit([
+  NewEntriesState state = const NewEntriesState(),
+]) {
+  final cubit = MockNewEntriesCubit();
+  whenListen(cubit, const Stream<NewEntriesState>.empty(), initialState: state);
+  when(() => cubit.sync(any())).thenAnswer((_) async {});
+  when(() => cubit.visit(any())).thenAnswer((_) async {});
   return cubit;
 }
 

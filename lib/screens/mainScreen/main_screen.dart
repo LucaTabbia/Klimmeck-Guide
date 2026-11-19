@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_listener.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
@@ -155,6 +158,16 @@ class _MainScreenState extends State<MainScreen>
                   isImprisoned: isImprisoned,
                 );
                 final pagesWithNews = {
+                  if (context.select<NewEntriesCubit, bool>(
+                    (cubit) =>
+                        cubit.state.hasUnseenIn(NewEntryCategory.profile),
+                  ))
+                    SatchelLayout.profilePageIndex,
+                  if (context.select<NewEntriesCubit, bool>(
+                    (cubit) =>
+                        cubit.state.hasUnseenIn(NewEntryCategory.journal),
+                  ))
+                    SatchelLayout.journalPageIndex,
                   if (context.select<LibraryNewsCubit, bool>(
                     (cubit) => cubit.state.isNotEmpty,
                   ))
@@ -172,10 +185,12 @@ class _MainScreenState extends State<MainScreen>
                               child: CompanionOutcomeListener(
                                 child: PotionOutcomeListener(
                                   child: LibraryNewsListener(
-                                    child: _buildPagesWithSatchel(
-                                      state.cities,
-                                      disabledPages,
-                                      pagesWithNews,
+                                    child: NewEntriesListener(
+                                      child: _buildPagesWithSatchel(
+                                        state.cities,
+                                        disabledPages,
+                                        pagesWithNews,
+                                      ),
                                     ),
                                   ),
                                 ),

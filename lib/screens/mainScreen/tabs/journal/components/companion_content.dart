@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
@@ -21,11 +22,15 @@ class CompanionContent extends StatelessWidget {
     required this.onToggle,
     required this.vitalities,
     required this.onShowDetails,
+    this.newPetIds = const {},
   });
 
   static const Key slotLifeKey = ValueKey('companion-slot-life');
 
   final List<OwnedPet> owned;
+
+  /// Compagni presi e non ancora visti: portano il sigillo.
+  final Set<String> newPetIds;
 
   /// Compagno nello slot: quello al fianco, o quello in attesa nell'overlay.
   final Pet? displayed;
@@ -73,16 +78,20 @@ class CompanionContent extends StatelessWidget {
               ),
             ),
           for (final entry in owned)
-            OwnedCompanionRow(
+            NewEntryMarked(
               key: ValueKey(entry.pet.id),
-              owned: entry,
-              vitality: vitalities.vitalityFor(entry),
-              potionWait: vitalities.potionWaitOf(entry.pet.id),
-              isDisplayed: entry.pet.id == displayed?.id,
-              isPending: entry.pet.id == pendingPetId,
-              cardSize: cardSize,
-              onTap: () => onToggle(entry.pet.id),
-              onLongPress: () => onShowDetails(entry.pet.id),
+              isNew: newPetIds.contains(entry.pet.id),
+              corner: Offset(cardSize, OwnedCompanionRow.topPadding),
+              child: OwnedCompanionRow(
+                owned: entry,
+                vitality: vitalities.vitalityFor(entry),
+                potionWait: vitalities.potionWaitOf(entry.pet.id),
+                isDisplayed: entry.pet.id == displayed?.id,
+                isPending: entry.pet.id == pendingPetId,
+                cardSize: cardSize,
+                onTap: () => onToggle(entry.pet.id),
+                onLongPress: () => onShowDetails(entry.pet.id),
+              ),
             ),
         ],
       ),
