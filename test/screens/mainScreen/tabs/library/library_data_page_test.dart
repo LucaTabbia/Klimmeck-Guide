@@ -184,6 +184,27 @@ void main() {
     },
   );
 
+  testWidgets('the new entries open their section, in the served order', (
+    tester,
+  ) async {
+    final carro = Lore.fromJson(loreJson(id: 'lore-carro', name: 'Carro'));
+    await pumpDataPage(
+      tester,
+      lore: [andogan, bosa, carro],
+      newLoreIds: {'lore-bosa', 'lore-carro'},
+    );
+    await openSection(tester, 'Città');
+
+    final shown = tester
+        .widgetList<LoreCard>(find.byType(LoreCard))
+        .map((card) => card.lore.id);
+    expect(shown.take(2), ['lore-bosa', 'lore-carro']);
+    expect(
+      tester.getTopLeft(cardOf('lore-carro')).dy,
+      greaterThan(tester.getTopLeft(cardOf('lore-bosa')).dy),
+    );
+  });
+
   testWidgets('marks only the new entries with «Novità» (D-07)', (
     tester,
   ) async {

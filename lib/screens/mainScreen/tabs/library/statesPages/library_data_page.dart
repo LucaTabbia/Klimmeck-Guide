@@ -11,7 +11,8 @@ import '../../../../../theme/kg_theme.dart';
 
 typedef _Section = ({LoreType type, List<Lore> entries});
 
-/// Pagina di un libro: una sezione per tipo con almeno una voce (D-06), resa
+/// Pagina di un libro: una sezione per tipo con almeno una voce (D-06), le
+/// lore nuove in testa, resa
 /// a sliver così solo le card a schermo costruiscono la loro immagine; una
 /// sezione chiusa non costruisce nulla (D-20).
 class LibraryDataPage extends StatefulWidget {
@@ -54,11 +55,17 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
     for (final type in widget.book.types)
       (
         type: type,
-        entries: widget.lore.where((entry) => entry.type == type).toList(),
+        entries: _newFirst(widget.lore.where((entry) => entry.type == type)),
       ),
   ].where((section) => section.entries.isNotEmpty).toList();
 
   bool _isNew(Lore entry) => widget.newLoreIds.contains(entry.id);
+
+  /// Le lore nuove aprono la sezione; dentro i due gruppi resta l'ordine del BE.
+  List<Lore> _newFirst(Iterable<Lore> entries) => [
+    ...entries.where(_isNew),
+    ...entries.where((entry) => !_isNew(entry)),
+  ];
 
   void _toggle(LoreType type) {
     setState(() {
