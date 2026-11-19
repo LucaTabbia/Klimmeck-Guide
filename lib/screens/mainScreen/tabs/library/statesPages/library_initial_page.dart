@@ -5,9 +5,16 @@ import '../components/book_type.dart';
 import '../components/library_book_art.dart';
 
 class LibraryInitialPage extends StatelessWidget {
-  const LibraryInitialPage({super.key, required this.onOpen});
+  const LibraryInitialPage({
+    super.key,
+    required this.onOpen,
+    this.booksWithNews = const {},
+  });
 
   final ValueChanged<LibraryBook> onOpen;
+
+  /// Libri mostrati aperti: contengono una lore mai vista.
+  final Set<LibraryBook> booksWithNews;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,9 @@ class LibraryInitialPage extends StatelessWidget {
         for (final book in books)
           BookType(
             title: book.title,
-            imagePath: book.coverUrl,
+            imagePath: booksWithNews.contains(book)
+                ? book.openCoverUrl
+                : book.coverUrl,
             onTap: () => onOpen(book),
           ),
       ],

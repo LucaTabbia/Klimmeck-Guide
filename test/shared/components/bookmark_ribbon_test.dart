@@ -66,7 +66,7 @@ Finder _insideRibbon(Type type) => find.descendant(
 );
 
 void main() {
-  setUp(() => seedSvgCache([CloudinaryAssets.bookmarkRed]));
+  setUp(() => seedSvgCache([CloudinaryAssets.redBookmarkBack]));
 
   group('BookmarkRibbon', () {
     testWidgets('a marked ribbon is fully visible', (tester) async {

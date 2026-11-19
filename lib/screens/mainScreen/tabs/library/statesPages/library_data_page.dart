@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/novelty_bookmark.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_book_frame.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
@@ -31,6 +31,12 @@ class LibraryDataPage extends StatefulWidget {
   /// sposta lo stato aperto delle altre.
   static Key sectionKeyOf(LoreType type) => ValueKey<LoreType>(type);
 
+  /// Targhetta «Novità» sull'intestazione di una sezione che ne contiene una.
+  static Key sectionNewMarkKeyOf(LoreType type) =>
+      ValueKey('library.sectionNewMark.${type.name}');
+
+  static const double _sectionNewMarkWidth = 70;
+
   final LibraryBook book;
   final List<Lore> lore;
   final Set<String> newLoreIds;
@@ -51,6 +57,8 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
         entries: widget.lore.where((entry) => entry.type == type).toList(),
       ),
   ].where((section) => section.entries.isNotEmpty).toList();
+
+  bool _isNew(Lore entry) => widget.newLoreIds.contains(entry.id);
 
   void _toggle(LoreType type) {
     setState(() {
@@ -87,6 +95,13 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
           key: LibraryDataPage.sectionKeyOf(section.type),
           sectionName: section.type.label,
           turns: isOpen ? 0.5 : 0,
+          badge: section.entries.any(_isNew)
+              ? NoveltyBookmark(
+                  key: LibraryDataPage.sectionNewMarkKeyOf(section.type),
+                  book: widget.book,
+                  width: LibraryDataPage._sectionNewMarkWidth,
+                )
+              : null,
           onTap: () => _toggle(section.type),
         ),
       ),
@@ -97,8 +112,7 @@ class _LibraryDataPageState extends State<LibraryDataPage> {
             itemCount: section.entries.length,
             itemBuilder: (context, index) => LoreCard(
               lore: section.entries[index],
-              isNew: widget.newLoreIds.contains(section.entries[index].id),
-              newMarkInk: widget.book.newMarkInk,
+              newInBook: _isNew(section.entries[index]) ? widget.book : null,
             ),
           ),
         ),

@@ -48,7 +48,7 @@ void main() {
     () => seedSvgCache([
       CloudinaryAssets.emptySheet,
       CloudinaryAssets.emptyCardSheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
       _worgImage,
     ]),
   );

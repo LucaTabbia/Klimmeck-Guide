@@ -34,6 +34,8 @@ class SatchelEntry extends Equatable {
 
 /// Unica tabella della borsa: etichette, icone, pagine e geometria (D-01).
 abstract final class SatchelLayout {
+  static const int libraryPageIndex = 3;
+
   /// Pagina della Bacheca (disabilitata fuori da un marker di città, Phase 6 D-11).
   static const int boardPageIndex = 4;
 
@@ -75,7 +77,7 @@ abstract final class SatchelLayout {
       row: 0,
     ),
     SatchelEntry(
-      pageIndex: 3,
+      pageIndex: libraryPageIndex,
       label: 'Libreria',
       assetPath: CloudinaryAssets.library,
       column: 3,

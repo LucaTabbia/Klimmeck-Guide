@@ -10,12 +10,16 @@ class SatchelMenu extends StatefulWidget {
   final ValueChanged<int> onItemTap;
   final Set<int> disabledPages;
 
+  /// Pagine con un'aggiunta non ancora vista.
+  final Set<int> pagesWithNews;
+
   const SatchelMenu({
     super.key,
     required this.currentPage,
     required this.onItemTap,
     required this.parentAnimationController,
     this.disabledPages = const {},
+    this.pagesWithNews = const {},
   });
 
   @override
@@ -169,6 +173,7 @@ class _SatchelMenuState extends State<SatchelMenu>
               itemSize: _itemSize,
               showItems: _showItems,
               isEnabled: !widget.disabledPages.contains(entry.pageIndex),
+              hasNews: widget.pagesWithNews.contains(entry.pageIndex),
             ),
           _buildPouchButton(),
         ],

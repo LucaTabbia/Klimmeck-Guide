@@ -13,6 +13,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/library_book_art.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/lore_card.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_data_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_error_page.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/library_initial_page.dart';
@@ -49,6 +50,7 @@ void main() {
   late StreamController<CharacterState> characterStates;
   late InMemoryLibraryBookmarksStore bookmarks;
   late LibraryCubit libraryCubit;
+  late LibraryNewsCubit newsCubit;
   late List<Future<List<Lore>> Function()> answers;
 
   void answerWith(List<Lore> lore) => answers.add(() async => lore);
@@ -66,16 +68,23 @@ void main() {
     answers = [];
     when(() => graphQl.getAllLores()).thenAnswer((_) => answers.removeAt(0)());
     bookmarks = InMemoryLibraryBookmarksStore();
+    newsCubit = LibraryNewsCubit(
+      graphQl,
+      bookmarks: bookmarks,
+      characterId: 'c-1',
+    );
     libraryCubit = LibraryCubit(
       graphQl,
       bookmarks: bookmarks,
       characterId: 'c-1',
+      onBookmarksWritten: newsCubit.recount,
     );
   });
 
   tearDown(() async {
     await characterStates.close();
     await libraryCubit.close();
+    await newsCubit.close();
   });
 
   Future<void> pumpLibrary(
@@ -88,10 +97,13 @@ void main() {
       CloudinaryAssets.locations,
       CloudinaryAssets.religions,
       CloudinaryAssets.knowledge,
-      CloudinaryAssets.bookmarkRed,
-      CloudinaryAssets.bookmarkGreen,
-      CloudinaryAssets.bookmarkYellow,
-      CloudinaryAssets.bookmarkBlue,
+      CloudinaryAssets.redBookmarkBack,
+      CloudinaryAssets.greenBookmarkBack,
+      CloudinaryAssets.yellowBookmarkBack,
+      CloudinaryAssets.blueBookmarkBack,
+      CloudinaryAssets.bestiaryOpen,
+      CloudinaryAssets.locationsOpen,
+      CloudinaryAssets.greenBookmark,
       CloudinaryAssets.arrowDown,
     ]);
     whenListen(characterCubit, characterStates.stream, initialState: character);
@@ -102,6 +114,7 @@ void main() {
             providers: [
               BlocProvider<CharacterCubit>.value(value: characterCubit),
               BlocProvider<LibraryCubit>.value(value: libraryCubit),
+              BlocProvider<LibraryNewsCubit>.value(value: newsCubit),
             ],
             child: const Library(),
           ),
@@ -237,6 +250,31 @@ void main() {
   );
 
   testWidgets(
+    'a book holding news lies open on the shelf until it has been read',
+    (tester) async {
+      Finder cover(String url) => find.byWidgetPredicate(
+        (widget) => widget is CachedSvg && widget.url == url,
+      );
+      answerWith([andogan]);
+      await newsCubit.syncUnlockedLore(['lore-andogan']);
+      answerWith([andogan]);
+      await pumpLibrary(tester, character: characterWith(['lore-andogan']));
+
+      expect(cover(LibraryBook.places.openCoverUrl), findsOneWidget);
+      expect(cover(LibraryBook.places.coverUrl), findsNothing);
+      expect(cover(LibraryBook.bestiary.coverUrl), findsOneWidget);
+      expect(cover(LibraryBook.bestiary.openCoverUrl), findsNothing);
+
+      await openPlaces(tester);
+      await tester.tap(cover(LibraryBook.places.backBookmarkUrl));
+      await tester.pumpAndSettle();
+
+      expect(cover(LibraryBook.places.coverUrl), findsOneWidget);
+      expect(cover(LibraryBook.places.openCoverUrl), findsNothing);
+    },
+  );
+
+  testWidgets(
     'a failed opening shows the faded-pages line and goes back to the shelves (D-06)',
     (tester) async {
       answers.add(() async => throw StateError('offline'));
@@ -251,7 +289,7 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget is CachedSvg &&
-              widget.url == LibraryBook.places.bookmarkUrl,
+              widget.url == LibraryBook.places.backBookmarkUrl,
         ),
       );
       await tester.pumpAndSettle();

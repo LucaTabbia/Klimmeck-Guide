@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/library/statesPages/libra
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 
 import 'cubit/library_cubit.dart';
+import 'newsCubit/library_news_cubit.dart';
 
 class Library extends StatefulWidget {
   const Library({super.key});
@@ -39,6 +40,7 @@ class _LibraryState extends State<Library> {
           builder: (context, state) {
             if (state is LibraryInitial) {
               return LibraryInitialPage(
+                booksWithNews: context.watch<LibraryNewsCubit>().state,
                 onOpen: (book) => context.read<LibraryCubit>().openBook(book),
               );
             } else if (state is LibraryLoadData) {

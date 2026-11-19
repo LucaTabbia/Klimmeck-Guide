@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_item.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 
 import '../../../helpers/landscape.dart';
 import '../../../helpers/test_app.dart';
@@ -21,12 +23,14 @@ void main() {
             '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
           );
     SvgCache().add(url, svg);
+    SvgCache().add(NewEntrySigil.url, svg);
   });
 
   Future<List<int>> pumpItem(
     WidgetTester tester,
     SatchelEntry entry, {
     bool isEnabled = true,
+    bool hasNews = false,
   }) async {
     useLandscapePhone(tester);
     final controller = AnimationController(vsync: const TestVSync())
@@ -48,6 +52,7 @@ void main() {
                 end: SatchelLayout.flightEnd(entry, screen, itemSize),
                 onTap: taps.add,
                 isEnabled: isEnabled,
+                hasNews: hasNews,
               ),
             ],
           ),
@@ -94,6 +99,31 @@ void main() {
       ),
     );
     expect(opacity.opacity, lessThan(1));
+  });
+
+  Finder sigil() => find.byWidgetPredicate(
+    (widget) => widget is CachedSvg && widget.url == NewEntrySigil.url,
+  );
+
+  testWidgets('an item with news carries the sigil on its top right corner', (
+    tester,
+  ) async {
+    final entry = SatchelLayout.entries[3];
+    final taps = await pumpItem(tester, entry, hasNews: true);
+
+    final icon = tester.getRect(find.byType(AnimatedContainer));
+    final seal = tester.getRect(sigil());
+    expect(seal.topRight, icon.topRight);
+    expect(seal.width, lessThan(icon.width / 2));
+
+    await tester.tapAt(SatchelLayout.centerOf(entry, screen));
+    expect(taps, [3]);
+  });
+
+  testWidgets('an item without news carries no sigil', (tester) async {
+    await pumpItem(tester, SatchelLayout.entries[3]);
+
+    expect(sigil(), findsNothing);
   });
 
   testWidgets('an enabled item keeps full opacity', (tester) async {

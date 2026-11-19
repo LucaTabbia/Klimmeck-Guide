@@ -1,6 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:klimmeck_guide/models/enums/library_book.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
@@ -132,6 +134,21 @@ class MockInAppNotificationsCubit extends MockCubit<InAppNotificationsState>
     implements InAppNotificationsCubit {}
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
+
+class MockLibraryNewsCubit extends MockCubit<Set<LibraryBook>>
+    implements LibraryNewsCubit {}
+
+/// Nessun libro con novità: per gli harness che non riguardano la Libreria.
+MockLibraryNewsCubit quietLibraryNewsCubit() {
+  final cubit = MockLibraryNewsCubit();
+  whenListen(
+    cubit,
+    const Stream<Set<LibraryBook>>.empty(),
+    initialState: const <LibraryBook>{},
+  );
+  when(() => cubit.syncUnlockedLore(any())).thenAnswer((_) async {});
+  return cubit;
+}
 
 class MockCharacterCubit extends MockCubit<CharacterState>
     implements CharacterCubit {}

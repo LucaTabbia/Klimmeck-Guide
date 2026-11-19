@@ -1,26 +1,21 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/models/enums/library_book.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/components/novelty_bookmark.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
 import '../../../../../models/lore.dart';
 import '../../../../../theme/kg_theme.dart';
 
 class LoreCard extends StatelessWidget {
-  const LoreCard({
-    super.key,
-    required this.lore,
-    this.isNew = false,
-    this.newMarkInk = KlimmeckGuideTheme.royalCrimson,
-  });
+  const LoreCard({super.key, required this.lore, this.newInBook});
 
-  static const String newMarkLabel = 'Nuovo';
   static const Key newMarkKey = ValueKey('loreCard.newMark');
 
   final Lore lore;
-  final bool isNew;
 
-  /// Inchiostro del segnalibro del libro (D-07).
-  final Color newMarkInk;
+  /// Libro di cui portare la targhetta «Novità» (D-07); `null` se già vista.
+  final LibraryBook? newInBook;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +39,8 @@ class LoreCard extends StatelessWidget {
                         style: KlimmeckGuideTheme.instance.specialText,
                       ),
                     ),
-                    if (isNew) _newMark(),
+                    if (newInBook != null)
+                      NoveltyBookmark(key: newMarkKey, book: newInBook!),
                   ],
                 ),
               ),
@@ -90,19 +86,4 @@ class LoreCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _newMark() => Container(
-    key: newMarkKey,
-    padding: const EdgeInsets.symmetric(
-      horizontal: KlimmeckGuideTheme.spacingSm,
-      vertical: 2,
-    ),
-    decoration: BoxDecoration(color: newMarkInk),
-    child: Text(
-      newMarkLabel,
-      style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-        color: KlimmeckGuideTheme.parchment,
-      ),
-    ),
-  );
 }

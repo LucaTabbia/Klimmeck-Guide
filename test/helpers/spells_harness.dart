@@ -9,7 +9,7 @@ import 'test_app.dart';
 /// SVG usati dalle carte magia dei fixture (sfondo, segnalibro, fuoco, tipi d'uso, foglio, freccia del Dropdown).
 void seedSpellSvgs() => seedSvgCache([
   CloudinaryAssets.emptyCardSheet,
-  CloudinaryAssets.bookmarkRed,
+  CloudinaryAssets.redBookmarkBack,
   CloudinaryAssets.fireEnergy,
   CloudinaryAssets.attackUse,
   CloudinaryAssets.defenseUse,

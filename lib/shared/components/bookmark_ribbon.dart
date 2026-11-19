@@ -20,7 +20,9 @@ class BookmarkRibbon extends StatelessWidget {
   });
 
   static const Duration slideDuration = Duration(milliseconds: 300);
-  static final String _url = CloudinaryAssets.url(CloudinaryAssets.bookmarkRed);
+  static final String _url = CloudinaryAssets.url(
+    CloudinaryAssets.redBookmarkBack,
+  );
 
   final bool isMarked;
 

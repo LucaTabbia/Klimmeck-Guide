@@ -95,7 +95,7 @@ void main() {
   setUp(
     () => seedSvgCache([
       CloudinaryAssets.emptySheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
       CloudinaryAssets.helmetType,
       CloudinaryAssets.ringType,
       CloudinaryAssets.necklaceType,

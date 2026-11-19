@@ -101,7 +101,7 @@ void main() {
     stubToggle(CompanionToggleIntent.equip);
     seedSvgCache([
       CloudinaryAssets.emptyCardSheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
       CloudinaryAssets.arrowDown,
     ]);
   });

@@ -49,10 +49,11 @@ Future<void> pumpDataPage(
 }) async {
   useLandscapePhone(tester);
   seedSvgCache([
-    CloudinaryAssets.bookmarkRed,
-    CloudinaryAssets.bookmarkGreen,
-    CloudinaryAssets.bookmarkYellow,
-    CloudinaryAssets.bookmarkBlue,
+    CloudinaryAssets.redBookmarkBack,
+    CloudinaryAssets.greenBookmarkBack,
+    CloudinaryAssets.yellowBookmarkBack,
+    CloudinaryAssets.blueBookmarkBack,
+    CloudinaryAssets.greenBookmark,
     CloudinaryAssets.arrowDown,
     _cityImageId,
   ]);
@@ -86,7 +87,7 @@ Finder cardOf(String loreId) => find.byWidgetPredicate(
 );
 
 Finder backBookmarkOf(LibraryBook book) => find.byWidgetPredicate(
-  (widget) => widget is CachedSvg && widget.url == book.bookmarkUrl,
+  (widget) => widget is CachedSvg && widget.url == book.backBookmarkUrl,
 );
 
 void main() {
@@ -152,7 +153,40 @@ void main() {
     },
   );
 
-  testWidgets('marks only the new entries with «Nuovo» (D-07)', (tester) async {
+  testWidgets(
+    'a closed section holding a new entry carries the bookmark on its header',
+    (tester) async {
+      await pumpDataPage(
+        tester,
+        lore: [andogan, bosa, valtorre],
+        newLoreIds: {'lore-bosa'},
+      );
+
+      final mark = find.byKey(
+        LibraryDataPage.sectionNewMarkKeyOf(LoreType.city),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(LibraryDataPage.sectionKeyOf(LoreType.city)),
+          matching: mark,
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(LibraryDataPage.sectionNewMarkKeyOf(LoreType.region)),
+        findsNothing,
+      );
+      expect(
+        tester.getRect(mark).left,
+        greaterThan(tester.getRect(find.text('Città')).right),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('marks only the new entries with «Novità» (D-07)', (
+    tester,
+  ) async {
     await pumpDataPage(
       tester,
       lore: [andogan, bosa],

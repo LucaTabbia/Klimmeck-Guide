@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/repository/services/sync/user_refresh_requests.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/companion_outcome_listener.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/library_news_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/menu_background.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/notification_intent_landing.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
@@ -26,6 +27,7 @@ import 'package:klimmeck_guide/screens/mainScreen/questResultsCubit/quest_result
 import 'package:klimmeck_guide/screens/mainScreen/tabs/board/board.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/library.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/world_map.dart';
@@ -152,6 +154,12 @@ class _MainScreenState extends State<MainScreen>
                   isOnMission: inputs.isOnMission,
                   isImprisoned: isImprisoned,
                 );
+                final pagesWithNews = {
+                  if (context.select<LibraryNewsCubit, bool>(
+                    (cubit) => cubit.state.isNotEmpty,
+                  ))
+                    SatchelLayout.libraryPageIndex,
+                };
                 return QuestAcceptanceOutcomeListener(
                   cities: state.cities,
                   child: QuestScopeListener(
@@ -163,9 +171,12 @@ class _MainScreenState extends State<MainScreen>
                             child: SpellOutcomeListener(
                               child: CompanionOutcomeListener(
                                 child: PotionOutcomeListener(
-                                  child: _buildPagesWithSatchel(
-                                    state.cities,
-                                    disabledPages,
+                                  child: LibraryNewsListener(
+                                    child: _buildPagesWithSatchel(
+                                      state.cities,
+                                      disabledPages,
+                                      pagesWithNews,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -192,7 +203,11 @@ class _MainScreenState extends State<MainScreen>
 
   /// Le pagine non si ridimensionano con la tastiera: la apre solo un
   /// foglio, che si solleva da sé.
-  Widget _buildPagesWithSatchel(List<City> cities, Set<int> disabledPages) {
+  Widget _buildPagesWithSatchel(
+    List<City> cities,
+    Set<int> disabledPages,
+    Set<int> pagesWithNews,
+  ) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
@@ -222,6 +237,7 @@ class _MainScreenState extends State<MainScreen>
             onItemTap: onItemTap,
             parentAnimationController: _animationController,
             disabledPages: disabledPages,
+            pagesWithNews: pagesWithNews,
           ),
         ],
       ),

@@ -5,7 +5,7 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import '../../../../../models/enums/library_book.dart';
 import '../../../../../theme/kg_theme.dart';
 
-/// Pergamena di un libro aperto: titolo, [slivers] del contenuto e segnalibro
+/// Pergamena di un libro aperto: titolo, [slivers] del contenuto e nastro
 /// in basso a destra per tornare agli scaffali (D-06). Un solo
 /// `CustomScrollView`, così le pagine costruiscono solo ciò che è a schermo
 /// (D-20).
@@ -59,7 +59,7 @@ class LibraryBookFrame extends StatelessWidget {
                 child: SizedBox(
                   width: 100,
                   height: 100,
-                  child: CachedSvg(url: book.bookmarkUrl),
+                  child: CachedSvg(url: book.backBookmarkUrl),
                 ),
               ),
             ),

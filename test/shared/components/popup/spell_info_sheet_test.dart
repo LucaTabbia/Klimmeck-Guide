@@ -58,7 +58,7 @@ void main() {
     () => seedSvgCache([
       CloudinaryAssets.emptySheet,
       CloudinaryAssets.emptyCardSheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
       CloudinaryAssets.fireEnergy,
       CloudinaryAssets.attackUse,
       CloudinaryAssets.arcaneOrigin,

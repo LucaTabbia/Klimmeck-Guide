@@ -45,6 +45,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
@@ -167,11 +168,19 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<MainScreenCubit>(create: (_) => MainScreenCubit(graphQl)),
         BlocProvider<WorldMapCubit>(create: (_) => WorldMapCubit(graphQl)),
         BlocProvider<ShopCubit>(create: (_) => ShopCubit(graphQl)),
-        BlocProvider<LibraryCubit>(
-          create: (_) => LibraryCubit(
+        BlocProvider<LibraryNewsCubit>(
+          create: (_) => LibraryNewsCubit(
             graphQl,
             bookmarks: libraryBookmarksStore,
             characterId: characterId,
+          ),
+        ),
+        BlocProvider<LibraryCubit>(
+          create: (context) => LibraryCubit(
+            graphQl,
+            bookmarks: libraryBookmarksStore,
+            characterId: characterId,
+            onBookmarksWritten: context.read<LibraryNewsCubit>().recount,
           ),
         ),
         BlocProvider<JournalCubit>(

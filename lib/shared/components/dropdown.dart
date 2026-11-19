@@ -14,11 +14,15 @@ class DropdownHeader extends StatelessWidget {
     required this.sectionName,
     required this.turns,
     required this.onTap,
+    this.badge,
   });
 
   final String sectionName;
   final double turns;
   final VoidCallback onTap;
+
+  /// Segnale accanto al nome: la sezione contiene una novità.
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +44,24 @@ class DropdownHeader extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: contentWidth,
-                        child: AutoSizeText(
-                          sectionName,
-                          maxFontSize: 20,
-                          minFontSize: 12,
-                          style: KlimmeckGuideTheme.instance.titleMedium,
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: AutoSizeText(
+                                sectionName,
+                                maxFontSize: 20,
+                                minFontSize: 12,
+                                style: KlimmeckGuideTheme.instance.titleMedium,
+                              ),
+                            ),
+                            if (badge != null)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: KlimmeckGuideTheme.spacingSm,
+                                ),
+                                child: badge,
+                              ),
+                          ],
                         ),
                       ),
                       RotationTransition(
