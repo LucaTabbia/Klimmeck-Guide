@@ -19,7 +19,7 @@ class NewEntrySigil extends StatelessWidget {
 
 /// Sovrappone il sigillo a [child] quando la voce è un'aggiunta non ancora
 /// vista. [corner] è l'angolo in alto a destra della carta dentro [child]: il
-/// sigillo vi si appoggia senza coprire i tocchi.
+/// sigillo sta poco dentro quell'angolo, senza coprire i tocchi.
 class NewEntryMarked extends StatelessWidget {
   const NewEntryMarked({
     super.key,
@@ -29,6 +29,9 @@ class NewEntryMarked extends StatelessWidget {
   });
 
   static const double sigilSize = 30;
+
+  /// Rientro del sigillo dall'angolo, verso l'interno della carta.
+  static const Offset _inset = Offset(15, 20);
 
   final bool isNew;
   final Offset corner;
@@ -42,8 +45,8 @@ class NewEntryMarked extends StatelessWidget {
       children: [
         child,
         Positioned(
-          left: corner.dx - sigilSize * 2 / 3,
-          top: corner.dy - sigilSize / 3,
+          left: corner.dx - sigilSize * 2 / 3 - _inset.dx,
+          top: corner.dy - sigilSize / 3 + _inset.dy,
           child: const IgnorePointer(child: NewEntrySigil(size: sigilSize)),
         ),
       ],
