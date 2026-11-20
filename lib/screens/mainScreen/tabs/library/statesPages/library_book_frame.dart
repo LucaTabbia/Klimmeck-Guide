@@ -17,6 +17,9 @@ class LibraryBookFrame extends StatelessWidget {
     required this.slivers,
   });
 
+  /// Il nastro sporge di poco dal bordo destro della pergamena.
+  static const double _backBookmarkOverhang = 3;
+
   final LibraryBook book;
   final VoidCallback onBack;
   final List<Widget> slivers;
@@ -30,6 +33,7 @@ class LibraryBookFrame extends StatelessWidget {
         decoration: const BoxDecoration(color: KlimmeckGuideTheme.parchment),
         height: MediaQuery.of(context).size.height,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -52,8 +56,9 @@ class LibraryBookFrame extends StatelessWidget {
                 ],
               ),
             ),
-            Align(
-              alignment: Alignment.bottomRight,
+            Positioned(
+              right: -_backBookmarkOverhang,
+              bottom: 0,
               child: GestureDetector(
                 onTap: onBack,
                 child: SizedBox(
