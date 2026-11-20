@@ -21,7 +21,7 @@ class DropdownHeader extends StatelessWidget {
   final double turns;
   final VoidCallback onTap;
 
-  /// Segnale accanto al nome: la sezione contiene una novità.
+  /// Segnale a destra, accanto alla freccia: la sezione contiene una novità.
   final Widget? badge;
 
   @override
@@ -46,7 +46,7 @@ class DropdownHeader extends StatelessWidget {
                         width: contentWidth,
                         child: Row(
                           children: [
-                            Flexible(
+                            Expanded(
                               child: AutoSizeText(
                                 sectionName,
                                 maxFontSize: 20,

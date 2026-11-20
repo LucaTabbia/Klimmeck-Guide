@@ -176,10 +176,13 @@ void main() {
         find.byKey(LibraryDataPage.sectionNewMarkKeyOf(LoreType.region)),
         findsNothing,
       );
-      expect(
-        tester.getRect(mark).left,
-        greaterThan(tester.getRect(find.text('Città')).right),
+      final arrow = tester.getRect(
+        find.descendant(
+          of: find.byKey(LibraryDataPage.sectionKeyOf(LoreType.city)),
+          matching: find.byType(RotationTransition),
+        ),
       );
+      expect(tester.getRect(mark).right, closeTo(arrow.left, 1));
       expect(tester.takeException(), isNull);
     },
   );
