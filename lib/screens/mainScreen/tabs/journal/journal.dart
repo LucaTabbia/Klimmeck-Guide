@@ -44,6 +44,13 @@ import 'components/equipment_mannequin.dart';
 import 'components/injury_name_icon.dart';
 import 'cubit/journal_cubit.dart';
 
+/// Ferite del personaggio e, fra queste, quelle dell'oste: la sezione segue
+/// anche un cambio di origine a lista invariata.
+typedef _Wounds = ({
+  List<InjuryType> injuries,
+  List<InjuryType> innkeeperInjuries,
+});
+
 class Journal extends StatefulWidget {
   const Journal({
     super.key,
@@ -56,6 +63,12 @@ class Journal extends StatefulWidget {
 
   static Key newInjuryKeyOf(InjuryType injury) =>
       ValueKey('journal.newInjury.${injury.name}');
+
+  /// Riga sotto una ferita dell'oste: nessuna cura la toglie (D-15).
+  static const String beyondCureLine = 'Troppo grave per essere curata';
+
+  static Key beyondCureKeyOf(InjuryType injury) =>
+      ValueKey('journal.beyondCure.${injury.name}');
 
   @override
   State<Journal> createState() => _JournalState();
@@ -165,25 +178,35 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildInjuriesSection() {
-    return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
+    return BlocSelector<CharacterCubit, CharacterState, _Wounds?>(
       selector: (state) {
-        if (state is CharacterLoaded) {
-          return state.character.status!.injuries;
-        }
-        return null;
+        if (state is! CharacterLoaded) return null;
+        final status = state.character.status!;
+        return (
+          injuries: status.injuries!,
+          innkeeperInjuries: status.innkeeperInjuries,
+        );
       },
-      builder: (context, injuries) => NewEntriesBuilder(
+      builder: (context, wounds) => NewEntriesBuilder(
         category: NewEntryCategory.injuries,
         builder: (context, newInjuries) => Section(
           sectionName: "Ferite",
           data: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final injury in injuries!)
+              for (final injury in wounds!.injuries)
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(child: InjuryNameIcon(injury: injury)),
+                    Flexible(
+                      child: wounds.innkeeperInjuries.contains(injury)
+                          ? InjuryNameIcon(
+                              injury: injury,
+                              note: Journal.beyondCureLine,
+                              noteKey: Journal.beyondCureKeyOf(injury),
+                            )
+                          : InjuryNameIcon(injury: injury),
+                    ),
                     if (newInjuries.contains(injury.name))
                       Padding(
                         padding: const EdgeInsets.only(
