@@ -15,11 +15,18 @@ class InjuryNameIcon extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           ...List.generate(injury.effects.length, (index) {
-            return CachedSvg(url: injury.effects[index].imagePath, height: 50, width: 50);
+            return CachedSvg(
+              url: injury.effects[index].imagePath,
+              height: 50,
+              width: 50,
+            );
           }),
           Padding(
             padding: const EdgeInsets.only(left: 15.0),
-            child: Text(injury.label, style: KlimmeckGuideTheme.instance.bodyMedium),
+            child: Text(
+              injury.label,
+              style: KlimmeckGuideTheme.instance.bodyMedium,
+            ),
           ),
         ],
       ),
