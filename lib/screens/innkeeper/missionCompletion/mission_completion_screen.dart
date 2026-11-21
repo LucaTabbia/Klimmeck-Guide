@@ -66,6 +66,8 @@ class MissionCompletionScreen extends StatefulWidget {
       'Operazione rifiutata: controlla scontri, correzioni e premi';
   static const String notParticipantMessage =
       'Un partecipante non fa più parte della richiesta';
+  static const String additionTooLongMessage =
+      "Un'aggiunta supera i 1000 caratteri";
   static const String connectionMessage = 'Connessione assente, riprova';
   static const String genericMessage = 'Qualcosa è andato storto, riprova';
   static const Key startKey = ValueKey('mission.start');
@@ -78,6 +80,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static String failureLineOf(InnkeeperFailure failure) => switch (failure) {
     InnkeeperFailure.overrideInvalid => invalidValuesMessage,
     InnkeeperFailure.notParticipant => notParticipantMessage,
+    InnkeeperFailure.additionTooLong => additionTooLongMessage,
     InnkeeperFailure.connection => connectionMessage,
     _ => genericMessage,
   };

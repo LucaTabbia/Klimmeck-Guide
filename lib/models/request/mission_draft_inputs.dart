@@ -34,6 +34,8 @@ class MissionCorrection extends Equatable {
     this.consumablesUsed = const {},
     this.spellsUsed = const {},
     this.companionLifeAfter,
+    this.injuriesRemoved = const [],
+    this.declaresRemovals = false,
   });
 
   factory MissionCorrection.fromEffects(
@@ -50,6 +52,7 @@ class MissionCorrection extends Equatable {
       for (final usage in effects.spellsUsed) usage.spellId: usage.usages,
     }),
     companionLifeAfter: effects.companionLifeAfter,
+    injuriesRemoved: List.unmodifiable(effects.injuriesRemoved),
   );
 
   final String characterId;
@@ -67,13 +70,34 @@ class MissionCorrection extends Equatable {
   /// `null` = nessun compagno nello scontro: la chiave non parte (D-33).
   final int? companionLifeAfter;
 
+  /// Ferite già portate che la correzione toglie (Phase 24 D-13).
+  final List<InjuryType> injuriesRemoved;
+
+  /// Vero = `injuriesRemoved` parte sempre, anche vuota; falso = parte solo
+  /// se ne porta (il BE di oggi non riceve la chiave).
+  final bool declaresRemovals;
+
   MissionCorrection withHp(int hp) => _copy(hpAfter: hp);
 
   MissionCorrection withInjuryToggled(InjuryType injury) => _copy(
     injuries: injuries.contains(injury)
-        ? injuries.where((existing) => existing != injury).toList()
+        ? _without(injuries, injury)
         : [...injuries, injury],
   );
+
+  /// Togliere il segno a una ferita tolta la leva anche dalle aggiunte
+  /// (Phase 24 D-16).
+  MissionCorrection withInjuryRemovalToggled(InjuryType injury) {
+    if (!injuriesRemoved.contains(injury)) {
+      return _copy(injuriesRemoved: [...injuriesRemoved, injury]);
+    }
+    return _copy(
+      injuriesRemoved: _without(injuriesRemoved, injury),
+      injuries: _without(injuries, injury),
+    );
+  }
+
+  MissionCorrection withRemovalsDeclared() => _copy(declaresRemovals: true);
 
   MissionCorrection withConsumableUsed(String itemId, int quantity) =>
       _copy(consumablesUsed: {...consumablesUsed, itemId: quantity});
@@ -90,6 +114,8 @@ class MissionCorrection extends Equatable {
     Map<String, int>? consumablesUsed,
     Map<String, int>? spellsUsed,
     int? companionLifeAfter,
+    List<InjuryType>? injuriesRemoved,
+    bool? declaresRemovals,
   }) => MissionCorrection(
     characterId: characterId,
     hpAfter: hpAfter ?? this.hpAfter,
@@ -97,7 +123,14 @@ class MissionCorrection extends Equatable {
     consumablesUsed: Map.unmodifiable(consumablesUsed ?? this.consumablesUsed),
     spellsUsed: Map.unmodifiable(spellsUsed ?? this.spellsUsed),
     companionLifeAfter: companionLifeAfter ?? this.companionLifeAfter,
+    injuriesRemoved: List.unmodifiable(injuriesRemoved ?? this.injuriesRemoved),
+    declaresRemovals: declaresRemovals ?? this.declaresRemovals,
   );
+
+  static List<InjuryType> _without(
+    List<InjuryType> injuries,
+    InjuryType injury,
+  ) => injuries.where((existing) => existing != injury).toList();
 
   Map<String, dynamic> toJson() => {
     'characterId': characterId,
@@ -113,6 +146,8 @@ class MissionCorrection extends Equatable {
         if (usages > 0) {'spell': spell, 'usages': usages},
     ],
     if (companionLifeAfter case final life?) 'companionLifeAfter': life,
+    if (declaresRemovals || injuriesRemoved.isNotEmpty)
+      'injuriesRemoved': [for (final injury in injuriesRemoved) injury.name],
   };
 
   @override
@@ -123,6 +158,8 @@ class MissionCorrection extends Equatable {
     consumablesUsed,
     spellsUsed,
     companionLifeAfter,
+    injuriesRemoved,
+    declaresRemovals,
   ];
 }
 
@@ -269,6 +306,23 @@ class MissionPrizeInput extends Equatable {
   ];
 }
 
+/// Aggiunta alla storia di un partecipante (`backgroundAdditions` del
+/// salvataggio): un testo vuoto toglie l'aggiunta di quel personaggio.
+class MissionBackgroundAdditionInput extends Equatable {
+  const MissionBackgroundAdditionInput({
+    required this.characterId,
+    required this.text,
+  });
+
+  final String characterId;
+  final String text;
+
+  Map<String, dynamic> toJson() => {'characterId': characterId, 'text': text};
+
+  @override
+  List<Object?> get props => [characterId, text];
+}
+
 /// `saveMissionDraft`: manda solo le sezioni presenti (D-18).
 class SaveMissionDraftInput extends Equatable {
   const SaveMissionDraftInput({
@@ -277,6 +331,7 @@ class SaveMissionDraftInput extends Equatable {
     this.placeId,
     this.fights,
     this.prizes,
+    this.backgroundAdditions,
   });
 
   final String pendingQuestId;
@@ -284,6 +339,9 @@ class SaveMissionDraftInput extends Equatable {
   final String? placeId;
   final List<MissionFightInput>? fights;
   final List<MissionPrizeInput>? prizes;
+
+  /// `null` = aggiunte non toccate (Phase 24 D-05).
+  final List<MissionBackgroundAdditionInput>? backgroundAdditions;
 
   Map<String, dynamic> toJson() => {
     'pendingQuestId': pendingQuestId,
@@ -293,10 +351,21 @@ class SaveMissionDraftInput extends Equatable {
       'fights': [for (final fight in fights) fight.toJson()],
     if (prizes case final prizes?)
       'prizes': [for (final prize in prizes) prize.toJson()],
+    if (backgroundAdditions case final additions?)
+      'backgroundAdditions': [
+        for (final addition in additions) addition.toJson(),
+      ],
   };
 
   @override
-  List<Object?> get props => [pendingQuestId, step, placeId, fights, prizes];
+  List<Object?> get props => [
+    pendingQuestId,
+    step,
+    placeId,
+    fights,
+    prizes,
+    backgroundAdditions,
+  ];
 }
 
 /// `simulateMissionFight`: lo scontro [fightIndex] coi suoi nemici (D-02, D-24).
@@ -329,20 +398,51 @@ List<MissionFightInput> fightsInputWithEnemies(
     MissionFightInput(enemies: List.unmodifiable(enemies)),
 ]);
 
-/// Correzioni del solo scontro [fightIndex], sempre la lista completa (un partecipante assente da [corrections] è completato dal suo `effective` servito); gli altri scontri vanno senza correzioni, cioè invariati sul BE, che invalida da sé i successivi (D-24, D-31).
+/// Un'aggiunta per partecipante, nell'ordine dei partecipanti, col testo senza
+/// spazi ai bordi: anche le vuote partono, perché tolgono l'aggiunta salvata
+/// (Phase 24 D-06).
+List<MissionBackgroundAdditionInput> backgroundAdditionsInputOf(
+  List<MissionParticipant> participants,
+  Map<String, String> textsByCharacterId,
+) => List.unmodifiable([
+  for (final participant in participants)
+    MissionBackgroundAdditionInput(
+      characterId: participant.characterId,
+      text: (textsByCharacterId[participant.characterId] ?? '').trim(),
+    ),
+]);
+
+/// Correzioni del solo scontro [fightIndex], sempre la lista completa (un partecipante assente da [corrections] è completato dal suo `effective` servito); gli altri scontri vanno senza correzioni, cioè invariati sul BE, che invalida da sé i successivi (D-24, D-31). Con [declaresRemovals] ogni correzione dello scontro manda le sue ferite tolte, anche nessuna (Phase 24 Q7).
 List<MissionFightInput> fightsInputWithCorrections(
   MissionDraft draft,
   int fightIndex,
-  List<MissionCorrection> corrections,
-) => List.unmodifiable([
+  List<MissionCorrection> corrections, {
+  bool declaresRemovals = false,
+}) => List.unmodifiable([
   for (final (index, fight) in draft.fights.indexed)
     MissionFightInput(
       enemies: _enemiesOf(fight),
       corrections: index == fightIndex
-          ? _completedCorrections(fight, corrections)
+          ? _correctionsOf(
+              fight,
+              corrections,
+              declaresRemovals: declaresRemovals,
+            )
           : null,
     ),
 ]);
+
+List<MissionCorrection> _correctionsOf(
+  MissionFight fight,
+  List<MissionCorrection> given, {
+  required bool declaresRemovals,
+}) {
+  final completed = _completedCorrections(fight, given);
+  if (!declaresRemovals) return completed;
+  return List.unmodifiable(
+    completed.map((correction) => correction.withRemovalsDeclared()),
+  );
+}
 
 List<MissionEnemyInput> _enemiesOf(MissionFight fight) =>
     List.unmodifiable(fight.enemies.map(MissionEnemyInput.of));
