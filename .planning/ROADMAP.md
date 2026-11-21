@@ -245,7 +245,7 @@ Plans:
 Plans:
 - [x] 24-01-PLAN.md — Innkeeper-side models and inputs (additions, step, wound removals and origins), the switch, suite baseline
 - [x] 24-02-PLAN.md — Player-side models (innkeeper wounds, removed wounds, story flag) and the «nothing selected before the gate» pins
-- [ ] 24-03-PLAN.md — Shared story pieces: BackgroundEntries promoted, the participant's story dropdown, participants read before the draft
+- [x] 24-03-PLAN.md — Shared story pieces: BackgroundEntries promoted, the participant's story dropdown, participants read before the draft
 - [ ] 24-04-PLAN.md — Reading page: the wizard opens on the stories, «Inizia la missione» at the bottom, reachable by going back
 - [ ] 24-05-PLAN.md — Additions: save and conclude on the Cubit, SheetTextField promoted, the last page widget
 - [ ] 24-06-PLAN.md — Additions wired in the wizard behind the switch: recap «Avanti», «Concludi» with confirmation, save on back and on leave
@@ -282,7 +282,7 @@ Plans:
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
-| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 2/11 | In Progress | - |
+| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 3/11 | In Progress | - |
 
 ---
 
