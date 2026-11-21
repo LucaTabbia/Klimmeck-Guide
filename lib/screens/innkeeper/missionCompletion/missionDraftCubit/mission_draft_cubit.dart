@@ -130,6 +130,60 @@ class MissionDraftCubit extends Cubit<MissionDraftState>
     ),
   );
 
+  /// Le aggiunte alle storie sono una sezione a sé: una voce per partecipante,
+  /// anche vuota, perché il testo vuoto toglie l'aggiunta salvata (Phase 24
+  /// D-05, D-06).
+  Future<void> saveAdditions(
+    Map<String, String> textsByCharacterId, {
+    MissionDraftStep? step,
+  }) => _save((draft) => _additionsInput(draft, textsByCharacterId, step));
+
+  /// Salva le aggiunte col passo `stories`, poi completa: una sola azione
+  /// (Phase 24 D-05). Un salvataggio rifiutato non completa nulla; un
+  /// completamento rifiutato lascia servita la bozza appena salvata.
+  Future<void> conclude(Map<String, String> textsByCharacterId) async {
+    final current = state;
+    if (current is! MissionDraftReady || current.isSubmitting) return;
+    var served = current;
+    emit(served.copyWith(isSubmitting: true));
+    try {
+      final saved = await _repository.saveMissionDraft(
+        _additionsInput(
+          served.draft,
+          textsByCharacterId,
+          MissionDraftStep.stories,
+        ),
+      );
+      served = served.copyWith(draft: saved);
+      emit(served.copyWith(isSubmitting: true));
+      emit(
+        MissionDraftCompleted(
+          results: await _repository.completeGuidedMission(_pendingQuestId),
+        ),
+      );
+    } on InnkeeperException catch (error) {
+      emit(
+        served.copyWith(
+          failure: error.failure,
+          failureSerial: served.failureSerial + 1,
+        ),
+      );
+    }
+  }
+
+  SaveMissionDraftInput _additionsInput(
+    MissionDraft draft,
+    Map<String, String> textsByCharacterId,
+    MissionDraftStep? step,
+  ) => SaveMissionDraftInput(
+    pendingQuestId: _pendingQuestId,
+    step: step,
+    backgroundAdditions: backgroundAdditionsInputOf(
+      draft.participants,
+      textsByCharacterId,
+    ),
+  );
+
   /// Scarta la bozza: il BE libera i partecipanti (D-11).
   Future<void> discard() => _act((_) async {
     await _repository.discardMissionDraft(_pendingQuestId);
