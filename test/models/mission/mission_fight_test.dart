@@ -226,5 +226,103 @@ void main() {
       expect(common.xp, 30);
       expect(common.lifePoints, 120);
     });
+
+    test("the effects read the removed wounds and the innkeeper's among the "
+        'added (D-13, D-12)', () {
+      final effects = MissionFightEffects.tryFromJson(
+        missionEffectsJson(
+          injuriesAdded: const ['crushedRightHand', 'blackEye'],
+          injuriesRemoved: const ['brokenLeftArm'],
+          innkeeperInjuries: const ['blackEye'],
+        ),
+      )!;
+
+      expect(effects.injuriesRemoved, [InjuryType.brokenLeftArm]);
+      expect(effects.innkeeperInjuries, [InjuryType.blackEye]);
+      expect(effects.injuriesAdded, [
+        InjuryType.crushedRightHand,
+        InjuryType.blackEye,
+      ]);
+    });
+
+    test('unknown wound names are dropped and absent lists read empty', () {
+      final effects = MissionFightEffects.tryFromJson(
+        missionEffectsJson(
+          injuriesRemoved: const ['dragonCurse', 'blackEye', 7],
+          innkeeperInjuries: const ['dragonCurse'],
+        ),
+      )!;
+      final absent = MissionFightEffects.tryFromJson(missionEffectsJson())!;
+      final malformed = MissionFightEffects.tryFromJson({
+        ...missionEffectsJson(),
+        'injuriesRemoved': 'blackEye',
+        'innkeeperInjuries': null,
+      })!;
+      final outcome = MissionFightOutcome.tryFromJson(
+        missionOutcomeJson(
+          innkeeperInjuriesBefore: const ['dragonCurse', 'blackEye'],
+        ),
+      )!;
+      final outcomeAbsent = MissionFightOutcome.tryFromJson(
+        missionOutcomeJson(),
+      )!;
+
+      expect(effects.injuriesRemoved, [InjuryType.blackEye]);
+      expect(effects.innkeeperInjuries, isEmpty);
+      expect(absent.injuriesRemoved, isEmpty);
+      expect(absent.innkeeperInjuries, isEmpty);
+      expect(malformed.injuriesRemoved, isEmpty);
+      expect(malformed.innkeeperInjuries, isEmpty);
+      expect(malformed.hpAfter, 700);
+      expect(outcome.innkeeperInjuriesBefore, [InjuryType.blackEye]);
+      expect(outcomeAbsent.innkeeperInjuriesBefore, isEmpty);
+    });
+
+    test('the outcome reads the innkeeper wounds carried before the fight '
+        '(D-13)', () {
+      final outcome = MissionFightOutcome.tryFromJson(
+        missionOutcomeJson(
+          injuriesBefore: const ['blackEye', 'brokenLeftArm'],
+          innkeeperInjuriesBefore: const ['brokenLeftArm'],
+        ),
+      )!;
+
+      expect(outcome.innkeeperInjuriesBefore, [InjuryType.brokenLeftArm]);
+      expect(outcome.injuriesBefore, [
+        InjuryType.blackEye,
+        InjuryType.brokenLeftArm,
+      ]);
+    });
+
+    test('equality includes the three wound lists (D-13)', () {
+      const effects = MissionFightEffects(hpAfter: 700);
+      const outcome = MissionFightOutcome(
+        characterId: 'char-aldo',
+        hpBefore: 800,
+      );
+
+      expect(
+        const MissionFightEffects(
+          hpAfter: 700,
+          injuriesRemoved: [InjuryType.blackEye],
+        ),
+        isNot(effects),
+      );
+      expect(
+        const MissionFightEffects(
+          hpAfter: 700,
+          innkeeperInjuries: [InjuryType.blackEye],
+        ),
+        isNot(effects),
+      );
+      expect(
+        const MissionFightOutcome(
+          characterId: 'char-aldo',
+          hpBefore: 800,
+          innkeeperInjuriesBefore: [InjuryType.blackEye],
+        ),
+        isNot(outcome),
+      );
+    });
   });
 }
