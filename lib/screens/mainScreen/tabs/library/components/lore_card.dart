@@ -11,6 +11,7 @@ class LoreCard extends StatelessWidget {
   const LoreCard({super.key, required this.lore, this.newInBook});
 
   static const Key newMarkKey = ValueKey('loreCard.newMark');
+  static const double _imageSize = 200;
 
   final Lore lore;
 
@@ -31,55 +32,42 @@ class LoreCard extends StatelessWidget {
                 width: MediaQuery.of(context).size.width - 160,
                 child: Row(
                   children: [
+                    if (newInBook != null)
+                      NoveltyBookmark(key: newMarkKey, book: newInBook!),
                     Expanded(
                       child: AutoSizeText(
                         lore.name ?? '',
                         maxFontSize: 20,
                         minFontSize: 12,
+                        textAlign: TextAlign.end,
                         style: KlimmeckGuideTheme.instance.specialText,
                       ),
                     ),
-                    if (newInBook != null)
-                      NoveltyBookmark(key: newMarkKey, book: newInBook!),
                   ],
                 ),
               ),
             ),
             Row(
               children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 360,
+                if (lore.imagePath != null)
+                  SizedBox(
+                    height: _imageSize,
+                    width: _imageSize,
+                    child: CachedSvg(url: lore.imagePath!),
+                  ),
+                Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
+                    padding: const EdgeInsets.only(left: 20.0),
                     child: AutoSizeText(
                       maxFontSize: 20,
                       minFontSize: 10,
                       lore.description ?? '',
+                      textAlign: TextAlign.end,
                       style: KlimmeckGuideTheme.instance.bodyMedium,
                     ),
                   ),
                 ),
-                if (lore.imagePath != null)
-                  SizedBox(
-                    height: 200,
-                    width: 200,
-                    child: CachedSvg(url: lore.imagePath!),
-                  ),
               ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Container(
-                width: MediaQuery.of(context).size.width / 2,
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: KlimmeckGuideTheme.darkBronze,
-                      width: 1,
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),

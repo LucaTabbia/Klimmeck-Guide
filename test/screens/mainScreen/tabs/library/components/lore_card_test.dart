@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
@@ -85,6 +86,42 @@ void main() {
       LibraryBook.bestiary.openCoverUrl,
       CloudinaryAssets.url(CloudinaryAssets.bestiaryOpen),
     );
+  });
+
+  testWidgets('the picture sits before the text, which ends on the far side', (
+    tester,
+  ) async {
+    const imageId = 'v1/lore_card_test_city.svg';
+    seedSvgCache([imageId]);
+    await pumpCard(
+      tester,
+      LoreCard(
+        lore: Lore.fromJson(
+          loreJson(
+            id: 'lore-andogan',
+            name: 'Andogan',
+            description: 'Una città di mare.',
+            image: CloudinaryAssets.url(imageId),
+          ),
+        ),
+      ),
+    );
+
+    final picture = tester.getRect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is CachedSvg && widget.url == CloudinaryAssets.url(imageId),
+      ),
+    );
+    final card = tester.getRect(find.byType(LoreCard));
+    final description = find.text('Una città di mare.');
+    expect(picture.right, lessThan(tester.getRect(description).left));
+    expect(tester.getRect(description).right, closeTo(card.right, 1));
+    final alignments = tester
+        .widgetList<AutoSizeText>(find.byType(AutoSizeText))
+        .map((text) => text.textAlign);
+    expect(alignments, [TextAlign.end, TextAlign.end]);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a lore without description still shows its name (D-06)', (
