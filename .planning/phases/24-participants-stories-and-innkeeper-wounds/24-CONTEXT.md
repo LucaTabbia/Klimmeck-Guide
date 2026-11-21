@@ -35,13 +35,14 @@ Out of scope: editing or deleting existing background entries, a background edit
 - **D-04 (user, verbatim):** «serve un ultimo step (alla fine di tutto), dove io possa fare un aggiunta al background di ogni partecipante, potendo anche rileggere la storia del singolo».
 - **D-05 (user, «Dopo il riepilogo, prima di chiudere»):** the page comes after the recap and is the last of the flow; one «Concludi» closes the mission and writes the additions in the same BE transaction. The additions live in the draft: leaving and coming back finds them.
 - **D-06 (user, verbatim):** «Le aggiunte sono per partecipante, non una sola per tutti»: one text field per participant, each optional; an empty field adds nothing to that participant.
-- **D-07 (user, «1000 caratteri»):** one addition holds at most 1000 characters. The BE validates (same counting rule as the creation background, which stays at 400); the FE counter is UX only.
+- **D-07 (user, «1000 caratteri»):** one addition holds at most 1000 characters. The BE validates (same counting rule as the creation background, which stays at its 500 graphemes — «400» in the discuss was a slip of the orchestrator); the FE counter is UX only.
 - **D-08:** an addition becomes a new entry appended at the end of the participant's `infos.background`. Existing entries are never edited or removed here. On the last page each participant has a dropdown with the story so far (as in D-03) and the field for the addition under it.
 
 ### What the player sees
 - **D-09 (user, «Sigillo + riga nel foglio del risultato»):** the existing wax sigil marks Profile and the new entry; in addition the result sheet of the mission carries one line for a participant whose background got an addition. Proposed copy: «La tua storia ha una nuova pagina» (Claude's wording, to confirm at the UAT). No dedicated push. The BE says on the result whether an addition was written (field name fixed in the plan); the app never infers it.
 
 ### Scope of the two steps
+- **D-09a (research, 2026-11-21):** the background entries at DB are already lists (the orchestrator migrated the seven characters on 2026-11-18 with PR #47, and new characters are born with a list): the addition is a plain append. The FE branch is stacked on `fix/ui-layout-review`, where the background list, the wax sigil and `NewEntriesCubit` live.
 - **D-10:** the two pages exist only in the guided flow, that is for `story` and `worldMission`. Every other pending request keeps today's completion.
 
 ### Innkeeper wounds
