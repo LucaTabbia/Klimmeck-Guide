@@ -4,6 +4,11 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/participant_story.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/stories_step.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
@@ -39,6 +44,7 @@ import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/mocks.dart';
+import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
 
 const String _aldo = 'char-aldo';
@@ -91,7 +97,12 @@ final List<QuestResult> _results = [
   QuestResult.fromJson(questResultJson(id: 'result-aldo', character: _aldo)),
 ];
 
-Finder _headerText(String text) => find.text(text);
+/// «Passo k di N · titolo» della pagina: il conto segue [MissionPage].
+String _header(MissionPage page, String title) =>
+    'Passo ${page.index + 1} di ${MissionPage.values.length} · $title';
+
+Finder _headerOf(MissionPage page, String title) =>
+    find.text(_header(page, title));
 
 Finder get _discardConfirm => find.descendant(
   of: find.byType(DestructiveConfirmationDialog),
@@ -125,6 +136,7 @@ void main() {
     when(() => draftCubit.start()).thenAnswer((_) async {});
     when(() => draftCubit.discard()).thenAnswer((_) async {});
     when(() => participantsCubit.load(any())).thenAnswer((_) async {});
+    when(() => participantsCubit.ensureLoaded(any())).thenAnswer((_) async {});
     when(() => enemiesCubit.load()).thenAnswer((_) async {});
     when(() => prizeOptionsCubit.loadAll(any())).thenAnswer((_) async {});
     whenListen(
@@ -170,6 +182,7 @@ void main() {
     bool opensAtPlace = false,
   }) async {
     useLandscapePhone(tester);
+    seedSvgCache([CloudinaryAssets.arrowDown]);
     whenListen(draftCubit, draftStates.stream, initialState: initial);
     final exits = <CompletionExit?>[];
     await tester.pumpWidget(
@@ -223,7 +236,7 @@ void main() {
 
   group('start and resume', () {
     testWidgets(
-      'opening shows the loader, then «Inizia la missione» without a draft (D-28)',
+      "an absent draft opens the stories of the card's participants and never starts the mission (D-02, D-28)",
       (tester) async {
         await openWizard(tester, const MissionDraftLoading());
 
@@ -232,22 +245,161 @@ void main() {
 
         await emitDraft(tester, const MissionDraftAbsent());
 
+        expect(find.text('Passo 1 di 6 · Storie'), findsOneWidget);
+        expect(_headerOf(MissionPage.stories, 'Storie'), findsOneWidget);
+        expect(find.byType(Dropdown), findsNWidgets(2));
+        expect(find.byKey(ParticipantStory.keyFor(_aldo)), findsOneWidget);
+        expect(find.byKey(ParticipantStory.keyFor(_bea)), findsOneWidget);
+        expect(find.text('Aldo'), findsOneWidget);
+        expect(find.text('Bea'), findsOneWidget);
         expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
         expect(find.text(MissionCompletionScreen.startNote), findsOneWidget);
         expect(find.text(MissionCompletionScreen.title), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.discardKey), findsNothing);
+        expect(find.byType(Dialog), findsNothing);
         verifyNever(() => draftCubit.start());
       },
     );
 
-    testWidgets('tapping «Inizia la missione» starts the draft (D-11, D-28)', (
+    testWidgets(
+      "the stories are read with the card's ids while the draft is absent (D-02)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verifyNever(() => participantsCubit.load(any()));
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets(
+      "a draft found absent after the load reads the stories with the card's ids (D-02)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftLoading());
+        verifyNever(() => participantsCubit.ensureLoaded(any()));
+
+        await emitDraft(tester, const MissionDraftAbsent());
+        await emitDraft(tester, const MissionDraftAbsent(isStarting: true));
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'the rank of a card participant follows the name once its character is read (D-03)',
+      (tester) async {
+        final aldo = participantCharacterJson();
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: MissionParticipantsLoaded(
+            characters: {
+              _aldo: Character.fromJson({
+                ...aldo,
+                'status': {
+                  ...aldo['status'] as Map<String, dynamic>,
+                  'title': TitleType.adventurer.name,
+                },
+              }),
+            },
+            places: const {},
+          ),
+        );
+        await openWizard(tester, const MissionDraftAbsent());
+
+        expect(find.text('Aldo · Avventuriero'), findsOneWidget);
+        expect(find.text('Bea'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '«Inizia la missione» starts the draft once and lands on «Luogo» (D-02, D-28)',
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await tester.pump();
+        verify(() => draftCubit.start()).called(1);
+        await emitDraft(tester, _ready);
+
+        expect(find.text('Passo 2 di 6 · Luogo'), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
+      },
+    );
+
+    testWidgets(
+      "the participants are asked once more with the draft's ids after the start, through ensureLoaded (no forced reread)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await emitDraft(tester, _ready);
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(2);
+        verifyNever(() => participantsCubit.load(any()));
+      },
+    );
+
+    testWidgets('while the start is in flight the button is disabled and the '
+        'stories stay readable (D-28)', (tester) async {
+      await openWizard(tester, const MissionDraftAbsent(isStarting: true));
+
+      final start = tester.widget<ElevatedButton>(
+        find.byKey(MissionCompletionScreen.startKey),
+      );
+      expect(start.onPressed, isNull);
+      expect(find.byType(Dropdown), findsNWidgets(2));
+    });
+
+    testWidgets(
+      'a failed read on the stories keeps «Inizia la missione» enabled and «Riprova» reads again (D-31)',
+      (tester) async {
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: const MissionParticipantsFailed(
+            failure: InnkeeperFailure.timedOut,
+          ),
+        );
+        await openWizard(tester, const MissionDraftAbsent());
+
+        final start = tester.widget<ElevatedButton>(
+          find.byKey(MissionCompletionScreen.startKey),
+        );
+        expect(start.onPressed, isNotNull);
+        expect(
+          find.text(MissionCompletionScreen.genericMessage),
+          findsNWidgets(3),
+        );
+
+        await tester.tap(find.byKey(StoriesStep.retryKey));
+        await tester.pump();
+
+        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets('a refused start stays on the stories with the failure line', (
       tester,
     ) async {
-      await openWizard(tester, const MissionDraftAbsent());
+      final exits = await openWizard(tester, const MissionDraftAbsent());
 
-      await tester.tap(find.byKey(MissionCompletionScreen.startKey));
-      await tester.pump();
+      await emitDraft(
+        tester,
+        const MissionDraftAbsent(
+          failure: InnkeeperFailure.connection,
+          failureSerial: 1,
+        ),
+      );
 
-      verify(() => draftCubit.start()).called(1);
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+      expect(exits, isEmpty);
+      expect(_headerOf(MissionPage.stories, 'Storie'), findsOneWidget);
+      expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
     });
 
     testWidgets(
@@ -257,8 +409,8 @@ void main() {
 
         await emitDraft(tester, MissionDraftReady(draft: _draftAt('fights')));
 
-        expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
-        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
       },
     );
 
@@ -270,7 +422,7 @@ void main() {
 
         await emitDraft(tester, MissionDraftReady(draft: _draftAt(step)));
 
-        expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+        expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       });
     }
 
@@ -279,8 +431,8 @@ void main() {
     ) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('prizes')));
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
-      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
     });
 
     testWidgets('a served draft at step recap reopens on «Riepilogo» (D-18)', (
@@ -288,7 +440,7 @@ void main() {
     ) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('recap')));
 
-      expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.recap, 'Riepilogo'), findsOneWidget);
     });
 
     testWidgets('back from a cancelled teleport the wizard reopens on «Luogo» '
@@ -299,8 +451,8 @@ void main() {
         opensAtPlace: true,
       );
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
-      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
     });
 
     testWidgets('a later save never moves the page (D-18)', (tester) async {
@@ -308,7 +460,7 @@ void main() {
 
       await emitDraft(tester, MissionDraftReady(draft: _draftAt('recap')));
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
 
     testWidgets('a ready draft shows the leave note (D-09)', (tester) async {
@@ -322,7 +474,9 @@ void main() {
         'drops the leave note (UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
 
-      final header = tester.getRect(_headerText('Passo 2 di 5 · Scontri'));
+      final header = tester.getRect(
+        _headerOf(MissionPage.encounters, 'Scontri'),
+      );
       final search = tester.getRect(find.byKey(EnemySearchBar.searchKey));
       expect(search.left, greaterThan(header.right));
       expect(search.top, lessThan(header.bottom));
@@ -356,13 +510,13 @@ void main() {
     testWidgets('the keyboard over «Premi» hides the step counter and the '
         'buttons, without overflow (UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('prizes')));
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
 
       tester.view.viewInsets = const FakeViewPadding(bottom: 700);
       addTearDown(tester.view.resetViewInsets);
       await tester.pump();
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsNothing);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsNothing);
       expect(find.byKey(MissionCompletionScreen.nextKey), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -383,14 +537,81 @@ void main() {
       }
     });
 
-    testWidgets('«Indietro» is disabled on «Luogo»', (tester) async {
-      await openWizard(tester, _ready);
+    testWidgets(
+      '«Indietro» is disabled on the stories and enabled on «Luogo»',
+      (tester) async {
+        await openWizard(tester, _ready);
 
-      final back = tester.widget<OutlinedButton>(
-        find.byKey(MissionCompletionScreen.backKey),
-      );
-      expect(back.onPressed, isNull);
-    });
+        OutlinedButton back() => tester.widget<OutlinedButton>(
+          find.byKey(MissionCompletionScreen.backKey),
+        );
+        expect(back().onPressed, isNotNull);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        expect(back().onPressed, isNull);
+      },
+    );
+
+    testWidgets(
+      '«Indietro» from «Luogo» shows the stories with «Avanti» (D-02)',
+      (tester) async {
+        await openWizard(tester, _ready);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Passo 1 di 6 · Storie'), findsOneWidget);
+        expect(find.byType(Dropdown), findsNWidgets(2));
+        expect(find.text('Aldo · ${TitleType.paladin.label}'), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.nextKey), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
+        expect(find.text(MissionCompletionScreen.startNote), findsNothing);
+        expect(find.text(MissionCompletionScreen.leaveNote), findsNothing);
+        expect(find.byKey(MissionCompletionScreen.discardKey), findsOneWidget);
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets(
+      '«Avanti» on the stories returns to «Luogo» without saving (D-02)',
+      (tester) async {
+        await openWizard(tester, _ready);
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
+        verifyNever(
+          () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+        );
+        verifyNever(() => participantsCubit.load(any()));
+      },
+    );
+
+    testWidgets(
+      "«Riprova» on the stories of a started mission reads the draft's participants again (D-31)",
+      (tester) async {
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: const MissionParticipantsFailed(
+            failure: InnkeeperFailure.timedOut,
+          ),
+        );
+        await openWizard(tester, _ready);
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(StoriesStep.retryKey));
+        await tester.pump();
+
+        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      },
+    );
 
     testWidgets('«Indietro» goes back one page without a call (D-09)', (
       tester,
@@ -400,7 +621,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       verifyNever(
         () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
       );
@@ -639,7 +860,7 @@ void main() {
 
           expect(find.text(line), findsOneWidget);
           expect(exits, isEmpty);
-          expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+          expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
         },
       );
     }
@@ -778,7 +999,7 @@ void main() {
         verify(
           () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
         ).called(1);
-        expect(find.text('Passo 2 di 5 · Scontri'), findsOneWidget);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
       },
     );
 
@@ -797,7 +1018,8 @@ void main() {
       await tester.tap(find.byKey(PlaceStep.retryKey));
       await tester.pump();
 
-      verify(() => participantsCubit.load([_aldo, _bea])).called(2);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
     });
 
     testWidgets(
@@ -846,7 +1068,7 @@ void main() {
       await tester.tap(find.byKey(PlaceStep.stayKey));
       await tester.pumpAndSettle();
 
-      expect(find.text('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       expect(
         find.text(MissionCompletionScreen.invalidValuesMessage),
         findsOneWidget,
@@ -872,7 +1094,7 @@ void main() {
         verify(
           () => draftCubit.saveFights(any(), step: MissionDraftStep.fights),
         ).called(1);
-        expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+        expect(_headerOf(MissionPage.fight, 'Scontro 1 di 2'), findsOneWidget);
       },
     );
 
@@ -887,7 +1109,7 @@ void main() {
         verify(
           () => draftCubit.saveFights([], step: MissionDraftStep.prizes),
         ).called(1);
-        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+        expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
       },
     );
 
@@ -922,7 +1144,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
     });
   });
 
@@ -971,7 +1193,7 @@ void main() {
       '«Avanti» on the last fight saves corrections with step prizes and opens «Premi» (D-06)',
       (tester) async {
         await openFight(tester, 1);
-        expect(_headerText('Passo 3 di 5 · Scontro 1 di 1'), findsOneWidget);
+        expect(_headerOf(MissionPage.fight, 'Scontro 1 di 1'), findsOneWidget);
 
         await tapNext(tester);
 
@@ -989,7 +1211,7 @@ void main() {
           ],
           [_aldo, _bea],
         );
-        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+        expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
       },
     );
 
@@ -1001,7 +1223,7 @@ void main() {
       await tapNext(tester);
 
       verify(() => draftCubit.saveCorrections(0, any(), step: null)).called(1);
-      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 2 di 2'), findsOneWidget);
     });
 
     testWidgets('«Indietro» from fight 2 goes back to fight 1', (tester) async {
@@ -1011,7 +1233,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 1 di 2'), findsOneWidget);
     });
 
     testWidgets(
@@ -1044,7 +1266,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
 
     testWidgets('«Indietro» from «Premi» goes back to the last fight', (
@@ -1053,12 +1275,12 @@ void main() {
       await openFight(tester, 2);
       await tapNext(tester);
       await tapNext(tester);
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
 
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 2 di 2'), findsOneWidget);
     });
 
     testWidgets('«Cambia nemici» goes back to «Scontri» (D-05)', (
@@ -1069,7 +1291,7 @@ void main() {
       await tester.tap(find.byKey(FightStep.changeEnemiesKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
   });
 
@@ -1124,7 +1346,7 @@ void main() {
           ],
           [(_aldo, 150), (_bea, 0)],
         );
-        expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+        expect(_headerOf(MissionPage.recap, 'Riepilogo'), findsOneWidget);
       },
     );
 
@@ -1136,7 +1358,7 @@ void main() {
         await tester.tap(find.byKey(MissionCompletionScreen.backKey));
         await tester.pumpAndSettle();
 
-        expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
       },
     );
   });
@@ -1196,7 +1418,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
     });
   });
 }
