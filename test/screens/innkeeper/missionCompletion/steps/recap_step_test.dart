@@ -87,6 +87,45 @@ final List<Map<String, dynamic>> _fights = [
   ),
 ];
 
+/// Due scontri vinti: ad Aldo l'oste toglie l'occhio nero nel primo e il
+/// taglio profondo in entrambi, a Bea il taglio profondo nel secondo.
+final List<Map<String, dynamic>> _fightsWithRemovals = [
+  missionFightJson(
+    verdict: 'success',
+    outcomes: [
+      missionOutcomeJson(
+        simulated: missionEffectsJson(),
+        corrected: missionEffectsJson(
+          injuriesRemoved: const ['blackEye', 'deepCut'],
+        ),
+      ),
+      missionOutcomeJson(
+        character: _bea,
+        simulated: missionEffectsJson(injuriesAdded: const []),
+      ),
+    ],
+  ),
+  missionFightJson(
+    verdict: 'success',
+    outcomes: [
+      missionOutcomeJson(
+        simulated: missionEffectsJson(
+          injuriesAdded: const [],
+          injuriesRemoved: const ['deepCut'],
+        ),
+      ),
+      missionOutcomeJson(
+        character: _bea,
+        simulated: missionEffectsJson(injuriesAdded: const []),
+        corrected: missionEffectsJson(
+          injuriesAdded: const [],
+          injuriesRemoved: const ['deepCut'],
+        ),
+      ),
+    ],
+  ),
+];
+
 final Map<String, dynamic> _aldoPrize = missionPrizeJson(
   items: [
     {'item': 'l-relic', 'quantity': 1},
@@ -204,6 +243,36 @@ void main() {
       );
     });
 
+    test('lists the wounds taken off a participant after the added ones '
+        '(D-13)', () {
+      expect(
+        missionRecapLinesOf(
+          questTitle: 'La torre',
+          draft: _draft(fights: _fightsWithRemovals),
+        ),
+        [
+          'La torre',
+          'Scontro 1: 3x Lupo · Vittoria',
+          'Scontro 2: 3x Lupo · Vittoria',
+          'Aldo: PV 800 → 700',
+          'Ferite: mano destra schiacciata',
+          'Ferite tolte: occhio nero, taglio profondo',
+          'Bea: PV 800 → 700',
+          'Ferite tolte: taglio profondo',
+        ],
+      );
+    });
+
+    test('no «Ferite tolte» line without removals', () {
+      expect(
+        missionRecapLinesOf(
+          questTitle: 'La torre',
+          draft: _draft(fights: _fights),
+        ).where((line) => line.startsWith('Ferite tolte')),
+        isEmpty,
+      );
+    });
+
     test('zero fights lists no fight and no PV line (D-24)', () {
       expect(missionRecapLinesOf(questTitle: 'La torre', draft: _draft()), [
         'La torre',
@@ -237,6 +306,24 @@ void main() {
     await pumpStep(tester, _draft(fights: _fights));
 
     expect(find.text('Ferite: mano destra schiacciata'), findsOneWidget);
+  });
+
+  testWidgets('the recap lists the wounds taken off a participant (D-13)', (
+    tester,
+  ) async {
+    await pumpStep(tester, _draft(fights: _fightsWithRemovals));
+
+    expect(
+      find.text('Ferite tolte: occhio nero, taglio profondo'),
+      findsOneWidget,
+    );
+    expect(find.text('Ferite tolte: taglio profondo'), findsOneWidget);
+  });
+
+  testWidgets('no line without removals', (tester) async {
+    await pumpStep(tester, _draft(fights: _fights));
+
+    expect(find.textContaining('Ferite tolte'), findsNothing);
   });
 
   testWidgets('zero fights lists no fight and no PV line (D-24)', (

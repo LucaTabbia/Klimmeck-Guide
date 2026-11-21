@@ -1172,12 +1172,20 @@ void main() {
       ).thenAnswer((_) async {});
       when(() => draftCubit.simulate(any())).thenAnswer((_) async {});
       when(
-        () =>
-            draftCubit.saveCorrections(any(), any(), step: any(named: 'step')),
+        () => draftCubit.saveCorrections(
+          any(),
+          any(),
+          step: any(named: 'step'),
+          declaresRemovals: any(named: 'declaresRemovals'),
+        ),
       ).thenAnswer((_) async {});
     });
 
-    Future<void> openFight(WidgetTester tester, int fightCount) async {
+    Future<void> openFight(
+      WidgetTester tester,
+      int fightCount, {
+      bool isStoryAndWoundInputEnabled = false,
+    }) async {
       await openWizard(
         tester,
         MissionDraftReady(
@@ -1186,6 +1194,7 @@ void main() {
             fights: [for (var i = 0; i < fightCount; i++) _simulatedFight()],
           ),
         ),
+        isStoryAndWoundInputEnabled: isStoryAndWoundInputEnabled,
       );
       await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
       await tester.pumpAndSettle();
@@ -1231,6 +1240,39 @@ void main() {
         expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
       },
     );
+
+    testWidgets('with the switch on «Avanti» on a fight saves the corrections '
+        'declaring their removals (Q7)', (tester) async {
+      await openFight(tester, 2, isStoryAndWoundInputEnabled: true);
+
+      await tapNext(tester);
+
+      verify(
+        () => draftCubit.saveCorrections(
+          0,
+          any(),
+          step: null,
+          declaresRemovals: true,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('with the switch off it does not declare them (pre-gate)', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+
+      await tapNext(tester);
+
+      verify(
+        () => draftCubit.saveCorrections(
+          0,
+          any(),
+          step: null,
+          declaresRemovals: false,
+        ),
+      ).called(1);
+    });
 
     testWidgets('«Avanti» on fight 1 of 2 opens «Scontro 2 di 2»', (
       tester,

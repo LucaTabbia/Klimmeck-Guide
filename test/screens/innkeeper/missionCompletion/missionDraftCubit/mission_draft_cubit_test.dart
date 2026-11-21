@@ -355,6 +355,46 @@ void main() {
       },
     );
 
+    List<Map<String, dynamic>> savedCorrectionsOf(int fightIndex) {
+      final fights = savedInput().toJson()['fights'] as List<Object?>;
+      final fight = fights[fightIndex] as Map<String, dynamic>;
+      return (fight['corrections'] as List<Object?>)
+          .cast<Map<String, dynamic>>();
+    }
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'saveCorrections declares the removals of the fight when asked: an '
+      'empty list is sent (Q7)',
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) =>
+          cubit.saveCorrections(1, const [correction], declaresRemovals: true),
+      verify: (_) {
+        final corrections = savedCorrectionsOf(1);
+        expect(corrections, hasLength(2));
+        expect([
+          for (final sent in corrections) sent['injuriesRemoved'],
+        ], everyElement(isEmpty));
+        expect(
+          corrections.every((sent) => sent.containsKey('injuriesRemoved')),
+          isTrue,
+        );
+      },
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'by default saveCorrections sends no injuriesRemoved key (pre-gate)',
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) => cubit.saveCorrections(1, const [correction]),
+      verify: (_) => expect(
+        savedCorrectionsOf(
+          1,
+        ).any((sent) => sent.containsKey('injuriesRemoved')),
+        isFalse,
+      ),
+    );
+
     final prizes = [
       const MissionPrizeInput(
         characterId: _aldo,
