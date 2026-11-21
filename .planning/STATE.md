@@ -5,7 +5,7 @@ milestone_name: Healing & Models
 status: executing
 stopped_at: Phase 23 complete (device E2E 2026-11-16)
 last_updated: "2026-11-16T18:00:00.000Z"
-last_activity: 2026-11-21 -- Phase 24 context gathered (interactive discuss, joint with BE Phase 25) — ready to plan
+last_activity: 2026-11-21 -- Phase 24 planned (11 plans, plan check passed) — ready to execute
 progress:
   total_phases: 6
   completed_phases: 6
@@ -29,7 +29,7 @@ Milestone: **v1.1 Healing & Models** — started 2026-11-10 (Phases 18–19; pre
 Phase: 23 of 23 (Spell Origins, Void and Shamanic Quests) — complete on `feat/23-spell-origins-void-and-shamanic-quests` (stacked on `feat/22-companion-defeat-rest-and-recovery`)
 Plan: 14 of 14
 Status: Phase 23 complete — 14/14 plans; ORIGIN-01..ORIGIN-08 complete. Device E2E on 2026-11-16 (`23-HUMAN-UAT.md`, `status: complete`) on a Samsung against the local BE booted from `feat/24-origini-magie-quest-void-shamanic` `3f82fa50` (BE PR #44, draft, not merged): steps 1–12 passed in their observed parts; step 7 (infused spell card 20 px overflow) fixed in TDD during the UAT (`4bcd0d9c` / `776a8303`); capital markers 39 → 46 (`a1df181d`, user). Not run on the device (covered by tests): innkeeper prize cards (step 7), birth cities (step 8, BE specs), `study` with / without the draw (step 9), the background pushes «Ricerca riuscita» (step 10) and the learning-end «Missione conclusa» (step 11). UAT decisions (DB content): school quests research 4 h, learn times 30 min (L6) → 12 h (L20), recovery 15 min (L6) → 8 h (L20); BE D-33 study-lore draw in the school quests at 15 %. Closing gates: `GATE_OK` on `3f82fa50`, schema check 55 × OK, analyzer 47 info / 0 warning / 0 error, suite 5170 green. Phase 22 complete (device E2E 2026-11-15, PET-01..PET-10).
-Last activity: 2026-11-21 -- Phase 24 context gathered (interactive discuss, joint with BE Phase 25) — ready to plan
+Last activity: 2026-11-21 -- Phase 24 planned (11 plans, plan check passed) — ready to execute
 Next step: merge of the BE Phase 24 PR #44 (`feat/24-origini-magie-quest-void-shamanic`; BE PR #43 is already merged on BE `develop`, merge commit `4b2ed03a`); after the BE #44 merge the orchestrator re-runs the FE schema check on BE `develop` and `$unset`s `minXpToLearn`; then the FE PR `feat/22-companion-defeat-rest-and-recovery` → `develop`, then the FE PR `feat/23-spell-origins-void-and-shamanic-quests` → `develop` (never `main`; `GH_TOKEN=$(gh auth token --user LucaTabbia) gh pr create --base develop`), opened by the user; then the v1.1 milestone close.
 
 ## Current Milestone
