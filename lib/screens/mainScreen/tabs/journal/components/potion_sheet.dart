@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
@@ -26,6 +27,7 @@ class PotionSheet extends StatelessWidget {
     required this.item,
     required this.maxLifePoints,
     this.targets = const [],
+    this.injuriesBeyondCure = const [],
   });
 
   final LootItem item;
@@ -36,6 +38,10 @@ class PotionSheet extends StatelessWidget {
 
   /// Compagni che possono bere, letti all'apertura del foglio (D-08).
   final List<CompanionPotionTarget> targets;
+
+  /// Ferite dell'oste del personaggio, lette all'apertura del foglio (D-15):
+  /// fuori da «Cura: …».
+  final List<InjuryType> injuriesBeyondCure;
 
   static const Key drinkKey = ValueKey('potion.drink');
   static const Key notNowKey = ValueKey('potion.notNow');
@@ -108,7 +114,7 @@ class PotionSheet extends StatelessWidget {
           style: textTheme.titleMedium,
         ),
         for (final line in [
-          healedInjuriesLine(item),
+          healedInjuriesLine(item, beyondCure: injuriesBeyondCure),
           recoveryLine(item.recovery),
         ].nonNulls)
           _line(context, line),

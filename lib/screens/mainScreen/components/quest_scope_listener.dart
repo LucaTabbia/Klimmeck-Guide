@@ -17,6 +17,7 @@ typedef _QuestScope = ({
   int? currentLifePoints,
   int? maxLifePoints,
   String? injuries,
+  String? innkeeperInjuries,
 });
 
 /// Il BE serve `quests` per area del personaggio corrente (BE 13.1 D-05): la
@@ -25,7 +26,9 @@ typedef _QuestScope = ({
 /// silenzio (CLAUDE.md regola 2) con la città corrente per i POI della board;
 /// i filtri client di `board_policy.dart` restano come difesa.
 /// La lista dipende anche da vita e ferite (BE Phase 18, D-20: `noEffect` è per
-/// chi guarda): in città un loro cambio la rilegge in silenzio.
+/// chi guarda): in città un loro cambio la rilegge in silenzio. Lo stesso per
+/// l'origine di una ferita (BE Phase 25, D-14): una ferita che diventa
+/// dell'oste cambia `noEffect` a lista delle ferite invariata.
 class QuestScopeListener extends StatelessWidget {
   const QuestScopeListener({
     super.key,
@@ -75,6 +78,9 @@ class QuestScopeListener extends StatelessWidget {
       // come valore unico, ordinato, per non rileggere a ogni emissione né
       // per lo stesso insieme in un altro ordine.
       injuries: isInCity ? _injurySetOf(status?.injuries) : null,
+      innkeeperInjuries: isInCity
+          ? _injurySetOf(status?.innkeeperInjuries)
+          : null,
     );
   }
 

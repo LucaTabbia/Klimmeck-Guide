@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/asset_item.dart';
+import '../../models/enums/injury_type.dart';
 import '../../models/equipment_item.dart';
 import '../../theme/kg_theme.dart';
 import '../../utils/item_lines.dart';
@@ -21,6 +22,7 @@ class ItemRow extends StatelessWidget {
     this.onLongTap,
     this.isDisabled = false,
     this.statusLine,
+    this.injuriesBeyondCure = const [],
   });
 
   static const EdgeInsets padding = EdgeInsets.symmetric(
@@ -43,11 +45,17 @@ class ItemRow extends StatelessWidget {
   /// Riga di stato sotto le altre (D-12), es. il conto alla rovescia.
   final String? statusLine;
 
+  /// Ferite di chi legge che nessuna cura toglie (D-15): fuori da «Cura: …».
+  /// Vuota = la riga di catalogo.
+  final List<InjuryType> injuriesBeyondCure;
+
   @override
   Widget build(BuildContext context) {
     final lootItem = assetItem.asLoot;
     final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
-    final injuriesLine = lootItem == null ? null : healedInjuriesLine(lootItem);
+    final injuriesLine = lootItem == null
+        ? null
+        : healedInjuriesLine(lootItem, beyondCure: injuriesBeyondCure);
     final recovery = lootItem == null ? null : recoveryLine(lootItem.recovery);
     return Padding(
       padding: padding,
