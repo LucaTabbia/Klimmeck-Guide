@@ -46,6 +46,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 21: Innkeeper Mission Completion Flow** — The innkeeper completes story/worldMission quests through a guided flow: teleport of the participants to a POI/city → enemies picked from a list by mission rank and POI type (quantity and kind) → combat simulation on the backend engine without writing on the characters → manual fixes (injuries in excess removed, life by slider) → prizes per character (coins, xp, items, pets, spells) → quest completion and update of the playing characters. The prize step starts from the prizes suited to each character's rank (Phase 20). Needs a BE companion phase. _(added 2026-11-11; completed 2026-11-14)_
 - [x] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14; completed 2026-11-15)_
 - [x] **Phase 23: Spell Origins, Void and Shamanic Quests** — Every spell carries a macro-class on top of its use and energy (origin → use → energy; origins: `void`, `arcane`, `shamanic`); two new quest types, `shamanic` and `void`, work exactly like the `arcane` quest (renamed from `magic`, label «Magia») and teach a spell of their own origin (before, that quest taught them all), with the four new sheet assets; the `void` quest lives only in Necrorian, the `shamanic` quest in the two new capitals (`aarakocraCapital`, `dragonbornCapital`, drawn on the map at the size of Talmvere), both from rank mage up; new city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their assets and the `aarakocraVillage` asset replaced; a spell is learned from a minimum character level, no longer a minimum xp. Needs a BE companion phase (BE Phase 24). _(added 2026-11-15)_ (completed 2026-11-16)
+- [ ] **Phase 24: Participants' Stories and Innkeeper Wounds** — The guided completion of story/worldMission quests opens on a page where the innkeeper reads the background of every participant (one dropdown each) before starting the mission, and ends, after the recap, on a page where he may add one entry to the background of each participant (one optional addition per participant, up to 1000 characters) while rereading that participant's story; the additions are written with the completion and shown to the player by the wax sigil and a line on the result sheet. The wounds the innkeeper adds by hand are his alone to remove (from the corrections of every resolution): heal quests, potions and prizes never touch them, and the player reads them as «Troppo grave per essere curata». Needs a BE companion phase (BE Phase 25). _(added 2026-11-21)_
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -227,6 +228,13 @@ Plans:
 - [x] 23-14-PLAN.md — Gate: research fields on the BE SDL, selections, schema check, full suite (after BE plans 24-13..24-18)
 - [x] 23-08-PLAN.md — Device E2E, handoff and closing (LAST: after 23-14 and the BE Phase 24 merge, human)
 
+### Phase 24: Participants' Stories and Innkeeper Wounds
+**Goal**: The innkeeper reads every participant's story before resolving a story/worldMission quest and adds to each story at the end; the wounds he inflicts by hand are beyond every cure but his own. User's words (2026-11-21): «Come primo step serve una schermata dove ogni partecipante ha una propria dropdown, al cui interno si trova il suo background, in modo che io possa leggere la storia di tutti prima di prendere decisioni. Infine serve un ultimo step (alla fine di tutto), dove io possa fare un aggiunta al background di ogni partecipante, potendo anche rileggere la storia del singolo. Altra cosa importante: Le ferite applicate dall'innkeeper sono rimuovibili solo dall'innkeeper, non sono influenzabili da quest heal, pozioni o premi».
+**Depends on**: Phase 21 (guided completion flow), Phase 18 (cures and potions), Phase 10 (innkeeper corrections), a BE companion phase (BE Phase 25 «Storie dei partecipanti e ferite dell'oste»)
+**Scope**: decisions D-01..D-17 of `24-CONTEXT.md` (interactive discuss of 2026-11-21, joint with BE Phase 25).
+**Requirements**: TBD (fixed in the plan)
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -254,6 +262,7 @@ Plans:
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
+| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 0/TBD | Not started | - |
 
 ---
 
