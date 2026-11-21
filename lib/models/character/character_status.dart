@@ -28,6 +28,7 @@ class CharacterStatus extends Equatable {
     this.imprisonedUntil,
     this.missionInProgress = false,
     this.guidedMissionInProgress = false,
+    this.innkeeperInjuries = const [],
   });
 
   final int? xp;
@@ -70,6 +71,10 @@ class CharacterStatus extends Equatable {
   /// solo l'etichetta della pedina.
   final bool guidedMissionInProgress;
 
+  /// Ferite inflitte dall'oste (BE Phase 25, D-16): sottoinsieme servito di
+  /// [injuries], nessuna cura le tocca. Vuota se il campo è assente.
+  final List<InjuryType> innkeeperInjuries;
+
   factory CharacterStatus.fromJson(Map<String, dynamic> json) =>
       CharacterStatus(
         location: json['location'] != null
@@ -91,6 +96,7 @@ class CharacterStatus extends Equatable {
         imprisonedUntil: utcInstantOrNull(json['imprisonedUntil']),
         missionInProgress: json['missionInProgress'] == true,
         guidedMissionInProgress: json['guidedMissionInProgress'] == true,
+        innkeeperInjuries: injuryTypesFrom(json['innkeeperInjuries']),
       );
 
   static List<SpellState> _spellStatesFrom(Object? json) {
@@ -123,6 +129,7 @@ class CharacterStatus extends Equatable {
     "imprisonedUntil": imprisonedUntil?.toUtc().toIso8601String(),
     "missionInProgress": missionInProgress,
     "guidedMissionInProgress": guidedMissionInProgress,
+    "innkeeperInjuries": innkeeperInjuries.map((e) => e.name).toList(),
   };
 
   CharacterStatus copyWith({
@@ -154,6 +161,7 @@ class CharacterStatus extends Equatable {
       imprisonedUntil: imprisonedUntil,
       missionInProgress: missionInProgress,
       guidedMissionInProgress: guidedMissionInProgress,
+      innkeeperInjuries: innkeeperInjuries,
     );
   }
 
@@ -176,5 +184,6 @@ class CharacterStatus extends Equatable {
     imprisonedUntil,
     missionInProgress,
     guidedMissionInProgress,
+    innkeeperInjuries,
   ];
 }
