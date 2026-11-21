@@ -209,6 +209,8 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     MissionDraftStep.fights => MissionPage.encounters,
     MissionDraftStep.prizes => MissionPage.prizes,
     MissionDraftStep.recap => MissionPage.recap,
+    // fino al 24-06: l'ultima pagina non esiste ancora
+    MissionDraftStep.stories => MissionPage.recap,
     MissionDraftStep.teleport || null => MissionPage.place,
   };
 

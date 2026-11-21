@@ -89,12 +89,21 @@ class MissionFightEffects extends Equatable {
     this.consumablesUsed = const [],
     this.spellsUsed = const [],
     this.companionLifeAfter,
+    this.injuriesRemoved = const [],
+    this.innkeeperInjuries = const [],
   });
 
   final int hpAfter;
 
   /// Ferite che lo scontro aggiunge (D-14).
   final List<InjuryType> injuriesAdded;
+
+  /// Ferite già portate che la correzione toglie (Phase 24 D-13).
+  final List<InjuryType> injuriesRemoved;
+
+  /// Ferite dell'oste tra quelle aggiunte: sottoinsieme servito, mai dedotto
+  /// (Phase 24 D-12).
+  final List<InjuryType> innkeeperInjuries;
   final List<MissionItemUsage> consumablesUsed;
   final List<MissionSpellUsage> spellsUsed;
 
@@ -118,6 +127,8 @@ class MissionFightEffects extends Equatable {
         MissionSpellUsage.tryFromJson,
       ),
       companionLifeAfter: missionIntOf(json['companionLifeAfter']),
+      injuriesRemoved: injuryTypesFrom(json['injuriesRemoved']),
+      innkeeperInjuries: injuryTypesFrom(json['innkeeperInjuries']),
     );
   }
 
@@ -128,17 +139,21 @@ class MissionFightEffects extends Equatable {
     consumablesUsed,
     spellsUsed,
     companionLifeAfter,
+    injuriesRemoved,
+    innkeeperInjuries,
   ];
 }
 
 /// Esito di uno scontro per un personaggio: i limiti all'inizio dello scontro
-/// (`hpBefore`, `injuriesBefore`, `consumablesAvailable`, `spellsAvailable`)
-/// sono serviti dal BE, mai calcolati (D-14, D-17).
+/// (`hpBefore`, `injuriesBefore`, `innkeeperInjuriesBefore`,
+/// `consumablesAvailable`, `spellsAvailable`) sono serviti dal BE, mai
+/// calcolati (D-14, D-17).
 class MissionFightOutcome extends Equatable {
   const MissionFightOutcome({
     required this.characterId,
     required this.hpBefore,
     this.injuriesBefore = const [],
+    this.innkeeperInjuriesBefore = const [],
     this.consumablesAvailable = const [],
     this.spellsAvailable = const [],
     this.simulated,
@@ -149,8 +164,13 @@ class MissionFightOutcome extends Equatable {
   final String characterId;
   final int hpBefore;
 
-  /// Ferite che il personaggio aveva già: mostrate, non rimovibili (D-14).
+  /// Ferite che il personaggio aveva già: la correzione può toglierle
+  /// (Phase 24 D-13).
   final List<InjuryType> injuriesBefore;
+
+  /// Ferite dell'oste tra quelle già portate: sottoinsieme servito, mai
+  /// dedotto (Phase 24 D-12, D-13).
+  final List<InjuryType> innkeeperInjuriesBefore;
   final List<MissionItemUsage> consumablesAvailable;
   final List<MissionSpellUsage> spellsAvailable;
 
@@ -176,6 +196,7 @@ class MissionFightOutcome extends Equatable {
       characterId: characterId,
       hpBefore: hpBefore,
       injuriesBefore: injuryTypesFrom(json['injuriesBefore']),
+      innkeeperInjuriesBefore: injuryTypesFrom(json['innkeeperInjuriesBefore']),
       consumablesAvailable: missionEntriesOf(
         json['consumablesAvailable'],
         MissionItemUsage.tryFromJson,
@@ -195,6 +216,7 @@ class MissionFightOutcome extends Equatable {
     characterId,
     hpBefore,
     injuriesBefore,
+    innkeeperInjuriesBefore,
     consumablesAvailable,
     spellsAvailable,
     simulated,
