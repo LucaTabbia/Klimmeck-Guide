@@ -251,7 +251,7 @@ Plans:
 - [x] 24-06-PLAN.md — Additions wired in the wizard behind the switch: recap «Avanti», «Concludi» with confirmation, save on back and on leave
 - [x] 24-07-PLAN.md — Corrections that remove and re-add wounds, the innkeeper mark, removals in the recap
 - [x] 24-08-PLAN.md — Player side: Journal line, cure and potion lines without innkeeper wounds, Board reread on an origin flip
-- [ ] 24-09-PLAN.md — Result sheet: story line and joined «Guarite» line; proof that the sigil marks an appended entry
+- [x] 24-09-PLAN.md — Result sheet: story line and joined «Guarite» line; proof that the sigil marks an appended entry
 - [ ] 24-10-PLAN.md — Gate: schema, selections, switch on, schema check, full suite (after the BE Phase 25 merge)
 - [ ] 24-11-PLAN.md — Device E2E, handoff and closing (LAST, human)
 
@@ -282,7 +282,7 @@ Plans:
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
-| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 8/11 | In Progress | - |
+| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 9/11 | In Progress | - |
 
 ---
 
