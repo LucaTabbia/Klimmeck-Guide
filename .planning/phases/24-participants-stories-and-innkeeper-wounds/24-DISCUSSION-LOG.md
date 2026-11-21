@@ -13,3 +13,5 @@ Interactive discuss of 2026-11-21, joint with BE Phase 25. Human reference only;
 | Notice | How the player learns of an addition | sigil + result line (rec.) / sigil only / sigil + line + push | Sigil + result line |
 | Wound seen | Whether the player tells an innkeeper wound apart | yes, marked (rec.) / no | Yes, with the copy «Troppo grave per essere curata» |
 | Length | Length of one addition | 1000 (rec.) / 400 / 2000 | 1000 |
+| Free text (after the context) | — | — | «Le correzioni possono rimuovere qualsiasi tipo di ferita, quelle dell'oste e non. l'oste per rendere non curabile una ferita curabile già presente deve prima rimuoverla e poi aggiungerla di nuovo» → D-13, D-16 amended, D-17 withdrawn |
+| Reading page vs popup | The user raised a popup on the character's name in the request cards; asked whether the page with the dropdowns stays | no, popup only / yes, page and popup | «Sì, niente popup allora»: the page stays, no popup |
