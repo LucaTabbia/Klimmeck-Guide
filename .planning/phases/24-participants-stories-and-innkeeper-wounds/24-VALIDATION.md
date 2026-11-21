@@ -50,9 +50,9 @@ created: 2026-11-21
 | 24-03-01 | 03 | 3 | STORY-01 | T-24-10, T-24-11 | story as plain text, no popup, no log | widget | `flutter test test/shared/components/background_entries_test.dart test/screens/innkeeper/missionCompletion/components/participant_story_test.dart test/screens/mainScreen/tabs/profile` | ❌ W0 (two new files) | ✅ green |
 | 24-03-02 | 03 | 3 | STORY-01 | T-24-13 | one read per set of ids; reread after a failure | bloc | `flutter test test/screens/innkeeper/missionCompletion/missionParticipantsCubit` | ✅ extend | ✅ green |
 | 24-03-03 | 03 | 3 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?3 of 11" .planning/STATE.md` | — | ✅ green |
-| 24-04-01 | 04 | 4 | STORY-01 | T-24-15 | the start never depends on the read | widget | `flutter test test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` | ❌ W0 | ⬜ pending |
-| 24-04-02 | 04 | 4 | STORY-01 | T-24-14 | opening never creates the draft; explicit start | widget | `flutter test test/screens/innkeeper` + no `StartStep` / «di 5 ·» left | ✅ rewrite | ⬜ pending |
-| 24-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?4 of 11" .planning/STATE.md` | — | ⬜ pending |
+| 24-04-01 | 04 | 4 | STORY-01 | T-24-15 | the start never depends on the read | widget | `flutter test test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` | ❌ W0 | ✅ green |
+| 24-04-02 | 04 | 4 | STORY-01 | T-24-14 | opening never creates the draft; explicit start | widget | `flutter test test/screens/innkeeper` + no `StartStep` / «di 5 ·» left | ✅ rewrite | ✅ green |
+| 24-04-03 | 04 | 4 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?4 of 11" .planning/STATE.md` | — | ✅ green |
 | 24-05-01 | 05 | 5 | STORY-02 | T-24-20, T-24-21 | save before completion; no completion after a refused save; saved draft kept after a refused completion | bloc | `flutter test test/screens/innkeeper/missionCompletion/missionDraftCubit` | ✅ extend | ⬜ pending |
 | 24-05-02 | 05 | 5 | STORY-02 | T-24-18, T-24-19 | counter is UX only; grapheme clusters; no storage, no log | widget | `flutter test test/screens/innkeeper/missionCompletion/steps/additions_step_test.dart test/screens/characterCreation` | ❌ W0 | ⬜ pending |
 | 24-05-03 | 05 | 5 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?5 of 11" .planning/STATE.md` | — | ⬜ pending |
@@ -87,7 +87,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/config/story_and_wound_corrections_test.dart` — 24-01-02
 - [x] Fixtures: `missionEffectsJson` / `missionOutcomeJson` / `missionDraftJson` with the Phase 25 keys (only when non-null), `missionBackgroundAdditionJson` — 24-01-01; result fixture with `backgroundEntryAdded` / `injuriesRemoved` — 24-02-01
 - [x] `test/shared/components/background_entries_test.dart`, `test/screens/innkeeper/missionCompletion/components/participant_story_test.dart` — 24-03-01
-- [ ] `test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` — 24-04-01
+- [x] `test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` — 24-04-01
 - [ ] `test/screens/innkeeper/missionCompletion/steps/additions_step_test.dart` — 24-05-02
 - [ ] `test/screens/mainScreen/tabs/journal/journal_innkeeper_wounds_test.dart` — 24-08-01
 - [ ] Cache seed of `CloudinaryAssets.arrowDown` in every test that mounts a `Dropdown` (24-03, 24-04, 24-05, 24-06)
