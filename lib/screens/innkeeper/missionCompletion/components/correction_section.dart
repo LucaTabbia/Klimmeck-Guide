@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/config/story_and_wound_corrections.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/mission/mission_limits.dart';
@@ -9,9 +11,9 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/li
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Correzioni di un personaggio dopo uno scontro simulato (D-06, D-14): ogni
-/// limite viene dalla bozza servita (regola 4). Le ferite in
-/// `outcome.injuriesBefore` sono bloccate per scontro, come sul BE: quelle
-/// aggiunte dallo scontro precedente si tolgono correggendo quello.
+/// limite viene dalla bozza servita (regola 4). Con [isWoundRemovalEnabled] le
+/// ferite di `outcome.injuriesBefore` si tolgono e, tolte, si riaggiungono
+/// come ferite dell'oste (Phase 24 D-13, D-16); senza, restano com'erano.
 class CorrectionSection extends StatelessWidget {
   const CorrectionSection({
     super.key,
@@ -21,6 +23,7 @@ class CorrectionSection extends StatelessWidget {
     required this.itemNameOf,
     required this.spellNameOf,
     required this.onChanged,
+    this.isWoundRemovalEnabled = storyAndWoundCorrectionsEnabled,
   });
 
   static Key headerKeyFor(String characterId) =>
@@ -40,6 +43,7 @@ class CorrectionSection extends StatelessWidget {
   final String? Function(String itemId) itemNameOf;
   final String? Function(String spellId) spellNameOf;
   final ValueChanged<MissionCorrection> onChanged;
+  final bool isWoundRemovalEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -74,9 +78,13 @@ class CorrectionSection extends StatelessWidget {
           ..._companionLife(companion, theme),
         const _Heading('Ferite'),
         InjuryChips(
-          existing: outcome.injuriesBefore,
+          carried: outcome.injuriesBefore,
+          innkeeperCarried: outcome.innkeeperInjuriesBefore,
+          removed: correction.injuriesRemoved,
           added: correction.injuries,
-          onToggled: (injury) =>
+          innkeeperAdded: outcome.effective?.innkeeperInjuries ?? const [],
+          onRemovalToggled: isWoundRemovalEnabled ? _toggleRemoval : null,
+          onAddToggled: (injury) =>
               onChanged(correction.withInjuryToggled(injury)),
         ),
         const _Heading('Consumabili'),
@@ -105,6 +113,9 @@ class CorrectionSection extends StatelessWidget {
       ],
     );
   }
+
+  void _toggleRemoval(InjuryType injury) =>
+      onChanged(correction.withInjuryRemovalToggled(injury));
 
   /// Vita del compagno dopo lo scontro: il minimo è la sconfitta (D-17).
   /// Senza proposta del motore né correzione lo slider parte dalla vita prima
