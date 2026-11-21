@@ -600,7 +600,22 @@ void main() {
   });
 
   group('failures that stay', () {
+    test('an addition too long reads its own line (D-07)', () {
+      expect(
+        MissionCompletionScreen.failureLineOf(InnkeeperFailure.additionTooLong),
+        MissionCompletionScreen.additionTooLongMessage,
+      );
+      expect(
+        MissionCompletionScreen.additionTooLongMessage,
+        "Un'aggiunta supera i 1000 caratteri",
+      );
+    });
+
     for (final (failure, line) in [
+      (
+        InnkeeperFailure.additionTooLong,
+        MissionCompletionScreen.additionTooLongMessage,
+      ),
       (
         InnkeeperFailure.overrideInvalid,
         MissionCompletionScreen.invalidValuesMessage,

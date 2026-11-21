@@ -144,6 +144,215 @@ void main() {
     });
   });
 
+  group('wound removals of a correction (Phase 24)', () {
+    const carried = InjuryType.blackEye;
+
+    MissionCorrection correctionOf({
+      List<InjuryType> injuriesAdded = const [],
+      List<InjuryType> injuriesRemoved = const [],
+    }) => MissionCorrection.fromEffects(
+      _aldo,
+      MissionFightEffects(
+        hpAfter: 600,
+        injuriesAdded: injuriesAdded,
+        injuriesRemoved: injuriesRemoved,
+      ),
+    );
+
+    test('fromEffects seeds the removed wounds from the served effect '
+        '(D-13)', () {
+      final correction = correctionOf(injuriesRemoved: const [carried]);
+
+      expect(correction.injuriesRemoved, [carried]);
+      expect(correction.declaresRemovals, isFalse);
+    });
+
+    test('toggling a removal adds the wound to the removed ones (D-13)', () {
+      final correction = correctionOf().withInjuryRemovalToggled(carried);
+
+      expect(correction.injuriesRemoved, [carried]);
+      expect(correction.injuries, isEmpty);
+    });
+
+    test('un-removing a wound drops it from the added ones too (D-16)', () {
+      final correction = correctionOf(
+        injuriesAdded: const [carried],
+        injuriesRemoved: const [carried],
+      ).withInjuryRemovalToggled(carried);
+
+      expect(correction.injuriesRemoved, isEmpty);
+      expect(correction.injuries, isEmpty);
+    });
+
+    test('un-removing a wound keeps the other added ones (D-16)', () {
+      final correction = correctionOf(
+        injuriesAdded: const [InjuryType.crushedRightHand, carried],
+        injuriesRemoved: const [carried, InjuryType.brokenLeftArm],
+      ).withInjuryRemovalToggled(carried);
+
+      expect(correction.injuriesRemoved, [InjuryType.brokenLeftArm]);
+      expect(correction.injuries, [InjuryType.crushedRightHand]);
+    });
+
+    test('a removed wound can be added again in the same correction '
+        '(D-16)', () {
+      final correction = correctionOf()
+          .withInjuryRemovalToggled(carried)
+          .withInjuryToggled(carried);
+
+      expect(correction.injuriesRemoved, [carried]);
+      expect(correction.injuries, [carried]);
+      expect(correction.toJson()['injuries'], ['blackEye']);
+      expect(correction.toJson()['injuriesRemoved'], ['blackEye']);
+    });
+
+    test('toJson omits injuriesRemoved when nothing is removed and the '
+        'removals are not declared', () {
+      final json = correctionOf(
+        injuriesAdded: const [InjuryType.crushedRightHand],
+      ).toJson();
+
+      expect(json.containsKey('injuriesRemoved'), isFalse);
+    });
+
+    test('a correction that declares its removals sends the list even when '
+        'empty (Q7)', () {
+      final declared = correctionOf().withRemovalsDeclared();
+
+      expect(declared.declaresRemovals, isTrue);
+      expect(declared.toJson()['injuriesRemoved'], <String>[]);
+      expect(
+        declared.withHp(500).toJson().containsKey('injuriesRemoved'),
+        isTrue,
+      );
+    });
+
+    test('toJson sends the removed wounds by name (D-13)', () {
+      final json = correctionOf()
+          .withInjuryRemovalToggled(carried)
+          .withInjuryRemovalToggled(InjuryType.brokenLeftArm)
+          .toJson();
+
+      expect(json['injuriesRemoved'], ['blackEye', 'brokenLeftArm']);
+    });
+
+    test('the other corrections keep the removals (D-13)', () {
+      final correction = correctionOf(injuriesRemoved: const [carried])
+          .withRemovalsDeclared()
+          .withHp(500)
+          .withInjuryToggled(InjuryType.crushedRightHand)
+          .withConsumableUsed(potionItemId, 1);
+
+      expect(correction.injuriesRemoved, [carried]);
+      expect(correction.declaresRemovals, isTrue);
+    });
+
+    test('equality includes the removals and their declaration', () {
+      final plain = correctionOf();
+
+      expect(plain.withInjuryRemovalToggled(carried), isNot(plain));
+      expect(plain.withRemovalsDeclared(), isNot(plain));
+      expect(correctionOf(), plain);
+    });
+
+    test('fightsInputWithCorrections declares the removals of every '
+        'correction of the fight when asked, and of none by default '
+        '(Q7)', () {
+      final draft = _draft(fights: [_simulatedFight(), _simulatedFight()]);
+      final given = [
+        MissionCorrection.fromEffects(
+          _aldo,
+          const MissionFightEffects(hpAfter: 500),
+        ),
+      ];
+
+      final declared = fightsInputWithCorrections(
+        draft,
+        0,
+        given,
+        declaresRemovals: true,
+      );
+      final byDefault = fightsInputWithCorrections(draft, 0, given);
+
+      final declaredCorrections = _correctionsOf(
+        declared[0],
+      ).cast<Map<String, dynamic>>();
+      expect(declaredCorrections.map((c) => c['characterId']), [_aldo, _bea]);
+      expect(
+        declaredCorrections.map((c) => c['injuriesRemoved']),
+        everyElement(<String>[]),
+      );
+      expect(_fightJson(declared[1]).containsKey('corrections'), isFalse);
+      expect(
+        _correctionsOf(byDefault[0]).cast<Map<String, dynamic>>().any(
+          (c) => c.containsKey('injuriesRemoved'),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('story additions on the save (Phase 24)', () {
+    test('the save input sends the additions only when the section is '
+        'present (D-05)', () {
+      const absent = SaveMissionDraftInput(
+        pendingQuestId: 'pq-1',
+        step: MissionDraftStep.stories,
+      );
+      const present = SaveMissionDraftInput(
+        pendingQuestId: 'pq-1',
+        backgroundAdditions: [
+          MissionBackgroundAdditionInput(
+            characterId: _aldo,
+            text: 'Ha visto il drago.',
+          ),
+        ],
+      );
+      const empty = SaveMissionDraftInput(
+        pendingQuestId: 'pq-1',
+        backgroundAdditions: [],
+      );
+
+      expect(absent.toJson(), {'pendingQuestId': 'pq-1', 'step': 'stories'});
+      expect(present.toJson(), {
+        'pendingQuestId': 'pq-1',
+        'backgroundAdditions': [
+          {'characterId': _aldo, 'text': 'Ha visto il drago.'},
+        ],
+      });
+      expect(empty.toJson()['backgroundAdditions'], isEmpty);
+      expect(present, isNot(absent));
+    });
+
+    test('backgroundAdditionsInputOf builds one entry per participant with '
+        'the trimmed text, empty ones included (D-06)', () {
+      final additions = backgroundAdditionsInputOf(_draft().participants, {
+        _aldo: '  Ha visto il drago.  ',
+      });
+
+      expect(additions, const [
+        MissionBackgroundAdditionInput(
+          characterId: _aldo,
+          text: 'Ha visto il drago.',
+        ),
+        MissionBackgroundAdditionInput(characterId: _bea, text: ''),
+      ]);
+    });
+
+    test('backgroundAdditionsInputOf ignores the text of a stranger and '
+        'sends a blank text as empty (D-06)', () {
+      final additions = backgroundAdditionsInputOf(_draft().participants, {
+        _bea: '   ',
+        'char-ghost': 'Non esiste.',
+      });
+
+      expect(additions.map((addition) => addition.toJson()), [
+        {'characterId': _aldo, 'text': ''},
+        {'characterId': _bea, 'text': ''},
+      ]);
+    });
+  });
+
   group('companion life correction', () {
     test('fromEffects copies the companion life (D-17)', () {
       final correction = MissionCorrection.fromEffects(

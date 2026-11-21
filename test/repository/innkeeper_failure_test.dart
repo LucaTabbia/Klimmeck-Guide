@@ -46,6 +46,14 @@ void main() {
       );
     });
 
+    test('BACKGROUND_ADDITION_TOO_LONG maps to additionTooLong (D-07)', () {
+      expect(
+        innkeeperFailureFrom(_withCode(backgroundAdditionTooLongCode)),
+        InnkeeperFailure.additionTooLong,
+      );
+      expect(backgroundAdditionTooLongCode, 'BACKGROUND_ADDITION_TOO_LONG');
+    });
+
     test(
       'BAD_USER_INPUT over HTTP 400 maps to badUserInput, not connection (D-13)',
       () {
