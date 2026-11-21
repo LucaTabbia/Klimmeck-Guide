@@ -55,6 +55,6 @@ void main() {
 
     expect(find.byType(Text), findsNothing);
     expect(find.byType(NewEntrySigil), findsNothing);
-    expect(tester.getSize(find.byType(BackgroundEntries)).height, 0);
+    expect(tester.takeException(), isNull);
   });
 }
