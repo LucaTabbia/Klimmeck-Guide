@@ -1750,6 +1750,234 @@ void main() {
       },
     );
 
+    group('unsaved additions', () {
+      void refuseSaveAdditions() {
+        when(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        ).thenAnswer((_) async {
+          draftStates.add(
+            storiesReady.copyWith(
+              failure: InnkeeperFailure.connection,
+              failureSerial: 1,
+            ),
+          );
+          await Future<void>.delayed(Duration.zero);
+        });
+      }
+
+      void acceptSaveAdditions() {
+        when(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        ).thenAnswer((_) async {});
+      }
+
+      Future<void> leave(WidgetTester tester) async {
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets(
+        '«Indietro» saves the additions that differ from the draft, then opens the recap (D-05)',
+        (tester) async {
+          await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await tapBack(tester);
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(recapHeader(), findsOneWidget);
+        },
+      );
+
+      testWidgets('«Indietro» without changes saves nothing', (tester) async {
+        await openOn(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: _scar}),
+          ),
+        );
+        await type(tester, _aldo, '$_scar ');
+        await type(tester, _bea, '  ');
+
+        await tapBack(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(recapHeader(), findsOneWidget);
+      });
+
+      testWidgets('a refused save on «Indietro» stays on the page (T-21-46)', (
+        tester,
+      ) async {
+        refuseSaveAdditions();
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await tapBack(tester);
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(find.text(_typed), findsOneWidget);
+        expect(
+          find.text(MissionCompletionScreen.connectionMessage),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets(
+        'leaving the wizard with unsaved additions saves them first, then leaves (D-05)',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await leave(tester);
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(exits, [null]);
+          expect(find.byType(MissionCompletionScreen), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'the back arrow of the bar saves the unsaved additions too (D-05)',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(exits, [null]);
+        },
+      );
+
+      testWidgets('leaving without changes leaves at once', (tester) async {
+        final exits = await openOn(tester, storiesReady);
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, [null]);
+      });
+
+      testWidgets(
+        'a refused save while leaving keeps the wizard open with the failure line; the next attempt leaves without saving (T-24-26)',
+        (tester) async {
+          refuseSaveAdditions();
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await leave(tester);
+
+          expect(exits, isEmpty);
+          expect(additionsHeader(), findsOneWidget);
+          expect(
+            find.text(MissionCompletionScreen.connectionMessage),
+            findsOneWidget,
+          );
+
+          await leave(tester);
+
+          expect(exits, [null]);
+          verify(
+            () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+          ).called(1);
+        },
+      );
+
+      testWidgets('typing again re-arms the save on leave', (tester) async {
+        refuseSaveAdditions();
+        final exits = await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+        await leave(tester);
+        acceptSaveAdditions();
+
+        await type(tester, _aldo, '$_typed Due volte.');
+        await leave(tester);
+
+        verify(
+          () => draftCubit.saveAdditions({_aldo: '$_typed Due volte.'}),
+        ).called(1);
+        expect(exits, [null]);
+      });
+
+      testWidgets('no leave and no save while a call is running', (
+        tester,
+      ) async {
+        final exits = await openOn(
+          tester,
+          storiesReady.copyWith(isSubmitting: true),
+        );
+        await type(tester, _aldo, _typed);
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, isEmpty);
+        expect(additionsHeader(), findsOneWidget);
+      });
+
+      testWidgets('leaving from «Premi» behaves as before: no save', (
+        tester,
+      ) async {
+        final exits = await openOn(
+          tester,
+          MissionDraftReady(draft: _draftAt('prizes')),
+        );
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, [null]);
+      });
+
+      testWidgets(
+        'on the recap the leave is free again: the additions were saved by «Indietro»',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+          await tapBack(tester);
+          expect(recapHeader(), findsOneWidget);
+
+          await leave(tester);
+
+          verify(
+            () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+          ).called(1);
+          expect(exits, [null]);
+        },
+      );
+    });
+
+    testWidgets(
+      'in landscape with the keyboard open the header hides, nothing overflows and the focused field is visible (Pitfall 6)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        final field = find.byKey(AdditionsStep.fieldKeyFor(_bea));
+        await tester.ensureVisible(field);
+        await tester.tap(field);
+        await tester.pump();
+
+        tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+        addTearDown(tester.view.resetViewInsets);
+        await tester.pumpAndSettle();
+
+        expect(additionsHeader(), findsNothing);
+        expect(find.byKey(AdditionsStep.concludeKey), findsNothing);
+        expect(tester.takeException(), isNull);
+        final viewport = tester.getRect(find.byType(SingleChildScrollView));
+        expect(tester.getRect(field).overlaps(viewport), isTrue);
+        expect(viewport.height, greaterThan(0));
+      },
+    );
+
     testWidgets(
       '«Riprova» on the last page reads the participants again (D-31)',
       (tester) async {
