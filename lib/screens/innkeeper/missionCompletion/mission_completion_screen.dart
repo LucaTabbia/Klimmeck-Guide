@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/story_and_wound_corrections.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
@@ -16,6 +17,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftC
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/additions_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
@@ -30,8 +32,9 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pagine del wizard: navigazione locale, mai salvata (la bozza servita tiene
 /// il passo, D-09). `stories` è la pagina di lettura: la prima, mai un passo
-/// salvato.
-enum MissionPage { stories, place, encounters, fight, prizes, recap }
+/// salvato. `additions` è l'ultima, raggiungibile solo con le aggiunte alle
+/// storie accese (Phase 24 D-04).
+enum MissionPage { stories, place, encounters, fight, prizes, recap, additions }
 
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
@@ -43,6 +46,7 @@ class MissionCompletionScreen extends StatefulWidget {
     super.key,
     required this.card,
     this.opensAtPlace = false,
+    this.isStoryAndWoundInputEnabled = storyAndWoundCorrectionsEnabled,
   });
 
   static const String title = 'Completa la missione';
@@ -63,6 +67,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static const String encountersTitle = 'Scontri';
   static const String prizesTitle = 'Premi';
   static const String recapTitle = 'Riepilogo';
+  static const String additionsTitle = 'Aggiunte alle storie';
   static String fightTitle(int index, int count) =>
       'Scontro ${index + 1} di $count';
   static const String invalidValuesMessage =
@@ -79,6 +84,10 @@ class MissionCompletionScreen extends StatefulWidget {
   static const Key nextKey = ValueKey('mission.next');
   static const Key retryKey = ValueKey('mission.retry');
 
+  /// Riga della conferma per un'aggiunta scritta (Phase 24 D-05).
+  static String storyPageLineOf(String name) =>
+      'Storia di $name: una nuova pagina';
+
   /// Riga d'errore del wizard per un rifiuto o una lettura fallita.
   static String failureLineOf(InnkeeperFailure failure) => switch (failure) {
     InnkeeperFailure.overrideInvalid => invalidValuesMessage,
@@ -94,6 +103,10 @@ class MissionCompletionScreen extends StatefulWidget {
   /// partito, qualunque sia il passo servito (UAT 2026-11-14).
   final bool opensAtPlace;
 
+  /// Spento, il flusso finisce sul riepilogo e nulla di nuovo parte verso il
+  /// BE; acceso, si chiude sull'ultima pagina con le aggiunte (Phase 24 D-04).
+  final bool isStoryAndWoundInputEnabled;
+
   @override
   State<MissionCompletionScreen> createState() =>
       _MissionCompletionScreenState();
@@ -103,6 +116,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   MissionPage _page = MissionPage.stories;
   int _fightIndex = 0;
   bool _hasLeft = false;
+
+  /// Aggiunte scritte finora, per id del personaggio; `null` finché l'ultima
+  /// pagina non è mai stata aperta.
+  Map<String, String>? _seededAdditions;
+
+  Map<String, String> get _additionTexts => _seededAdditions ?? const {};
+
+  /// L'ultima pagina esiste solo con le aggiunte accese.
+  List<MissionPage> get _reachablePages => [
+    for (final page in MissionPage.values)
+      if (page != MissionPage.additions || widget.isStoryAndWoundInputEnabled)
+        page,
+  ];
 
   @override
   void initState() {
@@ -190,8 +216,12 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     context.read<MissionParticipantsCubit>().ensureLoaded(
       _characterIdsOf(draft),
     );
-    if (page == MissionPage.recap) _loadPrizeNames(_characterIdsOf(draft));
+    if (_showsPrizeNamesFrom(page)) _loadPrizeNames(_characterIdsOf(draft));
   }
+
+  /// Dall'ultima pagina «Indietro» porta al riepilogo.
+  static bool _showsPrizeNamesFrom(MissionPage page) =>
+      page == MissionPage.recap || page == MissionPage.additions;
 
   /// Senza bozza le storie si leggono con i partecipanti della scheda: la
   /// missione non è iniziata e nessuno è bloccato (D-02).
@@ -216,11 +246,24 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       context.read<MissionPrizeOptionsCubit>().loadAll(characterIds);
 
   /// Unico punto in cui la pagina cambia: «Scontri» chiede la lista dei
-  /// nemici solo se non c'è ancora (D-03).
+  /// nemici solo se non c'è ancora (D-03), l'ultima pagina prende i suoi
+  /// testi dalla bozza.
   void _enter(MissionPage page, {int fightIndex = 0}) {
     _page = page;
     _fightIndex = fightIndex;
     if (page == MissionPage.encounters) _loadEnemiesIfMissing();
+    if (page == MissionPage.additions) _seedAdditionsOnce();
+  }
+
+  /// Una volta sola: una bozza servita dopo non riscrive ciò che l'oste sta
+  /// scrivendo (Phase 24 D-05).
+  void _seedAdditionsOnce() {
+    final state = context.read<MissionDraftCubit>().state;
+    if (_seededAdditions != null || state is! MissionDraftReady) return;
+    _seededAdditions = {
+      for (final addition in state.draft.backgroundAdditions)
+        addition.characterId: addition.text,
+    };
   }
 
   void _loadEnemiesIfMissing() {
@@ -229,12 +272,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     enemies.load();
   }
 
-  static MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
+  MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
     MissionDraftStep.fights => MissionPage.encounters,
     MissionDraftStep.prizes => MissionPage.prizes,
     MissionDraftStep.recap => MissionPage.recap,
-    // fino al 24-06: l'ultima pagina non esiste ancora
-    MissionDraftStep.stories => MissionPage.recap,
+    // trappola dei nomi: il passo `stories` del BE è l'ULTIMA pagina (le
+    // aggiunte), non la pagina di lettura [MissionPage.stories]; con le
+    // aggiunte spente l'ultima pagina raggiungibile è il riepilogo
+    MissionDraftStep.stories => _reachablePages.last,
     MissionDraftStep.teleport || null => MissionPage.place,
   };
 
@@ -402,7 +447,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
               children: [
                 MissionStepHeader(
                   stepNumber: stepNumber,
-                  stepCount: MissionPage.values.length,
+                  stepCount: _reachablePages.length,
                   title: title,
                 ),
                 const SizedBox(width: KlimmeckGuideTheme.spacingMd),
@@ -470,6 +515,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     ),
     MissionPage.prizes => MissionCompletionScreen.prizesTitle,
     MissionPage.recap => MissionCompletionScreen.recapTitle,
+    MissionPage.additions => MissionCompletionScreen.additionsTitle,
   };
 
   Widget _buildPage(MissionDraftReady ready) => switch (_page) {
@@ -506,8 +552,48 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       draft: ready.draft,
       isSubmitting: ready.isSubmitting,
       onComplete: context.read<MissionDraftCubit>().complete,
+      onNext: widget.isStoryAndWoundInputEnabled ? _openAdditions : null,
     ),
+    MissionPage.additions => _buildAdditions(ready),
   };
+
+  Widget _buildAdditions(MissionDraftReady ready) {
+    return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
+      builder: (context, participants) => AdditionsStep(
+        readers: _draftReaders(ready.draft),
+        participants: participants,
+        texts: _additionTexts,
+        onChanged: _writeAddition,
+        isSubmitting: ready.isSubmitting,
+        onConclude: () => _confirmConclusion(ready.draft),
+        onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
+      ),
+    );
+  }
+
+  void _writeAddition(String characterId, String text) =>
+      setState(() => _seededAdditions = {..._additionTexts, characterId: text});
+
+  /// L'unico completamento con le aggiunte accese: conferma, poi salvataggio
+  /// e completamento in una sola azione del Cubit (Phase 24 D-05).
+  Future<void> _confirmConclusion(MissionDraft draft) async {
+    final confirmed = await confirmMissionCompletion(
+      context,
+      lines: _conclusionLinesOf(draft),
+    );
+    if (!confirmed || !mounted) return;
+    await context.read<MissionDraftCubit>().conclude(_additionTexts);
+  }
+
+  List<String> _conclusionLinesOf(MissionDraft draft) => [
+    ...missionRecapLinesOf(questTitle: widget.card.questTitle, draft: draft),
+    for (final participant in draft.participants)
+      if (_writtenAdditionOf(participant.characterId).isNotEmpty)
+        MissionCompletionScreen.storyPageLineOf(participant.name),
+  ];
+
+  String _writtenAdditionOf(String characterId) =>
+      (_additionTexts[characterId] ?? '').trim();
 
   Widget _buildPlace(MissionDraftReady ready) {
     return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
@@ -591,6 +677,15 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
+  /// Il passo `stories` del BE segna l'ultima pagina (Phase 24 D-05).
+  void _openAdditions() {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(
+      () => cubit.saveStep(MissionDraftStep.stories),
+      MissionPage.additions,
+    );
+  }
+
   /// T-21-46: la pagina cambia solo se la chiamata non è stata rifiutata.
   Future<void> _runThenOpen(
     Future<void> Function() action,
@@ -632,6 +727,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       fightIndex: fightCount - 1,
     ),
     MissionPage.prizes || MissionPage.fight => _enter(MissionPage.encounters),
+    MissionPage.additions => _enter(MissionPage.recap),
     MissionPage.recap => _enter(MissionPage.prizes),
     MissionPage.encounters => _enter(MissionPage.place),
     MissionPage.place || MissionPage.stories => _enter(MissionPage.stories),

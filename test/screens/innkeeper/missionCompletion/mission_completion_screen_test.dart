@@ -1682,6 +1682,7 @@ void main() {
       (tester) async {
         await openOn(tester, storiesReady);
         await type(tester, _aldo, _typed);
+        await type(tester, _bea, 'Una bozza');
         await type(tester, _bea, '');
 
         await tapConclude(tester);

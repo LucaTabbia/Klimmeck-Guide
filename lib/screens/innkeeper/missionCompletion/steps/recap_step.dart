@@ -58,9 +58,24 @@ List<String> _characterLines(
   ];
 }
 
-/// Passo «Riepilogo» (D-05, D-08): righe della bozza servita, premi scelti
-/// per personaggio e «Completa» dopo la conferma esplicita in stile neutro.
-/// La missione finisce sempre completata: nessun'altra uscita (D-05).
+/// Conferma esplicita, in stile neutro, prima di completare la missione
+/// (D-08): la chiedono «Completa» sul riepilogo e «Concludi» sull'ultima
+/// pagina (Phase 24 D-05).
+Future<bool> confirmMissionCompletion(
+  BuildContext context, {
+  required List<String> lines,
+}) => showDestructiveConfirmation(
+  context,
+  title: MissionCompletionScreen.title,
+  body: lines.join('\n'),
+  confirmLabel: RecapStep.completeLabel,
+  confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
+);
+
+/// Passo «Riepilogo» (D-05, D-08): righe della bozza servita e premi scelti
+/// per personaggio. Senza una pagina successiva chiude il flusso: «Completa»
+/// dopo la conferma. Con [onNext] mostra «Avanti» e non completa nulla: la
+/// missione si chiude sull'ultima pagina (Phase 24 D-05).
 class RecapStep extends StatelessWidget {
   const RecapStep({
     super.key,
@@ -68,6 +83,7 @@ class RecapStep extends StatelessWidget {
     required this.draft,
     required this.isSubmitting,
     required this.onComplete,
+    this.onNext,
   });
 
   static const String completeLabel = 'Completa';
@@ -81,17 +97,16 @@ class RecapStep extends StatelessWidget {
   final bool isSubmitting;
   final VoidCallback onComplete;
 
+  /// Apre la pagina successiva; `null` = il riepilogo è l'ultima pagina.
+  final VoidCallback? onNext;
+
   List<String> get _lines =>
       missionRecapLinesOf(questTitle: card.questTitle, draft: draft);
 
+  bool get _canGoOn => !isSubmitting && draft.allFightsSimulated;
+
   Future<void> _confirm(BuildContext context) async {
-    final confirmed = await showDestructiveConfirmation(
-      context,
-      title: MissionCompletionScreen.title,
-      body: _lines.join('\n'),
-      confirmLabel: completeLabel,
-      confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
-    );
+    final confirmed = await confirmMissionCompletion(context, lines: _lines);
     if (confirmed) onComplete();
   }
 
@@ -122,19 +137,30 @@ class RecapStep extends StatelessWidget {
               children: [
                 const MissionBackButton(),
                 const Spacer(),
-                ElevatedButton(
-                  key: completeKey,
-                  style: KlimmeckGuideTheme.primaryButtonStyle,
-                  onPressed: isSubmitting || !draft.allFightsSimulated
-                      ? null
-                      : () => _confirm(context),
-                  child: const Text(completeLabel),
-                ),
+                _buildForwardButton(context),
               ],
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildForwardButton(BuildContext context) {
+    final onNext = this.onNext;
+    if (onNext == null) {
+      return ElevatedButton(
+        key: completeKey,
+        style: KlimmeckGuideTheme.primaryButtonStyle,
+        onPressed: _canGoOn ? () => _confirm(context) : null,
+        child: const Text(completeLabel),
+      );
+    }
+    return ElevatedButton(
+      key: MissionCompletionScreen.nextKey,
+      style: KlimmeckGuideTheme.primaryButtonStyle,
+      onPressed: _canGoOn ? onNext : null,
+      child: const Text(MissionCompletionScreen.nextLabel),
     );
   }
 
