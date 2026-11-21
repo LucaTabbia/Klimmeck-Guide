@@ -66,6 +66,16 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **ORIGIN-07**: A quest with a spell draw shows its two parts in session from the served pending quest: «Ricercando…» while the draw quest runs (its «Fase di ricerca», D-32) (school types, or `prizes.spellDraw`), and during the learning part the name of the spell being learned with a countdown to `startDate + waitingTime`; `PendingQuest.learningSpell`, `QuestPrizes.spellDraw` parsed leniently; no blocking loading, no app chrome, nothing computed beyond that date (D-26, D-29)
 - [x] **ORIGIN-08**: The research outcome reaches the player: the result sheet of a research with a spell found shows the spell and its learning time (`QuestResult.spellFound`), a failed research reads its own line (`spellResearchFailed`), the small sheet at the end of the learning reads well without gains; the pushes `spellResearchSucceeded` and `spellResearchFailed` open the result like `questEnd`; schema check green on the BE SDL with the research fields and device E2E (D-29, D-31)
 
+### Participants' Stories and Innkeeper Wounds (Phase 24, added 2026-11-21)
+
+- [ ] **STORY-01**: The guided completion of a `story` / `worldMission` request opens on a reading page: one closed `Dropdown` per participant (name · rank), every background entry in the served order (oldest first), an in-world line for an empty story, the start note and «Inizia la missione» at the bottom; opening never creates the draft and a failed read never blocks the start; once the mission is started the page is reachable by «Indietro»; no popup anywhere (D-01..D-03, D-02a, D-10)
+- [ ] **STORY-02**: After the recap a last page shows per participant the story so far (same dropdown) and one optional field with a 1000-character counter (UX only: the backend validates, `BACKGROUND_ADDITION_TOO_LONG` has its own line); the additions live in the served draft (`backgroundAdditions`, step `stories`), are found again after leaving, and ONE «Concludi» with the explicit confirmation saves them and completes the mission (D-04..D-08)
+- [ ] **STORY-03**: The participant's result sheet reads «La tua storia ha una nuova pagina» only from the served `QuestResult.backgroundEntryAdded`; the existing wax sigil marks Profile and the appended entry with no new code, proved by tests (D-09)
+- [ ] **STORY-04**: Schema gate on the merged BE Phase 25 SDL (new fields selected only there, the one switch flipped, registry 55, schema check, full suite) and device E2E of the stories and of the innkeeper wounds, with the FE `BACKEND-NOTES.md`
+- [ ] **WOUND-01**: In the corrections of the guided flow (the only correction surface of the app) the innkeeper removes any wound the participant carries, sees which are his from the served `innkeeperInjuriesBefore` / `innkeeperInjuries`, and turns an ordinary wound into an innkeeper wound by removing it and adding it again in the same correction; a wound carried and not removed cannot be added; removals are sent as `injuriesRemoved` and listed in the recap; the app never derives an origin (D-12, D-13, D-16)
+- [ ] **WOUND-02**: The player recognises an innkeeper wound (`CharacterStatus.innkeeperInjuries`, lenient): the Journal reads «Troppo grave per essere curata» under it; the quest sheet line «Cura le tue ferite: …» and the potion line «Cura: …» of the Journal and of the potion sheet leave it out; the Board is reread in silence when only the origin of a wound changes; no cure rule on the device (D-14, D-15)
+- [ ] **WOUND-03**: The result sheet shows the wounds the innkeeper took off (`QuestResult.injuriesRemoved`, lenient) inside the one line «Guarite: …» together with `injuriesHealed`, without repeating a wound (D-18)
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -130,8 +140,15 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | ORIGIN-06 | Phase 23 | Complete |
 | ORIGIN-07 | Phase 23 | Complete |
 | ORIGIN-08 | Phase 23 | Complete |
+| STORY-01 | Phase 24 | Pending |
+| STORY-02 | Phase 24 | Pending |
+| STORY-03 | Phase 24 | Pending |
+| STORY-04 | Phase 24 | Pending |
+| WOUND-01 | Phase 24 | Pending |
+| WOUND-02 | Phase 24 | Pending |
+| WOUND-03 | Phase 24 | Pending |
 
-**Coverage:** 40 / 40 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 8 ORIGIN → Phase 23). No orphans. No duplicates.
+**Coverage:** 47 / 47 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 8 ORIGIN → Phase 23, 4 STORY + 3 WOUND → Phase 24). No orphans. No duplicates.
 
 ---
 

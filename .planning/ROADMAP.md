@@ -231,9 +231,29 @@ Plans:
 ### Phase 24: Participants' Stories and Innkeeper Wounds
 **Goal**: The innkeeper reads every participant's story before resolving a story/worldMission quest and adds to each story at the end; the wounds he inflicts by hand are beyond every cure but his own. User's words (2026-11-21): «Come primo step serve una schermata dove ogni partecipante ha una propria dropdown, al cui interno si trova il suo background, in modo che io possa leggere la storia di tutti prima di prendere decisioni. Infine serve un ultimo step (alla fine di tutto), dove io possa fare un aggiunta al background di ogni partecipante, potendo anche rileggere la storia del singolo. Altra cosa importante: Le ferite applicate dall'innkeeper sono rimuovibili solo dall'innkeeper, non sono influenzabili da quest heal, pozioni o premi».
 **Depends on**: Phase 21 (guided completion flow), Phase 18 (cures and potions), Phase 10 (innkeeper corrections), a BE companion phase (BE Phase 25 «Storie dei partecipanti e ferite dell'oste»)
-**Scope**: decisions D-01..D-17 of `24-CONTEXT.md` (interactive discuss of 2026-11-21, joint with BE Phase 25).
-**Requirements**: TBD (fixed in the plan)
-**Plans**: TBD
+**Scope**: decisions D-01..D-18 of `24-CONTEXT.md` (interactive discuss of 2026-11-21, joint with BE Phase 25; amended the same day: any wound removable from the corrections, no popup, removed wounds read as healed). Branch stacked on the local `fix/ui-layout-review` (background list, wax sigil). The app has no plain pending-request form since plan 21-17: the corrections live only in the guided flow. No UI phase.
+**Requirements**: STORY-01, STORY-02, STORY-03, STORY-04, WOUND-01, WOUND-02, WOUND-03
+**Success Criteria** (what must be TRUE):
+  1. Opening the guided completion of a story/worldMission request shows one closed dropdown per participant with that participant's background entries, before the mission is started and without creating the draft; «Inizia la missione» is at the bottom, the page stays reachable by «Indietro», and no popup exists.
+  2. After the recap the innkeeper reaches a last page with, per participant, the story so far and one optional field (1000 characters); leaving and coming back finds the texts; one confirmed «Concludi» saves them and completes the mission.
+  3. In the corrections the innkeeper removes any carried wound, sees his own marked, and makes an ordinary wound his by removing and re-adding it; nothing about a wound's origin is computed on the device.
+  4. The participant reads «La tua storia ha una nuova pagina» and the removed wounds inside «Guarite: …» on the result sheet, and finds the wax sigil on Profile and on the new background entry.
+  5. In the Journal an innkeeper wound reads «Troppo grave per essere curata»; heal quest sheets, prize cures and potion lines of the Journal never list it; a heal quest that would cure only innkeeper wounds is not acceptable, also right after an origin flip.
+  6. Schema check green on the merged BE Phase 25 SDL (55 documents), full suite green, device E2E passed.
+**Plans**: 11 plans (sequential waves; 01–09 work against today's BE — nothing new selected, the new input behind one switch; 10 gated by the BE Phase 25 merge; 11 runs LAST, human)
+
+Plans:
+- [ ] 24-01-PLAN.md — Innkeeper-side models and inputs (additions, step, wound removals and origins), the switch, suite baseline
+- [ ] 24-02-PLAN.md — Player-side models (innkeeper wounds, removed wounds, story flag) and the «nothing selected before the gate» pins
+- [ ] 24-03-PLAN.md — Shared story pieces: BackgroundEntries promoted, the participant's story dropdown, participants read before the draft
+- [ ] 24-04-PLAN.md — Reading page: the wizard opens on the stories, «Inizia la missione» at the bottom, reachable by going back
+- [ ] 24-05-PLAN.md — Additions: save and conclude on the Cubit, SheetTextField promoted, the last page widget
+- [ ] 24-06-PLAN.md — Additions wired in the wizard behind the switch: recap «Avanti», «Concludi» with confirmation, save on back and on leave
+- [ ] 24-07-PLAN.md — Corrections that remove and re-add wounds, the innkeeper mark, removals in the recap
+- [ ] 24-08-PLAN.md — Player side: Journal line, cure and potion lines without innkeeper wounds, Board reread on an origin flip
+- [ ] 24-09-PLAN.md — Result sheet: story line and joined «Guarite» line; proof that the sigil marks an appended entry
+- [ ] 24-10-PLAN.md — Gate: schema, selections, switch on, schema check, full suite (after the BE Phase 25 merge)
+- [ ] 24-11-PLAN.md — Device E2E, handoff and closing (LAST, human)
 
 ## Progress
 
@@ -262,7 +282,7 @@ Plans:
 | 21. Innkeeper Mission Completion Flow | v1.1 | 18/18 | Complete | 2026-11-14 |
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
-| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 0/TBD | Not started | - |
+| 24. Participants' Stories and Innkeeper Wounds | v1.1 | 0/11 | Not started | - |
 
 ---
 
