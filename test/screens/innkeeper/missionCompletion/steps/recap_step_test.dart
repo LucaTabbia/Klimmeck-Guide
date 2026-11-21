@@ -123,6 +123,7 @@ final MissionPrizeOptions _aldoOptions = MissionPrizeOptions.tryFromJson(
 void main() {
   late MockMissionPrizeOptionsCubit prizeOptionsCubit;
   late int completions;
+  late int nexts;
 
   setUp(() {
     seedSvgCache([
@@ -131,6 +132,7 @@ void main() {
       CloudinaryAssets.copperCoin,
     ]);
     completions = 0;
+    nexts = 0;
     prizeOptionsCubit = MockMissionPrizeOptionsCubit();
     whenListen(
       prizeOptionsCubit,
@@ -143,6 +145,7 @@ void main() {
     WidgetTester tester,
     MissionDraft draft, {
     bool isSubmitting = false,
+    bool isStoryAndWoundInputEnabled = false,
   }) async {
     useLandscapePhone(tester);
     await tester.pumpWidget(
@@ -155,6 +158,7 @@ void main() {
               draft: draft,
               isSubmitting: isSubmitting,
               onComplete: () => completions++,
+              onNext: isStoryAndWoundInputEnabled ? () => nexts++ : null,
             ),
           ),
         ),
@@ -338,4 +342,86 @@ void main() {
       expect(buttons.single.onPressed, isNotNull);
     },
   );
+
+  group('with a next page (Phase 24)', () {
+    ElevatedButton nextButton(WidgetTester tester) => tester
+        .widget<ElevatedButton>(find.byKey(MissionCompletionScreen.nextKey));
+
+    testWidgets('the recap shows «Avanti» and no «Completa» (D-05)', (
+      tester,
+    ) async {
+      await pumpStep(
+        tester,
+        _draft(fights: _fights),
+        isStoryAndWoundInputEnabled: true,
+      );
+
+      expect(find.byKey(RecapStep.completeKey), findsNothing);
+      expect(find.text(MissionCompletionScreen.nextLabel), findsOneWidget);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.pumpAndSettle();
+
+      expect(nexts, 1);
+      expect(completions, 0);
+      expect(find.byType(DestructiveConfirmationDialog), findsNothing);
+    });
+
+    testWidgets('«Avanti» is disabled while a fight is not simulated (D-24)', (
+      tester,
+    ) async {
+      await pumpStep(
+        tester,
+        _draft(fights: [_fights.first, missionFightJson()]),
+        isStoryAndWoundInputEnabled: true,
+      );
+
+      expect(nextButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('«Avanti» is disabled while a call is running', (tester) async {
+      await pumpStep(
+        tester,
+        _draft(),
+        isSubmitting: true,
+        isStoryAndWoundInputEnabled: true,
+      );
+
+      expect(nextButton(tester).onPressed, isNull);
+    });
+  });
+
+  group('confirmMissionCompletion', () {
+    testWidgets('asks «Completa la missione» with the given lines (D-08)', (
+      tester,
+    ) async {
+      late BuildContext context;
+      await tester.pumpWidget(
+        buildTestApp(
+          home: Builder(
+            builder: (builderContext) {
+              context = builderContext;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final answer = confirmMissionCompletion(
+        context,
+        lines: const ['La torre', 'Storia di Aldo: una nuova pagina'],
+      );
+      await tester.pumpAndSettle();
+
+      final dialog = tester.widget<DestructiveConfirmationDialog>(
+        find.byType(DestructiveConfirmationDialog),
+      );
+      expect(dialog.title, MissionCompletionScreen.title);
+      expect(dialog.body, 'La torre\nStoria di Aldo: una nuova pagina');
+      await tester.tap(confirmButton());
+      await tester.pumpAndSettle();
+
+      expect(await answer, isTrue);
+    });
+  });
 }
