@@ -38,11 +38,13 @@ const _healEffectUrl =
 /// le voci `{'item': …, 'quantity': …}` della sezione «Oggetti».
 /// [potionRecoveryUntil], [awaitingAid] e [activeTravel] entrano nello status
 /// solo se passati; [missionInProgress] è il flag servito della missione in
-/// corso. [wornEquipment] e [ownedEquipments] sono le armature del manichino.
+/// corso; [innkeeperInjuries] sono le ferite dell'oste, scritte solo se passate.
+/// [wornEquipment] e [ownedEquipments] sono le armature del manichino.
 Character journalCharacter({
   required Map<String, dynamic> spellbook,
   List<Map<String, dynamic>> ownedItems = const [],
   List<String> injuries = const [],
+  List<String>? innkeeperInjuries,
   String? potionRecoveryUntil,
   Map<String, dynamic>? awaitingAid,
   Map<String, dynamic>? activeTravel,
@@ -59,6 +61,7 @@ Character journalCharacter({
     'maxLifePoints': 12,
     'coins': {'gold': 1, 'silver': 2, 'copper': 3},
     'injuries': injuries,
+    'innkeeperInjuries': ?innkeeperInjuries,
     'potionRecoveryUntil': ?potionRecoveryUntil,
     'awaitingAid': ?awaitingAid,
     'activeTravel': ?activeTravel,
