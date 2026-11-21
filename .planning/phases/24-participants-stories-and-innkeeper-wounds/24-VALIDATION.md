@@ -23,7 +23,7 @@ created: 2026-11-21
 | **Full suite command** | `flutter test -r expanded 2>&1 | tr '\r' '\n' | grep -E '\[E\]|All tests passed|Some tests failed'` |
 | **Analyzer gate** | `OUT=$(flutter analyze --no-fatal-infos 2>&1); echo "$OUT" | tail -1; ! echo "$OUT" | grep -qE '^ *(error|warning) •' && echo "$OUT" | grep -qE '^47 issues found' && echo ANALYZE_GATE_OK` — baseline 47 info / 0 warning / 0 error, enforced: a 48th info fails the gate |
 | **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` — 55 documents (24-10) |
-| **Suite baseline** | <measured by 24-01> tests green on the stacked branch before the phase (5170 at the close of Phase 23, plus the layout review's tests) |
+| **Suite baseline** | 5296 tests green on the stacked branch before the phase (5170 at the close of Phase 23, plus the layout review's tests) |
 | **Estimated runtime** | ~120 seconds per targeted run; full suite only in 24-01 (baseline) and 24-10 (timeout ≥ 300000 ms) |
 
 ---
@@ -41,9 +41,9 @@ created: 2026-11-21
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 24-01-01 | 01 | 1 | STORY-02, WOUND-01 | T-24-01, T-24-03 | lenient additions, step and wound lists; origin never computed; no document touched | unit | `flutter test test/models/mission test/screens/innkeeper/missionCompletion/steps` | ✅ extend | ⬜ pending |
-| 24-01-02 | 01 | 1 | STORY-02, WOUND-01 | T-24-02, T-24-04 | `injuriesRemoved` sent only when declared (then `[]` included) or non-empty; additions section only when present; code → own line; switch off | unit | `flutter test test/models/request test/repository/innkeeper_failure_test.dart test/config test/screens/innkeeper/missionCompletion/mission_completion_screen_test.dart` | ❌ W0 (`test/config/story_and_wound_corrections_test.dart`) + ✅ extend | ⬜ pending |
-| 24-01-03 | 01 | 1 | — | — | N/A (bookkeeping, baseline recorded) | docs | `grep -qE "Plan: 0?1 of 11" .planning/STATE.md` | — | ⬜ pending |
+| 24-01-01 | 01 | 1 | STORY-02, WOUND-01 | T-24-01, T-24-03 | lenient additions, step and wound lists; origin never computed; no document touched | unit | `flutter test test/models/mission test/screens/innkeeper/missionCompletion/steps` | ✅ extend | ✅ green |
+| 24-01-02 | 01 | 1 | STORY-02, WOUND-01 | T-24-02, T-24-04 | `injuriesRemoved` sent only when declared (then `[]` included) or non-empty; additions section only when present; code → own line; switch off | unit | `flutter test test/models/request test/repository/innkeeper_failure_test.dart test/config test/screens/innkeeper/missionCompletion/mission_completion_screen_test.dart` | ❌ W0 (`test/config/story_and_wound_corrections_test.dart`) + ✅ extend | ✅ green |
+| 24-01-03 | 01 | 1 | — | — | N/A (bookkeeping, baseline recorded) | docs | `grep -qE "Plan: 0?1 of 11" .planning/STATE.md` | — | ✅ green |
 | 24-02-01 | 02 | 2 | WOUND-02, WOUND-03, STORY-03 | T-24-07, T-24-08 | lenient status and result; flag only for a served true; origin part of equality | unit | `flutter test test/models/character test/models/quest_result` | ✅ extend | ⬜ pending |
 | 24-02-02 | 02 | 2 | WOUND-02, STORY-03 | T-24-06 | no Phase 25 field selected before the gate | document pin | `flutter test test/graphql test/tool` + grep on `lib/graphql` | ✅ extend | ⬜ pending |
 | 24-02-03 | 02 | 2 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?2 of 11" .planning/STATE.md` | — | ⬜ pending |
@@ -83,8 +83,8 @@ created: 2026-11-21
 
 Each new test file is created RED-first by the task that needs it (no separate Wave 0 plan); the suite baseline is measured by 24-01 Task 1 before any edit:
 
-- [ ] Suite baseline measured on the stacked branch — 24-01-01
-- [ ] `test/config/story_and_wound_corrections_test.dart` — 24-01-02
+- [x] Suite baseline measured on the stacked branch — 24-01-01
+- [x] `test/config/story_and_wound_corrections_test.dart` — 24-01-02
 - [ ] Fixtures: `missionEffectsJson` / `missionOutcomeJson` / `missionDraftJson` with the Phase 25 keys (only when non-null), `missionBackgroundAdditionJson` — 24-01-01; result fixture with `backgroundEntryAdded` / `injuriesRemoved` — 24-02-01
 - [ ] `test/shared/components/background_entries_test.dart`, `test/screens/innkeeper/missionCompletion/components/participant_story_test.dart` — 24-03-01
 - [ ] `test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` — 24-04-01
