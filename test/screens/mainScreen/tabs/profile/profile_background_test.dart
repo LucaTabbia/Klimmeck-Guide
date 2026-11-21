@@ -18,6 +18,7 @@ import '../../../../helpers/test_app.dart';
 
 const String _birth = 'Nata a Drustea.';
 const String _deed = 'Ha salvato Bosa dai predoni.';
+const String _addition = "L'oste racconta ancora del suo coraggio.";
 
 void main() {
   late MockCharacterCubit characterCubit;
@@ -87,6 +88,23 @@ void main() {
     expect(find.byType(NewEntrySigil), findsOneWidget);
     expect(sigil.top, closeTo(tester.getTopLeft(find.text(_deed)).dy, 1));
     expect(sigil.right, lessThan(tester.getTopLeft(find.text(_deed)).dx));
+  });
+
+  testWidgets('only the appended entry carries the sigil (D-09)', (
+    tester,
+  ) async {
+    await pumpProfile(
+      tester,
+      background: [_birth, _deed, _addition],
+      newEntries: {_addition},
+    );
+
+    expect(find.byType(NewEntrySigil), findsOneWidget);
+    final sigil = tester.getRect(find.byType(NewEntrySigil));
+    final appended = tester.getTopLeft(find.text(_addition));
+    expect(sigil.top, closeTo(appended.dy, 1));
+    expect(sigil.right, lessThan(appended.dx));
+    expect(sigil.top, greaterThan(tester.getTopLeft(find.text(_deed)).dy));
   });
 
   testWidgets('a character without background shows an empty section', (
