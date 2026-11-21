@@ -1243,6 +1243,115 @@ void main() {
       expect(tester.widget<HpDeltaBar>(find.byType(HpDeltaBar)).isGain, isTrue);
       expect(healedText(tester), 'Guarite: contusione');
     });
+
+    testWidgets('the wounds the innkeeper took off are read inside Guarite '
+        'with the healed ones (D-18)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            injuriesHealed: const ['contusion'],
+            injuriesRemoved: const ['deepCut'],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.healedKey), findsOneWidget);
+      expect(find.textContaining('Guarite'), findsOneWidget);
+      expect(healedText(tester), 'Guarite: contusione, taglio profondo');
+    });
+
+    testWidgets('a wound both healed and removed is listed once (D-18)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            injuriesHealed: const ['contusion'],
+            injuriesRemoved: const ['contusion', 'deepCut'],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(healedText(tester), 'Guarite: contusione, taglio profondo');
+    });
+
+    testWidgets('only removed wounds still read as Guarite (D-18)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(questResultJson(injuriesRemoved: const ['deepCut'])),
+      );
+      await tester.pumpAndSettle();
+
+      expect(healedText(tester), 'Guarite: taglio profondo');
+    });
+
+    testWidgets('no Guarite line when nothing was healed or removed (D-18)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        questResult(questResultJson(injuriesRemoved: const [])),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(QuestResultSheet.healedKey), findsNothing);
+      expect(find.textContaining('Guarite'), findsNothing);
+    });
+  });
+
+  group('story page (Phase 24)', () {
+    testWidgets('a result whose story got an entry reads La tua storia ha una '
+        'nuova pagina (D-09)', (tester) async {
+      await _pump(
+        tester,
+        questResult(
+          questResultJson(
+            backgroundEntryAdded: true,
+            loreUnlocked: [loreRefJson()],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final story = find.byKey(QuestResultSheet.storyPageKey);
+      expect(
+        tester.widget<Text>(story).data,
+        'La tua storia ha una nuova pagina',
+      );
+      expect(
+        QuestResultSheet.storyPageLine,
+        'La tua storia ha una nuova pagina',
+      );
+      expect(
+        tester
+            .getTopLeft(
+              find.byKey(QuestResultSheet.loreUnlockedKeyOf('lore-goblin')),
+            )
+            .dy,
+        lessThan(tester.getTopLeft(story).dy),
+      );
+    });
+
+    testWidgets('a result without the flag shows no story line (D-09)', (
+      tester,
+    ) async {
+      for (final json in [
+        questResultJson(),
+        questResultJson(backgroundEntryAdded: false),
+      ]) {
+        await _pump(tester, questResult(json));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(QuestResultSheet.storyPageKey), findsNothing);
+        expect(find.textContaining('La tua storia'), findsNothing);
+      }
+    });
   });
 
   group('companion xp (BE Phase 19)', () {
