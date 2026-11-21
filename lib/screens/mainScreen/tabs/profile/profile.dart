@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/shared/components/section.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/components/background_entries.dart';
+import 'package:klimmeck_guide/shared/components/background_entries.dart';
 import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
 import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
