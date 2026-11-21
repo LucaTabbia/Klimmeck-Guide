@@ -1,6 +1,6 @@
 # Phase 24: Participants' Stories and Innkeeper Wounds - Context
 
-**Gathered:** 2026-11-21 (interactive discuss, joint with the BE Phase 25 «Storie dei partecipanti e ferite dell'oste»; this file is authoritative for both, same numbering D-01..D-18)
+**Gathered:** 2026-11-21 (interactive discuss, joint with the BE Phase 25 «Storie dei partecipanti e ferite dell'oste»; this file is authoritative for both, same numbering D-01..D-19)
 **Status:** Ready for planning — branch `feat/24-participants-stories-and-innkeeper-wounds` off `develop`; BE branch `feat/25-storie-dei-partecipanti-e-ferite-dell-oste` off `develop`. The layout review branch `fix/ui-layout-review` stays local and open (user decision), untouched by this phase.
 
 <domain>
@@ -54,6 +54,7 @@ Out of scope: editing or deleting existing background entries, a background edit
 - **D-16 (technical default):** the character keeps the origin of its wounds; the shape is fixed in the plan, additive on the wire if possible (for example a second list holding the subset that belongs to the innkeeper, so every wound already at DB stays ordinary with no migration). The maluses of a wound do not depend on its origin. **Amended 2026-11-21 (user, verbatim: «l'oste per rendere non curabile una ferita curabile già presente deve prima rimuoverla e poi aggiungerla di nuovo»):** a wound the character already carries cannot be added again and never changes origin by itself; to turn an ordinary wound into an innkeeper wound the innkeeper removes it and adds it again, in the same correction.
 - **D-17 (superseded 2026-11-21 by the user's amendment of D-13):** the assumption «the removal takes off innkeeper wounds only» is withdrawn: every wound is removable from the corrections.
 - **D-18 (user, 2026-11-21, «Sì, nella riga «Guarite: …»»):** the wounds the innkeeper takes off a participant in the corrections are read by the player on the result sheet inside the existing line «Guarite: …», together with the wounds healed by a cure: to the player they are simply healed. The BE serves them apart (`QuestResult.injuriesRemoved`, additive; `injuriesHealed` stays for cures); the app joins the two lists in the one line, without repeating a wound.
+- **D-19 (user, 2026-11-21, verbatim: «Il motore di combattimento non è definitivo, non mi interessa se il simulatore ripropone la stessa ferita. Se lo fa allora non viene aggiunta e basta»):** a wound the character already carries and that is proposed again — by the simulation or by a correction that does not remove it first — is simply not added: no refusal, no error, no change of origin. This replaces the earlier ruling «refused in the guided flow»: both flows ignore it.
 
 ### Claude's Discretion
 - Field and type names on the wire, the draft shape for the additions, the query that serves the backgrounds to the innkeeper (the innkeeper reads other players' characters: admin-only, as the rest of the flow).
