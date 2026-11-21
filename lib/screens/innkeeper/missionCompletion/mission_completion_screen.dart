@@ -123,6 +123,11 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
 
   Map<String, String> get _additionTexts => _seededAdditions ?? const {};
 
+  /// L'oste non resta mai chiuso nel wizard senza rete: dopo un salvataggio
+  /// d'uscita rifiutato il tentativo successivo esce senza salvare, finché
+  /// non scrive ancora.
+  bool _wasLeaveSaveRefused = false;
+
   /// L'ultima pagina esiste solo con le aggiunte accese.
   List<MissionPage> get _reachablePages => [
     for (final page in MissionPage.values)
@@ -180,7 +185,10 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       ],
       child: BlocBuilder<MissionDraftCubit, MissionDraftState>(
         builder: (context, state) => PopScope(
-          canPop: !_isCallInFlight(state),
+          canPop: !_isCallInFlight(state) && !_mustSaveBeforeLeaving(state),
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _saveAdditionsThenLeave();
+          },
           child: _buildScaffold(context, state),
         ),
       ),
@@ -334,6 +342,35 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     InnkeeperFailure.forbidden => const CompletionForbidden(),
     _ => null,
   };
+
+  /// Uscire dall'ultima pagina con testo non salvato lo salva prima (Phase 24
+  /// D-05).
+  bool _mustSaveBeforeLeaving(MissionDraftState state) =>
+      _page == MissionPage.additions &&
+      !_wasLeaveSaveRefused &&
+      state is MissionDraftReady &&
+      _hasUnsavedAdditions(state.draft);
+
+  /// Il BE toglie gli spazi ai bordi: un testo che cambia solo lì è già
+  /// salvato.
+  bool _hasUnsavedAdditions(MissionDraft draft) => draft.participants.any(
+    (participant) =>
+        _writtenAdditionOf(participant.characterId) !=
+        (draft.additionOf(participant.characterId)?.text ?? ''),
+  );
+
+  /// Un'uscita fermata da una chiamata in corso resta ferma: nulla da fare.
+  Future<void> _saveAdditionsThenLeave() async {
+    final cubit = context.read<MissionDraftCubit>();
+    if (!_mustSaveBeforeLeaving(cubit.state)) return;
+    if (_isCallInFlight(cubit.state)) return;
+    final isSaved = await _isAccepted(
+      () => cubit.saveAdditions(_additionTexts),
+    );
+    if (!mounted) return;
+    if (isSaved) return _leave(null);
+    setState(() => _wasLeaveSaveRefused = true);
+  }
 
   /// Una sola uscita: coda e risposta possono chiudere il wizard insieme.
   void _leave(CompletionExit? exit) {
@@ -571,8 +608,10 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
-  void _writeAddition(String characterId, String text) =>
-      setState(() => _seededAdditions = {..._additionTexts, characterId: text});
+  void _writeAddition(String characterId, String text) => setState(() {
+    _seededAdditions = {..._additionTexts, characterId: text};
+    _wasLeaveSaveRefused = false;
+  });
 
   /// L'unico completamento con le aggiunte accese: conferma, poi salvataggio
   /// e completamento in una sola azione del Cubit (Phase 24 D-05).
@@ -692,13 +731,18 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     MissionPage next, {
     int fightIndex = 0,
   }) async {
+    if (!await _isAccepted(action)) return;
+    setState(() => _enter(next, fightIndex: fightIndex));
+  }
+
+  /// Vero se la schermata è ancora qui e la chiamata non è stata rifiutata.
+  Future<bool> _isAccepted(Future<void> Function() action) async {
     final cubit = context.read<MissionDraftCubit>();
     final serial = _failureSerialOf(cubit.state);
     await action();
-    if (!mounted) return;
+    if (!mounted) return false;
     final state = cubit.state;
-    if (state is! MissionDraftReady || state.failureSerial != serial) return;
-    setState(() => _enter(next, fightIndex: fightIndex));
+    return state is MissionDraftReady && state.failureSerial == serial;
   }
 
   /// Accanto al contatore dei passi: la ricerca dei nemici su «Scontri», la
@@ -712,8 +756,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     _ => const SizedBox.shrink(),
   };
 
-  void _goBack(MissionDraft draft) =>
-      setState(() => _enterPrevious(draft.fights.length));
+  void _goBack(MissionDraft draft) {
+    if (_page == MissionPage.additions && _hasUnsavedAdditions(draft)) {
+      return _saveAdditionsThenOpenRecap();
+    }
+    setState(() => _enterPrevious(draft.fights.length));
+  }
+
+  /// Phase 24 D-05: tornando al riepilogo le aggiunte scritte restano nella
+  /// bozza.
+  void _saveAdditionsThenOpenRecap() {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(() => cubit.saveAdditions(_additionTexts), MissionPage.recap);
+  }
 
   /// Gli scontri si ripercorrono uno per uno: «Premi» torna all'ultimo,
   /// il primo torna a «Scontri»; da «Luogo» si rileggono le storie (D-02).
