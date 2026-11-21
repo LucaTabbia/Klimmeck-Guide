@@ -62,9 +62,9 @@ created: 2026-11-21
 | 24-07-01 | 07 | 7 | WOUND-01 | T-24-28, T-24-29, T-24-30 | marks only from served lists; removal only with the switch on; only carried wounds removable | widget | `flutter test test/screens/innkeeper/components/injury_chips_test.dart test/screens/innkeeper/missionCompletion/components/correction_section_test.dart` | ✅ rewrite | ✅ green |
 | 24-07-02 | 07 | 7 | WOUND-01 | T-24-31 | removals sent whole and told before the completion | widget | `flutter test test/screens/innkeeper` | ✅ extend | ✅ green |
 | 24-07-03 | 07 | 7 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?7 of 11" .planning/STATE.md` | — | ✅ green |
-| 24-08-01 | 08 | 8 | WOUND-02 | T-24-33 | display filter only; no chrome, no loader | unit + widget | `flutter test test/screens/mainScreen/tabs/journal/journal_innkeeper_wounds_test.dart test/screens/mainScreen/characterCubit test/screens/mainScreen/tabs/board` | ❌ W0 (journal test) + ✅ extend | ⬜ pending |
-| 24-08-02 | 08 | 8 | WOUND-02 | T-24-34, T-24-35 | Board reread on an origin flip, silent; shop line unchanged | unit + widget | `flutter test test/utils/item_lines_test.dart test/shared/components/item_row_test.dart test/screens/mainScreen/tabs/journal/sections test/screens/mainScreen/tabs/journal/components/potion_sheet_test.dart test/screens/mainScreen/components/quest_scope_listener_test.dart` | ✅ extend | ⬜ pending |
-| 24-08-03 | 08 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 11" .planning/STATE.md` | — | ⬜ pending |
+| 24-08-01 | 08 | 8 | WOUND-02 | T-24-33 | display filter only; no chrome, no loader | unit + widget | `flutter test test/screens/mainScreen/tabs/journal/journal_innkeeper_wounds_test.dart test/screens/mainScreen/characterCubit test/screens/mainScreen/tabs/board` | ❌ W0 (journal test) + ✅ extend | ✅ green |
+| 24-08-02 | 08 | 8 | WOUND-02 | T-24-34, T-24-35 | Board reread on an origin flip, silent; shop line unchanged | unit + widget | `flutter test test/utils/item_lines_test.dart test/shared/components/item_row_test.dart test/screens/mainScreen/tabs/journal/sections test/screens/mainScreen/tabs/journal/components/potion_sheet_test.dart test/screens/mainScreen/components/quest_scope_listener_test.dart` | ✅ extend | ✅ green |
+| 24-08-03 | 08 | 8 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?8 of 11" .planning/STATE.md` | — | ✅ green |
 | 24-09-01 | 09 | 9 | STORY-03, WOUND-03 | T-24-37, T-24-39 | story line and healed line from served fields only | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart` | ✅ extend | ⬜ pending |
 | 24-09-02 | 09 | 9 | STORY-03 | T-24-38 | sigil proven with no new code | bloc + widget | `flutter test test/screens/mainScreen/newEntriesCubit test/screens/mainScreen/components/new_entries_listener_test.dart test/screens/mainScreen/tabs/profile` | ✅ extend | ⬜ pending |
 | 24-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?9 of 11" .planning/STATE.md` | — | ⬜ pending |
@@ -89,7 +89,7 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] `test/shared/components/background_entries_test.dart`, `test/screens/innkeeper/missionCompletion/components/participant_story_test.dart` — 24-03-01
 - [x] `test/screens/innkeeper/missionCompletion/steps/stories_step_test.dart` — 24-04-01
 - [x] `test/screens/innkeeper/missionCompletion/steps/additions_step_test.dart` — 24-05-02
-- [ ] `test/screens/mainScreen/tabs/journal/journal_innkeeper_wounds_test.dart` — 24-08-01
+- [x] `test/screens/mainScreen/tabs/journal/journal_innkeeper_wounds_test.dart` — 24-08-01
 - [ ] Cache seed of `CloudinaryAssets.arrowDown` in every test that mounts a `Dropdown` (24-03, 24-04, 24-05, 24-06)
 - No framework install, no golden test (none exist).
 
