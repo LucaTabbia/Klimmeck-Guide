@@ -56,6 +56,17 @@ final class MissionParticipantsLoaded extends MissionParticipantsState {
     return placeLabelOf(place);
   }
 
+  /// Voci della storia nell'ordine servito; `null` per un id sconosciuto.
+  List<String>? backgroundOf(String characterId) {
+    final character = characters[characterId];
+    if (character == null) return null;
+    return character.infos?.background ?? const [];
+  }
+
+  /// Rango servito; `null` per un id sconosciuto o un rango non servito.
+  TitleType? titleOf(String characterId) =>
+      characters[characterId]?.status?.title;
+
   String? itemNameOf(String characterId, String itemId) {
     final ownedItems = characters[characterId]?.assets?.ownedItems ?? const [];
     for (final owned in ownedItems) {

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/models/travel/teleport_destination.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
@@ -18,10 +19,25 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
       super(const MissionParticipantsIdle());
 
   final InnkeeperRepository _repository;
+  Set<String> _lastReadIds = const {};
+
+  /// Legge una volta per insieme di id (D-02): le storie servono prima della
+  /// bozza e non si rileggono dopo l'inizio. Il retry resta `load`.
+  Future<void> ensureLoaded(List<String> characterIds) async {
+    if (_hasLoaded(characterIds)) return;
+    await load(characterIds);
+  }
+
+  bool _hasLoaded(List<String> characterIds) {
+    if (state is! MissionParticipantsLoaded) return false;
+    final ids = characterIds.toSet();
+    return ids.length == _lastReadIds.length && ids.containsAll(_lastReadIds);
+  }
 
   /// Una lettura alla volta; dopo un esito un nuovo `load` rilegge tutto.
   Future<void> load(List<String> characterIds) async {
     if (state is MissionParticipantsLoading) return;
+    _lastReadIds = characterIds.toSet();
     emit(const MissionParticipantsLoading());
     try {
       final characters = await Future.wait(
