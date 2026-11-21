@@ -11,11 +11,11 @@ import 'package:klimmeck_guide/screens/characterCreation/components/character_cr
 import 'package:klimmeck_guide/screens/characterCreation/components/enum_choice_row.dart';
 import 'package:klimmeck_guide/screens/characterCreation/components/portrait_column.dart';
 import 'package:klimmeck_guide/screens/characterCreation/components/sheet_row.dart';
-import 'package:klimmeck_guide/screens/characterCreation/components/sheet_text_field.dart';
 import 'package:klimmeck_guide/screens/characterCreation/components/submit_bar.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_creation_cubit.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_draft.dart';
 import 'package:klimmeck_guide/shared/components/modal/logout_confirmation_dialog.dart';
+import 'package:klimmeck_guide/shared/components/sheet_text_field.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Scheda di creazione del personaggio: utility screen (chrome ammesso), pagina
