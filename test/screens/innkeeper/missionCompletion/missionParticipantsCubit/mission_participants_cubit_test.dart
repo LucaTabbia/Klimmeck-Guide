@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/repository/innkeeper_failure.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
@@ -23,6 +24,15 @@ final Character _beaAtRuins = Character.fromJson(
 final Character _beaElsewhere = Character.fromJson(
   participantCharacterJson(id: _bea, name: 'Bea'),
 );
+
+final Character _aldoWithStory = Character.fromJson({
+  'id': _aldo,
+  'infos': {
+    'name': 'Aldo',
+    'background': ['Nato a Drustea.', 'Ha salvato Bosa dai predoni.'],
+  },
+  'status': {'title': 'adventurer'},
+});
 
 final PointOfInterest _ruinsPlace = PointOfInterest.fromJson(
   pointOfInterestJson(),
@@ -124,7 +134,134 @@ void main() {
     );
   });
 
+  group('ensureLoaded', () {
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'ensureLoaded reads the characters when nothing was read (D-02)',
+      build: build,
+      act: (cubit) => cubit.ensureLoaded(const [_aldo, _bea]),
+      expect: () => [
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins, _bea: _beaAtRuins}),
+      ],
+      verify: (_) {
+        verify(() => repository.readCharacter(_aldo)).called(1);
+        verify(() => repository.readCharacter(_bea)).called(1);
+      },
+    );
+
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'ensureLoaded does not read again the ids already loaded (D-02)',
+      build: build,
+      act: (cubit) async {
+        await cubit.ensureLoaded(const [_aldo, _bea]);
+        await cubit.ensureLoaded(const [_bea, _aldo]);
+      },
+      expect: () => [
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins, _bea: _beaAtRuins}),
+      ],
+      verify: (_) {
+        verify(() => repository.readCharacter(_aldo)).called(1);
+        verify(() => repository.readCharacter(_bea)).called(1);
+        verify(() => repository.listPointsOfInterest()).called(1);
+      },
+    );
+
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'ensureLoaded does nothing while a read is running',
+      build: build,
+      act: (cubit) => Future.wait([
+        cubit.ensureLoaded(const [_aldo]),
+        cubit.ensureLoaded(const [_aldo, _bea]),
+      ]),
+      expect: () => [
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins}),
+      ],
+      verify: (_) {
+        verify(() => repository.readCharacter(_aldo)).called(1);
+        verifyNever(() => repository.readCharacter(_bea));
+      },
+    );
+
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'ensureLoaded reads again for different ids',
+      build: build,
+      act: (cubit) async {
+        await cubit.ensureLoaded(const [_aldo]);
+        await cubit.ensureLoaded(const [_aldo, _bea]);
+      },
+      expect: () => [
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins}),
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins, _bea: _beaAtRuins}),
+      ],
+      verify: (_) {
+        verify(() => repository.readCharacter(_aldo)).called(2);
+        verify(() => repository.readCharacter(_bea)).called(1);
+      },
+    );
+
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'ensureLoaded reads again after a failed read',
+      setUp: () => when(
+        () => repository.readCharacter(_aldo),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.connection)),
+      build: build,
+      act: (cubit) async {
+        await cubit.ensureLoaded(const [_aldo]);
+        when(
+          () => repository.readCharacter(_aldo),
+        ).thenAnswer((_) async => _aldoAtRuins);
+        await cubit.ensureLoaded(const [_aldo]);
+      },
+      expect: () => [
+        const MissionParticipantsLoading(),
+        const MissionParticipantsFailed(failure: InnkeeperFailure.connection),
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins}),
+      ],
+    );
+
+    blocTest<MissionParticipantsCubit, MissionParticipantsState>(
+      'load always reads again (retry)',
+      build: build,
+      act: (cubit) async {
+        await cubit.ensureLoaded(const [_aldo]);
+        await cubit.load(const [_aldo]);
+      },
+      expect: () => [
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins}),
+        const MissionParticipantsLoading(),
+        _loaded({_aldo: _aldoAtRuins}),
+      ],
+      verify: (_) => verify(() => repository.readCharacter(_aldo)).called(2),
+    );
+  });
+
   group('loaded', () {
+    test('backgroundOf gives the entries of a loaded participant and null '
+        'for an unknown id (D-03)', () {
+      final loaded = _loaded({_aldo: _aldoWithStory, _bea: _beaAtRuins});
+
+      expect(loaded.backgroundOf(_aldo), [
+        'Nato a Drustea.',
+        'Ha salvato Bosa dai predoni.',
+      ]);
+      expect(loaded.backgroundOf(_bea), isEmpty);
+      expect(loaded.backgroundOf('char-unknown'), isNull);
+    });
+
+    test('titleOf gives the served rank and null for an unknown id', () {
+      final loaded = _loaded({_aldo: _aldoWithStory, _bea: _beaAtRuins});
+
+      expect(loaded.titleOf(_aldo), TitleType.adventurer);
+      expect(loaded.titleOf(_bea), isNull);
+      expect(loaded.titleOf('char-unknown'), isNull);
+    });
+
     test('commonLocationId is the shared place, null for a split group '
         '(D-01)', () {
       expect(
