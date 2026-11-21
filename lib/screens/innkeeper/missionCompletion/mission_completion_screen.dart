@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/participant_story.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
@@ -20,7 +21,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_s
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/prizes_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
-import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/stories_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
@@ -28,8 +29,9 @@ import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pagine del wizard: navigazione locale, mai salvata (la bozza servita tiene
-/// il passo, D-09).
-enum MissionPage { place, encounters, fight, prizes, recap }
+/// il passo, D-09). `stories` è la pagina di lettura: la prima, mai un passo
+/// salvato.
+enum MissionPage { stories, place, encounters, fight, prizes, recap }
 
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
@@ -56,6 +58,7 @@ class MissionCompletionScreen extends StatefulWidget {
   static const String backLabel = MissionBackButton.label;
   static const String nextLabel = 'Avanti';
   static const String retryLabel = 'Riprova';
+  static const String storiesTitle = 'Storie';
   static const String placeTitle = 'Luogo';
   static const String encountersTitle = 'Scontri';
   static const String prizesTitle = 'Premi';
@@ -97,7 +100,7 @@ class MissionCompletionScreen extends StatefulWidget {
 }
 
 class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
-  MissionPage _page = MissionPage.place;
+  MissionPage _page = MissionPage.stories;
   int _fightIndex = 0;
   bool _hasLeft = false;
 
@@ -106,6 +109,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     super.initState();
     final state = context.read<MissionDraftCubit>().state;
     if (state is MissionDraftReady) _openServedStep(state.draft);
+    if (state is MissionDraftAbsent) _readCardStories();
   }
 
   @override
@@ -129,6 +133,11 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
           listener: (_, state) => setState(
             () => _openServedStep((state as MissionDraftReady).draft),
           ),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: (previous, current) =>
+              previous is! MissionDraftAbsent && current is MissionDraftAbsent,
+          listener: (_, _) => _readCardStories(),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
           listenWhen: _isExitOrNewFailure,
@@ -178,12 +187,24 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   void _openServedStep(MissionDraft draft) {
     final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
     _enter(page);
-    _loadParticipants(draft);
+    context.read<MissionParticipantsCubit>().ensureLoaded(
+      _characterIdsOf(draft),
+    );
     if (page == MissionPage.recap) _loadPrizeNames(_characterIdsOf(draft));
   }
 
-  void _loadParticipants(MissionDraft draft) =>
-      context.read<MissionParticipantsCubit>().load(_characterIdsOf(draft));
+  /// Senza bozza le storie si leggono con i partecipanti della scheda: la
+  /// missione non è iniziata e nessuno è bloccato (D-02).
+  void _readCardStories() =>
+      context.read<MissionParticipantsCubit>().ensureLoaded(_cardCharacterIds);
+
+  List<String> get _cardCharacterIds => [
+    for (final participant in widget.card.participants) participant.id,
+  ];
+
+  /// «Riprova»: rilegge anche ciò che era già stato letto.
+  void _reloadParticipants(List<String> characterIds) =>
+      context.read<MissionParticipantsCubit>().load(characterIds);
 
   static List<String> _characterIdsOf(MissionDraft draft) => [
     for (final participant in draft.participants) participant.characterId,
@@ -323,9 +344,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   Widget _buildBody(BuildContext context, MissionDraftState state) {
     return switch (state) {
       MissionDraftReady() => _buildReady(state),
-      MissionDraftAbsent(:final isStarting) => StartStep(
-        isStarting: isStarting,
-        onStart: context.read<MissionDraftCubit>().start,
+      MissionDraftAbsent(:final isStarting) => _buildFrame(
+        stepNumber: MissionPage.stories.index + 1,
+        title: MissionCompletionScreen.storiesTitle,
+        headerSide: const SizedBox.shrink(),
+        onBack: null,
+        page: _buildStories(
+          readersOf: _cardReaders,
+          onRetry: () => _reloadParticipants(_cardCharacterIds),
+          footer: StoriesStartFooter(
+            isStarting: isStarting,
+            onStart: context.read<MissionDraftCubit>().start,
+          ),
+        ),
       ),
       MissionDraftLoadFailed(:final failure) => _LoadFailed(
         message: MissionCompletionScreen.failureLineOf(failure),
@@ -336,8 +367,25 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     };
   }
 
-  Widget _buildReady(MissionDraftReady ready) {
-    final theme = KlimmeckGuideTheme.instance;
+  Widget _buildReady(MissionDraftReady ready) => _buildFrame(
+    stepNumber: _page.index + 1,
+    title: _titleOf(ready.draft),
+    headerSide: _buildHeaderSide(KlimmeckGuideTheme.instance),
+    onBack: _page != MissionPage.stories && !ready.isSubmitting
+        ? () => _goBack(ready.draft)
+        : null,
+    page: _buildPage(ready),
+  );
+
+  /// Contatore dei passi sopra, pagina sotto: la stessa cornice con e senza
+  /// bozza.
+  Widget _buildFrame({
+    required int stepNumber,
+    required String title,
+    required Widget headerSide,
+    required VoidCallback? onBack,
+    required Widget page,
+  }) {
     // la tastiera in orizzontale lascia poche righe: il contatore cede il
     // posto al campo che si sta scrivendo, tranne su «Scontri» dove ospita la
     // ricerca (UAT 2026-11-14)
@@ -353,29 +401,67 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
             Row(
               children: [
                 MissionStepHeader(
-                  stepNumber: _page.index + 1,
-                  title: _titleOf(ready.draft),
+                  stepNumber: stepNumber,
+                  stepCount: MissionPage.values.length,
+                  title: title,
                 ),
                 const SizedBox(width: KlimmeckGuideTheme.spacingMd),
-                Expanded(child: _buildHeaderSide(theme)),
+                Expanded(child: headerSide),
               ],
             ),
             const SizedBox(height: KlimmeckGuideTheme.spacingSm),
           ],
           Expanded(
-            child: MissionBackScope(
-              onBack: _page != MissionPage.place && !ready.isSubmitting
-                  ? () => _goBack(ready.draft)
-                  : null,
-              child: _buildPage(ready),
-            ),
+            child: MissionBackScope(onBack: onBack, child: page),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildStories({
+    required List<StoryReader> Function(MissionParticipantsState) readersOf,
+    required VoidCallback onRetry,
+    required Widget footer,
+  }) {
+    return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
+      builder: (context, participants) => StoriesStep(
+        readers: readersOf(participants),
+        participants: participants,
+        onRetry: onRetry,
+        footer: footer,
+      ),
+    );
+  }
+
+  /// Prima della bozza il rango arriva dal personaggio letto: `null` finché
+  /// la lettura non finisce (D-03).
+  List<StoryReader> _cardReaders(MissionParticipantsState participants) {
+    final loaded = switch (participants) {
+      final MissionParticipantsLoaded loaded => loaded,
+      _ => null,
+    };
+    return [
+      for (final participant in widget.card.participants)
+        StoryReader(
+          characterId: participant.id,
+          name: participant.name,
+          title: loaded?.titleOf(participant.id),
+        ),
+    ];
+  }
+
+  static List<StoryReader> _draftReaders(MissionDraft draft) => [
+    for (final participant in draft.participants)
+      StoryReader(
+        characterId: participant.characterId,
+        name: participant.name,
+        title: participant.title,
+      ),
+  ];
+
   String _titleOf(MissionDraft draft) => switch (_page) {
+    MissionPage.stories => MissionCompletionScreen.storiesTitle,
     MissionPage.place => MissionCompletionScreen.placeTitle,
     MissionPage.encounters => MissionCompletionScreen.encountersTitle,
     MissionPage.fight => MissionCompletionScreen.fightTitle(
@@ -387,6 +473,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   };
 
   Widget _buildPage(MissionDraftReady ready) => switch (_page) {
+    MissionPage.stories => _buildStories(
+      readersOf: (_) => _draftReaders(ready.draft),
+      onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
+      // locale: sulla bozza non è cambiato nulla, niente da salvare (D-02)
+      footer: StoriesNextFooter(
+        onNext: () => setState(() => _enter(MissionPage.place)),
+      ),
+    ),
     MissionPage.place => _buildPlace(ready),
     MissionPage.encounters => EncountersStep(
       draft: ready.draft,
@@ -423,7 +517,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         isSubmitting: ready.isSubmitting,
         onTeleport: () => _teleportGroup(ready.draft),
         onStay: _stayAt,
-        onRetry: () => _loadParticipants(ready.draft),
+        onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
       ),
     );
   }
@@ -527,7 +621,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       setState(() => _enterPrevious(draft.fights.length));
 
   /// Gli scontri si ripercorrono uno per uno: «Premi» torna all'ultimo,
-  /// il primo torna a «Scontri».
+  /// il primo torna a «Scontri»; da «Luogo» si rileggono le storie (D-02).
   void _enterPrevious(int fightCount) => switch (_page) {
     MissionPage.fight when _fightIndex > 0 => _enter(
       MissionPage.fight,
@@ -539,7 +633,8 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     ),
     MissionPage.prizes || MissionPage.fight => _enter(MissionPage.encounters),
     MissionPage.recap => _enter(MissionPage.prizes),
-    MissionPage.encounters || MissionPage.place => _enter(MissionPage.place),
+    MissionPage.encounters => _enter(MissionPage.place),
+    MissionPage.place || MissionPage.stories => _enter(MissionPage.stories),
   };
 
   /// D-11: scartare libera i partecipanti; il teletrasporto fatto resta.

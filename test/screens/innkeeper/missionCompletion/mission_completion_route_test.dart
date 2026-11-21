@@ -2,6 +2,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
@@ -15,6 +17,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/mocks.dart';
+import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
 
 final List<PendingRequest> _entries = worldMissionEntriesJson(
@@ -25,15 +28,26 @@ final RequestCard _card = requestCardsOf(_entries).single;
 
 void main() {
   testWidgets(
-    'openMissionCompletion pushes the wizard with the queue and the teleport mode of the panel and loads the draft (Phase 10 D-04, D-28)',
+    'openMissionCompletion pushes the wizard with the queue and the teleport mode of the panel, loads the draft and reads the stories without starting (Phase 10 D-04, D-28, D-02)',
     (tester) async {
       useLandscapePhone(tester);
+      seedSvgCache([CloudinaryAssets.arrowDown]);
       final repository = MockInnkeeperRepository();
       final queue = MockPendingRequestsCubit();
       final teleport = MockTeleportModeCubit();
       when(
         () => repository.readMissionDraft(_card.pendingQuestId),
       ).thenAnswer((_) async => null);
+      when(() => repository.readCharacter(any())).thenAnswer(
+        (invocation) async => Character.fromJson(
+          participantCharacterJson(
+            id: invocation.positionalArguments.single as String,
+          ),
+        ),
+      );
+      when(
+        () => repository.listPointsOfInterest(),
+      ).thenAnswer((_) async => const []);
       whenListen(
         queue,
         const Stream<PendingRequestsState>.empty(),
@@ -78,6 +92,9 @@ void main() {
       expect(find.byType(MissionCompletionScreen), findsOneWidget);
       expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
       verify(() => repository.readMissionDraft(_card.pendingQuestId)).called(1);
+      for (final participant in _card.participants) {
+        verify(() => repository.readCharacter(participant.id)).called(1);
+      }
       verifyNever(() => repository.startMissionDraft(any()));
       expect(exits, isEmpty);
     },
