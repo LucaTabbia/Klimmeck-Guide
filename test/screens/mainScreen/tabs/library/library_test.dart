@@ -105,6 +105,7 @@ void main() {
       CloudinaryAssets.locationsOpen,
       CloudinaryAssets.greenBookmark,
       CloudinaryAssets.arrowDown,
+      ...CloudinaryAssets.letterBookmarks.values,
     ]);
     whenListen(characterCubit, characterStates.stream, initialState: character);
     await tester.pumpWidget(

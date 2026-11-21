@@ -31,6 +31,36 @@ class CloudinaryAssets {
   static const String yellowBookmark = 'v1795125310/yellowBookmark_zxtxzr.svg';
   static const String blueBookmark = 'v1795125281/blueBookmark_bqxzs3.svg';
 
+  /// Stendardi con la lettera: filtrano le voci di un libro per iniziale.
+  static const Map<String, String> letterBookmarks = {
+    'a': 'v1795210098/aBookmarkFilter_ns4jlr.svg',
+    'b': 'v1795210027/bBookmarkFilter_pdziij.svg',
+    'c': 'v1795209995/cBookmarkFilter_o9pgyu.svg',
+    'd': 'v1795209963/dBookmarkFilter_h3sxlz.svg',
+    'e': 'v1795209932/eBookmarkFilter_pzpecq.svg',
+    'f': 'v1795209899/fBookmarkFilter_mipfty.svg',
+    'g': 'v1795209868/gBookmarkFilter_n3favf.svg',
+    'h': 'v1795209836/hBookmarkFilter_a0f84e.svg',
+    'i': 'v1795209804/IBookmarkFilter_bathh8.svg',
+    'j': 'v1795209772/jBookmarkFilter_mwdwjz.svg',
+    'k': 'v1795209740/kBookmarkFilter_hqtigg.svg',
+    'l': 'v1795209694/lBookmarkFilter_mcojkf.svg',
+    'm': 'v1795209662/mBookmarkFilter_jgsln8.svg',
+    'n': 'v1795209629/nBookmarkFilter_vfnggz.svg',
+    'o': 'v1795209597/oBookmarkFilter_rb7yba.svg',
+    'p': 'v1795209565/pBookmarkFilter_tmgm7u.svg',
+    'q': 'v1795209533/qBookmarkFilter_fw6e7u.svg',
+    'r': 'v1795209501/rBookmarkFilter_a28vzf.svg',
+    's': 'v1795209469/sBookmarkFilter_hfmzet.svg',
+    't': 'v1795209437/tBookmarkFilter_ujaoay.svg',
+    'u': 'v1795209326/uBookmarkFilter_elmrto.svg',
+    'v': 'v1795209294/vBookmarkFilter_rf1j7v.svg',
+    'w': 'v1795209262/wBookmarkFilter_oq9wzw.svg',
+    'x': 'v1795209230/xBookmarkFilter_poultg.svg',
+    'y': 'v1795209167/yBookmarkFilter_ckrhej.svg',
+    'z': 'v1795209198/zBookmarkFilter_zi9lkk.svg',
+  };
+
   /// Sigillo di ceralacca delle aggiunte: voci del menù, Diario e Profilo.
   static const String newEntrySigil = 'v1795125501/newEntrySigil_kgs8y9.svg';
 

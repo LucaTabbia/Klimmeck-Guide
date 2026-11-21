@@ -1,7 +1,10 @@
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:flutter/painting.dart';
 import 'package:klimmeck_guide/models/enums/library_book.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Copertine, nastro di ritorno e targhetta «Novità» di ogni libro (UI, D-07).
+/// Copertine, nastro di ritorno, targhetta «Novità» e colore di ogni libro
+/// (UI, D-07).
 extension LibraryBookArt on LibraryBook {
   String get coverUrl => CloudinaryAssets.url(switch (this) {
     LibraryBook.bestiary => CloudinaryAssets.bestiary,
@@ -31,4 +34,12 @@ extension LibraryBookArt on LibraryBook {
     LibraryBook.religions => CloudinaryAssets.yellowBookmark,
     LibraryBook.knowledge => CloudinaryAssets.blueBookmark,
   });
+
+  /// Colore della linea sotto il titolo del libro.
+  Color get ruleColor => switch (this) {
+    LibraryBook.bestiary => KlimmeckGuideTheme.royalCrimson,
+    LibraryBook.places => KlimmeckGuideTheme.healGreen,
+    LibraryBook.religions => KlimmeckGuideTheme.darkBronze,
+    LibraryBook.knowledge => KlimmeckGuideTheme.mysticBlue,
+  };
 }
