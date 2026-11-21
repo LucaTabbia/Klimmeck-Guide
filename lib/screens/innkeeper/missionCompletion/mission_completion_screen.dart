@@ -578,6 +578,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       onSimulate: () => context.read<MissionDraftCubit>().simulate(_fightIndex),
       onChangeEnemies: () => setState(() => _enter(MissionPage.encounters)),
       onNext: (corrections) => _saveCorrections(ready.draft, corrections),
+      isWoundRemovalEnabled: widget.isStoryAndWoundInputEnabled,
     ),
     MissionPage.prizes => PrizesStep(
       draft: ready.draft,
@@ -702,6 +703,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         fightIndex,
         corrections,
         step: isLast ? MissionDraftStep.prizes : null,
+        declaresRemovals: widget.isStoryAndWoundInputEnabled,
       ),
       isLast ? MissionPage.prizes : MissionPage.fight,
       fightIndex: fightIndex + 1,

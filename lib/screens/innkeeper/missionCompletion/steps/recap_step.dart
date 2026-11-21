@@ -17,7 +17,8 @@ import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
-/// Righe del riepilogo dalla sola bozza servita (D-08): missione, scontri, PV e ferite per personaggio.
+/// Righe del riepilogo dalla sola bozza servita (D-08): missione, scontri, PV,
+/// ferite aggiunte e ferite tolte per personaggio (Phase 24 D-13).
 List<String> missionRecapLinesOf({
   required String questTitle,
   required MissionDraft draft,
@@ -47,16 +48,18 @@ List<String> _characterLines(
   final first = fights.firstOrNull?.outcomeOf(id);
   final last = fights.lastOrNull?.outcomeOf(id)?.effective;
   if (first == null || last == null) return const [];
-  final injuries = <InjuryType>{
-    for (final fight in fights)
-      ...?fight.outcomeOf(id)?.effective?.injuriesAdded,
-  };
+  final effects = [for (final fight in fights) ?fight.outcomeOf(id)?.effective];
+  final added = {for (final effect in effects) ...effect.injuriesAdded};
+  final removed = {for (final effect in effects) ...effect.injuriesRemoved};
   return [
     '${participant.name}: PV ${first.hpBefore} → ${last.hpAfter}',
-    if (injuries.isNotEmpty)
-      'Ferite: ${injuries.map((injury) => injury.label.toLowerCase()).join(', ')}',
+    if (added.isNotEmpty) 'Ferite: ${_injuryNamesOf(added)}',
+    if (removed.isNotEmpty) 'Ferite tolte: ${_injuryNamesOf(removed)}',
   ];
 }
+
+String _injuryNamesOf(Set<InjuryType> injuries) =>
+    injuries.map((injury) => injury.label.toLowerCase()).join(', ');
 
 /// Conferma esplicita, in stile neutro, prima di completare la missione
 /// (D-08): la chiedono «Completa» sul riepilogo e «Concludi» sull'ultima

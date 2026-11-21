@@ -107,15 +107,23 @@ class MissionDraftCubit extends Cubit<MissionDraftState>
     );
   }
 
+  /// Con [declaresRemovals] ogni correzione dello scontro manda le sue ferite
+  /// tolte, anche nessuna (Phase 24 Q7).
   Future<void> saveCorrections(
     int fightIndex,
     List<MissionCorrection> corrections, {
     MissionDraftStep? step,
+    bool declaresRemovals = false,
   }) => _save(
     (draft) => SaveMissionDraftInput(
       pendingQuestId: _pendingQuestId,
       step: step,
-      fights: fightsInputWithCorrections(draft, fightIndex, corrections),
+      fights: fightsInputWithCorrections(
+        draft,
+        fightIndex,
+        corrections,
+        declaresRemovals: declaresRemovals,
+      ),
     ),
   );
 
