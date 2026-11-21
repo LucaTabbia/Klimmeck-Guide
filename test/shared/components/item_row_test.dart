@@ -43,19 +43,27 @@ Future<void> _pump(
   AssetItem assetItem, {
   bool isDisabled = false,
   String? statusLine,
+  List<InjuryType>? injuriesBeyondCure,
 }) async {
   await tester.pumpWidget(
     buildTestApp(
       home: Scaffold(
         body: SizedBox(
           width: 600,
-          child: ItemRow(
-            assetItem: assetItem,
-            size: 80,
-            showCoins: false,
-            isDisabled: isDisabled,
-            statusLine: statusLine,
-          ),
+          child: injuriesBeyondCure == null
+              ? ItemRow(
+                  assetItem: assetItem,
+                  size: 80,
+                  showCoins: false,
+                  isDisabled: isDisabled,
+                  statusLine: statusLine,
+                )
+              : ItemRow(
+                  assetItem: assetItem,
+                  size: 80,
+                  showCoins: false,
+                  injuriesBeyondCure: injuriesBeyondCure,
+                ),
         ),
       ),
     ),
@@ -146,6 +154,38 @@ void main() {
 
       expect(find.byKey(const ValueKey('item-effect-l-1')), findsOneWidget);
       expect(find.byKey(const ValueKey('item-injuries-l-1')), findsNothing);
+    });
+
+    testWidgets(
+      'a row told the wounds beyond cure leaves them out of Cura (D-15)',
+      (tester) async {
+        await _pump(
+          tester,
+          _loot(
+            effect: EffectType.heal,
+            power: 12,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+          injuriesBeyondCure: const [InjuryType.blindness],
+        );
+
+        expect(find.text('Cura: occhio nero'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a row told nothing shows the catalogue line (shop)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _loot(
+          effect: EffectType.heal,
+          power: 12,
+          injuries: [InjuryType.blackEye, InjuryType.blindness],
+        ),
+      );
+
+      expect(find.text('Cura: cecità, occhio nero'), findsOneWidget);
     });
   });
 

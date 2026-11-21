@@ -43,6 +43,7 @@ CharacterLoaded _character({
   int? currentLifePoints,
   int? maxLifePoints,
   List<String>? injuries,
+  List<String>? innkeeperInjuries,
 }) => CharacterLoaded(
   Character.fromJson(
     characterWithLanesJson(
@@ -54,6 +55,7 @@ CharacterLoaded _character({
       currentLifePoints: currentLifePoints,
       maxLifePoints: maxLifePoints,
       injuries: injuries,
+      innkeeperInjuries: innkeeperInjuries,
     ),
   ),
 );
@@ -264,6 +266,75 @@ void main() {
       );
 
       await emit(tester, _character(injuries: const ['deepCut', 'contusion']));
+
+      verifyNoReread();
+    });
+
+    testWidgets(
+      'the Board is reread when only the origin of a wound changes (D-14, Pitfall 4)',
+      (tester) async {
+        await pumpListener(
+          tester,
+          initial: _character(
+            injuries: const ['contusion'],
+            innkeeperInjuries: const [],
+          ),
+        );
+
+        await emit(
+          tester,
+          _character(
+            injuries: const ['contusion'],
+            innkeeperInjuries: const ['contusion'],
+          ),
+        );
+
+        verify(() => questCubit.refreshQuests(cityId: 'city-1')).called(1);
+      },
+    );
+
+    testWidgets(
+      'no reread for the same innkeeper wounds in another order (D-14)',
+      (tester) async {
+        await pumpListener(
+          tester,
+          initial: _character(
+            injuries: const ['contusion', 'deepCut'],
+            innkeeperInjuries: const ['contusion', 'deepCut'],
+          ),
+        );
+
+        await emit(
+          tester,
+          _character(
+            injuries: const ['contusion', 'deepCut'],
+            innkeeperInjuries: const ['deepCut', 'contusion'],
+          ),
+        );
+
+        verifyNoReread();
+      },
+    );
+
+    testWidgets('outside a city a change of origin does not reread (D-14)', (
+      tester,
+    ) async {
+      await pumpListener(
+        tester,
+        initial: _character(
+          locationId: 'road-1',
+          injuries: const ['contusion'],
+        ),
+      );
+
+      await emit(
+        tester,
+        _character(
+          locationId: 'road-1',
+          injuries: const ['contusion'],
+          innkeeperInjuries: const ['contusion'],
+        ),
+      );
 
       verifyNoReread();
     });

@@ -118,6 +118,7 @@ Map<String, dynamic> characterWithLanesJson({
   int? currentLifePoints,
   int? maxLifePoints,
   List<String>? injuries,
+  List<String>? innkeeperInjuries,
 }) => {
   'id': id,
   'status': {
@@ -129,6 +130,7 @@ Map<String, dynamic> characterWithLanesJson({
     if (currentLifePoints != null) 'currentLifePoints': currentLifePoints,
     if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
     if (injuries != null) 'injuries': injuries,
+    'innkeeperInjuries': ?innkeeperInjuries,
   },
   'quests': {
     'completedQuests': [

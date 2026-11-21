@@ -319,6 +319,42 @@ void main() {
       );
       expect(healedInjuriesLine(_loot(injuries: [InjuryType.deepCut])), isNull);
     });
+
+    test('the potion line leaves out the wounds beyond cure (D-15)', () {
+      expect(
+        healedInjuriesLine(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+          beyondCure: const [InjuryType.blindness],
+        ),
+        'Cura: occhio nero',
+      );
+    });
+
+    test('no line when every wound it heals is beyond cure (D-15)', () {
+      expect(
+        healedInjuriesLine(
+          _loot(effect: EffectType.heal, injuries: [InjuryType.deepCut]),
+          beyondCure: const [InjuryType.deepCut, InjuryType.blindness],
+        ),
+        isNull,
+      );
+    });
+
+    test('without wounds beyond cure the line lists the whole canHeal', () {
+      expect(
+        healedInjuriesLine(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+          beyondCure: const [],
+        ),
+        'Cura: cecità, occhio nero',
+      );
+    });
   });
 
   group('curableInjuriesLine', () {

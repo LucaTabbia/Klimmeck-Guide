@@ -200,6 +200,54 @@ void main() {
     verifyNever(() => potionCubit.drink(any()));
   });
 
+  group('innkeeper wounds (Phase 24)', () {
+    setUp(
+      () => useCharacter(
+        journalCharacter(
+          spellbook: spellbookCharacterJson(),
+          ownedItems: [
+            ownedHealPotionJson(
+              item: healPotionJson(canHeal: const ['contusion', 'deepCut']),
+            ),
+          ],
+          injuries: const ['contusion', 'deepCut'],
+          innkeeperInjuries: const ['deepCut'],
+        ),
+      ),
+    );
+
+    testWidgets(
+      "a potion row of the Journal leaves the character's innkeeper wounds out (D-15)",
+      (tester) async {
+        await pumpItems(tester);
+
+        expect(
+          tester
+              .widget<Text>(find.byKey(const ValueKey('item-injuries-$_herb')))
+              .data,
+          'Cura: contusione',
+        );
+      },
+    );
+
+    testWidgets(
+      "the potion sheet opened from the Journal leaves the innkeeper wounds out (D-15)",
+      (tester) async {
+        await pumpItems(tester);
+
+        await tapAndSettle(tester, _card(_herb));
+
+        expect(
+          find.descendant(
+            of: find.byType(PaperSheetModal),
+            matching: find.text('Cura: contusione'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+  });
+
   testWidgets('opening the sheet resets a previous outcome first (D-18)', (
     tester,
   ) async {
