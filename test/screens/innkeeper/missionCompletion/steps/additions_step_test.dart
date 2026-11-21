@@ -79,6 +79,8 @@ void main() {
     await tester.pumpWidget(
       buildTestApp(
         home: Scaffold(
+          // come il wizard: la tastiera resta visibile alle pagine
+          resizeToAvoidBottomInset: false,
           body: MissionBackScope(
             onBack: () {},
             child: StatefulBuilder(
