@@ -84,6 +84,18 @@ void main() {
     });
   });
 
+  test('the draft selects no addition, no removed wound and no wound origin '
+      'before the gate (Phase 24, 24-10 flips this)', () {
+    for (final field in [
+      'backgroundAdditions',
+      'innkeeperInjuriesBefore',
+      'injuriesRemoved',
+      'innkeeperInjuries',
+    ]) {
+      expect(draftSelection, isNot(contains(field)), reason: field);
+    }
+  });
+
   test('the fight outcome selects the companion and companionLifeAfter in '
       'simulated and corrected (D-33)', () {
     expect(

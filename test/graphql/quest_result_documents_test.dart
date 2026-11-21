@@ -92,6 +92,13 @@ void main() {
       expect(sharedSelection, contains('injuriesAdded injuriesHealed'));
     });
 
+    test('the result selects neither backgroundEntryAdded nor injuriesRemoved '
+        'before the gate (Phase 24, 24-10 flips this)', () {
+      for (final field in ['backgroundEntryAdded', 'injuriesRemoved']) {
+        expect(sharedSelection, isNot(contains(field)), reason: field);
+      }
+    });
+
     test('selects arrested, coinsLost and guardEncounter after '
         'injuriesHealed (quick 261110-cgd)', () {
       expect(

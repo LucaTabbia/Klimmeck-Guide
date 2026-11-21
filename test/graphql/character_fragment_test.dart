@@ -195,6 +195,14 @@ void main() {
     }
   });
 
+  test('innkeeperInjuries is not selected before the gate '
+      '(Phase 24, 24-10 flips this)', () {
+    expect(
+      CharacterFragment.statusFields,
+      isNot(contains('innkeeperInjuries')),
+    );
+  });
+
   test('statusFields selects unlockedLore (D-01)', () {
     final spell = SpellFragment.fields.replaceAll(RegExp(r'\s+'), ' ').trim();
 
