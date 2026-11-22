@@ -16,7 +16,8 @@ import 'loot_fragment.dart';
 /// `petXpGained` è della BE Phase 19 (19-CONTEXT D-03): i PE del compagno.
 /// `companion` e `ambush.onFoot` sono della BE Phase 23 (D-27, D-28).
 /// `spellFound` e `spellResearchFailed` sono della BE Phase 24
-/// (23-CONTEXT D-29, D-31).
+/// (23-CONTEXT D-29, D-31). `injuriesRemoved` e `backgroundEntryAdded` sono
+/// della BE Phase 25 (24-CONTEXT D-09, D-18).
 class QuestResultFragment {
   static const String fields =
       '''
@@ -37,6 +38,7 @@ class QuestResultFragment {
     maxLifePoints
     injuriesAdded
     injuriesHealed
+    injuriesRemoved
     arrested
     coinsLost {
       ${CoinsFragment.fields}
@@ -115,6 +117,7 @@ class QuestResultFragment {
       requiredLearnTime
     }
     spellResearchFailed
+    backgroundEntryAdded
     loreUnlocked {
       id
       name
