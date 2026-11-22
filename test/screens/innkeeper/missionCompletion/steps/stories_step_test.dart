@@ -251,6 +251,18 @@ void main() {
     expect(onPressedOf(tester, MissionCompletionScreen.startKey), isNotNull);
   });
 
+  testWidgets('the start note sits beside Inizia la missione, on its row', (
+    tester,
+  ) async {
+    await pumpStep(tester, _loaded);
+
+    final button = tester.getRect(find.byKey(MissionCompletionScreen.startKey));
+    final note = tester.getRect(find.text(MissionCompletionScreen.startNote));
+
+    expect(note.left, greaterThanOrEqualTo(button.right));
+    expect(note.center.dy, closeTo(button.center.dy, 1));
+  });
+
   testWidgets('the next footer shows Avanti and a disabled Indietro', (
     tester,
   ) async {
