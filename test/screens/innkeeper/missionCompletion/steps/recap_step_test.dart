@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeO
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -26,6 +27,8 @@ import '../../../../helpers/test_app.dart';
 
 const String _aldo = 'char-aldo';
 const String _bea = 'char-bea';
+const Duration _openingTime = Duration(milliseconds: 400);
+const List<String> _fiveNames = ['Aldo', 'Bea', 'Cosimo', 'Dora', 'Elio'];
 
 final RequestCard _card = requestCardsOf(
   worldMissionEntriesJson(
@@ -138,14 +141,47 @@ final Map<String, dynamic> _aldoPrize = missionPrizeJson(
 MissionDraft _draft({
   List<Map<String, dynamic>> fights = const [],
   List<Map<String, dynamic>> prizes = const [],
+  List<Map<String, dynamic>>? participants,
 }) => MissionDraft.tryFromJson(
   missionDraftJson(
     step: 'recap',
-    participants: _participants,
+    participants: participants ?? _participants,
     fights: fights,
     prizes: prizes,
   ),
 )!;
+
+String _idOf(String name) => 'char-${name.toLowerCase()}';
+
+/// Cinque partecipanti, ognuno con vita, ferite aggiunte e tolte e un premio
+/// pieno: il riepilogo più lungo che la pagina deve reggere.
+MissionDraft _crowdedDraft() => _draft(
+  participants: [
+    for (final (index, name) in _fiveNames.indexed)
+      missionParticipantJson(
+        character: _idOf(name),
+        name: name,
+        pendingQuest: 'pq-world-$index',
+      ),
+  ],
+  fights: [
+    missionFightJson(
+      verdict: 'success',
+      outcomes: [
+        for (final name in _fiveNames)
+          missionOutcomeJson(
+            character: _idOf(name),
+            simulated: missionEffectsJson(
+              injuriesRemoved: const ['blackEye', 'deepCut'],
+            ),
+          ),
+      ],
+    ),
+  ],
+  prizes: [
+    for (final name in _fiveNames) {..._aldoPrize, 'character': _idOf(name)},
+  ],
+);
 
 final MissionPrizeOptions _aldoOptions = MissionPrizeOptions.tryFromJson(
   missionPrizeOptionsJson(
@@ -166,6 +202,7 @@ void main() {
 
   setUp(() {
     seedSvgCache([
+      CloudinaryAssets.arrowDown,
       CloudinaryAssets.goldCoin,
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
@@ -189,21 +226,42 @@ void main() {
     useLandscapePhone(tester);
     await tester.pumpWidget(
       buildTestApp(
-        home: Scaffold(
-          body: BlocProvider<MissionPrizeOptionsCubit>.value(
-            value: prizeOptionsCubit,
-            child: RecapStep(
-              card: _card,
-              draft: draft,
-              isSubmitting: isSubmitting,
-              onComplete: () => completions++,
-              onNext: isStoryAndWoundInputEnabled ? () => nexts++ : null,
+        home: Builder(
+          builder: (context) => Theme(
+            // i pulsanti compatti del wizard, come nella schermata vera
+            data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
+            child: Scaffold(
+              body: BlocProvider<MissionPrizeOptionsCubit>.value(
+                value: prizeOptionsCubit,
+                child: RecapStep(
+                  card: _card,
+                  draft: draft,
+                  isSubmitting: isSubmitting,
+                  onComplete: () => completions++,
+                  onNext: isStoryAndWoundInputEnabled ? () => nexts++ : null,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
     await tester.pump();
+  }
+
+  Finder dropdownOf(String characterId) =>
+      find.byKey(RecapStep.participantKeyFor(characterId));
+
+  Finder inDropdown(String characterId, Finder matching) =>
+      find.descendant(of: dropdownOf(characterId), matching: matching);
+
+  Future<void> open(WidgetTester tester, String characterId) async {
+    final header = inDropdown(characterId, find.byType(DropdownHeader));
+    await tester.ensureVisible(header);
+    await tester.pump();
+    await tester.tap(header);
+    await tester.pump();
+    await tester.pump(_openingTime);
   }
 
   Future<void> reveal(WidgetTester tester, Finder finder) async {
@@ -280,6 +338,43 @@ void main() {
     });
   });
 
+  group('missionWideRecapLinesOf', () {
+    test('lists the quest and the fights, no participant (D-23)', () {
+      expect(
+        missionWideRecapLinesOf(
+          questTitle: 'La torre',
+          draft: _draft(fights: _fights),
+        ),
+        [
+          'La torre',
+          'Scontro 1: 3x Lupo, 1x Orco · Sconfitta',
+          'Scontro 2: 2x Goblin · Vittoria',
+        ],
+      );
+    });
+  });
+
+  group('participantRecapLinesOf', () {
+    test('lists PV, wounds added and taken off without the name (D-23)', () {
+      final draft = _draft(fights: _fightsWithRemovals);
+
+      expect(participantRecapLinesOf(draft.participants.first, draft.fights), [
+        'PV 800 → 700',
+        'Ferite: mano destra schiacciata',
+        'Ferite tolte: occhio nero, taglio profondo',
+      ]);
+    });
+
+    test('zero fights give no line (D-24)', () {
+      final draft = _draft();
+
+      expect(
+        participantRecapLinesOf(draft.participants.first, draft.fights),
+        isEmpty,
+      );
+    });
+  });
+
   testWidgets('lists each fight with its enemies and verdict (D-02, D-21)', (
     tester,
   ) async {
@@ -297,15 +392,154 @@ void main() {
     (tester) async {
       await pumpStep(tester, _draft(fights: _fights));
 
-      expect(find.text('Aldo: PV 800 → 650'), findsOneWidget);
-      expect(find.text('Bea: PV 500 → 450'), findsOneWidget);
+      expect(inDropdown(_aldo, find.text('PV 800 → 650')), findsOneWidget);
+      expect(inDropdown(_bea, find.text('PV 500 → 450')), findsOneWidget);
     },
   );
+
+  group('one dropdown per participant (D-23)', () {
+    testWidgets('the header names the participant and the rank', (
+      tester,
+    ) async {
+      await pumpStep(tester, _draft(fights: _fights));
+
+      expect(find.byType(Dropdown), findsNWidgets(2));
+      expect(
+        tester.widget<Dropdown>(dropdownOf(_aldo)).sectionName,
+        'Aldo · Paladino',
+      );
+      expect(
+        tester.widget<Dropdown>(dropdownOf(_bea)).sectionName,
+        'Bea · Paladino',
+      );
+    });
+
+    testWidgets('the dropdowns start closed and open on a tap', (tester) async {
+      await pumpStep(tester, _draft(fights: _fights));
+      expect(find.text('PV 800 → 650').hitTestable(), findsNothing);
+      expect(find.text('PV 500 → 450').hitTestable(), findsNothing);
+
+      await open(tester, _aldo);
+
+      expect(find.text('PV 800 → 650').hitTestable(), findsOneWidget);
+      expect(find.text('PV 500 → 450').hitTestable(), findsNothing);
+    });
+
+    testWidgets('the quest and the fights stay outside the dropdowns', (
+      tester,
+    ) async {
+      await pumpStep(tester, _draft(fights: _fights));
+
+      for (final line in [
+        _card.questTitle,
+        'Scontro 1: 3x Lupo, 1x Orco · Sconfitta',
+        'Scontro 2: 2x Goblin · Vittoria',
+      ]) {
+        expect(find.text(line).hitTestable(), findsOneWidget);
+        expect(
+          find.descendant(of: find.byType(Dropdown), matching: find.text(line)),
+          findsNothing,
+        );
+      }
+      expect(
+        tester.getTopLeft(find.text('Scontro 2: 2x Goblin · Vittoria')).dy,
+        lessThan(tester.getTopLeft(dropdownOf(_aldo)).dy),
+      );
+    });
+
+    testWidgets('each row sits in the dropdown of its participant', (
+      tester,
+    ) async {
+      await pumpStep(
+        tester,
+        _draft(fights: _fightsWithRemovals, prizes: [_aldoPrize]),
+      );
+
+      for (final line in [
+        'PV 800 → 700',
+        'Ferite: mano destra schiacciata',
+        'Ferite tolte: occhio nero, taglio profondo',
+        '+150 XP',
+        'Palla di fuoco',
+      ]) {
+        expect(inDropdown(_aldo, find.text(line)), findsOneWidget);
+      }
+      expect(inDropdown(_aldo, find.byType(CoinsDisplay)), findsOneWidget);
+      expect(
+        inDropdown(_bea, find.text('Ferite tolte: taglio profondo')),
+        findsOneWidget,
+      );
+      expect(inDropdown(_bea, find.text('+150 XP')), findsNothing);
+      expect(inDropdown(_bea, find.byType(CoinsDisplay)), findsNothing);
+    });
+
+    testWidgets('the name is written on the header only', (tester) async {
+      await pumpStep(tester, _draft(fights: _fights, prizes: [_aldoPrize]));
+
+      expect(find.text('Aldo'), findsNothing);
+      expect(find.textContaining('Aldo: PV'), findsNothing);
+    });
+
+    testWidgets('a participant with a prize and no fight has the dropdown', (
+      tester,
+    ) async {
+      await pumpStep(tester, _draft(prizes: [_aldoPrize]));
+
+      expect(dropdownOf(_aldo), findsOneWidget);
+      expect(dropdownOf(_bea), findsNothing);
+    });
+
+    testWidgets('an open dropdown stays open after scrolling away', (
+      tester,
+    ) async {
+      await pumpStep(tester, _crowdedDraft());
+      await open(tester, _idOf('Aldo'));
+
+      await tester.ensureVisible(dropdownOf(_idOf('Elio')));
+      await tester.pump();
+      await tester.ensureVisible(dropdownOf(_idOf('Aldo')));
+      await tester.pump();
+
+      expect(
+        inDropdown(_idOf('Aldo'), find.text('PV 800 → 700')).hitTestable(),
+        findsOneWidget,
+      );
+    });
+
+    for (final (label, draftOf) in [
+      ('two', () => _draft(fights: _fightsWithRemovals, prizes: [_aldoPrize])),
+      ('five', _crowdedDraft),
+    ]) {
+      testWidgets('$label participants fit a landscape phone, closed and '
+          'open', (tester) async {
+        final draft = draftOf();
+        await pumpStep(tester, draft, isStoryAndWoundInputEnabled: true);
+        expect(tester.takeException(), isNull);
+
+        for (final participant in draft.participants) {
+          await open(tester, participant.characterId);
+          expect(tester.takeException(), isNull);
+        }
+
+        final next = tester.getRect(
+          find.byKey(MissionCompletionScreen.nextKey),
+        );
+        expect(next.bottom, lessThanOrEqualTo(360));
+        expect(
+          find.byKey(MissionCompletionScreen.nextKey).hitTestable(),
+          findsOneWidget,
+        );
+      });
+    }
+  });
 
   testWidgets('lists the injuries the fights add (D-14)', (tester) async {
     await pumpStep(tester, _draft(fights: _fights));
 
-    expect(find.text('Ferite: mano destra schiacciata'), findsOneWidget);
+    expect(
+      inDropdown(_aldo, find.text('Ferite: mano destra schiacciata')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the recap lists the wounds taken off a participant (D-13)', (
@@ -333,11 +567,13 @@ void main() {
 
     expect(find.textContaining('Scontro'), findsNothing);
     expect(find.textContaining('PV'), findsNothing);
+    expect(find.byType(Dropdown), findsNothing);
     expect(find.text(_card.questTitle), findsOneWidget);
   });
 
   testWidgets('shows the chosen prizes per character (D-22)', (tester) async {
     await pumpStep(tester, _draft(prizes: [_aldoPrize]));
+    await open(tester, _aldo);
 
     await reveal(tester, find.byType(CoinsDisplay));
     expect(
@@ -352,7 +588,7 @@ void main() {
       'Vita: almeno il 50%',
     ]) {
       await reveal(tester, find.text(line));
-      expect(find.text(line), findsOneWidget);
+      expect(find.text(line).hitTestable(), findsOneWidget);
     }
   });
 
