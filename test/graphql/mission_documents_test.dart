@@ -84,15 +84,32 @@ void main() {
     });
   });
 
-  test('the draft selects no addition, no removed wound and no wound origin '
-      'before the gate (Phase 24, 24-10 flips this)', () {
-    for (final field in [
-      'backgroundAdditions',
-      'innkeeperInjuriesBefore',
-      'injuriesRemoved',
-      'innkeeperInjuries',
+  test('the draft selects the additions, the innkeeper wounds carried before '
+      'each fight and, on both effects, the removed and the innkeeper wounds '
+      '(D-05, D-12, D-13)', () {
+    expect(draftSelection, contains('backgroundAdditions { character text }'));
+    expect(draftSelection, contains('injuriesBefore innkeeperInjuriesBefore'));
+    expect(
+      'injuriesAdded injuriesRemoved innkeeperInjuries '.allMatches(
+        draftSelection,
+      ),
+      hasLength(2),
+    );
+  });
+
+  test('every draft document carries the additions and the wound origins '
+      '(D-05, D-12, D-13)', () {
+    for (final document in [
+      MissionQueries.getMissionDraft,
+      MissionMutations.startMissionDraft,
+      MissionMutations.saveMissionDraft,
+      MissionMutations.simulateMissionFight,
     ]) {
-      expect(draftSelection, isNot(contains(field)), reason: field);
+      final selection = _collapsed(document);
+
+      expect(selection, contains('backgroundAdditions { character text }'));
+      expect(selection, contains('innkeeperInjuriesBefore'));
+      expect(selection, contains('injuriesRemoved innkeeperInjuries'));
     }
   });
 

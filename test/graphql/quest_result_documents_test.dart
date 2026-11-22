@@ -92,20 +92,13 @@ void main() {
       expect(sharedSelection, contains('injuriesAdded injuriesHealed'));
     });
 
-    test('the result selects neither backgroundEntryAdded nor injuriesRemoved '
-        'before the gate (Phase 24, 24-10 flips this)', () {
-      for (final field in ['backgroundEntryAdded', 'injuriesRemoved']) {
-        expect(sharedSelection, isNot(contains(field)), reason: field);
-      }
-    });
-
-    test('selects arrested, coinsLost and guardEncounter after '
-        'injuriesHealed (quick 261110-cgd)', () {
+    test('selects arrested, coinsLost and guardEncounter after the healed '
+        'and removed wounds (quick 261110-cgd)', () {
       expect(
         sharedSelection,
         contains(
-          'injuriesHealed arrested coinsLost { gold silver copper } '
-          'guardEncounter',
+          'injuriesHealed injuriesRemoved arrested '
+          'coinsLost { gold silver copper } guardEncounter',
         ),
       );
     });
@@ -159,6 +152,17 @@ void main() {
               'spellFound { id name origin requiredLearnTime } '
               'spellResearchFailed',
             ),
+          );
+        });
+
+        test('$name selects injuriesRemoved and backgroundEntryAdded '
+            '(D-09, D-18)', () {
+          final selection = _collapsed(document);
+
+          expect(selection, contains('injuriesHealed injuriesRemoved'));
+          expect(
+            selection,
+            contains('spellResearchFailed backgroundEntryAdded'),
           );
         });
 
