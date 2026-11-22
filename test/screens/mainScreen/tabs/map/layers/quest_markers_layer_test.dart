@@ -63,4 +63,16 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(markersOf(tester).map((m) => m.key), [const ValueKey('q-placed')]);
   });
+
+  testWidgets('a quest whose place has no location gets no marker', (
+    tester,
+  ) async {
+    final json = questJson(id: 'q-unlocated');
+    (json['infos'] as Map<String, dynamic>)['markerLocation'] = {'id': 'poi-1'};
+
+    await pumpLayer(tester, [buildQuest(id: 'q-placed'), Quest.fromJson(json)]);
+
+    expect(tester.takeException(), isNull);
+    expect(markersOf(tester).map((m) => m.key), [const ValueKey('q-placed')]);
+  });
 }
