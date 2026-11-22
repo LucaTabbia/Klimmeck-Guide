@@ -70,6 +70,14 @@ void main() {
     expect(find.byType(NewEntrySigil), findsOneWidget);
     expect(sigil.top, closeTo(tester.getTopLeft(find.text(_deed)).dy, 1));
     expect(sigil.top, greaterThan(tester.getTopLeft(find.text(_birth)).dy));
+    expect(
+      sigil.left,
+      greaterThanOrEqualTo(tester.getTopRight(find.text(_deed)).dx),
+    );
+    expect(
+      tester.getTopLeft(find.text(_deed)).dx,
+      tester.getTopLeft(find.text(_birth)).dx,
+    );
   });
 
   testWidgets('no entry, nothing drawn', (tester) async {
