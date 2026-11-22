@@ -87,20 +87,14 @@ String? accessoryUsageLine(EquipmentItem item) {
   return 'Uso: ${labels.join(' e ')}';
 }
 
-/// Riga «Cura: …» di un oggetto heal: le ferite che può curare, etichette in
-/// minuscolo nell'ordine dell'enum, unite da virgola; nessuna riga senza
-/// ferite o su un effetto diverso. [beyondCure] sono le ferite che nessuna
-/// cura toglie a chi legge (quelle dell'oste, D-15): restano fuori dalla riga.
-/// È un filtro di visualizzazione: la cura la applica il backend.
-String? healedInjuriesLine(
-  LootItem item, {
-  List<InjuryType> beyondCure = const [],
-}) {
+/// Riga «Cura: …» di un oggetto heal: tutte le ferite che può curare, per
+/// chiunque legga (D-20), etichette in minuscolo nell'ordine dell'enum, unite
+/// da virgola; nessuna riga senza ferite o su un effetto diverso.
+String? healedInjuriesLine(LootItem item) {
   if (item.effect != EffectType.heal) return null;
   final labels = [
     for (final type in InjuryType.values)
-      if (item.canHeal.contains(type) && !beyondCure.contains(type))
-        type.label.toLowerCase(),
+      if (item.canHeal.contains(type)) type.label.toLowerCase(),
   ];
   if (labels.isEmpty) return null;
   return 'Cura: ${labels.join(', ')}';
