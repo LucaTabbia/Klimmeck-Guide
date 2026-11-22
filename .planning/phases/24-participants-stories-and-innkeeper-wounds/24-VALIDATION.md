@@ -68,9 +68,9 @@ created: 2026-11-21
 | 24-09-01 | 09 | 9 | STORY-03, WOUND-03 | T-24-37, T-24-39 | story line and healed line from served fields only | widget | `flutter test test/shared/components/popup/quest_result_sheet_test.dart` | ✅ extend | ✅ green |
 | 24-09-02 | 09 | 9 | STORY-03 | T-24-38 | sigil proven with no new code | bloc + widget | `flutter test test/screens/mainScreen/newEntriesCubit test/screens/mainScreen/components/new_entries_listener_test.dart test/screens/mainScreen/tabs/profile` | ✅ extend | ✅ green |
 | 24-09-03 | 09 | 9 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 0?9 of 11" .planning/STATE.md` | — | ✅ green |
-| 24-10-01 | 10 | 10 | STORY-04, STORY-02, STORY-03, WOUND-01, WOUND-02, WOUND-03 | T-24-40, T-24-41, T-24-42, T-24-43, T-24-44 | gate before any selection and before the switch; BE read-only | gate + document pin | `schema gate block of 24-10 + flutter test test/graphql test/config` | ✅ extend | ⬜ pending |
-| 24-10-02 | 10 | 10 | STORY-04 | T-24-40 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite + tool/hardening_check.sh` | ✅ | ⬜ pending |
-| 24-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 10 of 11" .planning/STATE.md` | — | ⬜ pending |
+| 24-10-01 | 10 | 10 | STORY-04, STORY-02, STORY-03, WOUND-01, WOUND-02, WOUND-03 | T-24-40, T-24-41, T-24-42, T-24-43, T-24-44 | gate before any selection and before the switch; BE read-only | gate + document pin | `schema gate block of 24-10 + flutter test test/graphql test/config` | ✅ extend | ✅ green |
+| 24-10-02 | 10 | 10 | STORY-04 | T-24-40 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite + tool/hardening_check.sh` | ✅ | ✅ green |
+| 24-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 10 of 11" .planning/STATE.md` | — | ✅ green |
 | 24-11-01 | 11 | 11 | STORY-04 | T-24-46, T-24-49 | names only, no secrets; gate re-check on the ref under test | docs | `gate re-check of 24-11 + secrets grep = 0` | ✅ | ⬜ pending |
 | 24-11-02 | 11 | 11 | STORY-01..STORY-03, WOUND-01..WOUND-03 | T-24-48 | device and DB actions by the orchestrator only | manual | `24-HUMAN-UAT.md steps 1–10` | ✅ | ⬜ pending |
 | 24-11-03 | 11 | 11 | STORY-01..STORY-04, WOUND-01..WOUND-03 | T-24-47 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 24-HUMAN-UAT.md` | — | ⬜ pending |
