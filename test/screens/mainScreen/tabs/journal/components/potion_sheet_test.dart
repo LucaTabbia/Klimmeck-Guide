@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
@@ -21,6 +22,7 @@ import '../../../../../helpers/fixtures/potion_fixtures.dart';
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/red_labels.dart';
 import '../../../../../helpers/svg_cache_seed.dart';
 import '../../../../../helpers/test_app.dart';
 
@@ -95,6 +97,7 @@ void main() {
     int? maxLifePoints = 12,
     List<CompanionPotionTarget> targets = const [],
     Duration? characterWait,
+    List<InjuryType> readerInnkeeperInjuries = const [],
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, stream ?? states.stream, initialState: state);
@@ -122,6 +125,7 @@ void main() {
                           item: item ?? herbs,
                           maxLifePoints: maxLifePoints,
                           targets: targets,
+                          readerInnkeeperInjuries: readerInnkeeperInjuries,
                         ),
                       ),
                     ),
@@ -163,6 +167,41 @@ void main() {
 
     expect(find.text('Cura: taglio profondo, contusione'), findsOneWidget);
     expect(find.text('Ricarica: 30 min'), findsOneWidget);
+  });
+
+  testWidgets(
+    "the sheet writes the reader's innkeeper wounds in red, the others not (D-21)",
+    (tester) async {
+      await pumpSheet(
+        tester,
+        state: const PotionIdle(),
+        item: LootItem.fromJson(
+          healPotionJson(canHeal: const ['contusion', 'deepCut']),
+        ),
+        readerInnkeeperInjuries: const [InjuryType.deepCut],
+      );
+
+      final line = find.text('Cura: taglio profondo, contusione');
+      expect(line, findsOneWidget);
+      expect(redLabelsOf(tester, line), ['taglio profondo']);
+    },
+  );
+
+  testWidgets('a reader with no innkeeper wounds sees no red wound (D-21)', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      state: const PotionIdle(),
+      item: LootItem.fromJson(
+        healPotionJson(canHeal: const ['contusion', 'deepCut']),
+      ),
+    );
+
+    expect(
+      redLabelsOf(tester, find.text('Cura: taglio profondo, contusione')),
+      isEmpty,
+    );
   });
 
   testWidgets(

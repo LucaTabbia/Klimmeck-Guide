@@ -320,6 +320,48 @@ void main() {
       expect(healedInjuriesLine(_loot(injuries: [InjuryType.deepCut])), isNull);
     });
 
+    test('the labels mark the wounds beyond cure of the reader (D-21)', () {
+      expect(
+        healedInjuryLabels(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+          beyondCure: const [InjuryType.blackEye, InjuryType.deepCut],
+        ),
+        const [
+          (label: 'cecità', isBeyondCure: false),
+          (label: 'occhio nero', isBeyondCure: true),
+        ],
+      );
+    });
+
+    test('without a reader no label is beyond cure (D-21)', () {
+      expect(
+        healedInjuryLabels(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+        ),
+        const [
+          (label: 'cecità', isBeyondCure: false),
+          (label: 'occhio nero', isBeyondCure: false),
+        ],
+      );
+    });
+
+    test('an item with no Cura line has no labels (D-21)', () {
+      expect(healedInjuryLabels(_loot(effect: EffectType.heal)), isEmpty);
+      expect(
+        healedInjuryLabels(
+          _loot(effect: EffectType.hunger, injuries: [InjuryType.deepCut]),
+          beyondCure: const [InjuryType.deepCut],
+        ),
+        isEmpty,
+      );
+    });
+
     test('the line lists every wound the item heals, whoever reads (D-20)', () {
       expect(
         healedInjuriesLine(
