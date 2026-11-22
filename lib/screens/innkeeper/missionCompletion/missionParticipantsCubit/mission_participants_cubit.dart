@@ -20,11 +20,21 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
 
   final InnkeeperRepository _repository;
   Set<String> _lastReadIds = const {};
+  Future<void>? _reading;
 
   /// Legge una volta per insieme di id (D-02): le storie servono prima della
-  /// bozza e non si rileggono dopo l'inizio. Il retry resta `load`.
+  /// bozza e una bozza ripresa non le rilegge. Il retry resta `load`.
   Future<void> ensureLoaded(List<String> characterIds) async {
     if (_hasLoaded(characterIds)) return;
+    await load(characterIds);
+  }
+
+  /// Dopo «Inizia la missione»: ciò che si è letto con le storie risale a
+  /// quando i partecipanti erano liberi di muoversi (D-02), le posizioni di
+  /// «Luogo» valgono solo se lette a partecipanti bloccati. Una lettura in
+  /// corso è partita prima del blocco: la si attende e si rilegge.
+  Future<void> reread(List<String> characterIds) async {
+    await _reading;
     await load(characterIds);
   }
 
@@ -35,10 +45,17 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
   }
 
   /// Una lettura alla volta; dopo un esito un nuovo `load` rilegge tutto.
-  Future<void> load(List<String> characterIds) async {
-    if (state is MissionParticipantsLoading) return;
+  Future<void> load(List<String> characterIds) =>
+      _reading ??= _read(characterIds).whenComplete(() => _reading = null);
+
+  /// Gli stessi personaggi già letti restano in mostra mentre si rileggono:
+  /// le storie non spariscono, le posizioni attendono la risposta.
+  Future<void> _read(List<String> characterIds) async {
+    final shown = _hasLoaded(characterIds)
+        ? state as MissionParticipantsLoaded
+        : null;
     _lastReadIds = characterIds.toSet();
-    emit(const MissionParticipantsLoading());
+    emit(shown?.rereadingPositions() ?? const MissionParticipantsLoading());
     try {
       final characters = await Future.wait(
         characterIds.map(_repository.readCharacter),
@@ -56,7 +73,10 @@ class MissionParticipantsCubit extends Cubit<MissionParticipantsState>
         ),
       );
     } on InnkeeperException catch (error) {
-      emit(MissionParticipantsFailed(failure: error.failure));
+      emit(
+        shown?.withPositionsFailure(error.failure) ??
+            MissionParticipantsFailed(failure: error.failure),
+      );
     }
   }
 

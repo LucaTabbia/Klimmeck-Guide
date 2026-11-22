@@ -159,10 +159,15 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
           listener: (context, _) => _leaveGoneUnlessCalling(context),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
-          listenWhen: (previous, current) =>
-              previous is! MissionDraftReady && current is MissionDraftReady,
+          listenWhen: _isDraftServed,
           listener: (_, state) => setState(
             () => _openServedStep((state as MissionDraftReady).draft),
+          ),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: _isDraftStarted,
+          listener: (_, state) => setState(
+            () => _openStartedStep((state as MissionDraftReady).draft),
           ),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
@@ -219,13 +224,40 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
-    final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
-    _enter(page);
+    _openStepOf(draft);
     context.read<MissionParticipantsCubit>().ensureLoaded(
       _characterIdsOf(draft),
     );
+  }
+
+  /// Le storie sono state lette a partecipanti liberi (D-02): ora che l'avvio
+  /// li ha bloccati «Luogo» chiede posizioni nuove. Le storie restano in
+  /// mostra e nessun loader ferma il wizard.
+  void _openStartedStep(MissionDraft draft) {
+    _openStepOf(draft);
+    context.read<MissionParticipantsCubit>().reread(_characterIdsOf(draft));
+  }
+
+  void _openStepOf(MissionDraft draft) {
+    final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
+    _enter(page);
     if (_showsPrizeNamesFrom(page)) _loadPrizeNames(_characterIdsOf(draft));
   }
+
+  /// Una bozza appena creata da «Inizia la missione».
+  static bool _isDraftStarted(
+    MissionDraftState previous,
+    MissionDraftState current,
+  ) => previous is MissionDraftAbsent && current is MissionDraftReady;
+
+  /// Una bozza che esisteva già: letta all'apertura o dopo un «Riprova».
+  static bool _isDraftServed(
+    MissionDraftState previous,
+    MissionDraftState current,
+  ) =>
+      previous is! MissionDraftReady &&
+      previous is! MissionDraftAbsent &&
+      current is MissionDraftReady;
 
   /// Dall'ultima pagina «Indietro» porta al riepilogo.
   static bool _showsPrizeNamesFrom(MissionPage page) =>

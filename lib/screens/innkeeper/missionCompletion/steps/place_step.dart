@@ -42,6 +42,7 @@ class PlaceStep extends StatelessWidget {
     final sharedPlaceId = loaded?.commonLocationId;
     final failure = switch (participants) {
       MissionParticipantsFailed(:final failure) => failure,
+      MissionParticipantsLoaded(:final positionsFailure) => positionsFailure,
       _ => null,
     };
     return Column(
@@ -97,9 +98,9 @@ class PlaceStep extends StatelessWidget {
     MissionParticipantsLoaded? loaded,
   ) {
     if (loaded == null) return participant.name;
-    final locationId =
-        loaded.characters[participant.characterId]?.status?.location?.id;
-    final placeLabel = loaded.placeLabelFor(locationId);
+    final placeLabel = loaded.placeLabelFor(
+      loaded.locationIdOf(participant.characterId),
+    );
     if (placeLabel.isEmpty) return participant.name;
     return '${participant.name} · $placeLabel';
   }
