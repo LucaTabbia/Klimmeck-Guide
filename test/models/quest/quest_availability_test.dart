@@ -304,6 +304,30 @@ void main() {
       },
     );
 
+    test('a story without a place is available from any city, never '
+        'notInCity', () {
+      final story = buildQuest(
+        type: 'story',
+        requiredPoints: 100,
+        markerId: null,
+      );
+      expect(story.infos?.markerLocation, isNull);
+      for (final city in [
+        const {'poi-1'},
+        const {'poi-9'},
+        const <String>{},
+        null,
+      ]) {
+        final standing = standingOf(story, buildViewer(cityPointIds: city));
+        expect(standing.availability, QuestAvailability.available);
+        expect(standing.isTorn, isFalse);
+      }
+      expect(
+        availabilityOf(story, buildViewer(title: TitleType.adventurer)),
+        QuestAvailability.titleMismatch,
+      );
+    });
+
     test('insufficient points only for story and worldMission', () {
       final quest = buildQuest(type: 'story', requiredPoints: 3000);
       expect(

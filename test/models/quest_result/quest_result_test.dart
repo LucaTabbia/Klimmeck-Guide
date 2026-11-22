@@ -1022,4 +1022,72 @@ void main() {
       expect(failed == questResult(questResultJson()), isFalse);
     });
   });
+
+  group('story and removed wounds (BE Phase 25)', () {
+    test('backgroundEntryAdded is true only for a served true (D-09)', () {
+      expect(
+        questResult(
+          questResultJson(backgroundEntryAdded: true),
+        ).backgroundEntryAdded,
+        isTrue,
+      );
+      expect(questResult(questResultJson()).backgroundEntryAdded, isFalse);
+      for (final value in [false, null, 'true']) {
+        final json = questResultJson()..['backgroundEntryAdded'] = value;
+        expect(
+          questResult(json).backgroundEntryAdded,
+          isFalse,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('reads the wounds removed by the innkeeper leniently (D-18)', () {
+      expect(
+        questResult(
+          questResultJson(injuriesRemoved: ['contusion', 'dragonBite']),
+        ).injuriesRemoved,
+        [InjuryType.contusion],
+      );
+      expect(questResult(questResultJson()).injuriesRemoved, isEmpty);
+      for (final value in [null, 'contusion']) {
+        final json = questResultJson()..['injuriesRemoved'] = value;
+        expect(questResult(json).injuriesRemoved, isEmpty, reason: '$value');
+      }
+    });
+
+    test('healedOrRemovedInjuries lists the healed wounds, then the removed '
+        'ones, without repeats (D-18)', () {
+      final result = questResult(
+        questResultJson(
+          injuriesHealed: ['contusion', 'deepCut'],
+          injuriesRemoved: ['deepCut', 'stunned'],
+        ),
+      );
+
+      expect(result.healedOrRemovedInjuries, [
+        InjuryType.contusion,
+        InjuryType.deepCut,
+        InjuryType.stunned,
+      ]);
+      expect(questResult(questResultJson()).healedOrRemovedInjuries, isEmpty);
+    });
+
+    test('the story flag and the removed wounds survive toJson -> fromJson '
+        'and take part in equality (D-09, D-18)', () {
+      final withStory = questResult(
+        questResultJson(backgroundEntryAdded: true),
+      );
+      final withRemoval = questResult(
+        questResultJson(injuriesRemoved: ['contusion']),
+      );
+
+      expect(withStory.toJson()['backgroundEntryAdded'], isTrue);
+      expect(withRemoval.toJson()['injuriesRemoved'], ['contusion']);
+      expect(questResult(withStory.toJson()), withStory);
+      expect(questResult(withRemoval.toJson()), withRemoval);
+      expect(withStory == questResult(questResultJson()), isFalse);
+      expect(withRemoval == questResult(questResultJson()), isFalse);
+    });
+  });
 }

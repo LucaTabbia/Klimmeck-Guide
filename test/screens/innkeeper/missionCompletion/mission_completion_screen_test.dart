@@ -4,6 +4,11 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/participant_story.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/stories_step.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
@@ -24,6 +29,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemie
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/additions_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
@@ -39,11 +45,14 @@ import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/mocks.dart';
+import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
 
 const String _aldo = 'char-aldo';
 const String _bea = 'char-bea';
 const String _ruins = 'poi-ruins-1';
+const String _scar = 'Porta una cicatrice sul volto.';
+const String _typed = 'Ha salvato il villaggio.';
 
 final DateTime _now = DateTime.utc(2026, 11, 14, 12);
 
@@ -56,10 +65,15 @@ final RequestCard _card = requestCardsOf(_entries).single;
 MissionDraft _draftAt(
   String step, {
   List<Map<String, dynamic>> fights = const [],
+  Map<String, String> additions = const {},
 }) => MissionDraft.tryFromJson(
   missionDraftJson(
     step: step,
     fights: fights,
+    backgroundAdditions: [
+      for (final MapEntry(:key, :value) in additions.entries)
+        {'character': key, 'text': value},
+    ],
     participants: [
       missionParticipantJson(),
       missionParticipantJson(
@@ -91,7 +105,18 @@ final List<QuestResult> _results = [
   QuestResult.fromJson(questResultJson(id: 'result-aldo', character: _aldo)),
 ];
 
-Finder _headerText(String text) => find.text(text);
+/// «Passo k di N · titolo» della pagina: il conto segue le pagine
+/// raggiungibili, l'ultima esiste solo con le aggiunte accese.
+String _header(MissionPage page, String title, {bool withAdditions = false}) {
+  final pageCount = MissionPage.values.length - (withAdditions ? 0 : 1);
+  return 'Passo ${page.index + 1} di $pageCount · $title';
+}
+
+Finder _headerOf(
+  MissionPage page,
+  String title, {
+  bool withAdditions = false,
+}) => find.text(_header(page, title, withAdditions: withAdditions));
 
 Finder get _discardConfirm => find.descendant(
   of: find.byType(DestructiveConfirmationDialog),
@@ -125,6 +150,8 @@ void main() {
     when(() => draftCubit.start()).thenAnswer((_) async {});
     when(() => draftCubit.discard()).thenAnswer((_) async {});
     when(() => participantsCubit.load(any())).thenAnswer((_) async {});
+    when(() => participantsCubit.ensureLoaded(any())).thenAnswer((_) async {});
+    when(() => participantsCubit.reread(any())).thenAnswer((_) async {});
     when(() => enemiesCubit.load()).thenAnswer((_) async {});
     when(() => prizeOptionsCubit.loadAll(any())).thenAnswer((_) async {});
     whenListen(
@@ -168,8 +195,11 @@ void main() {
     WidgetTester tester,
     MissionDraftState initial, {
     bool opensAtPlace = false,
+    bool isStoryAndWoundInputEnabled = false,
+    MissionParticipantsCubit? participants,
   }) async {
     useLandscapePhone(tester);
+    seedSvgCache([CloudinaryAssets.arrowDown]);
     whenListen(draftCubit, draftStates.stream, initialState: initial);
     final exits = <CompletionExit?>[];
     await tester.pumpWidget(
@@ -188,7 +218,7 @@ void main() {
                           value: draftCubit,
                         ),
                         BlocProvider<MissionParticipantsCubit>.value(
-                          value: participantsCubit,
+                          value: participants ?? participantsCubit,
                         ),
                         BlocProvider<MissionEnemiesCubit>.value(
                           value: enemiesCubit,
@@ -200,6 +230,8 @@ void main() {
                       child: MissionCompletionScreen(
                         card: _card,
                         opensAtPlace: opensAtPlace,
+                        isStoryAndWoundInputEnabled:
+                            isStoryAndWoundInputEnabled,
                       ),
                     ),
                   ),
@@ -223,7 +255,7 @@ void main() {
 
   group('start and resume', () {
     testWidgets(
-      'opening shows the loader, then «Inizia la missione» without a draft (D-28)',
+      "an absent draft opens the stories of the card's participants and never starts the mission (D-02, D-28)",
       (tester) async {
         await openWizard(tester, const MissionDraftLoading());
 
@@ -232,22 +264,175 @@ void main() {
 
         await emitDraft(tester, const MissionDraftAbsent());
 
+        expect(find.text('Passo 1 di 6 · Storie'), findsOneWidget);
+        expect(_headerOf(MissionPage.stories, 'Storie'), findsOneWidget);
+        expect(find.byType(Dropdown), findsNWidgets(2));
+        expect(find.byKey(ParticipantStory.keyFor(_aldo)), findsOneWidget);
+        expect(find.byKey(ParticipantStory.keyFor(_bea)), findsOneWidget);
+        expect(find.text('Aldo'), findsOneWidget);
+        expect(find.text('Bea'), findsOneWidget);
         expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
         expect(find.text(MissionCompletionScreen.startNote), findsOneWidget);
         expect(find.text(MissionCompletionScreen.title), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.discardKey), findsNothing);
+        expect(find.byType(Dialog), findsNothing);
         verifyNever(() => draftCubit.start());
       },
     );
 
-    testWidgets('tapping «Inizia la missione» starts the draft (D-11, D-28)', (
+    testWidgets(
+      "the stories are read with the card's ids while the draft is absent (D-02)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verifyNever(() => participantsCubit.load(any()));
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets(
+      "a draft found absent after the load reads the stories with the card's ids (D-02)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftLoading());
+        verifyNever(() => participantsCubit.ensureLoaded(any()));
+
+        await emitDraft(tester, const MissionDraftAbsent());
+        await emitDraft(tester, const MissionDraftAbsent(isStarting: true));
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'the rank of a card participant follows the name once its character is read (D-03)',
+      (tester) async {
+        final aldo = participantCharacterJson();
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: MissionParticipantsLoaded(
+            characters: {
+              _aldo: Character.fromJson({
+                ...aldo,
+                'status': {
+                  ...aldo['status'] as Map<String, dynamic>,
+                  'title': TitleType.adventurer.name,
+                },
+              }),
+            },
+            places: const {},
+          ),
+        );
+        await openWizard(tester, const MissionDraftAbsent());
+
+        expect(find.text('Aldo · Avventuriero'), findsOneWidget);
+        expect(find.text('Bea'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '«Inizia la missione» starts the draft once and lands on «Luogo» (D-02, D-28)',
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await tester.pump();
+        verify(() => draftCubit.start()).called(1);
+        await emitDraft(tester, _ready);
+
+        expect(find.text('Passo 2 di 6 · Luogo'), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
+      },
+    );
+
+    testWidgets(
+      "the participants are read again with the draft's ids once the start has locked them (WR-01)",
+      (tester) async {
+        await openWizard(tester, const MissionDraftAbsent());
+        verifyNever(() => participantsCubit.reread(any()));
+
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await emitDraft(tester, _ready);
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verify(() => participantsCubit.reread([_aldo, _bea])).called(1);
+        verifyNever(() => participantsCubit.load(any()));
+      },
+    );
+
+    testWidgets(
+      'a resumed draft reads the participants once, with no reread (D-02)',
+      (tester) async {
+        await openWizard(tester, const MissionDraftLoading());
+
+        await emitDraft(tester, _ready);
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verifyNever(() => participantsCubit.reread(any()));
+      },
+    );
+
+    testWidgets('while the start is in flight the button is disabled and the '
+        'stories stay readable (D-28)', (tester) async {
+      await openWizard(tester, const MissionDraftAbsent(isStarting: true));
+
+      final start = tester.widget<ElevatedButton>(
+        find.byKey(MissionCompletionScreen.startKey),
+      );
+      expect(start.onPressed, isNull);
+      expect(find.byType(Dropdown), findsNWidgets(2));
+    });
+
+    testWidgets(
+      'a failed read on the stories keeps «Inizia la missione» enabled and «Riprova» reads again (D-31)',
+      (tester) async {
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: const MissionParticipantsFailed(
+            failure: InnkeeperFailure.timedOut,
+          ),
+        );
+        await openWizard(tester, const MissionDraftAbsent());
+
+        final start = tester.widget<ElevatedButton>(
+          find.byKey(MissionCompletionScreen.startKey),
+        );
+        expect(start.onPressed, isNotNull);
+        expect(
+          find.text(MissionCompletionScreen.genericMessage),
+          findsNWidgets(3),
+        );
+
+        await tester.tap(find.byKey(StoriesStep.retryKey));
+        await tester.pump();
+
+        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets('a refused start stays on the stories with the failure line', (
       tester,
     ) async {
-      await openWizard(tester, const MissionDraftAbsent());
+      final exits = await openWizard(tester, const MissionDraftAbsent());
 
-      await tester.tap(find.byKey(MissionCompletionScreen.startKey));
-      await tester.pump();
+      await emitDraft(
+        tester,
+        const MissionDraftAbsent(
+          failure: InnkeeperFailure.connection,
+          failureSerial: 1,
+        ),
+      );
 
-      verify(() => draftCubit.start()).called(1);
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+      expect(exits, isEmpty);
+      expect(_headerOf(MissionPage.stories, 'Storie'), findsOneWidget);
+      expect(find.byKey(MissionCompletionScreen.startKey), findsOneWidget);
     });
 
     testWidgets(
@@ -257,8 +442,8 @@ void main() {
 
         await emitDraft(tester, MissionDraftReady(draft: _draftAt('fights')));
 
-        expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
-        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
       },
     );
 
@@ -270,7 +455,7 @@ void main() {
 
         await emitDraft(tester, MissionDraftReady(draft: _draftAt(step)));
 
-        expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+        expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       });
     }
 
@@ -279,8 +464,8 @@ void main() {
     ) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('prizes')));
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
-      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
     });
 
     testWidgets('a served draft at step recap reopens on «Riepilogo» (D-18)', (
@@ -288,7 +473,7 @@ void main() {
     ) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('recap')));
 
-      expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.recap, 'Riepilogo'), findsOneWidget);
     });
 
     testWidgets('back from a cancelled teleport the wizard reopens on «Luogo» '
@@ -299,8 +484,8 @@ void main() {
         opensAtPlace: true,
       );
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
-      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
     });
 
     testWidgets('a later save never moves the page (D-18)', (tester) async {
@@ -308,7 +493,7 @@ void main() {
 
       await emitDraft(tester, MissionDraftReady(draft: _draftAt('recap')));
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
 
     testWidgets('a ready draft shows the leave note (D-09)', (tester) async {
@@ -322,7 +507,9 @@ void main() {
         'drops the leave note (UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('fights')));
 
-      final header = tester.getRect(_headerText('Passo 2 di 5 · Scontri'));
+      final header = tester.getRect(
+        _headerOf(MissionPage.encounters, 'Scontri'),
+      );
       final search = tester.getRect(find.byKey(EnemySearchBar.searchKey));
       expect(search.left, greaterThan(header.right));
       expect(search.top, lessThan(header.bottom));
@@ -356,13 +543,13 @@ void main() {
     testWidgets('the keyboard over «Premi» hides the step counter and the '
         'buttons, without overflow (UAT 2026-11-14)', (tester) async {
       await openWizard(tester, MissionDraftReady(draft: _draftAt('prizes')));
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
 
       tester.view.viewInsets = const FakeViewPadding(bottom: 700);
       addTearDown(tester.view.resetViewInsets);
       await tester.pump();
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsNothing);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsNothing);
       expect(find.byKey(MissionCompletionScreen.nextKey), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -383,14 +570,81 @@ void main() {
       }
     });
 
-    testWidgets('«Indietro» is disabled on «Luogo»', (tester) async {
-      await openWizard(tester, _ready);
+    testWidgets(
+      '«Indietro» is disabled on the stories and enabled on «Luogo»',
+      (tester) async {
+        await openWizard(tester, _ready);
 
-      final back = tester.widget<OutlinedButton>(
-        find.byKey(MissionCompletionScreen.backKey),
-      );
-      expect(back.onPressed, isNull);
-    });
+        OutlinedButton back() => tester.widget<OutlinedButton>(
+          find.byKey(MissionCompletionScreen.backKey),
+        );
+        expect(back().onPressed, isNotNull);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        expect(back().onPressed, isNull);
+      },
+    );
+
+    testWidgets(
+      '«Indietro» from «Luogo» shows the stories with «Avanti» (D-02)',
+      (tester) async {
+        await openWizard(tester, _ready);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Passo 1 di 6 · Storie'), findsOneWidget);
+        expect(find.byType(Dropdown), findsNWidgets(2));
+        expect(find.text('Aldo · ${TitleType.paladin.label}'), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.nextKey), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.startKey), findsNothing);
+        expect(find.text(MissionCompletionScreen.startNote), findsNothing);
+        expect(find.text(MissionCompletionScreen.leaveNote), findsNothing);
+        expect(find.byKey(MissionCompletionScreen.discardKey), findsOneWidget);
+        verifyNever(() => draftCubit.start());
+      },
+    );
+
+    testWidgets(
+      '«Avanti» on the stories returns to «Luogo» without saving (D-02)',
+      (tester) async {
+        await openWizard(tester, _ready);
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
+        verifyNever(
+          () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+        );
+        verifyNever(() => participantsCubit.load(any()));
+      },
+    );
+
+    testWidgets(
+      "«Riprova» on the stories of a started mission reads the draft's participants again (D-31)",
+      (tester) async {
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: const MissionParticipantsFailed(
+            failure: InnkeeperFailure.timedOut,
+          ),
+        );
+        await openWizard(tester, _ready);
+        await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(StoriesStep.retryKey));
+        await tester.pump();
+
+        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      },
+    );
 
     testWidgets('«Indietro» goes back one page without a call (D-09)', (
       tester,
@@ -400,7 +654,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       verifyNever(
         () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
       );
@@ -600,7 +854,22 @@ void main() {
   });
 
   group('failures that stay', () {
+    test('an addition too long reads its own line (D-07)', () {
+      expect(
+        MissionCompletionScreen.failureLineOf(InnkeeperFailure.additionTooLong),
+        MissionCompletionScreen.additionTooLongMessage,
+      );
+      expect(
+        MissionCompletionScreen.additionTooLongMessage,
+        "Un'aggiunta supera i 1000 caratteri",
+      );
+    });
+
     for (final (failure, line) in [
+      (
+        InnkeeperFailure.additionTooLong,
+        MissionCompletionScreen.additionTooLongMessage,
+      ),
       (
         InnkeeperFailure.overrideInvalid,
         MissionCompletionScreen.invalidValuesMessage,
@@ -624,7 +893,7 @@ void main() {
 
           expect(find.text(line), findsOneWidget);
           expect(exits, isEmpty);
-          expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+          expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
         },
       );
     }
@@ -763,7 +1032,53 @@ void main() {
         verify(
           () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
         ).called(1);
-        expect(find.text('Passo 2 di 5 · Scontri'), findsOneWidget);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '«Luogo» after «Inizia la missione» shows and saves the place read after the start, not the one read with the stories (WR-01)',
+      (tester) async {
+        const camp = 'poi-camp-1';
+        var place = _ruins;
+        final repository = MockInnkeeperRepository();
+        for (final (id, name) in [(_aldo, 'Aldo'), (_bea, 'Bea')]) {
+          when(() => repository.readCharacter(id)).thenAnswer(
+            (_) async => Character.fromJson(
+              participantCharacterJson(id: id, name: name, locationId: place),
+            ),
+          );
+        }
+        when(() => repository.listPointsOfInterest()).thenAnswer(
+          (_) async => [PointOfInterest.fromJson(pointOfInterestJson())],
+        );
+        final cubit = MissionParticipantsCubit(repository: repository);
+        addTearDown(cubit.close);
+        await openWizard(
+          tester,
+          const MissionDraftAbsent(),
+          participants: cubit,
+        );
+        expect(
+          (cubit.state as MissionParticipantsLoaded).commonLocationId,
+          _ruins,
+        );
+
+        place = camp;
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await emitDraft(tester, _ready);
+
+        expect(find.textContaining('Rovine presso Talmvere'), findsNothing);
+
+        await tester.tap(find.byKey(PlaceStep.stayKey));
+        await tester.pump();
+
+        verify(
+          () => draftCubit.saveStep(MissionDraftStep.fights, placeId: camp),
+        ).called(1);
+        verifyNever(
+          () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
+        );
       },
     );
 
@@ -782,7 +1097,8 @@ void main() {
       await tester.tap(find.byKey(PlaceStep.retryKey));
       await tester.pump();
 
-      verify(() => participantsCubit.load([_aldo, _bea])).called(2);
+      verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      verify(() => participantsCubit.load([_aldo, _bea])).called(1);
     });
 
     testWidgets(
@@ -831,7 +1147,7 @@ void main() {
       await tester.tap(find.byKey(PlaceStep.stayKey));
       await tester.pumpAndSettle();
 
-      expect(find.text('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
       expect(
         find.text(MissionCompletionScreen.invalidValuesMessage),
         findsOneWidget,
@@ -857,7 +1173,7 @@ void main() {
         verify(
           () => draftCubit.saveFights(any(), step: MissionDraftStep.fights),
         ).called(1);
-        expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+        expect(_headerOf(MissionPage.fight, 'Scontro 1 di 2'), findsOneWidget);
       },
     );
 
@@ -872,7 +1188,7 @@ void main() {
         verify(
           () => draftCubit.saveFights([], step: MissionDraftStep.prizes),
         ).called(1);
-        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+        expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
       },
     );
 
@@ -907,7 +1223,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 1 di 5 · Luogo'), findsOneWidget);
+      expect(_headerOf(MissionPage.place, 'Luogo'), findsOneWidget);
     });
   });
 
@@ -918,12 +1234,20 @@ void main() {
       ).thenAnswer((_) async {});
       when(() => draftCubit.simulate(any())).thenAnswer((_) async {});
       when(
-        () =>
-            draftCubit.saveCorrections(any(), any(), step: any(named: 'step')),
+        () => draftCubit.saveCorrections(
+          any(),
+          any(),
+          step: any(named: 'step'),
+          declaresRemovals: any(named: 'declaresRemovals'),
+        ),
       ).thenAnswer((_) async {});
     });
 
-    Future<void> openFight(WidgetTester tester, int fightCount) async {
+    Future<void> openFight(
+      WidgetTester tester,
+      int fightCount, {
+      bool isStoryAndWoundInputEnabled = false,
+    }) async {
       await openWizard(
         tester,
         MissionDraftReady(
@@ -932,6 +1256,7 @@ void main() {
             fights: [for (var i = 0; i < fightCount; i++) _simulatedFight()],
           ),
         ),
+        isStoryAndWoundInputEnabled: isStoryAndWoundInputEnabled,
       );
       await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
       await tester.pumpAndSettle();
@@ -956,7 +1281,7 @@ void main() {
       '«Avanti» on the last fight saves corrections with step prizes and opens «Premi» (D-06)',
       (tester) async {
         await openFight(tester, 1);
-        expect(_headerText('Passo 3 di 5 · Scontro 1 di 1'), findsOneWidget);
+        expect(_headerOf(MissionPage.fight, 'Scontro 1 di 1'), findsOneWidget);
 
         await tapNext(tester);
 
@@ -974,9 +1299,42 @@ void main() {
           ],
           [_aldo, _bea],
         );
-        expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+        expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
       },
     );
+
+    testWidgets('with the switch on «Avanti» on a fight saves the corrections '
+        'declaring their removals (Q7)', (tester) async {
+      await openFight(tester, 2, isStoryAndWoundInputEnabled: true);
+
+      await tapNext(tester);
+
+      verify(
+        () => draftCubit.saveCorrections(
+          0,
+          any(),
+          step: null,
+          declaresRemovals: true,
+        ),
+      ).called(1);
+    });
+
+    testWidgets('with the switch off it does not declare them (pre-gate)', (
+      tester,
+    ) async {
+      await openFight(tester, 2);
+
+      await tapNext(tester);
+
+      verify(
+        () => draftCubit.saveCorrections(
+          0,
+          any(),
+          step: null,
+          declaresRemovals: false,
+        ),
+      ).called(1);
+    });
 
     testWidgets('«Avanti» on fight 1 of 2 opens «Scontro 2 di 2»', (
       tester,
@@ -986,7 +1344,7 @@ void main() {
       await tapNext(tester);
 
       verify(() => draftCubit.saveCorrections(0, any(), step: null)).called(1);
-      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 2 di 2'), findsOneWidget);
     });
 
     testWidgets('«Indietro» from fight 2 goes back to fight 1', (tester) async {
@@ -996,7 +1354,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 3 di 5 · Scontro 1 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 1 di 2'), findsOneWidget);
     });
 
     testWidgets(
@@ -1029,7 +1387,7 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
 
     testWidgets('«Indietro» from «Premi» goes back to the last fight', (
@@ -1038,12 +1396,12 @@ void main() {
       await openFight(tester, 2);
       await tapNext(tester);
       await tapNext(tester);
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
 
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 3 di 5 · Scontro 2 di 2'), findsOneWidget);
+      expect(_headerOf(MissionPage.fight, 'Scontro 2 di 2'), findsOneWidget);
     });
 
     testWidgets('«Cambia nemici» goes back to «Scontri» (D-05)', (
@@ -1054,7 +1412,7 @@ void main() {
       await tester.tap(find.byKey(FightStep.changeEnemiesKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+      expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
     });
   });
 
@@ -1109,7 +1467,7 @@ void main() {
           ],
           [(_aldo, 150), (_bea, 0)],
         );
-        expect(_headerText('Passo 5 di 5 · Riepilogo'), findsOneWidget);
+        expect(_headerOf(MissionPage.recap, 'Riepilogo'), findsOneWidget);
       },
     );
 
@@ -1121,7 +1479,7 @@ void main() {
         await tester.tap(find.byKey(MissionCompletionScreen.backKey));
         await tester.pumpAndSettle();
 
-        expect(_headerText('Passo 2 di 5 · Scontri'), findsOneWidget);
+        expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
       },
     );
   });
@@ -1181,7 +1539,613 @@ void main() {
       await tester.tap(find.byKey(MissionCompletionScreen.backKey));
       await tester.pumpAndSettle();
 
-      expect(_headerText('Passo 4 di 5 · Premi'), findsOneWidget);
+      expect(_headerOf(MissionPage.prizes, 'Premi'), findsOneWidget);
     });
+
+    testWidgets(
+      'the recap completes as today and the last page does not exist (pre-gate)',
+      (tester) async {
+        when(() => draftCubit.conclude(any())).thenAnswer((_) async {});
+        await openWizard(tester, recapReady);
+
+        expect(find.text('Passo 6 di 6 · Riepilogo'), findsOneWidget);
+        expect(find.byKey(MissionCompletionScreen.nextKey), findsNothing);
+
+        await tester.tap(find.byKey(RecapStep.completeKey));
+        await tester.pumpAndSettle();
+        await tester.tap(confirmButton());
+        await tester.pumpAndSettle();
+
+        verify(() => draftCubit.complete()).called(1);
+        verifyNever(() => draftCubit.conclude(any()));
+        verifyNever(
+          () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+        );
+        expect(find.byType(AdditionsStep), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a draft served at the step stories opens the recap (pre-gate)',
+      (tester) async {
+        await openWizard(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: _scar}),
+          ),
+        );
+
+        expect(_headerOf(MissionPage.recap, 'Riepilogo'), findsOneWidget);
+        expect(find.byKey(RecapStep.completeKey), findsOneWidget);
+        expect(find.byType(AdditionsStep), findsNothing);
+      },
+    );
+  });
+
+  group('additions page (Phase 24, input on)', () {
+    final recapReady = MissionDraftReady(draft: _draftAt('recap'));
+    final storiesReady = MissionDraftReady(draft: _draftAt('stories'));
+
+    setUp(() {
+      when(
+        () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async {});
+      when(
+        () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+      ).thenAnswer((_) async {});
+      when(() => draftCubit.conclude(any())).thenAnswer((_) async {});
+      when(() => draftCubit.complete()).thenAnswer((_) async {});
+    });
+
+    Future<List<CompletionExit?>> openOn(
+      WidgetTester tester,
+      MissionDraftState initial,
+    ) => openWizard(tester, initial, isStoryAndWoundInputEnabled: true);
+
+    Finder additionsHeader() => _headerOf(
+      MissionPage.additions,
+      MissionCompletionScreen.additionsTitle,
+      withAdditions: true,
+    );
+
+    Finder recapHeader() =>
+        _headerOf(MissionPage.recap, 'Riepilogo', withAdditions: true);
+
+    Future<void> openAddition(WidgetTester tester, String id) async {
+      final header = find.descendant(
+        of: find.byKey(ParticipantStory.keyFor(id)),
+        matching: find.byType(DropdownHeader),
+      );
+      await tester.ensureVisible(header);
+      await tester.pump();
+      await tester.tap(header);
+      await tester.pumpAndSettle();
+    }
+
+    /// Scrive nel campo come fa l'oste: dentro la tendina aperta (D-23).
+    Future<void> type(WidgetTester tester, String id, String text) async {
+      final field = find.byKey(AdditionsStep.fieldKeyFor(id));
+      final isClosed = tester
+          .widget<ExcludeFocus>(
+            find.ancestor(of: field, matching: find.byType(ExcludeFocus)),
+          )
+          .excluding;
+      if (isClosed) await openAddition(tester, id);
+      await tester.enterText(field, text);
+      await tester.pump();
+    }
+
+    Future<void> tapConclude(WidgetTester tester) async {
+      await tester.tap(find.byKey(AdditionsStep.concludeKey));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapBack(WidgetTester tester) async {
+      await tester.tap(find.byKey(MissionCompletionScreen.backKey));
+      await tester.pumpAndSettle();
+    }
+
+    Finder confirmButton() => find.descendant(
+      of: find.byType(DestructiveConfirmationDialog),
+      matching: find.widgetWithText(ElevatedButton, RecapStep.completeLabel),
+    );
+
+    testWidgets(
+      '«Avanti» on the recap saves the step stories and opens the last page (D-05)',
+      (tester) async {
+        await openOn(tester, recapReady);
+        expect(find.byKey(RecapStep.completeKey), findsNothing);
+        expect(recapHeader(), findsOneWidget);
+
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        verify(() => draftCubit.saveStep(MissionDraftStep.stories)).called(1);
+        expect(
+          find.text('Passo 7 di 7 · Aggiunte alle storie'),
+          findsOneWidget,
+        );
+        expect(find.byType(AdditionsStep), findsOneWidget);
+        expect(find.byType(Dropdown), findsNWidgets(2));
+        verifyNever(() => draftCubit.complete());
+      },
+    );
+
+    testWidgets('a refused save stays on the recap (T-21-46)', (tester) async {
+      when(
+        () => draftCubit.saveStep(any(), placeId: any(named: 'placeId')),
+      ).thenAnswer((_) async {
+        draftStates.add(
+          recapReady.copyWith(
+            failure: InnkeeperFailure.connection,
+            failureSerial: 1,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+      });
+      await openOn(tester, recapReady);
+
+      await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+      await tester.pumpAndSettle();
+
+      expect(recapHeader(), findsOneWidget);
+      expect(find.byType(AdditionsStep), findsNothing);
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'a draft served at the step stories reopens on the last page with its texts (D-05)',
+      (tester) async {
+        await openWizard(
+          tester,
+          const MissionDraftLoading(),
+          isStoryAndWoundInputEnabled: true,
+        );
+
+        await emitDraft(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: _scar}),
+          ),
+        );
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(find.text(_scar), findsOneWidget);
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'a text typed in a dropdown is found again, counted on the closed header, after going back to the recap and forward (D-23)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await tapBack(tester);
+        expect(recapHeader(), findsOneWidget);
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(
+          find.byKey(AdditionsStep.fieldKeyFor(_aldo)).hitTestable(),
+          findsNothing,
+        );
+        expect(
+          tester
+              .widget<Text>(find.byKey(AdditionsStep.summaryKeyFor(_aldo)))
+              .data,
+          'aggiunta ${_typed.length}/1000',
+        );
+        await openAddition(tester, _aldo);
+        expect(find.text(_typed).hitTestable(), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a draft reopened on the last page reads the prize names for the recap behind it (D-22)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+
+        verify(() => prizeOptionsCubit.loadAll([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'the fields start from the additions of the draft, once: a new served draft does not overwrite the typed text (D-05, Pitfall 3)',
+      (tester) async {
+        await openOn(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: _scar}),
+          ),
+        );
+        await type(tester, _aldo, _typed);
+
+        await emitDraft(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: 'Altro', _bea: 'x'}),
+          ),
+        );
+
+        expect(find.text(_typed), findsOneWidget);
+        expect(find.text('Altro'), findsNothing);
+        await tapConclude(tester);
+        await tester.tap(confirmButton());
+        await tester.pumpAndSettle();
+        verify(() => draftCubit.conclude({_aldo: _typed})).called(1);
+      },
+    );
+
+    testWidgets(
+      '«Concludi» asks the confirmation with the recap lines and one line per addition (D-05, D-09)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+        await type(tester, _bea, '   ');
+
+        await tapConclude(tester);
+
+        final dialog = tester.widget<DestructiveConfirmationDialog>(
+          find.byType(DestructiveConfirmationDialog),
+        );
+        expect(dialog.title, MissionCompletionScreen.title);
+        expect(
+          dialog.body,
+          [
+            ...missionRecapLinesOf(
+              questTitle: _card.questTitle,
+              draft: storiesReady.draft,
+            ),
+            'Storia di Aldo: una nuova pagina',
+          ].join('\n'),
+        );
+        verifyNever(() => draftCubit.conclude(any()));
+      },
+    );
+
+    testWidgets('cancelling the confirmation calls nothing (T-24-23)', (
+      tester,
+    ) async {
+      final exits = await openOn(tester, storiesReady);
+      await type(tester, _aldo, _typed);
+
+      await tapConclude(tester);
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => draftCubit.conclude(any()));
+      verifyNever(() => draftCubit.complete());
+      verifyNever(
+        () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+      );
+      expect(exits, isEmpty);
+      expect(additionsHeader(), findsOneWidget);
+    });
+
+    testWidgets(
+      'confirming concludes with the typed texts, in one action (D-05, D-06)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+        await type(tester, _bea, 'Una bozza');
+        await type(tester, _bea, '');
+
+        await tapConclude(tester);
+        await tester.tap(confirmButton());
+        await tester.pumpAndSettle();
+
+        verify(() => draftCubit.conclude({_aldo: _typed, _bea: ''})).called(1);
+        verifyNever(() => draftCubit.complete());
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+      },
+    );
+
+    testWidgets('the completed mission leaves the wizard with the results', (
+      tester,
+    ) async {
+      final exits = await openOn(tester, storiesReady);
+
+      await tapConclude(tester);
+      await tester.tap(confirmButton());
+      await tester.pumpAndSettle();
+      await emitDraft(tester, MissionDraftCompleted(results: _results));
+
+      expect(exits, [CompletionCompleted(_results)]);
+    });
+
+    testWidgets(
+      'an addition refused as too long stays on the page with its line (D-07)',
+      (tester) async {
+        final exits = await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await emitDraft(
+          tester,
+          storiesReady.copyWith(
+            failure: InnkeeperFailure.additionTooLong,
+            failureSerial: 1,
+          ),
+        );
+
+        expect(
+          find.text(MissionCompletionScreen.additionTooLongMessage),
+          findsOneWidget,
+        );
+        expect(additionsHeader(), findsOneWidget);
+        expect(find.text(_typed), findsOneWidget);
+        expect(exits, isEmpty);
+      },
+    );
+
+    testWidgets(
+      '«Indietro» from the last page returns to the recap and keeps the texts',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await tapBack(tester);
+        expect(recapHeader(), findsOneWidget);
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(find.text(_typed), findsOneWidget);
+      },
+    );
+
+    group('unsaved additions', () {
+      void refuseSaveAdditions() {
+        when(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        ).thenAnswer((_) async {
+          draftStates.add(
+            storiesReady.copyWith(
+              failure: InnkeeperFailure.connection,
+              failureSerial: 1,
+            ),
+          );
+          await Future<void>.delayed(Duration.zero);
+        });
+      }
+
+      void acceptSaveAdditions() {
+        when(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        ).thenAnswer((_) async {});
+      }
+
+      Future<void> leave(WidgetTester tester) async {
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets(
+        '«Indietro» saves the additions that differ from the draft, then opens the recap (D-05)',
+        (tester) async {
+          await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await tapBack(tester);
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(recapHeader(), findsOneWidget);
+        },
+      );
+
+      testWidgets('«Indietro» without changes saves nothing', (tester) async {
+        await openOn(
+          tester,
+          MissionDraftReady(
+            draft: _draftAt('stories', additions: {_aldo: _scar}),
+          ),
+        );
+        await type(tester, _aldo, '$_scar ');
+        await type(tester, _bea, '  ');
+
+        await tapBack(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(recapHeader(), findsOneWidget);
+      });
+
+      testWidgets('a refused save on «Indietro» stays on the page (T-21-46)', (
+        tester,
+      ) async {
+        refuseSaveAdditions();
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await tapBack(tester);
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(find.text(_typed), findsOneWidget);
+        expect(
+          find.text(MissionCompletionScreen.connectionMessage),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets(
+        'leaving the wizard with unsaved additions saves them first, then leaves (D-05)',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await leave(tester);
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(exits, [null]);
+          expect(find.byType(MissionCompletionScreen), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'the back arrow of the bar saves the unsaved additions too (D-05)',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+
+          verify(() => draftCubit.saveAdditions({_aldo: _typed})).called(1);
+          expect(exits, [null]);
+        },
+      );
+
+      testWidgets('leaving without changes leaves at once', (tester) async {
+        final exits = await openOn(tester, storiesReady);
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, [null]);
+      });
+
+      testWidgets(
+        'a refused save while leaving keeps the wizard open with the failure line; the next attempt leaves without saving (T-24-26)',
+        (tester) async {
+          refuseSaveAdditions();
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+
+          await leave(tester);
+
+          expect(exits, isEmpty);
+          expect(additionsHeader(), findsOneWidget);
+          expect(
+            find.text(MissionCompletionScreen.connectionMessage),
+            findsOneWidget,
+          );
+
+          await leave(tester);
+
+          expect(exits, [null]);
+          verify(
+            () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+          ).called(1);
+        },
+      );
+
+      testWidgets('typing again re-arms the save on leave', (tester) async {
+        refuseSaveAdditions();
+        final exits = await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+        await leave(tester);
+        acceptSaveAdditions();
+
+        await type(tester, _aldo, '$_typed Due volte.');
+        await leave(tester);
+
+        verify(
+          () => draftCubit.saveAdditions({_aldo: '$_typed Due volte.'}),
+        ).called(1);
+        expect(exits, [null]);
+      });
+
+      testWidgets('no leave and no save while a call is running', (
+        tester,
+      ) async {
+        final exits = await openOn(
+          tester,
+          storiesReady.copyWith(isSubmitting: true),
+        );
+        await type(tester, _aldo, _typed);
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, isEmpty);
+        expect(additionsHeader(), findsOneWidget);
+      });
+
+      testWidgets('leaving from «Premi» behaves as before: no save', (
+        tester,
+      ) async {
+        final exits = await openOn(
+          tester,
+          MissionDraftReady(draft: _draftAt('prizes')),
+        );
+
+        await leave(tester);
+
+        verifyNever(
+          () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+        );
+        expect(exits, [null]);
+      });
+
+      testWidgets(
+        'on the recap the leave is free again: the additions were saved by «Indietro»',
+        (tester) async {
+          final exits = await openOn(tester, storiesReady);
+          await type(tester, _aldo, _typed);
+          await tapBack(tester);
+          expect(recapHeader(), findsOneWidget);
+
+          await leave(tester);
+
+          verify(
+            () => draftCubit.saveAdditions(any(), step: any(named: 'step')),
+          ).called(1);
+          expect(exits, [null]);
+        },
+      );
+    });
+
+    testWidgets(
+      'in landscape with the keyboard open the header hides, nothing overflows and the focused field is visible (Pitfall 6)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        final field = find.byKey(AdditionsStep.fieldKeyFor(_bea));
+        await openAddition(tester, _bea);
+        await tester.ensureVisible(field);
+        await tester.tap(field);
+        await tester.pump();
+
+        tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+        addTearDown(tester.view.resetViewInsets);
+        await tester.pumpAndSettle();
+
+        expect(additionsHeader(), findsNothing);
+        expect(find.byKey(AdditionsStep.concludeKey), findsNothing);
+        expect(tester.takeException(), isNull);
+        final viewport = tester.getRect(find.byType(SingleChildScrollView));
+        expect(tester.getRect(field).overlaps(viewport), isTrue);
+        expect(viewport.height, greaterThan(0));
+      },
+    );
+
+    testWidgets(
+      '«Riprova» on the last page reads the participants again (D-31)',
+      (tester) async {
+        whenListen(
+          participantsCubit,
+          const Stream<MissionParticipantsState>.empty(),
+          initialState: const MissionParticipantsFailed(
+            failure: InnkeeperFailure.timedOut,
+          ),
+        );
+        await openOn(tester, storiesReady);
+
+        await tester.tap(find.byKey(AdditionsStep.retryKey));
+        await tester.pump();
+
+        verify(() => participantsCubit.load([_aldo, _bea])).called(1);
+      },
+    );
   });
 }

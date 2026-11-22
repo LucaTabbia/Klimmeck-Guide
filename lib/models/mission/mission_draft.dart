@@ -6,8 +6,9 @@ import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/mission/mission_prize.dart';
 import 'package:klimmeck_guide/models/utc_instant.dart';
 
-/// Passo raggiunto dal wizard, salvato sulla bozza (D-18).
-enum MissionDraftStep { teleport, fights, prizes, recap }
+/// Passo raggiunto dal wizard, salvato sulla bozza (D-18). `stories` è
+/// l'ultima pagina, quella delle aggiunte alle storie (Phase 24 D-05).
+enum MissionDraftStep { teleport, fights, prizes, recap, stories }
 
 /// Partecipante fotografato dal BE all'avvio della bozza.
 class MissionParticipant extends Equatable {
@@ -56,6 +57,30 @@ class MissionParticipant extends Equatable {
   ];
 }
 
+/// Aggiunta dell'oste alla storia di un partecipante, tenuta nella bozza
+/// (Phase 24 D-05, D-06).
+class MissionBackgroundAddition extends Equatable {
+  const MissionBackgroundAddition({
+    required this.characterId,
+    required this.text,
+  });
+
+  final String characterId;
+  final String text;
+
+  /// Confine di parsing: senza `character` e `text` l'aggiunta vale `null`.
+  static MissionBackgroundAddition? tryFromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    final characterId = json['character'];
+    final text = json['text'];
+    if (characterId is! String || text is! String) return null;
+    return MissionBackgroundAddition(characterId: characterId, text: text);
+  }
+
+  @override
+  List<Object?> get props => [characterId, text];
+}
+
 /// Bozza del flusso guidato servita dal BE (D-09): è lo stato del wizard.
 class MissionDraft extends Equatable {
   const MissionDraft({
@@ -69,6 +94,7 @@ class MissionDraft extends Equatable {
     this.participants = const [],
     this.fights = const [],
     this.prizes = const [],
+    this.backgroundAdditions = const [],
   });
 
   final String id;
@@ -92,12 +118,22 @@ class MissionDraft extends Equatable {
   final List<MissionFight> fights;
   final List<MissionPrize> prizes;
 
+  /// Al massimo una per partecipante; assente = nessuna aggiunta (Phase 24 D-06).
+  final List<MissionBackgroundAddition> backgroundAdditions;
+
   /// Vero anche senza scontri (D-24): letto dal verdetto servito, mai calcolato.
   bool get allFightsSimulated => fights.every((fight) => fight.isSimulated);
 
   MissionPrize? prizeOf(String characterId) {
     for (final prize in prizes) {
       if (prize.characterId == characterId) return prize;
+    }
+    return null;
+  }
+
+  MissionBackgroundAddition? additionOf(String characterId) {
+    for (final addition in backgroundAdditions) {
+      if (addition.characterId == characterId) return addition;
     }
     return null;
   }
@@ -124,6 +160,10 @@ class MissionDraft extends Equatable {
       ),
       fights: missionEntriesOf(json['fights'], MissionFight.tryFromJson),
       prizes: missionEntriesOf(json['prizes'], MissionPrize.tryFromJson),
+      backgroundAdditions: missionEntriesOf(
+        json['backgroundAdditions'],
+        MissionBackgroundAddition.tryFromJson,
+      ),
     );
   }
 
@@ -139,5 +179,6 @@ class MissionDraft extends Equatable {
     participants,
     fights,
     prizes,
+    backgroundAdditions,
   ];
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../models/asset_item.dart';
+import '../../models/enums/injury_type.dart';
 import '../../models/equipment_item.dart';
 import '../../theme/kg_theme.dart';
 import '../../utils/item_lines.dart';
 import 'cards/equipment_item_card.dart';
 import 'cards/loot_item_card.dart';
 import 'coins_display.dart';
+import 'healed_injuries_text.dart';
 
 class ItemRow extends StatelessWidget {
   const ItemRow({
@@ -21,6 +23,7 @@ class ItemRow extends StatelessWidget {
     this.onLongTap,
     this.isDisabled = false,
     this.statusLine,
+    this.readerInnkeeperInjuries = const [],
   });
 
   static const EdgeInsets padding = EdgeInsets.symmetric(
@@ -43,11 +46,17 @@ class ItemRow extends StatelessWidget {
   /// Riga di stato sotto le altre (D-12), es. il conto alla rovescia.
   final String? statusLine;
 
+  /// Ferite dell'oste di chi legge: in rosso dentro «Cura: …» (D-21). Vuota =
+  /// la riga di catalogo.
+  final List<InjuryType> readerInnkeeperInjuries;
+
   @override
   Widget build(BuildContext context) {
     final lootItem = assetItem.asLoot;
     final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
-    final injuriesLine = lootItem == null ? null : healedInjuriesLine(lootItem);
+    final healedInjuries = lootItem == null
+        ? const <HealedInjuryLabel>[]
+        : healedInjuryLabels(lootItem, beyondCure: readerInnkeeperInjuries);
     final recovery = lootItem == null ? null : recoveryLine(lootItem.recovery);
     return Padding(
       padding: padding,
@@ -86,7 +95,7 @@ class ItemRow extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 8.0),
-              child: _buildTexts(effectLine, injuriesLine, recovery),
+              child: _buildTexts(effectLine, healedInjuries, recovery),
             ),
           ),
         ],
@@ -96,7 +105,7 @@ class ItemRow extends StatelessWidget {
 
   Widget _buildTexts(
     String? effectLine,
-    String? injuriesLine,
+    List<HealedInjuryLabel> healedInjuries,
     String? recoveryText,
   ) {
     final style = KlimmeckGuideTheme.instance.bodyMedium;
@@ -111,10 +120,10 @@ class ItemRow extends StatelessWidget {
             key: ValueKey('item-effect-${assetItem.id}'),
             style: style,
           ),
-        if (injuriesLine != null)
-          Text(
-            injuriesLine,
+        if (healedInjuries.isNotEmpty)
+          HealedInjuriesText(
             key: ValueKey('item-injuries-${assetItem.id}'),
+            labels: healedInjuries,
             style: style,
           ),
         if (recoveryText != null)

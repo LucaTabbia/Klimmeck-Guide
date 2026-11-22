@@ -102,6 +102,26 @@ void main() {
       expect(boardQuestsFor([story], buildViewer()), [story]);
     });
 
+    test('a story without a place is listed for its exact title from any '
+        'city, never for another title', () {
+      final story = buildQuest(
+        type: 'story',
+        requiredPoints: 100,
+        markerId: null,
+      );
+      expect(story.infos?.markerLocation, isNull);
+      expect(boardQuestsFor([story], buildViewer()), [story]);
+      expect(
+        boardQuestsFor([story], buildViewer(cityPointIds: const {'poi-9'})),
+        [story],
+      );
+      expect(boardQuestsFor([story], buildViewer(cityPointIds: null)), [story]);
+      expect(
+        boardQuestsFor([story], buildViewer(title: TitleType.adventurer)),
+        isEmpty,
+      );
+    });
+
     test('only the story of the exact title is listed', () {
       final chapters = [
         for (final t in ['rookie', 'adventurer', 'paladin', 'mage', 'hero'])

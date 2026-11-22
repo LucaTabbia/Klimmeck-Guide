@@ -40,6 +40,7 @@ import '../../../../shared/components/section.dart';
 import '../../../../shared/components/text_section.dart';
 import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../characterCubit/character_selectors.dart';
 import 'components/equipment_mannequin.dart';
 import 'components/injury_name_icon.dart';
 import 'cubit/journal_cubit.dart';
@@ -56,6 +57,12 @@ class Journal extends StatefulWidget {
 
   static Key newInjuryKeyOf(InjuryType injury) =>
       ValueKey('journal.newInjury.${injury.name}');
+
+  /// Riga sotto una ferita dell'oste: nessuna cura la toglie (D-15).
+  static const String beyondCureLine = 'Troppo grave per essere curata';
+
+  static Key beyondCureKeyOf(InjuryType injury) =>
+      ValueKey('journal.beyondCure.${injury.name}');
 
   @override
   State<Journal> createState() => _JournalState();
@@ -165,40 +172,51 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildInjuriesSection() {
-    return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
-      selector: (state) {
-        if (state is CharacterLoaded) {
-          return state.character.status!.injuries;
+    // le due liste insieme: la sezione segue anche un cambio di origine a
+    // lista invariata
+    return BlocSelector<CharacterCubit, CharacterState, CharacterWounds?>(
+      selector: woundsOf,
+      builder: (context, wounds) {
+        if (wounds == null || wounds.injuries.isEmpty) {
+          return const SizedBox.shrink();
         }
-        return null;
-      },
-      builder: (context, injuries) => NewEntriesBuilder(
-        category: NewEntryCategory.injuries,
-        builder: (context, newInjuries) => Section(
-          sectionName: "Ferite",
-          data: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final injury in injuries!)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(child: InjuryNameIcon(injury: injury)),
-                    if (newInjuries.contains(injury.name))
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: KlimmeckGuideTheme.spacingSm,
-                        ),
-                        child: NewEntrySigil(
-                          key: Journal.newInjuryKeyOf(injury),
-                        ),
+        return NewEntriesBuilder(
+          category: NewEntryCategory.injuries,
+          builder: (context, newInjuries) => Dropdown(
+            sectionName: "Ferite",
+            badge: newInjuries.isEmpty ? null : const NewEntrySigil(),
+            data: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final injury in wounds.injuries)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: wounds.innkeeperInjuries.contains(injury)
+                            ? InjuryNameIcon(
+                                injury: injury,
+                                note: Journal.beyondCureLine,
+                                noteKey: Journal.beyondCureKeyOf(injury),
+                              )
+                            : InjuryNameIcon(injury: injury),
                       ),
-                  ],
-                ),
-            ],
+                      if (newInjuries.contains(injury.name))
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: KlimmeckGuideTheme.spacingSm,
+                          ),
+                          child: NewEntrySigil(
+                            key: Journal.newInjuryKeyOf(injury),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

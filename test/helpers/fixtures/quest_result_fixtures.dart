@@ -87,7 +87,7 @@ Map<String, dynamic> equipmentRewardJson({
 
 /// Payload registrato di `QuestResult` (BE Phase 9, schema `10e5f43`): di
 /// default una vittoria in una caccia. `acknowledgedAt` (BE 9.2) è scritto solo
-/// se valorizzato.
+/// se valorizzato, come `backgroundEntryAdded` e `injuriesRemoved` (BE Phase 25).
 Map<String, dynamic> questResultJson({
   String id = 'result-1',
   String outcome = 'success',
@@ -129,6 +129,8 @@ Map<String, dynamic> questResultJson({
   Map<String, dynamic>? companion,
   Map<String, dynamic>? spellFound,
   bool? spellResearchFailed,
+  bool? backgroundEntryAdded,
+  List<Object?>? injuriesRemoved,
 }) => {
   'id': id,
   'outcome': outcome,
@@ -177,6 +179,9 @@ Map<String, dynamic> questResultJson({
   if (companion != null) 'companion': companion,
   if (spellFound != null) 'spellFound': spellFound,
   if (spellResearchFailed != null) 'spellResearchFailed': spellResearchFailed,
+  if (backgroundEntryAdded != null)
+    'backgroundEntryAdded': backgroundEntryAdded,
+  if (injuriesRemoved != null) 'injuriesRemoved': injuriesRemoved,
 };
 
 /// Esito di una quest heal vinta (BE Phase 18): vita risalita, una ferita

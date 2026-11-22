@@ -85,4 +85,22 @@ void main() {
       NewEntryCategory.background: {'Ha salvato Bosa.'},
     });
   });
+
+  testWidgets('a character update that appends a background entry marks it '
+      'and lights the Profile (D-09)', (tester) async {
+    const birth = 'Nata a Drustea.';
+    const deed = 'Ha salvato Bosa.';
+    const addition = "L'oste racconta ancora del suo coraggio.";
+    await pumpListener(tester, character: characterWith([birth, deed]));
+
+    characterStates.add(characterWith([birth, deed, addition]));
+    await tester.pump();
+    await tester.pump();
+
+    expect(entries.state.unseen, {
+      NewEntryCategory.background: {addition},
+    });
+    expect(entries.state.hasUnseenIn(NewEntryCategory.profile), isTrue);
+    expect(store.seenOf('c-1', NewEntryCategory.background), {birth, deed});
+  });
 }

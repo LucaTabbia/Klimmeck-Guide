@@ -7,7 +7,6 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
-import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -18,10 +17,6 @@ import '../../../../helpers/mocks.dart';
 
 Finder sigilIn(Finder scope) =>
     find.descendant(of: scope, matching: find.byType(NewEntrySigil));
-
-Finder headerOf(String sectionName) => find.byWidgetPredicate(
-  (widget) => widget is DropdownHeader && widget.sectionName == sectionName,
-);
 
 void main() {
   late MockCharacterCubit characterCubit;
@@ -79,9 +74,11 @@ void main() {
     await pumpJournal(tester);
 
     expect(find.byType(NewEntrySigil), findsNothing);
+    expect(sigilIn(journalSectionHeader('Ferite')), findsNothing);
   });
 
-  testWidgets('a new injury carries the sigil beside its name', (tester) async {
+  testWidgets('a new injury marks the closed «Ferite» header and its own row '
+      '(D-22)', (tester) async {
     await pumpJournal(
       tester,
       highlighted: {
@@ -89,6 +86,17 @@ void main() {
       },
     );
 
+    expect(sigilIn(journalSectionHeader('Ferite')), findsOneWidget);
+    expect(sigilIn(journalSectionHeader('Armatura')), findsNothing);
+
+    await toggleJournalSection(tester, 'Ferite');
+
+    expect(
+      find
+          .byKey(Journal.newInjuryKeyOf(InjuryType.missingLeftEye))
+          .hitTestable(),
+      findsOneWidget,
+    );
     expect(
       find.byKey(Journal.newInjuryKeyOf(InjuryType.missingLeftEye)),
       findsOneWidget,
@@ -110,10 +118,10 @@ void main() {
         },
       );
 
-      expect(sigilIn(headerOf('Magie imparate')), findsOneWidget);
-      expect(sigilIn(headerOf('Oggetti')), findsNothing);
-      expect(sigilIn(headerOf('Compagno')), findsNothing);
-      expect(sigilIn(headerOf('Armatura')), findsNothing);
+      expect(sigilIn(journalSectionHeader('Magie imparate')), findsOneWidget);
+      expect(sigilIn(journalSectionHeader('Oggetti')), findsNothing);
+      expect(sigilIn(journalSectionHeader('Compagno')), findsNothing);
+      expect(sigilIn(journalSectionHeader('Armatura')), findsNothing);
 
       await tester.tap(find.text('Magie imparate'));
       await tester.pumpAndSettle();
@@ -137,7 +145,7 @@ void main() {
       },
     );
 
-    expect(sigilIn(headerOf('Oggetti')), findsOneWidget);
+    expect(sigilIn(journalSectionHeader('Oggetti')), findsOneWidget);
 
     await tester.ensureVisible(find.text('Oggetti'));
     await tester.tap(find.text('Oggetti'));

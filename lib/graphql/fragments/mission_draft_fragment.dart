@@ -17,7 +17,8 @@ class MissionDraftFragment {
   /// parser. I limiti di ogni scontro (vita, ferite e risorse di partenza)
   /// sono serviti, mai calcolati (D-14); il verdetto è uno per scontro (D-21).
   /// Il compagno di ogni esito e la sua vita dopo lo scontro sono della BE
-  /// Phase 23 (D-33).
+  /// Phase 23 (D-33). Le aggiunte alle storie, le ferite tolte e l'origine
+  /// delle ferite sono della BE Phase 25, selezionate dal gate 24-10.
   static String get fields =>
       '''
     id
@@ -36,12 +37,14 @@ class MissionDraftFragment {
         hpBefore
         companion { pet name lifeBefore maxLifePoints }
         injuriesBefore
+        innkeeperInjuriesBefore
         consumablesAvailable { item quantity }
         spellsAvailable { spell usages }
-        simulated { hpAfter companionLifeAfter injuriesAdded consumablesUsed { item quantity } spellsUsed { spell usages } }
-        corrected { hpAfter companionLifeAfter injuriesAdded consumablesUsed { item quantity } spellsUsed { spell usages } }
+        simulated { hpAfter companionLifeAfter injuriesAdded injuriesRemoved innkeeperInjuries consumablesUsed { item quantity } spellsUsed { spell usages } }
+        corrected { hpAfter companionLifeAfter injuriesAdded injuriesRemoved innkeeperInjuries consumablesUsed { item quantity } spellsUsed { spell usages } }
       }
     }
     prizes { character xp coins { ${CoinsFragment.fields} } cure { lifePointsShare canHeal } items { item quantity } pet spell }
+    backgroundAdditions { character text }
   ''';
 }

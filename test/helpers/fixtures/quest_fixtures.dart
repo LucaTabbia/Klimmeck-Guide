@@ -19,6 +19,8 @@ Map<String, dynamic> questEnemyJson({
 
 /// Quest JSON nella forma proposta dal BE Phase 8 (D-28): slot per rango e
 /// registrazioni con titolo.
+/// Un `markerId` nullo dà una quest senza luogo (`infos.markerLocation: null`),
+/// come le sole story servite dal BE.
 Map<String, dynamic> questJson({
   String id = 'q-1',
   String type = 'enemy',
@@ -27,7 +29,7 @@ Map<String, dynamic> questJson({
   int? requiredPoints,
   List<Map<String, dynamic>>? slots,
   List<Object> registered = const [],
-  String markerId = 'poi-1',
+  String? markerId = 'poi-1',
   int? timeToComplete = 60000,
   List<Map<String, dynamic>>? enemies,
   String? description,
@@ -42,10 +44,12 @@ Map<String, dynamic> questJson({
     'title': title,
     'type': type,
     'timeToComplete': timeToComplete,
-    'markerLocation': {
-      'id': markerId,
-      'location': [1.0, 2.0],
-    },
+    'markerLocation': markerId == null
+        ? null
+        : {
+            'id': markerId,
+            'location': [1.0, 2.0],
+          },
     if (enemies != null) 'enemies': enemies,
     if (description != null) 'description': description,
     if (lore != null) 'relatedLore': lore,
@@ -118,6 +122,7 @@ Map<String, dynamic> characterWithLanesJson({
   int? currentLifePoints,
   int? maxLifePoints,
   List<String>? injuries,
+  List<String>? innkeeperInjuries,
 }) => {
   'id': id,
   'status': {
@@ -129,6 +134,7 @@ Map<String, dynamic> characterWithLanesJson({
     if (currentLifePoints != null) 'currentLifePoints': currentLifePoints,
     if (maxLifePoints != null) 'maxLifePoints': maxLifePoints,
     if (injuries != null) 'injuries': injuries,
+    'innkeeperInjuries': ?innkeeperInjuries,
   },
   'quests': {
     'completedQuests': [
@@ -148,7 +154,7 @@ Quest buildQuest({
   int? requiredPoints,
   List<Map<String, dynamic>>? slots,
   List<Object> registered = const [],
-  String markerId = 'poi-1',
+  String? markerId = 'poi-1',
   int? timeToComplete = 60000,
   List<Map<String, dynamic>>? enemies,
   String? description,

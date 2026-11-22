@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/repository/travel_failure.dart'
 
 const String outcomeOverrideInvalidCode = 'OUTCOME_OVERRIDE_INVALID';
 const String outcomeNotParticipantCode = 'OUTCOME_NOT_PARTICIPANT';
+const String backgroundAdditionTooLongCode = 'BACKGROUND_ADDITION_TOO_LONG';
 
 /// Esiti di dominio delle azioni del GM (BE 09 §2, BE 08 §2, BE-HARD-08):
 /// solo `extensions.code`, mai il testo del server (10-CONTEXT D-14/C2).
@@ -17,6 +18,9 @@ enum InnkeeperFailure {
   questInProgress,
   overrideInvalid,
   notParticipant,
+
+  /// Un'aggiunta a una storia supera il limite del BE (Phase 24 D-07).
+  additionTooLong,
   forbidden,
 
   /// BAD_USER_INPUT (BE Phase 10): richiesta rifiutata dalla validazione del
@@ -54,6 +58,7 @@ InnkeeperFailure innkeeperFailureFrom(OperationException exception) {
     questInProgressCode => InnkeeperFailure.questInProgress,
     outcomeOverrideInvalidCode => InnkeeperFailure.overrideInvalid,
     outcomeNotParticipantCode => InnkeeperFailure.notParticipant,
+    backgroundAdditionTooLongCode => InnkeeperFailure.additionTooLong,
     forbiddenCode => InnkeeperFailure.forbidden,
     badUserInputCode => InnkeeperFailure.badUserInput,
     unauthenticatedCode => InnkeeperFailure.unauthenticated,

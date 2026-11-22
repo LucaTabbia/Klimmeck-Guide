@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/screens/characterCreation/components/enum_choice_row.dart';
 import 'package:klimmeck_guide/screens/characterCreation/components/sheet_row.dart';
-import 'package:klimmeck_guide/screens/characterCreation/components/sheet_text_field.dart';
+import 'package:klimmeck_guide/shared/components/sheet_text_field.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../helpers/test_app.dart';

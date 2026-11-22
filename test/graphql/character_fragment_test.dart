@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/graphql/queries/character_queries.dart';
 import 'package:klimmeck_guide/graphql/subscriptions/character_subscriptions.dart';
 import 'package:klimmeck_guide/models/character/awaiting_aid.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 
@@ -193,6 +194,37 @@ void main() {
       expect(document, contains('missionInProgress'));
       expect(document, contains('guidedMissionInProgress'));
     }
+  });
+
+  test('the status selects innkeeperInjuries right after injuries (D-16)', () {
+    expect(
+      CharacterFragment.statusFields.replaceAll(RegExp(r'\s+'), ' '),
+      contains('maxActiveSpells injuries innkeeperInjuries level'),
+    );
+  });
+
+  test('character and characterUpdated carry innkeeperInjuries (D-16)', () {
+    for (final document in [
+      CharacterQueries.getCharacter,
+      CharacterSubscriptions.characterUpdated,
+    ]) {
+      expect(
+        document.replaceAll(RegExp(r'\s+'), ' '),
+        contains('injuries innkeeperInjuries'),
+      );
+    }
+  });
+
+  test('a recorded characterUpdated payload parses the innkeeper wounds', () {
+    final character = Character.fromJson({
+      ..._recordedCharacterUpdated,
+      'status': {
+        'injuries': ['blackEye', 'brokenLeftArm'],
+        'innkeeperInjuries': ['brokenLeftArm'],
+      },
+    });
+
+    expect(character.status!.innkeeperInjuries, [InjuryType.brokenLeftArm]);
   });
 
   test('statusFields selects unlockedLore (D-01)', () {

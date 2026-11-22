@@ -355,6 +355,46 @@ void main() {
       },
     );
 
+    List<Map<String, dynamic>> savedCorrectionsOf(int fightIndex) {
+      final fights = savedInput().toJson()['fights'] as List<Object?>;
+      final fight = fights[fightIndex] as Map<String, dynamic>;
+      return (fight['corrections'] as List<Object?>)
+          .cast<Map<String, dynamic>>();
+    }
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'saveCorrections declares the removals of the fight when asked: an '
+      'empty list is sent (Q7)',
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) =>
+          cubit.saveCorrections(1, const [correction], declaresRemovals: true),
+      verify: (_) {
+        final corrections = savedCorrectionsOf(1);
+        expect(corrections, hasLength(2));
+        expect([
+          for (final sent in corrections) sent['injuriesRemoved'],
+        ], everyElement(isEmpty));
+        expect(
+          corrections.every((sent) => sent.containsKey('injuriesRemoved')),
+          isTrue,
+        );
+      },
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'by default saveCorrections sends no injuriesRemoved key (pre-gate)',
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) => cubit.saveCorrections(1, const [correction]),
+      verify: (_) => expect(
+        savedCorrectionsOf(
+          1,
+        ).any((sent) => sent.containsKey('injuriesRemoved')),
+        isFalse,
+      ),
+    );
+
     final prizes = [
       const MissionPrizeInput(
         characterId: _aldo,
@@ -510,6 +550,167 @@ void main() {
           failureSerial: 1,
         ),
       ],
+    );
+  });
+
+  group('story additions', () {
+    const texts = {_aldo: '  Ha visto il drago.  ', _bea: '   '};
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'saveAdditions sends one entry per participant with the trimmed text '
+      'and serves the answered draft (D-05, D-06)',
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) => cubit.saveAdditions(texts, step: MissionDraftStep.recap),
+      expect: () => [
+        MissionDraftReady(draft: _withFights, isSubmitting: true),
+        MissionDraftReady(draft: _afterSave),
+      ],
+      verify: (_) => expect(savedInput().toJson(), {
+        'pendingQuestId': _pendingQuestId,
+        'step': 'recap',
+        'backgroundAdditions': [
+          {'characterId': _aldo, 'text': 'Ha visto il drago.'},
+          {'characterId': _bea, 'text': ''},
+        ],
+      }),
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'a refused saveAdditions keeps the draft served before with the refusal '
+      '(D-07)',
+      setUp: () => when(
+        () => repository.saveMissionDraft(any()),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.additionTooLong)),
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights, failureSerial: 2),
+      act: (cubit) => cubit.saveAdditions(texts),
+      expect: () => [
+        MissionDraftReady(
+          draft: _withFights,
+          isSubmitting: true,
+          failureSerial: 2,
+        ),
+        MissionDraftReady(
+          draft: _withFights,
+          failure: InnkeeperFailure.additionTooLong,
+          failureSerial: 3,
+        ),
+      ],
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'conclude saves with the step stories, then completes (D-05)',
+      setUp: () => when(
+        () => repository.completeGuidedMission(_pendingQuestId),
+      ).thenAnswer((_) async => _results),
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights),
+      act: (cubit) => cubit.conclude(texts),
+      expect: () => [
+        MissionDraftReady(draft: _withFights, isSubmitting: true),
+        MissionDraftReady(draft: _afterSave, isSubmitting: true),
+        MissionDraftCompleted(results: _results),
+      ],
+      verify: (_) {
+        final calls = verifyInOrder([
+          () => repository.saveMissionDraft(captureAny()),
+          () => repository.completeGuidedMission(_pendingQuestId),
+        ]);
+        final input = calls.first.captured.single as SaveMissionDraftInput;
+        expect(input.toJson(), {
+          'pendingQuestId': _pendingQuestId,
+          'step': 'stories',
+          'backgroundAdditions': [
+            {'characterId': _aldo, 'text': 'Ha visto il drago.'},
+            {'characterId': _bea, 'text': ''},
+          ],
+        });
+      },
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'conclude does not complete when the save is refused (D-05)',
+      setUp: () => when(
+        () => repository.saveMissionDraft(any()),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.additionTooLong)),
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights, failureSerial: 1),
+      act: (cubit) => cubit.conclude(texts),
+      expect: () => [
+        MissionDraftReady(
+          draft: _withFights,
+          isSubmitting: true,
+          failureSerial: 1,
+        ),
+        MissionDraftReady(
+          draft: _withFights,
+          failure: InnkeeperFailure.additionTooLong,
+          failureSerial: 2,
+        ),
+      ],
+      verify: (_) => verifyNever(() => repository.completeGuidedMission(any())),
+    );
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'a refused completion leaves the saved additions served (D-05)',
+      setUp: () => when(
+        () => repository.completeGuidedMission(_pendingQuestId),
+      ).thenThrow(const InnkeeperException(InnkeeperFailure.questInProgress)),
+      build: build,
+      seed: () => MissionDraftReady(draft: _withFights, failureSerial: 1),
+      act: (cubit) => cubit.conclude(texts),
+      expect: () => [
+        MissionDraftReady(
+          draft: _withFights,
+          isSubmitting: true,
+          failureSerial: 1,
+        ),
+        MissionDraftReady(
+          draft: _afterSave,
+          isSubmitting: true,
+          failureSerial: 1,
+        ),
+        MissionDraftReady(
+          draft: _afterSave,
+          failure: InnkeeperFailure.questInProgress,
+          failureSerial: 2,
+        ),
+      ],
+    );
+
+    test('conclude does nothing while another call is running', () async {
+      final save = Completer<MissionDraft>();
+      when(
+        () => repository.saveMissionDraft(any()),
+      ).thenAnswer((_) => save.future);
+      when(
+        () => repository.readMissionDraft(_pendingQuestId),
+      ).thenAnswer((_) async => _withFights);
+      final cubit = build();
+      await cubit.load();
+
+      final first = cubit.saveStep(MissionDraftStep.recap);
+      await cubit.conclude(texts);
+      save.complete(_afterSave);
+      await first;
+
+      verify(() => repository.saveMissionDraft(any())).called(1);
+      verifyNever(() => repository.completeGuidedMission(any()));
+      expect(cubit.state, MissionDraftReady(draft: _afterSave));
+      await cubit.close();
+    });
+
+    blocTest<MissionDraftCubit, MissionDraftState>(
+      'conclude does nothing without a served draft',
+      build: build,
+      seed: () => const MissionDraftAbsent(),
+      act: (cubit) => cubit.conclude(texts),
+      expect: () => <MissionDraftState>[],
+      verify: (_) {
+        verifyNever(() => repository.saveMissionDraft(any()));
+        verifyNever(() => repository.completeGuidedMission(any()));
+      },
     );
   });
 

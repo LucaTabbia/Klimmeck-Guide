@@ -92,13 +92,13 @@ void main() {
       expect(sharedSelection, contains('injuriesAdded injuriesHealed'));
     });
 
-    test('selects arrested, coinsLost and guardEncounter after '
-        'injuriesHealed (quick 261110-cgd)', () {
+    test('selects arrested, coinsLost and guardEncounter after the healed '
+        'and removed wounds (quick 261110-cgd)', () {
       expect(
         sharedSelection,
         contains(
-          'injuriesHealed arrested coinsLost { gold silver copper } '
-          'guardEncounter',
+          'injuriesHealed injuriesRemoved arrested '
+          'coinsLost { gold silver copper } guardEncounter',
         ),
       );
     });
@@ -155,6 +155,17 @@ void main() {
           );
         });
 
+        test('$name selects injuriesRemoved and backgroundEntryAdded '
+            '(D-09, D-18)', () {
+          final selection = _collapsed(document);
+
+          expect(selection, contains('injuriesHealed injuriesRemoved'));
+          expect(
+            selection,
+            contains('spellResearchFailed backgroundEntryAdded'),
+          );
+        });
+
         test('$name selects onFoot in the ambush report (D-28)', () {
           expect(
             _collapsed(document),
@@ -171,7 +182,10 @@ void main() {
     test('selects the lore unlocked by the outcome (D-04)', () {
       expect(
         sharedSelection,
-        contains('spellResearchFailed loreUnlocked { id name type }'),
+        contains(
+          'spellResearchFailed backgroundEntryAdded '
+          'loreUnlocked { id name type }',
+        ),
       );
     });
 

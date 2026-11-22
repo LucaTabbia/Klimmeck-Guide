@@ -31,6 +31,7 @@ class CharacterFragment {
       maxLifePoints
       maxActiveSpells
       injuries
+      innkeeperInjuries
       level
       xp
       title

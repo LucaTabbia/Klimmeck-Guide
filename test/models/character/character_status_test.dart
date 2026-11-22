@@ -18,6 +18,7 @@ Map<String, dynamic> statusJson({
   Object? injuries = _absent,
   Object? potionRecoveryUntil = _absent,
   Object? imprisonedUntil = _absent,
+  Object? innkeeperInjuries = _absent,
 }) => {
   'title': 'rookie',
   'xp': 1,
@@ -30,6 +31,8 @@ Map<String, dynamic> statusJson({
   if (!identical(potionRecoveryUntil, _absent))
     'potionRecoveryUntil': potionRecoveryUntil,
   if (!identical(imprisonedUntil, _absent)) 'imprisonedUntil': imprisonedUntil,
+  if (!identical(innkeeperInjuries, _absent))
+    'innkeeperInjuries': innkeeperInjuries,
 };
 
 const Object _absent = Object();
@@ -655,6 +658,76 @@ void main() {
       expect(status.copyWith(injuries: [InjuryType.blackEye]).injuries, [
         InjuryType.blackEye,
       ]);
+    });
+  });
+
+  group('innkeeper wounds (BE Phase 25)', () {
+    test('reads the innkeeper wounds as a lenient list (D-16)', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(
+          injuries: ['deepCut', 'stunned'],
+          innkeeperInjuries: ['deepCut', 'brokenWing', 'stunned'],
+        ),
+      );
+
+      expect(status.innkeeperInjuries, [
+        InjuryType.deepCut,
+        InjuryType.stunned,
+      ]);
+    });
+
+    test('a status without the field has no innkeeper wound (D-16)', () {
+      final served = {
+        'absent': statusJson(injuries: ['deepCut']),
+        'null': statusJson(injuries: ['deepCut'], innkeeperInjuries: null),
+        'a string': statusJson(
+          injuries: ['deepCut'],
+          innkeeperInjuries: 'deepCut',
+        ),
+      };
+
+      served.forEach((name, json) {
+        final status = CharacterStatus.fromJson(json);
+
+        expect(status.innkeeperInjuries, isEmpty, reason: name);
+        expect(status.injuries, [InjuryType.deepCut], reason: name);
+      });
+    });
+
+    test('toJson writes the innkeeper wounds and a round trip keeps them', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(
+          injuries: ['deepCut', 'stunned'],
+          innkeeperInjuries: ['stunned'],
+        ),
+      );
+
+      expect(status.toJson()['innkeeperInjuries'], ['stunned']);
+      expect(
+        CharacterStatus.fromJson(status.toJson()).innkeeperInjuries,
+        status.innkeeperInjuries,
+      );
+    });
+
+    test('copyWith keeps the innkeeper wounds', () {
+      final status = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut'], innkeeperInjuries: ['deepCut']),
+      );
+
+      expect(status.copyWith(xp: 4).innkeeperInjuries, [InjuryType.deepCut]);
+    });
+
+    test('two statuses with the same wounds and a different origin are not '
+        'equal (Pitfall 4)', () {
+      final ordinary = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut'], innkeeperInjuries: const []),
+      );
+      final innkeeper = CharacterStatus.fromJson(
+        statusJson(injuries: ['deepCut'], innkeeperInjuries: ['deepCut']),
+      );
+
+      expect(ordinary.injuries, innkeeper.injuries);
+      expect(ordinary == innkeeper, isFalse);
     });
   });
 

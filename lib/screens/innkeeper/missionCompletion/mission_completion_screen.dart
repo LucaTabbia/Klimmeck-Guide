@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/story_and_wound_corrections.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/pending_request/pending_request.dart';
@@ -11,16 +12,18 @@ import 'package:klimmeck_guide/screens/innkeeper/completion_exit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/enemy_search_bar.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_step_header.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/participant_story.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionDraftCubit/mission_draft_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionEnemiesCubit/mission_enemies_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/additions_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/encounters_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/fight_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/place_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/prizes_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/recap_step.dart';
-import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/start_step.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/stories_step.dart';
 import 'package:klimmeck_guide/screens/innkeeper/pendingRequestsCubit/pending_requests_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
@@ -28,8 +31,10 @@ import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Pagine del wizard: navigazione locale, mai salvata (la bozza servita tiene
-/// il passo, D-09).
-enum MissionPage { place, encounters, fight, prizes, recap }
+/// il passo, D-09). `stories` è la pagina di lettura: la prima, mai un passo
+/// salvato. `additions` è l'ultima, raggiungibile solo con le aggiunte alle
+/// storie accese (Phase 24 D-04).
+enum MissionPage { stories, place, encounters, fight, prizes, recap, additions }
 
 /// Completamento guidato della missione (D-09, D-11, D-28): utility screen
 /// sopra la bozza servita. Esce con un [CompletionExit] come il form di
@@ -41,6 +46,7 @@ class MissionCompletionScreen extends StatefulWidget {
     super.key,
     required this.card,
     this.opensAtPlace = false,
+    this.isStoryAndWoundInputEnabled = storyAndWoundCorrectionsEnabled,
   });
 
   static const String title = 'Completa la missione';
@@ -56,16 +62,20 @@ class MissionCompletionScreen extends StatefulWidget {
   static const String backLabel = MissionBackButton.label;
   static const String nextLabel = 'Avanti';
   static const String retryLabel = 'Riprova';
+  static const String storiesTitle = 'Storie';
   static const String placeTitle = 'Luogo';
   static const String encountersTitle = 'Scontri';
   static const String prizesTitle = 'Premi';
   static const String recapTitle = 'Riepilogo';
+  static const String additionsTitle = 'Aggiunte alle storie';
   static String fightTitle(int index, int count) =>
       'Scontro ${index + 1} di $count';
   static const String invalidValuesMessage =
       'Operazione rifiutata: controlla scontri, correzioni e premi';
   static const String notParticipantMessage =
       'Un partecipante non fa più parte della richiesta';
+  static const String additionTooLongMessage =
+      "Un'aggiunta supera i 1000 caratteri";
   static const String connectionMessage = 'Connessione assente, riprova';
   static const String genericMessage = 'Qualcosa è andato storto, riprova';
   static const Key startKey = ValueKey('mission.start');
@@ -74,10 +84,15 @@ class MissionCompletionScreen extends StatefulWidget {
   static const Key nextKey = ValueKey('mission.next');
   static const Key retryKey = ValueKey('mission.retry');
 
+  /// Riga della conferma per un'aggiunta scritta (Phase 24 D-05).
+  static String storyPageLineOf(String name) =>
+      'Storia di $name: una nuova pagina';
+
   /// Riga d'errore del wizard per un rifiuto o una lettura fallita.
   static String failureLineOf(InnkeeperFailure failure) => switch (failure) {
     InnkeeperFailure.overrideInvalid => invalidValuesMessage,
     InnkeeperFailure.notParticipant => notParticipantMessage,
+    InnkeeperFailure.additionTooLong => additionTooLongMessage,
     InnkeeperFailure.connection => connectionMessage,
     _ => genericMessage,
   };
@@ -88,21 +103,44 @@ class MissionCompletionScreen extends StatefulWidget {
   /// partito, qualunque sia il passo servito (UAT 2026-11-14).
   final bool opensAtPlace;
 
+  /// Spento, il flusso finisce sul riepilogo e nulla di nuovo parte verso il
+  /// BE; acceso, si chiude sull'ultima pagina con le aggiunte (Phase 24 D-04).
+  final bool isStoryAndWoundInputEnabled;
+
   @override
   State<MissionCompletionScreen> createState() =>
       _MissionCompletionScreenState();
 }
 
 class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
-  MissionPage _page = MissionPage.place;
+  MissionPage _page = MissionPage.stories;
   int _fightIndex = 0;
   bool _hasLeft = false;
+
+  /// Aggiunte scritte finora, per id del personaggio; `null` finché l'ultima
+  /// pagina non è mai stata aperta.
+  Map<String, String>? _seededAdditions;
+
+  Map<String, String> get _additionTexts => _seededAdditions ?? const {};
+
+  /// L'oste non resta mai chiuso nel wizard senza rete: dopo un salvataggio
+  /// d'uscita rifiutato il tentativo successivo esce senza salvare, finché
+  /// non scrive ancora.
+  bool _wasLeaveSaveRefused = false;
+
+  /// L'ultima pagina esiste solo con le aggiunte accese.
+  List<MissionPage> get _reachablePages => [
+    for (final page in MissionPage.values)
+      if (page != MissionPage.additions || widget.isStoryAndWoundInputEnabled)
+        page,
+  ];
 
   @override
   void initState() {
     super.initState();
     final state = context.read<MissionDraftCubit>().state;
     if (state is MissionDraftReady) _openServedStep(state.draft);
+    if (state is MissionDraftAbsent) _readCardStories();
   }
 
   @override
@@ -121,11 +159,21 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
           listener: (context, _) => _leaveGoneUnlessCalling(context),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
-          listenWhen: (previous, current) =>
-              previous is! MissionDraftReady && current is MissionDraftReady,
+          listenWhen: _isDraftServed,
           listener: (_, state) => setState(
             () => _openServedStep((state as MissionDraftReady).draft),
           ),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: _isDraftStarted,
+          listener: (_, state) => setState(
+            () => _openStartedStep((state as MissionDraftReady).draft),
+          ),
+        ),
+        BlocListener<MissionDraftCubit, MissionDraftState>(
+          listenWhen: (previous, current) =>
+              previous is! MissionDraftAbsent && current is MissionDraftAbsent,
+          listener: (_, _) => _readCardStories(),
         ),
         BlocListener<MissionDraftCubit, MissionDraftState>(
           listenWhen: _isExitOrNewFailure,
@@ -142,7 +190,10 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       ],
       child: BlocBuilder<MissionDraftCubit, MissionDraftState>(
         builder: (context, state) => PopScope(
-          canPop: !_isCallInFlight(state),
+          canPop: !_isCallInFlight(state) && !_mustSaveBeforeLeaving(state),
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _saveAdditionsThenLeave();
+          },
           child: _buildScaffold(context, state),
         ),
       ),
@@ -173,14 +224,57 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   /// Il passo servito sceglie la pagina solo alla prima bozza letta o creata
   /// (D-18): i salvataggi successivi non spostano l'oste.
   void _openServedStep(MissionDraft draft) {
-    final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
-    _enter(page);
-    _loadParticipants(draft);
-    if (page == MissionPage.recap) _loadPrizeNames(_characterIdsOf(draft));
+    _openStepOf(draft);
+    context.read<MissionParticipantsCubit>().ensureLoaded(
+      _characterIdsOf(draft),
+    );
   }
 
-  void _loadParticipants(MissionDraft draft) =>
-      context.read<MissionParticipantsCubit>().load(_characterIdsOf(draft));
+  /// Le storie sono state lette a partecipanti liberi (D-02): ora che l'avvio
+  /// li ha bloccati «Luogo» chiede posizioni nuove. Le storie restano in
+  /// mostra e nessun loader ferma il wizard.
+  void _openStartedStep(MissionDraft draft) {
+    _openStepOf(draft);
+    context.read<MissionParticipantsCubit>().reread(_characterIdsOf(draft));
+  }
+
+  void _openStepOf(MissionDraft draft) {
+    final page = widget.opensAtPlace ? MissionPage.place : _pageOf(draft.step);
+    _enter(page);
+    if (_showsPrizeNamesFrom(page)) _loadPrizeNames(_characterIdsOf(draft));
+  }
+
+  /// Una bozza appena creata da «Inizia la missione».
+  static bool _isDraftStarted(
+    MissionDraftState previous,
+    MissionDraftState current,
+  ) => previous is MissionDraftAbsent && current is MissionDraftReady;
+
+  /// Una bozza che esisteva già: letta all'apertura o dopo un «Riprova».
+  static bool _isDraftServed(
+    MissionDraftState previous,
+    MissionDraftState current,
+  ) =>
+      previous is! MissionDraftReady &&
+      previous is! MissionDraftAbsent &&
+      current is MissionDraftReady;
+
+  /// Dall'ultima pagina «Indietro» porta al riepilogo.
+  static bool _showsPrizeNamesFrom(MissionPage page) =>
+      page == MissionPage.recap || page == MissionPage.additions;
+
+  /// Senza bozza le storie si leggono con i partecipanti della scheda: la
+  /// missione non è iniziata e nessuno è bloccato (D-02).
+  void _readCardStories() =>
+      context.read<MissionParticipantsCubit>().ensureLoaded(_cardCharacterIds);
+
+  List<String> get _cardCharacterIds => [
+    for (final participant in widget.card.participants) participant.id,
+  ];
+
+  /// «Riprova»: rilegge anche ciò che era già stato letto.
+  void _reloadParticipants(List<String> characterIds) =>
+      context.read<MissionParticipantsCubit>().load(characterIds);
 
   static List<String> _characterIdsOf(MissionDraft draft) => [
     for (final participant in draft.participants) participant.characterId,
@@ -192,11 +286,24 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       context.read<MissionPrizeOptionsCubit>().loadAll(characterIds);
 
   /// Unico punto in cui la pagina cambia: «Scontri» chiede la lista dei
-  /// nemici solo se non c'è ancora (D-03).
+  /// nemici solo se non c'è ancora (D-03), l'ultima pagina prende i suoi
+  /// testi dalla bozza.
   void _enter(MissionPage page, {int fightIndex = 0}) {
     _page = page;
     _fightIndex = fightIndex;
     if (page == MissionPage.encounters) _loadEnemiesIfMissing();
+    if (page == MissionPage.additions) _seedAdditionsOnce();
+  }
+
+  /// Una volta sola: una bozza servita dopo non riscrive ciò che l'oste sta
+  /// scrivendo (Phase 24 D-05).
+  void _seedAdditionsOnce() {
+    final state = context.read<MissionDraftCubit>().state;
+    if (_seededAdditions != null || state is! MissionDraftReady) return;
+    _seededAdditions = {
+      for (final addition in state.draft.backgroundAdditions)
+        addition.characterId: addition.text,
+    };
   }
 
   void _loadEnemiesIfMissing() {
@@ -205,10 +312,14 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     enemies.load();
   }
 
-  static MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
+  MissionPage _pageOf(MissionDraftStep? step) => switch (step) {
     MissionDraftStep.fights => MissionPage.encounters,
     MissionDraftStep.prizes => MissionPage.prizes,
     MissionDraftStep.recap => MissionPage.recap,
+    // trappola dei nomi: il passo `stories` del BE è l'ULTIMA pagina (le
+    // aggiunte), non la pagina di lettura [MissionPage.stories]; con le
+    // aggiunte spente l'ultima pagina raggiungibile è il riepilogo
+    MissionDraftStep.stories => _reachablePages.last,
     MissionDraftStep.teleport || null => MissionPage.place,
   };
 
@@ -264,6 +375,35 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     _ => null,
   };
 
+  /// Uscire dall'ultima pagina con testo non salvato lo salva prima (Phase 24
+  /// D-05).
+  bool _mustSaveBeforeLeaving(MissionDraftState state) =>
+      _page == MissionPage.additions &&
+      !_wasLeaveSaveRefused &&
+      state is MissionDraftReady &&
+      _hasUnsavedAdditions(state.draft);
+
+  /// Il BE toglie gli spazi ai bordi: un testo che cambia solo lì è già
+  /// salvato.
+  bool _hasUnsavedAdditions(MissionDraft draft) => draft.participants.any(
+    (participant) =>
+        _writtenAdditionOf(participant.characterId) !=
+        (draft.additionOf(participant.characterId)?.text ?? ''),
+  );
+
+  /// Un'uscita fermata da una chiamata in corso resta ferma: nulla da fare.
+  Future<void> _saveAdditionsThenLeave() async {
+    final cubit = context.read<MissionDraftCubit>();
+    if (!_mustSaveBeforeLeaving(cubit.state)) return;
+    if (_isCallInFlight(cubit.state)) return;
+    final isSaved = await _isAccepted(
+      () => cubit.saveAdditions(_additionTexts),
+    );
+    if (!mounted) return;
+    if (isSaved) return _leave(null);
+    setState(() => _wasLeaveSaveRefused = true);
+  }
+
   /// Una sola uscita: coda e risposta possono chiudere il wizard insieme.
   void _leave(CompletionExit? exit) {
     if (_hasLeft) return;
@@ -318,9 +458,19 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
   Widget _buildBody(BuildContext context, MissionDraftState state) {
     return switch (state) {
       MissionDraftReady() => _buildReady(state),
-      MissionDraftAbsent(:final isStarting) => StartStep(
-        isStarting: isStarting,
-        onStart: context.read<MissionDraftCubit>().start,
+      MissionDraftAbsent(:final isStarting) => _buildFrame(
+        stepNumber: MissionPage.stories.index + 1,
+        title: MissionCompletionScreen.storiesTitle,
+        headerSide: const SizedBox.shrink(),
+        onBack: null,
+        page: _buildStories(
+          readersOf: _cardReaders,
+          onRetry: () => _reloadParticipants(_cardCharacterIds),
+          footer: StoriesStartFooter(
+            isStarting: isStarting,
+            onStart: context.read<MissionDraftCubit>().start,
+          ),
+        ),
       ),
       MissionDraftLoadFailed(:final failure) => _LoadFailed(
         message: MissionCompletionScreen.failureLineOf(failure),
@@ -331,8 +481,25 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     };
   }
 
-  Widget _buildReady(MissionDraftReady ready) {
-    final theme = KlimmeckGuideTheme.instance;
+  Widget _buildReady(MissionDraftReady ready) => _buildFrame(
+    stepNumber: _page.index + 1,
+    title: _titleOf(ready.draft),
+    headerSide: _buildHeaderSide(KlimmeckGuideTheme.instance),
+    onBack: _page != MissionPage.stories && !ready.isSubmitting
+        ? () => _goBack(ready.draft)
+        : null,
+    page: _buildPage(ready),
+  );
+
+  /// Contatore dei passi sopra, pagina sotto: la stessa cornice con e senza
+  /// bozza.
+  Widget _buildFrame({
+    required int stepNumber,
+    required String title,
+    required Widget headerSide,
+    required VoidCallback? onBack,
+    required Widget page,
+  }) {
     // la tastiera in orizzontale lascia poche righe: il contatore cede il
     // posto al campo che si sta scrivendo, tranne su «Scontri» dove ospita la
     // ricerca (UAT 2026-11-14)
@@ -348,29 +515,61 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
             Row(
               children: [
                 MissionStepHeader(
-                  stepNumber: _page.index + 1,
-                  title: _titleOf(ready.draft),
+                  stepNumber: stepNumber,
+                  stepCount: _reachablePages.length,
+                  title: title,
                 ),
                 const SizedBox(width: KlimmeckGuideTheme.spacingMd),
-                Expanded(child: _buildHeaderSide(theme)),
+                Expanded(child: headerSide),
               ],
             ),
             const SizedBox(height: KlimmeckGuideTheme.spacingSm),
           ],
           Expanded(
-            child: MissionBackScope(
-              onBack: _page != MissionPage.place && !ready.isSubmitting
-                  ? () => _goBack(ready.draft)
-                  : null,
-              child: _buildPage(ready),
-            ),
+            child: MissionBackScope(onBack: onBack, child: page),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildStories({
+    required List<StoryReader> Function(MissionParticipantsState) readersOf,
+    required VoidCallback onRetry,
+    required Widget footer,
+  }) {
+    return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
+      builder: (context, participants) => StoriesStep(
+        readers: readersOf(participants),
+        participants: participants,
+        onRetry: onRetry,
+        footer: footer,
+      ),
+    );
+  }
+
+  /// Prima della bozza il rango arriva dal personaggio letto: `null` finché
+  /// la lettura non finisce (D-03).
+  List<StoryReader> _cardReaders(MissionParticipantsState participants) {
+    final loaded = switch (participants) {
+      final MissionParticipantsLoaded loaded => loaded,
+      _ => null,
+    };
+    return [
+      for (final participant in widget.card.participants)
+        StoryReader(
+          characterId: participant.id,
+          name: participant.name,
+          title: loaded?.titleOf(participant.id),
+        ),
+    ];
+  }
+
+  static List<StoryReader> _draftReaders(MissionDraft draft) =>
+      draft.participants.map(StoryReader.ofParticipant).toList();
+
   String _titleOf(MissionDraft draft) => switch (_page) {
+    MissionPage.stories => MissionCompletionScreen.storiesTitle,
     MissionPage.place => MissionCompletionScreen.placeTitle,
     MissionPage.encounters => MissionCompletionScreen.encountersTitle,
     MissionPage.fight => MissionCompletionScreen.fightTitle(
@@ -379,9 +578,18 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     ),
     MissionPage.prizes => MissionCompletionScreen.prizesTitle,
     MissionPage.recap => MissionCompletionScreen.recapTitle,
+    MissionPage.additions => MissionCompletionScreen.additionsTitle,
   };
 
   Widget _buildPage(MissionDraftReady ready) => switch (_page) {
+    MissionPage.stories => _buildStories(
+      readersOf: (_) => _draftReaders(ready.draft),
+      onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
+      // locale: sulla bozza non è cambiato nulla, niente da salvare (D-02)
+      footer: StoriesNextFooter(
+        onNext: () => setState(() => _enter(MissionPage.place)),
+      ),
+    ),
     MissionPage.place => _buildPlace(ready),
     MissionPage.encounters => EncountersStep(
       draft: ready.draft,
@@ -396,6 +604,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       onSimulate: () => context.read<MissionDraftCubit>().simulate(_fightIndex),
       onChangeEnemies: () => setState(() => _enter(MissionPage.encounters)),
       onNext: (corrections) => _saveCorrections(ready.draft, corrections),
+      isWoundRemovalEnabled: widget.isStoryAndWoundInputEnabled,
     ),
     MissionPage.prizes => PrizesStep(
       draft: ready.draft,
@@ -407,8 +616,50 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       draft: ready.draft,
       isSubmitting: ready.isSubmitting,
       onComplete: context.read<MissionDraftCubit>().complete,
+      onNext: widget.isStoryAndWoundInputEnabled ? _openAdditions : null,
     ),
+    MissionPage.additions => _buildAdditions(ready),
   };
+
+  Widget _buildAdditions(MissionDraftReady ready) {
+    return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
+      builder: (context, participants) => AdditionsStep(
+        readers: _draftReaders(ready.draft),
+        participants: participants,
+        texts: _additionTexts,
+        onChanged: _writeAddition,
+        isSubmitting: ready.isSubmitting,
+        onConclude: () => _confirmConclusion(ready.draft),
+        onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
+      ),
+    );
+  }
+
+  void _writeAddition(String characterId, String text) => setState(() {
+    _seededAdditions = {..._additionTexts, characterId: text};
+    _wasLeaveSaveRefused = false;
+  });
+
+  /// L'unico completamento con le aggiunte accese: conferma, poi salvataggio
+  /// e completamento in una sola azione del Cubit (Phase 24 D-05).
+  Future<void> _confirmConclusion(MissionDraft draft) async {
+    final confirmed = await confirmMissionCompletion(
+      context,
+      lines: _conclusionLinesOf(draft),
+    );
+    if (!confirmed || !mounted) return;
+    await context.read<MissionDraftCubit>().conclude(_additionTexts);
+  }
+
+  List<String> _conclusionLinesOf(MissionDraft draft) => [
+    ...missionRecapLinesOf(questTitle: widget.card.questTitle, draft: draft),
+    for (final participant in draft.participants)
+      if (_writtenAdditionOf(participant.characterId).isNotEmpty)
+        MissionCompletionScreen.storyPageLineOf(participant.name),
+  ];
+
+  String _writtenAdditionOf(String characterId) =>
+      (_additionTexts[characterId] ?? '').trim();
 
   Widget _buildPlace(MissionDraftReady ready) {
     return BlocBuilder<MissionParticipantsCubit, MissionParticipantsState>(
@@ -418,7 +669,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         isSubmitting: ready.isSubmitting,
         onTeleport: () => _teleportGroup(ready.draft),
         onStay: _stayAt,
-        onRetry: () => _loadParticipants(ready.draft),
+        onRetry: () => _reloadParticipants(_characterIdsOf(ready.draft)),
       ),
     );
   }
@@ -478,6 +729,7 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
         fightIndex,
         corrections,
         step: isLast ? MissionDraftStep.prizes : null,
+        declaresRemovals: widget.isStoryAndWoundInputEnabled,
       ),
       isLast ? MissionPage.prizes : MissionPage.fight,
       fightIndex: fightIndex + 1,
@@ -492,19 +744,33 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     );
   }
 
+  /// Il passo `stories` del BE segna l'ultima pagina (Phase 24 D-05).
+  void _openAdditions() {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(
+      () => cubit.saveStep(MissionDraftStep.stories),
+      MissionPage.additions,
+    );
+  }
+
   /// T-21-46: la pagina cambia solo se la chiamata non è stata rifiutata.
   Future<void> _runThenOpen(
     Future<void> Function() action,
     MissionPage next, {
     int fightIndex = 0,
   }) async {
+    if (!await _isAccepted(action)) return;
+    setState(() => _enter(next, fightIndex: fightIndex));
+  }
+
+  /// Vero se la schermata è ancora qui e la chiamata non è stata rifiutata.
+  Future<bool> _isAccepted(Future<void> Function() action) async {
     final cubit = context.read<MissionDraftCubit>();
     final serial = _failureSerialOf(cubit.state);
     await action();
-    if (!mounted) return;
+    if (!mounted) return false;
     final state = cubit.state;
-    if (state is! MissionDraftReady || state.failureSerial != serial) return;
-    setState(() => _enter(next, fightIndex: fightIndex));
+    return state is MissionDraftReady && state.failureSerial == serial;
   }
 
   /// Accanto al contatore dei passi: la ricerca dei nemici su «Scontri», la
@@ -518,11 +784,22 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     _ => const SizedBox.shrink(),
   };
 
-  void _goBack(MissionDraft draft) =>
-      setState(() => _enterPrevious(draft.fights.length));
+  void _goBack(MissionDraft draft) {
+    if (_page == MissionPage.additions && _hasUnsavedAdditions(draft)) {
+      return _saveAdditionsThenOpenRecap();
+    }
+    setState(() => _enterPrevious(draft.fights.length));
+  }
+
+  /// Phase 24 D-05: tornando al riepilogo le aggiunte scritte restano nella
+  /// bozza.
+  void _saveAdditionsThenOpenRecap() {
+    final cubit = context.read<MissionDraftCubit>();
+    _runThenOpen(() => cubit.saveAdditions(_additionTexts), MissionPage.recap);
+  }
 
   /// Gli scontri si ripercorrono uno per uno: «Premi» torna all'ultimo,
-  /// il primo torna a «Scontri».
+  /// il primo torna a «Scontri»; da «Luogo» si rileggono le storie (D-02).
   void _enterPrevious(int fightCount) => switch (_page) {
     MissionPage.fight when _fightIndex > 0 => _enter(
       MissionPage.fight,
@@ -533,8 +810,10 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
       fightIndex: fightCount - 1,
     ),
     MissionPage.prizes || MissionPage.fight => _enter(MissionPage.encounters),
+    MissionPage.additions => _enter(MissionPage.recap),
     MissionPage.recap => _enter(MissionPage.prizes),
-    MissionPage.encounters || MissionPage.place => _enter(MissionPage.place),
+    MissionPage.encounters => _enter(MissionPage.place),
+    MissionPage.place || MissionPage.stories => _enter(MissionPage.stories),
   };
 
   /// D-11: scartare libera i partecipanti; il teletrasporto fatto resta.

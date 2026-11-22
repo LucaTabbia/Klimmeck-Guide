@@ -35,20 +35,21 @@ final PointOfInterest _ruinsPlace = PointOfInterest.fromJson(
   pointOfInterestJson(),
 );
 
-MissionParticipantsLoaded _loaded({String beaLocation = _ruins}) =>
-    MissionParticipantsLoaded(
-      characters: {
-        _aldo: Character.fromJson(participantCharacterJson(locationId: _ruins)),
-        _bea: Character.fromJson(
-          participantCharacterJson(
-            id: _bea,
-            name: 'Bea',
-            locationId: beaLocation,
-          ),
-        ),
-      },
-      places: {_ruins: _ruinsPlace},
-    );
+MissionParticipantsLoaded _loaded({
+  String beaLocation = _ruins,
+  bool isRereadingPositions = false,
+  InnkeeperFailure? positionsFailure,
+}) => MissionParticipantsLoaded(
+  isRereadingPositions: isRereadingPositions,
+  positionsFailure: positionsFailure,
+  characters: {
+    _aldo: Character.fromJson(participantCharacterJson(locationId: _ruins)),
+    _bea: Character.fromJson(
+      participantCharacterJson(id: _bea, name: 'Bea', locationId: beaLocation),
+    ),
+  },
+  places: {_ruins: _ruinsPlace},
+);
 
 void main() {
   late int teleports;
@@ -173,6 +174,42 @@ void main() {
 
       expect(retries, 1);
       expect(find.text(MissionCompletionScreen.retryLabel), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'while the positions are read again no place is shown and «Resta qui» waits; the city teleport stays (WR-01, D-31)',
+    (tester) async {
+      await pumpStep(tester, _loaded(isRereadingPositions: true));
+
+      expect(find.text('Aldo'), findsOneWidget);
+      expect(find.text('Bea'), findsOneWidget);
+      expect(find.textContaining(' · '), findsNothing);
+      expect(onPressedOf(tester, PlaceStep.stayKey), isNull);
+      expect(onPressedOf(tester, PlaceStep.teleportKey), isNotNull);
+      expect(find.byKey(PlaceStep.retryKey), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a failed reread of the positions shows no old place and offers «Riprova» (WR-01, D-31)',
+    (tester) async {
+      await pumpStep(
+        tester,
+        _loaded(positionsFailure: InnkeeperFailure.connection),
+      );
+
+      expect(find.textContaining(' · '), findsNothing);
+      expect(onPressedOf(tester, PlaceStep.stayKey), isNull);
+      expect(onPressedOf(tester, PlaceStep.teleportKey), isNotNull);
+      expect(
+        find.text(MissionCompletionScreen.connectionMessage),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(PlaceStep.retryKey));
+
+      expect(retries, 1);
     },
   );
 

@@ -388,7 +388,7 @@ class _WorldMapState extends State<WorldMap> with TickerProviderStateMixin {
 
   Widget _buildQuestInfoOverlay(Quest? quest, String? stateLabel) {
     return BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
-      selector: characterInjuriesOf,
+      selector: curableInjuriesOf,
       builder: (context, injuries) => QuestInfoOverlay(
         animationController: _questAnimationController,
         selectedQuest: quest,

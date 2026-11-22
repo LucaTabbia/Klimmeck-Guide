@@ -4,22 +4,55 @@ import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 class InjuryNameIcon extends StatelessWidget {
-  const InjuryNameIcon({super.key, required this.injury});
+  const InjuryNameIcon({
+    super.key,
+    required this.injury,
+    this.note,
+    this.noteKey,
+  });
+
+  static const double _iconSize = 50;
 
   final InjuryType injury;
+
+  /// Riga sotto il nome della ferita; assente = solo il nome.
+  final String? note;
+  final Key? noteKey;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
+    final note = this.note;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: _iconSize),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          ...List.generate(injury.effects.length, (index) {
-            return CachedSvg(url: injury.effects[index].imagePath, height: 50, width: 50);
-          }),
-          Padding(
-            padding: const EdgeInsets.only(left: 15.0),
-            child: Text(injury.label, style: KlimmeckGuideTheme.instance.bodyMedium),
+          for (final effect in injury.effects)
+            CachedSvg(
+              url: effect.imagePath,
+              height: _iconSize,
+              width: _iconSize,
+            ),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 15.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    injury.label,
+                    style: KlimmeckGuideTheme.instance.bodyMedium,
+                  ),
+                  if (note != null)
+                    Text(
+                      note,
+                      key: noteKey,
+                      style: KlimmeckGuideTheme.instance.errorText,
+                    ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

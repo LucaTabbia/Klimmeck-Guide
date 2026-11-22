@@ -212,6 +212,16 @@ void main() {
     test('returns the quest when valid', () {
       expect(Quest.tryFromJson(questJson())?.id, 'q-1');
     });
+
+    test('keeps a story quest served without a place', () {
+      final quest = Quest.tryFromJson(
+        questJson(type: 'story', requiredPoints: 100, markerId: null),
+      );
+
+      expect(quest?.id, 'q-1');
+      expect(quest?.infos?.type, QuestType.story);
+      expect(quest?.infos?.markerLocation, isNull);
+    });
   });
 
   group('Quest enemies, announcement and pet prize', () {

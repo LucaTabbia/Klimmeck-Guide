@@ -76,6 +76,8 @@ class QuestResultSheet extends StatefulWidget {
   /// Righe delle lore sbloccate (D-10): una per voce, dopo «Magia appresa».
   static Key loreUnlockedKeyOf(String loreId) =>
       ValueKey('questResult.loreUnlocked.$loreId');
+  static const Key storyPageKey = ValueKey('questResult.storyPage');
+  static const String storyPageLine = 'La tua storia ha una nuova pagina';
   static const Key counterKey = ValueKey('questResult.counter');
   static const Key continueKey = ValueKey('questResult.continue');
   static const Key acknowledgeErrorKey = ValueKey(
@@ -190,7 +192,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ..._confiscated(),
         ..._hp(),
         ..._line(
-          healedLine(_result.injuriesHealed),
+          healedLine(_result.healedOrRemovedInjuries),
           QuestResultSheet.healedKey,
         ),
         ..._injuries(),
@@ -228,6 +230,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         ),
         ..._line(_spellLearnedText(), QuestResultSheet.spellLearnedKey),
         ..._loreUnlockedLines(),
+        ..._line(_storyPageText(), QuestResultSheet.storyPageKey),
         ..._line(_rescuedText(), QuestResultSheet.rescuedKey),
       ],
     ),
@@ -560,6 +563,10 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
         QuestResultSheet.loreUnlockedKeyOf(lore.id),
       ),
   ];
+
+  /// Solo dal fatto servito (Phase 24 D-09): l'app non lo deduce mai.
+  String? _storyPageText() =>
+      _result.backgroundEntryAdded ? QuestResultSheet.storyPageLine : null;
 
   String? _rescuedText() {
     final count = _result.rescuedCharacters.length;

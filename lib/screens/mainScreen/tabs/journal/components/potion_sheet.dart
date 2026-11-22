@@ -2,11 +2,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/healed_injuries_text.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/companion_lines.dart';
@@ -26,6 +28,7 @@ class PotionSheet extends StatelessWidget {
     required this.item,
     required this.maxLifePoints,
     this.targets = const [],
+    this.readerInnkeeperInjuries = const [],
   });
 
   final LootItem item;
@@ -36,6 +39,10 @@ class PotionSheet extends StatelessWidget {
 
   /// Compagni che possono bere, letti all'apertura del foglio (D-08).
   final List<CompanionPotionTarget> targets;
+
+  /// Ferite dell'oste del personaggio, lette all'apertura del foglio: in
+  /// rosso dentro «Cura: …» (D-21).
+  final List<InjuryType> readerInnkeeperInjuries;
 
   static const Key drinkKey = ValueKey('potion.drink');
   static const Key notNowKey = ValueKey('potion.notNow');
@@ -97,6 +104,10 @@ class PotionSheet extends StatelessWidget {
 
   Widget _confirmation(BuildContext context, {required bool isDrinking}) {
     final textTheme = Theme.of(context).textTheme;
+    final healedInjuries = healedInjuryLabels(
+      item,
+      beyondCure: readerInnkeeperInjuries,
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -107,11 +118,17 @@ class PotionSheet extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.titleMedium,
         ),
-        for (final line in [
-          healedInjuriesLine(item),
-          recoveryLine(item.recovery),
-        ].nonNulls)
-          _line(context, line),
+        if (healedInjuries.isNotEmpty)
+          Padding(
+            padding: _linePadding,
+            child: HealedInjuriesText(
+              labels: healedInjuries,
+              style: textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        if (recoveryLine(item.recovery) case final recovery?)
+          _line(context, recovery),
         const SizedBox(height: KlimmeckGuideTheme.spacingMd),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -275,8 +292,12 @@ class PotionSheet extends StatelessWidget {
     );
   }
 
+  static const EdgeInsets _linePadding = EdgeInsets.only(
+    top: KlimmeckGuideTheme.spacingSm,
+  );
+
   Widget _line(BuildContext context, String text, {Key? key}) => Padding(
-    padding: const EdgeInsets.only(top: KlimmeckGuideTheme.spacingSm),
+    padding: _linePadding,
     child: Text(
       text,
       key: key,

@@ -87,17 +87,30 @@ String? accessoryUsageLine(EquipmentItem item) {
   return 'Uso: ${labels.join(' e ')}';
 }
 
-/// Riga «Cura: …» di un oggetto heal: le ferite che può curare, etichette in
-/// minuscolo nell'ordine dell'enum, unite da virgola; nessuna riga senza
-/// ferite o su un effetto diverso.
-String? healedInjuriesLine(LootItem item) {
-  if (item.effect != EffectType.heal) return null;
-  final labels = [
+const String healedInjuriesPrefix = 'Cura: ';
+const String healedInjuriesSeparator = ', ';
+
+/// Etichetta di una ferita nella riga «Cura: …»; [isBeyondCure] quando
+/// nessuna cura la toglie a chi legge (D-21).
+typedef HealedInjuryLabel = ({String label, bool isBeyondCure});
+
+/// Le ferite che un oggetto heal può curare, tutte e per chiunque legga
+/// (D-20), etichette in minuscolo nell'ordine dell'enum; nessuna senza ferite
+/// o su un effetto diverso. [beyondCure] sono le ferite che nessuna cura
+/// toglie a chi legge (quelle dell'oste): restano in lista, segnate (D-21).
+List<HealedInjuryLabel> healedInjuryLabels(
+  LootItem item, {
+  List<InjuryType> beyondCure = const [],
+}) {
+  if (item.effect != EffectType.heal) return const [];
+  return [
     for (final type in InjuryType.values)
-      if (item.canHeal.contains(type)) type.label.toLowerCase(),
+      if (item.canHeal.contains(type))
+        (
+          label: type.label.toLowerCase(),
+          isBeyondCure: beyondCure.contains(type),
+        ),
   ];
-  if (labels.isEmpty) return null;
-  return 'Cura: ${labels.join(', ')}';
 }
 
 /// Riga della cura sul foglio di una quest (D-03): solo le ferite del

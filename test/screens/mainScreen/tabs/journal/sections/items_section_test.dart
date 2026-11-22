@@ -29,6 +29,7 @@ import '../../../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../../../helpers/journal_harness.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/red_labels.dart';
 import '../../../../../helpers/test_app.dart';
 
 const String _herb = 'l-herb';
@@ -198,6 +199,53 @@ void main() {
       findsOneWidget,
     );
     verifyNever(() => potionCubit.drink(any()));
+  });
+
+  group('innkeeper wounds (Phase 24)', () {
+    setUp(
+      () => useCharacter(
+        journalCharacter(
+          spellbook: spellbookCharacterJson(),
+          ownedItems: [
+            ownedHealPotionJson(
+              item: healPotionJson(canHeal: const ['contusion', 'deepCut']),
+            ),
+          ],
+          injuries: const ['contusion', 'deepCut'],
+          innkeeperInjuries: const ['deepCut'],
+        ),
+      ),
+    );
+
+    testWidgets(
+      "a potion row of the Journal lists the character's innkeeper wounds in red (D-20, D-21)",
+      (tester) async {
+        await pumpItems(tester);
+
+        final line = find.descendant(
+          of: find.byKey(const ValueKey('item-injuries-$_herb')),
+          matching: find.text('Cura: taglio profondo, contusione'),
+        );
+        expect(line, findsOneWidget);
+        expect(redLabelsOf(tester, line), ['taglio profondo']);
+      },
+    );
+
+    testWidgets(
+      "the potion sheet opened from the Journal lists the innkeeper wounds in red (D-20, D-21)",
+      (tester) async {
+        await pumpItems(tester);
+
+        await tapAndSettle(tester, _card(_herb));
+
+        final line = find.descendant(
+          of: find.byType(PaperSheetModal),
+          matching: find.text('Cura: taglio profondo, contusione'),
+        );
+        expect(line, findsOneWidget);
+        expect(redLabelsOf(tester, line), ['taglio profondo']);
+      },
+    );
   });
 
   testWidgets('opening the sheet resets a previous outcome first (D-18)', (

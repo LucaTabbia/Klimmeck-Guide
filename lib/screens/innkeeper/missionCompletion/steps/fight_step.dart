@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/story_and_wound_corrections.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/mission/mission_fight.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
@@ -24,6 +25,7 @@ class FightStep extends StatefulWidget {
     required this.onSimulate,
     required this.onChangeEnemies,
     required this.onNext,
+    this.isWoundRemovalEnabled = storyAndWoundCorrectionsEnabled,
   });
 
   static const String simulateLabel = 'Simula';
@@ -39,6 +41,9 @@ class FightStep extends StatefulWidget {
   final VoidCallback onSimulate;
   final VoidCallback onChangeEnemies;
   final void Function(List<MissionCorrection> corrections) onNext;
+
+  /// Le ferite portate si tolgono nelle correzioni (Phase 24 D-13).
+  final bool isWoundRemovalEnabled;
 
   @override
   State<FightStep> createState() => _FightStepState();
@@ -205,6 +210,7 @@ class _FightStepState extends State<FightStep> {
                 spellNameOf: (spellId) =>
                     loaded?.spellNameOf(characterId, spellId),
                 onChanged: _correct,
+                isWoundRemovalEnabled: widget.isWoundRemovalEnabled,
               ),
             );
           },

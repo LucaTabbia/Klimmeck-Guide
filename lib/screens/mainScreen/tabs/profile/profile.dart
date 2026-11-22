@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/shared/components/section.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/components/background_entries.dart';
+import 'package:klimmeck_guide/shared/components/background_entries.dart';
 import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
 import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
@@ -14,7 +14,7 @@ import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/shared/components/text_section.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-import '../../../../models/character/character_infos.dart';
+import '../../../../models/character/character.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -37,14 +37,11 @@ class _ProfileState extends State<Profile> {
         padding: const EdgeInsets.symmetric(horizontal: 50.0),
         child: Container(
           decoration: BoxDecoration(color: KlimmeckGuideTheme.parchment),
-          child: BlocSelector<CharacterCubit, CharacterState, CharacterInfos?>(
-            selector: (state) {
-              if (state is CharacterLoaded) {
-                return state.character.infos;
-              }
-              return null;
-            },
-            builder: (context, infos) {
+          child: BlocSelector<CharacterCubit, CharacterState, Character?>(
+            selector: (state) =>
+                state is CharacterLoaded ? state.character : null,
+            builder: (context, character) {
+              final infos = character?.infos;
               if (infos == null) {
                 return Center(child: Placeholder());
               }
@@ -60,7 +57,10 @@ class _ProfileState extends State<Profile> {
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            ProfileImage(imagePath: infos.imagePath),
+                            ProfileImage(
+                              imagePath: infos.imagePath,
+                              title: character?.status?.title,
+                            ),
                             SizedBox(
                               width: MediaQuery.of(context).size.width - 340,
                               child: Padding(

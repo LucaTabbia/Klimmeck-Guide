@@ -25,13 +25,15 @@ final class MissionParticipantsFailed extends MissionParticipantsState {
   List<Object?> get props => [failure];
 }
 
-/// Personaggi e luoghi letti una volta (luoghi vuoti se la loro lettura è
-/// fallita, D-31), solo per nomi ed etichette: i limiti
-/// di vita, consumabili e magie arrivano dalla bozza servita (D-29, regola 4).
+/// Personaggi e luoghi letti (luoghi vuoti se la loro lettura è fallita,
+/// D-31), solo per nomi ed etichette: i limiti di vita, consumabili e magie
+/// arrivano dalla bozza servita (D-29, regola 4).
 final class MissionParticipantsLoaded extends MissionParticipantsState {
   const MissionParticipantsLoaded({
     required this.characters,
     required this.places,
+    this.isRereadingPositions = false,
+    this.positionsFailure,
   });
 
   /// Id del personaggio → personaggio.
@@ -40,10 +42,39 @@ final class MissionParticipantsLoaded extends MissionParticipantsState {
   /// Id del luogo → luogo.
   final Map<String, PointOfInterest> places;
 
-  /// Il luogo in cui si trova tutto il gruppo; `null` per un gruppo diviso.
+  /// Una rilettura è in corso: storie e nomi restano, le posizioni no.
+  final bool isRereadingPositions;
+
+  /// L'ultima rilettura è fallita: le posizioni in mano sono vecchie.
+  final InnkeeperFailure? positionsFailure;
+
+  bool get _arePositionsCurrent =>
+      !isRereadingPositions && positionsFailure == null;
+
+  MissionParticipantsLoaded rereadingPositions() => MissionParticipantsLoaded(
+    characters: characters,
+    places: places,
+    isRereadingPositions: true,
+  );
+
+  MissionParticipantsLoaded withPositionsFailure(InnkeeperFailure failure) =>
+      MissionParticipantsLoaded(
+        characters: characters,
+        places: places,
+        positionsFailure: failure,
+      );
+
+  /// Dove si trova il personaggio; `null` per un id sconosciuto o finché le
+  /// posizioni non sono quelle dell'ultima lettura riuscita.
+  String? locationIdOf(String characterId) => _arePositionsCurrent
+      ? characters[characterId]?.status?.location?.id
+      : null;
+
+  /// Il luogo in cui si trova tutto il gruppo; `null` per un gruppo diviso o
+  /// per posizioni non più valide.
   String? get commonLocationId {
     final locationIds = {
-      for (final character in characters.values) character.status?.location?.id,
+      for (final characterId in characters.keys) locationIdOf(characterId),
     };
     if (locationIds.length != 1) return null;
     return locationIds.single;
@@ -55,6 +86,17 @@ final class MissionParticipantsLoaded extends MissionParticipantsState {
     if (place == null) return '';
     return placeLabelOf(place);
   }
+
+  /// Voci della storia nell'ordine servito; `null` per un id sconosciuto.
+  List<String>? backgroundOf(String characterId) {
+    final character = characters[characterId];
+    if (character == null) return null;
+    return character.infos?.background ?? const [];
+  }
+
+  /// Rango servito; `null` per un id sconosciuto o un rango non servito.
+  TitleType? titleOf(String characterId) =>
+      characters[characterId]?.status?.title;
 
   String? itemNameOf(String characterId, String itemId) {
     final ownedItems = characters[characterId]?.assets?.ownedItems ?? const [];
@@ -75,5 +117,10 @@ final class MissionParticipantsLoaded extends MissionParticipantsState {
   }
 
   @override
-  List<Object?> get props => [characters, places];
+  List<Object?> get props => [
+    characters,
+    places,
+    isRereadingPositions,
+    positionsFailure,
+  ];
 }

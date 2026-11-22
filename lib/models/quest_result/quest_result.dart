@@ -61,6 +61,8 @@ class QuestResult extends Equatable {
     this.lastTurnKind,
     this.spellFound,
     this.spellResearchFailed = false,
+    this.backgroundEntryAdded = false,
+    this.injuriesRemoved = const [],
   });
 
   final String id;
@@ -83,6 +85,14 @@ class QuestResult extends Equatable {
   /// Ferite guarite dall'esito (BE Phase 18, D-02); vuota quando il filo non
   /// le manda.
   final List<InjuryType> injuriesHealed;
+
+  /// Ferite tolte dall'oste nella correzione (BE Phase 25, D-18); vuota
+  /// quando il filo non le manda.
+  final List<InjuryType> injuriesRemoved;
+
+  /// L'oste ha aggiunto una pagina alla storia del personaggio (BE Phase 25,
+  /// D-09): vero solo se servito, mai dedotto.
+  final bool backgroundEntryAdded;
 
   /// Arresto alla fine di una crime (quick 261110-cgd): nessun premio, la
   /// prigione arriva sullo stato del personaggio.
@@ -173,6 +183,13 @@ class QuestResult extends Equatable {
 
   bool get hasRewards => !rewards.isEmpty;
 
+  /// Una sola riga «Guarite» (D-18): le ferite guarite come servite, poi
+  /// quelle tolte dall'oste non già elencate.
+  List<InjuryType> get healedOrRemovedInjuries => [
+    ...injuriesHealed,
+    ...injuriesRemoved.where((injury) => !injuriesHealed.contains(injury)),
+  ];
+
   /// Foglio piccolo della fine dell'apprendimento (D-31): solo la magia e la
   /// sua lore. Dedotto dai fatti serviti, serve solo a non disegnare la vita.
   bool get isLearningEnd =>
@@ -202,6 +219,8 @@ class QuestResult extends Equatable {
       maxLifePoints: (json['maxLifePoints'] as num).toInt(),
       injuriesAdded: injuryTypesFrom(json['injuriesAdded'] as List),
       injuriesHealed: injuryTypesFrom(json['injuriesHealed']),
+      injuriesRemoved: injuryTypesFrom(json['injuriesRemoved']),
+      backgroundEntryAdded: json['backgroundEntryAdded'] == true,
       arrested: json['arrested'] == true,
       coinsLost: _coinsFrom(json['coinsLost']),
       guardEncounter: json['guardEncounter'] == true,
@@ -290,6 +309,8 @@ class QuestResult extends Equatable {
     'maxLifePoints': maxLifePoints,
     'injuriesAdded': injuriesAdded.map((injury) => injury.name).toList(),
     'injuriesHealed': injuriesHealed.map((injury) => injury.name).toList(),
+    'injuriesRemoved': injuriesRemoved.map((injury) => injury.name).toList(),
+    'backgroundEntryAdded': backgroundEntryAdded,
     'arrested': arrested,
     'coinsLost': coinsLost?.toJson(),
     'guardEncounter': guardEncounter,
@@ -349,6 +370,8 @@ class QuestResult extends Equatable {
     maxLifePoints,
     injuriesAdded,
     injuriesHealed,
+    injuriesRemoved,
+    backgroundEntryAdded,
     arrested,
     coinsLost,
     guardEncounter,

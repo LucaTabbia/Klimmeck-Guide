@@ -38,7 +38,7 @@ void main() {
         contains(
           'outcomes { character hpBefore '
           'companion { pet name lifeBefore maxLifePoints } injuriesBefore '
-          'consumablesAvailable { item quantity } '
+          'innkeeperInjuriesBefore consumablesAvailable { item quantity } '
           'spellsAvailable { spell usages }',
         ),
       );
@@ -51,6 +51,7 @@ void main() {
         draftSelection,
         contains(
           'simulated { hpAfter companionLifeAfter injuriesAdded '
+          'injuriesRemoved innkeeperInjuries '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );
@@ -58,6 +59,7 @@ void main() {
         draftSelection,
         contains(
           'corrected { hpAfter companionLifeAfter injuriesAdded '
+          'injuriesRemoved innkeeperInjuries '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );
@@ -82,6 +84,35 @@ void main() {
         contains('enemies { quantity enemy { $enemySelection } }'),
       );
     });
+  });
+
+  test('the draft selects the additions, the innkeeper wounds carried before '
+      'each fight and, on both effects, the removed and the innkeeper wounds '
+      '(D-05, D-12, D-13)', () {
+    expect(draftSelection, contains('backgroundAdditions { character text }'));
+    expect(draftSelection, contains('injuriesBefore innkeeperInjuriesBefore'));
+    expect(
+      'injuriesAdded injuriesRemoved innkeeperInjuries '.allMatches(
+        draftSelection,
+      ),
+      hasLength(2),
+    );
+  });
+
+  test('every draft document carries the additions and the wound origins '
+      '(D-05, D-12, D-13)', () {
+    for (final document in [
+      MissionQueries.getMissionDraft,
+      MissionMutations.startMissionDraft,
+      MissionMutations.saveMissionDraft,
+      MissionMutations.simulateMissionFight,
+    ]) {
+      final selection = _collapsed(document);
+
+      expect(selection, contains('backgroundAdditions { character text }'));
+      expect(selection, contains('innkeeperInjuriesBefore'));
+      expect(selection, contains('injuriesRemoved innkeeperInjuries'));
+    }
   });
 
   test('the fight outcome selects the companion and companionLifeAfter in '

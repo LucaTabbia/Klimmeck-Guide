@@ -93,6 +93,48 @@ void main() {
     expect(cubit.state.highlightedOf(background), {'Ha salvato Bosa.'});
   });
 
+  group('an entry appended to a background already seen (Phase 24)', () {
+    const birth = 'Nata a Drustea.';
+    const addition = 'Ha salvato Bosa dai predoni.';
+
+    Future<void> appendAddition() async {
+      seedSeen(background, {birth});
+      await cubit.sync({
+        background: {birth, addition},
+      });
+    }
+
+    test('is unseen, and Profile reports a novelty (D-09)', () async {
+      await appendAddition();
+
+      expect(cubit.state.unseen, {
+        background: {addition},
+      });
+      expect(cubit.state.hasUnseenIn(NewEntryCategory.profile), isTrue);
+      expect(cubit.state.hasUnseenIn(NewEntryCategory.journal), isFalse);
+    });
+
+    test('is highlighted and remembered at the Profile visit (D-09)', () async {
+      await appendAddition();
+
+      await cubit.visit(NewEntryCategory.profile);
+
+      expect(cubit.state.highlightedOf(background), {addition});
+      expect(cubit.state.hasUnseenIn(NewEntryCategory.profile), isFalse);
+      expect(seenOf(background), {birth, addition});
+    });
+
+    test('loses its highlight at the second Profile visit (D-09)', () async {
+      await appendAddition();
+      await cubit.visit(NewEntryCategory.profile);
+
+      await cubit.visit(NewEntryCategory.profile);
+
+      expect(cubit.state.highlightedOf(background), isEmpty);
+      expect(seenOf(background), {birth, addition});
+    });
+  });
+
   test('an arrival during a visit waits for the next visit', () async {
     seedSeen(items, {'potion'});
     await cubit.sync({

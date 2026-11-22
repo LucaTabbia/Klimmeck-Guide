@@ -38,12 +38,16 @@ Map<String, dynamic> missionEffectsJson({
   List<Map<String, dynamic>> consumablesUsed = const [],
   List<Map<String, dynamic>> spellsUsed = const [],
   int? companionLifeAfter,
+  List<Object?>? injuriesRemoved,
+  List<Object?>? innkeeperInjuries,
 }) => {
   'hpAfter': hpAfter,
   'injuriesAdded': injuriesAdded,
   'consumablesUsed': consumablesUsed,
   'spellsUsed': spellsUsed,
   if (companionLifeAfter != null) 'companionLifeAfter': companionLifeAfter,
+  if (injuriesRemoved != null) 'injuriesRemoved': injuriesRemoved,
+  if (innkeeperInjuries != null) 'innkeeperInjuries': innkeeperInjuries,
 };
 
 Map<String, dynamic> missionCompanionJson({
@@ -71,6 +75,7 @@ Map<String, dynamic> missionOutcomeJson({
   Map<String, dynamic>? simulated,
   Map<String, dynamic>? corrected,
   Map<String, dynamic>? companion,
+  List<Object?>? innkeeperInjuriesBefore,
 }) => {
   'character': character,
   'hpBefore': hpBefore,
@@ -80,6 +85,8 @@ Map<String, dynamic> missionOutcomeJson({
   'simulated': simulated,
   'corrected': corrected,
   if (companion != null) 'companion': companion,
+  if (innkeeperInjuriesBefore != null)
+    'innkeeperInjuriesBefore': innkeeperInjuriesBefore,
 };
 
 Map<String, dynamic> missionFightEnemyJson({
@@ -129,6 +136,11 @@ Map<String, dynamic> missionPrizeJson({
   'cure': cure,
 };
 
+Map<String, dynamic> missionBackgroundAdditionJson({
+  Object? character = 'char-aldo',
+  Object? text = 'Ha visto il drago.',
+}) => {'character': character, 'text': text};
+
 Map<String, dynamic> missionDraftJson({
   String? id = 'draft-1',
   String? quest = worldMissionQuestId,
@@ -138,6 +150,7 @@ Map<String, dynamic> missionDraftJson({
   List<Map<String, dynamic>>? participants,
   List<Map<String, dynamic>> fights = const [],
   List<Map<String, dynamic>> prizes = const [],
+  Object? backgroundAdditions,
 }) => {
   'id': id,
   'quest': quest,
@@ -149,6 +162,7 @@ Map<String, dynamic> missionDraftJson({
   'prizes': prizes,
   'startedAt': missionDraftStartedAt,
   'updatedAt': missionDraftUpdatedAt,
+  if (backgroundAdditions != null) 'backgroundAdditions': backgroundAdditions,
 };
 
 Map<String, dynamic> missionPrizeOptionsJson({

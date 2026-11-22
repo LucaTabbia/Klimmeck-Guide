@@ -339,7 +339,7 @@ class _BoardState extends State<Board> with SingleTickerProviderStateMixin {
       child: ColoredBox(
         color: Colors.transparent,
         child: BlocSelector<CharacterCubit, CharacterState, List<InjuryType>?>(
-          selector: characterInjuriesOf,
+          selector: curableInjuriesOf,
           builder: (context, injuries) => QuestInfoSheet(
             quest: selected,
             viewer: viewer,

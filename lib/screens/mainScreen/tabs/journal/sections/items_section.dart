@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -236,10 +237,11 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     final potion = _potionOf(item);
     final isAwaitingAid = character.status?.awaitingAid != null;
     if (potion == null || isAwaitingAid) {
-      return _itemRow(item, quantity);
+      return _itemRow(character, item, quantity);
     }
     if (character.isOnMission) {
       return _itemRow(
+        character,
         item,
         quantity,
         isDisabled: true,
@@ -248,9 +250,16 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     }
     final statusLine = remaining == null ? null : potionReadyInLine(remaining);
     if (statusLine != null && targets.isEmpty) {
-      return _itemRow(item, quantity, isDisabled: true, statusLine: statusLine);
+      return _itemRow(
+        character,
+        item,
+        quantity,
+        isDisabled: true,
+        statusLine: statusLine,
+      );
     }
     return _itemRow(
+      character,
       item,
       quantity,
       statusLine: statusLine,
@@ -258,7 +267,9 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     );
   }
 
+  /// Le ferite dell'oste del personaggio vanno in rosso in «Cura: …» (D-21).
   Widget _itemRow(
+    Character character,
     AssetItem item,
     int? quantity, {
     void Function(AssetItem)? onSelect,
@@ -272,7 +283,11 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     onSelect: onSelect,
     isDisabled: isDisabled,
     statusLine: statusLine,
+    readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
   );
+
+  List<InjuryType> _innkeeperInjuriesOf(Character character) =>
+      character.status?.innkeeperInjuries ?? const [];
 
   /// Il foglio vive sul navigator radice, fuori dai provider della shell: i
   /// cubit gli arrivano per valore, la vita massima e i compagni che possono
@@ -304,6 +319,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
               item: potion,
               maxLifePoints: character.status?.maxLifePoints,
               targets: targets,
+              readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
             ),
           ),
         ),

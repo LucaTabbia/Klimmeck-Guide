@@ -2,8 +2,10 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/models/request/mission_draft_inputs.dart';
+import 'package:klimmeck_guide/screens/innkeeper/components/injury_chips.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/correction_section.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
@@ -31,9 +33,11 @@ final List<Map<String, dynamic>> _participants = [
 List<Map<String, dynamic>> _outcomes({
   bool simulated = true,
   int aldoHp = 700,
+  Map<String, dynamic>? aldoCorrected,
 }) => [
   missionOutcomeJson(
     simulated: simulated ? missionEffectsJson(hpAfter: aldoHp) : null,
+    corrected: aldoCorrected,
   ),
   missionOutcomeJson(
     character: _bea,
@@ -44,29 +48,37 @@ List<Map<String, dynamic>> _outcomes({
   ),
 ];
 
-MissionDraft _draft({String? first, String? second, int aldoHp = 700}) =>
-    MissionDraft.tryFromJson(
-      missionDraftJson(
-        step: 'fights',
-        participants: _participants,
-        fights: [
-          missionFightJson(
-            verdict: first,
-            outcomes: _outcomes(simulated: first != null, aldoHp: aldoHp),
-          ),
-          missionFightJson(
-            enemies: [
-              missionFightEnemyJson(
-                enemy: missionEnemyJson(id: 'enemy-goblin', name: 'Goblin'),
-                quantity: 2,
-              ),
-            ],
-            verdict: second,
-            outcomes: _outcomes(simulated: second != null),
+MissionDraft _draft({
+  String? first,
+  String? second,
+  int aldoHp = 700,
+  Map<String, dynamic>? aldoCorrected,
+}) => MissionDraft.tryFromJson(
+  missionDraftJson(
+    step: 'fights',
+    participants: _participants,
+    fights: [
+      missionFightJson(
+        verdict: first,
+        outcomes: _outcomes(
+          simulated: first != null,
+          aldoHp: aldoHp,
+          aldoCorrected: aldoCorrected,
+        ),
+      ),
+      missionFightJson(
+        enemies: [
+          missionFightEnemyJson(
+            enemy: missionEnemyJson(id: 'enemy-goblin', name: 'Goblin'),
+            quantity: 2,
           ),
         ],
+        verdict: second,
+        outcomes: _outcomes(simulated: second != null),
       ),
-    )!;
+    ],
+  ),
+)!;
 
 void main() {
   late MockMissionParticipantsCubit participantsCubit;
@@ -91,6 +103,7 @@ void main() {
     MissionDraft draft, {
     int fightIndex = 0,
     bool isSubmitting = false,
+    bool isWoundRemovalEnabled = false,
   }) async {
     useLandscapePhone(tester);
     await tester.pumpWidget(
@@ -105,6 +118,7 @@ void main() {
               onSimulate: () => simulations++,
               onChangeEnemies: () => enemyChanges++,
               onNext: sent.add,
+              isWoundRemovalEnabled: isWoundRemovalEnabled,
             ),
           ),
         ),
@@ -236,6 +250,78 @@ void main() {
       );
     },
   );
+
+  group('wound removal (Phase 24)', () {
+    Future<void> openSectionOf(WidgetTester tester, String characterId) async {
+      await tester.tap(find.byKey(CorrectionSection.headerKeyFor(characterId)));
+      await tester.pumpAndSettle();
+    }
+
+    FilterChip keptChip(WidgetTester tester, InjuryType injury) =>
+        tester.widget<FilterChip>(find.byKey(InjuryChips.keptKeyOf(injury)));
+
+    testWidgets(
+      '«Avanti» sends the complete corrections with the wounds removed (D-13)',
+      (tester) async {
+        final draft = _draft(first: 'success');
+        await pumpStep(tester, draft, isWoundRemovalEnabled: true);
+        await openSectionOf(tester, _aldo);
+
+        keptChip(tester, InjuryType.blackEye).onSelected!(false);
+        await tester.pump();
+        await tester.ensureVisible(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+
+        final [aldo, bea] = sent.single;
+        expect(aldo.injuriesRemoved, [InjuryType.blackEye]);
+        expect(aldo.hpAfter, 700);
+        expect(
+          bea,
+          MissionCorrection.fromEffects(
+            _bea,
+            draft.fights.first.outcomeOf(_bea)!.effective!,
+          ),
+        );
+        expect(bea.injuriesRemoved, isEmpty);
+      },
+    );
+
+    testWidgets('a served correction with removals reopens with them (D-13)', (
+      tester,
+    ) async {
+      await pumpStep(
+        tester,
+        _draft(
+          first: 'success',
+          aldoCorrected: missionEffectsJson(
+            injuriesRemoved: const ['blackEye'],
+          ),
+        ),
+        isWoundRemovalEnabled: true,
+      );
+      await openSectionOf(tester, _aldo);
+
+      expect(keptChip(tester, InjuryType.blackEye).selected, isFalse);
+    });
+
+    testWidgets(
+      'with the switch off the fight step offers no removal (pre-gate)',
+      (tester) async {
+        await pumpStep(tester, _draft(first: 'success'));
+        await openSectionOf(tester, _aldo);
+
+        final carried = keptChip(tester, InjuryType.blackEye);
+        expect((carried.selected, carried.onSelected), (true, null));
+        expect(find.byKey(InjuryChips.innkeeperNoteKey), findsNothing);
+        expect(
+          tester
+              .widgetList<CorrectionSection>(find.byType(CorrectionSection))
+              .every((section) => !section.isWoundRemovalEnabled),
+          isTrue,
+        );
+      },
+    );
+  });
 
   testWidgets(
     'correcting the hero resends the simulated companion life (D-33, BE A-08)',

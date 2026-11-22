@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../helpers/fixtures/potion_fixtures.dart';
+import '../../helpers/red_labels.dart';
 import '../../helpers/svg_cache_seed.dart';
 import '../../helpers/test_app.dart';
 
@@ -43,6 +44,7 @@ Future<void> _pump(
   AssetItem assetItem, {
   bool isDisabled = false,
   String? statusLine,
+  List<InjuryType> readerInnkeeperInjuries = const [],
 }) async {
   await tester.pumpWidget(
     buildTestApp(
@@ -55,6 +57,7 @@ Future<void> _pump(
             showCoins: false,
             isDisabled: isDisabled,
             statusLine: statusLine,
+            readerInnkeeperInjuries: readerInnkeeperInjuries,
           ),
         ),
       ),
@@ -146,6 +149,74 @@ void main() {
 
       expect(find.byKey(const ValueKey('item-effect-l-1')), findsOneWidget);
       expect(find.byKey(const ValueKey('item-injuries-l-1')), findsNothing);
+    });
+
+    testWidgets('a heal row lists every wound the item heals (D-20)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _loot(
+          effect: EffectType.heal,
+          power: 12,
+          injuries: [InjuryType.blackEye, InjuryType.blindness],
+        ),
+      );
+
+      expect(find.text('Cura: cecità, occhio nero'), findsOneWidget);
+    });
+
+    testWidgets(
+      "a row told the reader's innkeeper wounds writes them in red (D-21)",
+      (tester) async {
+        await _pump(
+          tester,
+          _loot(
+            effect: EffectType.heal,
+            power: 12,
+            injuries: [InjuryType.blackEye, InjuryType.blindness],
+          ),
+          readerInnkeeperInjuries: const [InjuryType.blindness],
+        );
+
+        final line = find.text('Cura: cecità, occhio nero');
+        expect(line, findsOneWidget);
+        expect(redLabelsOf(tester, line), ['cecità']);
+        expect(
+          tester.widget<Text>(line).style,
+          KlimmeckGuideTheme.instance.bodyMedium,
+        );
+      },
+    );
+
+    testWidgets('a row told nothing writes no wound in red (shop, D-21)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _loot(
+          effect: EffectType.heal,
+          power: 12,
+          injuries: [InjuryType.blackEye, InjuryType.blindness],
+        ),
+      );
+
+      expect(
+        redLabelsOf(tester, find.text('Cura: cecità, occhio nero')),
+        isEmpty,
+      );
+    });
+
+    testWidgets("an innkeeper wound the item does not list changes nothing", (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _loot(effect: EffectType.heal, injuries: [InjuryType.blackEye]),
+        readerInnkeeperInjuries: const [InjuryType.blindness],
+      );
+
+      expect(redLabelsOf(tester, find.text('Cura: occhio nero')), isEmpty);
     });
   });
 

@@ -19,6 +19,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
 import 'fakes/fake_server_clock_service.dart';
 import 'fixtures/spell_fixtures.dart';
@@ -38,11 +39,13 @@ const _healEffectUrl =
 /// le voci `{'item': …, 'quantity': …}` della sezione «Oggetti».
 /// [potionRecoveryUntil], [awaitingAid] e [activeTravel] entrano nello status
 /// solo se passati; [missionInProgress] è il flag servito della missione in
-/// corso. [wornEquipment] e [ownedEquipments] sono le armature del manichino.
+/// corso; [innkeeperInjuries] sono le ferite dell'oste, scritte solo se passate.
+/// [wornEquipment] e [ownedEquipments] sono le armature del manichino.
 Character journalCharacter({
   required Map<String, dynamic> spellbook,
   List<Map<String, dynamic>> ownedItems = const [],
   List<String> injuries = const [],
+  List<String>? innkeeperInjuries,
   String? potionRecoveryUntil,
   Map<String, dynamic>? awaitingAid,
   Map<String, dynamic>? activeTravel,
@@ -59,6 +62,7 @@ Character journalCharacter({
     'maxLifePoints': 12,
     'coins': {'gold': 1, 'silver': 2, 'copper': 3},
     'injuries': injuries,
+    'innkeeperInjuries': ?innkeeperInjuries,
     'potionRecoveryUntil': ?potionRecoveryUntil,
     'awaitingAid': ?awaitingAid,
     'activeTravel': ?activeTravel,
@@ -183,5 +187,21 @@ Future<void> pumpJournalPage(
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+/// Intestazione della sezione a tendina [sectionName] del Diario.
+Finder journalSectionHeader(String sectionName) => find.byWidgetPredicate(
+  (widget) => widget is DropdownHeader && widget.sectionName == sectionName,
+);
+
+/// Apre (o chiude) la sezione a tendina [sectionName] del Diario.
+Future<void> toggleJournalSection(
+  WidgetTester tester,
+  String sectionName,
+) async {
+  final header = journalSectionHeader(sectionName);
+  await tester.ensureVisible(header);
+  await tester.tap(header);
   await tester.pumpAndSettle();
 }

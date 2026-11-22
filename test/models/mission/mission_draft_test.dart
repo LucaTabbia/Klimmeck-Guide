@@ -158,5 +158,92 @@ void main() {
 
       expect(draft.placeId, isNull);
     });
+
+    test('reads the background additions of the draft (D-05)', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(
+          backgroundAdditions: [
+            missionBackgroundAdditionJson(),
+            missionBackgroundAdditionJson(
+              character: 'char-bea',
+              text: 'Ha perso la spada.',
+            ),
+          ],
+        ),
+      )!;
+
+      expect(draft.backgroundAdditions, const [
+        MissionBackgroundAddition(
+          characterId: 'char-aldo',
+          text: 'Ha visto il drago.',
+        ),
+        MissionBackgroundAddition(
+          characterId: 'char-bea',
+          text: 'Ha perso la spada.',
+        ),
+      ]);
+      expect(draft.additionOf('char-aldo')?.text, 'Ha visto il drago.');
+      expect(draft.additionOf('char-bea')?.text, 'Ha perso la spada.');
+    });
+
+    test('drops a malformed addition and reads a missing section as empty '
+        '(D-05)', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(
+          backgroundAdditions: [
+            missionBackgroundAdditionJson(character: null),
+            missionBackgroundAdditionJson(text: 7),
+            'char-aldo',
+            missionBackgroundAdditionJson(character: 'char-bea'),
+          ],
+        ),
+      )!;
+      final absent = MissionDraft.tryFromJson(missionDraftJson())!;
+      final notAList = MissionDraft.tryFromJson(
+        missionDraftJson(backgroundAdditions: 'nessuna'),
+      )!;
+
+      expect(draft.backgroundAdditions.map((a) => a.characterId), ['char-bea']);
+      expect(absent.backgroundAdditions, isEmpty);
+      expect(notAList.backgroundAdditions, isEmpty);
+      expect(notAList.id, 'draft-1');
+    });
+
+    test('additionOf is null for a participant without addition (D-06)', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(
+          backgroundAdditions: [missionBackgroundAdditionJson()],
+        ),
+      )!;
+
+      expect(draft.additionOf('char-bea'), isNull);
+    });
+
+    test('reads the wire step stories (D-05)', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(step: 'stories'),
+      )!;
+
+      expect(draft.step, MissionDraftStep.stories);
+    });
+
+    test('an unknown step still reads null', () {
+      final draft = MissionDraft.tryFromJson(
+        missionDraftJson(step: 'additions'),
+      )!;
+
+      expect(draft.step, isNull);
+    });
+
+    test('two drafts differing only by an addition are not equal (D-05)', () {
+      final without = MissionDraft.tryFromJson(missionDraftJson())!;
+      final withAddition = MissionDraft.tryFromJson(
+        missionDraftJson(
+          backgroundAdditions: [missionBackgroundAdditionJson()],
+        ),
+      )!;
+
+      expect(withAddition, isNot(without));
+    });
   });
 }
