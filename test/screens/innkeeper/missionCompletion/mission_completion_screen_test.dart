@@ -1563,9 +1563,12 @@ void main() {
     /// Scrive nel campo come fa l'oste: dentro la tendina aperta (D-23).
     Future<void> type(WidgetTester tester, String id, String text) async {
       final field = find.byKey(AdditionsStep.fieldKeyFor(id));
-      if (field.hitTestable().evaluate().isEmpty) {
-        await openAddition(tester, id);
-      }
+      final isClosed = tester
+          .widget<ExcludeFocus>(
+            find.ancestor(of: field, matching: find.byType(ExcludeFocus)),
+          )
+          .excluding;
+      if (isClosed) await openAddition(tester, id);
       await tester.enterText(field, text);
       await tester.pump();
     }

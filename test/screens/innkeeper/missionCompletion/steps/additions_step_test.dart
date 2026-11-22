@@ -143,9 +143,15 @@ void main() {
     String characterId,
     String text,
   ) async {
-    if (fieldOf(characterId).hitTestable().evaluate().isEmpty) {
-      await toggle(tester, characterId);
-    }
+    final isClosed = tester
+        .widget<ExcludeFocus>(
+          find.ancestor(
+            of: fieldOf(characterId),
+            matching: find.byType(ExcludeFocus),
+          ),
+        )
+        .excluding;
+    if (isClosed) await toggle(tester, characterId);
     await tester.enterText(fieldOf(characterId), text);
     await tester.pump();
   }

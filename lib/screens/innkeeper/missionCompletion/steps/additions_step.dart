@@ -6,10 +6,11 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPartic
 import 'package:klimmeck_guide/shared/components/sheet_text_field.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Ultima pagina del flusso guidato (Phase 24 D-04..D-08): per partecipante la
-/// storia da rileggere e un'aggiunta facoltativa. I testi li possiede la
-/// schermata; ogni campo legge il suo una volta sola, così una bozza appena
-/// servita non riscrive ciò che l'oste sta scrivendo.
+/// Ultima pagina del flusso guidato (Phase 24 D-04..D-08): per partecipante
+/// una tendina chiusa con la storia da rileggere e, sotto, un'aggiunta
+/// facoltativa (D-23). I testi li possiede la schermata; ogni campo legge il
+/// suo una volta sola, così una bozza appena servita non riscrive ciò che
+/// l'oste sta scrivendo.
 class AdditionsStep extends StatelessWidget {
   const AdditionsStep({
     super.key,
@@ -28,16 +29,25 @@ class AdditionsStep extends StatelessWidget {
   static const String concludeLabel = 'Concludi';
   static const Key concludeKey = ValueKey('mission.additions.conclude');
   static const Key retryKey = ValueKey('mission.additions.retry');
-  static const int _fieldMinLines = 3;
-  static const int _fieldMaxLines = 5;
 
   static Key fieldKeyFor(String characterId) =>
       ValueKey('mission.additions.field.$characterId');
+  static Key summaryKeyFor(String characterId) =>
+      ValueKey('mission.additions.summary.$characterId');
 
   /// Aiuto alla scrittura, non una validazione: il limite lo decide il BE
   /// (D-07), che conta i grafemi senza gli spazi ai bordi.
-  static bool isTooLong(String text) =>
-      text.trim().characters.length > maxAdditionLength;
+  static bool isTooLong(String text) => _lengthOf(text) > maxAdditionLength;
+
+  /// Riassunto dell'aggiunta per l'intestazione della tendina (D-23); `null`
+  /// per un campo che non aggiunge nulla (D-06).
+  static String? summaryOf(String text) {
+    final length = _lengthOf(text);
+    if (length == 0) return null;
+    return 'aggiunta $length/$maxAdditionLength';
+  }
+
+  static int _lengthOf(String text) => text.trim().characters.length;
 
   final List<StoryReader> readers;
 
@@ -80,15 +90,14 @@ class AdditionsStep extends StatelessWidget {
                     failureLine,
                     style: KlimmeckGuideTheme.instance.bodyMedium,
                   ),
-                for (final reader in readers) ...[
-                  ParticipantStory(
+                for (final reader in readers)
+                  _ParticipantAddition(
                     reader: reader,
                     entries: loaded?.backgroundOf(reader.characterId),
                     pendingLine: failureLine ?? ParticipantStory.readingLine,
+                    text: texts[reader.characterId] ?? '',
+                    onChanged: (typed) => onChanged(reader.characterId, typed),
                   ),
-                  _additionField(reader.characterId),
-                  const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-                ],
               ],
             ),
           ),
@@ -115,18 +124,72 @@ class AdditionsStep extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _additionField(String characterId) {
-    final text = texts[characterId] ?? '';
-    return SheetTextField(
-      key: fieldKeyFor(characterId),
-      label: fieldLabel,
-      initialValue: text,
-      onChanged: (typed) => onChanged(characterId, typed),
-      minLines: _fieldMinLines,
-      maxLines: _fieldMaxLines,
-      maxLength: maxAdditionLength,
-      errorText: isTooLong(text) ? tooLongMessage : null,
+/// La tendina di un partecipante: storia e campo dell'aggiunta. Chiusa, tiene
+/// vivo il campo con il suo testo ma gli toglie il fuoco, così non si scrive
+/// in un campo che non si vede.
+class _ParticipantAddition extends StatefulWidget {
+  const _ParticipantAddition({
+    required this.reader,
+    required this.entries,
+    required this.pendingLine,
+    required this.text,
+    required this.onChanged,
+  });
+
+  final StoryReader reader;
+  final List<String>? entries;
+  final String pendingLine;
+  final String text;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_ParticipantAddition> createState() => _ParticipantAdditionState();
+}
+
+class _ParticipantAdditionState extends State<_ParticipantAddition> {
+  static const int _fieldMinLines = 3;
+  static const int _fieldMaxLines = 5;
+
+  bool _isOpen = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final characterId = widget.reader.characterId;
+    final isTooLong = AdditionsStep.isTooLong(widget.text);
+    return ParticipantStory(
+      reader: widget.reader,
+      entries: widget.entries,
+      pendingLine: widget.pendingLine,
+      summary: _buildSummary(context, isTooLong: isTooLong),
+      onToggle: () => setState(() => _isOpen = !_isOpen),
+      below: ExcludeFocus(
+        excluding: !_isOpen,
+        child: SheetTextField(
+          key: AdditionsStep.fieldKeyFor(characterId),
+          label: AdditionsStep.fieldLabel,
+          initialValue: widget.text,
+          onChanged: widget.onChanged,
+          minLines: _fieldMinLines,
+          maxLines: _fieldMaxLines,
+          maxLength: AdditionsStep.maxAdditionLength,
+          errorText: isTooLong ? AdditionsStep.tooLongMessage : null,
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildSummary(BuildContext context, {required bool isTooLong}) {
+    final summary = AdditionsStep.summaryOf(widget.text);
+    if (summary == null) return null;
+    final style = KlimmeckGuideTheme.instance.bodyMedium;
+    return Text(
+      summary,
+      key: AdditionsStep.summaryKeyFor(widget.reader.characterId),
+      style: isTooLong
+          ? style.copyWith(color: Theme.of(context).colorScheme.error)
+          : style,
     );
   }
 }

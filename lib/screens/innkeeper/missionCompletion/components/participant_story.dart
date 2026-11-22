@@ -40,13 +40,17 @@ class StoryReader extends Equatable {
 }
 
 /// La storia di un partecipante in una tendina chiusa (D-03, D-08): mai un
-/// popup (D-02a).
+/// popup (D-02a). Sull'ultima pagina la tendina ospita anche l'aggiunta, sotto
+/// la storia, e la riassume accanto al nome (D-23).
 class ParticipantStory extends StatelessWidget {
   const ParticipantStory({
     super.key,
     required this.reader,
     required this.entries,
     required this.pendingLine,
+    this.summary,
+    this.below,
+    this.onToggle,
   });
 
   static const String emptyLine =
@@ -64,11 +68,31 @@ class ParticipantStory extends StatelessWidget {
   /// Riga mostrata al posto della storia non ancora leggibile.
   final String pendingLine;
 
+  /// Accanto al nome, visibile anche a tendina chiusa.
+  final Widget? summary;
+
+  /// Sotto la storia, dentro la tendina.
+  final Widget? below;
+  final VoidCallback? onToggle;
+
   Widget get _story {
     final entries = this.entries;
     if (entries == null) return _line(pendingLine);
     if (entries.isEmpty) return _line(emptyLine);
     return BackgroundEntries(entries: entries);
+  }
+
+  Widget get _content {
+    final below = this.below;
+    if (below == null) return _story;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _story,
+        const SizedBox(height: KlimmeckGuideTheme.spacingSm),
+        below,
+      ],
+    );
   }
 
   Widget _line(String text) =>
@@ -79,7 +103,9 @@ class ParticipantStory extends StatelessWidget {
     return Dropdown(
       key: keyFor(reader.characterId),
       sectionName: reader.header,
-      data: _story,
+      badge: summary,
+      onToggle: onToggle,
+      data: _content,
     );
   }
 }
