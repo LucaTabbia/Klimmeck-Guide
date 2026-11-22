@@ -1,7 +1,7 @@
 ---
 phase: 24
 slug: participants-stories-and-innkeeper-wounds
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: false
 created: 2026-11-21
@@ -71,9 +71,9 @@ created: 2026-11-21
 | 24-10-01 | 10 | 10 | STORY-04, STORY-02, STORY-03, WOUND-01, WOUND-02, WOUND-03 | T-24-40, T-24-41, T-24-42, T-24-43, T-24-44 | gate before any selection and before the switch; BE read-only | gate + document pin | `schema gate block of 24-10 + flutter test test/graphql test/config` | ✅ extend | ✅ green |
 | 24-10-02 | 10 | 10 | STORY-04 | T-24-40 | every document valid on the merged SDL | gate | `schema check 55 × OK + full suite + tool/hardening_check.sh` | ✅ | ✅ green |
 | 24-10-03 | 10 | 10 | — | — | N/A (bookkeeping) | docs | `grep -qE "Plan: 10 of 11" .planning/STATE.md` | — | ✅ green |
-| 24-11-01 | 11 | 11 | STORY-04 | T-24-46, T-24-49 | names only, no secrets; gate re-check on the ref under test | docs | `gate re-check of 24-11 + secrets grep = 0` | ✅ | ⬜ pending |
-| 24-11-02 | 11 | 11 | STORY-01..STORY-03, WOUND-01..WOUND-03 | T-24-48 | device and DB actions by the orchestrator only | manual | `24-HUMAN-UAT.md steps 1–10` | ✅ | ⬜ pending |
-| 24-11-03 | 11 | 11 | STORY-01..STORY-04, WOUND-01..WOUND-03 | T-24-47 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 24-HUMAN-UAT.md` | — | ⬜ pending |
+| 24-11-01 | 11 | 11 | STORY-04 | T-24-46, T-24-49 | names only, no secrets; gate re-check on the ref under test | docs | `gate re-check of 24-11 + secrets grep = 0` | ✅ | ✅ green |
+| 24-11-02 | 11 | 11 | STORY-01..STORY-03, WOUND-01..WOUND-03 | T-24-48 | device and DB actions by the orchestrator only | manual | `24-HUMAN-UAT.md steps 1–10` | ✅ | ✅ green (2026-11-22; plus the extra steps 0 and 11; two points not run on the device, covered by tests) |
+| 24-11-03 | 11 | 11 | STORY-01..STORY-04, WOUND-01..WOUND-03 | T-24-47 | mark-complete only for passed steps | docs | `grep -q "^status: \(complete\|partial\)" 24-HUMAN-UAT.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -120,4 +120,4 @@ Each new test file is created RED-first by the task that needs it (no separate W
 - [x] Feedback latency < 120s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending (closed by 24-11)
+**Approval:** approved 2026-11-22 — device E2E passed (`24-HUMAN-UAT.md`, `status: complete`: steps 1–10 and the extra steps 0 and 11 passed in the user's words; the over-1000 paste of step 4 and the third hand-added wound of step 3 not run on the device, covered by the tests of 24-05 and 24-07; the worldMission halves of steps 2 and 6 judged on an improvised worldMission). The manual row «potion lines» of step 9 is amended by D-20 / D-21 (the item line lists the innkeeper wound, in red for the reader). Closing gates on the final tree: gate re-check `GATE_OK` on BE `origin/develop` `a5b140a6`, schema check 55 × OK, analyzer «47 issues found», full suite 5535 green, `tool/hardening_check.sh` OK.
