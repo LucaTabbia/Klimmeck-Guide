@@ -277,47 +277,14 @@ void main() {
     });
   });
 
-  group('healedInjuriesLine', () {
-    test(
-      'a heal item lists the injuries it cures in enum order, lower case',
-      () {
-        expect(
-          healedInjuriesLine(
-            _loot(
-              effect: EffectType.heal,
-              power: 12,
-              injuries: [InjuryType.blackEye, InjuryType.blindness],
-            ),
-          ),
-          'Cura: cecità, occhio nero',
-        );
-      },
-    );
-
-    test('a single injury reads without a separator', () {
+  group('healedInjuryLabels', () {
+    test('a single injury gives one label, lower case', () {
       expect(
-        healedInjuriesLine(
+        healedInjuryLabels(
           _loot(effect: EffectType.heal, injuries: [InjuryType.deepCut]),
         ),
-        'Cura: taglio profondo',
+        const [(label: 'taglio profondo', isBeyondCure: false)],
       );
-    });
-
-    test('a heal item without injuries has no line', () {
-      expect(
-        healedInjuriesLine(_loot(effect: EffectType.heal, power: 12)),
-        isNull,
-      );
-    });
-
-    test('a non-heal item never has the line, even with injuries', () {
-      expect(
-        healedInjuriesLine(
-          _loot(effect: EffectType.hunger, injuries: [InjuryType.deepCut]),
-        ),
-        isNull,
-      );
-      expect(healedInjuriesLine(_loot(injuries: [InjuryType.deepCut])), isNull);
     });
 
     test('the labels mark the wounds beyond cure of the reader (D-21)', () {
@@ -336,7 +303,8 @@ void main() {
       );
     });
 
-    test('without a reader no label is beyond cure (D-21)', () {
+    test('every wound the item heals is listed in enum order, whoever reads; '
+        'without a reader none is beyond cure (D-20, D-21)', () {
       expect(
         healedInjuryLabels(
           _loot(
@@ -354,23 +322,15 @@ void main() {
     test('an item with no Cura line has no labels (D-21)', () {
       expect(healedInjuryLabels(_loot(effect: EffectType.heal)), isEmpty);
       expect(
+        healedInjuryLabels(_loot(injuries: [InjuryType.deepCut])),
+        isEmpty,
+      );
+      expect(
         healedInjuryLabels(
           _loot(effect: EffectType.hunger, injuries: [InjuryType.deepCut]),
           beyondCure: const [InjuryType.deepCut],
         ),
         isEmpty,
-      );
-    });
-
-    test('the line lists every wound the item heals, whoever reads (D-20)', () {
-      expect(
-        healedInjuriesLine(
-          _loot(
-            effect: EffectType.heal,
-            injuries: [InjuryType.blackEye, InjuryType.blindness],
-          ),
-        ),
-        'Cura: cecità, occhio nero',
       );
     });
   });

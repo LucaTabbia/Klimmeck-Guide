@@ -113,16 +113,6 @@ List<HealedInjuryLabel> healedInjuryLabels(
   ];
 }
 
-/// Riga «Cura: …» in testo semplice, per chi non conosce chi legge: le
-/// etichette di [healedInjuryLabels] unite da virgola; nessuna riga senza
-/// etichette.
-String? healedInjuriesLine(LootItem item) {
-  final labels = healedInjuryLabels(item);
-  if (labels.isEmpty) return null;
-  final names = labels.map((injury) => injury.label);
-  return '$healedInjuriesPrefix${names.join(healedInjuriesSeparator)}';
-}
-
 /// Riga della cura sul foglio di una quest (D-03): solo le ferite del
 /// personaggio che la quest guarisce, nell'ordine del personaggio, in
 /// minuscolo; nessuna riga se nessuna corrisponde. È un filtro di

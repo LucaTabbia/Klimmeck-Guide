@@ -5,7 +5,7 @@ import '../../utils/item_lines.dart';
 
 /// Riga «Cura: …» di un oggetto heal: le ferite che nessuna cura toglie a chi
 /// legge sono scritte in rosso (D-21), il resto nello stile della riga; il
-/// testo letto resta quello di [healedInjuriesLine].
+/// testo letto è prefisso, etichette e virgole, senza altro.
 class HealedInjuriesText extends StatelessWidget {
   const HealedInjuriesText({
     super.key,
