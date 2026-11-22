@@ -37,6 +37,28 @@ void main() {
     expect(find.byType(NewEntrySigil), findsNothing);
   });
 
+  testWidgets(
+    'a short centred line parts each entry from the next, none after the last',
+    (tester) async {
+      await pumpEntries(tester, entries: const [_birth, _deed, 'Terza voce.']);
+
+      final separators = find.byKey(BackgroundEntries.separatorKey);
+      expect(separators, findsNWidgets(2));
+      final page = tester.getRect(find.byType(BackgroundEntries));
+      final line = tester.getRect(separators.first);
+      expect(line.width, lessThan(page.width / 2));
+      expect(line.center.dx, closeTo(page.center.dx, 1));
+      expect(line.top, greaterThan(tester.getBottomLeft(find.text(_birth)).dy));
+      expect(line.bottom, lessThan(tester.getTopLeft(find.text(_deed)).dy));
+    },
+  );
+
+  testWidgets('a single entry has no separator', (tester) async {
+    await pumpEntries(tester, entries: const [_birth]);
+
+    expect(find.byKey(BackgroundEntries.separatorKey), findsNothing);
+  });
+
   testWidgets('only a new entry carries the sigil', (tester) async {
     await pumpEntries(
       tester,
