@@ -38,7 +38,7 @@ void main() {
         contains(
           'outcomes { character hpBefore '
           'companion { pet name lifeBefore maxLifePoints } injuriesBefore '
-          'consumablesAvailable { item quantity } '
+          'innkeeperInjuriesBefore consumablesAvailable { item quantity } '
           'spellsAvailable { spell usages }',
         ),
       );
@@ -51,6 +51,7 @@ void main() {
         draftSelection,
         contains(
           'simulated { hpAfter companionLifeAfter injuriesAdded '
+          'injuriesRemoved innkeeperInjuries '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );
@@ -58,6 +59,7 @@ void main() {
         draftSelection,
         contains(
           'corrected { hpAfter companionLifeAfter injuriesAdded '
+          'injuriesRemoved innkeeperInjuries '
           'consumablesUsed { item quantity } spellsUsed { spell usages } }',
         ),
       );

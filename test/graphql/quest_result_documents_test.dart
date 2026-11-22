@@ -182,7 +182,10 @@ void main() {
     test('selects the lore unlocked by the outcome (D-04)', () {
       expect(
         sharedSelection,
-        contains('spellResearchFailed loreUnlocked { id name type }'),
+        contains(
+          'spellResearchFailed backgroundEntryAdded '
+          'loreUnlocked { id name type }',
+        ),
       );
     });
 
