@@ -31,17 +31,17 @@ class BackgroundEntries extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (newEntries.contains(entry))
-                const Padding(
-                  padding: EdgeInsets.only(right: KlimmeckGuideTheme.spacingSm),
-                  child: NewEntrySigil(size: _sigilSize),
-                ),
               Expanded(
                 child: Text(
                   entry,
                   style: KlimmeckGuideTheme.instance.bodyLarge,
                 ),
               ),
+              if (newEntries.contains(entry))
+                const Padding(
+                  padding: EdgeInsets.only(left: KlimmeckGuideTheme.spacingSm),
+                  child: NewEntrySigil(size: _sigilSize),
+                ),
             ],
           ),
         ],
