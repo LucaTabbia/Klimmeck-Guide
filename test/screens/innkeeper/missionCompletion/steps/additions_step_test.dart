@@ -383,6 +383,67 @@ void main() {
     expect(concludeOnPressed(tester), isNotNull);
   });
 
+  testWidgets(
+    "the field's counter and the header summary show the same number, counted without the spaces at the edges (IN-02, D-23)",
+    (tester) async {
+      await pumpStep(tester);
+
+      await type(tester, _aldo, '  \nDrago \n\n');
+
+      expect(find.text('5/1000').hitTestable(), findsOneWidget);
+      expect(tester.widget<Text>(summaryOf(_aldo)).data, 'aggiunta 5/1000');
+      expect(find.textContaining('11/1000'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a text within the limit once trimmed never puts the field in error (IN-02)',
+    (tester) async {
+      await pumpStep(tester);
+
+      await type(tester, _aldo, '${'a' * 998}\n\n\n');
+
+      expect(find.text('998/1000').hitTestable(), findsOneWidget);
+      expect(tester.widget<Text>(summaryOf(_aldo)).data, 'aggiunta 998/1000');
+      expect(find.textContaining('1001/1000'), findsNothing);
+      expect(
+        tester
+            .widget<InputDecorator>(
+              find.descendant(
+                of: fieldOf(_aldo),
+                matching: find.byType(InputDecorator),
+              ),
+            )
+            .decoration
+            .errorText,
+        isNull,
+      );
+      expect(concludeOnPressed(tester), isNotNull);
+    },
+  );
+
+  testWidgets('the counter of a text too long is the one of the header', (
+    tester,
+  ) async {
+    await pumpStep(tester);
+
+    await type(tester, _aldo, ' ${'a' * 1001} ');
+
+    expect(find.text('1001/1000').hitTestable(), findsOneWidget);
+    expect(tester.widget<Text>(summaryOf(_aldo)).data, 'aggiunta 1001/1000');
+    expect(
+      find.text(AdditionsStep.tooLongMessage).hitTestable(),
+      findsOneWidget,
+    );
+  });
+
+  test('counterOf counts graphemes of the trimmed text, as the limit does', () {
+    expect(AdditionsStep.counterOf(''), '0/1000');
+    expect(AdditionsStep.counterOf('   '), '0/1000');
+    expect(AdditionsStep.counterOf(' $_emojiFamily$_emojiFamily\n'), '2/1000');
+    expect(AdditionsStep.summaryOf(' $_emojiFamily\n'), 'aggiunta 1/1000');
+  });
+
   testWidgets('shortening a text too long enables Concludi again', (
     tester,
   ) async {
