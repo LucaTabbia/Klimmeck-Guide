@@ -151,6 +151,7 @@ void main() {
     when(() => draftCubit.discard()).thenAnswer((_) async {});
     when(() => participantsCubit.load(any())).thenAnswer((_) async {});
     when(() => participantsCubit.ensureLoaded(any())).thenAnswer((_) async {});
+    when(() => participantsCubit.reread(any())).thenAnswer((_) async {});
     when(() => enemiesCubit.load()).thenAnswer((_) async {});
     when(() => prizeOptionsCubit.loadAll(any())).thenAnswer((_) async {});
     whenListen(
@@ -195,6 +196,7 @@ void main() {
     MissionDraftState initial, {
     bool opensAtPlace = false,
     bool isStoryAndWoundInputEnabled = false,
+    MissionParticipantsCubit? participants,
   }) async {
     useLandscapePhone(tester);
     seedSvgCache([CloudinaryAssets.arrowDown]);
@@ -216,7 +218,7 @@ void main() {
                           value: draftCubit,
                         ),
                         BlocProvider<MissionParticipantsCubit>.value(
-                          value: participantsCubit,
+                          value: participants ?? participantsCubit,
                         ),
                         BlocProvider<MissionEnemiesCubit>.value(
                           value: enemiesCubit,
@@ -345,15 +347,29 @@ void main() {
     );
 
     testWidgets(
-      "the participants are asked once more with the draft's ids after the start, through ensureLoaded (no forced reread)",
+      "the participants are read again with the draft's ids once the start has locked them (WR-01)",
       (tester) async {
         await openWizard(tester, const MissionDraftAbsent());
+        verifyNever(() => participantsCubit.reread(any()));
 
         await tester.tap(find.byKey(MissionCompletionScreen.startKey));
         await emitDraft(tester, _ready);
 
-        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(2);
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verify(() => participantsCubit.reread([_aldo, _bea])).called(1);
         verifyNever(() => participantsCubit.load(any()));
+      },
+    );
+
+    testWidgets(
+      'a resumed draft reads the participants once, with no reread (D-02)',
+      (tester) async {
+        await openWizard(tester, const MissionDraftLoading());
+
+        await emitDraft(tester, _ready);
+
+        verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+        verifyNever(() => participantsCubit.reread(any()));
       },
     );
 
@@ -1017,6 +1033,52 @@ void main() {
           () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
         ).called(1);
         expect(_headerOf(MissionPage.encounters, 'Scontri'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      '«Luogo» after «Inizia la missione» shows and saves the place read after the start, not the one read with the stories (WR-01)',
+      (tester) async {
+        const camp = 'poi-camp-1';
+        var place = _ruins;
+        final repository = MockInnkeeperRepository();
+        for (final (id, name) in [(_aldo, 'Aldo'), (_bea, 'Bea')]) {
+          when(() => repository.readCharacter(id)).thenAnswer(
+            (_) async => Character.fromJson(
+              participantCharacterJson(id: id, name: name, locationId: place),
+            ),
+          );
+        }
+        when(() => repository.listPointsOfInterest()).thenAnswer(
+          (_) async => [PointOfInterest.fromJson(pointOfInterestJson())],
+        );
+        final cubit = MissionParticipantsCubit(repository: repository);
+        addTearDown(cubit.close);
+        await openWizard(
+          tester,
+          const MissionDraftAbsent(),
+          participants: cubit,
+        );
+        expect(
+          (cubit.state as MissionParticipantsLoaded).commonLocationId,
+          _ruins,
+        );
+
+        place = camp;
+        await tester.tap(find.byKey(MissionCompletionScreen.startKey));
+        await emitDraft(tester, _ready);
+
+        expect(find.textContaining('Rovine presso Talmvere'), findsNothing);
+
+        await tester.tap(find.byKey(PlaceStep.stayKey));
+        await tester.pump();
+
+        verify(
+          () => draftCubit.saveStep(MissionDraftStep.fights, placeId: camp),
+        ).called(1);
+        verifyNever(
+          () => draftCubit.saveStep(MissionDraftStep.fights, placeId: _ruins),
+        );
       },
     );
 
