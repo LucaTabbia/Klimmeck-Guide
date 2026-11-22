@@ -187,41 +187,47 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
           innkeeperInjuries: status.innkeeperInjuries,
         );
       },
-      builder: (context, wounds) => NewEntriesBuilder(
-        category: NewEntryCategory.injuries,
-        builder: (context, newInjuries) => Section(
-          sectionName: "Ferite",
-          data: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final injury in wounds!.injuries)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: wounds.innkeeperInjuries.contains(injury)
-                          ? InjuryNameIcon(
-                              injury: injury,
-                              note: Journal.beyondCureLine,
-                              noteKey: Journal.beyondCureKeyOf(injury),
-                            )
-                          : InjuryNameIcon(injury: injury),
-                    ),
-                    if (newInjuries.contains(injury.name))
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: KlimmeckGuideTheme.spacingSm,
-                        ),
-                        child: NewEntrySigil(
-                          key: Journal.newInjuryKeyOf(injury),
-                        ),
+      builder: (context, wounds) {
+        if (wounds == null || wounds.injuries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return NewEntriesBuilder(
+          category: NewEntryCategory.injuries,
+          builder: (context, newInjuries) => Dropdown(
+            sectionName: "Ferite",
+            badge: newInjuries.isEmpty ? null : const NewEntrySigil(),
+            data: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final injury in wounds.injuries)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: wounds.innkeeperInjuries.contains(injury)
+                            ? InjuryNameIcon(
+                                injury: injury,
+                                note: Journal.beyondCureLine,
+                                noteKey: Journal.beyondCureKeyOf(injury),
+                              )
+                            : InjuryNameIcon(injury: injury),
                       ),
-                  ],
-                ),
-            ],
+                      if (newInjuries.contains(injury.name))
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: KlimmeckGuideTheme.spacingSm,
+                          ),
+                          child: NewEntrySigil(
+                            key: Journal.newInjuryKeyOf(injury),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
