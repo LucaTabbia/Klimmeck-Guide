@@ -19,6 +19,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/journal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
 import 'fakes/fake_server_clock_service.dart';
 import 'fixtures/spell_fixtures.dart';
@@ -186,5 +187,21 @@ Future<void> pumpJournalPage(
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+/// Intestazione della sezione a tendina [sectionName] del Diario.
+Finder journalSectionHeader(String sectionName) => find.byWidgetPredicate(
+  (widget) => widget is DropdownHeader && widget.sectionName == sectionName,
+);
+
+/// Apre (o chiude) la sezione a tendina [sectionName] del Diario.
+Future<void> toggleJournalSection(
+  WidgetTester tester,
+  String sectionName,
+) async {
+  final header = journalSectionHeader(sectionName);
+  await tester.ensureVisible(header);
+  await tester.tap(header);
   await tester.pumpAndSettle();
 }

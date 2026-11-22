@@ -69,11 +69,12 @@ void main() {
           innkeeperInjuries: const ['missingLeftEye'],
         ),
       );
+      await toggleJournalSection(tester, 'Ferite');
 
       final line = find.byKey(
         Journal.beyondCureKeyOf(InjuryType.missingLeftEye),
       );
-      expect(line, findsOneWidget);
+      expect(line.hitTestable(), findsOneWidget);
       expect(tester.widget<Text>(line).data, 'Troppo grave per essere curata');
       expect(
         tester.getTopLeft(line).dy,
@@ -94,12 +95,13 @@ void main() {
         innkeeperInjuries: const ['missingLeftEye'],
       ),
     );
+    await toggleJournalSection(tester, 'Ferite');
 
     expect(
       find.byKey(Journal.beyondCureKeyOf(InjuryType.headConcussion)),
       findsNothing,
     );
-    expect(find.text(Journal.beyondCureLine), findsOneWidget);
+    expect(find.text(Journal.beyondCureLine).hitTestable(), findsOneWidget);
   });
 
   testWidgets(
@@ -112,6 +114,7 @@ void main() {
         _wounded(injuries: const ['missingLeftEye']),
         updates: updates.stream,
       );
+      await toggleJournalSection(tester, 'Ferite');
       expect(find.text(Journal.beyondCureLine), findsNothing);
 
       updates.add(
@@ -125,7 +128,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(Journal.beyondCureKeyOf(InjuryType.missingLeftEye)),
+        find
+            .byKey(Journal.beyondCureKeyOf(InjuryType.missingLeftEye))
+            .hitTestable(),
         findsOneWidget,
       );
     },
@@ -146,13 +151,18 @@ void main() {
       );
       tester.view.physicalSize = const Size(1440, 1080);
       await tester.pumpAndSettle();
+      await toggleJournalSection(tester, 'Ferite');
 
       expect(
-        find.byKey(Journal.beyondCureKeyOf(InjuryType.traumaticBrainInjury)),
+        find
+            .byKey(Journal.beyondCureKeyOf(InjuryType.traumaticBrainInjury))
+            .hitTestable(),
         findsOneWidget,
       );
       expect(
-        find.byKey(Journal.newInjuryKeyOf(InjuryType.traumaticBrainInjury)),
+        find
+            .byKey(Journal.newInjuryKeyOf(InjuryType.traumaticBrainInjury))
+            .hitTestable(),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
