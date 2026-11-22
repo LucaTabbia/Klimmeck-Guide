@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../../models/city.dart';
 import '../../../../../models/quest/quest.dart';
@@ -28,40 +29,37 @@ class QuestMarkersLayer extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final showableQuests = _getShowableQuests(state.quests);
-
         return MarkerLayer(
-          markers: showableQuests.map((quest) => _buildQuestMarker(quest)).toList(),
+          markers: [
+            for (final quest in state.quests)
+              if (_markerPointOf(quest) case final point?)
+                _buildQuestMarker(quest, point),
+          ],
         );
       },
     );
   }
 
-  List<Quest> _getShowableQuests(List<Quest> quests) {
-    return quests.where((quest) {
-      if (quest.infos?.markerLocation == null) return false;
-
-      // Don't show quest markers that overlap with city markers
-      return !cities.any(
-        (city) => city.markerLocation == quest.infos?.markerLocation,
-      );
-    }).toList();
+  /// Punto del marker: nessuno per una quest senza luogo (le story), con un
+  /// luogo senza coordinate o sovrapposta al marker di una città.
+  LatLng? _markerPointOf(Quest quest) {
+    final place = quest.infos?.markerLocation;
+    if (place == null) return null;
+    if (cities.any((city) => city.markerLocation == place)) return null;
+    return place.location;
   }
 
-  Marker _buildQuestMarker(Quest quest) {
+  Marker _buildQuestMarker(Quest quest, LatLng point) {
     return Marker(
       key: ValueKey(quest.id),
-      point: quest.infos!.markerLocation!.location!,
+      point: point,
       child: ValueListenableBuilder<double>(
         valueListenable: zoomNotifier,
         builder: (_, zoom, child) {
           if (zoom <= MapConstants.questVisibleZoom) {
             return const SizedBox.shrink();
           }
-          return Transform.scale(
-            scale: zoom * 0.4 + 0.1,
-            child: child!,
-          );
+          return Transform.scale(scale: zoom * 0.4 + 0.1, child: child!);
         },
         child: GestureDetector(
           onTap: () => onQuestSelected(quest),
@@ -71,4 +69,3 @@ class QuestMarkersLayer extends StatelessWidget {
     );
   }
 }
-
