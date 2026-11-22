@@ -9,24 +9,38 @@ import 'package:klimmeck_guide/models/mission/mission_prize_options.dart';
 import 'package:klimmeck_guide/models/pending_request/request_card.dart';
 import 'package:klimmeck_guide/models/quantity_line.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/mission_back_button.dart';
+import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/participant_story.dart';
 import 'package:klimmeck_guide/screens/innkeeper/components/completion_recap.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPrizeOptionsCubit/mission_prize_options_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/modal/destructive_confirmation_dialog.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
-/// Righe del riepilogo dalla sola bozza servita (D-08): missione, scontri, PV,
-/// ferite aggiunte e ferite tolte per personaggio (Phase 24 D-13).
+/// Righe del riepilogo dalla sola bozza servita (D-08), come le legge la
+/// conferma: quelle della missione, poi quelle di ogni personaggio precedute
+/// dal suo nome.
 List<String> missionRecapLinesOf({
+  required String questTitle,
+  required MissionDraft draft,
+}) => [
+  ...missionWideRecapLinesOf(questTitle: questTitle, draft: draft),
+  for (final participant in draft.participants)
+    ..._namedLines(
+      participant.name,
+      participantRecapLinesOf(participant, draft.fights),
+    ),
+];
+
+/// Righe della missione intera: titolo e scontri (Phase 24 D-23).
+List<String> missionWideRecapLinesOf({
   required String questTitle,
   required MissionDraft draft,
 }) => [
   questTitle,
   for (final (index, fight) in draft.fights.indexed) _fightLine(index, fight),
-  for (final participant in draft.participants)
-    ..._characterLines(participant, draft.fights),
 ];
 
 String _fightLine(int index, MissionFight fight) {
@@ -38,9 +52,11 @@ String _fightLine(int index, MissionFight fight) {
   return 'Scontro ${index + 1}: $enemies$suffix';
 }
 
-/// D-24: senza scontri nessuna riga; PV dall'inizio del primo scontro
-/// all'effetto valido dell'ultimo (la correzione vince, D-06).
-List<String> _characterLines(
+/// Righe di un personaggio senza il suo nome: PV, ferite aggiunte e ferite
+/// tolte (Phase 24 D-13, D-23). D-24: senza scontri nessuna riga; PV
+/// dall'inizio del primo scontro all'effetto valido dell'ultimo (la
+/// correzione vince, D-06).
+List<String> participantRecapLinesOf(
   MissionParticipant participant,
   List<MissionFight> fights,
 ) {
@@ -52,11 +68,16 @@ List<String> _characterLines(
   final added = {for (final effect in effects) ...effect.injuriesAdded};
   final removed = {for (final effect in effects) ...effect.injuriesRemoved};
   return [
-    '${participant.name}: PV ${first.hpBefore} → ${last.hpAfter}',
+    'PV ${first.hpBefore} → ${last.hpAfter}',
     if (added.isNotEmpty) 'Ferite: ${_injuryNamesOf(added)}',
     if (removed.isNotEmpty) 'Ferite tolte: ${_injuryNamesOf(removed)}',
   ];
 }
+
+List<String> _namedLines(String name, List<String> lines) => [
+  if (lines.firstOrNull case final first?) '$name: $first',
+  ...lines.skip(1),
+];
 
 String _injuryNamesOf(Set<InjuryType> injuries) =>
     injuries.map((injury) => injury.label.toLowerCase()).join(', ');
@@ -75,10 +96,11 @@ Future<bool> confirmMissionCompletion(
   confirmButtonStyle: KlimmeckGuideTheme.primaryButtonStyle,
 );
 
-/// Passo «Riepilogo» (D-05, D-08): righe della bozza servita e premi scelti
-/// per personaggio. Senza una pagina successiva chiude il flusso: «Completa»
-/// dopo la conferma. Con [onNext] mostra «Avanti» e non completa nulla: la
-/// missione si chiude sull'ultima pagina (Phase 24 D-05).
+/// Passo «Riepilogo» (D-05, D-08): in cima le righe della missione, poi una
+/// tendina chiusa per personaggio con vita, ferite e premi scelti (Phase 24
+/// D-23). Senza una pagina successiva chiude il flusso: «Completa» dopo la
+/// conferma. Con [onNext] mostra «Avanti» e non completa nulla: la missione
+/// si chiude sull'ultima pagina (Phase 24 D-05).
 class RecapStep extends StatelessWidget {
   const RecapStep({
     super.key,
@@ -92,6 +114,9 @@ class RecapStep extends StatelessWidget {
   static const String completeLabel = 'Completa';
   static const Key completeKey = ValueKey('mission.recap.complete');
 
+  static Key participantKeyFor(String characterId) =>
+      ValueKey('mission.recap.participant.$characterId');
+
   static const double _coinsHeight = 24;
   static const double _coinsWidth = 240;
 
@@ -103,13 +128,13 @@ class RecapStep extends StatelessWidget {
   /// Apre la pagina successiva; `null` = il riepilogo è l'ultima pagina.
   final VoidCallback? onNext;
 
-  List<String> get _lines =>
-      missionRecapLinesOf(questTitle: card.questTitle, draft: draft);
-
   bool get _canGoOn => !isSubmitting && draft.allFightsSimulated;
 
   Future<void> _confirm(BuildContext context) async {
-    final confirmed = await confirmMissionCompletion(context, lines: _lines);
+    final confirmed = await confirmMissionCompletion(
+      context,
+      lines: missionRecapLinesOf(questTitle: card.questTitle, draft: draft),
+    );
     if (confirmed) onComplete();
   }
 
@@ -117,23 +142,28 @@ class RecapStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MissionPrizeOptionsCubit, MissionPrizeOptionsState>(
       builder: (context, state) {
-        final rows = [
-          for (final line in _lines) () => _text(line),
-          for (final participant in draft.participants)
-            if (draft.prizeOf(participant.characterId) case final prize?)
-              ..._prizeRows(
-                participant,
-                prize,
-                state.options[participant.characterId],
-              ),
-        ];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: ListView.builder(
-                itemCount: rows.length,
-                itemBuilder: (_, index) => rows[index](),
+              // poche tendine, tutte costruite: una tendina aperta resta
+              // aperta anche quando scorre fuori vista
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final line in missionWideRecapLinesOf(
+                      questTitle: card.questTitle,
+                      draft: draft,
+                    ))
+                      _text(line),
+                    for (final participant in draft.participants)
+                      ?_participantDropdown(
+                        participant,
+                        state.options[participant.characterId],
+                      ),
+                  ],
+                ),
               ),
             ),
             Row(
@@ -167,42 +197,53 @@ class RecapStep extends StatelessWidget {
     );
   }
 
-  /// Nomi dalle opzioni servite; prima che arrivino, i nomi di riserva.
-  List<Widget Function()> _prizeRows(
+  /// `null` per un personaggio senza righe: nessuno scontro e nessun premio.
+  Widget? _participantDropdown(
     MissionParticipant participant,
-    MissionPrize prize,
     MissionPrizeOptions? options,
   ) {
+    final prize = draft.prizeOf(participant.characterId);
+    final rows = [
+      for (final line in participantRecapLinesOf(participant, draft.fights))
+        _text(line),
+      if (prize != null) ..._prizeRows(prize, options),
+    ];
+    if (rows.isEmpty) return null;
+    return Dropdown(
+      key: participantKeyFor(participant.characterId),
+      sectionName: StoryReader.ofParticipant(participant).header,
+      data: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: rows,
+      ),
+    );
+  }
+
+  /// Nomi dalle opzioni servite; prima che arrivino, i nomi di riserva.
+  List<Widget> _prizeRows(MissionPrize prize, MissionPrizeOptions? options) {
     final cureLine = lifeShareLine(prize.cure);
     return [
-      () => Text(
-        participant.name,
-        style: KlimmeckGuideTheme.instance.titleMedium,
-      ),
-      () => Align(
-        alignment: Alignment.centerLeft,
-        child: SizedBox(
-          width: _coinsWidth,
-          child: CoinsDisplay(
-            coins: prize.coins,
-            height: _coinsHeight,
-            layout: CoinLayoutType.row,
-          ),
+      SizedBox(
+        width: _coinsWidth,
+        child: CoinsDisplay(
+          coins: prize.coins,
+          height: _coinsHeight,
+          layout: CoinLayoutType.row,
         ),
       ),
-      () => _text('+${prize.xp} XP'),
+      _text('+${prize.xp} XP'),
       for (final item in prize.items)
-        () => _text(
+        _text(
           quantityLine(
             item.quantity,
             options?.itemById(item.itemId)?.name ?? unnamedItemLabel,
           ),
         ),
       if (prize.petId case final petId?)
-        () => _text(options?.petById(petId)?.name ?? petId),
+        _text(options?.petById(petId)?.name ?? petId),
       if (prize.spellId case final spellId?)
-        () => _text(options?.spellById(spellId)?.name ?? unnamedSpellLabel),
-      if (cureLine != null) () => _text(cureLine),
+        _text(options?.spellById(spellId)?.name ?? unnamedSpellLabel),
+      if (cureLine != null) _text(cureLine),
     ];
   }
 

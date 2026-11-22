@@ -533,14 +533,8 @@ class _MissionCompletionScreenState extends State<MissionCompletionScreen> {
     ];
   }
 
-  static List<StoryReader> _draftReaders(MissionDraft draft) => [
-    for (final participant in draft.participants)
-      StoryReader(
-        characterId: participant.characterId,
-        name: participant.name,
-        title: participant.title,
-      ),
-  ];
+  static List<StoryReader> _draftReaders(MissionDraft draft) =>
+      draft.participants.map(StoryReader.ofParticipant).toList();
 
   String _titleOf(MissionDraft draft) => switch (_page) {
     MissionPage.stories => MissionCompletionScreen.storiesTitle,

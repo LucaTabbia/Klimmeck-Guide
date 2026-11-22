@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/enums/title_type.dart';
+import 'package:klimmeck_guide/models/mission/mission_draft.dart';
 import 'package:klimmeck_guide/shared/components/background_entries.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -14,11 +15,25 @@ class StoryReader extends Equatable {
     this.title,
   });
 
+  StoryReader.ofParticipant(MissionParticipant participant)
+    : this(
+        characterId: participant.characterId,
+        name: participant.name,
+        title: participant.title,
+      );
+
   final String characterId;
   final String name;
 
   /// `null` finché il rango non è noto.
   final TitleType? title;
+
+  /// Intestazione della tendina del partecipante: nome e, se noto, rango.
+  String get header {
+    final title = this.title;
+    if (title == null) return name;
+    return '$name · ${title.label}';
+  }
 
   @override
   List<Object?> get props => [characterId, name, title];
@@ -49,12 +64,6 @@ class ParticipantStory extends StatelessWidget {
   /// Riga mostrata al posto della storia non ancora leggibile.
   final String pendingLine;
 
-  String get _header {
-    final title = reader.title;
-    if (title == null) return reader.name;
-    return '${reader.name} · ${title.label}';
-  }
-
   Widget get _story {
     final entries = this.entries;
     if (entries == null) return _line(pendingLine);
@@ -69,7 +78,7 @@ class ParticipantStory extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dropdown(
       key: keyFor(reader.characterId),
-      sectionName: _header,
+      sectionName: reader.header,
       data: _story,
     );
   }
