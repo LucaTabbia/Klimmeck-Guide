@@ -49,9 +49,20 @@ class StoriesStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (failureLine != null)
-                  Text(
-                    failureLine,
-                    style: KlimmeckGuideTheme.instance.bodyMedium,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          failureLine,
+                          style: KlimmeckGuideTheme.instance.bodyMedium,
+                        ),
+                      ),
+                      TextButton(
+                        key: retryKey,
+                        onPressed: onRetry,
+                        child: const Text(MissionCompletionScreen.retryLabel),
+                      ),
+                    ],
                   ),
                 for (final reader in readers)
                   ParticipantStory(
@@ -64,18 +75,7 @@ class StoriesStep extends StatelessWidget {
           ),
         ),
         const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(child: footer),
-            if (failureLine != null)
-              TextButton(
-                key: retryKey,
-                onPressed: onRetry,
-                child: const Text(MissionCompletionScreen.retryLabel),
-              ),
-          ],
-        ),
+        footer,
       ],
     );
   }
@@ -97,28 +97,25 @@ class StoriesStartFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        Text(
-          MissionCompletionScreen.startNote,
-          style: KlimmeckGuideTheme.instance.bodyMedium,
+        ElevatedButton(
+          key: MissionCompletionScreen.startKey,
+          style: KlimmeckGuideTheme.primaryButtonStyle,
+          onPressed: isStarting ? null : onStart,
+          child: const Text(MissionCompletionScreen.startLabel),
         ),
-        const SizedBox(height: KlimmeckGuideTheme.spacingSm),
-        Wrap(
-          spacing: KlimmeckGuideTheme.spacingSm,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            ElevatedButton(
-              key: MissionCompletionScreen.startKey,
-              style: KlimmeckGuideTheme.primaryButtonStyle,
-              onPressed: isStarting ? null : onStart,
-              child: const Text(MissionCompletionScreen.startLabel),
-            ),
-            if (isStarting)
-              const KGLoader(width: _loaderSize, height: _loaderSize),
-          ],
+        if (isStarting)
+          const Padding(
+            padding: EdgeInsets.only(left: KlimmeckGuideTheme.spacingSm),
+            child: KGLoader(width: _loaderSize, height: _loaderSize),
+          ),
+        const SizedBox(width: KlimmeckGuideTheme.spacingMd),
+        Expanded(
+          child: Text(
+            MissionCompletionScreen.startNote,
+            style: KlimmeckGuideTheme.instance.bodyMedium,
+          ),
         ),
       ],
     );

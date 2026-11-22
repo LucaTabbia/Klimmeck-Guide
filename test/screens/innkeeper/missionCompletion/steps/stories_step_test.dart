@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/components/pa
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/mission_completion_screen.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionParticipantsCubit/mission_participants_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/stories_step.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 
@@ -76,14 +77,20 @@ void main() {
     seedSvgCache([CloudinaryAssets.arrowDown]);
     await tester.pumpWidget(
       buildTestApp(
-        home: Scaffold(
-          body: MissionBackScope(
-            onBack: onBack,
-            child: StoriesStep(
-              readers: readers,
-              participants: participants,
-              onRetry: () => retries++,
-              footer: footer ?? startFooter(),
+        home: Builder(
+          builder: (context) => Theme(
+            // i pulsanti compatti del wizard, come nella schermata vera
+            data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
+            child: Scaffold(
+              body: MissionBackScope(
+                onBack: onBack,
+                child: StoriesStep(
+                  readers: readers,
+                  participants: participants,
+                  onRetry: () => retries++,
+                  footer: footer ?? startFooter(),
+                ),
+              ),
             ),
           ),
         ),
