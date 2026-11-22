@@ -40,16 +40,10 @@ import '../../../../shared/components/section.dart';
 import '../../../../shared/components/text_section.dart';
 import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
+import '../../characterCubit/character_selectors.dart';
 import 'components/equipment_mannequin.dart';
 import 'components/injury_name_icon.dart';
 import 'cubit/journal_cubit.dart';
-
-/// Ferite del personaggio e, fra queste, quelle dell'oste: la sezione segue
-/// anche un cambio di origine a lista invariata.
-typedef _Wounds = ({
-  List<InjuryType> injuries,
-  List<InjuryType> innkeeperInjuries,
-});
 
 class Journal extends StatefulWidget {
   const Journal({
@@ -178,15 +172,10 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildInjuriesSection() {
-    return BlocSelector<CharacterCubit, CharacterState, _Wounds?>(
-      selector: (state) {
-        if (state is! CharacterLoaded) return null;
-        final status = state.character.status!;
-        return (
-          injuries: status.injuries!,
-          innkeeperInjuries: status.innkeeperInjuries,
-        );
-      },
+    // le due liste insieme: la sezione segue anche un cambio di origine a
+    // lista invariata
+    return BlocSelector<CharacterCubit, CharacterState, CharacterWounds?>(
+      selector: woundsOf,
       builder: (context, wounds) {
         if (wounds == null || wounds.injuries.isEmpty) {
           return const SizedBox.shrink();
