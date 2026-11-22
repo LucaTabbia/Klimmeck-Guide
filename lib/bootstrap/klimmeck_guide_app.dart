@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/repository/storage/new_entries_store.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
@@ -76,6 +77,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
       SharedPreferencesNotificationPreferencesStore();
   final LibraryBookmarksStore libraryBookmarksStore =
       SharedPreferencesLibraryBookmarksStore();
+  final NewEntriesStore newEntriesStore = SharedPreferencesNewEntriesStore();
 
   /// Registrazione push per tutta la vita del processo (D-07). Con il push disabilitato le
   /// porte no-op non producono token: mantiene solo lo specchio dell'utente attivo.
@@ -264,6 +266,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                                   notificationPreferencesStore,
                                               libraryBookmarksStore:
                                                   libraryBookmarksStore,
+                                              newEntriesStore: newEntriesStore,
                                               userId: user.id,
                                               notificationPermission:
                                                   widget.push.permission,

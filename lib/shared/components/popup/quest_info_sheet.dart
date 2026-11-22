@@ -1,4 +1,5 @@
 import 'dart:math' show max, min;
+import 'dart:ui' show ImageFilter;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +11,14 @@ import 'package:klimmeck_guide/shared/components/cards/loot_item_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_details_route.dart';
+import 'package:klimmeck_guide/shared/components/title_badge.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/game_duration_format.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/prison_lines.dart';
 
 import '../../../models/enums/injury_type.dart';
+import '../../../models/enums/title_type.dart';
 import '../../../models/quest/quest.dart';
 import '../../../models/quest/quest_sheet_details.dart';
 import '../../../models/quest/quest_viewer.dart';
@@ -67,6 +70,21 @@ class QuestInfoSheet extends StatelessWidget {
   static const Key recommendedLootKey = ValueKey('questSheet.recommendedLoot');
   static const Key cureLineKey = ValueKey('questSheet.cureLine');
   static const Key lifeLineKey = ValueKey('questSheet.lifeLine');
+  static const Key sheetAreaKey = ValueKey('questSheet.sheetArea');
+  static const Key requiredTitleKey = ValueKey('questSheet.requiredTitle');
+  static Key slotLineKeyOf(TitleType title) =>
+      ValueKey('questSheet.slotLine.${title.name}');
+
+  /// Badge del titolo nell'angolo in alto a sinistra del foglio: lato e
+  /// distanze dai bordi come frazioni della larghezza del foglio (posizione
+  /// scelta dall'utente sul telefono, revisione layout 2026-11-17).
+  static const double _titleBadgeShare = 0.2;
+  static const double _titleBadgeLeftInset = 0.096;
+  static const double _titleBadgeTopInset = 0.176;
+  static const Offset _titleBadgeShadowOffset = Offset(2, 4);
+  static const double _titleBadgeShadowBlur = 5;
+  static const Color _titleBadgeShadowColor = Color(0x99000000);
+  static const double _ineligibleRingWidth = 2;
   static const String recommendedLootTitle = 'Consigliati';
   static const String abandonLabel = 'Abbandona il gruppo';
   static const Size _minTapTarget = Size(44, 44);
@@ -88,6 +106,14 @@ class QuestInfoSheet extends StatelessWidget {
     final sheetHeight = screenHeight * _heightMultiplier;
     final sheetWidth = sheetHeight * _aspectRatio;
 
+    final details = quest == null
+        ? null
+        : QuestSheetDetails.of(
+            quest!,
+            viewer: viewer,
+            travelPreview: travelPreview,
+          );
+
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -96,17 +122,36 @@ class QuestInfoSheet extends StatelessWidget {
           height: sheetHeight,
           width: sheetWidth,
         ),
-        if (quest != null) _buildContent(sheetWidth, sheetHeight),
+        if (details != null)
+          SizedBox(
+            key: sheetAreaKey,
+            width: sheetWidth,
+            height: sheetHeight,
+            child: Stack(
+              children: [
+                _buildContent(details, sheetWidth, sheetHeight),
+                if (details.requiredTitle case final title?)
+                  Positioned(
+                    left: sheetWidth * _titleBadgeLeftInset,
+                    top: sheetWidth * _titleBadgeTopInset,
+                    child: _titleBadge(
+                      details,
+                      title,
+                      sheetWidth * _titleBadgeShare,
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildContent(double sheetWidth, double sheetHeight) {
-    final details = QuestSheetDetails.of(
-      quest!,
-      viewer: viewer,
-      travelPreview: travelPreview,
-    );
+  Widget _buildContent(
+    QuestSheetDetails details,
+    double sheetWidth,
+    double sheetHeight,
+  ) {
     return SizedBox(
       width: sheetWidth,
       height: sheetHeight,
@@ -218,7 +263,6 @@ class QuestInfoSheet extends StatelessWidget {
                 ..._timeLine(),
                 ..._cureLines(),
                 ..._travelLine(details),
-                ..._titleLine(details),
                 ..._slotLines(details),
               ],
             ),
@@ -263,8 +307,8 @@ class QuestInfoSheet extends StatelessWidget {
     );
   }
 
-  /// Lore e righe della cura scorrono insieme; costo, titolo e posti restano
-  /// fermi in fondo al foglio.
+  /// Lore e righe della cura scorrono insieme; costo e posti restano fermi in
+  /// fondo al foglio.
   Widget _narrativeBody(QuestSheetDetails details) {
     final hasLore = details.loreParagraphs.isNotEmpty;
     final cureLines = _cureLines();
@@ -289,7 +333,6 @@ class QuestInfoSheet extends StatelessWidget {
             ),
           ),
         ..._costLine(details),
-        ..._titleLine(details),
         ..._slotLines(details),
       ],
     );
@@ -304,7 +347,6 @@ class QuestInfoSheet extends StatelessWidget {
           ..._timeLine(),
           ..._cureLines(),
           ..._travelLine(details),
-          ..._titleLine(details),
           ..._recommendedLoot(details),
           ..._slotLines(details),
         ],
@@ -351,18 +393,53 @@ class QuestInfoSheet extends StatelessWidget {
     ];
   }
 
-  List<Widget> _titleLine(QuestSheetDetails details) {
-    final text = details.requiredTitleText;
-    if (text == null) return const [];
-    return [
-      Text(
-        text,
-        style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
-          color: details.isTitleIneligible ? KlimmeckGuideTheme.bloodRed : null,
+  /// Badge del titolo che serve, al posto della frase; cerchiato di rosso
+  /// quando chi guarda non ce l'ha.
+  Widget _titleBadge(QuestSheetDetails details, TitleType title, double size) {
+    return Container(
+      key: requiredTitleKey,
+      decoration: details.isTitleIneligible
+          ? BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: KlimmeckGuideTheme.bloodRed,
+                width: _ineligibleRingWidth,
+              ),
+            )
+          : null,
+      child: Stack(
+        children: [
+          _titleBadgeShadow(title, size),
+          TitleBadge(
+            title: title,
+            size: size,
+            semanticLabel: details.requiredTitleText,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ombra sfumata dietro il badge: la sua stessa sagoma, scurita e sfocata,
+  /// così segue il tondo come il rombo.
+  Widget _titleBadgeShadow(TitleType title, double size) => Transform.translate(
+    offset: _titleBadgeShadowOffset,
+    child: ExcludeSemantics(
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(
+          sigmaX: _titleBadgeShadowBlur,
+          sigmaY: _titleBadgeShadowBlur,
+        ),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(
+            _titleBadgeShadowColor,
+            BlendMode.srcIn,
+          ),
+          child: CachedSvg(url: title.badgePath, width: size, height: size),
         ),
       ),
-    ];
-  }
+    ),
+  );
 
   List<Widget> _costLine(QuestSheetDetails details) {
     final cost = details.costLine;
@@ -394,15 +471,36 @@ class QuestInfoSheet extends StatelessWidget {
     ];
   }
 
-  List<Widget> _slotLines(QuestSheetDetails details) => [
-    for (final line in details.slotLines)
-      Text(
-        line.text,
-        style: line.isViewerRank
-            ? KlimmeckGuideTheme.instance.specialText
-            : KlimmeckGuideTheme.instance.bodyLarge,
+  /// Posti affiancati: coi badge stanno su una riga sola.
+  List<Widget> _slotLines(QuestSheetDetails details) {
+    if (details.slotLines.isEmpty) return const [];
+    return [
+      Wrap(
+        spacing: KlimmeckGuideTheme.spacingSm,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [for (final line in details.slotLines) _slotLine(line)],
       ),
-  ];
+    ];
+  }
+
+  /// Posti di un titolo: il suo badge e i posti presi; i posti di qualsiasi
+  /// rango non hanno badge e restano scritti.
+  Widget _slotLine(QuestSlotLine line) {
+    final style = line.isViewerRank
+        ? KlimmeckGuideTheme.instance.specialText
+        : KlimmeckGuideTheme.instance.bodyLarge;
+    final title = line.title;
+    if (title == null) return Text(line.text, style: style);
+    return Row(
+      key: slotLineKeyOf(title),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TitleBadge(title: title),
+        const SizedBox(width: KlimmeckGuideTheme.spacingXs),
+        Text(line.seatsText, style: style),
+      ],
+    );
+  }
 
   Widget _buildRewards(QuestSheetDetails details) {
     return Column(

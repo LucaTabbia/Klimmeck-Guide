@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/shared/components/section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/profile/components/background_entries.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
 import 'package:klimmeck_guide/models/enums/class_type.dart';
 import 'package:klimmeck_guide/models/enums/pronoun_type.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
@@ -19,6 +24,12 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NewEntriesCubit>().visit(NewEntryCategory.profile);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundImage(
@@ -83,9 +94,15 @@ class _ProfileState extends State<Profile> {
                         sectionName: "Età (anni)",
                         data: infos.age.toString(),
                       ),
-                      TextSection(
+                      Section(
                         sectionName: "Background",
-                        data: infos.background ?? "",
+                        data: NewEntriesBuilder(
+                          category: NewEntryCategory.background,
+                          builder: (context, newEntries) => BackgroundEntries(
+                            entries: infos.background,
+                            newEntries: newEntries,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 120),
                     ],

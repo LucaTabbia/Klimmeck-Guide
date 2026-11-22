@@ -75,4 +75,60 @@ void main() {
       expect(pointer.position.dy, inInclusiveRange(50, 350));
     });
   });
+
+  group('pawnPointerFor with the pouch over the bottom-left corner', () {
+    const pouch = Size(110, 110);
+    // angolo coperto (0..110, 290..400) allargato dei 50 px di distanza
+    final keepOut = const Rect.fromLTRB(0, 290, 110, 400).inflate(50);
+
+    PawnPointer? pointerTo(Offset pawn) =>
+        pawnPointerFor(viewport: viewport, pawn: pawn, coveredCorner: pouch);
+
+    void expectOnTheLineToThePawn(PawnPointer pointer, Offset pawn) {
+      final centre = viewport.center(Offset.zero);
+      final toPointer = pointer.position - centre;
+      final toPawn = pawn - centre;
+      final cross = toPointer.dx * toPawn.dy - toPointer.dy * toPawn.dx;
+      expect(cross, moreOrLessEquals(0, epsilon: 1e-6));
+      expect(toPointer.distance, lessThan(toPawn.distance));
+    }
+
+    test('a pawn hidden under the pouch counts as off the screen', () {
+      const pawn = Offset(60, 350);
+
+      final pointer = pointerTo(pawn)!;
+
+      expect(keepOut.deflate(1e-6).contains(pointer.position), isFalse);
+      expectOnTheLineToThePawn(pointer, pawn);
+    });
+
+    test('a pawn beside the pouch is on the screen', () {
+      expect(pointerTo(const Offset(111, 350)), isNull);
+      expect(pointerTo(const Offset(60, 289)), isNull);
+    });
+
+    test('a pawn off the bottom-left corner is pointed at from 50 px short '
+        'of the pouch', () {
+      const pawn = Offset(-400, 600);
+
+      final pointer = pointerTo(pawn)!;
+
+      // direzione (-800, 400) dal centro: incontra il lato destro della zona a x 160
+      expect(pointer.position.dx, moreOrLessEquals(160, epsilon: 1e-6));
+      expect(pointer.position.dy, moreOrLessEquals(320, epsilon: 1e-6));
+      expectOnTheLineToThePawn(pointer, pawn);
+    });
+
+    test('a pawn off the left edge above the pouch keeps the edge inset', () {
+      final pointer = pointerTo(const Offset(-2000, 200))!;
+
+      expect(pointer.position, const Offset(50, 200));
+    });
+
+    test('a pawn off to the right is not affected by the pouch', () {
+      final pointer = pointerTo(const Offset(2000, 200))!;
+
+      expect(pointer.position, const Offset(750, 200));
+    });
+  });
 }

@@ -14,10 +14,55 @@ class CloudinaryAssets {
       'v1757660758/bottomEmptySheet_se1k2l.svg';
 
   // ============== Bookmarks ==============
-  static const String bookmarkRed = 'v1757683920/bookmarkRed_jms0vk.svg';
-  static const String bookmarkGreen = 'v1757683911/bookmarkGreen_qdtvdj.svg';
-  static const String bookmarkYellow = 'v1757683906/bookmarkYellow_z6jbcp.svg';
-  static const String bookmarkBlue = 'v1757683915/bookmarkBlue_shxrk6.svg';
+  /// Nastri: tornano agli scaffali della Libreria; il rosso segna anche gli
+  /// oggetti equipaggiati e le magie attive.
+  static const String redBookmarkBack =
+      'v1795125391/redBookmarkBack_zazkme.svg';
+  static const String greenBookmarkBack =
+      'v1795125418/greenBookmarkBack_neyu6b.svg';
+  static const String yellowBookmarkBack =
+      'v1795125445/yellowBookmarkBack_xry9aq.svg';
+  static const String blueBookmarkBack =
+      'v1795125794/blueBookmarkBack_vaujdu.svg';
+
+  /// Targhette «Novità» della Libreria, una per libro.
+  static const String redBookmark = 'v1795125363/redBookmark_zknzfn.svg';
+  static const String greenBookmark = 'v1795125336/greenBookmark_tzcuw7.svg';
+  static const String yellowBookmark = 'v1795125310/yellowBookmark_zxtxzr.svg';
+  static const String blueBookmark = 'v1795125281/blueBookmark_bqxzs3.svg';
+
+  /// Stendardi con la lettera: filtrano le voci di un libro per iniziale.
+  static const Map<String, String> letterBookmarks = {
+    'a': 'v1795210098/aBookmarkFilter_ns4jlr.svg',
+    'b': 'v1795210027/bBookmarkFilter_pdziij.svg',
+    'c': 'v1795209995/cBookmarkFilter_o9pgyu.svg',
+    'd': 'v1795209963/dBookmarkFilter_h3sxlz.svg',
+    'e': 'v1795209932/eBookmarkFilter_pzpecq.svg',
+    'f': 'v1795209899/fBookmarkFilter_mipfty.svg',
+    'g': 'v1795209868/gBookmarkFilter_n3favf.svg',
+    'h': 'v1795209836/hBookmarkFilter_a0f84e.svg',
+    'i': 'v1795209804/IBookmarkFilter_bathh8.svg',
+    'j': 'v1795209772/jBookmarkFilter_mwdwjz.svg',
+    'k': 'v1795209740/kBookmarkFilter_hqtigg.svg',
+    'l': 'v1795209694/lBookmarkFilter_mcojkf.svg',
+    'm': 'v1795209662/mBookmarkFilter_jgsln8.svg',
+    'n': 'v1795209629/nBookmarkFilter_vfnggz.svg',
+    'o': 'v1795209597/oBookmarkFilter_rb7yba.svg',
+    'p': 'v1795209565/pBookmarkFilter_tmgm7u.svg',
+    'q': 'v1795209533/qBookmarkFilter_fw6e7u.svg',
+    'r': 'v1795209501/rBookmarkFilter_a28vzf.svg',
+    's': 'v1795209469/sBookmarkFilter_hfmzet.svg',
+    't': 'v1795209437/tBookmarkFilter_ujaoay.svg',
+    'u': 'v1795209326/uBookmarkFilter_elmrto.svg',
+    'v': 'v1795209294/vBookmarkFilter_rf1j7v.svg',
+    'w': 'v1795209262/wBookmarkFilter_oq9wzw.svg',
+    'x': 'v1795209230/xBookmarkFilter_poultg.svg',
+    'y': 'v1795209167/yBookmarkFilter_ckrhej.svg',
+    'z': 'v1795209198/zBookmarkFilter_zi9lkk.svg',
+  };
+
+  /// Sigillo di ceralacca delle aggiunte: voci del menù, Diario e Profilo.
+  static const String newEntrySigil = 'v1795125501/newEntrySigil_kgs8y9.svg';
 
   // ============== Icons ==============
   static const String arrowDown = 'v1794355792/arrowDown_iqsrzb.svg';
@@ -56,6 +101,12 @@ class CloudinaryAssets {
   static const String locations = 'v1757660653/locations_rpz9fc.svg';
   static const String religions = 'v1757660649/religions_vwlitf.svg';
   static const String knowledge = 'v1757660650/knowledge_jhr4ad.svg';
+
+  /// Libri aperti: lo scaffale li mostra quando contengono una novità.
+  static const String bestiaryOpen = 'v1795124692/bestiaryOpen_yxaped.svg';
+  static const String locationsOpen = 'v1795124950/locationsOpen_z24lwc.svg';
+  static const String religionsOpen = 'v1795124666/religionsOpen_mqyfk2.svg';
+  static const String knowledgeOpen = 'v1795124977/knowledgeOpen_p6fbty.svg';
 
   // ============== Quest Sheets ==============
   static const String questSheet1 = 'v1757660768/questSheet1_c0hswz.svg';
@@ -157,6 +208,14 @@ class CloudinaryAssets {
   static const String skirt = 'v1757660574/skirt_cfenoz.svg';
   static const String femaleMannequin =
       'v1757660559/femaleMannequin_y04ola.svg';
+
+  // ============== Title Badges ==============
+  static const String rookieRank = 'v1794917360/rookieRank_uyzpcg.svg';
+  static const String adventurerRank = 'v1794917377/adventurerRank_puudto.svg';
+  static const String paladinRank = 'v1794917343/paladinRank_vjrhdp.svg';
+  static const String mageRank = 'v1794917322/mageRank_lxeico.svg';
+  static const String heroRank = 'v1794917417/heroRank_lvz6fy.svg';
+  static const String legendRank = 'v1794917396/legendRank_gd8ctj.svg';
 
   // ============== Spell Origins ==============
   static const String arcaneOrigin = 'v1794764154/arcaneOrigin_retjhh.svg';

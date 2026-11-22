@@ -7,7 +7,9 @@ import 'package:klimmeck_guide/utils/app_log.dart';
 import '../../repository/cache/svg_cache.dart';
 import '../../repository/cache/svg_cache_manager.dart';
 
-/// SVG di dominio letto dalla cache in memoria, poi dal disco/rete.
+/// Immagine di dominio letta dalla cache in memoria, poi dal disco/rete.
+/// Il file è di norma un raster consegnato da Cloudinary; un vero `.svg`
+/// si disegna ancora come vettoriale.
 ///
 /// Mentre il file arriva mostra una scatola vuota della misura richiesta
 /// (la pergamena traspare): nessun indicatore di caricamento in sessione
@@ -57,7 +59,7 @@ class _CachedSvgState extends State<CachedSvg> {
     }
 
     try {
-      final file = await SvgCacheManager().getSingleFile(widget.url);
+      final file = await SvgCacheManager().imageFile(widget.url);
       SvgCache().add(widget.url, file);
       if (mounted) setState(() => _file = file);
     } catch (e) {
@@ -72,12 +74,26 @@ class _CachedSvgState extends State<CachedSvg> {
       return SizedBox(width: widget.width, height: widget.height);
     }
 
-    return SvgPicture.file(
+    if (file.path.endsWith('.svg')) {
+      return SvgPicture.file(
+        file,
+        width: widget.width,
+        height: widget.height,
+        fit: widget.fit,
+        alignment: widget.alignment,
+      );
+    }
+
+    // Stessa regola di misura che flutter_svg applicava agli SVG: con
+    // l'altezza data, la larghezza segue le proporzioni dell'immagine.
+    return Image.file(
       file,
-      width: widget.width,
+      width: widget.height == null ? widget.width : null,
       height: widget.height,
       fit: widget.fit,
       alignment: widget.alignment,
+      filterQuality: FilterQuality.medium,
+      gaplessPlayback: true,
     );
   }
 }

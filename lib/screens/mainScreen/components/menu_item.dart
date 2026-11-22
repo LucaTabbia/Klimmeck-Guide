@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 
 class MenuItem extends StatelessWidget {
   const MenuItem({
@@ -12,7 +13,10 @@ class MenuItem extends StatelessWidget {
     required this.end,
     required this.onTap,
     this.isEnabled = true,
+    this.hasNews = false,
   });
+
+  static const double _sigilSizeFactor = 0.4;
 
   final AnimationController itemAnimationController;
   final int pageIndex;
@@ -24,6 +28,9 @@ class MenuItem extends StatelessWidget {
   final Offset end;
   final ValueChanged<int> onTap;
   final bool isEnabled;
+
+  /// La pagina contiene un'aggiunta non ancora vista: l'icona porta il sigillo.
+  final bool hasNews;
 
   List<double> _parabolaCoefficients(
     Offset start,
@@ -49,6 +56,22 @@ class MenuItem extends StatelessWidget {
     double y = a * x * x + b * x + c;
     return Offset(x, y);
   }
+
+  /// Il sigillo segue la misura dell'icona mentre si apre e si chiude.
+  Widget _withSigil() => Stack(
+    fit: StackFit.expand,
+    children: [
+      CachedSvg(url: imagePath),
+      Align(
+        alignment: Alignment.topRight,
+        child: FractionallySizedBox(
+          widthFactor: _sigilSizeFactor,
+          heightFactor: _sigilSizeFactor,
+          child: CachedSvg(url: NewEntrySigil.url),
+        ),
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +113,7 @@ class MenuItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: CachedSvg(url: imagePath),
+                child: hasNews ? _withSigil() : CachedSvg(url: imagePath),
               ),
             ),
           ),

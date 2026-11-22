@@ -19,6 +19,8 @@ class KnownSpellRow extends StatelessWidget {
     this.resistTrigger,
   });
 
+  static const double topPadding = 10;
+
   final SpellbookEntry entry;
   final SpellRecoveryStatus recovery;
   final double cardSize;
@@ -39,7 +41,7 @@ class KnownSpellRow extends StatelessWidget {
       child: SpellResist(
         trigger: resistTrigger,
         child: Padding(
-          padding: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.only(top: topPadding),
           child: Row(
             children: [
               AnimatedOpacity(

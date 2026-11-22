@@ -1,6 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
@@ -50,6 +54,9 @@ class Journal extends StatefulWidget {
   /// fino al gate.
   final bool isCompanionNamingEnabled;
 
+  static Key newInjuryKeyOf(InjuryType injury) =>
+      ValueKey('journal.newInjury.${injury.name}');
+
   @override
   State<Journal> createState() => _JournalState();
 }
@@ -69,6 +76,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    context.read<NewEntriesCubit>().visit(NewEntryCategory.journal);
 
     _animationController = AnimationController(
       vsync: this,
@@ -164,16 +172,33 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
         }
         return null;
       },
-      builder: (context, injuries) {
-        return Section(
+      builder: (context, injuries) => NewEntriesBuilder(
+        category: NewEntryCategory.injuries,
+        builder: (context, newInjuries) => Section(
           sectionName: "Ferite",
           data: Column(
-            children: injuries!
-                .map((injury) => InjuryNameIcon(injury: injury))
-                .toList(),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final injury in injuries!)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: InjuryNameIcon(injury: injury)),
+                    if (newInjuries.contains(injury.name))
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: KlimmeckGuideTheme.spacingSm,
+                        ),
+                        child: NewEntrySigil(
+                          key: Journal.newInjuryKeyOf(injury),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -183,68 +208,81 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     double lootSize,
   ) {
     final isOnMission = character.isOnMission;
-    return Dropdown(
-      sectionName: "Armatura",
-      data: Padding(
-        padding: const EdgeInsets.only(right: 20.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            EquipmentMannequin(
-              selectedSlot: _selectedSlot,
-              sexType: character.infos!.sex!,
-              equipment: character.assets!.wornEquipment!,
-              onTap: (slotType) => _selectSlot(slotType, character),
-            ),
-            const SizedBox(width: 20),
-            Flexible(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 30,
-                    child: AutoSizeText(
-                      "${_selectedSlot?.label ?? "Oggetti equipaggiati"} :",
-                      maxLines: 1,
-                      maxFontSize: 20,
-                      minFontSize: 10,
-                      textAlign: TextAlign.center,
-                      style: KlimmeckGuideTheme.instance.headlineLarge,
-                    ),
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height - 40,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        ...List.generate(
-                          _filteredItems.length,
-                          (index) => ItemRow(
-                            assetItem: _filteredItems[index],
-                            onLongTap: (item) => _selectEquipment(item),
-                            onSelect: isOnMission
-                                ? null
-                                : (item) => _equipItem(
-                                    item as EquipmentItem,
-                                    character,
-                                  ),
-                            isDisabled: isOnMission,
-                            statusLine: isOnMission
-                                ? missionInProgressLabel
-                                : null,
-                            isSelected: _equippedItems.contains(
-                              _filteredItems[index],
-                            ),
-                            showCoins: false,
-                            size: lootSize,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    return NewEntriesBuilder(
+      category: NewEntryCategory.equipment,
+      builder: (context, newEquipmentIds) => Dropdown(
+        sectionName: "Armatura",
+        badge: newEquipmentIds.isEmpty ? null : const NewEntrySigil(),
+        data: Padding(
+          padding: const EdgeInsets.only(right: 20.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              EquipmentMannequin(
+                selectedSlot: _selectedSlot,
+                sexType: character.infos!.sex!,
+                equipment: character.assets!.wornEquipment!,
+                onTap: (slotType) => _selectSlot(slotType, character),
               ),
-            ),
-          ],
+              const SizedBox(width: 20),
+              Flexible(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 30,
+                      child: AutoSizeText(
+                        "${_selectedSlot?.label ?? "Oggetti equipaggiati"} :",
+                        maxLines: 1,
+                        maxFontSize: 20,
+                        minFontSize: 10,
+                        textAlign: TextAlign.center,
+                        style: KlimmeckGuideTheme.instance.headlineLarge,
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height - 40,
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          ...List.generate(
+                            _filteredItems.length,
+                            (index) => NewEntryMarked(
+                              isNew: newEquipmentIds.contains(
+                                _filteredItems[index].id,
+                              ),
+                              corner: Offset(
+                                ItemRow.padding.left + lootSize,
+                                ItemRow.padding.top,
+                              ),
+                              child: ItemRow(
+                                assetItem: _filteredItems[index],
+                                onLongTap: (item) => _selectEquipment(item),
+                                onSelect: isOnMission
+                                    ? null
+                                    : (item) => _equipItem(
+                                        item as EquipmentItem,
+                                        character,
+                                      ),
+                                isDisabled: isOnMission,
+                                statusLine: isOnMission
+                                    ? missionInProgressLabel
+                                    : null,
+                                isSelected: _equippedItems.contains(
+                                  _filteredItems[index],
+                                ),
+                                showCoins: false,
+                                size: lootSize,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

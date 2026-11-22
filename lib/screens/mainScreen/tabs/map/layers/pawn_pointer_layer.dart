@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../../config/cloudinary_assets.dart';
 import '../../../../../shared/components/cached_svg.dart';
 import '../../../characterCubit/character_cubit.dart';
+import '../../../components/satchel_layout.dart';
 import '../travelProgressCubit/travel_progress_cubit.dart';
 import '../utils/pawn_pointer.dart';
 
@@ -29,6 +30,7 @@ class PawnPointerLayer extends StatelessWidget {
               final pointer = pawnPointerFor(
                 viewport: camera.nonRotatedSize,
                 pawn: camera.latLngToScreenOffset(point),
+                coveredCorner: SatchelLayout.closedPouchFootprint,
               );
               if (pointer == null) return const SizedBox.shrink();
               return _buildArrow(pointer);

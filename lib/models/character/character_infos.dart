@@ -14,7 +14,7 @@ class CharacterInfos extends Equatable {
     required this.race,
     required this.classType,
     required this.age,
-    required this.background,
+    this.background = const [],
   });
 
   final String? imagePath;
@@ -24,7 +24,10 @@ class CharacterInfos extends Equatable {
   final PronounType? pronoun;
   final ClassType? classType;
   final int? age;
-  final String? background;
+
+  /// Voci del background in ordine d'arrivo (la prima è la storia scritta
+  /// alla creazione); vuota se il campo è assente.
+  final List<String> background;
 
   factory CharacterInfos.fromJson(Map<String, dynamic> json) => CharacterInfos(
     name: json["name"],
@@ -34,12 +37,17 @@ class CharacterInfos extends Equatable {
         ? ClassType.values.byName(json['classType'])
         : null,
     age: json["age"]?.toInt(),
-    background: json["background"],
+    background: _backgroundFrom(json["background"]),
     imagePath: json["imagePath"],
     pronoun: json['pronoun'] != null
         ? PronounType.values.byName(json['pronoun'])
         : null,
   );
+
+  static List<String> _backgroundFrom(Object? json) {
+    if (json is! List) return const [];
+    return List<String>.unmodifiable(json.whereType<String>());
+  }
 
   Map<String, dynamic> toJson() => {
     "name": name,

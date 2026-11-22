@@ -28,3 +28,13 @@ class SplashError extends SplashState {
 class SplashNetworkDelayed extends SplashState {
   const SplashNetworkDelayed();
 }
+
+/// Download delle immagini al cold start: quanta parte è arrivata, da 0 a 100.
+class SplashPreloading extends SplashState {
+  const SplashPreloading(this.percent);
+
+  final int percent;
+
+  @override
+  List<Object?> get props => [percent];
+}

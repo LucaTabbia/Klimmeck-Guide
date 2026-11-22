@@ -23,7 +23,7 @@ void main() {
   setUp(() {
     seedSvgCache([
       CloudinaryAssets.emptyCardSheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
       worgImage,
     ]);
   });

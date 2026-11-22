@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import 'cubit/splash_cubit.dart';
@@ -7,6 +8,9 @@ import 'cubit/splash_cubit.dart';
 const String _connectionHintText =
     'Connessione instabile, attendere o accedere manualmente';
 const String _manualSignInLabel = 'Accedi manualmente';
+const String _signAsset = 'assets/images/splashSign.png';
+const double _signTopPadding = 16;
+const double _signToTextGap = 16;
 
 /// Schermata immersiva (nessun chrome) del cold start e del preload della shell.
 ///
@@ -51,24 +55,28 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: Image.asset('assets/images/splash.png', fit: BoxFit.fitWidth),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 48),
-          child: BlocBuilder<SplashCubit, SplashState>(
-            builder: (context, state) =>
-                widget.watchConnection && state is SplashNetworkDelayed
-                ? _ConnectionHint(onManualSignIn: widget.onManualSignIn)
-                : const _AnimatedLoadingText(),
+    return BackgroundImage(
+      child: SafeArea(
+        minimum: const EdgeInsets.only(top: _signTopPadding, bottom: 48),
+        child: Center(
+          child: Column(
+            children: [
+              Expanded(child: Image.asset(_signAsset, fit: BoxFit.contain)),
+              const SizedBox(height: _signToTextGap),
+              BlocBuilder<SplashCubit, SplashState>(
+                builder: (context, state) => switch (state) {
+                  SplashNetworkDelayed() when widget.watchConnection =>
+                    _ConnectionHint(onManualSignIn: widget.onManualSignIn),
+                  SplashPreloading(:final percent) => _PreloadProgress(
+                    percent: percent,
+                  ),
+                  _ => const _PreloadProgress(),
+                },
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -105,6 +113,35 @@ class _ConnectionHint extends StatelessWidget {
   }
 }
 
+/// Scritta di caricamento con, sotto, la percentuale delle immagini scaricate.
+/// La riga della percentuale occupa il suo posto anche da vuota, così insegna
+/// e scritta non si spostano quando il download comincia.
+class _PreloadProgress extends StatelessWidget {
+  const _PreloadProgress({this.percent});
+
+  /// Null finché il download non è cominciato.
+  final int? percent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _AnimatedLoadingText(),
+          Text(
+            percent == null ? '' : '$percent%',
+            style: KlimmeckGuideTheme.instance.lightText.copyWith(
+              color: KlimmeckGuideTheme.parchment,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AnimatedLoadingText extends StatefulWidget {
   const _AnimatedLoadingText();
 
@@ -114,6 +151,10 @@ class _AnimatedLoadingText extends StatefulWidget {
 
 class _AnimatedLoadingTextState extends State<_AnimatedLoadingText>
     with SingleTickerProviderStateMixin {
+  /// I punti non ancora accesi occupano comunque il loro posto, trasparenti:
+  /// la scritta non si sposta mentre si aggiungono.
+  static const int _maxDots = 3;
+
   late AnimationController _controller;
   int _dotCount = 1;
 
@@ -127,7 +168,7 @@ class _AnimatedLoadingTextState extends State<_AnimatedLoadingText>
         )..addStatusListener((status) {
           if (status == AnimationStatus.completed) {
             setState(() {
-              _dotCount = (_dotCount % 3) + 1;
+              _dotCount = (_dotCount % _maxDots) + 1;
             });
             _controller.forward(from: 0);
           }
@@ -144,12 +185,19 @@ class _AnimatedLoadingTextState extends State<_AnimatedLoadingText>
 
   @override
   Widget build(BuildContext context) {
-    final dots = '.' * _dotCount;
-
     return Material(
       type: MaterialType.transparency,
-      child: Text(
-        "Caricamento$dots",
+      child: Text.rich(
+        TextSpan(
+          text: 'Caricamento',
+          children: [
+            TextSpan(text: '.' * _dotCount),
+            TextSpan(
+              text: '.' * (_maxDots - _dotCount),
+              style: const TextStyle(color: Colors.transparent),
+            ),
+          ],
+        ),
         style: KlimmeckGuideTheme.instance.specialText.copyWith(
           color: KlimmeckGuideTheme.parchment,
         ),

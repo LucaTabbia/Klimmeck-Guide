@@ -160,6 +160,19 @@ void main() {
       expect(questResult(successResultJson()).hasTitleChanged, isFalse);
     });
 
+    test('titleChange carries the two titles only when the title changes '
+        'and both are known', () {
+      expect(questResult(gmCompletedResultJson()).titleChange, (
+        before: TitleType.rookie,
+        after: TitleType.adventurer,
+      ));
+      expect(questResult(successResultJson()).titleChange, isNull);
+      expect(
+        questResult(questResultJson(titleAfter: 'demigod')).titleChange,
+        isNull,
+      );
+    });
+
     test('hasRewards is true with coins or items', () {
       expect(questResult(successResultJson()).hasRewards, isTrue);
       expect(questResult(failureResultJson()).hasRewards, isFalse);

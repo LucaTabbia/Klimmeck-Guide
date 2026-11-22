@@ -54,13 +54,18 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
         emit(const SplashError("No images"));
         return;
       }
-      await _warmer.warm(imageUrls);
+      await _warmer.warm(imageUrls, onProgress: _emitPreloadProgress);
       await _warmLoreImages();
       emit(const SplashData());
     } catch (e) {
       appLog('[Splash] image preload failed: ${e.runtimeType}');
       emit(SplashError(e.toString()));
     }
+  }
+
+  void _emitPreloadProgress(int done, int total) {
+    if (total == 0) return;
+    emit(SplashPreloading(done * 100 ~/ total));
   }
 
   Future<List<String>?> _folderImageUrls(String folder) async {

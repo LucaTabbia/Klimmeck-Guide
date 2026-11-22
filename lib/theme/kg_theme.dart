@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -27,11 +29,23 @@ class KlimmeckGuideTheme {
   static const double mapNoticeFontSize = 16;
   static const double inputTextHeight = 42;
   static const double inputTextWidth = 250;
-  static const List<Shadow> bordersForText = [
-    Shadow(offset: Offset(-1, -1), color: deepNight),
-    Shadow(offset: Offset(1, -1), color: deepNight),
-    Shadow(offset: Offset(-1, 1), color: deepNight),
-    Shadow(offset: Offset(1, 1), color: deepNight),
+
+  /// Spessore del contorno scuro delle scritte chiare.
+  static const double textOutlineWidth = 1.5;
+  static const int _textOutlineSteps = 16;
+
+  /// Contorno scuro delle scritte chiare: un anello completo di ombre nette
+  /// attorno alle lettere. Quattro ombre in diagonale lasciavano scoperti i
+  /// lati (revisione layout 2026-11-17).
+  static final List<Shadow> bordersForText = [
+    for (var step = 0; step < _textOutlineSteps; step++)
+      Shadow(
+        offset: Offset.fromDirection(
+          step * 2 * math.pi / _textOutlineSteps,
+          textOutlineWidth,
+        ),
+        color: deepNight,
+      ),
   ];
 
   // Colors

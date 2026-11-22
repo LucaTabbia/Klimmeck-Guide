@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
 import 'package:klimmeck_guide/models/user.dart';
@@ -32,6 +33,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/cubit/journal_cub
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/cubit/library_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/map_availability_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
@@ -54,6 +56,7 @@ import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/fake_push_messaging_port.dart';
 import '../../helpers/fakes/in_memory_library_bookmarks_store.dart';
+import '../../helpers/fakes/in_memory_new_entries_store.dart';
 import '../../helpers/fakes/in_memory_notification_preferences_store.dart';
 import '../../helpers/fakes/recording_link_opener.dart';
 import '../../helpers/fakes/recording_notification_intent_sink.dart';
@@ -115,6 +118,8 @@ class _ShellProbeState extends State<_ShellProbe> {
     context.read<WorldMapCubit>(),
     context.read<ShopCubit>(),
     context.read<LibraryCubit>(),
+    context.read<LibraryNewsCubit>(),
+    context.read<NewEntriesCubit>(),
     context.read<JournalCubit>(),
     context.read<NotificationPreferencesCubit>(),
     context.read<NotificationPermissionCubit>(),
@@ -322,6 +327,7 @@ void main() {
           characterId: characterId,
           notificationPreferencesStore: InMemoryNotificationPreferencesStore(),
           libraryBookmarksStore: InMemoryLibraryBookmarksStore(),
+          newEntriesStore: InMemoryNewEntriesStore(),
           userId: user.id,
           notificationPermission: FakeNotificationPermissionPort(
             current: NotificationPermissionStatus.granted,
@@ -383,7 +389,7 @@ void main() {
       (tester) async {
         await pumpSession(tester);
         expect(find.text('main $testCharacterId'), findsOneWidget);
-        expect(references, hasLength(25));
+        expect(references, hasLength(27));
 
         await logOut(tester);
 

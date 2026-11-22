@@ -48,6 +48,7 @@ import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/fake_push_messaging_port.dart';
 import '../../helpers/fakes/in_memory_library_bookmarks_store.dart';
+import '../../helpers/fakes/in_memory_new_entries_store.dart';
 import '../../helpers/fakes/in_memory_notification_preferences_store.dart';
 import '../../helpers/fakes/recording_link_opener.dart';
 import '../../helpers/fakes/recording_notification_intent_sink.dart';
@@ -147,6 +148,7 @@ void main() {
                 characterId: testCharacterId,
                 notificationPreferencesStore: store,
                 libraryBookmarksStore: InMemoryLibraryBookmarksStore(),
+                newEntriesStore: InMemoryNewEntriesStore(),
                 userId: testUserId,
                 notificationPermission: permission,
                 pushMessaging: messaging,

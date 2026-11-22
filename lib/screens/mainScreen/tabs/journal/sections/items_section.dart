@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
@@ -121,11 +124,15 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
           selector: _characterOf,
           builder: (context, character) => character == null
               ? const SizedBox.shrink()
-              : _buildSection(character),
+              : NewEntriesBuilder(
+                  category: NewEntryCategory.items,
+                  builder: (context, newItemIds) =>
+                      _buildSection(character, newItemIds),
+                ),
         ),
       );
 
-  Widget _buildSection(Character character) {
+  Widget _buildSection(Character character, Set<String> newItemIds) {
     final ownedItems = _ownedItemsOf(character);
     final effectTypes = presentEffectTypes(ownedItems);
     final selectedEffect = retainedFilterSelection(
@@ -139,6 +146,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
           );
     return Dropdown(
       sectionName: 'Oggetti',
+      badge: newItemIds.isEmpty ? null : const NewEntrySigil(),
       data: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -166,6 +174,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
                               quantity: owned.quantity,
                               remaining: recovery.remaining,
                               targets: targets,
+                              isNew: newItemIds.contains(item.id),
                             ),
                       ],
                     );
@@ -196,6 +205,27 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
   /// ricarica (D-11, D-12) e compagni che possono bere durante l'attesa del
   /// personaggio (D-32).
   Widget _row(
+    BuildContext context, {
+    required Character character,
+    required AssetItem item,
+    required int? quantity,
+    required Duration? remaining,
+    required List<CompanionPotionTarget> targets,
+    required bool isNew,
+  }) => NewEntryMarked(
+    isNew: isNew,
+    corner: Offset(ItemRow.padding.left + widget.size, ItemRow.padding.top),
+    child: _potionAwareRow(
+      context,
+      character: character,
+      item: item,
+      quantity: quantity,
+      remaining: remaining,
+      targets: targets,
+    ),
+  );
+
+  Widget _potionAwareRow(
     BuildContext context, {
     required Character character,
     required AssetItem item,

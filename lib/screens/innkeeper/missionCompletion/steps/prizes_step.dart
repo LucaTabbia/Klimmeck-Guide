@@ -22,6 +22,7 @@ import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/kg_loader.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_details_route.dart';
+import 'package:klimmeck_guide/shared/components/title_badge.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 
@@ -273,15 +274,25 @@ class _PrizesStepState extends State<PrizesStep> {
 
   Widget _header(MissionParticipant participant, MissionPrizeOptions? options) {
     final theme = KlimmeckGuideTheme.instance;
-    final title = participant.title?.label;
+    final title = participant.title;
     final canAdd = options != null && !widget.isSubmitting;
     return Row(
       children: [
         Expanded(
-          child: Text(
-            title == null ? participant.name : '${participant.name} · $title',
-            key: PrizesStep.headerKeyFor(participant.characterId),
-            style: theme.titleMedium,
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  participant.name,
+                  key: PrizesStep.headerKeyFor(participant.characterId),
+                  style: theme.titleMedium,
+                ),
+              ),
+              if (title != null) ...[
+                const SizedBox(width: KlimmeckGuideTheme.spacingSm),
+                TitleBadge(title: title),
+              ],
+            ],
           ),
         ),
         TextButton(

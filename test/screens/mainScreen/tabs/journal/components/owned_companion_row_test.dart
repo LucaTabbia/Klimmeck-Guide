@@ -74,7 +74,7 @@ void main() {
     longPresses = 0;
     seedSvgCache([
       CloudinaryAssets.emptyCardSheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
     ]);
   });
 

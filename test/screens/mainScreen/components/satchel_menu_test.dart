@@ -25,6 +25,34 @@ void main() {
       SvgCache().add(CloudinaryAssets.url(entry.assetPath), svg);
     }
     SvgCache().add(CloudinaryAssets.url(CloudinaryAssets.pouch), svg);
+    SvgCache().add(CloudinaryAssets.url(CloudinaryAssets.newEntrySigil), svg);
+  });
+
+  testWidgets('marks only the pages with news', (tester) async {
+    useLandscapePhone(tester);
+    final parent = AnimationController(vsync: const TestVSync());
+    addTearDown(parent.dispose);
+
+    await tester.pumpWidget(
+      buildTestApp(
+        home: SatchelMenu(
+          currentPage: 0,
+          onItemTap: (_) {},
+          parentAnimationController: parent,
+          pagesWithNews: const {SatchelLayout.libraryPageIndex},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final items = tester.widgetList<MenuItem>(find.byType(MenuItem));
+    expect(
+      [
+        for (final item in items)
+          if (item.hasNews) item.pageIndex,
+      ],
+      [SatchelLayout.libraryPageIndex],
+    );
   });
 
   testWidgets('builds one MenuItem per layout entry', (tester) async {

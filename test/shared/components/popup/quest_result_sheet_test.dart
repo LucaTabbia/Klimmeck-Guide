@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
+import 'package:klimmeck_guide/models/enums/title_type.dart';
 import 'package:klimmeck_guide/models/enums/quest_type.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_outcome.dart';
 import 'package:klimmeck_guide/models/quest_result/quest_result.dart';
@@ -18,6 +19,7 @@ import '../../../helpers/fixtures/quest_result_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
+import '../../../helpers/title_badge_finder.dart';
 
 Future<void> _pump(
   WidgetTester tester,
@@ -488,7 +490,8 @@ void main() {
 
       expect(find.text('È morto'), findsOneWidget);
       expect(find.text('Aldo'), findsOneWidget);
-      expect(find.text('Recluta · Livello 1'), findsOneWidget);
+      expect(findTitleBadge(TitleType.rookie), findsOneWidget);
+      expect(find.text('Livello 1'), findsOneWidget);
       expect(find.byKey(QuestResultSheet.hpKey), findsNothing);
       expect(find.byKey(QuestResultSheet.rewardsKey), findsNothing);
       expect(
@@ -512,7 +515,8 @@ void main() {
 
       expect(find.text('Aldo'), findsNothing);
       expect(find.byKey(QuestResultSheet.deadNameKey), findsNothing);
-      expect(find.text('Recluta · Livello 1'), findsOneWidget);
+      expect(findTitleBadge(TitleType.rookie), findsOneWidget);
+      expect(find.text('Livello 1'), findsOneWidget);
     });
 
     testWidgets('the button is disabled while acknowledging', (tester) async {
@@ -550,7 +554,14 @@ void main() {
     expect(find.text('Missione completata'), findsOneWidget);
     expect(find.text('Storia'), findsOneWidget);
     expect(find.byKey(QuestResultSheet.enemyKey), findsNothing);
-    expect(find.text('Recluta → Avventuriero'), findsOneWidget);
+    final change = find.byKey(QuestResultSheet.titleKey);
+    for (final title in [TitleType.rookie, TitleType.adventurer]) {
+      expect(
+        find.descendant(of: change, matching: findTitleBadge(title)),
+        findsOneWidget,
+      );
+    }
+    expect(find.textContaining('Recluta'), findsNothing);
   });
 
   group('rescuers', () {

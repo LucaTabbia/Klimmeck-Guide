@@ -70,6 +70,25 @@ void main() {
     expect(SvgCache().getFile(_url('cached')), same(seed));
   });
 
+  test(
+    'reports how many urls are done after each one, failures included',
+    () async {
+      Future<File> fetch(String url) async {
+        if (url == _url('progress_broken')) throw const HttpException('404');
+        return seed;
+      }
+
+      final reports = <(int, int)>[];
+      await ImageWarmer(fetch: fetch, concurrency: 1).warm([
+        _url('progress_a'),
+        _url('progress_broken'),
+        _url('progress_b'),
+      ], onProgress: (done, total) => reports.add((done, total)));
+
+      expect(reports, [(1, 3), (2, 3), (3, 3)]);
+    },
+  );
+
   test('deduplicates the urls (D-22)', () async {
     var fetches = 0;
     Future<File> fetch(String url) async {

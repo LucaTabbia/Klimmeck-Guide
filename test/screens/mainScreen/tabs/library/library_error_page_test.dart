@@ -16,7 +16,7 @@ void main() {
     (tester) async {
       var backs = 0;
       useLandscapePhone(tester);
-      seedSvgCache([CloudinaryAssets.bookmarkRed]);
+      seedSvgCache([CloudinaryAssets.redBookmarkBack]);
       await tester.pumpWidget(
         buildTestApp(
           home: Scaffold(
@@ -44,7 +44,7 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget is CachedSvg &&
-              widget.url == LibraryBook.bestiary.bookmarkUrl,
+              widget.url == LibraryBook.bestiary.backBookmarkUrl,
         ),
       );
       expect(backs, 1);

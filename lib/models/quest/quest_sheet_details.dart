@@ -46,8 +46,10 @@ class QuestSlotLine extends Equatable {
   final int count;
   final bool isViewerRank;
 
-  String get text =>
-      '${title?.label ?? 'Qualsiasi rango'}: $registered / $count';
+  /// Posti presi sul totale: accanto al badge del titolo non serve altro.
+  String get seatsText => '$registered / $count';
+
+  String get text => '${title?.label ?? 'Qualsiasi rango'}: $seatsText';
 
   @override
   List<Object?> get props => [title, registered, count, isViewerRank];
@@ -57,6 +59,7 @@ class QuestSlotLine extends Equatable {
 class QuestSheetDetails extends Equatable {
   const QuestSheetDetails({
     required this.family,
+    required this.requiredTitle,
     required this.requiredTitleText,
     required this.isTitleIneligible,
     required this.slotLines,
@@ -87,6 +90,7 @@ class QuestSheetDetails extends Equatable {
         : standingOf(quest, viewer).availability;
     return QuestSheetDetails(
       family: family,
+      requiredTitle: minTitle,
       requiredTitleText: _requiredTitleText(type, minTitle),
       isTitleIneligible:
           viewer != null &&
@@ -104,7 +108,7 @@ class QuestSheetDetails extends Equatable {
       costLine: costLineOf(quest, viewer?.twitchPoints),
       blockedReason: availability == null
           ? null
-          : questBlockedReasonOf(availability, minTitle: minTitle, type: type),
+          : questBlockedReasonOf(availability),
       isImprisoned: availability == QuestAvailability.imprisoned,
       recommendedLootLines: List.unmodifiable([
         for (final entry in quest.requirements?.recommendedLoot ?? const [])
@@ -126,6 +130,10 @@ class QuestSheetDetails extends Equatable {
   }
 
   final QuestSheetFamily family;
+
+  /// Titolo del badge sul foglio; [requiredTitleText] è la frase che il badge
+  /// sostituisce, letta da chi non lo vede.
+  final TitleType? requiredTitle;
   final String? requiredTitleText;
   final bool isTitleIneligible;
   final List<QuestSlotLine> slotLines;
@@ -156,6 +164,7 @@ class QuestSheetDetails extends Equatable {
   @override
   List<Object?> get props => [
     family,
+    requiredTitle,
     requiredTitleText,
     isTitleIneligible,
     slotLines,

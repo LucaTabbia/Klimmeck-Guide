@@ -49,7 +49,7 @@ void main() {
   setUp(
     () => seedSvgCache([
       CloudinaryAssets.emptySheet,
-      CloudinaryAssets.bookmarkRed,
+      CloudinaryAssets.redBookmarkBack,
     ]),
   );
 

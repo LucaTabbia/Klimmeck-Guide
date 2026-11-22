@@ -24,6 +24,7 @@ import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/landscape.dart';
 import '../../../helpers/svg_cache_seed.dart';
 import '../../../helpers/test_app.dart';
+import '../../../helpers/title_badge_finder.dart';
 
 const _enemy = {
   'id': 'e-1',
@@ -93,6 +94,16 @@ Future<void> _pump(
   );
   await tester.pump();
 }
+
+Finder _requiredTitleBadge(TitleType title) => find.descendant(
+  of: find.byKey(QuestInfoSheet.requiredTitleKey),
+  matching: findTitleBadge(title),
+);
+
+Finder _seatsOf(TitleType title) => find.descendant(
+  of: find.byKey(QuestInfoSheet.slotLineKeyOf(title)),
+  matching: find.byType(Text),
+);
 
 Color? _colorOf(WidgetTester tester, Finder finder) =>
     tester.widget<Text>(finder).style?.color;
@@ -412,8 +423,19 @@ void main() {
         ),
       );
 
-      expect(find.text('Eroe: 0 / 5'), findsOneWidget);
-      expect(find.text('Paladino: 0 / 4'), findsOneWidget);
+      for (final (title, seats) in [
+        (TitleType.hero, '0 / 5'),
+        (TitleType.paladin, '0 / 4'),
+      ]) {
+        final line = find.byKey(QuestInfoSheet.slotLineKeyOf(title));
+        expect(
+          find.descendant(of: line, matching: findTitleBadge(title)),
+          findsOneWidget,
+        );
+        expect(tester.widget<Text>(_seatsOf(title)).data, seats);
+      }
+      expect(find.textContaining('Eroe'), findsNothing);
+      expect(find.textContaining('Paladino'), findsNothing);
     });
 
     testWidgets('an enemy draws no seats row on either wire shape, only its '
@@ -427,7 +449,8 @@ void main() {
           buildQuest(type: 'enemy', minTitle: 'paladin', slots: [seat]),
         );
 
-        expect(find.text('Titolo minimo: Paladino'), findsOneWidget);
+        expect(_requiredTitleBadge(TitleType.paladin), findsOneWidget);
+        expect(find.textContaining('Titolo'), findsNothing);
         expect(find.textContaining(' / 1'), findsNothing, reason: '$seat');
         expect(find.textContaining('Qualsiasi rango'), findsNothing);
       }
@@ -446,8 +469,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Titolo minimo: Paladino'), findsOneWidget);
-      expect(find.text('Paladino: 0 / 2'), findsOneWidget);
+      expect(_requiredTitleBadge(TitleType.paladin), findsOneWidget);
+      expect(tester.widget<Text>(_seatsOf(TitleType.paladin)).data, '0 / 2');
     });
   });
 
@@ -747,9 +770,89 @@ void main() {
         viewer: buildViewer(title: TitleType.mage),
       );
 
-      final title = find.text('Titolo richiesto: Paladino');
-      expect(title, findsOneWidget);
-      expect(_colorOf(tester, title), KlimmeckGuideTheme.bloodRed);
+      expect(_requiredTitleBadge(TitleType.paladin), findsOneWidget);
+      expect(
+        tester
+            .widget<Container>(find.byKey(QuestInfoSheet.requiredTitleKey))
+            .decoration,
+        isA<BoxDecoration>().having(
+          (decoration) => decoration.border?.top.color,
+          'ring',
+          KlimmeckGuideTheme.bloodRed,
+        ),
+      );
+    });
+
+    testWidgets('the title badge sits in the top left corner of the sheet, '
+        'in every family', (tester) async {
+      for (final type in ['hunt', 'story', 'heal']) {
+        await _pump(
+          tester,
+          buildQuest(type: type, minTitle: 'mage', requiredPoints: 3000),
+        );
+
+        final sheet = tester.getRect(find.byKey(QuestInfoSheet.sheetAreaKey));
+        final badge = tester.getRect(_requiredTitleBadge(TitleType.mage));
+        expect(badge.width, closeTo(sheet.width * 0.2, 0.01), reason: type);
+        expect(
+          badge.topLeft - sheet.topLeft,
+          within<Offset>(
+            distance: 0.01,
+            from: Offset(sheet.width * 0.096, sheet.width * 0.176),
+          ),
+          reason: type,
+        );
+      }
+    });
+
+    testWidgets('the title badge casts a blurred shadow of its own shape', (
+      tester,
+    ) async {
+      await _pump(tester, buildQuest(type: 'hunt', minTitle: 'mage'));
+
+      final shadow = find.descendant(
+        of: find.byKey(QuestInfoSheet.requiredTitleKey),
+        matching: find.byType(ImageFiltered),
+      );
+      expect(
+        tester
+            .widget<CachedSvg>(
+              find.descendant(of: shadow, matching: find.byType(CachedSvg)),
+            )
+            .url,
+        TitleType.mage.badgePath,
+      );
+      expect(_requiredTitleBadge(TitleType.mage), findsOneWidget);
+    });
+
+    testWidgets('an eligible required title has no ring', (tester) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'story', minTitle: 'paladin', requiredPoints: 3000),
+        viewer: buildViewer(title: TitleType.paladin),
+      );
+
+      expect(
+        tester
+            .widget<Container>(find.byKey(QuestInfoSheet.requiredTitleKey))
+            .decoration,
+        isNull,
+      );
+    });
+
+    testWidgets('a title mismatch never names the title: the badge does', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'boss', minTitle: 'hero'),
+        viewer: buildViewer(title: TitleType.rookie),
+      );
+
+      expect(
+        tester.widget<Text>(find.byKey(QuestInfoSheet.blockedReasonKey)).data,
+        'Il tuo titolo non permette questa missione',
+      );
     });
   });
 
@@ -945,26 +1048,23 @@ void main() {
       expect(_colorOf(tester, line), isNot(KlimmeckGuideTheme.bloodRed));
     });
 
-    testWidgets(
-      'the travel line sits between the time line and the title line (D-04)',
-      (tester) async {
-        await _pump(
-          tester,
-          buildQuest(type: 'hunt', timeToComplete: 60000, minTitle: 'hero'),
-          travelPreview: _travelPreview(),
-        );
+    testWidgets('the travel line sits below the time line (D-04)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        buildQuest(type: 'hunt', timeToComplete: 60000),
+        travelPreview: _travelPreview(),
+      );
 
-        final timeY = tester
-            .getTopLeft(find.textContaining('Tempo richiesto'))
-            .dy;
-        final travelY = tester
-            .getTopLeft(find.byKey(QuestInfoSheet.travelLineKey))
-            .dy;
-        final titleY = tester.getTopLeft(find.text('Titolo minimo: Eroe')).dy;
-        expect(timeY, lessThan(travelY));
-        expect(travelY, lessThan(titleY));
-      },
-    );
+      final timeY = tester
+          .getTopLeft(find.textContaining('Tempo richiesto'))
+          .dy;
+      final travelY = tester
+          .getTopLeft(find.byKey(QuestInfoSheet.travelLineKey))
+          .dy;
+      expect(timeY, lessThan(travelY));
+    });
 
     testWidgets('a narrative sheet never shows the travel line (D-04)', (
       tester,
@@ -1130,10 +1230,7 @@ void main() {
           matching: find.byType(Scrollable),
         );
         final lifeLine = find.byKey(QuestInfoSheet.lifeLineKey);
-        final pinnedLines = [
-          find.byKey(QuestInfoSheet.costLineKey),
-          find.text('Titolo richiesto: Eroe'),
-        ];
+        final pinnedLines = [find.byKey(QuestInfoSheet.costLineKey)];
         Offset offsetInFamily(Finder line) =>
             tester.getTopLeft(line) - tester.getTopLeft(family);
         final pinnedOffsets = pinnedLines.map(offsetInFamily).toList();
@@ -1154,7 +1251,12 @@ void main() {
           tester.getRect(lifeLine).overlaps(tester.getRect(scrollRegion)),
           isTrue,
         );
-        expect(pinnedLines.map(offsetInFamily).toList(), pinnedOffsets);
+        for (final (index, line) in pinnedLines.indexed) {
+          expect(
+            offsetInFamily(line),
+            within<Offset>(distance: 0.01, from: pinnedOffsets[index]),
+          );
+        }
         for (final line in pinnedLines) {
           expect(
             tester

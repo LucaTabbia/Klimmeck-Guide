@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/models/enums/new_entry_category.dart';
+import 'package:klimmeck_guide/screens/mainScreen/components/new_entries_builder.dart';
+import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/use_type.dart';
 import 'package:klimmeck_guide/models/spell.dart';
@@ -127,12 +130,20 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
           selector: _characterOf,
           builder: (context, character) =>
               BlocBuilder<SpellsCubit, SpellsState>(
-                builder: (context, spells) => _buildSection(character, spells),
+                builder: (context, spells) => NewEntriesBuilder(
+                  category: NewEntryCategory.spells,
+                  builder: (context, newSpellIds) =>
+                      _buildSection(character, spells, newSpellIds),
+                ),
               ),
         ),
       );
 
-  Widget _buildSection(Character? character, SpellsState spells) {
+  Widget _buildSection(
+    Character? character,
+    SpellsState spells,
+    Set<String> newSpellIds,
+  ) {
     final spellbook = Spellbook.of(character, pending: spells.pending);
     if (character == null || !spellbook.isVisible) {
       return const SizedBox.shrink();
@@ -158,10 +169,12 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
             : (spellId: outcome.spellId, sequence: outcome.sequence),
         useTypeFilter: _useTypeFilter,
         onUseTypeFilterChanged: _selectUseType,
+        newSpellIds: newSpellIds,
       ),
     );
     return Dropdown(
       sectionName: 'Magie imparate',
+      badge: newSpellIds.isEmpty ? null : const NewEntrySigil(),
       data: isOnMission
           ? MissionLockedSection(
               lineKey: SpellsSection.missionLockedKey,

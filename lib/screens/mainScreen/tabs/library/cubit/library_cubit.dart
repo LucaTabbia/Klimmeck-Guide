@@ -16,13 +16,18 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
     this.graphQl, {
     required LibraryBookmarksStore bookmarks,
     required String characterId,
+    VoidCallback? onBookmarksWritten,
   }) : _bookmarks = bookmarks,
        _characterId = characterId,
+       _onBookmarksWritten = onBookmarksWritten,
        super(const LibraryInitial());
 
   final KlimmeckGraphQl graphQl;
   final LibraryBookmarksStore _bookmarks;
   final String _characterId;
+
+  /// Avvisa chi conta le novità dei libri che un libro è stato appena letto.
+  final VoidCallback? _onBookmarksWritten;
 
   /// Cresce a ogni apertura e ritorno ai libri: una lettura più vecchia è scartata (D-19).
   int _generation = 0;
@@ -132,6 +137,7 @@ class LibraryCubit extends Cubit<LibraryState> with SafeEmit<LibraryState> {
   Future<void> _writeBaseline(LibraryBook book, Set<String> ids) async {
     try {
       await _bookmarks.writeSeen(_characterId, book, ids);
+      _onBookmarksWritten?.call();
     } on Object catch (e) {
       appLog('LibraryCubit baseline write error: ${e.runtimeType}');
     }

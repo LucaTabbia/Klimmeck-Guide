@@ -34,6 +34,10 @@ class SatchelEntry extends Equatable {
 
 /// Unica tabella della borsa: etichette, icone, pagine e geometria (D-01).
 abstract final class SatchelLayout {
+  static const int profilePageIndex = 1;
+  static const int journalPageIndex = 2;
+  static const int libraryPageIndex = 3;
+
   /// Pagina della Bacheca (disabilitata fuori da un marker di città, Phase 6 D-11).
   static const int boardPageIndex = 4;
 
@@ -47,6 +51,10 @@ abstract final class SatchelLayout {
   static const double closeColumnWidth = 152;
   static const double maxCellWidth = 152;
 
+  /// Parte dell'angolo in basso a sinistra coperta dal borsello chiuso
+  /// (misurata sul device, revisione layout 2026-11-17).
+  static const Size closedPouchFootprint = Size(110, 110);
+
   static const List<SatchelEntry> entries = [
     SatchelEntry(
       pageIndex: 0,
@@ -57,21 +65,21 @@ abstract final class SatchelLayout {
       rowSpan: 2,
     ),
     SatchelEntry(
-      pageIndex: 1,
+      pageIndex: profilePageIndex,
       label: 'Profilo',
       assetPath: CloudinaryAssets.mirror,
       column: 1,
       row: 0,
     ),
     SatchelEntry(
-      pageIndex: 2,
+      pageIndex: journalPageIndex,
       label: 'Diario',
       assetPath: CloudinaryAssets.journal,
       column: 2,
       row: 0,
     ),
     SatchelEntry(
-      pageIndex: 3,
+      pageIndex: libraryPageIndex,
       label: 'Libreria',
       assetPath: CloudinaryAssets.library,
       column: 3,

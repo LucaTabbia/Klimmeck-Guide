@@ -14,11 +14,15 @@ class DropdownHeader extends StatelessWidget {
     required this.sectionName,
     required this.turns,
     required this.onTap,
+    this.badge,
   });
 
   final String sectionName;
   final double turns;
   final VoidCallback onTap;
+
+  /// Segnale a destra, accanto alla freccia: la sezione contiene una novità.
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +44,24 @@ class DropdownHeader extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: contentWidth,
-                        child: AutoSizeText(
-                          sectionName,
-                          maxFontSize: 20,
-                          minFontSize: 12,
-                          style: KlimmeckGuideTheme.instance.titleMedium,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AutoSizeText(
+                                sectionName,
+                                maxFontSize: 20,
+                                minFontSize: 12,
+                                style: KlimmeckGuideTheme.instance.titleMedium,
+                              ),
+                            ),
+                            if (badge != null)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: KlimmeckGuideTheme.spacingSm,
+                                ),
+                                child: badge,
+                              ),
+                          ],
                         ),
                       ),
                       RotationTransition(
@@ -90,6 +107,7 @@ class Dropdown extends StatefulWidget {
     this.isOpen = false,
     this.onToggle,
     this.maxHeight,
+    this.badge,
   });
 
   final String sectionName;
@@ -97,6 +115,9 @@ class Dropdown extends StatefulWidget {
   final double? maxHeight;
   final bool isOpen;
   final VoidCallback? onToggle;
+
+  /// Segnale accanto al nome: la sezione contiene una novità.
+  final Widget? badge;
 
   @override
   State<Dropdown> createState() => _DropdownState();
@@ -152,6 +173,7 @@ class _DropdownState extends State<Dropdown>
             sectionName: widget.sectionName,
             turns: _sizeFactor.value * 0.5,
             onTap: _toggle,
+            badge: widget.badge,
           ),
         ),
         widget.maxHeight != null

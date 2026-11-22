@@ -14,6 +14,8 @@ import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/enemy_portrait.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
+import 'package:klimmeck_guide/shared/components/title_badge.dart';
+import 'package:klimmeck_guide/shared/components/title_change.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/lore_lines.dart';
@@ -214,7 +216,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
           QuestResultSheet.companionXpKey,
         ),
         ..._line(_levelText(), QuestResultSheet.levelKey),
-        ..._line(_titleText(), QuestResultSheet.titleKey),
+        ..._titleChange(),
         ..._line(spellFoundLine(_result), QuestResultSheet.spellFoundKey),
         ..._line(
           spellLearningTimeLine(_result),
@@ -288,8 +290,7 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
   List<Widget> _deathIdentity() {
     if (!_result.isDeath) return const [];
     final name = widget.characterName;
-    final title = _result.titleAfter?.label;
-    final level = 'Livello ${_result.levelAfter}';
+    final title = _result.titleAfter;
     return [
       if (name != null)
         Text(
@@ -298,10 +299,15 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
           textAlign: TextAlign.center,
           style: _theme.titleMedium,
         ),
-      Text(
-        title == null ? level : '$title · $level',
-        textAlign: TextAlign.center,
-        style: _theme.bodyMedium,
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (title != null) ...[
+            TitleBadge(title: title),
+            const SizedBox(width: KlimmeckGuideTheme.spacingXs),
+          ],
+          Text('Livello ${_result.levelAfter}', style: _theme.bodyMedium),
+        ],
       ),
     ];
   }
@@ -525,13 +531,19 @@ class _QuestResultSheetState extends State<QuestResultSheet> {
     return 'Livello ${_result.levelBefore} → ${_result.levelAfter}';
   }
 
-  String? _titleText() {
-    final before = _result.titleBefore;
-    final after = _result.titleAfter;
-    if (!_result.hasTitleChanged || before == null || after == null) {
-      return null;
-    }
-    return '${before.label} → ${after.label}';
+  List<Widget> _titleChange() {
+    final change = _result.titleChange;
+    if (change == null) return const [];
+    return [
+      Padding(
+        padding: const EdgeInsets.only(top: KlimmeckGuideTheme.spacingSm),
+        child: TitleChange(
+          key: QuestResultSheet.titleKey,
+          before: change.before,
+          after: change.after,
+        ),
+      ),
+    ];
   }
 
   String? _spellLearnedText() {
