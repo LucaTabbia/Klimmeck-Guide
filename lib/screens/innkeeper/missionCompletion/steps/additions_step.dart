@@ -42,10 +42,14 @@ class AdditionsStep extends StatelessWidget {
   /// Riassunto dell'aggiunta per l'intestazione della tendina (D-23); `null`
   /// per un campo che non aggiunge nulla (D-06).
   static String? summaryOf(String text) {
-    final length = _lengthOf(text);
-    if (length == 0) return null;
-    return 'aggiunta $length/$maxAdditionLength';
+    if (_lengthOf(text) == 0) return null;
+    return 'aggiunta ${counterOf(text)}';
   }
+
+  /// Contatore del campo: lo stesso numero dell'intestazione, contato come
+  /// il limite e non dal campo, che conterebbe anche gli spazi ai bordi.
+  static String counterOf(String text) =>
+      '${_lengthOf(text)}/$maxAdditionLength';
 
   static int _lengthOf(String text) => text.trim().characters.length;
 
@@ -173,7 +177,7 @@ class _ParticipantAdditionState extends State<_ParticipantAddition> {
           onChanged: widget.onChanged,
           minLines: _fieldMinLines,
           maxLines: _fieldMaxLines,
-          maxLength: AdditionsStep.maxAdditionLength,
+          counterText: AdditionsStep.counterOf(widget.text),
           errorText: isTooLong ? AdditionsStep.tooLongMessage : null,
         ),
       ),

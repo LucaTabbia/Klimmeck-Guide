@@ -16,6 +16,7 @@ class SheetTextField extends StatefulWidget {
     this.minLines = 1,
     this.maxLines = 1,
     this.maxLength,
+    this.counterText,
     this.keyboardType,
     this.inputFormatters,
   });
@@ -30,6 +31,9 @@ class SheetTextField extends StatefulWidget {
   final int minLines;
   final int maxLines;
   final int? maxLength;
+
+  /// Contatore deciso da chi usa il campo, al posto di quello di [maxLength].
+  final String? counterText;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
 
@@ -62,6 +66,7 @@ class _SheetTextFieldState extends State<SheetTextField> {
     decoration: InputDecoration(
       labelText: widget.label,
       errorText: widget.errorText,
+      counterText: widget.counterText,
       helperText: widget.helperText,
       hintText: widget.hintText,
     ),
