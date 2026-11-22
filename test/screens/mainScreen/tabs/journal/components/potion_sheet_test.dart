@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
-import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
@@ -15,7 +14,6 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
-import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/fixtures/lore_fixtures.dart';
@@ -97,7 +95,6 @@ void main() {
     int? maxLifePoints = 12,
     List<CompanionPotionTarget> targets = const [],
     Duration? characterWait,
-    List<InjuryType>? injuriesBeyondCure,
   }) async {
     useLandscapePhone(tester);
     whenListen(cubit, stream ?? states.stream, initialState: state);
@@ -121,18 +118,11 @@ void main() {
                     ],
                     child: Scaffold(
                       body: SingleChildScrollView(
-                        child: injuriesBeyondCure == null
-                            ? PotionSheet(
-                                item: item ?? herbs,
-                                maxLifePoints: maxLifePoints,
-                                targets: targets,
-                              )
-                            : PotionSheet(
-                                item: item ?? herbs,
-                                maxLifePoints: maxLifePoints,
-                                targets: targets,
-                                injuriesBeyondCure: injuriesBeyondCure,
-                              ),
+                        child: PotionSheet(
+                          item: item ?? herbs,
+                          maxLifePoints: maxLifePoints,
+                          targets: targets,
+                        ),
                       ),
                     ),
                   ),
@@ -160,38 +150,19 @@ void main() {
   GestureDetector targetOf(WidgetTester tester, String petId) => tester
       .widget<GestureDetector>(find.byKey(PotionSheet.targetKeyOf(petId)));
 
-  testWidgets(
-    "the potion sheet leaves the character's innkeeper wounds out of Cura (D-15)",
-    (tester) async {
-      await pumpSheet(
-        tester,
-        state: const PotionIdle(),
-        item: LootItem.fromJson(
-          healPotionJson(canHeal: const ['contusion', 'deepCut']),
-        ),
-        injuriesBeyondCure: const [InjuryType.deepCut],
-      );
-
-      expect(find.text('Cura: contusione'), findsOneWidget);
-      expect(find.text('Ricarica: 30 min'), findsOneWidget);
-    },
-  );
-
-  testWidgets('without innkeeper wounds the sheet shows the whole line', (
+  testWidgets('the sheet lists every wound the potion heals (D-20)', (
     tester,
   ) async {
-    final potion = LootItem.fromJson(
-      healPotionJson(canHeal: const ['contusion', 'deepCut']),
-    );
     await pumpSheet(
       tester,
       state: const PotionIdle(),
-      item: potion,
-      injuriesBeyondCure: const [],
+      item: LootItem.fromJson(
+        healPotionJson(canHeal: const ['contusion', 'deepCut']),
+      ),
     );
 
-    expect(find.text(healedInjuriesLine(potion)!), findsOneWidget);
-    expect(healedInjuriesLine(potion), contains('taglio profondo'));
+    expect(find.text('Cura: taglio profondo, contusione'), findsOneWidget);
+    expect(find.text('Ricarica: 30 min'), findsOneWidget);
   });
 
   testWidgets(

@@ -217,7 +217,7 @@ void main() {
     );
 
     testWidgets(
-      "a potion row of the Journal leaves the character's innkeeper wounds out (D-15)",
+      "a potion row of the Journal still lists the character's innkeeper wounds (D-20)",
       (tester) async {
         await pumpItems(tester);
 
@@ -225,13 +225,13 @@ void main() {
           tester
               .widget<Text>(find.byKey(const ValueKey('item-injuries-$_herb')))
               .data,
-          'Cura: contusione',
+          'Cura: taglio profondo, contusione',
         );
       },
     );
 
     testWidgets(
-      "the potion sheet opened from the Journal leaves the innkeeper wounds out (D-15)",
+      "the potion sheet opened from the Journal still lists the innkeeper wounds (D-20)",
       (tester) async {
         await pumpItems(tester);
 
@@ -240,7 +240,7 @@ void main() {
         expect(
           find.descendant(
             of: find.byType(PaperSheetModal),
-            matching: find.text('Cura: contusione'),
+            matching: find.text('Cura: taglio profondo, contusione'),
           ),
           findsOneWidget,
         );
