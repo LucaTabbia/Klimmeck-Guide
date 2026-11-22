@@ -1549,8 +1549,24 @@ void main() {
     Finder recapHeader() =>
         _headerOf(MissionPage.recap, 'Riepilogo', withAdditions: true);
 
+    Future<void> openAddition(WidgetTester tester, String id) async {
+      final header = find.descendant(
+        of: find.byKey(ParticipantStory.keyFor(id)),
+        matching: find.byType(DropdownHeader),
+      );
+      await tester.ensureVisible(header);
+      await tester.pump();
+      await tester.tap(header);
+      await tester.pumpAndSettle();
+    }
+
+    /// Scrive nel campo come fa l'oste: dentro la tendina aperta (D-23).
     Future<void> type(WidgetTester tester, String id, String text) async {
-      await tester.enterText(find.byKey(AdditionsStep.fieldKeyFor(id)), text);
+      final field = find.byKey(AdditionsStep.fieldKeyFor(id));
+      if (field.hitTestable().evaluate().isEmpty) {
+        await openAddition(tester, id);
+      }
+      await tester.enterText(field, text);
       await tester.pump();
     }
 
@@ -1634,6 +1650,33 @@ void main() {
         expect(additionsHeader(), findsOneWidget);
         expect(find.text(_scar), findsOneWidget);
         verify(() => participantsCubit.ensureLoaded([_aldo, _bea])).called(1);
+      },
+    );
+
+    testWidgets(
+      'a text typed in a dropdown is found again, counted on the closed header, after going back to the recap and forward (D-23)',
+      (tester) async {
+        await openOn(tester, storiesReady);
+        await type(tester, _aldo, _typed);
+
+        await tapBack(tester);
+        expect(recapHeader(), findsOneWidget);
+        await tester.tap(find.byKey(MissionCompletionScreen.nextKey));
+        await tester.pumpAndSettle();
+
+        expect(additionsHeader(), findsOneWidget);
+        expect(
+          find.byKey(AdditionsStep.fieldKeyFor(_aldo)).hitTestable(),
+          findsNothing,
+        );
+        expect(
+          tester
+              .widget<Text>(find.byKey(AdditionsStep.summaryKeyFor(_aldo)))
+              .data,
+          'aggiunta ${_typed.length}/1000',
+        );
+        await openAddition(tester, _aldo);
+        expect(find.text(_typed).hitTestable(), findsOneWidget);
       },
     );
 
@@ -2003,6 +2046,7 @@ void main() {
       (tester) async {
         await openOn(tester, storiesReady);
         final field = find.byKey(AdditionsStep.fieldKeyFor(_bea));
+        await openAddition(tester, _bea);
         await tester.ensureVisible(field);
         await tester.tap(field);
         await tester.pump();

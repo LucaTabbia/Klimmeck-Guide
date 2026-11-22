@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/missionPartic
 import 'package:klimmeck_guide/screens/innkeeper/missionCompletion/steps/additions_step.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/sheet_text_field.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../../../helpers/fixtures/pending_request_fixtures.dart';
 import '../../../../helpers/landscape.dart';
@@ -22,6 +23,13 @@ const String _birth = 'Nato a Drustea.';
 const String _savedAddition = 'Ha visto il drago.';
 const String _emojiFamily = '👨‍👩‍👧‍👦';
 const Duration _openingTime = Duration(milliseconds: 400);
+
+const List<String> _fiveNames = ['Aldo', 'Bea', 'Cosimo', 'Dora', 'Elio'];
+
+List<StoryReader> _readersOf(List<String> names) => [
+  for (final name in names)
+    StoryReader(characterId: 'char-${name.toLowerCase()}', name: name),
+];
 
 const List<StoryReader> _readers = [
   StoryReader(characterId: _aldo, name: 'Aldo'),
@@ -78,23 +86,29 @@ void main() {
     texts = initialTexts;
     await tester.pumpWidget(
       buildTestApp(
-        home: Scaffold(
-          // come il wizard: la tastiera resta visibile alle pagine
-          resizeToAvoidBottomInset: false,
-          body: MissionBackScope(
-            onBack: () {},
-            child: StatefulBuilder(
-              builder: (context, setState) => AdditionsStep(
-                readers: readers,
-                participants: participants,
-                texts: texts,
-                onChanged: (characterId, text) {
-                  changes.add((characterId, text));
-                  setState(() => texts = {...texts, characterId: text});
-                },
-                isSubmitting: isSubmitting,
-                onConclude: () => concludes++,
-                onRetry: () => retries++,
+        home: Builder(
+          builder: (context) => Theme(
+            // i pulsanti compatti del wizard, come nella schermata vera
+            data: KlimmeckGuideTheme.compactButtonsOf(Theme.of(context)),
+            child: Scaffold(
+              // come il wizard: la tastiera resta visibile alle pagine
+              resizeToAvoidBottomInset: false,
+              body: MissionBackScope(
+                onBack: () {},
+                child: StatefulBuilder(
+                  builder: (context, setState) => AdditionsStep(
+                    readers: readers,
+                    participants: participants,
+                    texts: texts,
+                    onChanged: (characterId, text) {
+                      changes.add((characterId, text));
+                      setState(() => texts = {...texts, characterId: text});
+                    },
+                    isSubmitting: isSubmitting,
+                    onConclude: () => concludes++,
+                    onRetry: () => retries++,
+                  ),
+                ),
               ),
             ),
           ),
@@ -104,15 +118,35 @@ void main() {
     await tester.pump();
   }
 
+  Finder fieldOf(String characterId) =>
+      find.byKey(AdditionsStep.fieldKeyFor(characterId));
+
+  Finder summaryOf(String characterId) =>
+      find.byKey(AdditionsStep.summaryKeyFor(characterId));
+
+  /// Apre o chiude la tendina del partecipante.
+  Future<void> toggle(WidgetTester tester, String characterId) async {
+    final header = find.descendant(
+      of: find.byKey(ParticipantStory.keyFor(characterId)),
+      matching: find.byType(DropdownHeader),
+    );
+    await tester.ensureVisible(header);
+    await tester.pump();
+    await tester.tap(header);
+    await tester.pump();
+    await tester.pump(_openingTime);
+  }
+
+  /// Scrive nel campo come fa l'oste: dentro la tendina aperta.
   Future<void> type(
     WidgetTester tester,
     String characterId,
     String text,
   ) async {
-    await tester.enterText(
-      find.byKey(AdditionsStep.fieldKeyFor(characterId)),
-      text,
-    );
+    if (fieldOf(characterId).hitTestable().evaluate().isEmpty) {
+      await toggle(tester, characterId);
+    }
+    await tester.enterText(fieldOf(characterId), text);
     await tester.pump();
   }
 
@@ -144,29 +178,130 @@ void main() {
   });
 
   testWidgets(
-    'each participant has the story dropdown and one field (D-06, D-08)',
+    'each participant has one closed dropdown holding the story and the '
+    'field (D-06, D-08, D-23)',
     (tester) async {
       await pumpStep(tester, participants: _loaded);
 
       expect(find.byType(Dropdown), findsNWidgets(2));
       expect(find.byType(SheetTextField), findsNWidgets(2));
-      expect(find.text(AdditionsStep.fieldLabel), findsNWidgets(2));
       for (final id in [_aldo, _bea]) {
         expect(
-          tester.getTopLeft(find.byKey(ParticipantStory.keyFor(id))).dy,
-          lessThan(
-            tester.getTopLeft(find.byKey(AdditionsStep.fieldKeyFor(id))).dy,
+          find.descendant(
+            of: find.byKey(ParticipantStory.keyFor(id)),
+            matching: fieldOf(id),
           ),
+          findsOneWidget,
         );
+        expect(fieldOf(id).hitTestable(), findsNothing);
       }
-      expect(
-        tester.getTopLeft(find.byKey(AdditionsStep.fieldKeyFor(_aldo))).dy,
-        lessThan(
-          tester.getTopLeft(find.byKey(ParticipantStory.keyFor(_bea))).dy,
-        ),
-      );
+      expect(find.text(AdditionsStep.fieldLabel).hitTestable(), findsNothing);
     },
   );
+
+  testWidgets('an open dropdown shows the story and the field under it '
+      '(D-23)', (tester) async {
+    await pumpStep(tester, participants: _loaded);
+
+    await toggle(tester, _aldo);
+
+    expect(find.text(_birth).hitTestable(), findsOneWidget);
+    expect(fieldOf(_aldo).hitTestable(), findsOneWidget);
+    expect(fieldOf(_bea).hitTestable(), findsNothing);
+    expect(
+      tester.getTopLeft(find.text(_birth)).dy,
+      lessThan(tester.getTopLeft(fieldOf(_aldo)).dy),
+    );
+    expect(find.text('0/1000').hitTestable(), findsOneWidget);
+  });
+
+  group('the header sums up the addition (D-23)', () {
+    testWidgets('an empty field adds nothing to the header', (tester) async {
+      await pumpStep(tester, participants: _loaded);
+
+      expect(summaryOf(_aldo), findsNothing);
+      expect(summaryOf(_bea), findsNothing);
+    });
+
+    testWidgets('a text of the draft is counted on the closed header', (
+      tester,
+    ) async {
+      await pumpStep(tester, initialTexts: const {_aldo: _savedAddition});
+
+      expect(summaryOf(_aldo).hitTestable(), findsOneWidget);
+      expect(
+        tester.widget<Text>(summaryOf(_aldo)).data,
+        'aggiunta ${_savedAddition.length}/1000',
+      );
+      expect(summaryOf(_bea), findsNothing);
+    });
+
+    testWidgets('the count follows the typing and stays when closed', (
+      tester,
+    ) async {
+      await pumpStep(tester);
+
+      await type(tester, _bea, 'Drago');
+      await toggle(tester, _bea);
+
+      expect(fieldOf(_bea).hitTestable(), findsNothing);
+      expect(tester.widget<Text>(summaryOf(_bea)).data, 'aggiunta 5/1000');
+    });
+
+    testWidgets('only spaces add nothing to the header (D-06)', (tester) async {
+      await pumpStep(tester);
+
+      await type(tester, _aldo, '   ');
+
+      expect(summaryOf(_aldo), findsNothing);
+    });
+
+    testWidgets('a text too long is counted in the error colour, a text '
+        'within the limit is not (D-07)', (tester) async {
+      await pumpStep(tester);
+      await type(tester, _aldo, 'a' * 1001);
+      await type(tester, _bea, 'a' * 1000);
+      await toggle(tester, _aldo);
+      await toggle(tester, _bea);
+
+      final tooLong = tester.widget<Text>(summaryOf(_aldo));
+      final withinLimit = tester.widget<Text>(summaryOf(_bea));
+
+      expect(tooLong.data, 'aggiunta 1001/1000');
+      expect(tooLong.style?.color, KlimmeckGuideTheme.bloodRed);
+      expect(withinLimit.data, 'aggiunta 1000/1000');
+      expect(withinLimit.style?.color, isNot(KlimmeckGuideTheme.bloodRed));
+      expect(summaryOf(_aldo).hitTestable(), findsOneWidget);
+      expect(concludeOnPressed(tester), isNull);
+    });
+  });
+
+  testWidgets('the text survives closing and opening the dropdown (D-23)', (
+    tester,
+  ) async {
+    await pumpStep(tester);
+    await type(tester, _aldo, 'Scritto ora');
+
+    await toggle(tester, _aldo);
+    expect(fieldOf(_aldo).hitTestable(), findsNothing);
+    await toggle(tester, _aldo);
+
+    expect(fieldOf(_aldo).hitTestable(), findsOneWidget);
+    expect(fieldText(tester, _aldo), 'Scritto ora');
+    expect(changes, [(_aldo, 'Scritto ora')]);
+  });
+
+  testWidgets('closing the dropdown leaves the field being typed (D-23)', (
+    tester,
+  ) async {
+    await pumpStep(tester);
+    await type(tester, _aldo, 'Scritto ora');
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await toggle(tester, _aldo);
+
+    expect(tester.testTextInput.isVisible, isFalse);
+  });
 
   testWidgets('the story so far is read again from the dropdown (D-04, D-08)', (
     tester,
@@ -210,7 +345,7 @@ void main() {
 
     await type(tester, _aldo, 'Drago');
 
-    expect(find.text('5/1000'), findsOneWidget);
+    expect(find.text('5/1000').hitTestable(), findsOneWidget);
   });
 
   testWidgets('1001 characters show the error and disable Concludi (D-07)', (
@@ -220,7 +355,7 @@ void main() {
 
     await type(tester, _aldo, 'a' * 1001);
 
-    expect(find.text('Massimo 1000 caratteri'), findsOneWidget);
+    expect(find.text('Massimo 1000 caratteri').hitTestable(), findsOneWidget);
     expect(concludeOnPressed(tester), isNull);
   });
 
@@ -319,40 +454,53 @@ void main() {
     expect(find.byKey(AdditionsStep.retryKey), findsNothing);
   });
 
-  testWidgets('the bottom row holds Indietro and Concludi in landscape', (
-    tester,
-  ) async {
-    await pumpStep(tester, participants: _loaded);
+  for (final names in [_fiveNames.take(2).toList(), _fiveNames]) {
+    testWidgets('${names.length} participants fit a landscape phone, closed '
+        'and open, with Indietro and Concludi on the bottom row', (
+      tester,
+    ) async {
+      final readers = _readersOf(names);
+      await pumpStep(
+        tester,
+        participants: _loaded,
+        readers: readers,
+        initialTexts: {
+          for (final reader in readers) reader.characterId: 'a' * 1001,
+        },
+      );
+      expect(tester.takeException(), isNull);
 
-    expect(tester.takeException(), isNull);
-    expect(
-      find.byKey(MissionBackButton.buttonKey).hitTestable(),
-      findsOneWidget,
-    );
-    final conclude = tester.getRect(find.byKey(AdditionsStep.concludeKey));
-    expect(conclude.bottom, lessThanOrEqualTo(360));
-    expect(
-      find.descendant(
-        of: find.byType(AdditionsStep),
-        matching: find.byType(ListView),
-      ),
-      findsNothing,
-    );
-  });
+      for (final reader in readers) {
+        await toggle(tester, reader.characterId);
+        expect(tester.takeException(), isNull);
+      }
+
+      expect(
+        find.byKey(MissionBackButton.buttonKey).hitTestable(),
+        findsOneWidget,
+      );
+      final conclude = tester.getRect(find.byKey(AdditionsStep.concludeKey));
+      expect(conclude.bottom, lessThanOrEqualTo(360));
+      expect(
+        find.descendant(
+          of: find.byType(AdditionsStep),
+          matching: find.byType(ListView),
+        ),
+        findsNothing,
+      );
+    });
+  }
 
   testWidgets(
     'in landscape with the keyboard open nothing overflows and the bottom '
     'row is hidden (Pitfall 6)',
     (tester) async {
-      const names = ['Aldo', 'Bea', 'Cosimo', 'Dora', 'Elio'];
       await pumpStep(
         tester,
         participants: _failed,
-        readers: [
-          for (final name in names)
-            StoryReader(characterId: 'char-${name.toLowerCase()}', name: name),
-        ],
+        readers: _readersOf(_fiveNames),
       );
+      await type(tester, 'char-elio', 'Scritto ora');
       expect(tester.takeException(), isNull);
 
       tester.view.viewInsets = const FakeViewPadding(bottom: 700);
@@ -364,6 +512,9 @@ void main() {
       expect(find.byKey(MissionBackButton.buttonKey), findsNothing);
       expect(find.byKey(AdditionsStep.retryKey), findsNothing);
       expect(find.byType(SheetTextField), findsNWidgets(5));
+      final viewport = tester.getRect(find.byType(SingleChildScrollView));
+      expect(viewport.height, greaterThan(0));
+      expect(tester.getRect(fieldOf('char-elio')).overlaps(viewport), isTrue);
     },
   );
 }
