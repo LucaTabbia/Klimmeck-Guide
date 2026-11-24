@@ -284,6 +284,16 @@ Plans:
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
 
+### Phase 25: Account Deletion and Legal Consent
+
+**Goal:** (↔ BE Phase 26) il giocatore elimina il proprio account da Impostazioni con una conferma in-world e il backend cancella definitivamente utente, personaggi (anche archiviati), sessioni, device push e ritratto su Cloudinary; nella pagina di login le diciture «Termini di servizio» e «Privacy» aprono https://lucatabbia.github.io/klimmeck-guide-legal/termini e /privacy, e una checkbox obbligatoria di accettazione di termini e privacy abilita il login. Le pagine legali promettono già queste funzioni (repo `LucaTabbia/klimmeck-guide-legal`).
+**Requirements**: TBD
+**Depends on:** Phase 24
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 25 to break down)
+
 ---
 
 _Roadmap created: 2026-04-10_ · _v1.0 Core Loop archived: 2026-11-10_ · _v1.1 Healing & Models started: 2026-11-10_
