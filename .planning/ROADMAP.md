@@ -283,7 +283,7 @@ Plans:
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
-| 25. Account Deletion and Legal Consent | v1.1 | 2/8 | In Progress | - |
+| 25. Account Deletion and Legal Consent | v1.1 | 3/8 | In Progress | - |
 
 ### Phase 25: Account Deletion and Legal Consent
 
@@ -303,7 +303,7 @@ Plans:
 Plans:
 - [x] 25-01-PLAN.md — Suite baseline, `LinkOpener` moved out of push, legal constants, consent memory and Cubit, checkbox row with the two links, footer removed, login gated on the tick
 - [x] 25-02-PLAN.md — `accountDeleted` reason from the refused refresh (HTTP and WS 4409) and from the local teardown, the D-03 notice, the consent forgotten only on that landing
-- [ ] 25-03-PLAN.md — Own account deletion behind the abstract API: failure mapping, repository with the silent teardown, the race test, Cubit, dialog, «Elimina account» behind the switch
+- [x] 25-03-PLAN.md — Own account deletion behind the abstract API: failure mapping, repository with the silent teardown, the race test, Cubit, dialog, «Elimina account» behind the switch
 - [ ] 25-04-PLAN.md — Innkeeper's deletion by Twitch username: failures, repository, Cubit, username dialog with inline refusals, the «Locanda» entry behind the switch
 - [ ] 25-05-PLAN.md — The login carries `termsVersion`: `login({required String acceptedLegalVersion})`, the stubs, `terms_not_accepted` mapped to its own sign-in failure
 - [ ] 25-06-PLAN.md — Cancelled started quest: tests proving the existing reactive paths draw the members back in the city and the quest back on the Board, fixes only where RED
