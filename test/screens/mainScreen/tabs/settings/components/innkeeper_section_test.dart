@@ -15,6 +15,9 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/innkeeper_section.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/auth_fixtures.dart';
@@ -39,6 +42,13 @@ void main() {
   late StreamController<AuthState> authStates;
   late MockInnkeeperRepository repository;
   late MockTeleportModeCubit teleportCubit;
+  late MockPlayerAccountDeletionCubit playerDeletionCubit;
+
+  void givenPlayerDeletionState(PlayerAccountDeletionState state) => whenListen(
+    playerDeletionCubit,
+    const Stream<PlayerAccountDeletionState>.empty(),
+    initialState: state,
+  );
 
   setUp(() {
     teleportCubit = MockTeleportModeCubit();
@@ -47,6 +57,9 @@ void main() {
       const Stream<TeleportModeState>.empty(),
       initialState: const TeleportIdle(),
     );
+    playerDeletionCubit = MockPlayerAccountDeletionCubit();
+    givenPlayerDeletionState(const PlayerAccountDeletionState());
+    when(() => playerDeletionCubit.isClosed).thenReturn(false);
     authCubit = MockAuthCubit();
     authStates = StreamController<AuthState>.broadcast();
     repository = MockInnkeeperRepository();
@@ -60,7 +73,11 @@ void main() {
     await authStates.close();
   });
 
-  Future<void> pumpSection(WidgetTester tester, AuthState initial) async {
+  Future<void> pumpSection(
+    WidgetTester tester,
+    AuthState initial, {
+    bool isAccountDeletionEnabled = false,
+  }) async {
     useLandscapePhone(tester);
     whenListen(authCubit, authStates.stream, initialState: initial);
     await tester.pumpWidget(
@@ -73,9 +90,18 @@ void main() {
               value: repository,
               child: RepositoryProvider<ServerClockService>.value(
                 value: FakeServerClockService(DateTime.utc(2026, 10, 29, 12)),
-                child: BlocProvider<TeleportModeCubit>.value(
-                  value: teleportCubit,
-                  child: const Scaffold(body: InnkeeperSection()),
+                child: MultiBlocProvider(
+                  providers: [
+                    BlocProvider<TeleportModeCubit>.value(value: teleportCubit),
+                    BlocProvider<PlayerAccountDeletionCubit>.value(
+                      value: playerDeletionCubit,
+                    ),
+                  ],
+                  child: Scaffold(
+                    body: InnkeeperSection(
+                      isAccountDeletionEnabled: isAccountDeletionEnabled,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -129,5 +155,97 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(InnkeeperPanelScreen), findsOneWidget);
+  });
+
+  group('account deletion entry', () {
+    testWidgets(
+      'while the switch is off the Locanda has only Apri la Locanda (25-07 turns it on)',
+      (tester) async {
+        await pumpSection(tester, _sessionAs(RoleType.innkeeper));
+
+        expect(find.text('Apri la Locanda'), findsOneWidget);
+        expect(find.text('Elimina un account'), findsNothing);
+        expect(find.byType(OutlinedButton), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'the innkeeper sees Elimina un account under Apri la Locanda, red outline (D-15)',
+      (tester) async {
+        await pumpSection(
+          tester,
+          _sessionAs(RoleType.innkeeper),
+          isAccountDeletionEnabled: true,
+        );
+
+        final entry = find.widgetWithText(OutlinedButton, 'Elimina un account');
+        expect(entry, findsOneWidget);
+        expect(
+          tester.widget<OutlinedButton>(entry).style,
+          KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
+        );
+        expect(
+          tester.getTopLeft(entry).dy,
+          greaterThan(tester.getTopLeft(find.text('Apri la Locanda')).dy),
+        );
+      },
+    );
+
+    testWidgets('a player never sees the Locanda', (tester) async {
+      await pumpSection(
+        tester,
+        _sessionAs(RoleType.adventurer),
+        isAccountDeletionEnabled: true,
+      );
+
+      expect(find.text('Locanda'), findsNothing);
+      expect(find.text('Elimina un account'), findsNothing);
+    });
+
+    testWidgets('Elimina un account opens the username dialog (D-15)', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        _sessionAs(RoleType.innkeeper),
+        isAccountDeletionEnabled: true,
+      );
+
+      await tester.tap(find.text('Elimina un account'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlayerAccountDeletionDialog), findsOneWidget);
+      verify(() => playerDeletionCubit.reset()).called(1);
+    });
+
+    testWidgets('after a success the section reads Account eliminato. (D-15)', (
+      tester,
+    ) async {
+      givenPlayerDeletionState(
+        const PlayerAccountDeletionState(hasDeleted: true),
+      );
+      await pumpSection(
+        tester,
+        _sessionAs(RoleType.innkeeper),
+        isAccountDeletionEnabled: true,
+      );
+
+      final line = find.text('Account eliminato.');
+      expect(line, findsOneWidget);
+      expect(
+        tester.getTopLeft(line).dy,
+        greaterThan(tester.getTopLeft(find.text('Elimina un account')).dy),
+      );
+    });
+
+    testWidgets('no success line before a deletion', (tester) async {
+      await pumpSection(
+        tester,
+        _sessionAs(RoleType.innkeeper),
+        isAccountDeletionEnabled: true,
+      );
+
+      expect(find.text('Account eliminato.'), findsNothing);
+    });
   });
 }

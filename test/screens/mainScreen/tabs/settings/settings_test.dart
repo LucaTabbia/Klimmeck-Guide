@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionC
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:mocktail/mocktail.dart';
@@ -27,6 +28,7 @@ void main() {
   late MockNotificationPreferencesCubit notificationCubit;
   late MockCharacterDeletionCubit deletionCubit;
   late MockAccountDeletionCubit accountDeletionCubit;
+  late MockPlayerAccountDeletionCubit playerDeletionCubit;
   late MockAuthCubit authCubit;
   late MockNotificationPermissionCubit permissionCubit;
 
@@ -50,6 +52,7 @@ void main() {
     notificationCubit = MockNotificationPreferencesCubit();
     deletionCubit = MockCharacterDeletionCubit();
     accountDeletionCubit = MockAccountDeletionCubit();
+    playerDeletionCubit = MockPlayerAccountDeletionCubit();
     authCubit = MockAuthCubit();
     permissionCubit = MockNotificationPermissionCubit();
     givenPermission(NotificationPermissionStatus.notDetermined);
@@ -68,6 +71,11 @@ void main() {
       accountDeletionCubit,
       const Stream<AccountDeletionState>.empty(),
       initialState: const AccountDeletionState(),
+    );
+    whenListen(
+      playerDeletionCubit,
+      const Stream<PlayerAccountDeletionState>.empty(),
+      initialState: const PlayerAccountDeletionState(),
     );
     givenSessionRole(RoleType.adventurer);
     when(() => authCubit.logout()).thenAnswer((_) async {});
@@ -95,6 +103,9 @@ void main() {
               BlocProvider<CharacterDeletionCubit>.value(value: deletionCubit),
               BlocProvider<AccountDeletionCubit>.value(
                 value: accountDeletionCubit,
+              ),
+              BlocProvider<PlayerAccountDeletionCubit>.value(
+                value: playerDeletionCubit,
               ),
               BlocProvider<AuthCubit>.value(value: authCubit),
             ],
