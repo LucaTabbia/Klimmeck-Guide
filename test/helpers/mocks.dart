@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/equipment_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/item_use_repository.dart';
+import 'package:klimmeck_guide/repository/player_account_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
@@ -56,6 +57,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionC
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -104,6 +106,9 @@ class MockCharacterDeletionRepository extends Mock
 
 class MockAccountDeletionRepository extends Mock
     implements AccountDeletionRepository {}
+
+class MockPlayerAccountDeletionRepository extends Mock
+    implements PlayerAccountDeletionRepository {}
 
 class MockQuestBoardRepository extends Mock implements QuestBoardRepository {}
 
@@ -192,6 +197,10 @@ class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
 
 class MockAccountDeletionCubit extends MockCubit<AccountDeletionState>
     implements AccountDeletionCubit {}
+
+class MockPlayerAccountDeletionCubit
+    extends MockCubit<PlayerAccountDeletionState>
+    implements PlayerAccountDeletionCubit {}
 
 class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
     implements QuestAcceptanceCubit {}
