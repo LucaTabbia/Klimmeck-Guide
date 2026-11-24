@@ -20,7 +20,7 @@ import 'package:klimmeck_guide/repository/services/push/notification_permission_
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/push/push_registration_coordinator.dart';
 import 'package:klimmeck_guide/repository/services/push/push_services.dart';
-import 'package:klimmeck_guide/repository/services/push/url_launcher_link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/url_launcher_link_opener.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';

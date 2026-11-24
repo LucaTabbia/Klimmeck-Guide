@@ -1,4 +1,4 @@
-import 'package:klimmeck_guide/repository/services/push/link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/link_opener.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
 import 'package:url_launcher/url_launcher.dart';
 

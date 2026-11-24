@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/login_exception.dart';
-import 'package:klimmeck_guide/repository/services/push/link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/link_opener.dart';
 
 part 'sign_in_state.dart';
 

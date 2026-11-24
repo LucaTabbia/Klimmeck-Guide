@@ -20,7 +20,9 @@ const Map<String, Set<String>> _allowedImporters = {
   'package:permission_handler/': {
     '$_pushDir/permission_handler_notification_permission.dart',
   },
-  'package:url_launcher/': {'$_pushDir/url_launcher_link_opener.dart'},
+  'package:url_launcher/': {
+    'lib/repository/services/links/url_launcher_link_opener.dart',
+  },
 };
 
 /// File che importano plugin: i test non li toccano mai.

@@ -1,4 +1,4 @@
-import 'package:klimmeck_guide/repository/services/push/link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/link_opener.dart';
 
 /// [LinkOpener] che registra i link aperti e restituisce [result].
 class RecordingLinkOpener implements LinkOpener {
