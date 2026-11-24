@@ -55,6 +55,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../helpers/auth_fixtures.dart';
 import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/fake_push_messaging_port.dart';
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/fakes/in_memory_library_bookmarks_store.dart';
 import '../../helpers/fakes/in_memory_new_entries_store.dart';
 import '../../helpers/fakes/in_memory_notification_preferences_store.dart';
@@ -362,7 +363,12 @@ void main() {
               BlocProvider<AuthCubit>.value(value: authCubit),
               BlocProvider<SplashCubit>.value(value: splashCubit),
             ],
-            child: buildTestApp(home: AuthGate(authenticatedBuilder: shellFor)),
+            child: buildTestApp(
+              home: AuthGate(
+                authenticatedBuilder: shellFor,
+                legalConsentStore: InMemoryLegalConsentStore(),
+              ),
+            ),
           ),
         ),
       );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
@@ -75,7 +77,10 @@ void main() {
     );
   }
 
-  Future<void> pumpGate(WidgetTester tester) async {
+  Future<void> pumpGate(
+    WidgetTester tester, {
+    InMemoryLegalConsentStore? legalConsentStore,
+  }) async {
     await tester.pumpWidget(
       RepositoryProvider<AuthTokenService>.value(
         value: service,
@@ -85,7 +90,11 @@ void main() {
             BlocProvider<SplashCubit>.value(value: splashCubit),
           ],
           child: buildTestApp(
-            home: AuthGate(authenticatedBuilder: authenticatedBuilder),
+            home: AuthGate(
+              authenticatedBuilder: authenticatedBuilder,
+              legalConsentStore:
+                  legalConsentStore ?? InMemoryLegalConsentStore(),
+            ),
           ),
         ),
       ),
@@ -118,6 +127,31 @@ void main() {
 
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('the sign-in screen starts ticked when this device accepted '
+      'the current version (D-10)', (tester) async {
+    await pumpGate(
+      tester,
+      legalConsentStore: InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      ),
+    );
+    await emitAuth(tester, const AuthUnauthenticated());
+
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+  });
+
+  testWidgets('the sign-in screen starts unticked otherwise (D-10)', (
+    tester,
+  ) async {
+    await pumpGate(
+      tester,
+      legalConsentStore: InMemoryLegalConsentStore(acceptedVersion: 'v-old'),
+    );
+    await emitAuth(tester, const AuthUnauthenticated());
+
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
   });
 
   testWidgets('session expired shows the sign-in screen with notice', (
@@ -377,6 +411,7 @@ void main() {
             ],
             child: buildTestApp(
               home: AuthGate(
+                legalConsentStore: InMemoryLegalConsentStore(),
                 authenticatedBuilder: (context, user) {
                   builds++;
                   return Text(

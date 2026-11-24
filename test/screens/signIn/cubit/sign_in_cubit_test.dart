@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/repository/services/auth/login_exception.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
@@ -45,6 +46,22 @@ void main() {
     act: (cubit) => cubit.openChannel(),
     expect: () => <SignInState>[],
     verify: (_) => expect(links.opened, [TwitchChannel.uri]),
+  );
+
+  blocTest<SignInCubit, SignInState>(
+    'openTerms opens the public terms page (D-08)',
+    build: buildCubit,
+    act: (cubit) => cubit.openTerms(),
+    expect: () => <SignInState>[],
+    verify: (_) => expect(links.opened, [LegalDocuments.termsUri]),
+  );
+
+  blocTest<SignInCubit, SignInState>(
+    'openPrivacy opens the public privacy page (D-08)',
+    build: buildCubit,
+    act: (cubit) => cubit.openPrivacy(),
+    expect: () => <SignInState>[],
+    verify: (_) => expect(links.opened, [LegalDocuments.privacyUri]),
   );
 
   blocTest<SignInCubit, SignInState>(

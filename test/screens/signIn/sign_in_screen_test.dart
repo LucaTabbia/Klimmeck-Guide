@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/repository/services/auth/login_exception.dart';
+import 'package:klimmeck_guide/screens/signIn/components/legal_consent_row.dart';
+import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/sign_in_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/fakes/recording_link_opener.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -25,6 +29,9 @@ const _notFollowingMessage =
     'Non sei ancora un avventuriero sul canale di LordReavor! '
     'Segui prima il canale per accedere al gioco';
 const _channelLabel = 'Vai al canale di LordReavor';
+const _consentSentence =
+    "Accetto i Termini di servizio e l'Informativa sulla privacy";
+const _consentVersion = 'v-test';
 const _accessLostNotice =
     'Non segui più il canale di LordReavor! '
     'Segui di nuovo il canale per accedere al gioco';
@@ -38,33 +45,171 @@ void main() {
     links = RecordingLinkOpener();
   });
 
+  /// Di default il consenso è già ricordato: i casi del login partono spuntati.
   Future<void> pumpScreen(
     WidgetTester tester, {
     SignInNotice notice = SignInNotice.none,
+    bool isConsentAccepted = true,
+    String? rememberedVersion,
   }) async {
+    final store = InMemoryLegalConsentStore(
+      acceptedVersion:
+          rememberedVersion ?? (isConsentAccepted ? _consentVersion : null),
+    );
     await tester.pumpWidget(
       buildTestApp(
-        home: BlocProvider(
-          create: (_) => SignInCubit(service, links),
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => SignInCubit(service, links)),
+            BlocProvider(
+              create: (_) =>
+                  LegalConsentCubit(store, version: _consentVersion)..restore(),
+            ),
+          ],
           child: SignInScreen(notice: notice),
         ),
       ),
     );
+    await tester.pump();
   }
 
   final loginButton = find.widgetWithText(InkWell, _loginLabel);
+  final consentBox = find.byType(Checkbox);
 
-  testWidgets('renders app bar without title or back, CTA and footer', (
-    tester,
-  ) async {
+  bool isTicked(WidgetTester tester) =>
+      tester.widget<Checkbox>(consentBox).value ?? false;
+
+  testWidgets('renders app bar without title or back, CTA and the consent '
+      'row, no footer links (D-07)', (tester) async {
     await pumpScreen(tester);
 
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     expect(appBar.title, isNull);
     expect(appBar.automaticallyImplyLeading, isFalse);
     expect(find.text(_loginLabel), findsOneWidget);
-    expect(find.text('Termini di servizio'), findsOneWidget);
-    expect(find.text('Privacy'), findsOneWidget);
+    expect(find.text(_consentSentence, findRichText: true), findsOneWidget);
+    expect(consentBox, findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Privacy'), findsNothing);
+    expect(find.byType(TextButton), findsNothing);
+  });
+
+  testWidgets('the consent row sits above the login button (D-07)', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    expect(
+      tester.getTopLeft(find.byType(LegalConsentRow)).dy,
+      lessThan(tester.getTopLeft(loginButton).dy),
+    );
+  });
+
+  testWidgets('the login is disabled while the box is empty (D-07)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    await tester.tap(loginButton, warnIfMissed: false);
+    await tester.pump();
+
+    verifyNever(() => service.login());
+    expect(tester.widget<InkWell>(loginButton).onTap, isNull);
+    expect(
+      tester.getSemantics(find.bySemanticsLabel(_loginLabel).first),
+      containsSemantics(
+        isButton: true,
+        hasEnabledState: true,
+        isEnabled: false,
+      ),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('ticking the box enables the login (D-07)', (tester) async {
+    when(() => service.login()).thenAnswer((_) async {});
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    await tester.tap(consentBox);
+    await tester.pump();
+    await tester.tap(loginButton);
+    await tester.pump();
+
+    expect(isTicked(tester), isTrue);
+    verify(() => service.login()).called(1);
+  });
+
+  testWidgets('tapping Termini di servizio opens the terms and does not tick '
+      '(D-07, D-08)', (tester) async {
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    await tester.tapOnText(find.textRange.ofSubstring('Termini di servizio'));
+    await tester.pump();
+
+    expect(links.opened, [LegalDocuments.termsUri]);
+    expect(isTicked(tester), isFalse);
+  });
+
+  testWidgets('tapping Informativa sulla privacy opens the privacy and does '
+      'not tick (D-07, D-08)', (tester) async {
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    await tester.tapOnText(
+      find.textRange.ofSubstring('Informativa sulla privacy'),
+    );
+    await tester.pump();
+
+    expect(links.opened, [LegalDocuments.privacyUri]);
+    expect(isTicked(tester), isFalse);
+  });
+
+  testWidgets('tapping the rest of the sentence toggles the box (D-07)', (
+    tester,
+  ) async {
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    await tester.tapOnText(find.textRange.ofSubstring('Accetto i '));
+    await tester.pump();
+    expect(isTicked(tester), isTrue);
+
+    await tester.tapOnText(find.textRange.ofSubstring('Accetto i '));
+    await tester.pump();
+    expect(isTicked(tester), isFalse);
+    expect(links.opened, isEmpty);
+  });
+
+  testWidgets('the checkbox and the two links are announced on their own '
+      '(D-07)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpScreen(tester, isConsentAccepted: false);
+
+    expect(
+      tester.getSemantics(find.byType(Checkbox)),
+      containsSemantics(label: _consentSentence, hasCheckedState: true),
+    );
+    for (final wording in [
+      'Termini di servizio',
+      'Informativa sulla privacy',
+    ]) {
+      final link = find.semantics.byLabel(wording);
+      expect(link, findsOne);
+      expect(link.evaluate().single, containsSemantics(isLink: true));
+    }
+    semantics.dispose();
+  });
+
+  testWidgets('a remembered acceptance starts ticked (D-10)', (tester) async {
+    await pumpScreen(tester, rememberedVersion: _consentVersion);
+
+    expect(isTicked(tester), isTrue);
+  });
+
+  testWidgets('another remembered version starts unticked (D-12)', (
+    tester,
+  ) async {
+    await pumpScreen(tester, rememberedVersion: 'v-old');
+
+    expect(isTicked(tester), isFalse);
   });
 
   testWidgets('login button carries the twitch glyph and loads it cleanly', (
