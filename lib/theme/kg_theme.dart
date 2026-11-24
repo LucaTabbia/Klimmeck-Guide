@@ -18,6 +18,9 @@ class KlimmeckGuideTheme {
   static const double pendingInkOpacity = 0.5;
   static const Duration pendingInkDuration = Duration(milliseconds: 200);
 
+  /// Pulsante disabilitato senza un colore nuovo (Phase 25 D-07).
+  static const double disabledOpacity = 0.5;
+
   static const double spacingXs = 4;
   static const double spacingSm = 8;
   static const double spacingMd = 16;
@@ -208,7 +211,15 @@ class KlimmeckGuideTheme {
         _switchTrackOutlineColor,
       ),
     ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith(_checkboxFillColor),
+      checkColor: const WidgetStatePropertyAll(deepNight),
+      side: const BorderSide(color: parchment, width: 2),
+    ),
   );
+
+  static Color _checkboxFillColor(Set<WidgetState> states) =>
+      states.contains(WidgetState.selected) ? primaryGold : Colors.transparent;
 
   static Color _switchThumbColor(Set<WidgetState> states) {
     if (states.contains(WidgetState.disabled)) return paleSilver;

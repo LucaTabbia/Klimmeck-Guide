@@ -101,6 +101,8 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text('home $_devUserId'), findsNothing);
 
+    // Il consenso ricordato si ripristina dopo il primo frame del sign-in.
+    await tester.pump();
     await tester.tap(find.text(_loginLabel));
     await settle(tester);
 

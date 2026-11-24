@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:klimmeck_guide/screens/signIn/components/legal_consent_row.dart';
+import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
@@ -21,8 +23,6 @@ const String _channelAccessLostNotice =
     'Non segui più il canale di LordReavor! '
     'Segui di nuovo il canale per accedere al gioco';
 const String _channelLabel = 'Vai al canale di LordReavor';
-const String _termsLabel = 'Termini di servizio';
-const String _privacyLabel = 'Privacy';
 const String _logoAsset = 'assets/icons/appIcon/appIcon.png';
 const String _twitchGlyphAsset = 'assets/icons/twitch_glitch.svg';
 
@@ -38,6 +38,9 @@ enum SignInNotice {
 }
 
 /// Utility screen (chrome ammesso): unico entry point del login.
+///
+/// Sopra il pulsante la spunta del consenso ai documenti legali: finché è
+/// vuota il login è disabilitato (Phase 25 D-07).
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key, this.notice = SignInNotice.none});
 
@@ -78,18 +81,22 @@ class SignInScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _Notice(notice: notice),
-                          _TwitchLoginButton(
-                            isLoading: state is SignInInProgress,
-                            onPressed: () =>
-                                context.read<SignInCubit>().signInWithTwitch(),
+                          const LegalConsentRow(),
+                          const SizedBox(height: 16),
+                          BlocBuilder<LegalConsentCubit, LegalConsentState>(
+                            builder: (context, consent) => _TwitchLoginButton(
+                              isLoading: state is SignInInProgress,
+                              isEnabled: consent.isAccepted,
+                              onPressed: () => context
+                                  .read<SignInCubit>()
+                                  .signInWithTwitch(),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           _LoginOutcome(state: state, notice: notice),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const _LegalFooter(),
                   ],
                 ),
               ),
@@ -134,9 +141,14 @@ class _Notice extends StatelessWidget {
 }
 
 class _TwitchLoginButton extends StatelessWidget {
-  const _TwitchLoginButton({required this.isLoading, required this.onPressed});
+  const _TwitchLoginButton({
+    required this.isLoading,
+    required this.isEnabled,
+    required this.onPressed,
+  });
 
   final bool isLoading;
+  final bool isEnabled;
   final VoidCallback onPressed;
 
   @override
@@ -144,32 +156,40 @@ class _TwitchLoginButton extends StatelessWidget {
     final borderRadius = BorderRadius.circular(KlimmeckGuideTheme.radius);
     return Semantics(
       button: true,
+      enabled: isEnabled,
       label: _loginLabel,
       excludeSemantics: true,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isLoading ? null : onPressed,
-          borderRadius: borderRadius,
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  KlimmeckGuideTheme.primaryGold,
-                  KlimmeckGuideTheme.darkBronze,
-                ],
-              ),
-              borderRadius: borderRadius,
+      child: Opacity(
+        opacity: isEnabled ? 1 : KlimmeckGuideTheme.disabledOpacity,
+        child: _buttonBody(borderRadius),
+      ),
+    );
+  }
+
+  Widget _buttonBody(BorderRadius borderRadius) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isLoading || !isEnabled ? null : onPressed,
+        borderRadius: borderRadius,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                KlimmeckGuideTheme.primaryGold,
+                KlimmeckGuideTheme.darkBronze,
+              ],
             ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Center(
-                  child: isLoading
-                      ? const _ButtonSpinner()
-                      : const _ButtonLabel(),
-                ),
+            borderRadius: borderRadius,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: isLoading
+                    ? const _ButtonSpinner()
+                    : const _ButtonLabel(),
               ),
             ),
           ),
@@ -298,28 +318,6 @@ class _FollowChannelInvitation extends StatelessWidget {
               color: KlimmeckGuideTheme.primaryGold,
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LegalFooter extends StatelessWidget {
-  const _LegalFooter();
-
-  @override
-  Widget build(BuildContext context) {
-    final style = KlimmeckGuideTheme.instance.lightText;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(
-          onPressed: () {},
-          child: Text(_termsLabel, style: style),
-        ),
-        TextButton(
-          onPressed: () {},
-          child: Text(_privacyLabel, style: style),
         ),
       ],
     );

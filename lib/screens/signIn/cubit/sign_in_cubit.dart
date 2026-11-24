@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/login_exception.dart';
@@ -31,6 +32,10 @@ class SignInCubit extends Cubit<SignInState> {
   }
 
   Future<void> openChannel() => _links.open(TwitchChannel.uri);
+
+  Future<void> openTerms() => _links.open(LegalDocuments.termsUri);
+
+  Future<void> openPrivacy() => _links.open(LegalDocuments.privacyUri);
 
   void _emitIfOpen(SignInState next) {
     if (!isClosed) emit(next);

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/models/user.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/links/url_launcher_link_opener.dart';
+import 'package:klimmeck_guide/repository/storage/legal_consent_store.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/sign_in_screen.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
@@ -13,7 +16,9 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 ///
 /// - `AuthBootstrapping` → splash come gate del cold start (D-17/D-18);
 /// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta o la
-///   connessione in tempo reale è andata persa (Phase 3 D-15);
+///   connessione in tempo reale è andata persa (Phase 3 D-15); la spunta del
+///   consenso legale si ripristina da [legalConsentStore] a ogni schermata di
+///   sign-in (Phase 25 D-10);
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
 ///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
@@ -25,9 +30,14 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// dello stesso utente (Phase 3 D-10): uno sheet può riferirsi al personaggio
 /// precedente o a un Cubit chiuso.
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key, required this.authenticatedBuilder});
+  const AuthGate({
+    super.key,
+    required this.authenticatedBuilder,
+    required this.legalConsentStore,
+  });
 
   final Widget Function(BuildContext context, User user) authenticatedBuilder;
+  final LegalConsentStore legalConsentStore;
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +54,21 @@ class AuthGate extends StatelessWidget {
             watchConnection: true,
             onManualSignIn: context.read<AuthCubit>().showSignIn,
           ),
-          AuthUnauthenticated(:final reason) => BlocProvider(
-            create: (context) => SignInCubit(
-              context.read<AuthTokenService>(),
-              const UrlLauncherLinkOpener(),
-            ),
+          AuthUnauthenticated(:final reason) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => SignInCubit(
+                  context.read<AuthTokenService>(),
+                  const UrlLauncherLinkOpener(),
+                ),
+              ),
+              BlocProvider(
+                create: (_) => LegalConsentCubit(
+                  legalConsentStore,
+                  version: LegalDocuments.version,
+                )..restore(),
+              ),
+            ],
             child: SignInScreen(notice: _noticeFor(reason)),
           ),
           AuthAuthenticated(:final user) => KeyedSubtree(

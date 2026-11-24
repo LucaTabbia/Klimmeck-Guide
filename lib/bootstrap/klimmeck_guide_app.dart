@@ -26,6 +26,7 @@ import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dar
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
 import 'package:klimmeck_guide/repository/storage/device_identity_store.dart';
+import 'package:klimmeck_guide/repository/storage/legal_consent_store.dart';
 import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
@@ -78,6 +79,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   final LibraryBookmarksStore libraryBookmarksStore =
       SharedPreferencesLibraryBookmarksStore();
   final NewEntriesStore newEntriesStore = SharedPreferencesNewEntriesStore();
+  final LegalConsentStore legalConsentStore =
+      SharedPreferencesLegalConsentStore();
 
   /// Registrazione push per tutta la vita del processo (D-07). Con il push disabilitato le
   /// porte no-op non producono token: mantiene solo lo specchio dell'utente attivo.
@@ -233,6 +236,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                             builder: (context) {
                               preloadImages(context);
                               return AuthGate(
+                                legalConsentStore: legalConsentStore,
                                 // Lo scope copre anche la creazione personaggio: il watchdog
                                 // e' di sessione (research Open Question 3, accettato).
                                 authenticatedBuilder: (context, user) =>
