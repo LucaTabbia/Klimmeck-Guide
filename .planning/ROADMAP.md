@@ -283,6 +283,7 @@ Plans:
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
+| 25. Account Deletion and Legal Consent | v1.1 | 0/8 | Planned | - |
 
 ### Phase 25: Account Deletion and Legal Consent
 
