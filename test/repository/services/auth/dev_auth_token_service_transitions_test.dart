@@ -166,6 +166,25 @@ void main() {
       expect(teardownCalls, equals(1));
     });
 
+    test('terminateSession(accountDeleted) ends the dev session with that '
+        'reason (D-06)', () async {
+      await service.initialize();
+      final expectation = expectLater(
+        service.authStateStream,
+        emitsInOrder([
+          isA<AuthAuthenticated>(),
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]),
+      );
+
+      await service.terminateSession(UnauthenticatedReason.accountDeleted);
+
+      await expectation;
+      expect(teardownCalls, equals(1));
+    });
+
     test('signed out: no teardown and no new state', () async {
       await loadTestEnv(startSignedOut: 'true');
       await service.initialize();

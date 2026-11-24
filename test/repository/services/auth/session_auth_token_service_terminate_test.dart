@@ -81,6 +81,47 @@ void main() {
       });
     });
 
+    test('terminateSession(accountDeleted) tears down once without calling '
+        'the backend (D-06)', () {
+      fakeAsync((async) {
+        final service = startService(async);
+
+        service.terminateSession(UnauthenticatedReason.accountDeleted);
+        async.flushMicrotasks();
+
+        expect(teardowns, 1);
+        expect(store.refreshToken, isNull);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]);
+        verifyNever(() => api.logout(any()));
+        verifyNever(() => api.refreshSession('r1'));
+        service.dispose();
+      });
+    });
+
+    test('a second terminateSession after accountDeleted is a no-op '
+        '(D-06)', () {
+      fakeAsync((async) {
+        final service = startService(async);
+        service.terminateSession(UnauthenticatedReason.accountDeleted);
+        async.flushMicrotasks();
+
+        service.terminateSession(UnauthenticatedReason.syncLost);
+        async.flushMicrotasks();
+
+        expect(teardowns, 1);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]);
+        service.dispose();
+      });
+    });
+
     test('does nothing while unauthenticated', () {
       fakeAsync((async) {
         store = InMemorySessionStore();

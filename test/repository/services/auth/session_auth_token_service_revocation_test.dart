@@ -356,6 +356,31 @@ void main() {
       });
     });
 
+    test('SESSION_REVOKED with reason accountDeleted ends the session as '
+        'accountDeleted (D-18)', () {
+      fakeAsync((async) {
+        refuseRefresh(
+          'r1',
+          const SessionRejected(
+            sessionRevokedCode,
+            reason: sessionRevokedReasonAccountDeleted,
+          ),
+        );
+        final service = startService(async);
+
+        final token = resolve(
+          service.recoverFromUnauthorized(
+            rejectedToken: _firstSession.accessToken,
+          ),
+          async,
+        );
+
+        expect(token, isNull);
+        expectEndedWith(UnauthenticatedReason.accountDeleted);
+        service.dispose();
+      });
+    });
+
     test('an unknown or missing reason ends with sessionExpired (D-12)', () {
       for (final rejection in const [
         SessionRejected(sessionRevokedCode, reason: 'reuseDetected'),

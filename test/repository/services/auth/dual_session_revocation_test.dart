@@ -185,6 +185,32 @@ void main() {
   );
 
   test(
+    'an account deleted on the backend closes the socket with 4409 and lands '
+    'on accountDeleted (D-18)',
+    () async {
+      await deviceA.login();
+      await deviceA.openLiveSubscription();
+      final socketA = serverSocketOf(deviceA);
+
+      await expectEndedWith(
+        deviceA,
+        UnauthenticatedReason.accountDeleted,
+        () async => backend.revokeAll(sessionRevokedReasonAccountDeleted),
+      );
+
+      await socketA.done;
+      expect(deviceA.policies.first.closures, [
+        (
+          code: wsSessionRevokedCloseCode,
+          reason: sessionRevokedReasonAccountDeleted,
+        ),
+      ]);
+      expect(deviceA.store.refreshToken, isNull);
+    },
+    timeout: _flowTimeout,
+  );
+
+  test(
     'an unknown or missing reason ends with sessionExpired (D-06, D-12)',
     () async {
       await deviceA.login();
