@@ -2,13 +2,18 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/enums/role_type.dart';
+import 'package:klimmeck_guide/repository/account_deletion_failure.dart';
 import 'package:klimmeck_guide/repository/character_deletion_failure.dart';
+import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/account_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../../helpers/auth_fixtures.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
 import '../../../../../helpers/test_app.dart';
@@ -16,12 +21,16 @@ import '../../../../../helpers/test_app.dart';
 void main() {
   late MockAuthCubit authCubit;
   late MockCharacterDeletionCubit deletionCubit;
+  late MockAccountDeletionCubit accountDeletionCubit;
 
   setUp(() {
     authCubit = MockAuthCubit();
     deletionCubit = MockCharacterDeletionCubit();
+    accountDeletionCubit = MockAccountDeletionCubit();
     when(() => deletionCubit.isClosed).thenReturn(false);
     when(() => deletionCubit.deleteCharacter()).thenAnswer((_) async {});
+    when(() => accountDeletionCubit.isClosed).thenReturn(false);
+    when(() => accountDeletionCubit.deleteAccount()).thenAnswer((_) async {});
     when(() => authCubit.logout()).thenAnswer((_) async {});
   });
 
@@ -29,12 +38,28 @@ void main() {
     WidgetTester tester, {
     String? characterName = 'Aldo',
     CharacterDeletionState state = const CharacterDeletionState(),
+    bool isAccountDeletionEnabled = false,
+    AccountDeletionState accountDeletionState = const AccountDeletionState(),
+    RoleType role = RoleType.adventurer,
   }) async {
     useLandscapePhone(tester);
     whenListen(
       deletionCubit,
       const Stream<CharacterDeletionState>.empty(),
       initialState: state,
+    );
+    whenListen(
+      accountDeletionCubit,
+      const Stream<AccountDeletionState>.empty(),
+      initialState: accountDeletionState,
+    );
+    whenListen(
+      authCubit,
+      const Stream<AuthState>.empty(),
+      initialState: AuthAuthenticated(
+        user: buildTestUser(role: role),
+        accessToken: testAccessToken,
+      ),
     );
     await tester.pumpWidget(
       buildTestApp(
@@ -43,9 +68,15 @@ void main() {
             providers: [
               BlocProvider<AuthCubit>.value(value: authCubit),
               BlocProvider<CharacterDeletionCubit>.value(value: deletionCubit),
+              BlocProvider<AccountDeletionCubit>.value(
+                value: accountDeletionCubit,
+              ),
             ],
             child: SingleChildScrollView(
-              child: AccountSection(characterName: characterName),
+              child: AccountSection(
+                characterName: characterName,
+                isAccountDeletionEnabled: isAccountDeletionEnabled,
+              ),
             ),
           ),
         ),
@@ -208,5 +239,143 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => authCubit.logout()).called(1);
+  });
+  group('Elimina account', () {
+    const accountLabel = 'Elimina account';
+    final accountButton = find.widgetWithText(OutlinedButton, accountLabel);
+
+    Future<void> openDialog(WidgetTester tester) async {
+      await pumpSection(tester, isAccountDeletionEnabled: true);
+      await tester.tap(find.text(accountLabel));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'while the switch is off there is no Elimina account (25-07 turns it on)',
+      (tester) async {
+        await pumpSection(tester);
+
+        expect(find.text(accountLabel), findsNothing);
+        expect(find.text('Elimina personaggio'), findsOneWidget);
+        expect(find.text('Esci'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Elimina account is the last button, under Esci, detached, red outline '
+      '(D-02)',
+      (tester) async {
+        await pumpSection(tester, isAccountDeletionEnabled: true);
+
+        final characterTop = tester.getTopLeft(find.text(deleteLabel)).dy;
+        final logout = find.widgetWithText(ElevatedButton, 'Esci');
+        final logoutTop = tester.getTopLeft(logout).dy;
+        final accountTop = tester.getTopLeft(accountButton).dy;
+        expect(logoutTop, greaterThan(characterTop));
+        expect(accountTop, greaterThan(logoutTop));
+        expect(
+          accountTop - tester.getBottomLeft(logout).dy,
+          greaterThanOrEqualTo(KlimmeckGuideTheme.spacingLg),
+        );
+        expect(
+          tester.widget<OutlinedButton>(accountButton).style,
+          KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
+        );
+      },
+    );
+
+    testWidgets('the innkeeper sees no Elimina account (D-16)', (tester) async {
+      await pumpSection(
+        tester,
+        isAccountDeletionEnabled: true,
+        role: RoleType.innkeeper,
+      );
+
+      expect(find.text(accountLabel), findsNothing);
+      expect(find.text('Esci'), findsOneWidget);
+    });
+
+    testWidgets('Annulla deletes nothing (D-01)', (tester) async {
+      await openDialog(tester);
+
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      verifyNever(() => accountDeletionCubit.deleteAccount());
+    });
+
+    testWidgets('Elimina deletes once (D-01)', (tester) async {
+      await openDialog(tester);
+
+      await tester.tap(dialogConfirmDelete);
+      await tester.pumpAndSettle();
+
+      verify(() => accountDeletionCubit.deleteAccount()).called(1);
+      verifyNever(() => deletionCubit.deleteCharacter());
+    });
+
+    testWidgets(
+      'the dialog lists what is lost and that channel points are not given '
+      'back (D-05)',
+      (tester) async {
+        await openDialog(tester);
+
+        final dialog = find.byType(AlertDialog);
+        Finder inDialog(String text) =>
+            find.descendant(of: dialog, matching: find.textContaining(text));
+        expect(inDialog("Eliminare l'account?"), findsOneWidget);
+        expect(inDialog('anche quelli archiviati'), findsOneWidget);
+        expect(inDialog('il saldo dei punti'), findsOneWidget);
+        expect(inDialog('il ritratto'), findsOneWidget);
+        expect(inDialog('non verranno restituiti'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'while deleting the button shows a spinner and cannot be tapped again '
+      '(D-06)',
+      (tester) async {
+        await pumpSection(
+          tester,
+          isAccountDeletionEnabled: true,
+          accountDeletionState: const AccountDeletionState(isDeleting: true),
+        );
+
+        final button = find.byType(OutlinedButton).last;
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expect(
+          find.descendant(
+            of: button,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text(accountLabel), findsNothing);
+        expect(find.text(deleteLabel), findsOneWidget);
+        await tester.tap(button, warnIfMissed: false);
+        await tester.pump();
+        expect(find.byType(AlertDialog), findsNothing);
+      },
+    );
+
+    testWidgets('a failure reads under the button (D-06)', (tester) async {
+      await pumpSection(
+        tester,
+        isAccountDeletionEnabled: true,
+        accountDeletionState: const AccountDeletionState(
+          failure: AccountDeletionFailure.innkeeperProtected,
+        ),
+      );
+
+      final failure = find.text(
+        "L'oste non può eliminare il proprio account dall'App",
+      );
+      expect(failure, findsOneWidget);
+      expect(
+        tester.getTopLeft(failure).dy,
+        greaterThan(tester.getTopLeft(accountButton).dy),
+      );
+    });
   });
 }

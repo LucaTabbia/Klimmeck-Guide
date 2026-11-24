@@ -8,6 +8,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
@@ -25,6 +26,7 @@ void main() {
   late MockCharacterCubit characterCubit;
   late MockNotificationPreferencesCubit notificationCubit;
   late MockCharacterDeletionCubit deletionCubit;
+  late MockAccountDeletionCubit accountDeletionCubit;
   late MockAuthCubit authCubit;
   late MockNotificationPermissionCubit permissionCubit;
 
@@ -47,6 +49,7 @@ void main() {
     characterCubit = MockCharacterCubit();
     notificationCubit = MockNotificationPreferencesCubit();
     deletionCubit = MockCharacterDeletionCubit();
+    accountDeletionCubit = MockAccountDeletionCubit();
     authCubit = MockAuthCubit();
     permissionCubit = MockNotificationPermissionCubit();
     givenPermission(NotificationPermissionStatus.notDetermined);
@@ -60,6 +63,11 @@ void main() {
       deletionCubit,
       const Stream<CharacterDeletionState>.empty(),
       initialState: const CharacterDeletionState(),
+    );
+    whenListen(
+      accountDeletionCubit,
+      const Stream<AccountDeletionState>.empty(),
+      initialState: const AccountDeletionState(),
     );
     givenSessionRole(RoleType.adventurer);
     when(() => authCubit.logout()).thenAnswer((_) async {});
@@ -85,6 +93,9 @@ void main() {
                 value: permissionCubit,
               ),
               BlocProvider<CharacterDeletionCubit>.value(value: deletionCubit),
+              BlocProvider<AccountDeletionCubit>.value(
+                value: accountDeletionCubit,
+              ),
               BlocProvider<AuthCubit>.value(value: authCubit),
             ],
             child: const Settings(),
