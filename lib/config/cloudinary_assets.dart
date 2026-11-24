@@ -305,10 +305,10 @@ class CloudinaryAssets {
   static const String drusteaCity = 'v1761435132/drusteaCity_vqjl3j.svg';
   static const String drusteaVillage = 'v1761435123/drusteaVillage_gdtasn.svg';
   static const String drusteaSeaCity = 'v1761435129/drusteaSeaCity_rqwfuc.svg';
-  static const String aarakocraVillage =
-      'v1794764202/aarakocraVillage_z7n1rz.svg';
-  static const String aarakocraCapital =
-      'v1794764223/aarakocraCapital_affl5r.svg';
+  static const String volucriVillage =
+      'v1795548609/main/cities/volucriVillage.svg';
+  static const String volucriCapital =
+      'v1795548614/main/cities/volucriCapital.svg';
   static const String valanVillage = 'v1761435122/valanVillage_c8lwqm.svg';
   static const String valanCity = 'v1761435122/valanCity_eu3hx8.svg';
   static const String valanSeaCity = 'v1762562435/valanSeaCity_ilrsu5.svg';
