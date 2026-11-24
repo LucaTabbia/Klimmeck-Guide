@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
 import 'package:klimmeck_guide/models/enums/library_book.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/library/newsCubit/library_news_cubit.dart';
+import 'package:klimmeck_guide/repository/account_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
@@ -99,6 +100,9 @@ class MockCharacterCreationRepository extends Mock
 
 class MockCharacterDeletionRepository extends Mock
     implements CharacterDeletionRepository {}
+
+class MockAccountDeletionRepository extends Mock
+    implements AccountDeletionRepository {}
 
 class MockQuestBoardRepository extends Mock implements QuestBoardRepository {}
 
