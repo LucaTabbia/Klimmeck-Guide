@@ -10,23 +10,23 @@ void main() {
   });
 
   test('the two new capitals stand a little larger than Talmvere (D-16)', () {
-    expect(CityType.aarakocraCapital.size, 46);
+    expect(CityType.volucriCapital.size, 46);
     expect(CityType.dragonbornCapital.size, 46);
     expect(
-      CityType.aarakocraCapital.size,
+      CityType.volucriCapital.size,
       greaterThan(CityType.talmvereVillage.size),
     );
   });
 
   test('the dragonborn village uses the village marker size (D-16)', () {
     expect(CityType.dragonbornVillage.size, 30);
-    expect(CityType.dragonbornVillage.size, CityType.aarakocraVillage.size);
+    expect(CityType.dragonbornVillage.size, CityType.volucriVillage.size);
   });
 
   test('the three new markers point to their files (D-17, D-21)', () {
     expect(
-      CloudinaryAssets.aarakocraCapital,
-      'v1794764223/aarakocraCapital_affl5r.svg',
+      CloudinaryAssets.volucriCapital,
+      'v1795548614/main/cities/volucriCapital.svg',
     );
     expect(
       CloudinaryAssets.dragonbornCapital,
@@ -37,8 +37,8 @@ void main() {
       'v1794764212/dragonbornVillage_doclsu.svg',
     );
     expect(
-      CityType.aarakocraCapital.imagePath,
-      CloudinaryAssets.url(CloudinaryAssets.aarakocraCapital),
+      CityType.volucriCapital.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.volucriCapital),
     );
     expect(
       CityType.dragonbornCapital.imagePath,
@@ -50,24 +50,24 @@ void main() {
     );
   });
 
-  test('the aarakocra village is drawn with its new file (D-17, D-21)', () {
+  test('the volucri village is drawn with its new file (D-17, D-21)', () {
     expect(
-      CloudinaryAssets.aarakocraVillage,
-      'v1794764202/aarakocraVillage_z7n1rz.svg',
+      CloudinaryAssets.volucriVillage,
+      'v1795548609/main/cities/volucriVillage.svg',
     );
-    expect(CityType.aarakocraVillage.size, 30);
+    expect(CityType.volucriVillage.size, 30);
     expect(
-      CityType.aarakocraVillage.imagePath,
-      CloudinaryAssets.url(CloudinaryAssets.aarakocraVillage),
+      CityType.volucriVillage.imagePath,
+      CloudinaryAssets.url(CloudinaryAssets.volucriVillage),
     );
   });
 
   test(
-    'the village and the capital of the aarakocra are two different drawings (D-17)',
+    'the village and the capital of the volucri are two different drawings (D-17)',
     () {
       expect(
-        CloudinaryAssets.aarakocraVillage,
-        isNot(CloudinaryAssets.aarakocraCapital),
+        CloudinaryAssets.volucriVillage,
+        isNot(CloudinaryAssets.volucriCapital),
       );
     },
   );

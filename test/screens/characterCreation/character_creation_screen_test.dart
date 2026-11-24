@@ -134,7 +134,7 @@ void main() {
     await pumpScreen(
       tester,
       const CharacterCreationState(
-        draft: CharacterDraft(race: RaceType.aarakocra),
+        draft: CharacterDraft(race: RaceType.volucri),
       ),
     );
 
@@ -144,12 +144,12 @@ void main() {
   testWidgets('a chosen race missing from the loaded table asks for another', (
     tester,
   ) async {
-    final withoutAarakocra = Map.of(testRaceTraits)..remove(RaceType.aarakocra);
+    final withoutVolucri = Map.of(testRaceTraits)..remove(RaceType.volucri);
     await pumpScreen(
       tester,
       loadedState.copyWith(
-        draft: const CharacterDraft(race: RaceType.aarakocra),
-        raceTraits: withoutAarakocra,
+        draft: const CharacterDraft(race: RaceType.volucri),
+        raceTraits: withoutVolucri,
       ),
     );
 

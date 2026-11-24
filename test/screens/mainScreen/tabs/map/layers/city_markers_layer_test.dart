@@ -32,7 +32,7 @@ void main() {
     () => seedSvgCache([
       CloudinaryAssets.cliffbreak,
       CloudinaryAssets.talmvere,
-      CloudinaryAssets.aarakocraCapital,
+      CloudinaryAssets.volucriCapital,
       CloudinaryAssets.dragonbornCapital,
       CloudinaryAssets.dragonbornVillage,
     ]),
@@ -124,7 +124,7 @@ void main() {
     (tester) async {
       await pumpLayer(
         tester,
-        cityWith(type: 'aarakocraCapital', size: 'capital'),
+        cityWith(type: 'volucriCapital', size: 'capital'),
         0,
       );
       expect(find.byType(CityMarker), findsOneWidget);
@@ -154,7 +154,7 @@ void main() {
   testWidgets('a new capital without a served size is hidden (D-16)', (
     tester,
   ) async {
-    await pumpLayer(tester, cityWith(type: 'aarakocraCapital'), 5);
+    await pumpLayer(tester, cityWith(type: 'volucriCapital'), 5);
     expect(find.byType(CityMarker), findsNothing);
 
     await pumpLayer(tester, cityWith(type: 'dragonbornCapital'), 5);

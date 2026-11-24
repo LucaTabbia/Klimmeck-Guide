@@ -11,8 +11,8 @@ const List<Map<String, Object>> raceTraitsJson = [
   {'race': 'gnome', 'minAge': 16, 'maxAge': 60},
   {'race': 'halfling', 'minAge': 16, 'maxAge': 70},
   {'race': 'dragonborn', 'minAge': 16, 'maxAge': 180},
-  {'race': 'tiefling', 'minAge': 16, 'maxAge': 120},
-  {'race': 'aarakocra', 'minAge': 3, 'maxAge': 40},
+  {'race': 'infernal', 'minAge': 16, 'maxAge': 120},
+  {'race': 'volucri', 'minAge': 3, 'maxAge': 40},
 ];
 
 final Map<RaceType, RaceTraits> testRaceTraits = Map.unmodifiable({
