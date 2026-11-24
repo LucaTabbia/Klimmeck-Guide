@@ -381,7 +381,7 @@ class SessionAuthTokenService extends AuthTokenService
   }
 
   /// D-12: avviso dedicato solo per i motivi noti di `SESSION_REVOKED`; il
-  /// resto è «sessione scaduta».
+  /// resto è «sessione scaduta». Phase 25 D-18: account eliminato.
   static UnauthenticatedReason _unauthenticatedReasonOf(
     SessionRejected rejection,
   ) {
@@ -392,6 +392,8 @@ class SessionAuthTokenService extends AuthTokenService
       sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
       sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
       sessionRevokedReasonAccessLost => UnauthenticatedReason.channelAccessLost,
+      sessionRevokedReasonAccountDeleted =>
+        UnauthenticatedReason.accountDeleted,
       _ => UnauthenticatedReason.sessionExpired,
     };
   }

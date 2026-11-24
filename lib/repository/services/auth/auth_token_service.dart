@@ -68,6 +68,11 @@ enum UnauthenticatedReason {
   /// Sync in tempo reale persa per ~3 minuti di degrado continuo: SignIn mostra
   /// «Connessione persa, accedi di nuovo.» (Phase 3 D-15).
   syncLost,
+
+  /// Account eliminato (dall'utente o dall'oste): SignIn mostra l'avviso
+  /// dell'account eliminato e dimentica il consenso del dispositivo (Phase 25
+  /// D-03, D-10, D-18).
+  accountDeleted,
 }
 
 /// Stato emesso quando l'utente non è autenticato (es. dopo logout
