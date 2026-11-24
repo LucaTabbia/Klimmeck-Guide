@@ -283,7 +283,7 @@ Plans:
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
-| 25. Account Deletion and Legal Consent | v1.1 | 0/8 | Planned | - |
+| 25. Account Deletion and Legal Consent | v1.1 | 1/8 | In Progress | - |
 
 ### Phase 25: Account Deletion and Legal Consent
 
@@ -301,7 +301,7 @@ Plans:
 **Plans**: 8 plans (sequential waves; 01–06 work against today's BE — no new document, the deletions behind one switch; 07 gated by the BE Phase 26 merge; 08 runs LAST, human)
 
 Plans:
-- [ ] 25-01-PLAN.md — Suite baseline, `LinkOpener` moved out of push, legal constants, consent memory and Cubit, checkbox row with the two links, footer removed, login gated on the tick
+- [x] 25-01-PLAN.md — Suite baseline, `LinkOpener` moved out of push, legal constants, consent memory and Cubit, checkbox row with the two links, footer removed, login gated on the tick
 - [ ] 25-02-PLAN.md — `accountDeleted` reason from the refused refresh (HTTP and WS 4409) and from the local teardown, the D-03 notice, the consent forgotten only on that landing
 - [ ] 25-03-PLAN.md — Own account deletion behind the abstract API: failure mapping, repository with the silent teardown, the race test, Cubit, dialog, «Elimina account» behind the switch
 - [ ] 25-04-PLAN.md — Innkeeper's deletion by Twitch username: failures, repository, Cubit, username dialog with inline refusals, the «Locanda» entry behind the switch

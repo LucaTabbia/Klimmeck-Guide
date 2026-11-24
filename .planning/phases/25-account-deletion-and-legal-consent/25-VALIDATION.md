@@ -23,7 +23,7 @@ created: 2026-11-24
 | **Full suite command** | `flutter test -r expanded 2>&1 \| tr '\r' '\n' \| grep -E '\[E\]\|All tests passed\|Some tests failed'` — only in 25-01 (baseline) and 25-07 (gate), alone in its Bash call, timeout ≥ 300000 ms |
 | **Analyzer gate** | `OUT=$(flutter analyze --no-fatal-infos 2>&1); echo "$OUT" \| tail -1; ! echo "$OUT" \| grep -qE '^ *(error\|warning) •' && echo "$OUT" \| grep -qE '^47 issues found' && echo ANALYZE_GATE_OK` |
 | **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` on `origin/develop:src/schema.gql` (25-07, 25-08) |
-| **Suite baseline** | `<measured by 25-01>` (5535 green at the close of Phase 24) |
+| **Suite baseline** | **5549 green** (measured by 25-01 Task 1 on this branch on 2026-11-25, `01:52 +5549: All tests passed!`; 5535 at the close of Phase 24) |
 | **Estimated runtime** | ~25 seconds per task command |
 
 ---
@@ -41,10 +41,10 @@ created: 2026-11-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 25-01-01 | 01 | 1 | CONSENT-01 | T-25-01, T-25-04 | only constant legal URIs; `LinkOpener` moved with imports only | unit | `flutter test test/config/legal_documents_test.dart test/repository/services/push test/screens/signIn` | ❌ W0 | ⬜ pending |
-| 25-01-02 | 01 | 1 | CONSENT-02 | T-25-03 | version stored per device, no secret; store allowed by the hardening check | unit + bloc | `flutter test test/repository/storage/legal_consent_store_test.dart test/screens/signIn/consentCubit && bash tool/hardening_check.sh` | ❌ W0 | ⬜ pending |
-| 25-01-03 | 01 | 1 | CONSENT-01, CONSENT-02 | T-25-01, T-25-02 | login disabled while unticked; links through the Cubit | widget | `flutter test test/screens/signIn test/screens/auth/auth_gate_test.dart test/screens/auth/auth_gate_dev_bypass_test.dart test/screens/auth/identity_transitions_test.dart test/screens/auth/authenticated_shell_leak_test.dart` | ✅ extend | ⬜ pending |
-| 25-01-04 | 01 | 1 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-01-SUMMARY.md` | — | ⬜ pending |
+| 25-01-01 | 01 | 1 | CONSENT-01 | T-25-01, T-25-04 | only constant legal URIs; `LinkOpener` moved with imports only | unit | `flutter test test/config/legal_documents_test.dart test/repository/services/push test/screens/signIn` | ❌ W0 | ✅ green |
+| 25-01-02 | 01 | 1 | CONSENT-02 | T-25-03 | version stored per device, no secret; store allowed by the hardening check | unit + bloc | `flutter test test/repository/storage/legal_consent_store_test.dart test/screens/signIn/consentCubit && bash tool/hardening_check.sh` | ❌ W0 | ✅ green |
+| 25-01-03 | 01 | 1 | CONSENT-01, CONSENT-02 | T-25-01, T-25-02 | login disabled while unticked; links through the Cubit | widget | `flutter test test/screens/signIn test/screens/auth/auth_gate_test.dart test/screens/auth/auth_gate_dev_bypass_test.dart test/screens/auth/identity_transitions_test.dart test/screens/auth/authenticated_shell_leak_test.dart` | ✅ extend | ✅ green |
+| 25-01-04 | 01 | 1 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-01-SUMMARY.md` | — | ✅ green |
 | 25-02-01 | 02 | 2 | ACCOUNT-02 | T-25-10, T-25-11, T-25-13 | `accountDeleted` from HTTP refresh and WS 4409; unknown reason → `sessionExpired` | unit + loopback WS | `flutter test test/repository/services/auth` | ✅ extend | ⬜ pending |
 | 25-02-02 | 02 | 2 | ACCOUNT-02, CONSENT-02 | T-25-12 | notice D-03; consent forgotten only on `accountDeleted` | widget + bloc | `flutter test test/screens/signIn test/screens/auth/auth_gate_test.dart` | ✅ extend | ⬜ pending |
 | 25-02-03 | 02 | 2 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-02-SUMMARY.md` | — | ⬜ pending |
@@ -77,8 +77,8 @@ created: 2026-11-24
 
 Each new test file is written RED-first inside the task that needs it (no separate scaffold plan):
 
-- [ ] `test/config/legal_documents_test.dart` (25-01-01)
-- [ ] `test/repository/storage/legal_consent_store_test.dart`, `test/screens/signIn/consentCubit/legal_consent_cubit_test.dart`, `test/helpers/fakes/in_memory_legal_consent_store.dart` (25-01-02)
+- [x] `test/config/legal_documents_test.dart` (25-01-01)
+- [x] `test/repository/storage/legal_consent_store_test.dart`, `test/screens/signIn/consentCubit/legal_consent_cubit_test.dart`, `test/helpers/fakes/in_memory_legal_consent_store.dart` (25-01-02)
 - [ ] `test/helpers/fakes/fake_account_deletion_api.dart`, `test/repository/account_deletion_failure_test.dart`, `test/repository/account_deletion_repository_test.dart`, `test/repository/account_deletion_flow_test.dart` (25-03-01)
 - [ ] `test/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit_test.dart`, `test/screens/mainScreen/tabs/settings/components/account_deletion_messages_test.dart` (25-03-02)
 - [ ] `test/config/account_deletion_test.dart` (25-03-03)
@@ -86,7 +86,7 @@ Each new test file is written RED-first inside the task that needs it (no separa
 - [ ] `test/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog_test.dart` (25-04-02)
 - [ ] `test/graphql/account_documents_test.dart`, `test/repository/services/account/graphql_account_deletion_api_test.dart` (25-07-01, gated)
 - [ ] mocks in `test/helpers/mocks.dart`: `MockAccountDeletionRepository`, `MockAccountDeletionCubit` (25-03), `MockPlayerAccountDeletionRepository`, `MockPlayerAccountDeletionCubit` (25-04)
-- [ ] suite baseline re-measured (25-01-01)
+- [x] suite baseline re-measured (25-01-01)
 
 ---
 
