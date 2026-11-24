@@ -255,6 +255,8 @@ void main() {
       await pumpGate(tester, legalConsentStore: store);
       await emitAuth(tester, _authenticated('A'));
       await emitAuth(tester, AuthUnauthenticated(reason: reason));
+      // Il Cubit del consenso è pigro: legge lo storage un frame dopo.
+      await tester.pump();
     }
 
     bool isTicked(WidgetTester tester) =>

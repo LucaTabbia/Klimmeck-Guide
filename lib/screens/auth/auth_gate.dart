@@ -18,7 +18,8 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta o la
 ///   connessione in tempo reale è andata persa (Phase 3 D-15); la spunta del
 ///   consenso legale si ripristina da [legalConsentStore] a ogni schermata di
-///   sign-in (Phase 25 D-10);
+///   sign-in, tranne all'arrivo con l'account eliminato, che la dimentica
+///   (Phase 25 D-10);
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
 ///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
@@ -63,10 +64,7 @@ class AuthGate extends StatelessWidget {
                 ),
               ),
               BlocProvider(
-                create: (_) => LegalConsentCubit(
-                  legalConsentStore,
-                  version: LegalDocuments.version,
-                )..restore(),
+                create: (_) => _consentFor(reason, legalConsentStore),
               ),
             ],
             child: SignInScreen(notice: _noticeFor(reason)),
@@ -80,6 +78,19 @@ class AuthGate extends StatelessWidget {
     );
   }
 
+  /// Solo l'account eliminato dimentica il consenso del dispositivo; ogni
+  /// altro arrivo al sign-in lo ripristina (Phase 25 D-10).
+  static LegalConsentCubit _consentFor(
+    UnauthenticatedReason reason,
+    LegalConsentStore store,
+  ) {
+    final cubit = LegalConsentCubit(store, version: LegalDocuments.version);
+    return switch (reason) {
+      UnauthenticatedReason.accountDeleted => cubit..forget(),
+      _ => cubit..restore(),
+    };
+  }
+
   static SignInNotice _noticeFor(
     UnauthenticatedReason reason,
   ) => switch (reason) {
@@ -89,7 +100,7 @@ class AuthGate extends StatelessWidget {
     UnauthenticatedReason.replacedByNewLogin => SignInNotice.replacedByNewLogin,
     UnauthenticatedReason.roleChanged => SignInNotice.roleChanged,
     UnauthenticatedReason.channelAccessLost => SignInNotice.channelAccessLost,
-    UnauthenticatedReason.accountDeleted => SignInNotice.sessionExpired,
+    UnauthenticatedReason.accountDeleted => SignInNotice.accountDeleted,
   };
 
   static bool _leavesSession(AuthState previous, AuthState current) =>

@@ -9,7 +9,8 @@ part 'legal_consent_state.dart';
 ///
 /// La spunta è l'atto di accettazione su questo dispositivo (D-10): spuntare
 /// ricorda la versione, togliere la spunta la dimentica. La memoria è diversa
-/// da quella della sessione, quindi il logout non la tocca.
+/// da quella della sessione, quindi il logout non la tocca: si dimentica solo
+/// con l'account eliminato ([forget]).
 class LegalConsentCubit extends Cubit<LegalConsentState>
     with SafeEmit<LegalConsentState> {
   LegalConsentCubit(this._store, {required String version})
@@ -31,6 +32,13 @@ class LegalConsentCubit extends Cubit<LegalConsentState>
   }
 
   Future<void> withdraw() async {
+    emit(const LegalConsentState());
+    await _guarded(_store.forget);
+  }
+
+  /// Account eliminato (D-06, D-10): la schermata parte vuota e il dispositivo
+  /// non ricorda più l'accettazione.
+  Future<void> forget() async {
     emit(const LegalConsentState());
     await _guarded(_store.forget);
   }
