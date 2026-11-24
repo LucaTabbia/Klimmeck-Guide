@@ -52,6 +52,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spell
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/cubit/world_map_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/travel_progress_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
@@ -188,6 +189,9 @@ class MockNotificationPermissionCubit
 
 class MockCharacterDeletionCubit extends MockCubit<CharacterDeletionState>
     implements CharacterDeletionCubit {}
+
+class MockAccountDeletionCubit extends MockCubit<AccountDeletionState>
+    implements AccountDeletionCubit {}
 
 class MockQuestAcceptanceCubit extends MockCubit<QuestAcceptanceState>
     implements QuestAcceptanceCubit {}
