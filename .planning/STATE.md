@@ -55,6 +55,7 @@ v1.1 Healing & Models: Phase 18 Heal Quests by City Size (HEAL-01..06, ↔ BE 18
 - 2026-11-11: the two new phases were swapped right after being added (user decision): prizes by rank first (20), so that the innkeeper's prize step (21) offers a list already filtered by the character's rank.
 - 2026-11-15: Phase 23 added (Spell Origins, Void and Shamanic Quests): spell macro-class origin → use → energy (void, magic, shamanic), `shamanic` and `void` quests like the `magic` one, new city types (`aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage`), minimum level instead of minimum xp to learn a spell. BE companion: BE Phase 24; branch stacked on Phase 22; not discussed nor planned yet.
 - 2026-11-24: Phase 25 added — Account Deletion and Legal Consent (↔ BE Phase 26): «Elimina account» con cancellazione definitiva lato BE, link Termini/Privacy dal login verso le GitHub Pages, checkbox obbligatoria di accettazione.
+- 2026-11-24: Phase 25 context gathered (interactive discuss, joint with BE Phase 26): D-01..D-16 in `25-CONTEXT.md`, handoff in `BACKEND-NOTES.md`; next step `/gsd-plan-phase 25` (BE Phase 26 planned first: its contract gates the FE selections).
 
 ## Open Questions / Blockers
 
