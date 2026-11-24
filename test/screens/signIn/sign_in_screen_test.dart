@@ -25,6 +25,7 @@ const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
 const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
+const _accountDeletedNotice = 'Il tuo account è stato eliminato.';
 const _notFollowingMessage =
     'Non sei ancora un avventuriero sul canale di LordReavor! '
     'Segui prima il canale per accedere al gioco';
@@ -359,6 +360,22 @@ void main() {
     await pumpScreen(tester);
     await tester.pump();
     expect(find.text(_newLoginNotice), findsNothing);
+  });
+
+  testWidgets('shows the account-deleted notice only when requested (D-03)', (
+    tester,
+  ) async {
+    await pumpScreen(tester, notice: SignInNotice.accountDeleted);
+    expect(find.text(_accountDeletedNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+    expect(
+      tester.getTopLeft(find.text(_accountDeletedNotice)).dy,
+      lessThan(tester.getTopLeft(loginButton).dy),
+    );
+
+    await pumpScreen(tester);
+    await tester.pump();
+    expect(find.text(_accountDeletedNotice), findsNothing);
   });
 
   testWidgets('who was logged out for leaving the channel reads why and '

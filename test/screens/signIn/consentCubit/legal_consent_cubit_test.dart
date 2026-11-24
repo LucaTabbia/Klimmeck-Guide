@@ -64,6 +64,16 @@ void main() {
   );
 
   blocTest<LegalConsentCubit, LegalConsentState>(
+    'forget unticks and clears the memory (D-10)',
+    setUp: () => store.acceptedVersion = version,
+    build: build,
+    seed: () => ticked,
+    act: (cubit) => cubit.forget(),
+    expect: () => [unticked],
+    verify: (_) => expect(store.acceptedVersion, isNull),
+  );
+
+  blocTest<LegalConsentCubit, LegalConsentState>(
     'a failing store keeps the tick for this screen and never throws',
     setUp: () => store.failOnRemember = true,
     build: build,

@@ -23,6 +23,7 @@ const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
 const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
+const _accountDeletedNotice = 'Il tuo account è stato eliminato.';
 const _manualSignIn = 'Accedi manualmente';
 
 User _user(String id) => User(
@@ -224,6 +225,64 @@ void main() {
     expect(signIn.notice, SignInNotice.channelAccessLost);
     expect(find.text(_roleChangedNotice), findsNothing);
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('an account deleted lands on the sign-in with its notice '
+      '(D-03, D-18)', (tester) async {
+    await pumpGate(tester);
+    await emitAuth(tester, _authenticated('A'));
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.accountDeleted),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.accountDeleted);
+    expect(find.text(_accountDeletedNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  group('consent memory on landing', () {
+    late InMemoryLegalConsentStore store;
+
+    Future<void> landWith(
+      WidgetTester tester,
+      UnauthenticatedReason reason,
+    ) async {
+      store = InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      );
+      await pumpGate(tester, legalConsentStore: store);
+      await emitAuth(tester, _authenticated('A'));
+      await emitAuth(tester, AuthUnauthenticated(reason: reason));
+    }
+
+    bool isTicked(WidgetTester tester) =>
+        tester.widget<Checkbox>(find.byType(Checkbox)).value ?? false;
+
+    testWidgets('the account-deleted landing forgets the consent: the box '
+        'starts unticked (D-06, D-10)', (tester) async {
+      await landWith(tester, UnauthenticatedReason.accountDeleted);
+
+      expect(store.acceptedVersion, isNull);
+      expect(isTicked(tester), isFalse);
+    });
+
+    testWidgets('a logout keeps the consent: the box starts ticked (D-10)', (
+      tester,
+    ) async {
+      await landWith(tester, UnauthenticatedReason.signedOut);
+
+      expect(store.acceptedVersion, LegalDocuments.version);
+      expect(isTicked(tester), isTrue);
+    });
+
+    testWidgets('a session expired keeps the consent (D-10)', (tester) async {
+      await landWith(tester, UnauthenticatedReason.sessionExpired);
+
+      expect(store.acceptedVersion, LegalDocuments.version);
+      expect(isTicked(tester), isTrue);
+    });
   });
 
   testWidgets('an expired session keeps the neutral notice (D-12)', (
