@@ -24,6 +24,7 @@ import '../../../../../helpers/auth_fixtures.dart';
 import '../../../../../helpers/fakes/fake_server_clock_service.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/settings_sections.dart';
 import '../../../../../helpers/test_app.dart';
 
 AuthAuthenticated _sessionAs(RoleType? role) => AuthAuthenticated(
@@ -101,6 +102,7 @@ void main() {
         ),
       ),
     );
+    await openSettingsSection(tester, InnkeeperSection.title);
   }
 
   testWidgets('an innkeeper session shows the section and its button', (

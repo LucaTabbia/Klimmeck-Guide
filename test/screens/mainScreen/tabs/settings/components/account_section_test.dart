@@ -18,6 +18,7 @@ import 'package:mocktail/mocktail.dart';
 import '../../../../../helpers/auth_fixtures.dart';
 import '../../../../../helpers/landscape.dart';
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/settings_sections.dart';
 import '../../../../../helpers/test_app.dart';
 
 void main() {
@@ -42,6 +43,7 @@ void main() {
     CharacterDeletionState state = const CharacterDeletionState(),
     AccountDeletionState accountDeletionState = const AccountDeletionState(),
     RoleType role = RoleType.adventurer,
+    bool isOpen = true,
   }) async {
     useLandscapePhone(tester);
     whenListen(
@@ -80,6 +82,9 @@ void main() {
         ),
       ),
     );
+    if (isOpen) {
+      await openSettingsSection(tester, AccountSection.irreversibleTitle);
+    }
   }
 
   const deleteLabel = 'Elimina personaggio';
@@ -89,12 +94,27 @@ void main() {
     matching: find.text('Elimina'),
   );
 
-  testWidgets('renders Account with deletion above logout, both themed', (
+  testWidgets(
+    'closed, the dropdown hides both deletions and Esci stays in sight (UAT 25)',
+    (tester) async {
+      await pumpSection(tester, isOpen: false);
+
+      expect(find.text('Azioni irreversibili'), findsOneWidget);
+      expect(find.text(deleteLabel), findsNothing);
+      expect(find.text('Elimina account'), findsNothing);
+      expect(find.byType(OutlinedButton), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('Esci')).dy,
+        greaterThan(tester.getTopLeft(find.text('Azioni irreversibili')).dy),
+      );
+    },
+  );
+
+  testWidgets('open, the deletion sits above Esci, both themed', (
     tester,
   ) async {
     await pumpSection(tester);
 
-    expect(find.text('Account'), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('Esci')).dy,
       greaterThan(tester.getTopLeft(find.text(deleteLabel)).dy),
@@ -250,21 +270,18 @@ void main() {
     }
 
     testWidgets(
-      'Elimina account is the last button, under Esci, detached, red outline '
-      '(D-02)',
+      'Elimina account sits under Elimina personaggio in the dropdown, red '
+      'outline, and Esci is last (UAT 25, amends D-02)',
       (tester) async {
         await pumpSection(tester);
 
         final characterTop = tester.getTopLeft(find.text(deleteLabel)).dy;
-        final logout = find.widgetWithText(ElevatedButton, 'Esci');
-        final logoutTop = tester.getTopLeft(logout).dy;
+        final logoutTop = tester
+            .getTopLeft(find.widgetWithText(ElevatedButton, 'Esci'))
+            .dy;
         final accountTop = tester.getTopLeft(accountButton).dy;
-        expect(logoutTop, greaterThan(characterTop));
-        expect(accountTop, greaterThan(logoutTop));
-        expect(
-          accountTop - tester.getBottomLeft(logout).dy,
-          greaterThanOrEqualTo(KlimmeckGuideTheme.spacingLg),
-        );
+        expect(accountTop, greaterThan(characterTop));
+        expect(logoutTop, greaterThan(accountTop));
         expect(
           tester.widget<OutlinedButton>(accountButton).style,
           KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
