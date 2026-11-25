@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/account_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -100,9 +101,9 @@ void main() {
       await pumpSection(tester, isOpen: false);
 
       expect(find.text('Azioni irreversibili'), findsOneWidget);
-      expect(find.text(deleteLabel), findsNothing);
-      expect(find.text('Elimina account'), findsNothing);
-      expect(find.byType(OutlinedButton), findsNothing);
+      expect(find.text(deleteLabel).hitTestable(), findsNothing);
+      expect(find.text('Elimina account').hitTestable(), findsNothing);
+      expect(find.byType(Dropdown), findsOneWidget);
       expect(
         tester.getTopLeft(find.text('Esci')).dy,
         greaterThan(tester.getTopLeft(find.text('Azioni irreversibili')).dy),

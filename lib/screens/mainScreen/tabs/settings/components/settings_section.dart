@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 
-/// Sezione del foglio Impostazioni: una tendina chiusa col titolo Cinzel, che
-/// si apre sul contenuto (UAT 25).
+/// Sezione del foglio Impostazioni: la tendina dell'app, chiusa, col titolo
+/// della sezione e il contenuto dentro (UAT 25).
 class SettingsSection extends StatelessWidget {
   const SettingsSection({
     super.key,
@@ -15,18 +15,12 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: const EdgeInsets.only(
-        bottom: KlimmeckGuideTheme.spacingMd,
+    return Dropdown(
+      sectionName: title,
+      data: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
-      shape: const Border(),
-      collapsedShape: const Border(),
-      iconColor: KlimmeckGuideTheme.deepNight,
-      collapsedIconColor: KlimmeckGuideTheme.deepNight,
-      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-      title: Text(title, style: KlimmeckGuideTheme.instance.titleMedium),
-      children: children,
     );
   }
 }

@@ -270,7 +270,7 @@ void main() {
         'Elimina un account',
         'Elimina personaggio',
       ]) {
-        expect(find.text(hidden), findsNothing);
+        expect(find.text(hidden).hitTestable(), findsNothing);
       }
       final ordered = [
         'Notifiche',
