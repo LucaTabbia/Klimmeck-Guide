@@ -13,10 +13,16 @@ class EquipmentBox extends StatelessWidget {
     required this.selectedBox,
     required this.slotType,
     required this.onTap,
+    this.blockedBy,
   });
+
+  static const double _blockedOpacity = 0.35;
 
   final double size;
   final EquipmentItem? item;
+
+  /// Arma a due mani che dall'altra mano tiene occupato questo slot.
+  final EquipmentItem? blockedBy;
   final SlotType? selectedBox;
   final SlotType slotType;
   final Function(SlotType) onTap;
@@ -35,8 +41,19 @@ class EquipmentBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
           border: Border.all(color: KlimmeckGuideTheme.deepNight, width: 2),
         ),
-        child: item != null ? CachedSvg(url: item!.equipType!.imagePath) : null,
+        child: _icon(),
       ),
+    );
+  }
+
+  Widget? _icon() {
+    final worn = item;
+    if (worn != null) return CachedSvg(url: worn.equipType!.imagePath);
+    final blocking = blockedBy;
+    if (blocking == null) return null;
+    return Opacity(
+      opacity: _blockedOpacity,
+      child: CachedSvg(url: blocking.equipType!.imagePath),
     );
   }
 }
