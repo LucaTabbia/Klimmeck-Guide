@@ -119,3 +119,7 @@ Requirement ↔ step map: CONSENT-01 (1, 2), CONSENT-02 (4, 7), CONSENT-03 (3), 
 A requirement is marked complete only by plan 25-08 Task 3 and only when all its mandatory steps passed; a failing step leaves it `In Progress (gaps: steps …)`.
 
 **Outcome (2026-11-25):** every mandatory step passed in the user's words, so CONSENT-01, CONSENT-02, CONSENT-03, ACCOUNT-01, ACCOUNT-02, ACCOUNT-03, ACCOUNT-04 and ACCOUNT-05 are marked complete. ACCOUNT-01 is complete as amended by D-02 (dropdown layout, «Esci» last on the sheet). Steps 7 and 10 count as passed in the variants described above. ACCOUNT-05: the gate and the schema check hold on the BE branch (the BE PR is not merged yet), and the D-22 lines are committed in the legal repo (`0659dc4`).
+
+## Schema check after the BE merge (2026-11-25)
+
+BE PR #53 merged on BE `develop` (`b18f846e`). Rerun by the orchestrator against `origin/develop:src/schema.gql`: «dumped 57 documents», validate exit 0, 57 × OK, 0 other lines; the SDL of `develop` equals the one of the branch the UAT ran on. The pending item recorded above is closed.
