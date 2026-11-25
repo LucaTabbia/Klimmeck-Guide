@@ -13,9 +13,10 @@ import 'package:klimmeck_guide/shared/components/modal/delete_character_confirma
 import 'package:klimmeck_guide/shared/components/modal/logout_confirmation_dialog.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Sezione Account: eliminazione personaggio (con conferma), logout e, per
-/// ultima e staccata, l'eliminazione dell'account (D-02). Quest'ultima è
-/// nascosta all'oste (D-16, solo UX: decide il BE).
+/// Fondo del foglio Impostazioni: la tendina delle azioni irreversibili
+/// (eliminazione del personaggio e, sotto, dell'account) e per ultimo «Esci»,
+/// sempre in vista (UAT 25, che emenda D-02). «Elimina account» è nascosto
+/// all'oste (D-16, solo UX: decide il BE).
 ///
 /// Mentre l'account si elimina gli altri due bottoni sono spenti: un logout
 /// partito in quel momento vincerebbe sulla chiusura della sessione
@@ -26,6 +27,8 @@ class AccountSection extends StatefulWidget {
   const AccountSection({super.key, required this.characterName});
 
   final String? characterName;
+
+  static const String irreversibleTitle = 'Azioni irreversibili';
 
   @override
   State<AccountSection> createState() => _AccountSectionState();
@@ -40,31 +43,36 @@ class _AccountSectionState extends State<AccountSection> {
       (cubit) => cubit.state.isDeleting,
     );
     final isLocked = isDeletingAccount || _isLoggingOut;
-    return BlocBuilder<CharacterDeletionCubit, CharacterDeletionState>(
-      builder: (context, state) => SettingsSection(
-        title: 'Account',
-        children: [
-          _DestructiveOutlinedButton(
-            label: 'Elimina personaggio',
-            isBusy: state.isDeleting,
-            onPressed: isLocked ? null : () => _confirmDeletion(context),
-          ),
-          if (state.failure case final failure?)
-            _FailureLine(message: failure.message),
-          const SizedBox(height: KlimmeckGuideTheme.spacingLg),
-          ElevatedButton(
-            style: KlimmeckGuideTheme.destructiveButtonStyle,
-            onPressed: isLocked ? null : _logOut,
-            child: Text(
-              'Esci',
-              style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-                color: KlimmeckGuideTheme.parchment,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BlocBuilder<CharacterDeletionCubit, CharacterDeletionState>(
+          builder: (context, state) => SettingsSection(
+            title: AccountSection.irreversibleTitle,
+            children: [
+              _DestructiveOutlinedButton(
+                label: 'Elimina personaggio',
+                isBusy: state.isDeleting,
+                onPressed: isLocked ? null : () => _confirmDeletion(context),
               ),
+              if (state.failure case final failure?)
+                _FailureLine(message: failure.message),
+              _AccountDeletionEntry(isLoggingOut: _isLoggingOut),
+            ],
+          ),
+        ),
+        const SizedBox(height: KlimmeckGuideTheme.spacingLg),
+        ElevatedButton(
+          style: KlimmeckGuideTheme.destructiveButtonStyle,
+          onPressed: isLocked ? null : _logOut,
+          child: Text(
+            'Esci',
+            style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+              color: KlimmeckGuideTheme.parchment,
             ),
           ),
-          _AccountDeletionEntry(isLoggingOut: _isLoggingOut),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -85,7 +93,8 @@ class _AccountSectionState extends State<AccountSection> {
   }
 }
 
-/// «Elimina account» sotto «Esci», staccato (D-02); assente per l'oste (D-16).
+/// «Elimina account» sotto «Elimina personaggio», nella stessa tendina;
+/// assente per l'oste (D-16).
 class _AccountDeletionEntry extends StatelessWidget {
   const _AccountDeletionEntry({required this.isLoggingOut});
 
@@ -102,7 +111,7 @@ class _AccountDeletionEntry extends StatelessWidget {
   Widget _buildEntry() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const SizedBox(height: KlimmeckGuideTheme.spacingLg),
+      const SizedBox(height: KlimmeckGuideTheme.spacingMd),
       BlocBuilder<AccountDeletionCubit, AccountDeletionState>(
         builder: (context, state) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

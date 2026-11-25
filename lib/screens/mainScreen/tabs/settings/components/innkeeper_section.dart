@@ -27,24 +27,21 @@ class InnkeeperSection extends StatelessWidget {
             isInnkeeper ? _buildSection(context) : const SizedBox.shrink(),
       );
 
-  Widget _buildSection(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: KlimmeckGuideTheme.spacingXl),
-    child: SettingsSection(
-      title: title,
-      children: [
-        ElevatedButton(
-          style: KlimmeckGuideTheme.primaryButtonStyle,
-          onPressed: () => openInnkeeperPanel(context),
-          child: Text(
-            openLabel,
-            style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-              color: KlimmeckGuideTheme.parchment,
-            ),
+  Widget _buildSection(BuildContext context) => SettingsSection(
+    title: title,
+    children: [
+      ElevatedButton(
+        style: KlimmeckGuideTheme.primaryButtonStyle,
+        onPressed: () => openInnkeeperPanel(context),
+        child: Text(
+          openLabel,
+          style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+            color: KlimmeckGuideTheme.parchment,
           ),
         ),
-        const _PlayerAccountDeletionEntry(),
-      ],
-    ),
+      ),
+      const _PlayerAccountDeletionEntry(),
+    ],
   );
 }
 
