@@ -16,6 +16,18 @@ import '../../../../../helpers/test_app.dart';
 const double _landscapeHeight = 360;
 const double _keyboardHeight = 200;
 const double _statusBarHeight = 28;
+const List<double> _slidingKeyboardHeights = [
+  0,
+  60,
+  120,
+  200,
+  260,
+  300,
+  330,
+  200,
+  90,
+  0,
+];
 const double _devicePixelRatio = 3;
 
 const Duration _routeTransition = Duration(seconds: 1);
@@ -290,6 +302,51 @@ void main() {
       for (final control in [field(), inDialog(find.text('Avanti'))]) {
         expect(control.hitTestable(), findsOneWidget, reason: '$control');
       }
+    },
+  );
+
+  testWidgets(
+    'while the keyboard slides in and out nothing overflows (UAT 25)',
+    (tester) async {
+      await openDialog(tester);
+      tester.view.padding = const FakeViewPadding(
+        top: _statusBarHeight * _devicePixelRatio,
+      );
+      addTearDown(tester.view.resetPadding);
+      addTearDown(tester.view.resetViewInsets);
+      const failure = PlayerAccountDeletionFailure.innkeeperProtected;
+      states.add(const PlayerAccountDeletionState(failure: failure));
+      await tester.pump();
+
+      for (final height in _slidingKeyboardHeights) {
+        tester.view.viewInsets = FakeViewPadding(
+          bottom: height * _devicePixelRatio,
+        );
+        await tester.pump();
+        expect(tester.takeException(), isNull, reason: 'keyboard at $height');
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(tester.takeException(), isNull, reason: 'keyboard at $height');
+      }
+    },
+  );
+
+  testWidgets(
+    'the confirmation opening above the keyboard does not overflow (UAT 25)',
+    (tester) async {
+      await openDialog(tester);
+      tester.view.padding = const FakeViewPadding(
+        top: _statusBarHeight * _devicePixelRatio,
+      );
+      tester.view.viewInsets = const FakeViewPadding(
+        bottom: _keyboardHeight * _devicePixelRatio,
+      );
+      addTearDown(tester.view.resetPadding);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+
+      await typeAndGoOn(tester, 'rossa_k');
+
+      expect(tester.takeException(), isNull);
     },
   );
 }
