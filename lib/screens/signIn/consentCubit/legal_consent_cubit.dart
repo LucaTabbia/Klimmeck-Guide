@@ -19,19 +19,24 @@ class LegalConsentCubit extends Cubit<LegalConsentState>
 
   final LegalConsentStore _store;
   final String _version;
+  bool _hasExplicitChoice = false;
 
-  /// Spuntata solo se la versione ricordata è quella corrente (D-12).
+  /// Spuntata solo se la versione ricordata è quella corrente (D-12). Una
+  /// scelta arrivata mentre lo storage rispondeva vince sulla lettura.
   Future<void> restore() async {
     final stored = await _readStoredVersion();
+    if (_hasExplicitChoice) return;
     emit(LegalConsentState(isAccepted: stored == _version));
   }
 
   Future<void> accept() async {
+    _hasExplicitChoice = true;
     emit(const LegalConsentState(isAccepted: true));
     await _guarded(() => _store.remember(_version));
   }
 
   Future<void> withdraw() async {
+    _hasExplicitChoice = true;
     emit(const LegalConsentState());
     await _guarded(_store.forget);
   }
@@ -39,6 +44,7 @@ class LegalConsentCubit extends Cubit<LegalConsentState>
   /// Account eliminato (D-06, D-10): la schermata parte vuota e il dispositivo
   /// non ricorda più l'accettazione.
   Future<void> forget() async {
+    _hasExplicitChoice = true;
     emit(const LegalConsentState());
     await _guarded(_store.forget);
   }
