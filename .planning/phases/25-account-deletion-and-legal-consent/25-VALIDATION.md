@@ -3,7 +3,7 @@ phase: 25
 slug: account-deletion-and-legal-consent
 status: draft
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-11-24
 ---
 
@@ -22,7 +22,7 @@ created: 2026-11-24
 | **Quick run command** | `flutter test <paths of the task>` (each task's `<verify>`) |
 | **Full suite command** | `flutter test -r expanded 2>&1 \| tr '\r' '\n' \| grep -E '\[E\]\|All tests passed\|Some tests failed'` — only in 25-01 (baseline) and 25-07 (gate), alone in its Bash call, timeout ≥ 300000 ms |
 | **Analyzer gate** | `OUT=$(flutter analyze --no-fatal-infos 2>&1); echo "$OUT" \| tail -1; ! echo "$OUT" \| grep -qE '^ *(error\|warning) •' && echo "$OUT" \| grep -qE '^47 issues found' && echo ANALYZE_GATE_OK` |
-| **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` on `origin/develop:src/schema.gql` (25-07, 25-08) |
+| **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` on the BE branch `feat/26-eliminazione-account-e-consenso` at `df22b017` (`git -C <BE> show <ref>:src/schema.gql`, read-only; 25-07 gate and the review fix, 57 × OK; the branch tip later moved to `58ccd402` with a docs-only commit, same SDL, also 57 × OK); to re-run on BE `develop` after the BE merge (25-08) |
 | **Suite baseline** | **5549 green** (measured by 25-01 Task 1 on this branch on 2026-11-25, `01:52 +5549: All tests passed!`; 5535 at the close of Phase 24) |
 | **Estimated runtime** | ~25 seconds per task command |
 
@@ -50,9 +50,9 @@ created: 2026-11-24
 | 25-02-03 | 02 | 2 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-02-SUMMARY.md` | — | ✅ green |
 | 25-03-01 | 03 | 3 | ACCOUNT-01, ACCOUNT-02 | T-25-21, T-25-22, T-25-24, T-25-25 | no BE call after success; one terminal state under the race; codes only | unit + integration (fakes) | `flutter test test/repository/account_deletion_failure_test.dart test/repository/account_deletion_repository_test.dart test/repository/account_deletion_flow_test.dart` | ❌ W0 | ✅ green |
 | 25-03-02 | 03 | 3 | ACCOUNT-01 | T-25-20, T-25-24 | double tap ignored; no endless spinner | bloc + unit | `flutter test test/screens/mainScreen/tabs/settings/accountDeletionCubit test/screens/mainScreen/tabs/settings/components/account_deletion_messages_test.dart` | ❌ W0 | ✅ green |
-| 25-03-03 | 03 | 3 | ACCOUNT-01 | T-25-20, T-25-23, T-25-25 | button last, hidden for the innkeeper, behind the switch | widget | `flutter test test/config/account_deletion_test.dart test/screens/mainScreen/tabs/settings` | ✅ extend / ❌ W0 | ✅ green |
+| 25-03-03 | 03 | 3 | ACCOUNT-01 | T-25-20, T-25-23, T-25-25 | button last, hidden for the innkeeper, behind the switch (switch and its test removed by the review fix IN-01) | widget | `flutter test test/screens/mainScreen/tabs/settings` | ✅ extend / ❌ W0 | ✅ green |
 | 25-03-04 | 03 | 3 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-03-SUMMARY.md` | — | ✅ green |
-| 25-04-01 | 04 | 4 | ACCOUNT-03 | T-25-31, T-25-32, T-25-33 | codes only; username never logged | unit + bloc | `flutter test test/repository/player_account_deletion_failure_test.dart test/repository/player_account_deletion_repository_test.dart test/screens/mainScreen/tabs/settings/playerDeletionCubit test/screens/mainScreen/tabs/settings/components/player_account_deletion_messages_test.dart` | ❌ W0 | ✅ green |
+| 25-04-01 | 04 | 4 | ACCOUNT-03 | T-25-31, T-25-32, T-25-33 | codes only; username never logged | unit + bloc | `flutter test test/repository/player_account_deletion_failure_test.dart test/repository/player_account_deletion_repository_test.dart test/screens/mainScreen/tabs/settings/playerAccountDeletionCubit test/screens/mainScreen/tabs/settings/components/player_account_deletion_messages_test.dart` | ❌ W0 | ✅ green |
 | 25-04-02 | 04 | 4 | ACCOUNT-03 | T-25-30, T-25-33, T-25-34 | confirmation names the username; field only in a dialog; landscape + keyboard | widget | `flutter test test/screens/mainScreen/tabs/settings` | ✅ extend / ❌ W0 | ✅ green |
 | 25-04-03 | 04 | 4 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-04-SUMMARY.md` | — | ✅ green |
 | 25-05-01 | 05 | 5 | CONSENT-03 | T-25-40, T-25-43 | `termsVersion` on the start URL; dev bypass exempt | unit + bloc + widget | `flutter test test/repository/services/auth test/screens/signIn test/screens/auth` | ✅ extend | ✅ green |
@@ -81,11 +81,11 @@ Each new test file is written RED-first inside the task that needs it (no separa
 - [x] `test/repository/storage/legal_consent_store_test.dart`, `test/screens/signIn/consentCubit/legal_consent_cubit_test.dart`, `test/helpers/fakes/in_memory_legal_consent_store.dart` (25-01-02)
 - [x] `test/helpers/fakes/fake_account_deletion_api.dart`, `test/repository/account_deletion_failure_test.dart`, `test/repository/account_deletion_repository_test.dart`, `test/repository/account_deletion_flow_test.dart` (25-03-01)
 - [x] `test/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit_test.dart`, `test/screens/mainScreen/tabs/settings/components/account_deletion_messages_test.dart` (25-03-02)
-- [x] `test/config/account_deletion_test.dart` (25-03-03)
-- [x] `test/repository/player_account_deletion_failure_test.dart`, `test/repository/player_account_deletion_repository_test.dart`, `test/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit_test.dart`, `test/screens/mainScreen/tabs/settings/components/player_account_deletion_messages_test.dart` (25-04-01)
+- [x] `test/config/account_deletion_test.dart` (25-03-03; removed with the switch by the review fix IN-01)
+- [x] `test/repository/player_account_deletion_failure_test.dart`, `test/repository/player_account_deletion_repository_test.dart`, `test/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit_test.dart` (directory renamed by the review fix IN-08), `test/screens/mainScreen/tabs/settings/components/player_account_deletion_messages_test.dart` (25-04-01)
 - [x] `test/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog_test.dart` (25-04-02)
 - [x] `test/graphql/account_documents_test.dart`, `test/repository/services/account/graphql_account_deletion_api_test.dart` (25-07-01, gated)
-- [ ] mocks in `test/helpers/mocks.dart`: `MockAccountDeletionRepository`, `MockAccountDeletionCubit` (25-03), `MockPlayerAccountDeletionRepository`, `MockPlayerAccountDeletionCubit` (25-04)
+- [x] mocks in `test/helpers/mocks.dart`: `MockAccountDeletionRepository`, `MockAccountDeletionCubit` (25-03), `MockPlayerAccountDeletionRepository`, `MockPlayerAccountDeletionCubit` (25-04)
 - [x] suite baseline re-measured (25-01-01)
 
 ---
