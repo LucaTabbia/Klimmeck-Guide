@@ -11,6 +11,8 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/fakes/recording_link_opener.dart';
 import '../../../helpers/mocks.dart';
 
+const String _acceptedLegalVersion = 'v-test';
+
 void main() {
   late MockAuthTokenService service;
   late RecordingLinkOpener links;
@@ -22,6 +24,12 @@ void main() {
 
   SignInCubit buildCubit() => SignInCubit(service, links);
 
+  Future<void> anyLogin() =>
+      service.login(acceptedLegalVersion: any(named: 'acceptedLegalVersion'));
+
+  Future<void> signIn(SignInCubit cubit) =>
+      cubit.signInWithTwitch(acceptedLegalVersion: _acceptedLegalVersion);
+
   test('initial state is SignInIdle', () {
     expect(buildCubit().state, const SignInIdle());
   });
@@ -29,10 +37,8 @@ void main() {
   blocTest<SignInCubit, SignInState>(
     'a viewer who does not follow the channel is told so',
     build: buildCubit,
-    setUp: () => when(
-      () => service.login(),
-    ).thenThrow(const LoginNotFollowingException()),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenThrow(const LoginNotFollowingException()),
+    act: signIn,
     expect: () => [
       const SignInInProgress(),
       const SignInFailed(SignInFailure.notFollowingChannel),
@@ -67,27 +73,33 @@ void main() {
   blocTest<SignInCubit, SignInState>(
     'successful login goes back to idle',
     build: buildCubit,
-    setUp: () => when(() => service.login()).thenAnswer((_) async {}),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenAnswer((_) async {}),
+    act: signIn,
     expect: () => [const SignInInProgress(), const SignInIdle()],
+  );
+
+  blocTest<SignInCubit, SignInState>(
+    'signInWithTwitch forwards the accepted version (D-19)',
+    build: buildCubit,
+    setUp: () => when(anyLogin).thenAnswer((_) async {}),
+    act: signIn,
+    verify: (_) =>
+        verify(() => service.login(acceptedLegalVersion: 'v-test')).called(1),
   );
 
   blocTest<SignInCubit, SignInState>(
     'cancelled login is silent',
     build: buildCubit,
-    setUp: () =>
-        when(() => service.login()).thenThrow(const LoginCancelledException()),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenThrow(const LoginCancelledException()),
+    act: signIn,
     expect: () => [const SignInInProgress(), const SignInIdle()],
   );
 
   blocTest<SignInCubit, SignInState>(
     'unavailable login maps to twitchNotConfigured',
     build: buildCubit,
-    setUp: () => when(
-      () => service.login(),
-    ).thenThrow(const LoginUnavailableException()),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenThrow(const LoginUnavailableException()),
+    act: signIn,
     expect: () => [
       const SignInInProgress(),
       const SignInFailed(SignInFailure.twitchNotConfigured),
@@ -97,9 +109,8 @@ void main() {
   blocTest<SignInCubit, SignInState>(
     'failed login maps to connection failure',
     build: buildCubit,
-    setUp: () =>
-        when(() => service.login()).thenThrow(const LoginFailedException('x')),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenThrow(const LoginFailedException('x')),
+    act: signIn,
     expect: () => [
       const SignInInProgress(),
       const SignInFailed(SignInFailure.connection),
@@ -109,8 +120,8 @@ void main() {
   blocTest<SignInCubit, SignInState>(
     'generic exception maps to connection failure',
     build: buildCubit,
-    setUp: () => when(() => service.login()).thenThrow(Exception('boom')),
-    act: (cubit) => cubit.signInWithTwitch(),
+    setUp: () => when(anyLogin).thenThrow(Exception('boom')),
+    act: signIn,
     expect: () => [
       const SignInInProgress(),
       const SignInFailed(SignInFailure.connection),
@@ -120,23 +131,23 @@ void main() {
   blocTest<SignInCubit, SignInState>(
     'second tap while in progress is ignored',
     build: buildCubit,
-    setUp: () => when(() => service.login()).thenAnswer((_) async {
+    setUp: () => when(anyLogin).thenAnswer((_) async {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }),
     act: (cubit) async {
-      final first = cubit.signInWithTwitch();
-      await cubit.signInWithTwitch();
+      final first = signIn(cubit);
+      await signIn(cubit);
       await first;
     },
     expect: () => [const SignInInProgress(), const SignInIdle()],
-    verify: (_) => verify(() => service.login()).called(1),
+    verify: (_) => verify(anyLogin).called(1),
   );
 
   test('closing the cubit while login is in flight does not throw', () async {
     final completer = Completer<void>();
-    when(() => service.login()).thenAnswer((_) => completer.future);
+    when(anyLogin).thenAnswer((_) => completer.future);
     final cubit = buildCubit();
-    final pending = cubit.signInWithTwitch();
+    final pending = signIn(cubit);
     await cubit.close();
     completer.complete();
     await expectLater(pending, completes);

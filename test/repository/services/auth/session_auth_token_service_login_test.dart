@@ -15,6 +15,7 @@ import '../../../helpers/fakes/in_memory_session_store.dart';
 import '../../../helpers/mocks.dart';
 
 const String _ticketCallback = 'klimmeck://auth?ticket=T';
+const String _acceptedLegalVersion = 'v-test';
 const LoginChallenge _challenge = LoginChallenge(
   codeVerifier: 'verifier-test',
   codeChallenge: 'challenge-test',
@@ -108,19 +109,21 @@ void main() {
     async.flushMicrotasks();
   }
 
-  /// Esegue `login()` e ritorna l'errore lanciato, o `null` se è riuscito.
+  /// Esegue `login` con la versione accettata e ritorna l'errore lanciato, o `null` se è riuscito.
   Object? runLogin(SessionAuthTokenService service, FakeAsync async) {
     Object? error;
     var settled = false;
-    service.login().then<void>(
-      (_) => settled = true,
-      onError: (Object e) {
-        error = e;
-        settled = true;
-      },
-    );
+    service
+        .login(acceptedLegalVersion: _acceptedLegalVersion)
+        .then<void>(
+          (_) => settled = true,
+          onError: (Object e) {
+            error = e;
+            settled = true;
+          },
+        );
     async.flushMicrotasks();
-    expect(settled, isTrue, reason: 'login() did not settle');
+    expect(settled, isTrue, reason: 'login did not settle');
     return error;
   }
 
@@ -132,7 +135,8 @@ void main() {
   }
 
   group('successful login', () {
-    test('opens the backend start url with the S256 challenge', () {
+    test('the start URL carries the challenge and the accepted version '
+        '(D-19)', () {
       fakeAsync((async) {
         browserReturns(_ticketCallback);
         exchangeAnswers(() async => _loginSession);
@@ -143,7 +147,8 @@ void main() {
         verify(
           () => browser.authenticate(
             startUrl: Uri.parse(
-              'http://backend.test/auth/twitch/start?challenge=challenge-test',
+              'http://backend.test/auth/twitch/start'
+              '?challenge=challenge-test&termsVersion=v-test',
             ),
             callbackScheme: 'klimmeck',
           ),

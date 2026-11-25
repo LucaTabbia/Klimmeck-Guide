@@ -341,7 +341,7 @@ void main() {
 
         final isLogoutDone = startLogout(service);
         async.flushMicrotasks();
-        service.login();
+        service.login(acceptedLegalVersion: 'v-test');
         async.flushMicrotasks();
         async.elapse(_logoutTimeout);
 
@@ -451,7 +451,7 @@ void main() {
         final isDone = startLogout(service);
         async.elapse(_logoutTimeout);
         expect(isDone(), isTrue);
-        service.login();
+        service.login(acceptedLegalVersion: 'v-test');
         async.flushMicrotasks();
 
         settleLate(pendingRefresh);
@@ -500,7 +500,7 @@ void main() {
         async.elapse(_logoutTimeout);
         expect(isDone(), isTrue);
         expect(states.last, _signedOut);
-        service.login();
+        service.login(acceptedLegalVersion: 'v-test');
         async.flushMicrotasks();
 
         pendingRefresh.complete(_rotatedSessionA);
@@ -533,7 +533,7 @@ void main() {
         service.getAccessToken().then((value) => token = value);
         async.flushMicrotasks();
 
-        service.login();
+        service.login(acceptedLegalVersion: 'v-test');
         async.flushMicrotasks();
         pendingRefresh.complete(_rotatedSessionA);
         async.flushMicrotasks();
@@ -549,7 +549,7 @@ void main() {
         loginReturnsSessionB();
         final service = startService(async);
         logoutNow(service, async);
-        service.login();
+        service.login(acceptedLegalVersion: 'v-test');
         async.flushMicrotasks();
 
         String? recovered = 'not-settled';
@@ -571,7 +571,7 @@ void main() {
       final service = startService(async);
 
       logoutNow(service, async);
-      service.login();
+      service.login(acceptedLegalVersion: 'v-test');
       async.flushMicrotasks();
 
       expect(states, [

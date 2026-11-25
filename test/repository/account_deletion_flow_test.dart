@@ -44,7 +44,7 @@ void main() {
     recorder = service.authStateStream.listen(states.add);
     api = FakeAccountDeletionApi();
     repository = AccountDeletionRepository(api: api, terminator: service);
-    await service.login();
+    await service.login(acceptedLegalVersion: 'v-test');
     await pumpEventQueue();
   });
 

@@ -63,6 +63,21 @@ void main() {
         expect(token, equals(testAccessToken));
       },
     );
+
+    test('the dev login accepts the version and behaves as before '
+        '(D-19)', () async {
+      await service.initialize();
+      await service.logout();
+      final expectation = expectLater(
+        service.authStateStream,
+        emits(isA<AuthAuthenticated>()),
+      );
+
+      await service.login(acceptedLegalVersion: 'v-test');
+
+      await expectation;
+      expect(await service.getAccessToken(), equals(testAccessToken));
+    });
   });
 
   group('DevAuthTokenService me alignment (D-25)', () {
@@ -148,14 +163,14 @@ void main() {
       verifyNever(() => meSource.fetchMe(any()));
     });
 
-    test('login() after logout aligns with me again', () async {
+    test('login after logout aligns with me again', () async {
       when(() => meSource.fetchMe(any())).thenAnswer((_) async => backendUser);
       final aligned = buildAligned();
       addTearDown(aligned.dispose);
       await aligned.initialize();
       await aligned.logout();
 
-      await aligned.login();
+      await aligned.login(acceptedLegalVersion: 'v-test');
 
       verify(() => meSource.fetchMe(testAccessToken)).called(2);
     });

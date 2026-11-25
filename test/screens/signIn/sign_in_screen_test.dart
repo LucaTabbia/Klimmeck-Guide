@@ -74,6 +74,9 @@ void main() {
     await tester.pump();
   }
 
+  Future<void> anyLogin() =>
+      service.login(acceptedLegalVersion: any(named: 'acceptedLegalVersion'));
+
   final loginButton = find.widgetWithText(InkWell, _loginLabel);
   final consentBox = find.byType(Checkbox);
 
@@ -114,7 +117,7 @@ void main() {
     await tester.tap(loginButton, warnIfMissed: false);
     await tester.pump();
 
-    verifyNever(() => service.login());
+    verifyNever(anyLogin);
     expect(tester.widget<InkWell>(loginButton).onTap, isNull);
     expect(
       tester.getSemantics(find.bySemanticsLabel(_loginLabel).first),
@@ -128,7 +131,7 @@ void main() {
   });
 
   testWidgets('ticking the box enables the login (D-07)', (tester) async {
-    when(() => service.login()).thenAnswer((_) async {});
+    when(anyLogin).thenAnswer((_) async {});
     await pumpScreen(tester, isConsentAccepted: false);
 
     await tester.tap(consentBox);
@@ -137,7 +140,21 @@ void main() {
     await tester.pump();
 
     expect(isTicked(tester), isTrue);
-    verify(() => service.login()).called(1);
+    verify(anyLogin).called(1);
+  });
+
+  testWidgets('the login sends the current document version (D-12, D-19)', (
+    tester,
+  ) async {
+    when(anyLogin).thenAnswer((_) async {});
+    await pumpScreen(tester);
+
+    await tester.tap(loginButton);
+    await tester.pump();
+
+    verify(
+      () => service.login(acceptedLegalVersion: LegalDocuments.version),
+    ).called(1);
   });
 
   testWidgets('tapping Termini di servizio opens the terms and does not tick '
@@ -239,13 +256,13 @@ void main() {
     tester,
   ) async {
     final completer = Completer<void>();
-    when(() => service.login()).thenAnswer((_) => completer.future);
+    when(anyLogin).thenAnswer((_) => completer.future);
     await pumpScreen(tester);
 
     await tester.tap(loginButton);
     await tester.pump();
 
-    verify(() => service.login()).called(1);
+    verify(anyLogin).called(1);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(tester.widget<InkWell>(find.byType(InkWell).first).onTap, isNull);
 
@@ -257,7 +274,7 @@ void main() {
   testWidgets('failed login shows connection error and allows retry', (
     tester,
   ) async {
-    when(() => service.login()).thenThrow(const LoginFailedException('x'));
+    when(anyLogin).thenThrow(const LoginFailedException('x'));
     await pumpScreen(tester);
 
     await tester.tap(loginButton);
@@ -266,13 +283,13 @@ void main() {
 
     await tester.tap(loginButton);
     await tester.pumpAndSettle();
-    verify(() => service.login()).called(2);
+    verify(anyLogin).called(2);
   });
 
   testWidgets('unavailable login shows the not-configured message only', (
     tester,
   ) async {
-    when(() => service.login()).thenThrow(const LoginUnavailableException());
+    when(anyLogin).thenThrow(const LoginUnavailableException());
     await pumpScreen(tester);
 
     await tester.tap(loginButton);
@@ -284,7 +301,7 @@ void main() {
 
   testWidgets('a viewer who does not follow the channel reads the invitation '
       'and reaches the channel from its button', (tester) async {
-    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    when(anyLogin).thenThrow(const LoginNotFollowingException());
     await pumpScreen(tester);
 
     await tester.tap(loginButton);
@@ -304,7 +321,7 @@ void main() {
   testWidgets('the channel button shows only to who does not follow', (
     tester,
   ) async {
-    when(() => service.login()).thenThrow(const LoginFailedException('x'));
+    when(anyLogin).thenThrow(const LoginFailedException('x'));
     await pumpScreen(tester);
     expect(find.text(_channelLabel), findsNothing);
 
@@ -315,7 +332,7 @@ void main() {
   });
 
   testWidgets('cancelled login shows no error', (tester) async {
-    when(() => service.login()).thenThrow(const LoginCancelledException());
+    when(anyLogin).thenThrow(const LoginCancelledException());
     await pumpScreen(tester);
 
     await tester.tap(loginButton);
@@ -404,7 +421,7 @@ void main() {
     final login = tester.getRect(loginButton);
     expect(lostAccessText.top, greaterThan(login.bottom));
 
-    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    when(anyLogin).thenThrow(const LoginNotFollowingException());
     await tester.tap(loginButton);
     await tester.pumpAndSettle();
 
@@ -418,7 +435,7 @@ void main() {
 
   testWidgets('a refused login replaces the lost-access notice: one '
       'invitation, one channel button', (tester) async {
-    when(() => service.login()).thenThrow(const LoginNotFollowingException());
+    when(anyLogin).thenThrow(const LoginNotFollowingException());
     await pumpScreen(tester, notice: SignInNotice.channelAccessLost);
 
     await tester.tap(loginButton);
