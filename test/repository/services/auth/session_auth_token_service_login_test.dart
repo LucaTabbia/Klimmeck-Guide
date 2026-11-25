@@ -157,6 +157,36 @@ void main() {
       });
     });
 
+    for (final hostileVersion in ['a&challenge=x', 'v 1#frag']) {
+      test('the version "$hostileVersion" travels as one encoded termsVersion '
+          'value: no parameter added or altered (U-6)', () {
+        fakeAsync((async) {
+          browserReturns(_ticketCallback);
+          exchangeAnswers(() async => _loginSession);
+          final service = buildService(async);
+
+          service.login(acceptedLegalVersion: hostileVersion);
+          async.flushMicrotasks();
+
+          final startUrl =
+              verify(
+                    () => browser.authenticate(
+                      startUrl: captureAny(named: 'startUrl'),
+                      callbackScheme: 'klimmeck',
+                    ),
+                  ).captured.single
+                  as Uri;
+          expect(startUrl.queryParametersAll, {
+            'challenge': ['challenge-test'],
+            'termsVersion': [hostileVersion],
+          });
+          expect(startUrl.hasFragment, isFalse);
+          expect(startUrl.path, '/auth/twitch/start');
+          service.dispose();
+        });
+      });
+    }
+
     test('redeems the ticket, persists the session and authenticates', () {
       fakeAsync((async) {
         browserReturns(_ticketCallback);
