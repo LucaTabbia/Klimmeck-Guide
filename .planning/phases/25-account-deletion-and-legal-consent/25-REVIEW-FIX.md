@@ -136,6 +136,50 @@ The REDs failed for the right reasons: Annulla not null, the failure line missin
 - Schema check (BE repo read-only; `git -C <BE> status --short` printed nothing): `dumped 57 documents`, 57 × `OK`, nothing else, exit 0, against `src/schema.gql` of `df22b017`. The BE branch tip has since moved to `58ccd402` with one docs-only commit (`docs(phase-26): record the real boot from the branch`) and no SDL change. The check against that tip is also 57 × OK.
 - Every commit was checked: subject ≤ 72 characters, counted before committing, and the trailer grep printed `0`.
 
+## Second round — security audit
+
+**Source:** `25-SECURITY.md`, findings U-1 (low) and U-6 (info), following the orchestrator's ruling (U-1: both the session-level change and the UI lock, each with its test; U-6: one pin test). Branch unchanged, from `7f195a0c` to `2d8c7188` (5 commits), plus the docs commit of this section.
+
+| Finding | Outcome | RED / test | GREEN |
+|---------|---------|------------|-------|
+| U-1 (a) a logout overwrites or pre-empts the `accountDeleted` landing | fixed | `6d813673` | `a288021c` |
+| U-1 (b) «Elimina personaggio» / «Elimina account» live while a logout runs | fixed | `9da45886` | `cdf90d97` |
+| U-6 no test pins the encoding of `termsVersion` | pinned (test only, no behaviour change) | `2d8c7188` | — |
+
+### U-1 (a): the deletion path wins at the session level
+
+**Files:** `lib/repository/services/auth/session_auth_token_service.dart`, `lib/screens/auth/cubit/auth_cubit.dart`, `test/repository/services/auth/session_auth_token_service_terminate_test.dart`, `test/screens/auth/cubit/auth_cubit_test.dart`
+**Change:** `_performLogout` now starts with two guards. If an end of session is already running (`_endInFlight`, e.g. the teardown of `terminateSession(accountDeleted)`), the logout returns that same future. If the channel is already `AuthUnauthenticated`, it returns at once. In both cases there is no `_detachSession`, no backend logout, no second teardown or store clear, and no `signedOut` over the earlier terminal state. `AuthCubit.logout()` returns at once when its state is already `AuthUnauthenticated`, so no push unregister goes out after the session ended. A logout that already owns the session is unchanged.
+**Tests (fakeAsync, no sleeps):**
+- «a logout after the accountDeleted landing keeps it»: `terminateSession(accountDeleted)`, then `logout()`. One teardown, one clear, the only unauthenticated state is `accountDeleted`, `api.logout` never called. RED: `teardowns` was 2.
+- «a logout waiting for the push unregister when accountDeleted arrives ends as accountDeleted»: real `AuthCubit` over the real service, the push unregister held by a `Completer`; `cubit.logout()` starts, `terminateSession(accountDeleted)` lands, the unregister completes. The logout completes, one teardown, only `accountDeleted`, `api.logout` never called. This is the audit's order (a). RED: `teardowns` was 2 (the second teardown is the one that emitted `signedOut`).
+- «accountDeleted arriving while the backend logout is out lands as signedOut»: the audit's order (b), pinned. Green before and after the fix.
+- `AuthCubit`: «a logout after the session already ended sends no push unregister and no service logout». RED: `Unexpected calls: MockPushSessionCleanup.unregister()`.
+
+**Landing in each order:**
+- **Order (a), the deletion answers while the logout waits for the push unregister** (the service logout has not started): the landing is `accountDeleted`, the notice «Il tuo account è stato eliminato.» shows and the consent memory is forgotten (D-03, D-10). The BE logout is never sent (D-06). The push unregister had already gone out before the deletion answered; that is the call the player started, not one sent after the deletion.
+- **Order (b), the deletion answers while the BE logout is out**: the landing stays **`signedOut`** (no notice, consent memory kept). Why: the logout already owns the session. It detached it and sent its BE logout before the deletion answered, and `terminateSession` is a no-op during a logout by contract (existing test «does nothing while a logout is in flight and leaves one signedOut terminal state»). Turning the landing into `accountDeleted` here would mean that `terminateSession` records a reason during a logout. That changes the meaning of that tested behaviour, which the ruling excludes. No BE call goes out after the deletion answered in this order: with a fresh access token the BE logout left before the answer; with an expired one the logout refreshes first, and a refresh the BE refuses skips the BE logout (existing test «a rejected refresh ends the session once, as signed out»). Since U-1 (b), this order can no longer start from Settings, because «Elimina account» is inert from the tap on «Esci».
+
+### U-1 (b): no Account button answers while a logout runs
+
+**Files:** `lib/screens/mainScreen/tabs/settings/components/account_section.dart`, `test/screens/mainScreen/tabs/settings/components/account_section_test.dart`
+**Change:** the app has no shared «logout in flight» state. `AuthState` is the service's state, and a getter on `AuthCubit` would not be reactive, which `docs/rules/state-management.md` forbids for rendering. So `AccountSection` becomes a `StatefulWidget` with a private `_isLoggingOut`. It is set from the tap on «Esci» until `confirmLogout` returns, and reset if the widget is still mounted (dialog cancelled). While it is set, «Elimina personaggio», «Esci» and «Elimina account» get `onPressed: null`, like WR-01 does for the account deletion. «Esci» is included as the audit recommends: it avoids a second logout dialog, and the service shares overlapping logouts anyway. The innkeeper (no «Elimina account») is unchanged. The flag is ephemeral UI state of the one widget that starts the logout. No new cubit field.
+**Tests:**
+- «while a confirmed logout runs the Account buttons are inert»: `logout()` held by a `Completer`; tap «Esci», confirm; the three `onPressed` are null, tapping the two deletion buttons opens no dialog, and `deleteCharacter` / `deleteAccount` are never called. RED: `Expected: null, Actual: Closure`.
+- «cancelling Esci leaves the Account buttons live»: a guard added with the fix (green with it), so that the lock does not outlive a cancelled dialog.
+
+### U-6: `termsVersion` pinned as one encoded value
+
+**File:** `test/repository/services/auth/session_auth_token_service_login_test.dart`, next to the existing start URL test.
+**Test:** for `a&challenge=x` and `v 1#frag`, the URL captured by the browser has exactly `{challenge: [challenge-test], termsVersion: [<the value>]}`, no fragment, path `/auth/twitch/start`. It is green on the current code, so a RED is not expressible. As a mutation check, the start URL was temporarily built by string concatenation: both cases went red, and the file was restored with `git checkout --` (never committed).
+
+### Final numbers (foreground, after all fixes)
+
+- Full suite: `01:58 +5702: All tests passed!`. That is 5694 + 8 new tests (terminate 3, `AuthCubit` 1, Account section 2, login URL 2).
+- `flutter analyze`: «47 issues found», unchanged.
+- `bash tool/hardening_check.sh | tail -1`: `hardening_check: OK`.
+- `dart format` was run file by file on the 7 touched files only. Every commit: subject ≤ 72 characters, counted before committing, and the trailer grep printed `0`. Each commit builds on its own.
+
 ---
 
 _Fixed: 2026-11-25T09:24:13Z_
