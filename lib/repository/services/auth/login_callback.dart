@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 const String loginCallbackScheme = 'klimmeck';
 const String twitchNotConfiguredError = 'twitch_not_configured';
 const String notFollowingError = 'not_following';
+const String termsNotAcceptedError = 'terms_not_accepted';
 
 const String _loginCallbackHost = 'auth';
 const String _accessDeniedError = 'access_denied';

@@ -127,6 +127,29 @@ void main() {
     verify(() => questCubit.refreshQuests(cityId: null)).called(1);
   });
 
+  testWidgets('the jump back to the city rereads the Board of that city in '
+      'silence (D-13, D-23)', (tester) async {
+    await pumpListener(
+      tester,
+      initial: _character(
+        locationId: 'poi-1',
+        pendingQuest: laneJson(questType: 'enemy'),
+        currentLifePoints: 6,
+        maxLifePoints: 10,
+      ),
+    );
+
+    await emit(tester, _character(currentLifePoints: 9, maxLifePoints: 10));
+
+    expect(
+      verify(
+        () => questCubit.refreshQuests(cityId: captureAny(named: 'cityId')),
+      ).captured,
+      ['city-1'],
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
   testWidgets('a new title rereads the quests', (tester) async {
     await pumpListener(tester, initial: _character());
 

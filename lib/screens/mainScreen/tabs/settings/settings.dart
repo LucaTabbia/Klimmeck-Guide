@@ -49,7 +49,6 @@ class Settings extends StatelessWidget {
                   ],
                   const SizedBox(height: KlimmeckGuideTheme.spacingLg),
                   const NotificationPreferencesSection(),
-                  const SizedBox(height: KlimmeckGuideTheme.spacingXl),
                   const InnkeeperSection(),
                   AccountSection(characterName: name),
                   const SizedBox(height: _satchelClearance),

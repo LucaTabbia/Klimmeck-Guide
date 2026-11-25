@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
+import 'package:klimmeck_guide/repository/services/account/graphql_account_deletion_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
@@ -20,12 +21,13 @@ import 'package:klimmeck_guide/repository/services/push/notification_permission_
 import 'package:klimmeck_guide/repository/services/push/notification_tap_router.dart';
 import 'package:klimmeck_guide/repository/services/push/push_registration_coordinator.dart';
 import 'package:klimmeck_guide/repository/services/push/push_services.dart';
-import 'package:klimmeck_guide/repository/services/push/url_launcher_link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/url_launcher_link_opener.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest.dart';
 import 'package:klimmeck_guide/repository/services/rest/rest_client_provider.dart';
 import 'package:klimmeck_guide/repository/services/sync/app_lifecycle_events.dart';
 import 'package:klimmeck_guide/repository/storage/active_user_store.dart';
 import 'package:klimmeck_guide/repository/storage/device_identity_store.dart';
+import 'package:klimmeck_guide/repository/storage/legal_consent_store.dart';
 import 'package:klimmeck_guide/repository/storage/library_bookmarks_store.dart';
 import 'package:klimmeck_guide/repository/storage/notification_preferences_store.dart';
 import 'package:klimmeck_guide/screens/auth/app_lifecycle_bridge.dart';
@@ -78,6 +80,8 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
   final LibraryBookmarksStore libraryBookmarksStore =
       SharedPreferencesLibraryBookmarksStore();
   final NewEntriesStore newEntriesStore = SharedPreferencesNewEntriesStore();
+  final LegalConsentStore legalConsentStore =
+      SharedPreferencesLegalConsentStore();
 
   /// Registrazione push per tutta la vita del processo (D-07). Con il push disabilitato le
   /// porte no-op non producono token: mantiene solo lo specchio dell'utente attivo.
@@ -233,6 +237,7 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                             builder: (context) {
                               preloadImages(context);
                               return AuthGate(
+                                legalConsentStore: legalConsentStore,
                                 // Lo scope copre anche la creazione personaggio: il watchdog
                                 // e' di sessione (research Open Question 3, accettato).
                                 authenticatedBuilder: (context, user) =>
@@ -272,6 +277,12 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                                   widget.push.permission,
                                               pushMessaging:
                                                   widget.push.messaging,
+                                              accountDeletionApi:
+                                                  GraphQlAccountDeletionApi(
+                                                    graphQl,
+                                                  ),
+                                              sessionTerminator:
+                                                  widget.sessionTerminator,
                                             ),
                                       ),
                                     ),

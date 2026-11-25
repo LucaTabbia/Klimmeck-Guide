@@ -51,8 +51,10 @@ class AuthCubit extends Cubit<AuthState> {
 
   /// D-08: prima la rimozione del device push (best-effort, al massimo 2 s), poi il logout
   /// del backend, che richiede ancora il bearer. `confirmLogout` e "Esci" della creazione
-  /// passano tutti di qui.
+  /// passano tutti di qui. Una sessione già chiusa (per esempio dall'eliminazione
+  /// dell'account) non ha più nulla da chiudere: nessuna chiamata parte.
   Future<void> logout() async {
+    if (state is AuthUnauthenticated) return;
     await _unregisterPushDevice();
     await _authTokenService.logout();
   }

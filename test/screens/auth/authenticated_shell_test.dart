@@ -35,9 +35,11 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
@@ -45,6 +47,7 @@ import 'package:klimmeck_guide/shared/components/kg_notification_banner.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fakes/fake_account_deletion_api.dart';
 import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/fake_push_messaging_port.dart';
 import '../../helpers/fakes/in_memory_library_bookmarks_store.dart';
@@ -69,8 +72,13 @@ void main() {
   late FakePushMessagingPort messaging;
   late RecordingNotificationIntentSink sink;
   late RecordingLinkOpener links;
+  late FakeAccountDeletionApi accountDeletionApi;
+  late MockSessionTerminator sessionTerminator;
 
-  setUpAll(() => registerFallbackValue(buildTestUser()));
+  setUpAll(() {
+    registerFallbackValue(buildTestUser());
+    registerFallbackValue(UnauthenticatedReason.signedOut);
+  });
 
   setUp(() {
     store = InMemoryNotificationPreferencesStore();
@@ -80,6 +88,11 @@ void main() {
     messaging = FakePushMessagingPort();
     sink = RecordingNotificationIntentSink();
     links = RecordingLinkOpener();
+    accountDeletionApi = FakeAccountDeletionApi();
+    sessionTerminator = MockSessionTerminator();
+    when(
+      () => sessionTerminator.terminateSession(any()),
+    ).thenAnswer((_) async {});
     authCubit = MockAuthCubit();
     whenListen(
       authCubit,
@@ -152,6 +165,8 @@ void main() {
                 userId: testUserId,
                 notificationPermission: permission,
                 pushMessaging: messaging,
+                accountDeletionApi: accountDeletionApi,
+                sessionTerminator: sessionTerminator,
                 mainScreenBuilder:
                     mainScreenBuilder ?? (_, id) => Text('main $id'),
               ),
@@ -336,6 +351,57 @@ void main() {
     await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
 
     expect(spellsCubit.isClosed, isTrue);
+  });
+
+  testWidgets('the shell provides the account deletion cubits and closes them '
+      'on removal (D-01, D-15)', (tester) async {
+    late AccountDeletionCubit accountDeletionCubit;
+    late PlayerAccountDeletionCubit playerDeletionCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        accountDeletionCubit = context.read<AccountDeletionCubit>();
+        playerDeletionCubit = context.read<PlayerAccountDeletionCubit>();
+        return const Text('main');
+      },
+    );
+
+    expect(accountDeletionCubit.state, const AccountDeletionState());
+    expect(playerDeletionCubit.state, const PlayerAccountDeletionState());
+    expect(accountDeletionCubit.isClosed, isFalse);
+    expect(playerDeletionCubit.isClosed, isFalse);
+
+    await tester.pumpWidget(buildTestApp(home: const SizedBox.shrink()));
+
+    expect(accountDeletionCubit.isClosed, isTrue);
+    expect(playerDeletionCubit.isClosed, isTrue);
+  });
+
+  testWidgets('the deletion cubits reach the given API and the own deletion '
+      'ends through the session terminator (D-06, D-15)', (tester) async {
+    late AccountDeletionCubit accountDeletionCubit;
+    late PlayerAccountDeletionCubit playerDeletionCubit;
+    await pumpShell(
+      tester,
+      state: const SplashData(),
+      mainScreenBuilder: (context, _) {
+        accountDeletionCubit = context.read<AccountDeletionCubit>();
+        playerDeletionCubit = context.read<PlayerAccountDeletionCubit>();
+        return const Text('main');
+      },
+    );
+
+    await accountDeletionCubit.deleteAccount();
+    await playerDeletionCubit.deletePlayer('some_viewer');
+
+    expect(accountDeletionApi.deleteMyAccountCalls, 1);
+    expect(accountDeletionApi.deletedTwitchLogins, ['some_viewer']);
+    verify(
+      () => sessionTerminator.terminateSession(
+        UnauthenticatedReason.accountDeleted,
+      ),
+    ).called(1);
   });
 
   testWidgets('provides the companion cubit and closes it on removal (D-10)', (

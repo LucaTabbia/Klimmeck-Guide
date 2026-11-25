@@ -1,4 +1,5 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:klimmeck_guide/graphql/mutations/account_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/push_mutations.dart';
@@ -733,6 +734,26 @@ class KlimmeckGraphQl {
       await performMutation(query: CharacterMutations.deleteCharacter),
     );
     return _userFrom(data['deleteCharacter']);
+  }
+
+  /// Elimina l'account del chiamante (BE Phase 26, D-20); la risposta `true`
+  /// non porta nulla da leggere. Lancia [OperationException] o [FormatException].
+  Future<void> deleteMyAccount() async {
+    _dataOrThrow(
+      await performMutation(query: AccountMutations.deleteMyAccount),
+    );
+  }
+
+  /// Solo oste: elimina l'account del giocatore dal nome utente Twitch (D-15);
+  /// il `twitchId` della risposta è ignorato e il nome non è mai registrato.
+  /// Lancia [OperationException] o [FormatException].
+  Future<void> deleteAccountByTwitchLogin(String twitchLogin) async {
+    _dataOrThrow(
+      await performMutation(
+        query: AccountMutations.deleteAccountByTwitchLogin,
+        variables: {'twitchLogin': twitchLogin},
+      ),
+    );
   }
 
   /// Accetta la quest (D-05). La corsia e il saldo arrivano dalle subscription,

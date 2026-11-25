@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
+import 'package:klimmeck_guide/models/pending_quest.dart';
+import 'package:klimmeck_guide/models/quest/quest_state_label.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/party_watch_listener.dart';
 import 'package:klimmeck_guide/screens/mainScreen/questCubit/quest_cubit.dart';
@@ -168,5 +170,28 @@ void main() {
     await emit(tester, _character(pendingQuest: _started()));
 
     verifyNever(() => questCubit.refreshQuests(cityId: any(named: 'cityId')));
+  });
+
+  testWidgets('a member of a not-started quest keeps following the served '
+      'count when a seat is freed (D-13)', (tester) async {
+    final lane = PendingQuest.fromJson(_waiting());
+    String labelServedWith(List<String> registered) => questStateLabel(
+      lane,
+      buildQuest(
+        type: 'boss',
+        slots: const [
+          {'title': null, 'count': 3},
+        ],
+        registered: registered,
+      ),
+    );
+    await pumpListener(tester, initial: _character(pendingQuest: _waiting()));
+    expect(labelServedWith(const ['c-1', 'c-2']), 'In attesa del gruppo 2/3');
+
+    await emit(tester, _character(pendingQuest: _waiting(waitingTime: 2)));
+
+    verify(() => questCubit.watchQuest('q-1')).called(1);
+    verifyNever(() => questCubit.unwatchQuest());
+    expect(labelServedWith(const ['c-1']), 'In attesa del gruppo 1/3');
   });
 }

@@ -14,6 +14,7 @@ import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
@@ -131,7 +132,12 @@ void main() {
             BlocProvider<AuthCubit>.value(value: authCubit),
             BlocProvider<SplashCubit>.value(value: splashCubit),
           ],
-          child: buildTestApp(home: AuthGate(authenticatedBuilder: session)),
+          child: buildTestApp(
+            home: AuthGate(
+              authenticatedBuilder: session,
+              legalConsentStore: InMemoryLegalConsentStore(),
+            ),
+          ),
         ),
       ),
     );

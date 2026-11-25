@@ -80,4 +80,28 @@ void main() {
 
     expect(received, [PushEvent.tryParse(travelEndData)]);
   });
+
+  test(
+    'a questCancelled push carries the backend body verbatim (D-23)',
+    () async {
+      const body =
+          'Le campane di Aldheim suonano a vuoto: nessuno torna dal bosco.';
+      const cancelledData = <String, String>{
+        'type': 'questCancelled',
+        'title': 'Missione annullata',
+        'body': body,
+        'sentAt': '2026-11-25T12:00:00.000Z',
+        'id': '6712a0c4e1b2c3d4e5f60719',
+      };
+
+      await deliver(cancelledData);
+
+      final event = received.single;
+      expect(event.category, NotificationCategory.questCancelled);
+      expect(event.title, 'Missione annullata');
+      expect(event.body, body);
+      expect(event.notification.description, body);
+      expect(event.id, '6712a0c4e1b2c3d4e5f60719');
+    },
+  );
 }

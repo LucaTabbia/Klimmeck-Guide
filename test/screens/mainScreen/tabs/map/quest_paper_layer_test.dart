@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +35,7 @@ void main() {
     WidgetTester tester, {
     CharacterState? character,
     QuestState? quests,
+    Stream<CharacterState> characterUpdates = const Stream.empty(),
   }) async {
     useLandscapePhone(tester);
     final q = buildQuest(
@@ -48,11 +51,7 @@ void main() {
       questPaperAssetId(q, isTorn: false),
       questPaperAssetId(h, isTorn: false),
     ]);
-    whenListen(
-      characterCubit,
-      const Stream<CharacterState>.empty(),
-      initialState: character,
-    );
+    whenListen(characterCubit, characterUpdates, initialState: character);
     whenListen(
       questCubit,
       const Stream<QuestState>.empty(),
@@ -250,6 +249,34 @@ void main() {
     await pumpLayer(tester, character: CharacterLoading());
 
     expect(find.byKey(QuestPaperLayer.paperKey), findsNothing);
+  });
+
+  testWidgets('the paper of a started quest leaves the map when the lane '
+      'is emptied (D-23)', (tester) async {
+    final updates = StreamController<CharacterState>();
+    addTearDown(updates.close);
+    await pumpLayer(
+      tester,
+      character: characterWith(
+        characterWithLanesJson(
+          locationId: 'poi-1',
+          pendingQuest: laneJson(
+            questId: 'e-1',
+            startDate: '2026-10-21T10:00:00.000Z',
+          ),
+        ),
+      ),
+      characterUpdates: updates.stream,
+    );
+    expect(find.text('In combattimento…'), findsOneWidget);
+
+    updates.add(
+      characterWith(characterWithLanesJson(locationId: 'city-marker-1')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(QuestPaperLayer.paperKey), findsNothing);
+    expect(find.text('In combattimento…'), findsNothing);
   });
 
   testWidgets('tapping the paper reports the quest and its lane', (

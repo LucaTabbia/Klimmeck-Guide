@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/enums/role_type.dart';
 import 'package:klimmeck_guide/models/user.dart';
@@ -14,6 +15,7 @@ import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
 
@@ -21,6 +23,7 @@ const _expiredNotice = 'La sessione è scaduta, accedi di nuovo.';
 const _connectionLostNotice = 'Connessione persa, accedi di nuovo.';
 const _newLoginNotice = 'Hai effettuato l\'accesso da un altro dispositivo.';
 const _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
+const _accountDeletedNotice = 'Il tuo account è stato eliminato.';
 const _manualSignIn = 'Accedi manualmente';
 
 User _user(String id) => User(
@@ -75,7 +78,10 @@ void main() {
     );
   }
 
-  Future<void> pumpGate(WidgetTester tester) async {
+  Future<void> pumpGate(
+    WidgetTester tester, {
+    InMemoryLegalConsentStore? legalConsentStore,
+  }) async {
     await tester.pumpWidget(
       RepositoryProvider<AuthTokenService>.value(
         value: service,
@@ -85,7 +91,11 @@ void main() {
             BlocProvider<SplashCubit>.value(value: splashCubit),
           ],
           child: buildTestApp(
-            home: AuthGate(authenticatedBuilder: authenticatedBuilder),
+            home: AuthGate(
+              authenticatedBuilder: authenticatedBuilder,
+              legalConsentStore:
+                  legalConsentStore ?? InMemoryLegalConsentStore(),
+            ),
           ),
         ),
       ),
@@ -118,6 +128,31 @@ void main() {
 
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('the sign-in screen starts ticked when this device accepted '
+      'the current version (D-10)', (tester) async {
+    await pumpGate(
+      tester,
+      legalConsentStore: InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      ),
+    );
+    await emitAuth(tester, const AuthUnauthenticated());
+
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+  });
+
+  testWidgets('the sign-in screen starts unticked otherwise (D-10)', (
+    tester,
+  ) async {
+    await pumpGate(
+      tester,
+      legalConsentStore: InMemoryLegalConsentStore(acceptedVersion: 'v-old'),
+    );
+    await emitAuth(tester, const AuthUnauthenticated());
+
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
   });
 
   testWidgets('session expired shows the sign-in screen with notice', (
@@ -190,6 +225,91 @@ void main() {
     expect(signIn.notice, SignInNotice.channelAccessLost);
     expect(find.text(_roleChangedNotice), findsNothing);
     expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  testWidgets('an account deleted lands on the sign-in with its notice '
+      '(D-03, D-18)', (tester) async {
+    await pumpGate(tester);
+    await emitAuth(tester, _authenticated('A'));
+    await emitAuth(
+      tester,
+      const AuthUnauthenticated(reason: UnauthenticatedReason.accountDeleted),
+    );
+
+    final signIn = tester.widget<SignInScreen>(find.byType(SignInScreen));
+    expect(signIn.notice, SignInNotice.accountDeleted);
+    expect(find.text(_accountDeletedNotice), findsOneWidget);
+    expect(find.text(_expiredNotice), findsNothing);
+  });
+
+  group('consent memory on landing', () {
+    late InMemoryLegalConsentStore store;
+
+    Future<void> landWith(
+      WidgetTester tester,
+      UnauthenticatedReason reason,
+    ) async {
+      store = InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      );
+      await pumpGate(tester, legalConsentStore: store);
+      await emitAuth(tester, _authenticated('A'));
+      await emitAuth(tester, AuthUnauthenticated(reason: reason));
+      // Il Cubit del consenso è pigro: legge lo storage un frame dopo.
+      await tester.pump();
+    }
+
+    bool isTicked(WidgetTester tester) =>
+        tester.widget<Checkbox>(find.byType(Checkbox)).value ?? false;
+
+    testWidgets('the account-deleted landing forgets the consent: the box '
+        'starts unticked (D-06, D-10)', (tester) async {
+      await landWith(tester, UnauthenticatedReason.accountDeleted);
+
+      expect(store.acceptedVersion, isNull);
+      expect(isTicked(tester), isFalse);
+    });
+
+    testWidgets('a sign-in already shown with the box ticked forgets the '
+        'consent when the account-deleted reason arrives (D-10, WR-02)', (
+      tester,
+    ) async {
+      store = InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      );
+      await pumpGate(tester, legalConsentStore: store);
+      await tester.pump(SplashCubit.connectionHintDelay);
+      await tester.tap(find.text(_manualSignIn));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(isTicked(tester), isTrue);
+
+      await emitAuth(
+        tester,
+        const AuthUnauthenticated(reason: UnauthenticatedReason.accountDeleted),
+      );
+      await tester.pump();
+
+      expect(find.text(_accountDeletedNotice), findsOneWidget);
+      expect(isTicked(tester), isFalse);
+      expect(store.acceptedVersion, isNull);
+    });
+
+    testWidgets('a logout keeps the consent: the box starts ticked (D-10)', (
+      tester,
+    ) async {
+      await landWith(tester, UnauthenticatedReason.signedOut);
+
+      expect(store.acceptedVersion, LegalDocuments.version);
+      expect(isTicked(tester), isTrue);
+    });
+
+    testWidgets('a session expired keeps the consent (D-10)', (tester) async {
+      await landWith(tester, UnauthenticatedReason.sessionExpired);
+
+      expect(store.acceptedVersion, LegalDocuments.version);
+      expect(isTicked(tester), isTrue);
+    });
   });
 
   testWidgets('an expired session keeps the neutral notice (D-12)', (
@@ -377,6 +497,7 @@ void main() {
             ],
             child: buildTestApp(
               home: AuthGate(
+                legalConsentStore: InMemoryLegalConsentStore(),
                 authenticatedBuilder: (context, user) {
                   builds++;
                   return Text(

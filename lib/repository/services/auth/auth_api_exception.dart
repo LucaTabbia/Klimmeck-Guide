@@ -9,9 +9,12 @@ const String badRequestCode = 'BAD_REQUEST';
 
 /// Valori di `extensions.reason` (BE Phase 17 `SessionRevokeReason`) che hanno
 /// un avviso dedicato; gli altri valori restano leciti e valgono l'avviso neutro.
+/// `accountDeleted` (BE Phase 26, D-18): servito per 15 minuti dopo
+/// l'eliminazione dell'account.
 const String sessionRevokedReasonNewLogin = 'newLogin';
 const String sessionRevokedReasonRoleChanged = 'roleChanged';
 const String sessionRevokedReasonAccessLost = 'accessLost';
+const String sessionRevokedReasonAccountDeleted = 'accountDeleted';
 
 /// Errori di dominio delle operazioni di auth: portano solo codici, mai token.
 sealed class AuthApiException extends Equatable implements Exception {

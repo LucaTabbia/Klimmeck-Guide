@@ -44,6 +44,15 @@ void main() {
     expect(links.opened, isEmpty);
   });
 
+  test('tapping a questCancelled push routes as today (D-23)', () async {
+    final intent = intentOf(NotificationCategory.questCancelled, id: 'q-1');
+
+    await router.handle(intent);
+
+    expect(sink.offered, [intent]);
+    expect(links.opened, isEmpty);
+  });
+
   test('a streamerLive tap opens the Twitch channel only', () async {
     await router.handle(intentOf(NotificationCategory.streamerLive));
 

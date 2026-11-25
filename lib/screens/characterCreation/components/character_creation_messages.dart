@@ -3,6 +3,7 @@ import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/repository/character_creation_failure.dart';
 import 'package:klimmeck_guide/repository/services/image/portrait_picker.dart';
 import 'package:klimmeck_guide/screens/characterCreation/cubit/character_draft.dart';
+import 'package:klimmeck_guide/utils/failure_lines.dart';
 
 export 'package:klimmeck_guide/utils/name_rules.dart' show NameErrorMessage;
 
@@ -31,7 +32,7 @@ extension CharacterCreationFailureMessage on CharacterCreationFailure {
     CharacterCreationFailure.alreadyExists => 'Hai già un personaggio',
     CharacterCreationFailure.startingLocationUnavailable =>
       'Il mondo non è ancora pronto ad accoglierti, riprova più tardi',
-    CharacterCreationFailure.connection => 'Errore di connessione, riprova',
+    CharacterCreationFailure.connection => connectionFailureLine,
     CharacterCreationFailure.handoverRejected =>
       'Personaggio creato, ma la sessione non lo riconosce: esci e rientra',
     CharacterCreationFailure.badUserInput ||

@@ -8,9 +8,11 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/repository/services/push/notification_permission_port.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/settings.dart';
 import 'package:klimmeck_guide/shared/components/background_image.dart';
 import 'package:mocktail/mocktail.dart';
@@ -19,12 +21,15 @@ import '../../../../helpers/auth_fixtures.dart';
 import '../../../../helpers/fixtures/sync_event_fixtures.dart';
 import '../../../../helpers/landscape.dart';
 import '../../../../helpers/mocks.dart';
+import '../../../../helpers/settings_sections.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
   late MockCharacterCubit characterCubit;
   late MockNotificationPreferencesCubit notificationCubit;
   late MockCharacterDeletionCubit deletionCubit;
+  late MockAccountDeletionCubit accountDeletionCubit;
+  late MockPlayerAccountDeletionCubit playerDeletionCubit;
   late MockAuthCubit authCubit;
   late MockNotificationPermissionCubit permissionCubit;
 
@@ -47,6 +52,8 @@ void main() {
     characterCubit = MockCharacterCubit();
     notificationCubit = MockNotificationPreferencesCubit();
     deletionCubit = MockCharacterDeletionCubit();
+    accountDeletionCubit = MockAccountDeletionCubit();
+    playerDeletionCubit = MockPlayerAccountDeletionCubit();
     authCubit = MockAuthCubit();
     permissionCubit = MockNotificationPermissionCubit();
     givenPermission(NotificationPermissionStatus.notDetermined);
@@ -60,6 +67,16 @@ void main() {
       deletionCubit,
       const Stream<CharacterDeletionState>.empty(),
       initialState: const CharacterDeletionState(),
+    );
+    whenListen(
+      accountDeletionCubit,
+      const Stream<AccountDeletionState>.empty(),
+      initialState: const AccountDeletionState(),
+    );
+    whenListen(
+      playerDeletionCubit,
+      const Stream<PlayerAccountDeletionState>.empty(),
+      initialState: const PlayerAccountDeletionState(),
     );
     givenSessionRole(RoleType.adventurer);
     when(() => authCubit.logout()).thenAnswer((_) async {});
@@ -85,6 +102,12 @@ void main() {
                 value: permissionCubit,
               ),
               BlocProvider<CharacterDeletionCubit>.value(value: deletionCubit),
+              BlocProvider<AccountDeletionCubit>.value(
+                value: accountDeletionCubit,
+              ),
+              BlocProvider<PlayerAccountDeletionCubit>.value(
+                value: playerDeletionCubit,
+              ),
               BlocProvider<AuthCubit>.value(value: authCubit),
             ],
             child: const Settings(),
@@ -92,6 +115,12 @@ void main() {
         ),
       ),
     );
+  }
+
+  Future<void> openEverySection(WidgetTester tester) async {
+    for (final title in ['Notifiche', 'Locanda', 'Azioni irreversibili']) {
+      await openSettingsSection(tester, title);
+    }
   }
 
   CharacterLoaded loadedAldo() => CharacterLoaded(
@@ -103,13 +132,14 @@ void main() {
 
   testWidgets('renders header, sections and controls in order', (tester) async {
     await pumpSettings(tester, loadedAldo());
+    await openEverySection(tester);
 
     for (final text in [
       'Impostazioni',
       'Aldo',
       'Notifiche',
       'Fine viaggio',
-      'Account',
+      'Azioni irreversibili',
       'Elimina personaggio',
       'Esci',
     ]) {
@@ -120,7 +150,7 @@ void main() {
       'Aldo',
       'Notifiche',
       'Fine viaggio',
-      'Account',
+      'Azioni irreversibili',
       'Elimina personaggio',
       'Esci',
     ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
@@ -130,24 +160,26 @@ void main() {
     expect(find.text('Missione annullata'), findsOneWidget);
   });
 
-  testWidgets('an innkeeper sees «Locanda» between Notifiche and Account', (
-    tester,
-  ) async {
-    givenSessionRole(RoleType.innkeeper);
-    await pumpSettings(tester, loadedAldo());
+  testWidgets(
+    'an innkeeper sees «Locanda» between Notifiche and the deletions',
+    (tester) async {
+      givenSessionRole(RoleType.innkeeper);
+      await pumpSettings(tester, loadedAldo());
+      await openEverySection(tester);
 
-    final ordered = [
-      'Notifiche',
-      'Fine viaggio',
-      'Locanda',
-      'Apri la Locanda',
-      'Account',
-      'Elimina personaggio',
-      'Esci',
-    ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
-    expect(ordered, [...ordered]..sort());
-    expect(ordered.toSet(), hasLength(ordered.length));
-  });
+      final ordered = [
+        'Notifiche',
+        'Fine viaggio',
+        'Locanda',
+        'Apri la Locanda',
+        'Azioni irreversibili',
+        'Elimina personaggio',
+        'Esci',
+      ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
+      expect(ordered, [...ordered]..sort());
+      expect(ordered.toSet(), hasLength(ordered.length));
+    },
+  );
 
   testWidgets('an adventurer sees no «Locanda» section', (tester) async {
     await pumpSettings(tester, loadedAldo());
@@ -161,6 +193,7 @@ void main() {
     givenPermission(NotificationPermissionStatus.denied);
 
     await pumpSettings(tester, loadedAldo());
+    await openEverySection(tester);
 
     expect(
       find.text('Le notifiche di sistema sono disattivate'),
@@ -189,7 +222,7 @@ void main() {
 
     expect(find.text('Aldo'), findsNothing);
     expect(find.text('Notifiche'), findsOneWidget);
-    expect(find.text('Account'), findsOneWidget);
+    expect(find.text('Azioni irreversibili'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
@@ -210,6 +243,7 @@ void main() {
     tester,
   ) async {
     await pumpSettings(tester, loadedAldo());
+    await openEverySection(tester);
 
     await tester.ensureVisible(find.text('Elimina personaggio'));
     await tester.pumpAndSettle();
@@ -223,4 +257,28 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'every section starts closed and Esci is the last thing on the sheet (UAT 25)',
+    (tester) async {
+      givenSessionRole(RoleType.innkeeper);
+      await pumpSettings(tester, loadedAldo());
+
+      for (final hidden in [
+        'Fine viaggio',
+        'Apri la Locanda',
+        'Elimina un account',
+        'Elimina personaggio',
+      ]) {
+        expect(find.text(hidden).hitTestable(), findsNothing);
+      }
+      final ordered = [
+        'Notifiche',
+        'Locanda',
+        'Azioni irreversibili',
+        'Esci',
+      ].map((text) => tester.getTopLeft(find.text(text)).dy).toList();
+      expect(ordered, [...ordered]..sort());
+    },
+  );
 }

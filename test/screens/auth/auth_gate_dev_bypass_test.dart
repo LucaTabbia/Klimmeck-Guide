@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/dev_auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/auth_gate.dart';
@@ -10,6 +11,7 @@ import 'package:klimmeck_guide/screens/signIn/sign_in_screen.dart';
 import 'package:klimmeck_guide/screens/splash/cubit/splash_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fakes/in_memory_legal_consent_store.dart';
 import '../../helpers/fixtures/dev_auth_env.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/test_app.dart';
@@ -58,6 +60,9 @@ void main() {
           child: buildTestApp(
             home: AuthGate(
               authenticatedBuilder: (_, user) => Text('home ${user.id}'),
+              legalConsentStore: InMemoryLegalConsentStore(
+                acceptedVersion: LegalDocuments.version,
+              ),
             ),
           ),
         ),
@@ -96,6 +101,8 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text('home $_devUserId'), findsNothing);
 
+    // Il consenso ricordato si ripristina dopo il primo frame del sign-in.
+    await tester.pump();
     await tester.tap(find.text(_loginLabel));
     await settle(tester);
 
