@@ -53,6 +53,7 @@ import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/auth_fixtures.dart';
+import '../../helpers/fakes/fake_account_deletion_api.dart';
 import '../../helpers/fakes/fake_notification_permission_port.dart';
 import '../../helpers/fakes/fake_push_messaging_port.dart';
 import '../../helpers/fakes/in_memory_legal_consent_store.dart';
@@ -334,6 +335,8 @@ void main() {
             current: NotificationPermissionStatus.granted,
           ),
           pushMessaging: messaging,
+          accountDeletionApi: FakeAccountDeletionApi(),
+          sessionTerminator: MockSessionTerminator(),
           mainScreenBuilder: (context, id) =>
               _ShellProbe(characterId: id, references: references),
         ),
