@@ -1,5 +1,5 @@
 /// Le due cancellazioni dell'account (BE Phase 26, D-20). Implementazione
-/// GraphQL solo dal gate 25-07; fino ad allora nei test un fake.
+/// GraphQL: `GraphQlAccountDeletionApi` (gate 25-07); nei test un fake.
 /// Lancia OperationException (codici in `extensions.code`) o FormatException.
 abstract interface class AccountDeletionApi {
   /// Cancella l'account della sessione corrente; il BE revoca ogni sessione.

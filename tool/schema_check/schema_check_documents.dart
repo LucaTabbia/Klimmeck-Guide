@@ -1,3 +1,4 @@
+import 'package:klimmeck_guide/graphql/mutations/account_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/auth_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/character_mutations.dart';
 import 'package:klimmeck_guide/graphql/mutations/mission_mutations.dart';
@@ -45,7 +46,8 @@ import 'package:klimmeck_guide/graphql/subscriptions/user_subscriptions.dart';
 /// flusso guidato (`GetMissionDraft`, `ListMissionEnemies`,
 /// `GetMissionPrizeOptions`, `StartMissionDraft`, `SaveMissionDraft`,
 /// `SimulateMissionFight`, `DiscardMissionDraft`, `CompleteGuidedMission`);
-/// la Phase 22 aggiunge `RenamePet`; ogni documento futuro va aggiunto qui
+/// la Phase 22 aggiunge `RenamePet`; la Phase 25 aggiunge `DeleteMyAccount` e
+/// `DeleteAccountByTwitchLogin`; ogni documento futuro va aggiunto qui
 /// (il test `schema_check_documents_test.dart` lo impone).
 final Map<String, String> schemaCheckDocuments = {
   'cities': CityQueries.getAllCities,
@@ -83,6 +85,8 @@ final Map<String, String> schemaCheckDocuments = {
   'UnequipPet': CharacterMutations.unequipPet,
   'UseItem': CharacterMutations.useItem,
   'RenamePet': CharacterMutations.renamePet,
+  'DeleteMyAccount': AccountMutations.deleteMyAccount,
+  'DeleteAccountByTwitchLogin': AccountMutations.deleteAccountByTwitchLogin,
   'AcceptQuest': QuestMutations.acceptQuest,
   'AbandonQuest': QuestMutations.abandonQuest,
   'GenerateQuests': QuestMutations.generateQuests,
