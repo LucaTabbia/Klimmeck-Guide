@@ -223,6 +223,22 @@ void main() {
       verify(() => service.logout()).called(1);
     });
 
+    test('a logout after the session already ended sends no push unregister '
+        'and no service logout (U-1)', () async {
+      final cubit = AuthCubit(service, pushCleanup: cleanup);
+      await cubit.start();
+      controller.add(
+        const AuthUnauthenticated(reason: UnauthenticatedReason.accountDeleted),
+      );
+      await pumpEventQueue();
+
+      await cubit.logout();
+
+      verifyNever(() => cleanup.unregister());
+      verifyNever(() => service.logout());
+      await cubit.close();
+    });
+
     test('without push cleanup logs out through the service only', () async {
       await AuthCubit(service).logout();
       verify(() => service.logout()).called(1);

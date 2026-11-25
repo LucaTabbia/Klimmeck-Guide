@@ -4,6 +4,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/auth/auth_session.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth.dart';
+import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/auth_session_fixtures.dart';
@@ -155,6 +156,84 @@ void main() {
         expect(unauthenticated(), [
           const AuthUnauthenticated(reason: UnauthenticatedReason.signedOut),
         ]);
+        service.dispose();
+      });
+    });
+
+    test('a logout after the accountDeleted landing keeps it: no signedOut '
+        'over it, no backend logout (U-1)', () {
+      fakeAsync((async) {
+        final service = startService(async);
+        service.terminateSession(UnauthenticatedReason.accountDeleted);
+        async.flushMicrotasks();
+
+        service.logout();
+        async.flushMicrotasks();
+
+        expect(teardowns, 1);
+        expect(store.clears, 1);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]);
+        verifyNever(() => api.logout(any()));
+        service.dispose();
+      });
+    });
+
+    test('a logout waiting for the push unregister when accountDeleted '
+        'arrives ends as accountDeleted, without a backend logout (U-1)', () {
+      fakeAsync((async) {
+        final unregisterGate = Completer<void>();
+        final pushCleanup = MockPushSessionCleanup();
+        when(
+          () => pushCleanup.unregister(),
+        ).thenAnswer((_) => unregisterGate.future);
+        final service = startService(async);
+        final cubit = AuthCubit(service, pushCleanup: pushCleanup);
+        var isLogoutDone = false;
+        cubit.logout().then<void>((_) => isLogoutDone = true);
+        async.flushMicrotasks();
+
+        service.terminateSession(UnauthenticatedReason.accountDeleted);
+        async.flushMicrotasks();
+        unregisterGate.complete();
+        async.flushMicrotasks();
+
+        expect(isLogoutDone, isTrue);
+        expect(teardowns, 1);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]);
+        verifyNever(() => api.logout(any()));
+        cubit.close();
+        service.dispose();
+      });
+    });
+
+    test('accountDeleted arriving while the backend logout is out lands as '
+        'signedOut: the logout already owns the session (U-1)', () {
+      fakeAsync((async) {
+        final logoutGate = Completer<void>();
+        when(() => api.logout(any())).thenAnswer((_) => logoutGate.future);
+        final service = startService(async);
+        service.logout();
+        async.flushMicrotasks();
+        verify(() => api.logout(_session.accessToken)).called(1);
+
+        service.terminateSession(UnauthenticatedReason.accountDeleted);
+        async.flushMicrotasks();
+        logoutGate.complete();
+        async.flushMicrotasks();
+
+        expect(teardowns, 1);
+        expect(unauthenticated(), [
+          const AuthUnauthenticated(reason: UnauthenticatedReason.signedOut),
+        ]);
+        verifyNever(() => api.logout(any()));
         service.dispose();
       });
     });
