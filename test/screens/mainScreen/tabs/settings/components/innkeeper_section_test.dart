@@ -73,11 +73,7 @@ void main() {
     await authStates.close();
   });
 
-  Future<void> pumpSection(
-    WidgetTester tester,
-    AuthState initial, {
-    bool isAccountDeletionEnabled = false,
-  }) async {
+  Future<void> pumpSection(WidgetTester tester, AuthState initial) async {
     useLandscapePhone(tester);
     whenListen(authCubit, authStates.stream, initialState: initial);
     await tester.pumpWidget(
@@ -97,11 +93,7 @@ void main() {
                       value: playerDeletionCubit,
                     ),
                   ],
-                  child: Scaffold(
-                    body: InnkeeperSection(
-                      isAccountDeletionEnabled: isAccountDeletionEnabled,
-                    ),
-                  ),
+                  child: const Scaffold(body: InnkeeperSection()),
                 ),
               ),
             ),
@@ -159,24 +151,9 @@ void main() {
 
   group('account deletion entry', () {
     testWidgets(
-      'while the switch is off the Locanda has only Apri la Locanda (25-07 turns it on)',
-      (tester) async {
-        await pumpSection(tester, _sessionAs(RoleType.innkeeper));
-
-        expect(find.text('Apri la Locanda'), findsOneWidget);
-        expect(find.text('Elimina un account'), findsNothing);
-        expect(find.byType(OutlinedButton), findsNothing);
-      },
-    );
-
-    testWidgets(
       'the innkeeper sees Elimina un account under Apri la Locanda, red outline (D-15)',
       (tester) async {
-        await pumpSection(
-          tester,
-          _sessionAs(RoleType.innkeeper),
-          isAccountDeletionEnabled: true,
-        );
+        await pumpSection(tester, _sessionAs(RoleType.innkeeper));
 
         final entry = find.widgetWithText(OutlinedButton, 'Elimina un account');
         expect(entry, findsOneWidget);
@@ -192,11 +169,7 @@ void main() {
     );
 
     testWidgets('a player never sees the Locanda', (tester) async {
-      await pumpSection(
-        tester,
-        _sessionAs(RoleType.adventurer),
-        isAccountDeletionEnabled: true,
-      );
+      await pumpSection(tester, _sessionAs(RoleType.adventurer));
 
       expect(find.text('Locanda'), findsNothing);
       expect(find.text('Elimina un account'), findsNothing);
@@ -205,11 +178,7 @@ void main() {
     testWidgets('Elimina un account opens the username dialog (D-15)', (
       tester,
     ) async {
-      await pumpSection(
-        tester,
-        _sessionAs(RoleType.innkeeper),
-        isAccountDeletionEnabled: true,
-      );
+      await pumpSection(tester, _sessionAs(RoleType.innkeeper));
 
       await tester.tap(find.text('Elimina un account'));
       await tester.pumpAndSettle();
@@ -224,11 +193,7 @@ void main() {
       givenPlayerDeletionState(
         const PlayerAccountDeletionState(hasDeleted: true),
       );
-      await pumpSection(
-        tester,
-        _sessionAs(RoleType.innkeeper),
-        isAccountDeletionEnabled: true,
-      );
+      await pumpSection(tester, _sessionAs(RoleType.innkeeper));
 
       final line = find.text('Account eliminato.');
       expect(line, findsOneWidget);
@@ -239,11 +204,7 @@ void main() {
     });
 
     testWidgets('no success line before a deletion', (tester) async {
-      await pumpSection(
-        tester,
-        _sessionAs(RoleType.innkeeper),
-        isAccountDeletionEnabled: true,
-      );
+      await pumpSection(tester, _sessionAs(RoleType.innkeeper));
 
       expect(find.text('Account eliminato.'), findsNothing);
     });

@@ -38,7 +38,6 @@ void main() {
     WidgetTester tester, {
     String? characterName = 'Aldo',
     CharacterDeletionState state = const CharacterDeletionState(),
-    bool isAccountDeletionEnabled = false,
     AccountDeletionState accountDeletionState = const AccountDeletionState(),
     RoleType role = RoleType.adventurer,
   }) async {
@@ -73,10 +72,7 @@ void main() {
               ),
             ],
             child: SingleChildScrollView(
-              child: AccountSection(
-                characterName: characterName,
-                isAccountDeletionEnabled: isAccountDeletionEnabled,
-              ),
+              child: AccountSection(characterName: characterName),
             ),
           ),
         ),
@@ -85,6 +81,7 @@ void main() {
   }
 
   const deleteLabel = 'Elimina personaggio';
+  final characterButton = find.byType(OutlinedButton).first;
   final dialogConfirmDelete = find.descendant(
     of: find.byType(AlertDialog),
     matching: find.text('Elimina'),
@@ -101,7 +98,7 @@ void main() {
       greaterThan(tester.getTopLeft(find.text(deleteLabel)).dy),
     );
     expect(
-      tester.widget<OutlinedButton>(find.byType(OutlinedButton)).style,
+      tester.widget<OutlinedButton>(characterButton).style,
       KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
     );
     expect(
@@ -172,17 +169,17 @@ void main() {
       state: const CharacterDeletionState(isDeleting: true),
     );
 
-    final button = tester.widget<OutlinedButton>(find.byType(OutlinedButton));
+    final button = tester.widget<OutlinedButton>(characterButton);
     expect(button.onPressed, isNull);
     expect(
       find.descendant(
-        of: find.byType(OutlinedButton),
+        of: characterButton,
         matching: find.byType(CircularProgressIndicator),
       ),
       findsOneWidget,
     );
     expect(find.text(deleteLabel), findsNothing);
-    await tester.tap(find.byType(OutlinedButton), warnIfMissed: false);
+    await tester.tap(characterButton, warnIfMissed: false);
     await tester.pump();
     expect(find.byType(AlertDialog), findsNothing);
   });
@@ -245,27 +242,16 @@ void main() {
     final accountButton = find.widgetWithText(OutlinedButton, accountLabel);
 
     Future<void> openDialog(WidgetTester tester) async {
-      await pumpSection(tester, isAccountDeletionEnabled: true);
+      await pumpSection(tester);
       await tester.tap(find.text(accountLabel));
       await tester.pumpAndSettle();
     }
 
     testWidgets(
-      'while the switch is off there is no Elimina account (25-07 turns it on)',
-      (tester) async {
-        await pumpSection(tester);
-
-        expect(find.text(accountLabel), findsNothing);
-        expect(find.text('Elimina personaggio'), findsOneWidget);
-        expect(find.text('Esci'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
       'Elimina account is the last button, under Esci, detached, red outline '
       '(D-02)',
       (tester) async {
-        await pumpSection(tester, isAccountDeletionEnabled: true);
+        await pumpSection(tester);
 
         final characterTop = tester.getTopLeft(find.text(deleteLabel)).dy;
         final logout = find.widgetWithText(ElevatedButton, 'Esci');
@@ -285,11 +271,7 @@ void main() {
     );
 
     testWidgets('the innkeeper sees no Elimina account (D-16)', (tester) async {
-      await pumpSection(
-        tester,
-        isAccountDeletionEnabled: true,
-        role: RoleType.innkeeper,
-      );
+      await pumpSection(tester, role: RoleType.innkeeper);
 
       expect(find.text(accountLabel), findsNothing);
       expect(find.text('Esci'), findsOneWidget);
@@ -338,7 +320,6 @@ void main() {
       (tester) async {
         await pumpSection(
           tester,
-          isAccountDeletionEnabled: true,
           accountDeletionState: const AccountDeletionState(isDeleting: true),
         );
 
@@ -362,7 +343,6 @@ void main() {
     testWidgets('a failure reads under the button (D-06)', (tester) async {
       await pumpSection(
         tester,
-        isAccountDeletionEnabled: true,
         accountDeletionState: const AccountDeletionState(
           failure: AccountDeletionFailure.innkeeperProtected,
         ),

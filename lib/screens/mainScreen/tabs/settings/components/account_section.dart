@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/config/account_deletion.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
@@ -16,18 +15,11 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Sezione Account: eliminazione personaggio (con conferma), logout e, per
 /// ultima e staccata, l'eliminazione dell'account (D-02). Quest'ultima è
-/// nascosta all'oste (D-16, solo UX: decide il BE) e dietro
-/// [accountDeletionEnabled]: spenta, non si costruisce nulla e non si legge
-/// l'[AccountDeletionCubit].
+/// nascosta all'oste (D-16, solo UX: decide il BE).
 class AccountSection extends StatelessWidget {
-  const AccountSection({
-    super.key,
-    required this.characterName,
-    this.isAccountDeletionEnabled = accountDeletionEnabled,
-  });
+  const AccountSection({super.key, required this.characterName});
 
   final String? characterName;
-  final bool isAccountDeletionEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +45,7 @@ class AccountSection extends StatelessWidget {
               ),
             ),
           ),
-          if (isAccountDeletionEnabled) const _AccountDeletionEntry(),
+          const _AccountDeletionEntry(),
         ],
       ),
     );

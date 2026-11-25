@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:klimmeck_guide/config/account_deletion.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
@@ -13,18 +12,12 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Sezione «Locanda» (10-CONTEXT D-01, ADMIN-01): solo per il GM, viva col
 /// ruolo della sessione (`userUpdated`). Solo UX: il BE resta il controllo (ADMIN-07).
 /// Sotto «Apri la Locanda», l'eliminazione dell'account di un giocatore dal
-/// nome utente Twitch (D-15), dietro [accountDeletionEnabled]: spenta, non si
-/// costruisce nulla e non si legge il [PlayerAccountDeletionCubit].
+/// nome utente Twitch (D-15).
 class InnkeeperSection extends StatelessWidget {
-  const InnkeeperSection({
-    super.key,
-    this.isAccountDeletionEnabled = accountDeletionEnabled,
-  });
+  const InnkeeperSection({super.key});
 
   static const String title = 'Locanda';
   static const String openLabel = 'Apri la Locanda';
-
-  final bool isAccountDeletionEnabled;
 
   @override
   Widget build(BuildContext context) =>
@@ -49,7 +42,7 @@ class InnkeeperSection extends StatelessWidget {
             ),
           ),
         ),
-        if (isAccountDeletionEnabled) const _PlayerAccountDeletionEntry(),
+        const _PlayerAccountDeletionEntry(),
       ],
     ),
   );
