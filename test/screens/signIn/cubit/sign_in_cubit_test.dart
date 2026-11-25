@@ -107,6 +107,18 @@ void main() {
   );
 
   blocTest<SignInCubit, SignInState>(
+    'a terms refusal ends as termsNotAccepted (D-19)',
+    build: buildCubit,
+    setUp: () =>
+        when(anyLogin).thenThrow(const LoginTermsNotAcceptedException()),
+    act: signIn,
+    expect: () => [
+      const SignInInProgress(),
+      const SignInFailed(SignInFailure.termsNotAccepted),
+    ],
+  );
+
+  blocTest<SignInCubit, SignInState>(
     'failed login maps to connection failure',
     build: buildCubit,
     setUp: () => when(anyLogin).thenThrow(const LoginFailedException('x')),

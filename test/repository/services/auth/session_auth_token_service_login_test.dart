@@ -286,6 +286,21 @@ void main() {
       );
     });
 
+    test('a terms_not_accepted callback throws '
+        'LoginTermsNotAcceptedException and opens no session (D-19)', () {
+      expectLoginError(
+        const LoginTermsNotAcceptedException(),
+        arrange: () =>
+            browserReturns('klimmeck://auth?error=terms_not_accepted'),
+      );
+      verifyNever(
+        () => api.exchangeLoginTicket(
+          ticket: any(named: 'ticket'),
+          codeVerifier: any(named: 'codeVerifier'),
+        ),
+      );
+    });
+
     test('a backend error code is surfaced as a failure', () {
       expectLoginError(
         const LoginFailedException('invalid_state'),

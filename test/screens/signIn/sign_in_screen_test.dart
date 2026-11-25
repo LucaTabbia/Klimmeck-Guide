@@ -33,6 +33,8 @@ const _channelLabel = 'Vai al canale di LordReavor';
 const _consentSentence =
     "Accetto i Termini di servizio e l'Informativa sulla privacy";
 const _consentVersion = 'v-test';
+const _termsNotAcceptedError =
+    "Accetta i Termini di servizio e l'Informativa sulla privacy per entrare.";
 const _accessLostNotice =
     'Non segui più il canale di LordReavor! '
     'Segui di nuovo il canale per accedere al gioco';
@@ -297,6 +299,22 @@ void main() {
 
     expect(find.text(_unavailableError), findsOneWidget);
     expect(find.text(_connectionError), findsNothing);
+  });
+
+  testWidgets('a terms refusal reads its own line under the login button '
+      '(D-19)', (tester) async {
+    when(anyLogin).thenThrow(const LoginTermsNotAcceptedException());
+    await pumpScreen(tester);
+
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text(_termsNotAcceptedError), findsOneWidget);
+    expect(find.text(_connectionError), findsNothing);
+    expect(
+      tester.getTopLeft(find.text(_termsNotAcceptedError)).dy,
+      greaterThan(tester.getBottomLeft(loginButton).dy),
+    );
   });
 
   testWidgets('a viewer who does not follow the channel reads the invitation '
