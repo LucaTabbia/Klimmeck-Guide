@@ -47,7 +47,7 @@ class _LegalConsentRowState extends State<LegalConsentRow> {
   Widget build(BuildContext context) {
     final consent = context.watch<LegalConsentCubit>();
     final isAccepted = consent.state.isAccepted;
-    void toggle() => isAccepted ? consent.withdraw() : consent.accept();
+    void toggle() => isAccepted ? consent.forget() : consent.accept();
     return Row(
       children: [
         Checkbox(

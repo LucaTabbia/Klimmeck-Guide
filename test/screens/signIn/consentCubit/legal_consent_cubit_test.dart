@@ -64,17 +64,8 @@ void main() {
   );
 
   blocTest<LegalConsentCubit, LegalConsentState>(
-    'withdraw unticks and forgets (D-10)',
-    setUp: () => store.acceptedVersion = version,
-    build: build,
-    seed: () => ticked,
-    act: (cubit) => cubit.withdraw(),
-    expect: () => [unticked],
-    verify: (_) => expect(store.acceptedVersion, isNull),
-  );
-
-  blocTest<LegalConsentCubit, LegalConsentState>(
-    'forget unticks and clears the memory (D-10)',
+    'forget (box unticked or account deleted) unticks and clears the memory '
+    '(D-10)',
     setUp: () => store.acceptedVersion = version,
     build: build,
     seed: () => ticked,
