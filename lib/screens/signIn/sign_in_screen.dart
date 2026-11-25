@@ -6,6 +6,7 @@ import 'package:klimmeck_guide/screens/signIn/components/legal_consent_row.dart'
 import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
+import 'package:klimmeck_guide/utils/failure_lines.dart';
 
 const String _loginLabel = 'Login con Twitch';
 const String _tagline = 'Accedi con Twitch per iniziare la tua avventura.';
@@ -15,7 +16,6 @@ const String _replacedByNewLoginNotice =
     "Hai effettuato l'accesso da un altro dispositivo.";
 const String _roleChangedNotice = 'Il tuo ruolo è cambiato, accedi di nuovo.';
 const String _accountDeletedNotice = 'Il tuo account è stato eliminato.';
-const String _connectionError = 'Errore di connessione, riprova';
 const String _twitchUnavailableError =
     'Login con Twitch non ancora disponibile.';
 const String _notFollowingMessage =
@@ -286,7 +286,7 @@ class _LoginOutcome extends StatelessWidget {
           style: errorStyle,
         ),
         SignInFailed() => Text(
-          _connectionError,
+          connectionFailureLine,
           key: const ValueKey(SignInFailure.connection),
           textAlign: TextAlign.center,
           style: errorStyle,

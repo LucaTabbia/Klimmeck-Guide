@@ -29,6 +29,7 @@ Future<void> showPlayerAccountDeletionDialog(
 class PlayerAccountDeletionDialog extends StatefulWidget {
   const PlayerAccountDeletionDialog({super.key});
 
+  static const String title = 'Elimina un account';
   static const Key fieldKey = Key('playerAccountDeletionField');
 
   @override
@@ -80,7 +81,7 @@ class _PlayerAccountDeletionDialogState
       ),
       content: _scrollKeepingTheFieldInSight(
         children: [
-          Text('Elimina un account', style: theme.titleMedium),
+          Text(PlayerAccountDeletionDialog.title, style: theme.titleMedium),
           const SizedBox(height: KlimmeckGuideTheme.spacingMd),
           TextField(
             key: PlayerAccountDeletionDialog.fieldKey,

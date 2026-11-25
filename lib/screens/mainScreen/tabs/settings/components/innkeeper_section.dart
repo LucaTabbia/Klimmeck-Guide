@@ -65,7 +65,7 @@ class _PlayerAccountDeletionEntry extends StatelessWidget {
           context.read<PlayerAccountDeletionCubit>(),
         ),
         child: Text(
-          'Elimina un account',
+          PlayerAccountDeletionDialog.title,
           style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
             color: KlimmeckGuideTheme.bloodRed,
           ),

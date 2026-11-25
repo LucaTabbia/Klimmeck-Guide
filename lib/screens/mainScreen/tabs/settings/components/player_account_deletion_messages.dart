@@ -1,4 +1,5 @@
 import 'package:klimmeck_guide/repository/player_account_deletion_failure.dart';
+import 'package:klimmeck_guide/utils/failure_lines.dart';
 
 /// Copy di dominio per esito, mai testo del server (ui-ux.md).
 extension PlayerAccountDeletionFailureMessage on PlayerAccountDeletionFailure {
@@ -11,8 +12,7 @@ extension PlayerAccountDeletionFailureMessage on PlayerAccountDeletionFailure {
       "Non puoi eliminare l'account di un oste",
     PlayerAccountDeletionFailure.twitchUnavailable =>
       'Twitch non risponde, riprova più tardi',
-    PlayerAccountDeletionFailure.connection => 'Errore di connessione, riprova',
-    PlayerAccountDeletionFailure.unknown =>
-      "Impossibile eliminare l'account, riprova",
+    PlayerAccountDeletionFailure.connection => connectionFailureLine,
+    PlayerAccountDeletionFailure.unknown => accountDeletionFailedLine,
   };
 }
