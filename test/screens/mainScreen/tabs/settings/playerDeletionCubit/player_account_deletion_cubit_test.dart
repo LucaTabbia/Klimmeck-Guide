@@ -116,4 +116,26 @@ void main() {
     act: (cubit) => cubit.reset(),
     expect: () => [const PlayerAccountDeletionState()],
   );
+
+  blocTest<PlayerAccountDeletionCubit, PlayerAccountDeletionState>(
+    'a reset while deleting keeps the deletion in flight: no second deletion '
+    'can start (WR-03)',
+    build: build,
+    act: (cubit) async {
+      final completer = Completer<void>();
+      when(
+        () => repository.deletePlayerAccount(any()),
+      ).thenAnswer((_) => completer.future);
+      final first = cubit.deletePlayer('rossa_k');
+      cubit.reset();
+      final second = cubit.deletePlayer('altro_nome');
+      completer.complete();
+      await Future.wait([first, second]);
+    },
+    expect: () => [_deleting, _deleted],
+    verify: (_) {
+      verify(() => repository.deletePlayerAccount('rossa_k')).called(1);
+      verifyNever(() => repository.deletePlayerAccount('altro_nome'));
+    },
+  );
 }

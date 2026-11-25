@@ -17,6 +17,8 @@ const double _landscapeHeight = 360;
 const double _keyboardHeight = 200;
 const double _devicePixelRatio = 3;
 
+const Duration _routeTransition = Duration(seconds: 1);
+
 void main() {
   late MockPlayerAccountDeletionCubit cubit;
   late StreamController<PlayerAccountDeletionState> states;
@@ -196,6 +198,53 @@ void main() {
     expect(inDialog(find.byType(CircularProgressIndicator)), findsOneWidget);
     expect(inDialog(find.text('Avanti')), findsNothing);
     expect(nextButton(tester).onPressed, isNull);
+  });
+
+  group('while the deletion is in flight (WR-03)', () {
+    final cancel = inDialog(find.widgetWithText(TextButton, 'Annulla'));
+
+    Future<void> startDeleting(WidgetTester tester) async {
+      await openDialog(tester);
+      await tester.enterText(field(), 'rossa_k');
+      await tester.pump();
+      states.add(const PlayerAccountDeletionState(isDeleting: true));
+      await tester.pump();
+    }
+
+    /// Annulla e il tasto indietro, poi il tempo perché un dialog chiuso esca
+    /// davvero dall'albero.
+    Future<void> tryToClose(WidgetTester tester) async {
+      await tester.tap(cancel, warnIfMissed: false);
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.pump(_routeTransition);
+      await tester.pump();
+    }
+
+    testWidgets('Annulla and the back button cannot close the dialog', (
+      tester,
+    ) async {
+      await startDeleting(tester);
+
+      expect(tester.widget<TextButton>(cancel).onPressed, isNull);
+      await tryToClose(tester);
+
+      expect(find.byType(PlayerAccountDeletionDialog), findsOneWidget);
+    });
+
+    testWidgets('a failure arriving reads in the still-open dialog', (
+      tester,
+    ) async {
+      await startDeleting(tester);
+      await tryToClose(tester);
+
+      const failure = PlayerAccountDeletionFailure.twitchUnavailable;
+      states.add(const PlayerAccountDeletionState(failure: failure));
+      await tester.pump();
+
+      expect(inDialog(find.text(failure.message)), findsOneWidget);
+      expect(tester.widget<TextButton>(cancel).onPressed, isNotNull);
+    });
   });
 
   testWidgets(
