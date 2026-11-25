@@ -167,12 +167,19 @@ class SessionAuthTokenService extends AuthTokenService
   /// dello storage una sola volta. L'access token resta leggibile fino al
   /// teardown, senza più essere rinnovato. Chiamate sovrapposte (doppio tap)
   /// condividono lo stesso logout. Non lancia mai.
+  ///
+  /// Una sessione già chiusa (o in chiusura) con un altro motivo, per esempio
+  /// `accountDeleted`, resta tale: niente chiamata al backend, niente
+  /// `signedOut` sopra il suo stato terminale (Phase 25 D-03, D-06).
   @override
   Future<void> logout() => _logoutInFlight ??= _performLogout().whenComplete(
     () => _logoutInFlight = null,
   );
 
   Future<void> _performLogout() async {
+    final endInFlight = _endInFlight;
+    if (endInFlight != null) return endInFlight;
+    if (_channel.current is AuthUnauthenticated) return;
     final closing = _detachSession();
     final backendStep = _invalidateBackendSession(closing);
     await backendStep.timeout(_logoutTimeout, onTimeout: _logLogoutTimeout);
