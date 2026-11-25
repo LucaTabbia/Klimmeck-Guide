@@ -61,10 +61,10 @@ created: 2026-11-24
 | 25-06-01 | 06 | 6 | ACCOUNT-04 | T-25-50 | served lane, place and refunds drawn, nothing computed | bloc + widget | `flutter test test/screens/mainScreen/characterCubit test/screens/mainScreen/tabs/map/quest_paper_layer_test.dart test/screens/mainScreen/tabs/map/character_marker_layer_test.dart test/screens/mainScreen/tabs/map/mapAvailabilityCubit test/screens/mainScreen/components/travel_outcome_listener_test.dart test/screens/mainScreen/components/quest_abandon_outcome_listener_test.dart test/screens/mainScreen/components/party_watch_listener_test.dart` | ✅ extend | ✅ green |
 | 25-06-02 | 06 | 6 | ACCOUNT-04 | T-25-51, T-25-52 | Board reread; push body verbatim; no placeholder | unit + widget | `flutter test test/screens/mainScreen/components/quest_scope_listener_test.dart test/models/quest/quest_availability_test.dart test/repository/services/push/foreground_push_events_test.dart test/repository/services/push/notification_tap_router_test.dart test/screens/auth/inAppNotificationsCubit` | ✅ extend | ✅ green |
 | 25-06-03 | 06 | 6 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-06-SUMMARY.md` | — | ✅ green |
-| 25-07-01 | 07 | 7 | ACCOUNT-05 | T-25-60, T-25-61, T-25-62 | gate before any document; names confirmed on the merged BE | gate + unit | `flutter test test/graphql test/tool test/repository/services/account` (after `GATE_OK`) | ❌ W0 (gated) | ⬜ pending |
-| 25-07-02 | 07 | 7 | ACCOUNT-01, ACCOUNT-03 | T-25-60 | providers + switch on only after the gate | widget | `flutter test test/screens/auth test/config test/screens/mainScreen/tabs/settings` | ✅ extend | ⬜ pending |
-| 25-07-03 | 07 | 7 | ACCOUNT-05 | T-25-63 | 57 × OK, full suite, hardening; names only in the notes | gate | schema check block of 25-07 | ✅ tooling | ⬜ pending |
-| 25-07-04 | 07 | 7 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-07-SUMMARY.md` | — | ⬜ pending |
+| 25-07-01 | 07 | 7 | ACCOUNT-05 | T-25-60, T-25-61, T-25-62 | gate before any document; names confirmed on the merged BE | gate + unit | `flutter test test/graphql test/tool test/repository/services/account` (after `GATE_OK`) | ❌ W0 (gated) | ✅ green |
+| 25-07-02 | 07 | 7 | ACCOUNT-01, ACCOUNT-03 | T-25-60 | providers + switch on only after the gate | widget | `flutter test test/screens/auth test/config test/screens/mainScreen/tabs/settings` | ✅ extend | ✅ green |
+| 25-07-03 | 07 | 7 | ACCOUNT-05 | T-25-63 | 57 × OK, full suite, hardening; names only in the notes | gate | schema check block of 25-07 | ✅ tooling | ✅ green |
+| 25-07-04 | 07 | 7 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-07-SUMMARY.md` | — | ✅ green |
 | 25-08-01 | 08 | 8 | ACCOUNT-05 | T-25-70, T-25-73 | gate re-check; no secrets in the record | gate + docs | gate re-check block of 25-08 | — | ⬜ pending |
 | 25-08-02 | 08 | 8 | all eight | T-25-72 | device, DB, legal repo are the orchestrator's | manual | device E2E (`25-HUMAN-UAT.md`) | — | ⬜ pending |
 | 25-08-03 | 08 | 8 | all eight | T-25-71 | mark-complete only per passed steps | docs | `grep -q "^status: " .planning/phases/25-account-deletion-and-legal-consent/25-HUMAN-UAT.md` | — | ⬜ pending |
@@ -84,7 +84,7 @@ Each new test file is written RED-first inside the task that needs it (no separa
 - [x] `test/config/account_deletion_test.dart` (25-03-03)
 - [x] `test/repository/player_account_deletion_failure_test.dart`, `test/repository/player_account_deletion_repository_test.dart`, `test/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit_test.dart`, `test/screens/mainScreen/tabs/settings/components/player_account_deletion_messages_test.dart` (25-04-01)
 - [x] `test/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog_test.dart` (25-04-02)
-- [ ] `test/graphql/account_documents_test.dart`, `test/repository/services/account/graphql_account_deletion_api_test.dart` (25-07-01, gated)
+- [x] `test/graphql/account_documents_test.dart`, `test/repository/services/account/graphql_account_deletion_api_test.dart` (25-07-01, gated)
 - [ ] mocks in `test/helpers/mocks.dart`: `MockAccountDeletionRepository`, `MockAccountDeletionCubit` (25-03), `MockPlayerAccountDeletionRepository`, `MockPlayerAccountDeletionCubit` (25-04)
 - [x] suite baseline re-measured (25-01-01)
 
