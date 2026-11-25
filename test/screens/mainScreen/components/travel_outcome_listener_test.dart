@@ -16,6 +16,7 @@ import 'package:klimmeck_guide/screens/mainScreen/prisonCubit/prison_cubit.dart'
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/mocks.dart';
 import '../../../helpers/test_app.dart';
@@ -212,6 +213,29 @@ void main() {
     await emitCharacter(tester, travelling);
 
     verifyNever(() => travel.reset());
+  });
+
+  testWidgets('the jump back of a cancelled quest shows no outcome (D-23)', (
+    tester,
+  ) async {
+    final onTheQuest = CharacterLoaded(
+      Character.fromJson(
+        travellingCharacterJson(
+          locationId: 'poi-1',
+          pendingQuest: laneJson(questType: 'enemy'),
+          missionInProgress: true,
+        ),
+      ),
+    );
+    await pumpListener(tester, character: onTheQuest);
+
+    await emitCharacter(tester, resting);
+
+    verifyNoNotice();
+    verifyNever(() => travel.reset());
+    verifyNever(() => prison.learnRelease(any()));
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
   });
 
   group('starving requote', () {

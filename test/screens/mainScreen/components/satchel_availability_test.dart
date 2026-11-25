@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/point_of_interest.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_availability.dart';
 import 'package:klimmeck_guide/screens/mainScreen/components/satchel_layout.dart';
+
+import '../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../helpers/fixtures/travel_fixtures.dart';
 
 PointOfInterest poi(String id) => PointOfInterest.fromJson({
   'id': id,
@@ -227,5 +231,27 @@ void main() {
     final shop = SatchelLayout.entries.firstWhere((e) => e.label == 'Negozio');
     expect(SatchelLayout.shopPageIndex, 5);
     expect(shop.pageIndex, SatchelLayout.shopPageIndex);
+  });
+
+  test('the Board and the shop of the city are available again after the '
+      'jump back (D-13, D-23)', () {
+    Set<int> disabledFor(Character character) => disabledSatchelPages(
+      location: character.status?.location,
+      cities: cities,
+      isTravelling: character.status?.activeTravel != null,
+      isAwaitingAid: character.status?.awaitingAid != null,
+      isOnMission: character.isOnMission,
+    );
+    final onTheQuest = Character.fromJson(
+      travellingCharacterJson(
+        locationId: 'poi-1',
+        pendingQuest: laneJson(questType: 'enemy'),
+        missionInProgress: true,
+      ),
+    );
+    final sentBack = Character.fromJson(travellingCharacterJson());
+
+    expect(disabledFor(onTheQuest), boardAndShop);
+    expect(disabledFor(sentBack), isEmpty);
   });
 }
