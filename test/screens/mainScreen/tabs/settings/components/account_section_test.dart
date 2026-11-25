@@ -340,6 +340,34 @@ void main() {
       },
     );
 
+    testWidgets(
+      'while the account deletion runs Esci and Elimina personaggio are '
+      'inert: no logout can race the deletion (D-06, WR-01)',
+      (tester) async {
+        await pumpSection(
+          tester,
+          accountDeletionState: const AccountDeletionState(isDeleting: true),
+        );
+
+        final logout = find.widgetWithText(ElevatedButton, 'Esci');
+        expect(tester.widget<ElevatedButton>(logout).onPressed, isNull);
+        expect(
+          tester.widget<OutlinedButton>(characterButton).onPressed,
+          isNull,
+        );
+        expect(find.text(deleteLabel), findsOneWidget);
+
+        await tester.tap(logout, warnIfMissed: false);
+        await tester.pumpAndSettle();
+        await tester.tap(characterButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AlertDialog), findsNothing);
+        verifyNever(() => authCubit.logout());
+        verifyNever(() => deletionCubit.deleteCharacter());
+      },
+    );
+
     testWidgets('a failure reads under the button (D-06)', (tester) async {
       await pumpSection(
         tester,
