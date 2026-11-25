@@ -5,8 +5,9 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCu
 import 'package:klimmeck_guide/shared/components/modal/delete_player_account_confirmation_dialog.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-/// Apre il dialog sul Navigator radice con uno stato pulito; il chiamante
-/// legge il Cubit prima di qualunque await.
+/// Apre il dialog sul Navigator radice con uno stato pulito (tranne con una
+/// cancellazione in volo, che [PlayerAccountDeletionCubit.reset] non tocca);
+/// il chiamante legge il Cubit prima di qualunque await.
 Future<void> showPlayerAccountDeletionDialog(
   BuildContext context,
   PlayerAccountDeletionCubit cubit,
@@ -47,69 +48,74 @@ class _PlayerAccountDeletionDialogState
 
   @override
   Widget build(BuildContext context) {
-    final theme = KlimmeckGuideTheme.instance;
     return BlocConsumer<PlayerAccountDeletionCubit, PlayerAccountDeletionState>(
       listenWhen: (previous, current) =>
           !previous.hasDeleted && current.hasDeleted,
       listener: (context, _) => Navigator.of(context).pop(),
-      builder: (context, state) => AlertDialog(
-        insetPadding: const EdgeInsets.symmetric(
-          horizontal: KlimmeckGuideTheme.spacingXl,
-          vertical: KlimmeckGuideTheme.spacingSm,
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(
-          KlimmeckGuideTheme.spacingLg,
-          KlimmeckGuideTheme.spacingMd,
-          KlimmeckGuideTheme.spacingLg,
-          0,
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(
-          KlimmeckGuideTheme.spacingLg,
-          0,
-          KlimmeckGuideTheme.spacingLg,
-          KlimmeckGuideTheme.spacingSm,
-        ),
-        content: _scrollKeepingTheFieldInSight(
-          children: [
-            Text('Elimina un account', style: theme.titleMedium),
-            const SizedBox(height: KlimmeckGuideTheme.spacingMd),
-            TextField(
-              key: PlayerAccountDeletionDialog.fieldKey,
-              controller: _controller,
-              autofocus: true,
-              autocorrect: false,
-              enableSuggestions: false,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Nome utente Twitch',
-              ),
-            ),
-            if (state.failure case final failure?)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: KlimmeckGuideTheme.spacingXs,
-                ),
-                child: Text(failure.message, style: theme.errorText),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Annulla',
-              style: theme.bodyMedium.copyWith(
-                color: KlimmeckGuideTheme.deepNight,
-              ),
-            ),
-          ),
-          _NextButton(
+      builder: (context, state) =>
+          PopScope(canPop: !state.isDeleting, child: _buildDialog(state)),
+    );
+  }
+
+  /// Finché la cancellazione è in volo né «Annulla» né il tasto indietro
+  /// chiudono il dialog: è l'unico a leggerne l'esito.
+  Widget _buildDialog(PlayerAccountDeletionState state) {
+    final theme = KlimmeckGuideTheme.instance;
+    return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: KlimmeckGuideTheme.spacingXl,
+        vertical: KlimmeckGuideTheme.spacingSm,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        KlimmeckGuideTheme.spacingLg,
+        KlimmeckGuideTheme.spacingMd,
+        KlimmeckGuideTheme.spacingLg,
+        0,
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(
+        KlimmeckGuideTheme.spacingLg,
+        0,
+        KlimmeckGuideTheme.spacingLg,
+        KlimmeckGuideTheme.spacingSm,
+      ),
+      content: _scrollKeepingTheFieldInSight(
+        children: [
+          Text('Elimina un account', style: theme.titleMedium),
+          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
+          TextField(
+            key: PlayerAccountDeletionDialog.fieldKey,
             controller: _controller,
-            isDeleting: state.isDeleting,
-            onPressed: _confirmAndDelete,
+            autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(labelText: 'Nome utente Twitch'),
           ),
+          if (state.failure case final failure?)
+            Padding(
+              padding: const EdgeInsets.only(top: KlimmeckGuideTheme.spacingXs),
+              child: Text(failure.message, style: theme.errorText),
+            ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: state.isDeleting
+              ? null
+              : () => Navigator.of(context).pop(),
+          child: Text(
+            'Annulla',
+            style: theme.bodyMedium.copyWith(
+              color: KlimmeckGuideTheme.deepNight,
+            ),
+          ),
+        ),
+        _NextButton(
+          controller: _controller,
+          isDeleting: state.isDeleting,
+          onPressed: _confirmAndDelete,
+        ),
+      ],
     );
   }
 

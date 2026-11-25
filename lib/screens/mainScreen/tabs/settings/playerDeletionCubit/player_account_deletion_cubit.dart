@@ -26,8 +26,12 @@ class PlayerAccountDeletionCubit extends Cubit<PlayerAccountDeletionState>
     );
   }
 
-  /// Stato pulito all'apertura del dialog.
-  void reset() => emit(const PlayerAccountDeletionState());
+  /// Stato pulito all'apertura del dialog; mai durante una cancellazione in
+  /// volo, che deve restare l'unica e arrivare al suo esito.
+  void reset() {
+    if (state.isDeleting) return;
+    emit(const PlayerAccountDeletionState());
+  }
 
   Future<PlayerAccountDeletionFailure?> _delete(String twitchLogin) async {
     try {
