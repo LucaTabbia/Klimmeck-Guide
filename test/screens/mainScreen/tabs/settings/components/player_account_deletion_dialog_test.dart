@@ -15,6 +15,7 @@ import '../../../../../helpers/test_app.dart';
 
 const double _landscapeHeight = 360;
 const double _keyboardHeight = 200;
+const double _statusBarHeight = 28;
 const double _devicePixelRatio = 3;
 
 const Duration _routeTransition = Duration(seconds: 1);
@@ -80,8 +81,10 @@ void main() {
       await openDialog(tester);
 
       verify(() => cubit.reset()).called(1);
-      expect(inDialog(find.text('Elimina un account')), findsOneWidget);
-      expect(inDialog(find.text('Nome utente Twitch')), findsOneWidget);
+      expect(
+        inDialog(find.text("Nome Twitch dell'account da eliminare")),
+        findsOneWidget,
+      );
       expect(inDialog(find.text('Annulla')), findsOneWidget);
       expect(nextButton(tester).onPressed, isNull);
 
@@ -248,23 +251,45 @@ void main() {
   });
 
   testWidgets(
-    'in landscape with the keyboard the field stays visible and nothing overflows (C5)',
+    'in landscape with the keyboard the field, the refusal and both buttons stay whole (C5)',
     (tester) async {
       await openDialog(tester);
+      tester.view.padding = const FakeViewPadding(
+        top: _statusBarHeight * _devicePixelRatio,
+      );
       tester.view.viewInsets = const FakeViewPadding(
         bottom: _keyboardHeight * _devicePixelRatio,
       );
+      addTearDown(tester.view.resetPadding);
       addTearDown(tester.view.resetViewInsets);
+      const failure = PlayerAccountDeletionFailure.innkeeperProtected;
+      states.add(const PlayerAccountDeletionState(failure: failure));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final rect = tester.getRect(field());
-      expect(rect.top, greaterThanOrEqualTo(0));
-      expect(
-        rect.bottom,
-        lessThanOrEqualTo(_landscapeHeight - _keyboardHeight),
-      );
-      expect(field().hitTestable(), findsOneWidget);
+      final visibleParts = [
+        field(),
+        inDialog(find.text(PlayerAccountDeletionDialog.fieldLabel)),
+        inDialog(find.text(failure.message)),
+        inDialog(find.text('Annulla')),
+        inDialog(find.text('Avanti')),
+      ];
+      for (final part in visibleParts) {
+        final rect = tester.getRect(part);
+        expect(
+          rect.top,
+          greaterThanOrEqualTo(_statusBarHeight),
+          reason: '$part',
+        );
+        expect(
+          rect.bottom,
+          lessThanOrEqualTo(_landscapeHeight - _keyboardHeight),
+          reason: '$part',
+        );
+      }
+      for (final control in [field(), inDialog(find.text('Avanti'))]) {
+        expect(control.hitTestable(), findsOneWidget, reason: '$control');
+      }
     },
   );
 }
