@@ -1,8 +1,18 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 
 import '../../../helpers/fakes/in_memory_legal_consent_store.dart';
+
+/// Storage che risponde alla lettura solo quando il test lo decide.
+class _SlowReadStore extends InMemoryLegalConsentStore {
+  final Completer<String?> pendingRead = Completer<String?>();
+
+  @override
+  Future<String?> readAcceptedVersion() => pendingRead.future;
+}
 
 void main() {
   const version = 'v-test';
@@ -90,5 +100,36 @@ void main() {
 
     await expectLater(restoring, completes);
     expect(cubit.state, unticked);
+  });
+
+  group('an action before the stored version is read wins (IN-02)', () {
+    late _SlowReadStore slowStore;
+    late LegalConsentCubit cubit;
+
+    setUp(() {
+      slowStore = _SlowReadStore();
+      cubit = LegalConsentCubit(slowStore, version: version);
+      addTearDown(cubit.close);
+    });
+
+    test('a tick made while the read is pending is kept', () async {
+      final restoring = cubit.restore();
+      await cubit.accept();
+      slowStore.pendingRead.complete(null);
+      await restoring;
+
+      expect(cubit.state, ticked);
+      expect(slowStore.acceptedVersion, version);
+    });
+
+    test('a forget made while the read is pending stays unticked', () async {
+      final restoring = cubit.restore();
+      await cubit.forget();
+      slowStore.pendingRead.complete(version);
+      await restoring;
+
+      expect(cubit.state, unticked);
+      expect(slowStore.acceptedVersion, isNull);
+    });
   });
 }
