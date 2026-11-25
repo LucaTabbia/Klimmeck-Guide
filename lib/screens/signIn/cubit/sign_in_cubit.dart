@@ -26,6 +26,8 @@ class SignInCubit extends Cubit<SignInState> {
       _emitIfOpen(const SignInFailed(SignInFailure.twitchNotConfigured));
     } on LoginNotFollowingException {
       _emitIfOpen(const SignInFailed(SignInFailure.notFollowingChannel));
+    } on LoginTermsNotAcceptedException {
+      _emitIfOpen(const SignInFailed(SignInFailure.termsNotAccepted));
     } catch (_) {
       _emitIfOpen(const SignInFailed(SignInFailure.connection));
     }

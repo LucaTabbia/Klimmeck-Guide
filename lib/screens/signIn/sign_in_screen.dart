@@ -21,6 +21,8 @@ const String _twitchUnavailableError =
 const String _notFollowingMessage =
     'Non sei ancora un avventuriero sul canale di LordReavor! '
     'Segui prima il canale per accedere al gioco';
+const String _termsNotAcceptedError =
+    "Accetta i Termini di servizio e l'Informativa sulla privacy per entrare.";
 const String _channelAccessLostNotice =
     'Non segui più il canale di LordReavor! '
     'Segui di nuovo il canale per accedere al gioco';
@@ -272,6 +274,12 @@ class _LoginOutcome extends StatelessWidget {
         SignInFailed(failure: SignInFailure.twitchNotConfigured) => Text(
           _twitchUnavailableError,
           key: const ValueKey(SignInFailure.twitchNotConfigured),
+          textAlign: TextAlign.center,
+          style: errorStyle,
+        ),
+        SignInFailed(failure: SignInFailure.termsNotAccepted) => Text(
+          _termsNotAcceptedError,
+          key: const ValueKey(SignInFailure.termsNotAccepted),
           textAlign: TextAlign.center,
           style: errorStyle,
         ),

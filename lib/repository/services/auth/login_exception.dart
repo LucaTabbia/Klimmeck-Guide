@@ -25,6 +25,12 @@ final class LoginNotFollowingException extends LoginException {
   const LoginNotFollowingException();
 }
 
+/// Il backend ha rifiutato il login: versione dei documenti legali assente o
+/// malformata (D-19).
+final class LoginTermsNotAcceptedException extends LoginException {
+  const LoginTermsNotAcceptedException();
+}
+
 /// Qualunque altro fallimento, con codice opaco (D-22).
 final class LoginFailedException extends LoginException {
   const LoginFailedException(this.code);

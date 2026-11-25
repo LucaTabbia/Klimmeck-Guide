@@ -274,6 +274,8 @@ class SessionAuthTokenService extends AuthTokenService
           throw const LoginUnavailableException(),
         LoginRejectedByBackend(code: notFollowingError) =>
           throw const LoginNotFollowingException(),
+        LoginRejectedByBackend(code: termsNotAcceptedError) =>
+          throw const LoginTermsNotAcceptedException(),
         LoginRejectedByBackend(:final code) => throw LoginFailedException(code),
       };
 
