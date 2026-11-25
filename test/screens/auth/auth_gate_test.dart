@@ -270,6 +270,31 @@ void main() {
       expect(isTicked(tester), isFalse);
     });
 
+    testWidgets('a sign-in already shown with the box ticked forgets the '
+        'consent when the account-deleted reason arrives (D-10, WR-02)', (
+      tester,
+    ) async {
+      store = InMemoryLegalConsentStore(
+        acceptedVersion: LegalDocuments.version,
+      );
+      await pumpGate(tester, legalConsentStore: store);
+      await tester.pump(SplashCubit.connectionHintDelay);
+      await tester.tap(find.text(_manualSignIn));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(isTicked(tester), isTrue);
+
+      await emitAuth(
+        tester,
+        const AuthUnauthenticated(reason: UnauthenticatedReason.accountDeleted),
+      );
+      await tester.pump();
+
+      expect(find.text(_accountDeletedNotice), findsOneWidget);
+      expect(isTicked(tester), isFalse);
+      expect(store.acceptedVersion, isNull);
+    });
+
     testWidgets('a logout keeps the consent: the box starts ticked (D-10)', (
       tester,
     ) async {
