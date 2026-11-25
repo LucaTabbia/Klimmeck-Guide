@@ -16,10 +16,7 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 ///
 /// - `AuthBootstrapping` → splash come gate del cold start (D-17/D-18);
 /// - `AuthUnauthenticated` → sign-in, con notice se la sessione è scaduta o la
-///   connessione in tempo reale è andata persa (Phase 3 D-15); la spunta del
-///   consenso legale si ripristina da [legalConsentStore] a ogni schermata di
-///   sign-in, tranne all'arrivo con l'account eliminato, che la dimentica
-///   (Phase 25 D-10);
+///   connessione in tempo reale è andata persa (Phase 3 D-15);
 /// - `AuthAuthenticated` → [authenticatedBuilder] sotto una chiave legata a
 ///   `user.id`: logout e cambio account sostituiscono l'intera sessione.
 ///   Ricostruisce anche quando lo stesso utente ottiene un personaggio
@@ -30,6 +27,11 @@ import 'package:klimmeck_guide/screens/splash/splash_screen.dart';
 /// sotto-albero della sessione. Li chiude anche quando cambia il personaggio
 /// dello stesso utente (Phase 3 D-10): uno sheet può riferirsi al personaggio
 /// precedente o a un Cubit chiuso.
+///
+/// La spunta del consenso legale vive quanto la guardia, non quanto la
+/// schermata di sign-in: si ripristina da [legalConsentStore] e la dimentica
+/// l'arrivo del motivo «account eliminato», anche con il sign-in già a schermo
+/// (Phase 25 D-10). Il logout e ogni altro motivo la conservano.
 class AuthGate extends StatelessWidget {
   const AuthGate({
     super.key,
@@ -42,54 +44,57 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      listenWhen: (previous, current) =>
-          _leavesSession(previous, current) ||
-          _changesCharacter(previous, current),
-      listener: (context, _) =>
-          Navigator.of(context).popUntil((route) => route.isFirst),
-      child: BlocBuilder<AuthCubit, AuthState>(
-        buildWhen: _shouldRebuild,
-        builder: (context, state) => switch (state) {
-          AuthBootstrapping() => SplashScreen(
-            watchConnection: true,
-            onManualSignIn: context.read<AuthCubit>().showSignIn,
+    return BlocProvider(
+      create: (_) =>
+          LegalConsentCubit(legalConsentStore, version: LegalDocuments.version)
+            ..restore(),
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<AuthCubit, AuthState>(
+            listenWhen: (previous, current) =>
+                _leavesSession(previous, current) ||
+                _changesCharacter(previous, current),
+            listener: (context, _) =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
           ),
-          AuthUnauthenticated(:final reason) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (context) => SignInCubit(
-                  context.read<AuthTokenService>(),
-                  const UrlLauncherLinkOpener(),
-                ),
+          BlocListener<AuthCubit, AuthState>(
+            listenWhen: _arrivesWithAccountDeleted,
+            listener: (context, _) =>
+                context.read<LegalConsentCubit>().forget(),
+          ),
+        ],
+        child: BlocBuilder<AuthCubit, AuthState>(
+          buildWhen: _shouldRebuild,
+          builder: (context, state) => switch (state) {
+            AuthBootstrapping() => SplashScreen(
+              watchConnection: true,
+              onManualSignIn: context.read<AuthCubit>().showSignIn,
+            ),
+            AuthUnauthenticated(:final reason) => BlocProvider(
+              create: (context) => SignInCubit(
+                context.read<AuthTokenService>(),
+                const UrlLauncherLinkOpener(),
               ),
-              BlocProvider(
-                create: (_) => _consentFor(reason, legalConsentStore),
-              ),
-            ],
-            child: SignInScreen(notice: _noticeFor(reason)),
-          ),
-          AuthAuthenticated(:final user) => KeyedSubtree(
-            key: ValueKey<String>(user.id),
-            child: authenticatedBuilder(context, user),
-          ),
-        },
+              child: SignInScreen(notice: _noticeFor(reason)),
+            ),
+            AuthAuthenticated(:final user) => KeyedSubtree(
+              key: ValueKey<String>(user.id),
+              child: authenticatedBuilder(context, user),
+            ),
+          },
+        ),
       ),
     );
   }
 
-  /// Solo l'account eliminato dimentica il consenso del dispositivo; ogni
-  /// altro arrivo al sign-in lo ripristina (Phase 25 D-10).
-  static LegalConsentCubit _consentFor(
-    UnauthenticatedReason reason,
-    LegalConsentStore store,
-  ) {
-    final cubit = LegalConsentCubit(store, version: LegalDocuments.version);
-    return switch (reason) {
-      UnauthenticatedReason.accountDeleted => cubit..forget(),
-      _ => cubit..restore(),
-    };
-  }
+  static bool _arrivesWithAccountDeleted(
+    AuthState previous,
+    AuthState current,
+  ) => _isAccountDeleted(current) && !_isAccountDeleted(previous);
+
+  static bool _isAccountDeleted(AuthState state) =>
+      state is AuthUnauthenticated &&
+      state.reason == UnauthenticatedReason.accountDeleted;
 
   static SignInNotice _noticeFor(
     UnauthenticatedReason reason,
