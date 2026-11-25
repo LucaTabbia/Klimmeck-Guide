@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -365,6 +367,44 @@ void main() {
         expect(find.byType(AlertDialog), findsNothing);
         verifyNever(() => authCubit.logout());
         verifyNever(() => deletionCubit.deleteCharacter());
+      },
+    );
+
+    testWidgets(
+      'while a confirmed logout runs the Account buttons are inert: no '
+      'deletion can race the logout (D-06, U-1)',
+      (tester) async {
+        final logoutGate = Completer<void>();
+        when(() => authCubit.logout()).thenAnswer((_) => logoutGate.future);
+        await pumpSection(tester);
+        await tester.tap(find.text('Esci'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Esci'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final logout = find.widgetWithText(ElevatedButton, 'Esci');
+        expect(
+          tester.widget<OutlinedButton>(characterButton).onPressed,
+          isNull,
+        );
+        expect(tester.widget<OutlinedButton>(accountButton).onPressed, isNull);
+        expect(tester.widget<ElevatedButton>(logout).onPressed, isNull);
+
+        await tester.tap(characterButton, warnIfMissed: false);
+        await tester.pump();
+        await tester.tap(accountButton, warnIfMissed: false);
+        await tester.pump();
+
+        expect(find.byType(AlertDialog), findsNothing);
+        verifyNever(() => deletionCubit.deleteCharacter());
+        verifyNever(() => accountDeletionCubit.deleteAccount());
+        logoutGate.complete();
+        await tester.pump();
       },
     );
 
