@@ -39,6 +39,15 @@ void main() {
       );
     });
 
+    test('a rate-limit refusal falls back to the generic failure (D-20)', () {
+      expect(
+        accountDeletionFailureFrom(
+          operationExceptionWithCode('TOO_MANY_REQUESTS'),
+        ),
+        AccountDeletionFailure.unknown,
+      );
+    });
+
     test('an unknown code is unknown', () {
       expect(
         accountDeletionFailureFrom(operationExceptionWithCode('SOMETHING')),

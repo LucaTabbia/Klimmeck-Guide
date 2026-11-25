@@ -52,6 +52,13 @@ void main() {
       );
     });
 
+    test('a rate-limit refusal falls back to the generic failure (D-20)', () {
+      expect(
+        _failureOf('TOO_MANY_REQUESTS'),
+        PlayerAccountDeletionFailure.unknown,
+      );
+    });
+
     test('FORBIDDEN and unknown codes are unknown', () {
       expect(_failureOf('FORBIDDEN'), PlayerAccountDeletionFailure.unknown);
       expect(_failureOf('SOMETHING'), PlayerAccountDeletionFailure.unknown);

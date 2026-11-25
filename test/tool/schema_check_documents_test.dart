@@ -29,9 +29,9 @@ void main() {
     expect(schemaCheckDocuments.keys.toSet(), _declaredOperationNames());
   });
 
-  test('the registry lists 55 documents and no completion form document '
-      '(D-19, D-25)', () {
-    expect(schemaCheckDocuments.length, 55);
+  test('the registry lists 57 documents and no completion form document '
+      '(D-19, D-20, D-25)', () {
+    expect(schemaCheckDocuments.length, 57);
     expect(
       schemaCheckDocuments,
       isNot(
