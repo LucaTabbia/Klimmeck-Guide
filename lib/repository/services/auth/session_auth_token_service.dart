@@ -144,11 +144,12 @@ class SessionAuthTokenService extends AuthTokenService
   /// o fallito non interrompe la sua ripresa in background. Un login riscattato
   /// mentre un logout è ancora in corso viene installato solo dopo la fine di
   /// quel logout, che quindi non può mai chiudere la sessione nuova.
-  /// Lancia [LoginException].
+  /// La versione dei documenti legali accettata viaggia sulla pagina di
+  /// avvio (D-19). Lancia [LoginException].
   @override
-  Future<void> login() async {
+  Future<void> login({required String acceptedLegalVersion}) async {
     final challenge = _createChallenge();
-    final callbackUrl = await _openLoginPage(challenge);
+    final callbackUrl = await _openLoginPage(challenge, acceptedLegalVersion);
     final session = await _redeemTicket(_ticketFrom(callbackUrl), challenge);
     await _logoutInFlight;
     if (_isDisposed) return;
@@ -241,10 +242,18 @@ class SessionAuthTokenService extends AuthTokenService
   // Login
   // ---------------------------------------------------------------------------
 
-  Future<String> _openLoginPage(LoginChallenge challenge) async {
+  Future<String> _openLoginPage(
+    LoginChallenge challenge,
+    String acceptedLegalVersion,
+  ) async {
     final startUrl = _backendBaseUrl
         .resolve('auth/twitch/start')
-        .replace(queryParameters: {'challenge': challenge.codeChallenge});
+        .replace(
+          queryParameters: {
+            'challenge': challenge.codeChallenge,
+            _termsVersionParameter: acceptedLegalVersion,
+          },
+        );
     try {
       return await _browser.authenticate(
         startUrl: startUrl,
@@ -573,6 +582,7 @@ class SessionAuthTokenService extends AuthTokenService
 }
 
 const String _networkFailureCode = 'network';
+const String _termsVersionParameter = 'termsVersion';
 
 /// Credenziali della sessione staccata da `logout()`.
 typedef _ClosingSession = ({

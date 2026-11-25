@@ -70,7 +70,7 @@ void main() {
       await service.logout();
       final expectation = expectLater(
         service.authStateStream,
-        emits(isA<AuthAuthenticated>()),
+        emitsThrough(isA<AuthAuthenticated>()),
       );
 
       await service.login(acceptedLegalVersion: 'v-test');

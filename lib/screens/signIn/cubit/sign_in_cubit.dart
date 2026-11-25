@@ -14,11 +14,11 @@ class SignInCubit extends Cubit<SignInState> {
   final AuthTokenService _authTokenService;
   final LinkOpener _links;
 
-  Future<void> signInWithTwitch() async {
+  Future<void> signInWithTwitch({required String acceptedLegalVersion}) async {
     if (state is SignInInProgress) return;
     emit(const SignInInProgress());
     try {
-      await _authTokenService.login();
+      await _authTokenService.login(acceptedLegalVersion: acceptedLegalVersion);
       _emitIfOpen(const SignInIdle());
     } on LoginCancelledException {
       _emitIfOpen(const SignInIdle());

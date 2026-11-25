@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:klimmeck_guide/config/legal_documents.dart';
 import 'package:klimmeck_guide/screens/signIn/components/legal_consent_row.dart';
 import 'package:klimmeck_guide/screens/signIn/consentCubit/legal_consent_cubit.dart';
 import 'package:klimmeck_guide/screens/signIn/cubit/sign_in_cubit.dart';
@@ -89,9 +90,11 @@ class SignInScreen extends StatelessWidget {
                             builder: (context, consent) => _TwitchLoginButton(
                               isLoading: state is SignInInProgress,
                               isEnabled: consent.isAccepted,
-                              onPressed: () => context
-                                  .read<SignInCubit>()
-                                  .signInWithTwitch(),
+                              onPressed: () =>
+                                  context.read<SignInCubit>().signInWithTwitch(
+                                    acceptedLegalVersion:
+                                        LegalDocuments.version,
+                                  ),
                             ),
                           ),
                           const SizedBox(height: 16),

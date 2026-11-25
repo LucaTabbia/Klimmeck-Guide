@@ -81,9 +81,10 @@ class DevAuthTokenService extends AuthTokenService
   Future<String?> getAccessToken() async =>
       _isSignedIn ? dotenv.env['DEV_AUTH_ACCESS_TOKEN'] : null;
 
-  /// Riapre la sessione simulata, senza browser (D-24).
+  /// Riapre la sessione simulata, senza browser (D-24); la versione accettata
+  /// non viaggia: la strategia dev del backend ne è esente (D-19).
   @override
-  Future<void> login() => _signIn();
+  Future<void> login({required String acceptedLegalVersion}) => _signIn();
 
   /// Esegue il teardown e chiude la sessione simulata.
   @override

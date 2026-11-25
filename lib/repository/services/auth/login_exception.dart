@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-/// Lanciate da `AuthTokenService.login()`; la firma `Future<void> login()`
-/// non cambia (D-02).
+/// Lanciate da `AuthTokenService.login`; dalla Phase 25 la firma porta la
+/// versione dei documenti legali accettata (D-19).
 sealed class LoginException extends Equatable implements Exception {
   const LoginException();
 

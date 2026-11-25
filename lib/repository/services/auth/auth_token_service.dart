@@ -127,12 +127,14 @@ abstract class AuthTokenService {
   /// Chiamato da GraphQL auth link e dio interceptor per ogni request.
   Future<String?> getAccessToken();
 
-  /// Avvia il flusso di login.
+  /// Avvia il flusso di login portando la versione dei documenti legali
+  /// accettata (D-09, D-19).
   ///
-  /// Phase 1: no-op (con `debugPrint` in `kDebugMode`).
-  /// Phase 11: apre il login Twitch mediato dal backend nel browser di
-  /// sistema; può lanciare `LoginException`.
-  Future<void> login();
+  /// Sessione reale: apre il login Twitch mediato dal backend nel browser di
+  /// sistema con la query `termsVersion` su `/auth/twitch/start`; il backend
+  /// rifiuta un login senza versione. Può lanciare `LoginException`.
+  /// Bypass di sviluppo: la versione è ignorata.
+  Future<void> login({required String acceptedLegalVersion});
 
   /// Effettua il logout dell'utente corrente.
   ///
