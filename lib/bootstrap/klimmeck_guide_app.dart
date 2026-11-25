@@ -12,6 +12,7 @@ import 'package:klimmeck_guide/models/notification_intent.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_creation_repository.dart';
 import 'package:klimmeck_guide/repository/push_device_repository.dart';
+import 'package:klimmeck_guide/repository/services/account/graphql_account_deletion_api.dart';
 import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart';
 import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
@@ -276,6 +277,12 @@ class _KlimmeckGuideAppState extends State<KlimmeckGuideApp> {
                                                   widget.push.permission,
                                               pushMessaging:
                                                   widget.push.messaging,
+                                              accountDeletionApi:
+                                                  GraphQlAccountDeletionApi(
+                                                    graphQl,
+                                                  ),
+                                              sessionTerminator:
+                                                  widget.sessionTerminator,
                                             ),
                                       ),
                                     ),

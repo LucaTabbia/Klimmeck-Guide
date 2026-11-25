@@ -4,16 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:klimmeck_guide/repository/storage/new_entries_store.dart';
 import 'package:klimmeck_guide/screens/mainScreen/newEntriesCubit/new_entries_cubit.dart';
+import 'package:klimmeck_guide/repository/account_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/cache/image_warmer.dart';
 import 'package:klimmeck_guide/repository/character_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/companion_repository.dart';
 import 'package:klimmeck_guide/repository/equipment_repository.dart';
 import 'package:klimmeck_guide/repository/innkeeper_repository.dart';
 import 'package:klimmeck_guide/repository/item_use_repository.dart';
+import 'package:klimmeck_guide/repository/player_account_deletion_repository.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_repository.dart';
 import 'package:klimmeck_guide/repository/quest_acceptance_repository.dart';
 import 'package:klimmeck_guide/repository/quest_board_repository.dart';
 import 'package:klimmeck_guide/repository/quest_result_repository.dart';
+import 'package:klimmeck_guide/repository/services/account/account_deletion_api.dart';
+import 'package:klimmeck_guide/repository/services/auth/session_terminator.dart';
 import 'package:klimmeck_guide/repository/services/graphql/graphql.dart';
 import 'package:klimmeck_guide/repository/services/push/foreground_push_events.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_permission_gate.dart';
@@ -53,9 +57,11 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapAvailabilityCubit/
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/mapFocusCubit/map_focus_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/travelProgressCubit/arrival_reread_ledger.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/notificationCubit/notification_preferences_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/notification_permission_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/travelCubit/travel_cubit.dart';
@@ -122,6 +128,8 @@ class AuthenticatedShell extends StatelessWidget {
     required this.userId,
     required this.notificationPermission,
     required this.pushMessaging,
+    required this.accountDeletionApi,
+    required this.sessionTerminator,
     this.mainScreenBuilder = _buildMainScreen,
   });
 
@@ -139,6 +147,12 @@ class AuthenticatedShell extends StatelessWidget {
 
   /// Messaggi push in foreground per i banner in-app (D-13/D-17).
   final PushMessagingPort pushMessaging;
+
+  /// Le due cancellazioni dell'account di Impostazioni (Phase 25, D-01, D-15).
+  final AccountDeletionApi accountDeletionApi;
+
+  /// Chiusura locale dopo la propria cancellazione, senza chiamate al BE (D-06).
+  final SessionTerminator sessionTerminator;
 
   /// Sostituibile solo nei test, per non montare il MainScreen che fa rete.
   final Widget Function(BuildContext context, String characterId)
@@ -219,6 +233,19 @@ class AuthenticatedShell extends StatelessWidget {
         BlocProvider<CharacterDeletionCubit>(
           create: (_) => CharacterDeletionCubit(
             CharacterDeletionRepository(graphQl: graphQl),
+          ),
+        ),
+        BlocProvider<AccountDeletionCubit>(
+          create: (_) => AccountDeletionCubit(
+            AccountDeletionRepository(
+              api: accountDeletionApi,
+              terminator: sessionTerminator,
+            ),
+          ),
+        ),
+        BlocProvider<PlayerAccountDeletionCubit>(
+          create: (_) => PlayerAccountDeletionCubit(
+            PlayerAccountDeletionRepository(api: accountDeletionApi),
           ),
         ),
         BlocProvider<QuestAcceptanceCubit>(
