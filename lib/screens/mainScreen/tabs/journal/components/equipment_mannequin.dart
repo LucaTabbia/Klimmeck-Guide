@@ -167,6 +167,9 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                   size: mannequinHeight / 4 - 10,
                   onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.leftHand,
+                  blockedBy: widget.equipment.twoHandedBlocking(
+                    SlotType.leftHand,
+                  ),
                 ),
                 Spacer(),
                 EquipmentBox(
@@ -175,6 +178,9 @@ class _EquipmentMannequinState extends State<EquipmentMannequin> {
                   size: mannequinHeight / 4 - 10,
                   onTap: (slot) => widget.onTap(slot),
                   item: widget.equipment.rightHand,
+                  blockedBy: widget.equipment.twoHandedBlocking(
+                    SlotType.rightHand,
+                  ),
                 ),
                 Spacer(),
               ],

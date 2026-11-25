@@ -31,7 +31,7 @@ import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
 import '../../../../models/enums/slot_type.dart';
 import '../../../../models/equipment_item.dart';
-import '../../../../models/request/equip_item_request.dart';
+import 'package:klimmeck_guide/utils/equip_request.dart';
 import '../../../../shared/components/coins_display.dart';
 import '../../../../shared/components/dropdown.dart';
 import '../../../../shared/components/item_row.dart';
@@ -481,48 +481,26 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     _animationController.forward();
   }
 
-  SlotType? _findEquippedSlot(EquipmentItem item, Character character) {
-    final equipment = character.assets?.wornEquipment;
-    if (equipment == null) return null;
-    final equipmentMap = equipment.toJson();
-    for (final slot in SlotType.values) {
-      final itemIdInSlot = equipmentMap[slot.name];
-      if (itemIdInSlot == item.id) {
-        return slot;
-      }
-    }
-    return null;
-  }
+  int _ownedCopiesOf(EquipmentItem item, Character character) =>
+      character.assets?.ownedEquipments
+          ?.where((owned) => owned.item?.id == item.id)
+          .fold<int>(0, (sum, owned) => sum + (owned.quantity ?? 0)) ??
+      0;
 
   void _equipItem(EquipmentItem item, Character character) {
-    if (character.isOnMission) return;
-    final isCurrentlyEquipped = _equippedItems.contains(item);
-    SlotType? targetSlot;
-    String? itemIdToSend;
-
-    if (isCurrentlyEquipped) {
-      targetSlot = _findEquippedSlot(item, character);
-      itemIdToSend = null;
-    } else {
-      if (_selectedSlot == null) {
-        appLog("Impossibile equipaggiare: Selezionare prima uno slot.");
-        return;
-      }
-      targetSlot = _selectedSlot;
-      itemIdToSend = item.id;
-    }
-
-    if (targetSlot == null) {
-      appLog("Errore: Impossibile determinare lo slot target per l'azione.");
+    final worn = character.assets?.wornEquipment;
+    if (character.isOnMission || worn == null) return;
+    final request = equipRequestFor(
+      characterId: character.id,
+      item: item,
+      selectedSlot: _selectedSlot,
+      worn: worn,
+      ownedCopies: _ownedCopiesOf(item, character),
+    );
+    if (request == null) {
+      appLog("Impossibile equipaggiare: Selezionare prima uno slot.");
       return;
     }
-
-    final request = EquipItemRequest(
-      id: character.id,
-      itemId: itemIdToSend,
-      slotType: targetSlot,
-    );
-
     context.read<JournalCubit>().equipItem(request);
   }
 

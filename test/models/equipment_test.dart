@@ -73,6 +73,45 @@ void main() {
     expect(EquipmentItem.tryFromJson(null), isNull);
   });
 
+  group('hands', () {
+    Map<String, dynamic> weapon(String id, String subType) => {
+      ..._itemJson(id, equipType: 'weapon'),
+      'equipSubType': subType,
+    };
+
+    test('a two-handed weapon blocks the other hand', () {
+      final equipment = Equipment.fromJson({
+        'leftHand': weapon('e-bow', 'bow'),
+      });
+
+      expect(equipment.twoHandedBlocking(SlotType.rightHand)?.id, 'e-bow');
+      expect(equipment.twoHandedBlocking(SlotType.leftHand), isNull);
+    });
+
+    test('a one-handed weapon blocks nothing', () {
+      final equipment = Equipment.fromJson({
+        'leftHand': weapon('e-wand', 'wand'),
+      });
+
+      expect(equipment.twoHandedBlocking(SlotType.rightHand), isNull);
+      expect(equipment.twoHandedBlocking(SlotType.head), isNull);
+    });
+
+    test('lists every slot wearing an item, in slot order', () {
+      final equipment = Equipment.fromJson({
+        'rightHand': weapon('e-dagger', 'dagger'),
+        'leftHand': weapon('e-dagger', 'dagger'),
+        'head': _itemJson('e-helm'),
+      });
+
+      expect(equipment.slotsWearing('e-dagger'), [
+        SlotType.leftHand,
+        SlotType.rightHand,
+      ]);
+      expect(equipment.slotsWearing('e-none'), isEmpty);
+    });
+  });
+
   group('feet slot (BE Phase 19)', () {
     test('parses the boots from the feet key (D-04)', () {
       final equipment = Equipment.fromJson({

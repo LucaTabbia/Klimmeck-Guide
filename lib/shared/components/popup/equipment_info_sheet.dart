@@ -37,7 +37,9 @@ class _EquipmentInfoSheetState extends State<EquipmentInfoSheet> {
   Widget build(BuildContext context) {
     final svgWidth = MediaQuery.of(context).size.height * 1.3 * (315 / 375);
     final svgHeight = MediaQuery.of(context).size.height * 1.3;
-    final usage = accessoryUsageLine(widget.equipmentItem);
+    final usage =
+        accessoryUsageLine(widget.equipmentItem) ??
+        weaponKindLine(widget.equipmentItem);
     return Stack(
       alignment: Alignment.topCenter,
       children: [

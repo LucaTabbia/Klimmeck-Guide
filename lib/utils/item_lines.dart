@@ -87,6 +87,14 @@ String? accessoryUsageLine(EquipmentItem item) {
   return 'Uso: ${labels.join(' e ')}';
 }
 
+/// Riga «Arma» con la famiglia servita dal BE; le armi a due mani lo dicono.
+String? weaponKindLine(EquipmentItem item) {
+  final subType = item.equipSubType;
+  if (item.equipType != EquipType.weapon || subType == null) return null;
+  final family = subType.label.toLowerCase();
+  return subType.isTwoHanded ? 'Arma: $family, a due mani' : 'Arma: $family';
+}
+
 const String healedInjuriesPrefix = 'Cura: ';
 const String healedInjuriesSeparator = ', ';
 

@@ -8,6 +8,7 @@ class EquipmentFragment {
     rarity
     equipType
     accessoryUseTypes
+    equipSubType
     buyPrice {
       gold
       silver
@@ -56,6 +57,7 @@ class EquipmentFragment {
     rarity
     equipType
     accessoryUseTypes
+    equipSubType
     buyPrice {
       gold
       silver
