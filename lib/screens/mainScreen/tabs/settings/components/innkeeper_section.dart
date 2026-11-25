@@ -6,7 +6,7 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/settings_section.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Sezione «Locanda» (10-CONTEXT D-01, ADMIN-01): solo per il GM, viva col

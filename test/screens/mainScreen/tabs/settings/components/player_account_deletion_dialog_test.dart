@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/player_account_deletion_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_messages.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/landscape.dart';

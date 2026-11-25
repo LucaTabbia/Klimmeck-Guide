@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/repository/player_account_deletion_failure.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/mocks.dart';

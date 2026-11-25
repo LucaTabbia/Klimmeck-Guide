@@ -16,7 +16,7 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_screen.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/map/teleportModeCubit/teleport_mode_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/innkeeper_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerDeletionCubit/player_account_deletion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
