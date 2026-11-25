@@ -204,6 +204,30 @@ void main() {
     });
   });
 
+  test('the cancellation banner shows the served title and body (D-23)', () {
+    final cancelled = PushEvent(
+      category: NotificationCategory.questCancelled,
+      title: 'Missione annullata',
+      body: 'Un messaggio che solo il backend conosce.',
+      sentAt: DateTime.utc(2026, 11, 25, 12),
+      id: 'quest-cancelled',
+    );
+    withCubit((async, cubit, events) {
+      events.add(cancelled);
+      async.flushMicrotasks();
+
+      expect(cubit.state.current, cancelled);
+      expect(
+        cubit.state.current?.notification,
+        const KGNotification(
+          title: 'Missione annullata',
+          description: 'Un messaggio che solo il backend conosce.',
+        ),
+      );
+      expect(cubit.state.notice, isNull);
+    });
+  });
+
   test('close cancels the timer and the subscription', () {
     fakeAsync((async) {
       final events = StreamController<PushEvent>.broadcast();

@@ -35,6 +35,31 @@ void main() {
       expect(standing.canAccept, isFalse);
     });
 
+    test('a quest served back on the Board, not started and without '
+        'registrations, can be accepted again (D-13, D-23)', () {
+      const groupSlots = [
+        {'title': null, 'count': 3},
+      ];
+      final onTheQuest = buildViewer(
+        quests: buildLanes(pendingQuest: laneJson(questType: 'enemy')),
+      );
+      final sentBack = buildViewer(quests: buildLanes());
+      final servedBack = buildQuest(slots: groupSlots);
+
+      expect(
+        standingOf(
+          buildQuest(slots: groupSlots, registered: const ['c-1', 'c-2']),
+          onTheQuest,
+        ).canAccept,
+        isFalse,
+      );
+      final standing = standingOf(servedBack, sentBack);
+      expect(standing.availability, QuestAvailability.available);
+      expect(standing.canAccept, isTrue);
+      expect(standing.isTorn, isFalse);
+      expect(boardQuestsFor([servedBack], sentBack), [servedBack]);
+    });
+
     test('story without requiredPoints is a catalogue defect', () {
       expect(
         availabilityOf(buildQuest(type: 'story'), buildViewer()),
