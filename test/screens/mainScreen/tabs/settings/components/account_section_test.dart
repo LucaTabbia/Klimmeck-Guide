@@ -408,6 +408,24 @@ void main() {
       },
     );
 
+    testWidgets('cancelling Esci leaves the Account buttons live (U-1)', (
+      tester,
+    ) async {
+      await pumpSection(tester);
+      await tester.tap(find.text('Esci'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Annulla'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<OutlinedButton>(characterButton).onPressed,
+        isNotNull,
+      );
+      expect(tester.widget<OutlinedButton>(accountButton).onPressed, isNotNull);
+      verifyNever(() => authCubit.logout());
+    });
+
     testWidgets('a failure reads under the button (D-06)', (tester) async {
       await pumpSection(
         tester,

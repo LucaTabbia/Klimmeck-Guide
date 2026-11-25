@@ -20,16 +20,26 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Mentre l'account si elimina gli altri due bottoni sono spenti: un logout
 /// partito in quel momento vincerebbe sulla chiusura della sessione
 /// dell'eliminazione e l'arrivo al login perderebbe il suo avviso (D-06).
-class AccountSection extends StatelessWidget {
+/// Allo stesso modo, da «Esci» alla fine del logout nessun bottone della
+/// sezione risponde: nessuna eliminazione può correre contro il logout.
+class AccountSection extends StatefulWidget {
   const AccountSection({super.key, required this.characterName});
 
   final String? characterName;
+
+  @override
+  State<AccountSection> createState() => _AccountSectionState();
+}
+
+class _AccountSectionState extends State<AccountSection> {
+  bool _isLoggingOut = false;
 
   @override
   Widget build(BuildContext context) {
     final isDeletingAccount = context.select<AccountDeletionCubit, bool>(
       (cubit) => cubit.state.isDeleting,
     );
+    final isLocked = isDeletingAccount || _isLoggingOut;
     return BlocBuilder<CharacterDeletionCubit, CharacterDeletionState>(
       builder: (context, state) => SettingsSection(
         title: 'Account',
@@ -37,16 +47,14 @@ class AccountSection extends StatelessWidget {
           _DestructiveOutlinedButton(
             label: 'Elimina personaggio',
             isBusy: state.isDeleting,
-            onPressed: isDeletingAccount
-                ? null
-                : () => _confirmDeletion(context),
+            onPressed: isLocked ? null : () => _confirmDeletion(context),
           ),
           if (state.failure case final failure?)
             _FailureLine(message: failure.message),
           const SizedBox(height: KlimmeckGuideTheme.spacingLg),
           ElevatedButton(
             style: KlimmeckGuideTheme.destructiveButtonStyle,
-            onPressed: isDeletingAccount ? null : () => confirmLogout(context),
+            onPressed: isLocked ? null : _logOut,
             child: Text(
               'Esci',
               style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
@@ -54,10 +62,16 @@ class AccountSection extends StatelessWidget {
               ),
             ),
           ),
-          const _AccountDeletionEntry(),
+          _AccountDeletionEntry(isLoggingOut: _isLoggingOut),
         ],
       ),
     );
+  }
+
+  Future<void> _logOut() async {
+    setState(() => _isLoggingOut = true);
+    await confirmLogout(context);
+    if (mounted) setState(() => _isLoggingOut = false);
   }
 
   /// Il dialog vive sul Navigator radice: il Cubit si legge prima dell'await (D-19).
@@ -65,7 +79,7 @@ class AccountSection extends StatelessWidget {
     final cubit = context.read<CharacterDeletionCubit>();
     final confirmed = await showDeleteCharacterConfirmation(
       context,
-      characterName: characterName,
+      characterName: widget.characterName,
     );
     if (confirmed && !cubit.isClosed) await cubit.deleteCharacter();
   }
@@ -73,7 +87,9 @@ class AccountSection extends StatelessWidget {
 
 /// «Elimina account» sotto «Esci», staccato (D-02); assente per l'oste (D-16).
 class _AccountDeletionEntry extends StatelessWidget {
-  const _AccountDeletionEntry();
+  const _AccountDeletionEntry({required this.isLoggingOut});
+
+  final bool isLoggingOut;
 
   @override
   Widget build(BuildContext context) =>
@@ -94,7 +110,9 @@ class _AccountDeletionEntry extends StatelessWidget {
             _DestructiveOutlinedButton(
               label: 'Elimina account',
               isBusy: state.isDeleting,
-              onPressed: () => _confirmAccountDeletion(context),
+              onPressed: isLoggingOut
+                  ? null
+                  : () => _confirmAccountDeletion(context),
             ),
             if (state.failure case final failure?)
               _FailureLine(message: failure.message),
