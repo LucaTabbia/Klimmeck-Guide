@@ -14,12 +14,10 @@ class KlimmeckGuideTheme {
   static const double radius = 15.0;
 
   /// Aspetto "inchiostro ancora umido" di un equip/disequip in attesa
-  /// (Phase 8 D-16), provvisorio.
+  /// (Phase 8 D-16), provvisorio; è anche la dissolvenza di un pulsante
+  /// disabilitato, senza un colore nuovo (Phase 25 D-07).
   static const double pendingInkOpacity = 0.5;
   static const Duration pendingInkDuration = Duration(milliseconds: 200);
-
-  /// Pulsante disabilitato senza un colore nuovo (Phase 25 D-07).
-  static const double disabledOpacity = 0.5;
 
   static const double spacingXs = 4;
   static const double spacingSm = 8;
@@ -240,7 +238,7 @@ class KlimmeckGuideTheme {
   static final ButtonStyle destructiveButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: bloodRed,
     foregroundColor: parchment,
-    disabledBackgroundColor: bloodRed.withValues(alpha: 0.5),
+    disabledBackgroundColor: bloodRed.withValues(alpha: pendingInkOpacity),
     disabledForegroundColor: parchment,
   );
 

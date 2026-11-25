@@ -87,7 +87,7 @@ class SignInScreen extends StatelessWidget {
                         children: [
                           _Notice(notice: notice),
                           const LegalConsentRow(),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
                           BlocBuilder<LegalConsentCubit, LegalConsentState>(
                             builder: (context, consent) => _TwitchLoginButton(
                               isLoading: state is SignInInProgress,
@@ -99,7 +99,7 @@ class SignInScreen extends StatelessWidget {
                                   ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
                           _LoginOutcome(state: state, notice: notice),
                         ],
                       ),
@@ -168,7 +168,7 @@ class _TwitchLoginButton extends StatelessWidget {
       label: _loginLabel,
       excludeSemantics: true,
       child: Opacity(
-        opacity: isEnabled ? 1 : KlimmeckGuideTheme.disabledOpacity,
+        opacity: isEnabled ? 1 : KlimmeckGuideTheme.pendingInkOpacity,
         child: _buttonBody(borderRadius),
       ),
     );
@@ -193,7 +193,9 @@ class _TwitchLoginButton extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 44),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: KlimmeckGuideTheme.spacingMd,
+              ),
               child: Center(
                 child: isLoading
                     ? const _ButtonSpinner()
