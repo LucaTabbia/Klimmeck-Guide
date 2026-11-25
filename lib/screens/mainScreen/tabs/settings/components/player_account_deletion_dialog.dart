@@ -30,6 +30,7 @@ class PlayerAccountDeletionDialog extends StatefulWidget {
   const PlayerAccountDeletionDialog({super.key});
 
   static const String title = 'Elimina un account';
+  static const String fieldLabel = "Nome Twitch dell'account da eliminare";
   static const Key fieldKey = Key('playerAccountDeletionField');
 
   @override
@@ -60,77 +61,79 @@ class _PlayerAccountDeletionDialogState
 
   /// Finché la cancellazione è in volo né «Annulla» né il tasto indietro
   /// chiudono il dialog: è l'unico a leggerne l'esito.
+  ///
+  /// In alto e su una riga sola: con la tastiera aperta in landscape restano
+  /// interi campo, pulsanti e rifiuto (research C5, UAT 25).
   Widget _buildDialog(PlayerAccountDeletionState state) {
     final theme = KlimmeckGuideTheme.instance;
-    return AlertDialog(
+    return Dialog(
+      alignment: Alignment.topCenter,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: KlimmeckGuideTheme.spacingXl,
-        vertical: KlimmeckGuideTheme.spacingSm,
+        vertical: KlimmeckGuideTheme.spacingXs,
       ),
-      contentPadding: const EdgeInsets.fromLTRB(
-        KlimmeckGuideTheme.spacingLg,
-        KlimmeckGuideTheme.spacingMd,
-        KlimmeckGuideTheme.spacingLg,
-        0,
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(
-        KlimmeckGuideTheme.spacingLg,
-        0,
-        KlimmeckGuideTheme.spacingLg,
-        KlimmeckGuideTheme.spacingSm,
-      ),
-      content: _scrollKeepingTheFieldInSight(
-        children: [
-          Text(PlayerAccountDeletionDialog.title, style: theme.titleMedium),
-          const SizedBox(height: KlimmeckGuideTheme.spacingMd),
-          TextField(
-            key: PlayerAccountDeletionDialog.fieldKey,
-            controller: _controller,
-            autofocus: true,
-            autocorrect: false,
-            enableSuggestions: false,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(labelText: 'Nome utente Twitch'),
-          ),
-          if (state.failure case final failure?)
-            Padding(
-              padding: const EdgeInsets.only(top: KlimmeckGuideTheme.spacingXs),
-              child: Text(failure.message, style: theme.errorText),
-            ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: state.isDeleting
-              ? null
-              : () => Navigator.of(context).pop(),
-          child: Text(
-            'Annulla',
-            style: theme.bodyMedium.copyWith(
-              color: KlimmeckGuideTheme.deepNight,
-            ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingSm),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: _usernameField()),
+                  const SizedBox(width: KlimmeckGuideTheme.spacingSm),
+                  _cancelButton(state, theme),
+                  const SizedBox(width: KlimmeckGuideTheme.spacingXs),
+                  _NextButton(
+                    controller: _controller,
+                    isDeleting: state.isDeleting,
+                    onPressed: _confirmAndDelete,
+                  ),
+                ],
+              ),
+              if (state.failure case final failure?)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    KlimmeckGuideTheme.spacingMd,
+                    KlimmeckGuideTheme.spacingXs,
+                    KlimmeckGuideTheme.spacingMd,
+                    0,
+                  ),
+                  child: Text(failure.message, style: theme.errorText),
+                ),
+            ],
           ),
         ),
-        _NextButton(
-          controller: _controller,
-          isDeleting: state.isDeleting,
-          onPressed: _confirmAndDelete,
-        ),
-      ],
+      ),
     );
   }
 
-  /// Ancorato in basso: con la tastiera aperta in landscape a scorrere via è
-  /// il titolo, mai il campo (research C5).
-  Widget _scrollKeepingTheFieldInSight({required List<Widget> children}) =>
-      SingleChildScrollView(
-        reverse: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
-      );
+  static const double _maxWidth = 560;
+
+  Widget _usernameField() => TextField(
+    key: PlayerAccountDeletionDialog.fieldKey,
+    controller: _controller,
+    autofocus: true,
+    autocorrect: false,
+    enableSuggestions: false,
+    textInputAction: TextInputAction.done,
+    decoration: const InputDecoration(
+      labelText: PlayerAccountDeletionDialog.fieldLabel,
+    ),
+  );
+
+  Widget _cancelButton(
+    PlayerAccountDeletionState state,
+    KlimmeckGuideTheme theme,
+  ) => TextButton(
+    onPressed: state.isDeleting ? null : () => Navigator.of(context).pop(),
+    child: Text(
+      'Annulla',
+      style: theme.bodyMedium.copyWith(color: KlimmeckGuideTheme.deepNight),
+    ),
+  );
 
   /// Il Cubit si legge prima dell'await: la conferma vive sul Navigator radice.
   Future<void> _confirmAndDelete() async {
