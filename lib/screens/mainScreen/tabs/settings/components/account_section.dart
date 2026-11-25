@@ -16,6 +16,10 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 /// Sezione Account: eliminazione personaggio (con conferma), logout e, per
 /// ultima e staccata, l'eliminazione dell'account (D-02). Quest'ultima è
 /// nascosta all'oste (D-16, solo UX: decide il BE).
+///
+/// Mentre l'account si elimina gli altri due bottoni sono spenti: un logout
+/// partito in quel momento vincerebbe sulla chiusura della sessione
+/// dell'eliminazione e l'arrivo al login perderebbe il suo avviso (D-06).
 class AccountSection extends StatelessWidget {
   const AccountSection({super.key, required this.characterName});
 
@@ -23,6 +27,9 @@ class AccountSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDeletingAccount = context.select<AccountDeletionCubit, bool>(
+      (cubit) => cubit.state.isDeleting,
+    );
     return BlocBuilder<CharacterDeletionCubit, CharacterDeletionState>(
       builder: (context, state) => SettingsSection(
         title: 'Account',
@@ -30,14 +37,16 @@ class AccountSection extends StatelessWidget {
           _DestructiveOutlinedButton(
             label: 'Elimina personaggio',
             isBusy: state.isDeleting,
-            onPressed: () => _confirmDeletion(context),
+            onPressed: isDeletingAccount
+                ? null
+                : () => _confirmDeletion(context),
           ),
           if (state.failure case final failure?)
             _FailureLine(message: failure.message),
           const SizedBox(height: KlimmeckGuideTheme.spacingLg),
           ElevatedButton(
             style: KlimmeckGuideTheme.destructiveButtonStyle,
-            onPressed: () => confirmLogout(context),
+            onPressed: isDeletingAccount ? null : () => confirmLogout(context),
             child: Text(
               'Esci',
               style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
@@ -114,7 +123,7 @@ class _DestructiveOutlinedButton extends StatelessWidget {
 
   final String label;
   final bool isBusy;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) => OutlinedButton(

@@ -358,9 +358,9 @@ void main() {
         expect(find.text(deleteLabel), findsOneWidget);
 
         await tester.tap(logout, warnIfMissed: false);
-        await tester.pumpAndSettle();
+        await tester.pump();
         await tester.tap(characterButton, warnIfMissed: false);
-        await tester.pumpAndSettle();
+        await tester.pump();
 
         expect(find.byType(AlertDialog), findsNothing);
         verifyNever(() => authCubit.logout());
