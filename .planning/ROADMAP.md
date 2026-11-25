@@ -283,7 +283,7 @@ Plans:
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
-| 25. Account Deletion and Legal Consent | v1.1 | 7/8 | In Progress | - |
+| 25. Account Deletion and Legal Consent | v1.1 | 8/8 | Complete | 2026-11-25 |
 
 ### Phase 25: Account Deletion and Legal Consent
 
@@ -308,7 +308,7 @@ Plans:
 - [x] 25-05-PLAN.md — The login carries `termsVersion`: `login({required String acceptedLegalVersion})`, the stubs, `terms_not_accepted` mapped to its own sign-in failure
 - [x] 25-06-PLAN.md — Cancelled started quest: tests proving the existing reactive paths draw the members back in the city and the quest back on the Board, fixes only where RED
 - [x] 25-07-PLAN.md — Gate: schema, names, the two documents (55 → 57), GraphQL API, providers, switch on, schema check, full suite, BACKEND-NOTES (after the BE Phase 26 merge)
-- [ ] 25-08-PLAN.md — Device E2E, UAT outcome in the handoff and closing (LAST, human)
+- [x] 25-08-PLAN.md — Device E2E, UAT outcome in the handoff and closing (LAST, human)
 
 ---
 

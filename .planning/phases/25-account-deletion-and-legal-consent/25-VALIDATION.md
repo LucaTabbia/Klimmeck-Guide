@@ -1,7 +1,7 @@
 ---
 phase: 25
 slug: account-deletion-and-legal-consent
-status: draft
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-11-24
@@ -22,7 +22,7 @@ created: 2026-11-24
 | **Quick run command** | `flutter test <paths of the task>` (each task's `<verify>`) |
 | **Full suite command** | `flutter test -r expanded 2>&1 \| tr '\r' '\n' \| grep -E '\[E\]\|All tests passed\|Some tests failed'` — only in 25-01 (baseline) and 25-07 (gate), alone in its Bash call, timeout ≥ 300000 ms |
 | **Analyzer gate** | `OUT=$(flutter analyze --no-fatal-infos 2>&1); echo "$OUT" \| tail -1; ! echo "$OUT" \| grep -qE '^ *(error\|warning) •' && echo "$OUT" \| grep -qE '^47 issues found' && echo ANALYZE_GATE_OK` |
-| **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` on the BE branch `feat/26-eliminazione-account-e-consenso` at `df22b017` (`git -C <BE> show <ref>:src/schema.gql`, read-only; 25-07 gate and the review fix, 57 × OK; the branch tip later moved to `58ccd402` with a docs-only commit, same SDL, also 57 × OK); to re-run on BE `develop` after the BE merge (25-08) |
+| **Schema check** | `dart run tool/schema_check/dump_documents.dart <dir>` + `NODE_PATH=<BE>/node_modules node tool/schema_check/validate_documents.js <schema.gql> <dir>` on the BE branch `feat/26-eliminazione-account-e-consenso` at `df22b017` (`git -C <BE> show <ref>:src/schema.gql`, read-only; 25-07 gate and the review fix, 57 × OK; the branch tip later moved to `58ccd402` with a docs-only commit, same SDL, also 57 × OK); re-run by 25-08 on the branch tip `9321434a` after the UAT, 57 × OK; still to re-run on BE `develop` after the merge of BE PR #53 |
 | **Suite baseline** | **5549 green** (measured by 25-01 Task 1 on this branch on 2026-11-25, `01:52 +5549: All tests passed!`; 5535 at the close of Phase 24) |
 | **Estimated runtime** | ~25 seconds per task command |
 
@@ -65,9 +65,9 @@ created: 2026-11-24
 | 25-07-02 | 07 | 7 | ACCOUNT-01, ACCOUNT-03 | T-25-60 | providers + switch on only after the gate | widget | `flutter test test/screens/auth test/config test/screens/mainScreen/tabs/settings` | ✅ extend | ✅ green |
 | 25-07-03 | 07 | 7 | ACCOUNT-05 | T-25-63 | 57 × OK, full suite, hardening; names only in the notes | gate | schema check block of 25-07 | ✅ tooling | ✅ green |
 | 25-07-04 | 07 | 7 | — | — | bookkeeping | docs | `test -f .planning/phases/25-account-deletion-and-legal-consent/25-07-SUMMARY.md` | — | ✅ green |
-| 25-08-01 | 08 | 8 | ACCOUNT-05 | T-25-70, T-25-73 | gate re-check; no secrets in the record | gate + docs | gate re-check block of 25-08 | — | ⬜ pending |
-| 25-08-02 | 08 | 8 | all eight | T-25-72 | device, DB, legal repo are the orchestrator's | manual | device E2E (`25-HUMAN-UAT.md`) | — | ⬜ pending |
-| 25-08-03 | 08 | 8 | all eight | T-25-71 | mark-complete only per passed steps | docs | `grep -q "^status: " .planning/phases/25-account-deletion-and-legal-consent/25-HUMAN-UAT.md` | — | ⬜ pending |
+| 25-08-01 | 08 | 8 | ACCOUNT-05 | T-25-70, T-25-73 | gate re-check; no secrets in the record | gate + docs | gate re-check block of 25-08 | — | ✅ green |
+| 25-08-02 | 08 | 8 | all eight | T-25-72 | device, DB, legal repo are the orchestrator's | manual | device E2E (`25-HUMAN-UAT.md`) | — | ✅ green |
+| 25-08-03 | 08 | 8 | all eight | T-25-71 | mark-complete only per passed steps | docs | `grep -q "^status: " .planning/phases/25-account-deletion-and-legal-consent/25-HUMAN-UAT.md` | — | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -113,4 +113,4 @@ Each new test file is written RED-first inside the task that needs it (no separa
 - [x] Feedback latency < 25s (loopback WS auth tests excepted)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-11-25 (plan 25-08). Closing gates on the final tree: gate re-check `GATE_OK` and schema check 57 × OK on BE `origin/feat/26-eliminazione-account-e-consenso` `9321434a` (BE PR #53 not merged: to re-run on BE `develop` after the merge); analyzer «47 issues found» (`ANALYZE_GATE_OK`); full suite `+5706: All tests passed!` and `hardening_check: OK`, rerun by the orchestrator after the UAT fixes. Device E2E: steps 1–11 passed in the user's words (`25-HUMAN-UAT.md`; 7 and 10 as variants, 9 after a fix); not run or not judged, open and non blocking: a second physical device, TalkBack (IN-06), the checkbox border (IN-05). D-22 privacy lines committed in the legal repo by the orchestrator (`0659dc4`).

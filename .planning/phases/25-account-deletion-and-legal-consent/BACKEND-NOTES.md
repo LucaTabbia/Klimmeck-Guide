@@ -1,6 +1,6 @@
 # Phase 25 (FE) — Backend notes
 
-Drafted by the planner on 2026-11-24 as the handoff to the BE Phase 26 «Eliminazione account e consenso». Rewritten by plan 25-07 (Task 3) on 2026-11-25 after the gate: §1 confirmed, §2 filled, §4 updated with the answers of the BE handoff; §3 is filled by plan 25-08 after the device UAT.
+Drafted by the planner on 2026-11-24 as the handoff to the BE Phase 26 «Eliminazione account e consenso». Rewritten by plan 25-07 (Task 3) on 2026-11-25 after the gate: §1 confirmed, §2 filled, §4 updated with the answers of the BE handoff; §3 filled by plan 25-08 on 2026-11-25 after the device UAT.
 
 Frontend companion of the BE Phase 26. FE branch `feat/25-account-deletion-and-legal-consent`. English text, Italian UI copy verbatim. No ids of real users or characters, no secrets, no environment values; the only URIs are the public legal pages. Decisions: `25-CONTEXT.md` D-01..D-23 (shared numbering with the BE `26-CONTEXT.md` up to D-23).
 
@@ -28,9 +28,30 @@ From the SUMMARYs of 25-01..25-07. Final tree of 25-07: full suite 5691 green, a
 - **25-06 — cancelled started quest:** one `characterUpdated` draws the member back in the city with an empty lane (paper off the Map, Board and shop open again, the city's Board reread in silence, the quest acceptable again); the refunded points through `userUpdated`; the `questCancelled` body verbatim, routed as every personal push; no placeholder, no party list.
 - **25-07 — gate:** the two documents are registered (55 → 57) and validated; `GraphQlAccountDeletionApi` sends `DeleteMyAccount` with no variables and `DeleteAccountByTwitchLogin` with `{ twitchLogin }`, error codes passed through unchanged; the shell provides both deletion Cubits wired to it and to the session terminator; `accountDeletionEnabled = true`.
 
-## 3. UAT outcome
+## 3. UAT outcome (FE Phase 25, 2026-11-25)
 
-Filled by plan 25-08.
+Device E2E on one Android phone (real Twitch login) against the BE booted from `feat/26-eliminazione-account-e-consenso` (gate and schema check re-run on the branch tip `9321434a`: `GATE_OK`, 57 × OK; to re-run on BE `develop` after the merge of BE PR #53). 0 ERROR lines in the BE log for the whole session. Full record: `25-HUMAN-UAT.md`. Every step passed in the user's words; the steps that touch the BE:
+
+- **Consent recorded (step 3):** «pass». An existing user (the innkeeper) got `users.acceptedTermsVersion` and `users.termsAcceptedAt` written at his first login with the version; a new Twitch account was born with both.
+- **Own deletion (step 7, own half):** «pass». Landing on the login with «Il tuo account è stato eliminato.», the box unticked; BE log: 1 character, 1 session revoked, 1 device.
+- **Started quest cancelled (step 7, run with the innkeeper deleting the companion by username):** «pass», and on the push «confermo la notifica». For the member left behind, at DB: points +30 (`users.twitchPoints`), life +500, 2 food items back, the character on the city marker, `quests.pendingQuest` null, the quest back with 0 registrations and `startedAt` null; the deleted account and its character gone; the `admin_audit_logs` row without the typed login.
+- **From zero (step 8):** «pass» / «pronto». The same Twitch account recreated four times: character creation each time, balance 0.
+- **Innkeeper's refusals (step 9):** «pass» after an FE layout fix of the dialog (no BE change); the refusal codes read as their lines.
+- **Online player deleted by the innkeeper (step 10):** pass, with the innkeeper's side played by the orchestrator (one phone only, the mutation called with the BE's dev credential): four seconds after `deleteAccountByTwitchLogin` the phone was on the login with the deleted-account notice, with no tap; BE: 1 session revoked, 1 device.
+- **Not-started quest (step 11):** «…per il resto è tutto pass». A boss needing 3 with two registered and on the place: after the deletion of one, the quest is still not started with 1 registration, the other keeps his pending quest, points and life unchanged (no refund).
+
+Copy:
+
+- **Changed by the user (BE):** the body of the `questCancelled` push of a started quest is now «Un membro del party ha lasciato il mondo: Missione annullata, ciò che hai consumato è stato rimborsato.» — BE commits `056995f8` (test), `8d753909` (fix), `9321434a` (notes). The app shows the body verbatim, so no FE change.
+- **FE copy confirmed** («le altre pass»; on the consent error line «Il testo va bene com'è»). Two strings born in the session, FE only: «Azioni irreversibili» (the dropdown that holds «Elimina personaggio» and «Elimina account») and «Nome Twitch dell'account da eliminare» (the field label of the innkeeper's dialog, in place of «Nome utente Twitch»).
+
+FE changes made during the UAT, none touching the contract: the innkeeper's dialog laid out above the landscape keyboard (`816b6fea`, `af18857d`), the destructive confirmation scrolling above the keyboard (`31cd392a`, `c88f537a`), the Settings sheet in closed app dropdowns with «Esci» last (`8766a865`, `de141943`, `c446b7e2`; D-02 amended, `2f0defd2`).
+
+DB content: nothing decided in the UAT stays in the DB. The seeds of the session (the started and the not-started boss quests, the points, food and life of the companion) were restored from the orchestrator's backup at the end. One seed of the orchestrator had a due date in the past, so the BE resolved that boss by itself in 12 seconds: an orchestrator's mistake, not a defect; data restored, the two spurious results removed.
+
+Not run: a second physical device (identities switched on one phone); TalkBack (IN-06) and the checkbox border (IN-05) not judged — FE only, open, non blocking.
+
+Legal pages (D-22): done by the orchestrator, legal repo commit `0659dc4` — privacy §2 (accepted version and date), §10 (acceptance remembered on the device, cleared by the account deletion), and the deletion path now Impostazioni → «Azioni irreversibili» → «Elimina account» in privacy §7, termini and elimina-account.
 
 ## 4. Open points for the BE
 
@@ -39,3 +60,4 @@ Filled by plan 25-08.
 - **Third players' Board:** a player outside the party with the Board open sees the reset quest only at the next silent reread of `quests` (no Board subscription exists; none is added).
 - **Rate limit:** both deletions are throttled with the default bucket; the app shows the generic failure line for `TOO_MANY_REQUESTS`. If a dedicated line is wanted, it is a later copy change.
 - **Username over 64 characters** answers `TWITCH_USER_NOT_FOUND` (BE choice, vetoable): the app shows «Nessun utente Twitch con questo nome».
+- **After the UAT (2026-11-25):** nothing new is asked of the BE. The schema check is to be re-run on BE `develop` once BE PR #53 is merged (57 × OK expected); FE PR #59 leaves the draft state after that merge.
