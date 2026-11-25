@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
+import 'package:klimmeck_guide/models/enums/equip_sub_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
@@ -274,6 +275,30 @@ void main() {
     test('a ring without use types has no line (D-12)', () {
       expect(accessoryUsageLine(_jewel(EquipType.ring, null)), isNull);
       expect(accessoryUsageLine(_jewel(EquipType.ring, const [])), isNull);
+    });
+  });
+
+  group('weaponKindLine', () {
+    EquipmentItem weapon(EquipSubType? subType, {EquipType? type}) =>
+        _jewel(type ?? EquipType.weapon, null).copyWith(equipSubType: subType);
+
+    test('a one-handed weapon reads its family', () {
+      expect(weaponKindLine(weapon(EquipSubType.grimoire)), 'Arma: grimorio');
+    });
+
+    test('a two-handed weapon says it takes both hands', () {
+      expect(
+        weaponKindLine(weapon(EquipSubType.longStaff)),
+        'Arma: bastone lungo, a due mani',
+      );
+    });
+
+    test('no line without a family or outside the weapons', () {
+      expect(weaponKindLine(weapon(null)), isNull);
+      expect(
+        weaponKindLine(weapon(EquipSubType.bow, type: EquipType.shield)),
+        isNull,
+      );
     });
   });
 

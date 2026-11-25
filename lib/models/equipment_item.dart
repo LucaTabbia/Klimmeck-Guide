@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/spell.dart';
 import 'coins.dart';
 import 'damages.dart';
 import 'enums/accessory_use_type.dart';
+import 'enums/equip_sub_type.dart';
 import 'enums/equip_type.dart';
 import 'enums/rarity_type.dart';
 
@@ -20,9 +21,13 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     required this.addedSpell,
     required this.damages,
     this.accessoryUseTypes,
+    this.equipSubType,
   });
 
   final EquipType? equipType;
+
+  /// Solo armi; null sugli altri pezzi o su una famiglia sconosciuta.
+  final EquipSubType? equipSubType;
   final Spell? addedSpell;
   final Damages? damages;
 
@@ -51,6 +56,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
         : null,
     damages: json["damages"] != null ? Damages.fromJson(json["damages"]) : null,
     accessoryUseTypes: _accessoryUseTypesFrom(json['accessoryUseTypes']),
+    equipSubType: EquipSubType.values.asNameMap()[json['equipSubType']],
   );
 
   /// Confine di parsing (D-16): un pezzo che non si legge vale `null`, così
@@ -76,6 +82,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     'rarity': rarity?.name,
     'damages': damages?.toJson(),
     'accessoryUseTypes': accessoryUseTypes?.map((type) => type.name).toList(),
+    'equipSubType': equipSubType?.name,
   };
 
   EquipmentItem copyWith({
@@ -89,6 +96,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     Spell? addedSpell,
     Damages? damages,
     List<AccessoryUseType>? accessoryUseTypes,
+    EquipSubType? equipSubType,
   }) {
     return EquipmentItem(
       id: id ?? this.id,
@@ -101,6 +109,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
       addedSpell: addedSpell ?? this.addedSpell,
       damages: damages ?? this.damages,
       accessoryUseTypes: accessoryUseTypes ?? this.accessoryUseTypes,
+      equipSubType: equipSubType ?? this.equipSubType,
     );
   }
 
@@ -111,6 +120,7 @@ class EquipmentItem extends AssetItem with EquatableMixin {
     addedSpell,
     damages,
     accessoryUseTypes,
+    equipSubType,
   ];
 }
 
