@@ -14,6 +14,7 @@ import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
+import 'package:klimmeck_guide/shared/components/healed_injuries_text.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/race_figure_url.dart';
 import 'package:mocktail/mocktail.dart';
@@ -446,6 +447,32 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       verifyNever(() => cubit.drink(any()));
+    });
+  });
+
+  group('details', () {
+    testWidgets('a long press shows the details with the dark text outline', (
+      tester,
+    ) async {
+      await pumpScene(tester);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(PotionPourScene.bottleKey)),
+      );
+      await tester.pump(const Duration(milliseconds: 700));
+
+      final details = find.byKey(PotionPourScene.detailsKey);
+      final cure = tester.widget<HealedInjuriesText>(
+        find.descendant(of: details, matching: find.byType(HealedInjuriesText)),
+      );
+      expect(cure.style?.shadows, KlimmeckGuideTheme.bordersForText);
+      final recovery = tester.widget<Text>(
+        find.descendant(of: details, matching: find.text('Ricarica: 30 min')),
+      );
+      expect(recovery.style?.shadows, KlimmeckGuideTheme.bordersForText);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
     });
   });
 

@@ -616,7 +616,12 @@ class _PotionPourSceneState extends State<PotionPourScene>
   }
 
   Widget _details(BuildContext context, Size scene) {
-    final textTheme = Theme.of(context).textTheme;
+    // Il contorno scuro fa leggere sul Diario scurito anche le ferite in
+    // verde e in rosso, che lo ereditano dallo stile della riga.
+    final lineStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      color: KlimmeckGuideTheme.parchment,
+      shadows: KlimmeckGuideTheme.bordersForText,
+    );
     final healed = healedInjuryLabels(
       widget.item,
       beyondCure: widget.readerInnkeeperInjuries,
@@ -634,19 +639,11 @@ class _PotionPourSceneState extends State<PotionPourScene>
             if (healed.isNotEmpty)
               HealedInjuriesText(
                 labels: healed,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: KlimmeckGuideTheme.parchment,
-                ),
+                style: lineStyle,
                 textAlign: TextAlign.center,
               ),
             if (recoveryLine(widget.item.recovery) case final recovery?)
-              Text(
-                recovery,
-                textAlign: TextAlign.center,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: KlimmeckGuideTheme.parchment,
-                ),
-              ),
+              Text(recovery, textAlign: TextAlign.center, style: lineStyle),
           ],
         ),
       ),
