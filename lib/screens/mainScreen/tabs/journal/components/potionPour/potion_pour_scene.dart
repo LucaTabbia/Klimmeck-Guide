@@ -406,8 +406,10 @@ class _PotionPourSceneState extends State<PotionPourScene>
   double _figureHeightOf(Size scene, double laneHeight) =>
       math.min(scene.height * _figureHeightShare, laneHeight - 2 * _arrowSlot);
 
+  /// Più stretta della colonna di una fascia per lato: i compagni, più larghi
+  /// che alti, si fermano qui.
   double _figureMaxWidthOf(Size scene) =>
-      scene.width * _sideShare - 2 * KlimmeckGuideTheme.spacingSm;
+      scene.width * _sideShare - 2 * _arrowSlot;
 
   /// I compagni scorrono in verticale nello spazio sopra la loro barra; la
   /// freccia della Mappa, centrata sulla figura, sta sopra la testa se c'è un
