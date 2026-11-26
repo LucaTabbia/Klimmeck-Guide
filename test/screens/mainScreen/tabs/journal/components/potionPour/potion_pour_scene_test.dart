@@ -14,7 +14,6 @@ import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
-import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/race_figure_url.dart';
 import 'package:mocktail/mocktail.dart';
@@ -414,7 +413,8 @@ void main() {
     }
 
     testWidgets('the outcome lines sit on a Material, with no debug '
-        'underline, and carry the dark outline', (tester) async {
+        'underline, and carry the dark outline; the life bar sits on '
+        'parchment', (tester) async {
       await pumpScene(tester);
 
       await pourAndDrink(tester);
@@ -426,13 +426,18 @@ void main() {
         ),
         findsWidgets,
       );
-      final value = tester.widget<Text>(
-        find.descendant(
-          of: find.byKey(PotionPourScene.characterLifeKey),
-          matching: find.byKey(HpDeltaBar.valueKey),
-        ),
+      final strip = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byKey(PotionPourScene.characterLifeKey),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
       );
-      expect(value.style?.shadows, KlimmeckGuideTheme.bordersForText);
+      expect(
+        (strip.decoration as BoxDecoration).color,
+        KlimmeckGuideTheme.parchment,
+      );
       final healed = tester.widget<Text>(find.byKey(PotionPourScene.healedKey));
       expect(healed.style?.shadows, KlimmeckGuideTheme.bordersForText);
     });

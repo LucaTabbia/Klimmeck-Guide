@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 
-/// Chi beve, il più grande possibile, tutto dentro lo schermo e accostato al
-/// suo bordo (Phase 26 D-09, D-10): SVG da [CachedSvg], raster da
+/// Chi beve, tutto dentro lo schermo, accostato al suo bordo e in piedi
+/// sulla sua barra della vita (Phase 26 D-09, D-10): SVG da [CachedSvg], raster da
 /// [CachedNetworkImage]; nessuna figura se [url] manca.
 class PotionDrinkerFigure extends StatelessWidget {
   const PotionDrinkerFigure({
@@ -15,11 +15,14 @@ class PotionDrinkerFigure extends StatelessWidget {
   final String? url;
   final bool standsOnLeft;
 
+  /// Quota dell'altezza disponibile occupata dalla figura.
+  static const double heightShare = 0.7;
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => Align(
-      alignment: standsOnLeft ? Alignment.centerLeft : Alignment.centerRight,
-      child: _picture(constraints.maxHeight),
+      alignment: standsOnLeft ? Alignment.bottomLeft : Alignment.bottomRight,
+      child: _picture(constraints.maxHeight * heightShare),
     ),
   );
 

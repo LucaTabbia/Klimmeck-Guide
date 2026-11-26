@@ -461,8 +461,8 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
-  /// La vita di chi beve, fissa sotto la sua figura; all'esito si riempie
-  /// fino alla vita servita dal backend.
+  /// La vita di chi beve, fissa sotto la sua figura su una striscia di
+  /// pergamena; all'esito si riempie fino alla vita servita dal backend.
   Widget _lifeBar({
     required Key key,
     required int? life,
@@ -475,13 +475,24 @@ class _PotionPourSceneState extends State<PotionPourScene>
       child: FractionallySizedBox(
         key: key,
         widthFactor: _lifeBarWidthShare,
-        child: result == null
-            ? HpDeltaBar(
-                hp: (life ?? 0).toDouble(),
-                max: max,
-                valueShadows: KlimmeckGuideTheme.bordersForText,
-              )
-            : _filledLife(result, max: max),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: KlimmeckGuideTheme.parchment,
+            borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
+            border: Border.all(color: KlimmeckGuideTheme.darkWood),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              KlimmeckGuideTheme.spacingSm,
+              KlimmeckGuideTheme.spacingSm,
+              KlimmeckGuideTheme.spacingSm,
+              KlimmeckGuideTheme.spacingXs,
+            ),
+            child: result == null
+                ? HpDeltaBar(hp: (life ?? 0).toDouble(), max: max)
+                : _filledLife(result, max: max),
+          ),
+        ),
       ),
     );
   }
@@ -492,12 +503,8 @@ class _PotionPourSceneState extends State<PotionPourScene>
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: before, end: after),
       duration: PotionPourScene.hpAnimationDuration,
-      builder: (_, hp, _) => HpDeltaBar(
-        hp: hp,
-        max: max,
-        isGain: after > before,
-        valueShadows: KlimmeckGuideTheme.bordersForText,
-      ),
+      builder: (_, hp, _) =>
+          HpDeltaBar(hp: hp, max: max, isGain: after > before),
     );
   }
 
