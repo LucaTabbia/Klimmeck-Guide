@@ -118,6 +118,9 @@ class _PotionPourSceneState extends State<PotionPourScene>
     with SingleTickerProviderStateMixin {
   static const double _bottleHeightShare = 0.62;
   static const double _arrowSize = 40;
+  static const double _arrowSlot =
+      _arrowSize + 2 * KlimmeckGuideTheme.spacingSm;
+  static const double _figureHeightShare = 0.55;
   static const double _lifeBarWidthShare = 0.7;
   static const double _sideShare = 0.3;
   static const double _fullTiltShare = 0.26;
@@ -397,56 +400,87 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
-  /// I compagni scorrono in verticale; la freccia della Mappa dice se ce
-  /// n'è uno sopra o sotto. Le frecce non si toccano: si scorre.
-  Widget _companionsSide(Size scene) => Positioned(
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: scene.width * _sideShare,
-    child: Column(
-      children: [
-        Expanded(child: _companionPager()),
-        _companionLife(),
-      ],
-    ),
-  );
+  /// Figura alta una quota dello schermo e centrata su di esso; più stretta
+  /// della colonna di una fascia per lato, dove stanno le frecce.
+  double _figureHeightOf(Size scene) => scene.height * _figureHeightShare;
 
-  Widget _companionPager() => Stack(
-    children: [
-      Positioned.fill(
-        child: PageView.builder(
-          key: PotionPourScene.companionsKey,
-          controller: _companionPages,
-          scrollDirection: Axis.vertical,
-          physics: _isCommitted
-              ? const NeverScrollableScrollPhysics()
-              : const PageScrollPhysics(),
-          itemCount: widget.companions.length,
-          onPageChanged: (index) => setState(() => _companionIndex = index),
-          itemBuilder: (_, index) {
-            final companion = widget.companions[index];
-            return PotionDrinkerFigure(
-              key: PotionPourScene.companionKeyOf(companion.petId),
-              url: enemyPortraitUrl(companion.owned.pet.imagePath),
-              standsOnLeft: true,
-            );
-          },
+  double _figureMaxWidthOf(Size scene) =>
+      scene.width * _sideShare - 2 * _arrowSlot;
+
+  /// I compagni scorrono in verticale; la freccia della Mappa dice se ce
+  /// n'è uno sopra o sotto. Le frecce stanno nella fascia accanto alla
+  /// figura, dal lato della boccetta, all'altezza della testa e dei piedi:
+  /// non coprono né la figura né la barra. Non si toccano: si scorre.
+  Widget _companionsSide(Size scene) {
+    final figureHeight = _figureHeightOf(scene);
+    final figureTop = (scene.height - figureHeight) / 2;
+    return Positioned(
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: scene.width * _sideShare,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: PageView.builder(
+              key: PotionPourScene.companionsKey,
+              controller: _companionPages,
+              scrollDirection: Axis.vertical,
+              physics: _isCommitted
+                  ? const NeverScrollableScrollPhysics()
+                  : const PageScrollPhysics(),
+              itemCount: widget.companions.length,
+              onPageChanged: (index) => setState(() => _companionIndex = index),
+              itemBuilder: (_, index) {
+                final companion = widget.companions[index];
+                return Center(
+                  child: PotionDrinkerFigure(
+                    key: PotionPourScene.companionKeyOf(companion.petId),
+                    url: enemyPortraitUrl(companion.owned.pet.imagePath),
+                    height: figureHeight,
+                    maxWidth: _figureMaxWidthOf(scene),
+                  ),
+                );
+              },
+            ),
+          ),
+          if (_companionIndex > 0)
+            _companionArrow(
+              key: PotionPourScene.previousCompanionKey,
+              top: figureTop,
+              turns: 0.5,
+            ),
+          if (_companionIndex < widget.companions.length - 1)
+            _companionArrow(
+              key: PotionPourScene.nextCompanionKey,
+              top: figureTop + figureHeight - _arrowSize,
+              turns: 0,
+            ),
+          Positioned(left: 0, right: 0, bottom: 0, child: _companionLife()),
+        ],
+      ),
+    );
+  }
+
+  Widget _companionArrow({
+    required Key key,
+    required double top,
+    required double turns,
+  }) => Positioned(
+    top: top,
+    right: (_arrowSlot - _arrowSize) / 2,
+    child: IgnorePointer(
+      child: RotationTransition(
+        key: key,
+        turns: AlwaysStoppedAnimation(turns),
+        child: SizedBox.square(
+          dimension: _arrowSize,
+          child: CachedSvg(
+            url: CloudinaryAssets.url(CloudinaryAssets.arrowMap),
+          ),
         ),
       ),
-      if (_companionIndex > 0)
-        _companionArrow(
-          key: PotionPourScene.previousCompanionKey,
-          alignment: Alignment.topCenter,
-          turns: 0.5,
-        ),
-      if (_companionIndex < widget.companions.length - 1)
-        _companionArrow(
-          key: PotionPourScene.nextCompanionKey,
-          alignment: Alignment.bottomCenter,
-          turns: 0,
-        ),
-    ],
+    ),
   );
 
   /// Una sola barra per i compagni: segue quello a schermo.
@@ -473,9 +507,10 @@ class _PotionPourSceneState extends State<PotionPourScene>
     return Padding(
       padding: const EdgeInsets.only(bottom: KlimmeckGuideTheme.spacingMd),
       child: FractionallySizedBox(
-        key: key,
         widthFactor: _lifeBarWidthShare,
+        alignment: Alignment.center,
         child: DecoratedBox(
+          key: key,
           decoration: BoxDecoration(
             color: KlimmeckGuideTheme.parchment,
             borderRadius: BorderRadius.circular(KlimmeckGuideTheme.radius),
@@ -508,29 +543,6 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
-  Widget _companionArrow({
-    required Key key,
-    required Alignment alignment,
-    required double turns,
-  }) => Align(
-    alignment: alignment,
-    child: IgnorePointer(
-      child: Padding(
-        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingXl),
-        child: RotationTransition(
-          key: key,
-          turns: AlwaysStoppedAnimation(turns),
-          child: SizedBox.square(
-            dimension: _arrowSize,
-            child: CachedSvg(
-              url: CloudinaryAssets.url(CloudinaryAssets.arrowMap),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-
   Widget _characterSide(Size scene) {
     final race = widget.race;
     final sex = widget.sex;
@@ -541,24 +553,30 @@ class _PotionPourSceneState extends State<PotionPourScene>
       bottom: 0,
       width: scene.width * _sideShare,
       child: IgnorePointer(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
+            Center(
               child: PotionDrinkerFigure(
                 key: PotionPourScene.characterKey,
                 url: race == null || sex == null
                     ? null
                     : raceFigureUrl(race, sex),
-                standsOnLeft: false,
+                height: _figureHeightOf(scene),
+                maxWidth: _figureMaxWidthOf(scene),
               ),
             ),
-            _lifeBar(
-              key: PotionPourScene.characterLifeKey,
-              life: widget.lifePoints,
-              max: widget.maxLifePoints,
-              result: drunk != null && drunk.targetPetId == null
-                  ? drunk.result
-                  : null,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _lifeBar(
+                key: PotionPourScene.characterLifeKey,
+                life: widget.lifePoints,
+                max: widget.maxLifePoints,
+                result: drunk != null && drunk.targetPetId == null
+                    ? drunk.result
+                    : null,
+              ),
             ),
           ],
         ),

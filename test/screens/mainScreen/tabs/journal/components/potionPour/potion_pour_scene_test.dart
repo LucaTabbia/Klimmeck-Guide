@@ -220,6 +220,54 @@ void main() {
       expect(find.byKey(PotionPourScene.previousCompanionKey), findsOneWidget);
     });
 
+    testWidgets('the drinkers stand centred on their life bars and on the '
+        'screen height', (tester) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      final screen = tester.getRect(find.byType(PotionPourScene));
+      for (final (figure, bar) in [
+        (PotionPourScene.characterKey, PotionPourScene.characterLifeKey),
+        (
+          PotionPourScene.companionKeyOf(_worg),
+          PotionPourScene.companionLifeKey,
+        ),
+      ]) {
+        final figureRect = tester.getRect(find.byKey(figure));
+        final barRect = tester.getRect(find.byKey(bar));
+        expect(figureRect.center.dx, closeTo(barRect.center.dx, 1));
+        expect(figureRect.center.dy, closeTo(screen.center.dy, 1));
+        expect(figureRect.bottom, lessThanOrEqualTo(barRect.top));
+      }
+    });
+
+    testWidgets('the arrows overlap neither the companion, its bar nor the '
+        'bottle', (tester) async {
+      await pumpScene(tester, companions: [fenrir, micio, fenrir]);
+      await tester.fling(
+        find.byKey(PotionPourScene.companionsKey),
+        const Offset(0, -300),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      final others = [
+        tester.getRect(find.byKey(PotionPourScene.companionKeyOf(_cat))),
+        tester.getRect(find.byKey(PotionPourScene.companionLifeKey)),
+        tester.getRect(find.byKey(PotionPourScene.bottleKey)),
+      ];
+      final screen = tester.getRect(find.byType(PotionPourScene));
+      for (final arrow in [
+        PotionPourScene.previousCompanionKey,
+        PotionPourScene.nextCompanionKey,
+      ]) {
+        final rect = tester.getRect(find.byKey(arrow));
+        for (final other in others) {
+          expect(rect.overlaps(other), isFalse, reason: '$arrow vs $other');
+        }
+        expect(rect.left, greaterThanOrEqualTo(screen.left));
+      }
+    });
+
     testWidgets('a single companion shows no arrow', (tester) async {
       await pumpScene(tester, companions: [fenrir]);
 
