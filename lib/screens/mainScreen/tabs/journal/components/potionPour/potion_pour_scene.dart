@@ -402,7 +402,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
         return PotionDrinkerFigure(
           key: PotionPourScene.companionKeyOf(companion.petId),
           url: enemyPortraitUrl(companion.owned.pet.imagePath),
-          peeksFromLeft: true,
+          standsOnLeft: true,
         );
       },
     ),
@@ -420,7 +420,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
         child: PotionDrinkerFigure(
           key: PotionPourScene.characterKey,
           url: race == null || sex == null ? null : raceFigureUrl(race, sex),
-          peeksFromLeft: false,
+          standsOnLeft: false,
         ),
       ),
     );
