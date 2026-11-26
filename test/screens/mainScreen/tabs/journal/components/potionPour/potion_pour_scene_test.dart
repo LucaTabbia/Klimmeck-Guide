@@ -451,15 +451,9 @@ void main() {
   });
 
   group('details', () {
-    testWidgets('a long press shows the details with the dark text outline', (
-      tester,
-    ) async {
+    testWidgets('the details are shown from the start with the dark text '
+        'outline', (tester) async {
       await pumpScene(tester);
-
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.byKey(PotionPourScene.bottleKey)),
-      );
-      await tester.pump(const Duration(milliseconds: 700));
 
       final details = find.byKey(PotionPourScene.detailsKey);
       final cure = tester.widget<HealedInjuriesText>(
@@ -470,9 +464,16 @@ void main() {
         find.descendant(of: details, matching: find.text('Ricarica: 30 min')),
       );
       expect(recovery.style?.shadows, KlimmeckGuideTheme.bordersForText);
+    });
 
+    testWidgets('the details leave room to the outcome once the potion '
+        'pours', (tester) async {
+      await pumpScene(tester);
+
+      final gesture = await dragAndHold(tester, 420);
       await gesture.up();
-      await tester.pumpAndSettle();
+
+      expect(find.byKey(PotionPourScene.detailsKey), findsNothing);
     });
   });
 

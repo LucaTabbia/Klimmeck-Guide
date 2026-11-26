@@ -60,7 +60,8 @@ Route<void> potionPourRoute({
 /// alla prima goccia la pozione è data. Il personaggio sta fisso a destra
 /// (se non è in ricarica), i compagni che possono bere a sinistra, uno alla
 /// volta, scorrendo in verticale. Tocco fuori = la boccetta torna nella
-/// borsa; tocco prolungato = cosa cura e quanto dura la ricarica.
+/// borsa. Cosa cura e quanto dura la ricarica restano scritti in basso finché
+/// la pozione non versa; lì arriva l'esito.
 class PotionPourScene extends StatefulWidget {
   const PotionPourScene({
     super.key,
@@ -142,7 +143,6 @@ class _PotionPourSceneState extends State<PotionPourScene>
   Duration _lastTick = Duration.zero;
   Offset _drag = Offset.zero;
   bool _isDragging = false;
-  bool _isShowingDetails = false;
   double _corkLift = 0;
   bool _isCorkFlying = false;
   int _companionIndex = 0;
@@ -395,11 +395,9 @@ class _PotionPourSceneState extends State<PotionPourScene>
             onPanUpdate: (details) => _onPanUpdate(details, scene),
             onPanEnd: (_) => _onPanEnd(),
             onPanCancel: _onPanEnd,
-            onLongPressStart: (_) => setState(() => _isShowingDetails = true),
-            onLongPressEnd: (_) => setState(() => _isShowingDetails = false),
           ),
         ),
-        if (_isShowingDetails && !_isCommitted) _details(context, scene),
+        if (!_isCommitted) _details(context, scene),
         ?_outcome(context, outcome),
       ],
     );

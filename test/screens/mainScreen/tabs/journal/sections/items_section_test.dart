@@ -254,15 +254,10 @@ void main() {
     );
 
     testWidgets(
-      "a long press on the bottle lists the innkeeper wounds in red (D-20, D-21, Phase 26 D-11)",
+      "the scene details list the innkeeper wounds in red (D-20, D-21, Phase 26 D-11)",
       (tester) async {
         await pumpItems(tester);
         await tapAndSettle(tester, _card(_herb));
-
-        final gesture = await tester.startGesture(
-          tester.getCenter(find.byKey(PotionPourScene.bottleKey)),
-        );
-        await tester.pump(const Duration(milliseconds: 700));
 
         final line = find.descendant(
           of: find.byKey(PotionPourScene.detailsKey),
@@ -270,10 +265,6 @@ void main() {
         );
         expect(line, findsOneWidget);
         expect(redLabelsOf(tester, line), ['taglio profondo']);
-
-        await gesture.up();
-        await tester.pumpAndSettle();
-        expect(find.byKey(PotionPourScene.detailsKey), findsNothing);
       },
     );
   });
