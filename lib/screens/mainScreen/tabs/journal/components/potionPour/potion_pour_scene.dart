@@ -411,15 +411,13 @@ class _PotionPourSceneState extends State<PotionPourScene>
   double _figureMaxWidthOf(Size scene) =>
       scene.width * _sideShare - 2 * _arrowSlot;
 
-  /// Le due colonne partono sotto la barra di stato del sistema.
-  ///
   /// I compagni scorrono in verticale nello spazio sopra la loro barra; la
   /// freccia della Mappa, centrata sulla figura, sta sopra la testa se c'è un
   /// compagno prima e sotto i piedi se ce n'è uno dopo. Non si toccano: si
   /// scorre.
   Widget _companionsSide(Size scene) => Positioned(
     left: 0,
-    top: MediaQuery.paddingOf(context).top,
+    top: 0,
     bottom: 0,
     width: scene.width * _sideShare,
     child: Column(
@@ -434,9 +432,12 @@ class _PotionPourSceneState extends State<PotionPourScene>
     ),
   );
 
+  /// Le pagine partono dal bordo dello schermo, così un compagno che scorre
+  /// esce dallo schermo; figura e frecce stanno sotto la barra di stato.
   Widget _companionLane(Size scene, Size lane) {
-    final figureHeight = _figureHeightOf(scene, lane.height);
-    final figureTop = (lane.height - figureHeight) / 2;
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final figureHeight = _figureHeightOf(scene, lane.height - safeTop);
+    final figureTop = safeTop + (lane.height - safeTop - figureHeight) / 2;
     return Stack(
       children: [
         Positioned.fill(
@@ -451,12 +452,15 @@ class _PotionPourSceneState extends State<PotionPourScene>
             onPageChanged: (index) => setState(() => _companionIndex = index),
             itemBuilder: (_, index) {
               final companion = widget.companions[index];
-              return Center(
-                child: PotionDrinkerFigure(
-                  key: PotionPourScene.companionKeyOf(companion.petId),
-                  url: enemyPortraitUrl(companion.owned.pet.imagePath),
-                  height: figureHeight,
-                  maxWidth: _figureMaxWidthOf(scene),
+              return Padding(
+                padding: EdgeInsets.only(top: safeTop),
+                child: Center(
+                  child: PotionDrinkerFigure(
+                    key: PotionPourScene.companionKeyOf(companion.petId),
+                    url: enemyPortraitUrl(companion.owned.pet.imagePath),
+                    height: figureHeight,
+                    maxWidth: _figureMaxWidthOf(scene),
+                  ),
                 ),
               );
             },

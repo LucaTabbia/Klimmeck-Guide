@@ -289,6 +289,19 @@ void main() {
       expect(up.top, greaterThanOrEqualTo(30));
     });
 
+    testWidgets('a companion scrolled away leaves the screen, not the status '
+        'bar line', (tester) async {
+      tester.view.padding = const FakeViewPadding(top: 90);
+      await pumpScene(tester, companions: [fenrir, micio]);
+
+      final pager = tester.getRect(find.byKey(PotionPourScene.companionsKey));
+      expect(pager.top, 0);
+      final figure = tester.getRect(
+        find.byKey(PotionPourScene.companionKeyOf(_worg)),
+      );
+      expect(figure.top, greaterThanOrEqualTo(30));
+    });
+
     testWidgets('a single companion shows no arrow', (tester) async {
       await pumpScene(tester, companions: [fenrir]);
 
