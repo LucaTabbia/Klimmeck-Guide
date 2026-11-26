@@ -47,7 +47,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14; completed 2026-11-15)_
 - [x] **Phase 23: Spell Origins, Void and Shamanic Quests** — Every spell carries a macro-class on top of its use and energy (origin → use → energy; origins: `void`, `arcane`, `shamanic`); two new quest types, `shamanic` and `void`, work exactly like the `arcane` quest (renamed from `magic`, label «Magia») and teach a spell of their own origin (before, that quest taught them all), with the four new sheet assets; the `void` quest lives only in Necrorian, the `shamanic` quest in the two new capitals (`aarakocraCapital`, `dragonbornCapital`, drawn on the map at the size of Talmvere), both from rank mage up; new city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their assets and the `aarakocraVillage` asset replaced; a spell is learned from a minimum character level, no longer a minimum xp. Needs a BE companion phase (BE Phase 24). _(added 2026-11-15)_ (completed 2026-11-16)
 - [x] **Phase 24: Participants' Stories and Innkeeper Wounds** — The guided completion of story/worldMission quests opens on a page where the innkeeper reads the background of every participant (one dropdown each) before starting the mission, and ends, after the recap, on a page where he may add one entry to the background of each participant (one optional addition per participant, up to 1000 characters) while rereading that participant's story; the additions are written with the completion and shown to the player by the wax sigil and a line on the result sheet. The wounds the innkeeper adds by hand are his alone to remove (from the corrections of every resolution): heal quests, potions and prizes never touch them, and the player reads them as «Troppo grave per essere curata». Needs a BE companion phase (BE Phase 25). _(added 2026-11-21)_ (completed 2026-11-22)
-- [ ] **Phase 26: Potion Pour Gesture** — The potion confirmation sheet becomes a gesture scene: one bottle (name on the label, liquid coloured by rarity, drawn in code with a horizontal surface, waves and a pouring stream) sits in the centre and is dragged toward the drinker, tilts and pours: the character fixed on the right (race SVG), the companions on the left (their own asset, one at a time, scrolled vertically); who cannot drink is not shown. No buttons, no tappable words. Frontend only. _(added 2026-11-25)_
+- [x] **Phase 26: Potion Pour Gesture** — The potion confirmation sheet becomes a gesture scene: one bottle (name on the label, liquid coloured by rarity, drawn in code with a horizontal surface, waves and a pouring stream) sits in the centre and is dragged toward the drinker, tilts and pours: the character fixed on the right (race SVG), the companions on the left (their own asset, one at a time, scrolled vertically); who cannot drink is not shown. No buttons, no tappable words. Frontend only. _(added 2026-11-25)_ (completed 2026-11-26)
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -285,7 +285,7 @@ Plans:
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
 | 25. Account Deletion and Legal Consent | v1.1 | 8/8 | Complete | 2026-11-25 |
-| 26. Potion Pour Gesture | v1.1 | 0/? | Planning | — |
+| 26. Potion Pour Gesture | v1.1 | lean | Complete | 2026-11-26 |
 
 ### Phase 25: Account Deletion and Legal Consent
 
@@ -316,7 +316,7 @@ Plans:
 
 **Goal:** the potion is drunk by a gesture instead of a modal sheet: drag the bottle from the centre toward the drinker (character on the right, companions scrolled on the left), it tilts and the liquid pours.
 **Depends on:** Phase 18 (Journal potions), Phase 22 (companion potions)
-**Scope**: decisions D-01..D-13 of `26-CONTEXT.md` (decided in conversation on 2026-11-25; lean GSD phase, no research, no UI-SPEC, iterative on the device). No BE phase.
+**Scope**: decisions D-01..D-13 of `26-CONTEXT.md` (decided in conversation on 2026-11-25; lean GSD phase, no research, no UI-SPEC, no plan files, iterative on the device with hot reload) plus the amendments of the device UAT of 2026-11-25/26 recorded in the same file. No BE phase.
 
 ---
 

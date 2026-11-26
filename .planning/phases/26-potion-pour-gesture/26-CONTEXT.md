@@ -1,7 +1,7 @@
 # Phase 26: Potion Pour Gesture — Context
 
 **Gathered:** 2026-11-25 (conversazione con l'utente, fase GSD snella: niente ricerca né UI-SPEC, design iterativo sul device con hot reload)
-**Status:** Ready for planning
+**Status:** Complete (device UAT 2026-11-25/26 with the user, hot reload)
 **BE companion:** nessuna. Mutation `useItem`, `PotionCubit.drink/give`, `PotionRecoveryCubit` e `companionPotionTargetsOf` restano come sono.
 
 ## Phase Boundary
@@ -23,6 +23,21 @@ Il foglio di conferma della pozione (`PotionSheet` in un `showModalBottomSheet`)
 - **D-11** Uscita: tocco fuori dalla boccetta o gesto indietro (bloccati mentre la pozione è in volo). Tocco prolungato sulla boccetta = dettagli (cosa cura, ricarica).
 - **D-12** Esito in-world dopo il versamento (vita, ferite guarite, lore sbloccata): resa da decidere sul device.
 - **D-13** Il disegno cambierà strada facendo (utente: «la modificheremo strada facendo»): ritocchi sul device con hot reload, un commit per ritocco; errori veri di layout e logica in TDD.
+
+## Amendments from the device UAT (2026-11-25/26)
+
+Decise dall'utente sul telefono, una alla volta, un commit ciascuna:
+
+- **Boccetta (D-03, D-04):** a riposo il disegno tappato; al primo trascinamento la boccetta aperta e il tappo a parte che salta via (idea dell'utente). Sopra il liquido va tutto ciò che non è vetro (contorno, corde, etichetta), così le corde non si tingono; il liquido arriva fino al contorno. Boccetta al 55% dell'altezza.
+- **Bevitori (D-09, rivista):** tutti dentro lo schermo, non più «spuntando» dal bordo; centrati in orizzontale sulla propria barra della vita e in verticale nello spazio sopra di essa; più stretti della colonna di una fascia per lato. Le pagine dei compagni partono dal bordo dello schermo, così un compagno che scorre esce dallo schermo; figura e frecce stanno sotto la barra di stato.
+- **Frecce dei compagni:** la freccia della Mappa (`arrowMap`), centrata sul compagno, sopra la testa se c'è un compagno prima e sotto i piedi se ce n'è uno dopo; solo indicatori, si scorre.
+- **Barre della vita:** una fissa sotto il personaggio e una sola sotto i compagni, che segue lo scorrimento, su una striscia di pergamena; all'esito si riempie quella di chi ha bevuto (via la barra centrale). Numeri su una riga anche in poco spazio (`HpDeltaBar`). Provato il rosso, poi tolto su richiesta dell'utente.
+- **Esito (D-12):** al centro solo ferite guarite e lore, col contorno scuro del tema; la scena si chiude da sola 2 s dopo il riempimento della barra, o prima con un tocco.
+- **Dettagli (D-11, rivista):** «Cura: …» e «Ricarica: …» sempre visibili in basso fino alla prima goccia, col contorno scuro; via il tocco prolungato.
+- **Uscita:** un tocco sul personaggio o sul compagno rimette la boccetta nella borsa come un tocco fuori.
+- **Ferite curabili (Journal e scena):** nella riga «Cura: …» le ferite che il personaggio ha e l'oggetto cura sono in verde (`healGreen`), quelle dell'oste restano rosse e vincono.
+- **Figure delle razze:** quella del mezzelfo maschio rifatta da originale Gemini (488×747, senza frangia bianca); le altre restano a 500 px, valutate sufficienti dall'utente.
+- La scena vive in una route trasparente con un `Material` (niente sottolineatura di debug) e il painter in un `RepaintBoundary` (Impeller rifiutava l'opacità ereditata sul multiply).
 
 ## Canonical refs
 
