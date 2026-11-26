@@ -31,6 +31,7 @@ Future<void> _pump(
   EquipmentItem? item,
   bool? isSelected,
   int? quantity,
+  void Function(EquipmentItem)? onTap,
 }) async {
   await tester.pumpWidget(
     buildTestApp(
@@ -41,6 +42,7 @@ Future<void> _pump(
             size: 120,
             isSelected: isSelected,
             quantity: quantity,
+            onTap: onTap,
           ),
         ),
       ),
@@ -80,6 +82,19 @@ void main() {
     testWidgets('an unequipped item is not marked', (tester) async {
       await _pump(tester, isSelected: false);
 
+      expect(_ribbon(tester).isMarked, isFalse);
+    });
+
+    testWidgets('a tap asks the parent and leaves the mark to the server', (
+      tester,
+    ) async {
+      final tapped = <EquipmentItem>[];
+      await _pump(tester, isSelected: false, onTap: tapped.add);
+
+      await tester.tap(find.byType(EquipmentItemCard));
+      await tester.pump();
+
+      expect(tapped, [_helm]);
       expect(_ribbon(tester).isMarked, isFalse);
     });
   });
