@@ -8,7 +8,8 @@ import 'package:klimmeck_guide/utils/pour_geometry.dart';
 import 'potion_bottle_images.dart';
 
 /// Disegna la boccetta del versamento (Phase 26 D-04, D-05): vetro, liquido
-/// in multiply sotto un pelo orizzontale che ondeggia, etichetta col nome,
+/// in multiply sotto un pelo orizzontale che ondeggia, contorno, corde ed
+/// etichetta col nome sopra il liquido,
 /// tappo che salta e getto che cade dalla bocca. Coordinate della scena.
 class PotionBottlePainter extends CustomPainter {
   PotionBottlePainter({
@@ -56,7 +57,7 @@ class PotionBottlePainter extends CustomPainter {
     canvas.translate(-_pivot.dx, -_pivot.dy);
     _drawImage(canvas, images?.glass);
     _drawLiquid(canvas);
-    _drawImage(canvas, images?.label);
+    _drawImage(canvas, images?.overlay);
     _drawName(canvas);
     _drawCork(canvas);
     canvas.restore();

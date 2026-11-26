@@ -15,7 +15,7 @@ abstract final class PotionBottleGeometry {
   static const Size labelSize = Size(0.7307, 0.2913);
 
   /// Misura del tappo e centro della sua base quando chiude la boccetta.
-  static const Size corkSize = Size(0.354, 0.306);
+  static const Size corkSize = Size(0.2381, 0.2047);
   static const Offset corkBottom = Offset(0.4995, 0.1436);
 
   /// Sotto questa altezza il tappo è dentro il collo, dietro il labbro della ghiera.
