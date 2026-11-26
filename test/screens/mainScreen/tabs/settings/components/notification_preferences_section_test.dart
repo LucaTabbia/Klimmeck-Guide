@@ -11,6 +11,7 @@ import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/permissionCubit/
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../../helpers/mocks.dart';
+import '../../../../../helpers/settings_sections.dart';
 import '../../../../../helpers/test_app.dart';
 
 void main() {
@@ -61,6 +62,7 @@ void main() {
         ),
       ),
     );
+    await openSettingsSection(tester, 'Notifiche');
   }
 
   Finder tileOf(String storageKey) =>

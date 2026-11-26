@@ -14,7 +14,8 @@ class KlimmeckGuideTheme {
   static const double radius = 15.0;
 
   /// Aspetto "inchiostro ancora umido" di un equip/disequip in attesa
-  /// (Phase 8 D-16), provvisorio.
+  /// (Phase 8 D-16), provvisorio; è anche la dissolvenza di un pulsante
+  /// disabilitato, senza un colore nuovo (Phase 25 D-07).
   static const double pendingInkOpacity = 0.5;
   static const Duration pendingInkDuration = Duration(milliseconds: 200);
 
@@ -64,6 +65,13 @@ class KlimmeckGuideTheme {
 
   /// Inchiostro dei guadagni di vita sul foglio esiti (Phase 9 D-02), provvisorio (D-19).
   static const Color healGreen = Color(0xFF2E6B30);
+
+  /// Liquido della boccetta del versamento, uno per rarità (Phase 26 D-03).
+  static const Color potionCommon = Color(0xFFC81E28);
+  static const Color potionUncommon = Color(0xFF2E9E4A);
+  static const Color potionRare = Color(0xFF2C6FD1);
+  static const Color potionUltrarare = Color(0xFF8A3FD1);
+  static const Color potionLegendary = Color(0xFFE0A21C);
 
   // Color Scheme
   static const ColorScheme colorScheme = ColorScheme(
@@ -208,7 +216,15 @@ class KlimmeckGuideTheme {
         _switchTrackOutlineColor,
       ),
     ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith(_checkboxFillColor),
+      checkColor: const WidgetStatePropertyAll(deepNight),
+      side: const BorderSide(color: parchment, width: 2),
+    ),
   );
+
+  static Color _checkboxFillColor(Set<WidgetState> states) =>
+      states.contains(WidgetState.selected) ? primaryGold : Colors.transparent;
 
   static Color _switchThumbColor(Set<WidgetState> states) {
     if (states.contains(WidgetState.disabled)) return paleSilver;
@@ -229,7 +245,7 @@ class KlimmeckGuideTheme {
   static final ButtonStyle destructiveButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: bloodRed,
     foregroundColor: parchment,
-    disabledBackgroundColor: bloodRed.withValues(alpha: 0.5),
+    disabledBackgroundColor: bloodRed.withValues(alpha: pendingInkOpacity),
     disabledForegroundColor: parchment,
   );
 

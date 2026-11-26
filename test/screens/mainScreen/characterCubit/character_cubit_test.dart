@@ -10,6 +10,7 @@ import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit
 import 'package:mocktail/mocktail.dart';
 
 import '../../../helpers/fakes/recording_sync_health.dart';
+import '../../../helpers/fixtures/quest_fixtures.dart';
 import '../../../helpers/fixtures/sync_event_fixtures.dart';
 import '../../../helpers/mocks.dart';
 
@@ -30,6 +31,43 @@ class FakeLifecycle implements AppLifecycleEvents {
 
 Character _characterWithHp(int hp) =>
     Character.fromJson(characterJson(id: 'c1', currentLifePoints: hp));
+
+Character _cancelledQuestMember({
+  required Map<String, dynamic>? pendingQuest,
+  required String locationId,
+  required int life,
+  required int rations,
+}) => Character.fromJson({
+  ...characterWithLanesJson(
+    id: 'c1',
+    locationId: locationId,
+    pendingQuest: pendingQuest,
+    currentLifePoints: life,
+    maxLifePoints: 10,
+  ),
+  'assets': {
+    'ownedItems': [
+      {
+        'quantity': rations,
+        'item': {'id': 'loot-ration', 'name': 'Razione da viaggio'},
+      },
+    ],
+  },
+});
+
+Character _startedGroupMember() => _cancelledQuestMember(
+  pendingQuest: laneJson(questType: 'enemy', pointsSpent: 300),
+  locationId: 'poi-1',
+  life: 6,
+  rations: 1,
+);
+
+Character _memberSentBackToTheCity() => _cancelledQuestMember(
+  pendingQuest: null,
+  locationId: 'city-marker-1',
+  life: 9,
+  rations: 4,
+);
 
 SubscriptionStreamException _streamError(String code) =>
     SubscriptionStreamException(operation: 'characterUpdated', code: code);
@@ -279,6 +317,27 @@ void main() {
       ]);
       expect(h.health.calls, contains('healthy:characterStream'));
     });
+
+    withHarness(
+      'a member sent back by a cancelled quest reads the served lane, '
+      'place, food and life (D-13, D-23)',
+      (h, async) {
+        _loadAndSettle(h, async);
+        h.latestStream.add(_startedGroupMember());
+        async.flushMicrotasks();
+        h.states.clear();
+
+        h.latestStream.add(_memberSentBackToTheCity());
+        async.flushMicrotasks();
+
+        final served = (h.states.single as CharacterLoaded).character;
+        expect(served.quests?.pendingQuest, isNull);
+        expect(served.status?.location?.id, 'city-marker-1');
+        expect(served.status?.activeTravel, isNull);
+        expect(served.status?.currentLifePoints, 9);
+        expect(served.assets?.ownedItems?.single.quantity, 4);
+      },
+    );
   });
 
   group('CharacterCubit stream recovery', () {

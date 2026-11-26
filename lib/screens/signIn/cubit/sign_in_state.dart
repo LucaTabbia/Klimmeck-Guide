@@ -1,6 +1,11 @@
 part of 'sign_in_cubit.dart';
 
-enum SignInFailure { connection, twitchNotConfigured, notFollowingChannel }
+enum SignInFailure {
+  connection,
+  twitchNotConfigured,
+  notFollowingChannel,
+  termsNotAccepted,
+}
 
 sealed class SignInState extends Equatable {
   const SignInState();

@@ -17,7 +17,7 @@ done
 grep -n "export 'dev_auth_token_service.dart'" lib/repository/services/auth/auth.dart && fail "the auth barrel re-exports the dev bypass"
 grep -n 'flutter_dotenv' lib/config/env_config.dart && fail "env_config imports flutter_dotenv"
 
-allowed='lib/repository/cache/cache_expiry.dart|lib/repository/storage/(storage_manager|active_user_store|device_identity_store|notification_preferences_store|library_bookmarks_store|new_entries_store|session_store)\.dart'
+allowed='lib/repository/cache/cache_expiry.dart|lib/repository/storage/(storage_manager|active_user_store|device_identity_store|notification_preferences_store|library_bookmarks_store|new_entries_store|session_store|legal_consent_store)\.dart'
 grep -rlE '\.set(String|StringList|Bool|Int|Double)\(' lib --include='*.dart' | grep -vE "^($allowed)$" | while read -r f; do echo "FAIL: $f writes SharedPreferences outside the allow-list"; done | grep . && failures=$((failures + 1))
 grep -rn -A3 -E '\.set(String|StringList)\(' lib --include='*.dart' | grep -iE 'token|jwt|bearer|secret' && fail "a SharedPreferences write mentions a token"
 

@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/notification.dart';
 import 'package:klimmeck_guide/repository/quest_abandon_failure.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -13,6 +14,8 @@ import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abando
 import 'package:klimmeck_guide/screens/mainScreen/questAbandonCubit/quest_abandon_notice.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/fixtures/quest_fixtures.dart';
+import '../../../helpers/fixtures/travel_fixtures.dart';
 import '../../../helpers/mocks.dart';
 import '../../../helpers/test_app.dart';
 
@@ -135,5 +138,39 @@ void main() {
     await emit(tester, const QuestAbandoning('q-1'));
 
     verifyNever(() => abandon.reset());
+  });
+
+  testWidgets('the jump back of a cancelled quest shows no outcome (D-23)', (
+    tester,
+  ) async {
+    final characterStates = StreamController<CharacterState>.broadcast();
+    addTearDown(characterStates.close);
+    whenListen(
+      characterCubit,
+      characterStates.stream,
+      initialState: CharacterLoaded(
+        Character.fromJson(
+          travellingCharacterJson(
+            locationId: 'poi-1',
+            pendingQuest: laneJson(questType: 'enemy'),
+            missionInProgress: true,
+          ),
+        ),
+      ),
+    );
+    await pumpListener(tester);
+
+    characterStates.add(
+      CharacterLoaded(Character.fromJson(travellingCharacterJson())),
+    );
+    await tester.pumpAndSettle();
+
+    verifyNever(
+      () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
+    );
+    verifyNever(() => abandon.reset());
+    verifyNever(() => characterCubit.refreshCharacter());
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
   });
 }

@@ -67,7 +67,7 @@ void main() {
   }
 
   void login(SessionAuthTokenService service, FakeAsync async) {
-    service.login();
+    service.login(acceptedLegalVersion: 'v-test');
     async.flushMicrotasks();
   }
 

@@ -13,11 +13,10 @@ import 'package:klimmeck_guide/repository/services/time/server_clock_service.dar
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_scope.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/sections/items_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/spellsCubit/spells_cubit.dart';
-import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -181,23 +180,45 @@ void main() {
     await tapAndSettle(tester, find.text('Oggetti'));
   }
 
+  /// Trascina la boccetta verso il personaggio finché versa e la lascia
+  /// svuotarsi (Phase 26 D-06, D-07).
+  Future<void> pourToCharacter(WidgetTester tester) async {
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(PotionPourScene.bottleKey)),
+    );
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(42, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    for (var i = 0; i < 90; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    for (var i = 0; i < 600; i++) {
+      if (find.byKey(PotionPourScene.outcomeKey).evaluate().isNotEmpty) break;
+      if (find.byType(PotionPourScene).evaluate().isEmpty) break;
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await tester.pump();
+  }
+
+  Future<void> tapAway(WidgetTester tester) async {
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+  }
+
   /// Chiude la sezione e con lei il countdown: nessun timer resta appeso.
   Future<void> unmount(WidgetTester tester) =>
       tester.pumpWidget(const SizedBox());
 
-  testWidgets('a heal parchment with a recovery opens the potion sheet '
-      '(D-11, D-18)', (tester) async {
+  testWidgets('a heal parchment with a recovery opens the pour scene '
+      '(D-11, Phase 26 D-01)', (tester) async {
     await pumpItems(tester);
 
     await tapAndSettle(tester, _card(_herb));
 
-    expect(
-      find.descendant(
-        of: find.byType(PaperSheetModal),
-        matching: find.text('Bevi Erbe da campo?'),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byType(PotionPourScene), findsOneWidget);
+    expect(find.byKey(PotionPourScene.characterKey), findsOneWidget);
     verifyNever(() => potionCubit.drink(any()));
   });
 
@@ -218,7 +239,7 @@ void main() {
     );
 
     testWidgets(
-      "a potion row of the Journal lists the character's innkeeper wounds in red (D-20, D-21)",
+      "a potion row of the Journal lists the character's innkeeper wounds in red and the wounds it cures in green (D-20, D-21, Phase 26)",
       (tester) async {
         await pumpItems(tester);
 
@@ -228,18 +249,18 @@ void main() {
         );
         expect(line, findsOneWidget);
         expect(redLabelsOf(tester, line), ['taglio profondo']);
+        expect(greenLabelsOf(tester, line), ['contusione']);
       },
     );
 
     testWidgets(
-      "the potion sheet opened from the Journal lists the innkeeper wounds in red (D-20, D-21)",
+      "the scene details list the innkeeper wounds in red (D-20, D-21, Phase 26 D-11)",
       (tester) async {
         await pumpItems(tester);
-
         await tapAndSettle(tester, _card(_herb));
 
         final line = find.descendant(
-          of: find.byType(PaperSheetModal),
+          of: find.byKey(PotionPourScene.detailsKey),
           matching: find.text('Cura: taglio profondo, contusione'),
         );
         expect(line, findsOneWidget);
@@ -248,7 +269,7 @@ void main() {
     );
   });
 
-  testWidgets('opening the sheet resets a previous outcome first (D-18)', (
+  testWidgets('opening the scene resets a previous outcome first (D-18)', (
     tester,
   ) async {
     await pumpItems(tester);
@@ -263,10 +284,10 @@ void main() {
     await pumpItems(tester);
 
     await tapAndSettle(tester, _card(_plain));
-    expect(find.byType(PotionSheet), findsNothing);
+    expect(find.byType(PotionPourScene), findsNothing);
 
     await tapAndSettle(tester, _card(_food));
-    expect(find.byType(PotionSheet), findsNothing);
+    expect(find.byType(PotionPourScene), findsNothing);
     verifyNever(() => potionCubit.reset());
   });
 
@@ -306,7 +327,7 @@ void main() {
 
     await tapAndSettle(tester, _card(_herb));
 
-    expect(find.byType(PotionSheet), findsNothing);
+    expect(find.byType(PotionPourScene), findsNothing);
     verifyNever(() => potionCubit.drink(any()));
     verifyNever(() => potionCubit.reset());
     await unmount(tester);
@@ -332,7 +353,7 @@ void main() {
 
     await tapAndSettle(tester, _card(_herb));
 
-    expect(find.byType(PotionSheet), findsOneWidget);
+    expect(find.byType(PotionPourScene), findsOneWidget);
   });
 
   testWidgets('a past recovery end leaves the parchments enabled (D-12)', (
@@ -350,7 +371,9 @@ void main() {
 
     await tapAndSettle(tester, _card(_balm));
 
-    expect(find.text('Bevi Balsamo?'), findsOneWidget);
+    final scene = tester.widget<PotionPourScene>(find.byType(PotionPourScene));
+    expect(scene.item.id, _balm);
+    expect(find.byKey(PotionPourScene.characterKey), findsOneWidget);
   });
 
   testWidgets('a new character from the stream updates stack and countdown '
@@ -406,7 +429,11 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing, reason: '$recoveryEnd');
+      expect(
+        find.byType(PotionPourScene),
+        findsNothing,
+        reason: '$recoveryEnd',
+      );
       await unmount(tester);
     }
     verifyNever(() => potionCubit.reset());
@@ -421,7 +448,7 @@ void main() {
 
     await tapAndSettle(tester, _card(_herb));
 
-    expect(find.byType(PotionSheet), findsOneWidget);
+    expect(find.byType(PotionPourScene), findsOneWidget);
   });
 
   group('mission in progress (Phase 21)', () {
@@ -445,7 +472,7 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       verifyNever(() => potionCubit.reset());
       verifyNever(() => potionCubit.drink(any()));
     });
@@ -462,7 +489,7 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       verifyNever(() => potionCubit.reset());
     });
 
@@ -483,46 +510,31 @@ void main() {
     });
   });
 
-  group('drag to dismiss (D-18)', () {
-    Future<void> dragSheetDown(WidgetTester tester) async {
-      await tester.dragFrom(const Offset(390, 250), const Offset(0, 300));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('dragging the sheet down cannot dismiss a drink in flight, '
-        'and its outcome lands on the same sheet', (tester) async {
-      final potionStates = StreamController<PotionState>.broadcast();
-      addTearDown(potionStates.close);
+  group('leaving the scene (Phase 26 D-11)', () {
+    testWidgets('a tap away cannot close a drink in flight', (tester) async {
       whenListen(
         potionCubit,
-        potionStates.stream,
+        const Stream<PotionState>.empty(),
         initialState: const PotionDrinking(_herb),
       );
       await pumpItems(tester);
       await tapAndSettle(tester, _card(_herb));
 
-      await dragSheetDown(tester);
+      await tapAway(tester);
 
-      expect(find.byType(PotionSheet), findsOneWidget);
-
-      potionStates.add(
-        PotionDrunk(_herb, UseItemResult.fromJson(useItemResultJson())),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(PotionSheet.hpKey), findsOneWidget);
-      expect(find.byKey(PotionSheet.continueKey), findsOneWidget);
+      expect(find.byType(PotionPourScene), findsOneWidget);
     });
 
-    testWidgets('dragging the sheet down dismisses it before the drink', (
+    testWidgets('a tap away puts the bottle back before the drink', (
       tester,
     ) async {
       await pumpItems(tester);
       await tapAndSettle(tester, _card(_herb));
 
-      await dragSheetDown(tester);
+      await tapAway(tester);
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
+      verifyNever(() => potionCubit.drink(any()));
     });
   });
 
@@ -542,40 +554,33 @@ void main() {
       addTearDown(potion.close);
     });
 
-    Future<void> tapInSheet(WidgetTester tester, Key action) async {
-      await tester.ensureVisible(find.byKey(action));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(action));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('a drink shows its outcome and the reopened sheet asks again '
-        'with no stale outcome', (tester) async {
+    testWidgets('a pour shows its outcome and the reopened scene starts '
+        'again with no stale outcome', (tester) async {
       when(
         () => itemUse.useItem(_herb),
       ).thenAnswer((_) async => UseItemResult.fromJson(useItemResultJson()));
       await pumpItems(tester, potion: potion, notices: notices);
 
       await tapAndSettle(tester, _card(_herb));
-      await tapInSheet(tester, PotionSheet.drinkKey);
+      await pourToCharacter(tester);
 
-      expect(find.byKey(PotionSheet.hpKey), findsOneWidget);
+      expect(find.byKey(PotionPourScene.outcomeKey), findsOneWidget);
       expect(find.text('Guarite: contusione'), findsOneWidget);
 
-      await tapInSheet(tester, PotionSheet.continueKey);
-      expect(find.byType(PotionSheet), findsNothing);
+      await tapAway(tester);
+      expect(find.byType(PotionPourScene), findsNothing);
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.text('Bevi Erbe da campo?'), findsOneWidget);
-      expect(find.byKey(PotionSheet.hpKey), findsNothing);
+      expect(find.byType(PotionPourScene), findsOneWidget);
+      expect(find.byKey(PotionPourScene.outcomeKey), findsNothing);
       verify(() => itemUse.useItem(_herb)).called(1);
       verifyNever(
         () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),
       );
     });
 
-    testWidgets('a refusal closes the sheet and publishes one banner', (
+    testWidgets('a refusal closes the scene and publishes one banner', (
       tester,
     ) async {
       when(
@@ -584,9 +589,9 @@ void main() {
       await pumpItems(tester, potion: potion, notices: notices);
 
       await tapAndSettle(tester, _card(_herb));
-      await tapInSheet(tester, PotionSheet.drinkKey);
+      await pourToCharacter(tester);
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       verify(
         () => notices.publishNotice(
           const KGNotification(
@@ -653,7 +658,7 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       verifyNever(() => potionCubit.reset());
       await unmount(tester);
     });
@@ -668,10 +673,13 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      final sheet = tester.widget<PotionSheet>(find.byType(PotionSheet));
-      expect(sheet.targets.map((target) => target.petId), [_worg]);
-      expect(sheet.targets.single.life, 40);
-      expect(sheet.targets.single.maxLifePoints, 100);
+      final scene = tester.widget<PotionPourScene>(
+        find.byType(PotionPourScene),
+      );
+      expect(scene.companions.map((target) => target.petId), [_worg]);
+      expect(scene.companions.single.life, 40);
+      expect(scene.companions.single.maxLifePoints, 100);
+      expect(find.byKey(PotionPourScene.characterKey), findsNothing);
       await unmount(tester);
     });
 
@@ -685,11 +693,11 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       await unmount(tester);
     });
 
-    testWidgets('with the switch off a ready potion opens a sheet with no '
+    testWidgets('with the switch off a ready potion opens a scene with no '
         'target (Pitfall 3)', (tester) async {
       useCharacter(_characterWithCompanion());
       await pumpSection(tester, isCompanionCareEnabled: false);
@@ -697,7 +705,7 @@ void main() {
       await tapAndSettle(tester, _card(_herb));
 
       expect(
-        tester.widget<PotionSheet>(find.byType(PotionSheet)).targets,
+        tester.widget<PotionPourScene>(find.byType(PotionPourScene)).companions,
         isEmpty,
       );
     });
@@ -711,12 +719,12 @@ void main() {
 
       await tapAndSettle(tester, _card(_herb));
 
-      expect(find.byType(PotionSheet), findsNothing);
+      expect(find.byType(PotionPourScene), findsNothing);
       verifyNever(() => potionCubit.reset());
     });
   });
 
-  testWidgets("the sheet receives the character's maximum life (D-18)", (
+  testWidgets("the scene receives the character's maximum life (D-18)", (
     tester,
   ) async {
     await pumpItems(tester);
@@ -724,7 +732,9 @@ void main() {
     await tapAndSettle(tester, _card(_herb));
 
     expect(
-      tester.widget<PotionSheet>(find.byType(PotionSheet)).maxLifePoints,
+      tester
+          .widget<PotionPourScene>(find.byType(PotionPourScene))
+          .maxLifePoints,
       12,
     );
   });

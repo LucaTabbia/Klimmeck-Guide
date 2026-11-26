@@ -23,6 +23,8 @@ class DestructiveConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = KlimmeckGuideTheme.instance;
     return AlertDialog(
+      // con la tastiera ancora aperta in landscape titolo e corpo scorrono (UAT 25)
+      scrollable: true,
       title: Text(title, style: theme.titleMedium),
       content: Text(body, style: theme.bodyMedium),
       actions: [

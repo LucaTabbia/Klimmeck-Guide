@@ -121,7 +121,7 @@ void main() {
           emitsInOrder([isA<AuthUnauthenticated>(), isA<AuthAuthenticated>()]),
         );
 
-        await service.login();
+        await service.login(acceptedLegalVersion: 'v-test');
         await expectation;
         expect(await service.getAccessToken(), equals(testAccessToken));
       },
@@ -160,7 +160,26 @@ void main() {
       );
 
       await service.terminateSession(UnauthenticatedReason.syncLost);
-      await service.login();
+      await service.login(acceptedLegalVersion: 'v-test');
+
+      await expectation;
+      expect(teardownCalls, equals(1));
+    });
+
+    test('terminateSession(accountDeleted) ends the dev session with that '
+        'reason (D-06)', () async {
+      await service.initialize();
+      final expectation = expectLater(
+        service.authStateStream,
+        emitsInOrder([
+          isA<AuthAuthenticated>(),
+          const AuthUnauthenticated(
+            reason: UnauthenticatedReason.accountDeleted,
+          ),
+        ]),
+      );
+
+      await service.terminateSession(UnauthenticatedReason.accountDeleted);
 
       await expectation;
       expect(teardownCalls, equals(1));

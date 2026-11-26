@@ -105,7 +105,7 @@ void main() {
 
   test('the second login closes the first device with replacedByNewLogin '
       '(D-06, D-09, D-12)', () async {
-    await deviceA.login();
+    await deviceA.login('v-test');
     await deviceA.openLiveSubscription();
     final socketA = serverSocketOf(deviceA);
     final clientBeforeRevocation = deviceA.holder.client.value;
@@ -114,7 +114,7 @@ void main() {
     await expectEndedWith(
       deviceA,
       UnauthenticatedReason.replacedByNewLogin,
-      deviceB.login,
+      () => deviceB.login('v-test'),
     );
     final streamB = await deviceB.openLiveSubscription();
     await socketA.done;
@@ -138,9 +138,9 @@ void main() {
   test(
     'a device offline at the revocation is closed at reconnect (D-06)',
     () async {
-      await deviceA.login();
+      await deviceA.login('v-test');
       final sessionA = backend.sessionIdOfAccessToken(deviceA.accessToken)!;
-      await deviceB.login();
+      await deviceB.login('v-test');
       expect(backend.revokeReasonOf(sessionA), sessionRevokedReasonNewLogin);
 
       await expectEndedWith(
@@ -162,7 +162,7 @@ void main() {
   test(
     'a role change ends the session with roleChanged (D-06, D-12)',
     () async {
-      await deviceA.login();
+      await deviceA.login('v-test');
       await deviceA.openLiveSubscription();
       final socketA = serverSocketOf(deviceA);
 
@@ -185,9 +185,35 @@ void main() {
   );
 
   test(
+    'an account deleted on the backend closes the socket with 4409 and lands '
+    'on accountDeleted (D-18)',
+    () async {
+      await deviceA.login('v-test');
+      await deviceA.openLiveSubscription();
+      final socketA = serverSocketOf(deviceA);
+
+      await expectEndedWith(
+        deviceA,
+        UnauthenticatedReason.accountDeleted,
+        () async => backend.revokeAll(sessionRevokedReasonAccountDeleted),
+      );
+
+      await socketA.done;
+      expect(deviceA.policies.first.closures, [
+        (
+          code: wsSessionRevokedCloseCode,
+          reason: sessionRevokedReasonAccountDeleted,
+        ),
+      ]);
+      expect(deviceA.store.refreshToken, isNull);
+    },
+    timeout: _flowTimeout,
+  );
+
+  test(
     'an unknown or missing reason ends with sessionExpired (D-06, D-12)',
     () async {
-      await deviceA.login();
+      await deviceA.login('v-test');
       await deviceA.openLiveSubscription();
       final socketA = serverSocketOf(deviceA);
 
@@ -197,7 +223,7 @@ void main() {
         () async => backend.revokeAll('somethingNew'),
       );
 
-      await deviceB.login();
+      await deviceB.login('v-test');
       await deviceB.openLiveSubscription();
       final socketB = serverSocketOf(deviceB);
 
@@ -223,7 +249,7 @@ void main() {
   test(
     'a replaced device never hot-loops its reconnects (D-06, D-09)',
     () async {
-      await deviceA.login();
+      await deviceA.login('v-test');
       await deviceA.openLiveSubscription();
       final sessionA = backend.sessionIdOfAccessToken(deviceA.accessToken)!;
       final revokedPolicy = deviceA.policies.single;
@@ -231,7 +257,7 @@ void main() {
       await expectEndedWith(
         deviceA,
         UnauthenticatedReason.replacedByNewLogin,
-        deviceB.login,
+        () => deviceB.login('v-test'),
       );
       final initsAfterTeardown = initSessions.length;
       final streamB = await deviceB.openLiveSubscription();
@@ -296,12 +322,12 @@ class _Device {
 
   String get accessToken => (states.last as AuthAuthenticated).accessToken;
 
-  Future<void> login() async {
+  Future<void> login(String acceptedLegalVersion) async {
     final authenticated = expectLater(
       service.authStateStream,
       emitsThrough(isA<AuthAuthenticated>()),
     );
-    await service.login();
+    await service.login(acceptedLegalVersion: acceptedLegalVersion);
     await authenticated;
   }
 

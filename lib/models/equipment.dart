@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 
 class Equipment extends Equatable {
@@ -97,5 +98,34 @@ extension EquipmentValues on Equipment {
     rightHand,
     firstAccessory,
     secondAccessory,
+  ];
+
+  EquipmentItem? inSlot(SlotType slot) => switch (slot) {
+    SlotType.head => head,
+    SlotType.chest => chest,
+    SlotType.arms => arms,
+    SlotType.legs => legs,
+    SlotType.feet => feet,
+    SlotType.leftHand => leftHand,
+    SlotType.rightHand => rightHand,
+    SlotType.firstAccessory => firstAccessory,
+    SlotType.secondAccessory => secondAccessory,
+  };
+
+  /// L'arma a due mani che dall'altra mano tiene occupata [slot].
+  EquipmentItem? twoHandedBlocking(SlotType slot) {
+    final otherHand = switch (slot) {
+      SlotType.leftHand => SlotType.rightHand,
+      SlotType.rightHand => SlotType.leftHand,
+      _ => null,
+    };
+    if (otherHand == null) return null;
+    final held = inSlot(otherHand);
+    return held?.equipSubType?.isTwoHanded == true ? held : null;
+  }
+
+  List<SlotType> slotsWearing(String itemId) => [
+    for (final slot in SlotType.values)
+      if (inSlot(slot)?.id == itemId) slot,
   ];
 }

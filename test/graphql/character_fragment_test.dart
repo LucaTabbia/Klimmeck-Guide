@@ -438,6 +438,18 @@ void main() {
     });
   });
 
+  test('the Journal and shop equipment select equipSubType', () {
+    for (final fields in [
+      EquipmentFragment.fields,
+      EquipmentFragment.fieldsWithFullSpell,
+    ]) {
+      expect(
+        fields.replaceAll(RegExp(r'\s+'), ' '),
+        contains('equipType accessoryUseTypes equipSubType'),
+      );
+    }
+  });
+
   test('the Journal assets select accessoryUseTypes on equipment (D-15)', () {
     expect(
       EquipmentFragment.fieldsWithFullSpell.replaceAll(RegExp(r'\s+'), ' '),

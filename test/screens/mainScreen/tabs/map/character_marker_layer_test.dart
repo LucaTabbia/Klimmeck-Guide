@@ -686,6 +686,38 @@ void main() {
     });
   });
 
+  group('cancelled quest (D-13, D-23)', () {
+    testWidgets('the pawn stands in the city after the jump back, with no '
+        'travel drawn (D-13, D-23)', (tester) async {
+      await pumpLayer(
+        tester,
+        character: CharacterLoaded(
+          Character.fromJson(
+            travellingCharacterJson(
+              locationId: 'poi-1',
+              location: const [30.0, 40.0],
+              pendingQuest: laneJson(questType: 'enemy'),
+              missionInProgress: true,
+            ),
+          ),
+        ),
+      );
+      expect(pawnPoint(tester), const LatLng(30, 40));
+
+      characterStates.add(characterLoaded());
+      await tester.pump();
+      await tester.pump();
+
+      expect(pawnPoint(tester), home);
+      expect(find.byKey(CharacterMarkerLayer.travelLabelKey), findsNothing);
+      expect(find.byKey(CharacterMarkerLayer.activityLabelKey), findsNothing);
+      expect(pawnDraggable(tester).maxSimultaneousDrags, isNull);
+      await tester.tap(find.byKey(CharacterMarkerLayer.pawnKey));
+      await tester.pump(const Duration(seconds: 1));
+      expect(tapped, [cityA]);
+    });
+  });
+
   group('drag release (D-01)', () {
     testWidgets('releasing east resolves the nearest city', (tester) async {
       await pumpLayer(tester, character: characterLoaded());

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
+import 'package:klimmeck_guide/models/enums/equip_sub_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
@@ -277,13 +278,37 @@ void main() {
     });
   });
 
+  group('weaponKindLine', () {
+    EquipmentItem weapon(EquipSubType? subType, {EquipType? type}) =>
+        _jewel(type ?? EquipType.weapon, null).copyWith(equipSubType: subType);
+
+    test('a one-handed weapon reads its family', () {
+      expect(weaponKindLine(weapon(EquipSubType.grimoire)), 'Arma: grimorio');
+    });
+
+    test('a two-handed weapon says it takes both hands', () {
+      expect(
+        weaponKindLine(weapon(EquipSubType.longStaff)),
+        'Arma: bastone lungo, a due mani',
+      );
+    });
+
+    test('no line without a family or outside the weapons', () {
+      expect(weaponKindLine(weapon(null)), isNull);
+      expect(
+        weaponKindLine(weapon(EquipSubType.bow, type: EquipType.shield)),
+        isNull,
+      );
+    });
+  });
+
   group('healedInjuryLabels', () {
     test('a single injury gives one label, lower case', () {
       expect(
         healedInjuryLabels(
           _loot(effect: EffectType.heal, injuries: [InjuryType.deepCut]),
         ),
-        const [(label: 'taglio profondo', isBeyondCure: false)],
+        const [(label: 'taglio profondo', mark: HealedInjuryMark.plain)],
       );
     });
 
@@ -297,8 +322,8 @@ void main() {
           beyondCure: const [InjuryType.blackEye, InjuryType.deepCut],
         ),
         const [
-          (label: 'cecità', isBeyondCure: false),
-          (label: 'occhio nero', isBeyondCure: true),
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.beyondCure),
         ],
       );
     });
@@ -313,8 +338,31 @@ void main() {
           ),
         ),
         const [
-          (label: 'cecità', isBeyondCure: false),
-          (label: 'occhio nero', isBeyondCure: false),
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.plain),
+        ],
+      );
+    });
+
+    test("the labels mark the reader's wounds that the item cures, the "
+        'innkeeper wounds staying beyond cure (Phase 26)', () {
+      expect(
+        healedInjuryLabels(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [
+              InjuryType.blackEye,
+              InjuryType.blindness,
+              InjuryType.contusion,
+            ],
+          ),
+          beyondCure: const [InjuryType.blackEye],
+          readerInjuries: const [InjuryType.blackEye, InjuryType.contusion],
+        ),
+        const [
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.beyondCure),
+          (label: 'contusione', mark: HealedInjuryMark.curable),
         ],
       );
     });

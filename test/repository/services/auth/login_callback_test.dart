@@ -36,6 +36,14 @@ void main() {
       );
     });
 
+    test('error=terms_not_accepted is a backend refusal with that code '
+        '(D-19)', () {
+      expect(
+        parseLoginCallback('klimmeck://auth?error=terms_not_accepted'),
+        const LoginRejectedByBackend(termsNotAcceptedError),
+      );
+    });
+
     test('never throws on malformed input', () {
       const invalid = LoginRejectedByBackend('invalid_callback');
 

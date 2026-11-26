@@ -87,20 +87,42 @@ String? accessoryUsageLine(EquipmentItem item) {
   return 'Uso: ${labels.join(' e ')}';
 }
 
+/// Riga «Arma» con la famiglia servita dal BE; le armi a due mani lo dicono.
+String? weaponKindLine(EquipmentItem item) {
+  final subType = item.equipSubType;
+  if (item.equipType != EquipType.weapon || subType == null) return null;
+  final family = subType.label.toLowerCase();
+  return subType.isTwoHanded ? 'Arma: $family, a due mani' : 'Arma: $family';
+}
+
 const String healedInjuriesPrefix = 'Cura: ';
 const String healedInjuriesSeparator = ', ';
 
-/// Etichetta di una ferita nella riga «Cura: …»; [isBeyondCure] quando
-/// nessuna cura la toglie a chi legge (D-21).
-typedef HealedInjuryLabel = ({String label, bool isBeyondCure});
+/// Come si scrive una ferita nella riga «Cura: …» per chi legge.
+enum HealedInjuryMark {
+  /// Chi legge non ce l'ha.
+  plain,
+
+  /// Chi legge ce l'ha e questo oggetto la cura (Phase 26).
+  curable,
+
+  /// Nessuna cura la toglie a chi legge: è una ferita dell'oste (D-21).
+  beyondCure,
+}
+
+/// Etichetta di una ferita nella riga «Cura: …».
+typedef HealedInjuryLabel = ({String label, HealedInjuryMark mark});
 
 /// Le ferite che un oggetto heal può curare, tutte e per chiunque legga
 /// (D-20), etichette in minuscolo nell'ordine dell'enum; nessuna senza ferite
 /// o su un effetto diverso. [beyondCure] sono le ferite che nessuna cura
 /// toglie a chi legge (quelle dell'oste): restano in lista, segnate (D-21).
+/// [readerInjuries] sono le ferite di chi legge: quelle che l'oggetto cura
+/// sono segnate come curabili (Phase 26); l'oste vince.
 List<HealedInjuryLabel> healedInjuryLabels(
   LootItem item, {
   List<InjuryType> beyondCure = const [],
+  List<InjuryType> readerInjuries = const [],
 }) {
   if (item.effect != EffectType.heal) return const [];
   return [
@@ -108,9 +130,19 @@ List<HealedInjuryLabel> healedInjuryLabels(
       if (item.canHeal.contains(type))
         (
           label: type.label.toLowerCase(),
-          isBeyondCure: beyondCure.contains(type),
+          mark: _markOf(type, beyondCure, readerInjuries),
         ),
   ];
+}
+
+HealedInjuryMark _markOf(
+  InjuryType type,
+  List<InjuryType> beyondCure,
+  List<InjuryType> readerInjuries,
+) {
+  if (beyondCure.contains(type)) return HealedInjuryMark.beyondCure;
+  if (readerInjuries.contains(type)) return HealedInjuryMark.curable;
+  return HealedInjuryMark.plain;
 }
 
 /// Riga della cura sul foglio di una quest (D-03): solo le ferite del

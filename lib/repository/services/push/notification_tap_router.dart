@@ -1,6 +1,6 @@
 import 'package:klimmeck_guide/config/twitch_channel.dart';
 import 'package:klimmeck_guide/models/notification_intent.dart';
-import 'package:klimmeck_guide/repository/services/push/link_opener.dart';
+import 'package:klimmeck_guide/repository/services/links/link_opener.dart';
 import 'package:klimmeck_guide/repository/services/push/notification_intent_sink.dart';
 import 'package:klimmeck_guide/utils/app_log.dart';
 

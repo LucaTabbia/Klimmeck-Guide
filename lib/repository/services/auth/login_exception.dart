@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-/// Lanciate da `AuthTokenService.login()`; la firma `Future<void> login()`
-/// non cambia (D-02).
+/// Lanciate da `AuthTokenService.login`; dalla Phase 25 la firma porta la
+/// versione dei documenti legali accettata (D-19).
 sealed class LoginException extends Equatable implements Exception {
   const LoginException();
 
@@ -23,6 +23,12 @@ final class LoginUnavailableException extends LoginException {
 /// la sessione.
 final class LoginNotFollowingException extends LoginException {
   const LoginNotFollowingException();
+}
+
+/// Il backend ha rifiutato il login: versione dei documenti legali assente o
+/// malformata (D-19).
+final class LoginTermsNotAcceptedException extends LoginException {
+  const LoginTermsNotAcceptedException();
 }
 
 /// Qualunque altro fallimento, con codice opaco (D-22).

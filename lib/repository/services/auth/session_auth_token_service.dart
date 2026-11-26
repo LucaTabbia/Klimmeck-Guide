@@ -144,11 +144,12 @@ class SessionAuthTokenService extends AuthTokenService
   /// o fallito non interrompe la sua ripresa in background. Un login riscattato
   /// mentre un logout è ancora in corso viene installato solo dopo la fine di
   /// quel logout, che quindi non può mai chiudere la sessione nuova.
-  /// Lancia [LoginException].
+  /// La versione dei documenti legali accettata viaggia sulla pagina di
+  /// avvio (D-19). Lancia [LoginException].
   @override
-  Future<void> login() async {
+  Future<void> login({required String acceptedLegalVersion}) async {
     final challenge = _createChallenge();
-    final callbackUrl = await _openLoginPage(challenge);
+    final callbackUrl = await _openLoginPage(challenge, acceptedLegalVersion);
     final session = await _redeemTicket(_ticketFrom(callbackUrl), challenge);
     await _logoutInFlight;
     if (_isDisposed) return;
@@ -166,12 +167,19 @@ class SessionAuthTokenService extends AuthTokenService
   /// dello storage una sola volta. L'access token resta leggibile fino al
   /// teardown, senza più essere rinnovato. Chiamate sovrapposte (doppio tap)
   /// condividono lo stesso logout. Non lancia mai.
+  ///
+  /// Una sessione già chiusa (o in chiusura) con un altro motivo, per esempio
+  /// `accountDeleted`, resta tale: niente chiamata al backend, niente
+  /// `signedOut` sopra il suo stato terminale (Phase 25 D-03, D-06).
   @override
   Future<void> logout() => _logoutInFlight ??= _performLogout().whenComplete(
     () => _logoutInFlight = null,
   );
 
   Future<void> _performLogout() async {
+    final endInFlight = _endInFlight;
+    if (endInFlight != null) return endInFlight;
+    if (_channel.current is AuthUnauthenticated) return;
     final closing = _detachSession();
     final backendStep = _invalidateBackendSession(closing);
     await backendStep.timeout(_logoutTimeout, onTimeout: _logLogoutTimeout);
@@ -241,10 +249,18 @@ class SessionAuthTokenService extends AuthTokenService
   // Login
   // ---------------------------------------------------------------------------
 
-  Future<String> _openLoginPage(LoginChallenge challenge) async {
+  Future<String> _openLoginPage(
+    LoginChallenge challenge,
+    String acceptedLegalVersion,
+  ) async {
     final startUrl = _backendBaseUrl
         .resolve('auth/twitch/start')
-        .replace(queryParameters: {'challenge': challenge.codeChallenge});
+        .replace(
+          queryParameters: {
+            'challenge': challenge.codeChallenge,
+            _termsVersionParameter: acceptedLegalVersion,
+          },
+        );
     try {
       return await _browser.authenticate(
         startUrl: startUrl,
@@ -265,6 +281,8 @@ class SessionAuthTokenService extends AuthTokenService
           throw const LoginUnavailableException(),
         LoginRejectedByBackend(code: notFollowingError) =>
           throw const LoginNotFollowingException(),
+        LoginRejectedByBackend(code: termsNotAcceptedError) =>
+          throw const LoginTermsNotAcceptedException(),
         LoginRejectedByBackend(:final code) => throw LoginFailedException(code),
       };
 
@@ -381,7 +399,7 @@ class SessionAuthTokenService extends AuthTokenService
   }
 
   /// D-12: avviso dedicato solo per i motivi noti di `SESSION_REVOKED`; il
-  /// resto è «sessione scaduta».
+  /// resto è «sessione scaduta». Phase 25 D-18: account eliminato.
   static UnauthenticatedReason _unauthenticatedReasonOf(
     SessionRejected rejection,
   ) {
@@ -392,6 +410,8 @@ class SessionAuthTokenService extends AuthTokenService
       sessionRevokedReasonNewLogin => UnauthenticatedReason.replacedByNewLogin,
       sessionRevokedReasonRoleChanged => UnauthenticatedReason.roleChanged,
       sessionRevokedReasonAccessLost => UnauthenticatedReason.channelAccessLost,
+      sessionRevokedReasonAccountDeleted =>
+        UnauthenticatedReason.accountDeleted,
       _ => UnauthenticatedReason.sessionExpired,
     };
   }
@@ -571,6 +591,7 @@ class SessionAuthTokenService extends AuthTokenService
 }
 
 const String _networkFailureCode = 'network';
+const String _termsVersionParameter = 'termsVersion';
 
 /// Credenziali della sessione staccata da `logout()`.
 typedef _ClosingSession = ({

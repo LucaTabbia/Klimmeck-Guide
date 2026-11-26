@@ -76,6 +76,17 @@ The backend is the source of truth for every rule: each requirement below descri
 - [x] **WOUND-02**: The player recognises an innkeeper wound (`CharacterStatus.innkeeperInjuries`, lenient): the Journal reads «Troppo grave per essere curata» under it; the quest sheet line «Cura le tue ferite: …» and the potion line «Cura: …» of the Journal and of the potion sheet leave it out; the Board is reread in silence when only the origin of a wound changes; no cure rule on the device (D-14, D-15) — amended at the device UAT of 2026-11-22 (D-20, D-21): the potion line «Cura: …» lists every wound the item cures, the reader's innkeeper wounds written in red; the quest sheet line still leaves them out
 - [x] **WOUND-03**: The result sheet shows the wounds the innkeeper took off (`QuestResult.injuriesRemoved`, lenient) inside the one line «Guarite: …» together with `injuriesHealed`, without repeating a wound (D-18)
 
+### Account Deletion and Legal Consent (Phase 25, added 2026-11-24)
+
+- [x] **ACCOUNT-01**: Settings holds «Elimina account» inside the «Azioni irreversibili» dropdown, under «Elimina personaggio», red outline, with «Esci» last on the sheet (layout amended by the user in the device UAT, D-02), hidden for the innkeeper (UX only: the backend refuses with `INNKEEPER_ACCOUNT_PROTECTED`); one destructive dialog (`showDestructiveConfirmation`, Annulla / Elimina) whose in-world body lists what is lost (every character including the archived ones, the points balance, the portrait) and that converted channel points are not given back; spinner only on the tapped button, failures inline under it, read only from `extensions.code`; nothing is added to the character-creation screen (D-01, D-02, D-05, D-16, D-17)
+- [x] **ACCOUNT-02**: A deleted account lands on the login with «Il tuo account è stato eliminato.» above the login button: after `deleteMyAccount` succeeds the app makes no further backend call (no push unregister, no logout mutation) and tears down locally through `SessionTerminator.terminateSession(UnauthenticatedReason.accountDeleted)`; the same notice comes from a refresh refused with `SESSION_REVOKED` + `extensions.reason = "accountDeleted"` (HTTP or WebSocket close 4409), which serves the player deleted by the innkeeper while online; a refresh or socket close racing the own deletion never turns the landing into «sessione scaduta»; past the backend's 15-minute window the fallback is the session-expired notice (D-03, D-06, D-15, D-18)
+- [x] **ACCOUNT-03**: In Settings → «Locanda» the innkeeper opens «Elimina un account»: a dialog with the Twitch username field (never inline in the tab), then the destructive confirmation naming the username, then `deleteAccountByTwitchLogin`; `TWITCH_USER_NOT_FOUND`, `ACCOUNT_NOT_FOUND`, `INNKEEPER_ACCOUNT_PROTECTED`, `TWITCH_UNAVAILABLE` each with its own line inline in the dialog and nothing deleted; the typed username is never logged nor stored (D-15, D-16)
+- [x] **ACCOUNT-04**: When the deletion cancels a quest that had effectively started, the remaining members' app only reacts to what the backend sends — the existing `questCancelled` push with the backend's own text, `characterUpdated` (back in the city, lane free, food, points and life refunded) and `questUpdated` (the quest back on the Board, not started) — proved by tests on the existing reactive paths, fixed only where a test shows them broken; no party list and no placeholder wording (D-13, D-23)
+- [x] **ACCOUNT-05**: Schema gate on the merged BE Phase 26 SDL: the two mutation documents registered and selected only there (registry 55 → 57), the account-deletion switch turned on, names re-checked, schema check, full suite, analyzer, FE `BACKEND-NOTES.md`; device E2E of deletion (own and by the innkeeper), consent and the cancelled started quest; the two privacy lines of D-22 written in the legal repo by the orchestrator (D-20, D-22)
+- [x] **CONSENT-01**: Above the login button one checkbox with the sentence «Accetto i Termini di servizio e l'Informativa sulla privacy» whose two wordings are tappable links opening https://lucatabbia.github.io/klimmeck-guide-legal/termini and /privacy in the external browser through `LinkOpener` (moved out of `push/`); the checkbox is toggled by its own target and announced on its own, each link reachable on its own; the two footer links are gone; the login button is disabled while the box is empty (D-07, D-08, D-21)
+- [x] **CONSENT-02**: The acceptance is remembered on the device (`SharedPreferencesAsync`) for one version of the documents — one constant in `lib/config/legal_documents.dart` holding a provisional date the user replaces at the launch: the box starts ticked at the next logins while the stored version equals the constant, unticked for any other version; a logout and every other revocation keep the memory, only the `accountDeleted` landing forgets it (D-10, D-12)
+- [x] **CONSENT-03**: The login carries the accepted version: `login({required String acceptedLegalVersion})` sends it as the `termsVersion` query parameter of `GET /auth/twitch/start`; a refusal redirected as `?error=terms_not_accepted` becomes its own `SignInFailure` with an inline line under the login button; the dev bypass ignores it (D-09, D-19)
+
 ## Future Requirements
 
 Deferred beyond v1.1. Tracked but not in the current roadmap.
@@ -147,8 +158,16 @@ Deferred beyond v1.1. Tracked but not in the current roadmap.
 | WOUND-01 | Phase 24 | Complete |
 | WOUND-02 | Phase 24 | Complete |
 | WOUND-03 | Phase 24 | Complete |
+| ACCOUNT-01 | Phase 25 | Complete |
+| ACCOUNT-02 | Phase 25 | Complete |
+| ACCOUNT-03 | Phase 25 | Complete |
+| ACCOUNT-04 | Phase 25 | Complete |
+| ACCOUNT-05 | Phase 25 | Complete |
+| CONSENT-01 | Phase 25 | Complete |
+| CONSENT-02 | Phase 25 | Complete |
+| CONSENT-03 | Phase 25 | Complete |
 
-**Coverage:** 47 / 47 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 8 ORIGIN → Phase 23, 4 STORY + 3 WOUND → Phase 24). No orphans. No duplicates.
+**Coverage:** 55 / 55 v1.1 requirements mapped (6 HEAL → Phase 18, 4 MODEL → Phase 19, 4 RANKP → Phase 20, 8 GMFLOW → Phase 21, 10 PET → Phase 22, 8 ORIGIN → Phase 23, 4 STORY + 3 WOUND → Phase 24, 5 ACCOUNT + 3 CONSENT → Phase 25). No orphans. No duplicates.
 
 ---
 

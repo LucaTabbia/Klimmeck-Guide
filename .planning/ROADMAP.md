@@ -47,6 +47,7 @@ Execution order followed: 1 → 11 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 - [x] **Phase 22: Companion Defeat, Rest and Recovery** — An equipped companion that drops to 0 life in a fight is unequipped at the end of the fight and cannot be used again until it is back to full life, after a wait proportional to its rarity and power. A companion that is only hurt can be put to rest (unequipped: it regains life in proportion to the time it rests) or healed with potions (same rule as the character's potions, with the wait). Needs a BE companion phase. _(added 2026-11-14; completed 2026-11-15)_
 - [x] **Phase 23: Spell Origins, Void and Shamanic Quests** — Every spell carries a macro-class on top of its use and energy (origin → use → energy; origins: `void`, `arcane`, `shamanic`); two new quest types, `shamanic` and `void`, work exactly like the `arcane` quest (renamed from `magic`, label «Magia») and teach a spell of their own origin (before, that quest taught them all), with the four new sheet assets; the `void` quest lives only in Necrorian, the `shamanic` quest in the two new capitals (`aarakocraCapital`, `dragonbornCapital`, drawn on the map at the size of Talmvere), both from rank mage up; new city types `aarakocraCapital`, `dragonbornCapital`, `dragonbornVillage` with their assets and the `aarakocraVillage` asset replaced; a spell is learned from a minimum character level, no longer a minimum xp. Needs a BE companion phase (BE Phase 24). _(added 2026-11-15)_ (completed 2026-11-16)
 - [x] **Phase 24: Participants' Stories and Innkeeper Wounds** — The guided completion of story/worldMission quests opens on a page where the innkeeper reads the background of every participant (one dropdown each) before starting the mission, and ends, after the recap, on a page where he may add one entry to the background of each participant (one optional addition per participant, up to 1000 characters) while rereading that participant's story; the additions are written with the completion and shown to the player by the wax sigil and a line on the result sheet. The wounds the innkeeper adds by hand are his alone to remove (from the corrections of every resolution): heal quests, potions and prizes never touch them, and the player reads them as «Troppo grave per essere curata». Needs a BE companion phase (BE Phase 25). _(added 2026-11-21)_ (completed 2026-11-22)
+- [x] **Phase 26: Potion Pour Gesture** — The potion confirmation sheet becomes a gesture scene: one bottle (name on the label, liquid coloured by rarity, drawn in code with a horizontal surface, waves and a pouring stream) sits in the centre and is dragged toward the drinker, tilts and pours: the character fixed on the right (race SVG), the companions on the left (their own asset, one at a time, scrolled vertically); who cannot drink is not shown. No buttons, no tappable words. Frontend only. _(added 2026-11-25)_ (completed 2026-11-26)
 
 **Execution order:** 18 → 19 → 20 → 21 (rank-specific prizes before the innkeeper flow, so that its prize step offers a list already filtered by the character's rank). Each phase is gated on the merge of its BE companion (schema gate on the merged BE SDL before the plans that select the new fields and before the device UAT). Requirements: [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -283,6 +284,39 @@ Plans:
 | 22. Companion Defeat, Rest and Recovery | v1.1 | 17/17 | Complete | 2026-11-15 |
 | 23. Spell Origins, Void and Shamanic Quests | v1.1 | 14/14 | Complete | 2026-11-16 |
 | 24. Participants' Stories and Innkeeper Wounds | v1.1 | 11/11 | Complete | 2026-11-22 |
+| 25. Account Deletion and Legal Consent | v1.1 | 8/8 | Complete | 2026-11-25 |
+| 26. Potion Pour Gesture | v1.1 | lean | Complete | 2026-11-26 |
+
+### Phase 25: Account Deletion and Legal Consent
+
+**Goal:** (↔ BE Phase 26) il giocatore elimina il proprio account da Impostazioni con una conferma in-world e il backend cancella definitivamente utente, personaggi (anche archiviati), sessioni, device push e ritratto su Cloudinary; nella pagina di login le diciture «Termini di servizio» e «Privacy» aprono https://lucatabbia.github.io/klimmeck-guide-legal/termini e /privacy, e una checkbox obbligatoria di accettazione di termini e privacy abilita il login. Le pagine legali promettono già queste funzioni (repo `LucaTabbia/klimmeck-guide-legal`).
+**Depends on:** Phase 24, Phase 11 (session and login), Phase 4 (Settings), Phase 10 (innkeeper section), a BE companion phase (BE Phase 26 «Eliminazione account e consenso»)
+**Scope**: decisions D-01..D-23 of `25-CONTEXT.md` (interactive discuss of 2026-11-24, joint with BE Phase 26; amended the same day after the two researches: D-06, D-12, D-15 revised, D-13 replaced, D-17..D-23 added). No «Elimina account» on the character-creation screen (D-17); no party list and no placeholder wording — a started quest is cancelled server-side and the app only reacts (D-13, D-23); the version constant is a provisional date, the `[DATA DI PUBBLICAZIONE]` placeholder of the legal pages is not touched (D-12); the two privacy lines of D-22 are written in the legal repo by the orchestrator. No UI phase.
+**Requirements**: ACCOUNT-01, ACCOUNT-02, ACCOUNT-03, ACCOUNT-04, ACCOUNT-05, CONSENT-01, CONSENT-02, CONSENT-03
+**Success Criteria** (what must be TRUE):
+  1. The login shows above its button one checkbox with «Accetto i Termini di servizio e l'Informativa sulla privacy», the two wordings open the public pages in the browser, the footer links are gone and the login stays disabled until the box is ticked; the acceptance is remembered on the device for the current document version and forgotten only when the account is deleted.
+  2. The login carries the accepted version (`termsVersion` on `/auth/twitch/start`); the backend records version and date, and its refusal reads as its own line, never as a connection error.
+  3. A player deletes his account from Settings → «Azioni irreversibili» («Elimina account», under «Elimina personaggio», «Esci» last on the sheet — D-02 as amended in the device UAT; hidden for the innkeeper) through one in-world destructive dialog, and lands on the login with «Il tuo account è stato eliminato.»; after the deletion the app calls nothing more on the backend, and a racing refresh or socket close never turns the landing into «sessione scaduta».
+  4. The innkeeper deletes a player's account from the Twitch username in Settings → «Locanda» (dialog with the field, confirmation naming the username, every refusal inline); a player deleted while online lands on the same notice.
+  5. When the deletion cancels a quest that had started, the companions left behind are drawn back in the city with the lane free and the refunds as served, the quest is back on the Board, and the push shows the backend's text — with no party list and no computation on the device.
+  6. Schema check green on the merged BE Phase 26 SDL (57 documents), full suite green, device E2E passed, privacy lines of D-22 in the legal repo.
+**Plans**: 8 plans (sequential waves; 01–06 work against today's BE — no new document, the deletions behind one switch; 07 gated by the BE Phase 26 merge; 08 runs LAST, human)
+
+Plans:
+- [x] 25-01-PLAN.md — Suite baseline, `LinkOpener` moved out of push, legal constants, consent memory and Cubit, checkbox row with the two links, footer removed, login gated on the tick
+- [x] 25-02-PLAN.md — `accountDeleted` reason from the refused refresh (HTTP and WS 4409) and from the local teardown, the D-03 notice, the consent forgotten only on that landing
+- [x] 25-03-PLAN.md — Own account deletion behind the abstract API: failure mapping, repository with the silent teardown, the race test, Cubit, dialog, «Elimina account» behind the switch
+- [x] 25-04-PLAN.md — Innkeeper's deletion by Twitch username: failures, repository, Cubit, username dialog with inline refusals, the «Locanda» entry behind the switch
+- [x] 25-05-PLAN.md — The login carries `termsVersion`: `login({required String acceptedLegalVersion})`, the stubs, `terms_not_accepted` mapped to its own sign-in failure
+- [x] 25-06-PLAN.md — Cancelled started quest: tests proving the existing reactive paths draw the members back in the city and the quest back on the Board, fixes only where RED
+- [x] 25-07-PLAN.md — Gate: schema, names, the two documents (55 → 57), GraphQL API, providers, switch on, schema check, full suite, BACKEND-NOTES (after the BE Phase 26 merge)
+- [x] 25-08-PLAN.md — Device E2E, UAT outcome in the handoff and closing (LAST, human)
+
+### Phase 26: Potion Pour Gesture
+
+**Goal:** the potion is drunk by a gesture instead of a modal sheet: drag the bottle from the centre toward the drinker (character on the right, companions scrolled on the left), it tilts and the liquid pours.
+**Depends on:** Phase 18 (Journal potions), Phase 22 (companion potions)
+**Scope**: decisions D-01..D-13 of `26-CONTEXT.md` (decided in conversation on 2026-11-25; lean GSD phase, no research, no UI-SPEC, no plan files, iterative on the device with hot reload) plus the amendments of the device UAT of 2026-11-25/26 recorded in the same file. No BE phase.
 
 ---
 

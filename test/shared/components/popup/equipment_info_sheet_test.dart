@@ -99,6 +99,7 @@ void main() {
       CloudinaryAssets.helmetType,
       CloudinaryAssets.ringType,
       CloudinaryAssets.necklaceType,
+      CloudinaryAssets.weaponType,
       CloudinaryAssets.emptyCardSheet,
       CloudinaryAssets.arcaneOrigin,
       CloudinaryAssets.attackUse,
@@ -188,6 +189,24 @@ void main() {
       await _pump(tester, item: _ring(null));
 
       expect(find.byKey(EquipmentInfoSheet.usageKey), findsNothing);
+    });
+
+    testWidgets('a two-handed weapon shows its family on the same line', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        item: EquipmentItem.fromJson(const {
+          'id': 'item-greatsword',
+          'name': "Spadone del trono d'ossa",
+          'equipType': 'weapon',
+          'equipSubType': 'greatsword',
+          'rarity': 'legendary',
+          'damages': {'base': [], 'energy': []},
+        }),
+      );
+
+      expect(usageText(tester).data, 'Arma: spadone, a due mani');
     });
 
     testWidgets('the use line does not overflow in landscape (D-12)', (
