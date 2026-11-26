@@ -308,7 +308,7 @@ void main() {
         healedInjuryLabels(
           _loot(effect: EffectType.heal, injuries: [InjuryType.deepCut]),
         ),
-        const [(label: 'taglio profondo', isBeyondCure: false)],
+        const [(label: 'taglio profondo', mark: HealedInjuryMark.plain)],
       );
     });
 
@@ -322,8 +322,8 @@ void main() {
           beyondCure: const [InjuryType.blackEye, InjuryType.deepCut],
         ),
         const [
-          (label: 'cecità', isBeyondCure: false),
-          (label: 'occhio nero', isBeyondCure: true),
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.beyondCure),
         ],
       );
     });
@@ -338,8 +338,31 @@ void main() {
           ),
         ),
         const [
-          (label: 'cecità', isBeyondCure: false),
-          (label: 'occhio nero', isBeyondCure: false),
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.plain),
+        ],
+      );
+    });
+
+    test("the labels mark the reader's wounds that the item cures, the "
+        'innkeeper wounds staying beyond cure (Phase 26)', () {
+      expect(
+        healedInjuryLabels(
+          _loot(
+            effect: EffectType.heal,
+            injuries: [
+              InjuryType.blackEye,
+              InjuryType.blindness,
+              InjuryType.contusion,
+            ],
+          ),
+          beyondCure: const [InjuryType.blackEye],
+          readerInjuries: const [InjuryType.blackEye, InjuryType.contusion],
+        ),
+        const [
+          (label: 'cecità', mark: HealedInjuryMark.plain),
+          (label: 'occhio nero', mark: HealedInjuryMark.beyondCure),
+          (label: 'contusione', mark: HealedInjuryMark.curable),
         ],
       );
     });

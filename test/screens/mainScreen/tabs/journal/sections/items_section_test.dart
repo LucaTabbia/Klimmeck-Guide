@@ -239,7 +239,7 @@ void main() {
     );
 
     testWidgets(
-      "a potion row of the Journal lists the character's innkeeper wounds in red (D-20, D-21)",
+      "a potion row of the Journal lists the character's innkeeper wounds in red and the wounds it cures in green (D-20, D-21, Phase 26)",
       (tester) async {
         await pumpItems(tester);
 
@@ -249,6 +249,7 @@ void main() {
         );
         expect(line, findsOneWidget);
         expect(redLabelsOf(tester, line), ['taglio profondo']);
+        expect(greenLabelsOf(tester, line), ['contusione']);
       },
     );
 

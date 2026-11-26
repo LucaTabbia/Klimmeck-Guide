@@ -71,6 +71,7 @@ class PotionPourScene extends StatefulWidget {
     required this.maxLifePoints,
     this.companions = const [],
     this.readerInnkeeperInjuries = const [],
+    this.readerInjuries = const [],
   });
 
   final LootItem item;
@@ -88,6 +89,9 @@ class PotionPourScene extends StatefulWidget {
 
   /// Ferite dell'oste del personaggio: in rosso dentro «Cura: …» (D-21).
   final List<InjuryType> readerInnkeeperInjuries;
+
+  /// Ferite del personaggio: quelle che la pozione cura in verde (Phase 26).
+  final List<InjuryType> readerInjuries;
 
   static const Key bottleKey = ValueKey('potionPour.bottle');
   static const Key characterKey = ValueKey('potionPour.character');
@@ -611,6 +615,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     final healed = healedInjuryLabels(
       widget.item,
       beyondCure: widget.readerInnkeeperInjuries,
+      readerInjuries: widget.readerInjuries,
     );
     return Positioned(
       left: scene.width * _sideShare,

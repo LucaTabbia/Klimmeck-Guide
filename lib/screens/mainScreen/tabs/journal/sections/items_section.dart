@@ -266,7 +266,8 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     );
   }
 
-  /// Le ferite dell'oste del personaggio vanno in rosso in «Cura: …» (D-21).
+  /// Le ferite dell'oste del personaggio vanno in rosso in «Cura: …» (D-21),
+  /// quelle che ha e l'oggetto cura in verde (Phase 26).
   Widget _itemRow(
     Character character,
     AssetItem item,
@@ -283,10 +284,14 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     isDisabled: isDisabled,
     statusLine: statusLine,
     readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
+    readerInjuries: _injuriesOf(character),
   );
 
   List<InjuryType> _innkeeperInjuriesOf(Character character) =>
       character.status?.innkeeperInjuries ?? const [];
+
+  List<InjuryType> _injuriesOf(Character character) =>
+      character.status?.injuries ?? const [];
 
   /// La scena del versamento vive sul navigator radice, sopra la shell
   /// (Phase 26): i cubit le arrivano per valore, razza, sesso, vita e
@@ -312,6 +317,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
           maxLifePoints: character.status?.maxLifePoints,
           companions: targets,
           readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
+          readerInjuries: _injuriesOf(character),
         ),
       ),
     );
