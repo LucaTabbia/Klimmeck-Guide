@@ -10,6 +10,7 @@ class HpDeltaBar extends StatelessWidget {
     required this.max,
     this.isLoss = false,
     this.isGain = false,
+    this.valueShadows,
   });
 
   static const Key barKey = ValueKey('hpDeltaBar.bar');
@@ -21,6 +22,10 @@ class HpDeltaBar extends StatelessWidget {
   final int max;
   final bool isLoss;
   final bool isGain;
+
+  /// Ombre dei numeri: il contorno scuro quando la barra sta su un fondo
+  /// scuro invece che sulla pergamena.
+  final List<Shadow>? valueShadows;
 
   double get _fraction => max <= 0 ? 0 : (hp / max).clamp(0.0, 1.0);
 
@@ -63,7 +68,10 @@ class HpDeltaBar extends StatelessWidget {
         Text(
           '${hp.round()} / $max',
           key: valueKey,
-          style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(color: _ink),
+          style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
+            color: _ink,
+            shadows: valueShadows,
+          ),
         ),
       ],
     );

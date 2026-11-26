@@ -194,10 +194,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     await gesture.up();
-    for (var i = 0; i < 400; i++) {
+    for (var i = 0; i < 600; i++) {
+      if (find.byKey(PotionPourScene.hpKey).evaluate().isNotEmpty) break;
+      if (find.byType(PotionPourScene).evaluate().isEmpty) break;
       await tester.pump(const Duration(milliseconds: 16));
     }
-    await tester.pumpAndSettle();
+    await tester.pump();
   }
 
   Future<void> tapAway(WidgetTester tester) async {

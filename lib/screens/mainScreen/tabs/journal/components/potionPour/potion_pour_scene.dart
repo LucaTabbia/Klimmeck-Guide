@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +46,7 @@ Route<void> potionPourRoute({
       BlocProvider<PotionCubit>.value(value: potionCubit),
       BlocProvider<PotionRecoveryCubit>.value(value: recoveryCubit),
     ],
-    child: scene,
+    child: Material(type: MaterialType.transparency, child: scene),
   ),
   transitionsBuilder: (_, animation, _, child) =>
       FadeTransition(opacity: animation, child: child),
@@ -92,6 +94,10 @@ class PotionPourScene extends StatefulWidget {
 
   static const Duration hpAnimationDuration = Duration(milliseconds: 900);
 
+  /// L'esito resta a schermo due secondi dopo che la barra si è riempita,
+  /// poi la scena si chiude da sola.
+  static const Duration outcomeCloseDelay = Duration(milliseconds: 900 + 2000);
+
   @override
   State<PotionPourScene> createState() => _PotionPourSceneState();
 }
@@ -106,6 +112,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
   static const Duration _corkFlight = Duration(milliseconds: 450);
 
   late final Ticker _ticker;
+  Timer? _outcomeClose;
   final PageController _companionPages = PageController();
   PotionBottleImages? _images;
   PourSimulation? _simulation;
@@ -135,6 +142,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
   @override
   void dispose() {
     _ticker.dispose();
+    _outcomeClose?.cancel();
     _companionPages.dispose();
     super.dispose();
   }
@@ -184,6 +192,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     }
     if (simulation.step(dt) case final side?) _commit(side);
     setState(() {});
+    _closeOutcomeLater();
     if (_isAtRest(simulation)) _stopTicking();
   }
 
@@ -269,8 +278,11 @@ class _PotionPourSceneState extends State<PotionPourScene>
 
   @override
   Widget build(BuildContext context) => BlocListener<PotionCubit, PotionState>(
-    listenWhen: (_, current) => current is PotionRefused,
-    listener: (context, _) => Navigator.of(context).pop(),
+    listenWhen: (_, current) =>
+        current is PotionRefused || current is PotionDrunk,
+    listener: (context, state) => state is PotionRefused
+        ? Navigator.of(context).pop()
+        : _closeOutcomeLater(),
     child: BlocBuilder<PotionCubit, PotionState>(
       builder: (context, state) => PopScope(
         canPop: !_isCommitted || _outcomeOf(state) != null,
@@ -281,6 +293,15 @@ class _PotionPourSceneState extends State<PotionPourScene>
       ),
     ),
   );
+
+  /// Esito a schermo per la prima volta: la chiusura parte da sola.
+  void _closeOutcomeLater() {
+    if (_outcomeClose != null) return;
+    if (_outcomeOf(context.read<PotionCubit>().state) == null) return;
+    _outcomeClose = Timer(PotionPourScene.outcomeCloseDelay, () {
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
 
   PotionDrunk? _outcomeOf(PotionState state) {
     final simulation = _simulation;
@@ -447,6 +468,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     final textTheme = Theme.of(context).textTheme;
     final lineStyle = textTheme.bodyMedium?.copyWith(
       color: KlimmeckGuideTheme.parchment,
+      shadows: KlimmeckGuideTheme.bordersForText,
     );
     final targetPetId = drunk.targetPetId;
     final max = targetPetId == null
@@ -508,6 +530,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
         hp: hp,
         max: max,
         isGain: after > before,
+        valueShadows: KlimmeckGuideTheme.bordersForText,
       ),
     );
   }

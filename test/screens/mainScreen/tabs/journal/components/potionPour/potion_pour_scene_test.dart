@@ -13,6 +13,8 @@ import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
+import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
+import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/race_figure_url.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -138,6 +140,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     return gesture;
+  }
+
+  /// Fa avanzare i frame finché la boccetta vuota mostra l'esito.
+  Future<void> pumpUntilOutcome(WidgetTester tester) async {
+    for (var i = 0; i < 600; i++) {
+      if (find.byKey(PotionPourScene.hpKey).evaluate().isNotEmpty) return;
+      await tester.pump(const Duration(milliseconds: 16));
+    }
   }
 
   group('drinkers', () {
@@ -313,6 +323,48 @@ void main() {
   });
 
   group('outcome', () {
+    Future<void> pourAndDrink(WidgetTester tester) async {
+      final gesture = await dragAndHold(tester, 420);
+      await gesture.up();
+      await emit(
+        tester,
+        PotionDrunk(herbs.id, UseItemResult.fromJson(useItemResultJson())),
+      );
+      await pumpUntilOutcome(tester);
+    }
+
+    testWidgets('the outcome lines sit on a Material, with no debug '
+        'underline, and carry the dark outline', (tester) async {
+      await pumpScene(tester);
+
+      await pourAndDrink(tester);
+
+      expect(
+        find.ancestor(
+          of: find.byKey(PotionPourScene.hpKey),
+          matching: find.byType(Material),
+        ),
+        findsWidgets,
+      );
+      final value = tester.widget<Text>(find.byKey(HpDeltaBar.valueKey));
+      expect(value.style?.shadows, KlimmeckGuideTheme.bordersForText);
+      final healed = tester.widget<Text>(find.byKey(PotionPourScene.healedKey));
+      expect(healed.style?.shadows, KlimmeckGuideTheme.bordersForText);
+    });
+
+    testWidgets('the outcome closes by itself a little after the life bar '
+        'fills', (tester) async {
+      await pumpScene(tester);
+
+      await pourAndDrink(tester);
+      expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
+
+      await tester.pump(PotionPourScene.outcomeCloseDelay);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PotionPourScene), findsNothing);
+    });
+
     testWidgets('once the bottle is empty the life bar fills and a tap '
         'closes', (tester) async {
       await pumpScene(tester);
@@ -323,9 +375,7 @@ void main() {
         tester,
         PotionDrunk(herbs.id, UseItemResult.fromJson(useItemResultJson())),
       );
-      for (var i = 0; i < 400; i++) {
-        await tester.pump(const Duration(milliseconds: 16));
-      }
+      await pumpUntilOutcome(tester);
 
       expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
       expect(find.byKey(PotionPourScene.healedKey), findsOneWidget);
