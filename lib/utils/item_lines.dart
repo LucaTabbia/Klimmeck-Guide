@@ -5,6 +5,7 @@ import 'package:klimmeck_guide/models/enums/accessory_use_type.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/loot_recovery.dart';
@@ -94,6 +95,9 @@ String? weaponKindLine(EquipmentItem item) {
   final family = subType.label.toLowerCase();
   return subType.isTwoHanded ? 'Arma: $family, a due mani' : 'Arma: $family';
 }
+
+/// Riga della scheda di una copia equipaggiata: dice in quale slot sta.
+String wornInLine(SlotType slot) => 'Equipaggiato: ${slot.label.toLowerCase()}';
 
 const String healedInjuriesPrefix = 'Cura: ';
 const String healedInjuriesSeparator = ', ';

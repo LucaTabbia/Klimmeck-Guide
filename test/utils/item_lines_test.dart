@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_sub_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
+import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/loot_recovery.dart';
@@ -53,6 +54,10 @@ EquipmentItem _jewel(EquipType equipType, List<AccessoryUseType>? uses) =>
     );
 
 void main() {
+  test('wornInLine names the slot that wears the copy', () {
+    expect(wornInLine(SlotType.leftHand), 'Equipaggiato: mano sinistra');
+  });
+
   group('itemEffectLabel', () {
     test('effect and power read «Cura: 12»', () {
       expect(

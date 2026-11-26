@@ -8,7 +8,6 @@ import 'package:klimmeck_guide/shared/components/new_entry_sigil.dart';
 import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/character/character.dart';
 import 'package:klimmeck_guide/models/companion/companion_vitality.dart';
-import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/owned_pet.dart';
 import 'package:klimmeck_guide/models/spell.dart';
 import 'package:klimmeck_guide/screens/auth/inAppNotificationsCubit/in_app_notifications_cubit.dart';
@@ -30,8 +29,9 @@ import 'package:klimmeck_guide/utils/mission_lines.dart';
 import '../../../../models/coins.dart';
 import '../../../../models/enums/injury_type.dart';
 import '../../../../models/enums/slot_type.dart';
-import '../../../../models/equipment_item.dart';
 import 'package:klimmeck_guide/utils/equip_request.dart';
+import 'package:klimmeck_guide/utils/equipment_copies.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
 import '../../../../shared/components/coins_display.dart';
 import '../../../../shared/components/dropdown.dart';
 import '../../../../shared/components/item_row.dart';
@@ -69,12 +69,11 @@ class Journal extends StatefulWidget {
 }
 
 class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
-  List<EquipmentItem> _equippedItems = [];
-  EquipmentItem? _selectedEquipment;
+  EquipmentCopy? _selectedCopy;
+  CopyMarks _copyMarks = const CopyMarks();
   Spell? _selectedSpell;
   SpellRecoveryCubit? _selectedSpellRecovery;
   String? _selectedCompanionId;
-  List<EquipmentItem> _filteredItems = [];
   SlotType? _selectedSlot;
 
   late AnimationController _animationController;
@@ -100,7 +99,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
   void _onAnimationStatusChanged(AnimationStatus status) {
     if (status.isDismissed) {
       setState(() {
-        _selectedEquipment = null;
+        _selectedCopy = null;
         _selectedSpell = null;
         _selectedSpellRecovery = null;
         _selectedCompanionId = null;
@@ -240,7 +239,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                 selectedSlot: _selectedSlot,
                 sexType: character.infos!.sex!,
                 equipment: character.assets!.wornEquipment!,
-                onTap: (slotType) => _selectSlot(slotType, character),
+                onTap: _selectSlot,
               ),
               const SizedBox(width: 20),
               Flexible(
@@ -262,37 +261,38 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-                          ...List.generate(
-                            _filteredItems.length,
-                            (index) => NewEntryMarked(
-                              isNew: newEquipmentIds.contains(
-                                _filteredItems[index].id,
+                          for (final copy in _copiesShown(character))
+                            NewEntryMarked(
+                              key: ValueKey(
+                                'journal.copy.${copy.item.id}.${copy.index}',
                               ),
+                              isNew: newEquipmentIds.contains(copy.item.id),
                               corner: Offset(
                                 ItemRow.padding.left + lootSize,
                                 ItemRow.padding.top,
                               ),
                               child: ItemRow(
-                                assetItem: _filteredItems[index],
-                                onLongTap: (item) => _selectEquipment(item),
-                                onSelect: isOnMission
+                                assetItem: copy.item,
+                                onLongTap: (_) => _selectCopy(copy),
+                                onSelect:
+                                    isOnMission ||
+                                        copy.isBlockedFor(_selectedSlot)
                                     ? null
-                                    : (item) => _equipItem(
-                                        item as EquipmentItem,
-                                        character,
-                                      ),
-                                isDisabled: isOnMission,
+                                    : (_) => _equipCopy(copy, character),
+                                isDisabled:
+                                    isOnMission ||
+                                    copy.isBlockedFor(_selectedSlot),
                                 statusLine: isOnMission
                                     ? missionInProgressLabel
-                                    : null,
-                                isSelected: _equippedItems.contains(
-                                  _filteredItems[index],
-                                ),
+                                    : switch (copy.wornIn) {
+                                        final slot? => wornInLine(slot),
+                                        null => null,
+                                      },
+                                isSelected: copy.isWorn,
                                 showCoins: false,
                                 size: lootSize,
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -318,22 +318,26 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
             child: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.height * 1.3 * (315 / 375),
-              child: _selectedEquipment != null
+              child: _selectedCopy != null
                   ? BlocBuilder<CharacterCubit, CharacterState>(
                       builder: (context, state) {
                         if (state is CharacterLoaded) {
                           return SingleChildScrollView(
                             child: EquipmentInfoSheet(
-                              equipmentItem: _selectedEquipment!,
+                              equipmentItem: _selectedCopy!.item,
                               onEquip: state.character.isOnMission
                                   ? null
-                                  : () => _equipItem(
-                                      _selectedEquipment!,
+                                  : () => _equipCopy(
+                                      _currentOf(
+                                        _selectedCopy!,
+                                        state.character,
+                                      ),
                                       state.character,
                                     ),
-                              isEquipped: _equippedItems.contains(
-                                _selectedEquipment,
-                              ),
+                              isEquipped: _currentOf(
+                                _selectedCopy!,
+                                state.character,
+                              ).isWorn,
                             ),
                           );
                         }
@@ -428,32 +432,36 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     return null;
   }
 
-  void _selectSlot(SlotType slotType, Character character) {
-    if (_selectedSlot == slotType) {
-      setState(() {
-        _selectedSlot = null;
-        _filteredItems = character.assets!.wornEquipment!.values
-            .whereType<EquipmentItem>()
-            .toList();
-      });
-    } else {
-      setState(() {
-        _selectedSlot = slotType;
-        _filteredItems = character.assets!.ownedEquipments!
-            .where(
-              (item) => slotType.types.contains(
-                (item.item as EquipmentItem).equipType,
-              ),
-            )
-            .map((item) => item.item as EquipmentItem)
-            .toList();
-      });
-    }
+  void _selectSlot(SlotType slotType) {
+    setState(() => _selectedSlot = _selectedSlot == slotType ? null : slotType);
   }
 
-  void _selectEquipment(EquipmentItem item) {
+  List<EquipmentCopy> _copiesShown(Character character) {
+    final worn = character.assets?.wornEquipment;
+    if (worn == null) return const [];
+    final slot = _selectedSlot;
+    final owned = character.assets?.ownedEquipments ?? const [];
+    if (slot == null) {
+      return wornCopies(owned: owned, worn: worn, marks: _copyMarks);
+    }
+    return copiesFittingSlot(
+      owned: owned,
+      worn: worn,
+      slot: slot,
+      marks: _copyMarks,
+    );
+  }
+
+  /// La copia del foglio aperto come la vede ora la lista (libera se non c'è).
+  EquipmentCopy _currentOf(EquipmentCopy copy, Character character) =>
+      _copiesShown(character).firstWhere(
+        (shown) => shown.item.id == copy.item.id && shown.index == copy.index,
+        orElse: () => EquipmentCopy(item: copy.item, index: copy.index),
+      );
+
+  void _selectCopy(EquipmentCopy copy) {
     setState(() {
-      _selectedEquipment = item;
+      _selectedCopy = copy;
       _selectedSpell = null;
       _selectedSpellRecovery = null;
       _selectedCompanionId = null;
@@ -463,7 +471,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
 
   void _selectSpell(Spell spell, SpellRecoveryCubit recovery) {
     setState(() {
-      _selectedEquipment = null;
+      _selectedCopy = null;
       _selectedSpell = spell;
       _selectedSpellRecovery = recovery;
       _selectedCompanionId = null;
@@ -473,7 +481,7 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
 
   void _selectCompanion(String petId) {
     setState(() {
-      _selectedEquipment = null;
+      _selectedCopy = null;
       _selectedSpell = null;
       _selectedSpellRecovery = null;
       _selectedCompanionId = petId;
@@ -481,27 +489,24 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
     _animationController.forward();
   }
 
-  int _ownedCopiesOf(EquipmentItem item, Character character) =>
-      character.assets?.ownedEquipments
-          ?.where((owned) => owned.item?.id == item.id)
-          .fold<int>(0, (sum, owned) => sum + (owned.quantity ?? 0)) ??
-      0;
-
-  void _equipItem(EquipmentItem item, Character character) {
+  void _equipCopy(EquipmentCopy copy, Character character) {
+    if (character.isOnMission) return;
     final worn = character.assets?.wornEquipment;
-    if (character.isOnMission || worn == null) return;
-    final request = equipRequestFor(
+    if (worn == null) return;
+    final tap = copyTapFor(
       characterId: character.id,
-      item: item,
+      copy: copy,
       selectedSlot: _selectedSlot,
       worn: worn,
-      ownedCopies: _ownedCopiesOf(item, character),
     );
-    if (request == null) {
+    if (tap == null) {
       appLog("Impossibile equipaggiare: Selezionare prima uno slot.");
       return;
     }
-    context.read<JournalCubit>().equipItem(request);
+    setState(() => _copyMarks = tap.applyTo(_copyMarks));
+    if (tap.request case final request?) {
+      context.read<JournalCubit>().equipItem(request);
+    }
   }
 
   @override
@@ -551,17 +556,6 @@ class _JournalState extends State<Journal> with SingleTickerProviderStateMixin {
           if (state is CharacterLoaded) {
             Character character = state.character;
 
-            _equippedItems = (character.assets?.wornEquipment?.values ?? [])
-                .whereType<EquipmentItem>()
-                .toList();
-
-            if (_selectedSlot == null && _filteredItems.isEmpty) {
-              _filteredItems = _equippedItems;
-            }
-
-            if (_selectedSlot == null && _filteredItems != _equippedItems) {
-              _filteredItems = _equippedItems;
-            }
             return GestureDetector(
               onTap: () => _animationController.reverse(),
               child: BackgroundImage(

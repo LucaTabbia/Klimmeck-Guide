@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/request/equip_item_request.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
@@ -115,7 +116,7 @@ void main() {
 
     final row = tester.widget<ItemRow>(_armourRow());
     expect(row.isDisabled, isFalse);
-    expect(row.statusLine, isNull);
+    expect(row.statusLine, wornInLine(SlotType.rightHand));
 
     await tapSword(tester);
 

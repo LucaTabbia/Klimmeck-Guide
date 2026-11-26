@@ -8,7 +8,9 @@ import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
 
-class EquipmentItemCard extends StatefulWidget {
+/// Il segnalibro mostra solo ciò che dice [isSelected]: lo stato indossato
+/// arriva dal BE, la carta non lo anticipa.
+class EquipmentItemCard extends StatelessWidget {
   const EquipmentItemCard({
     super.key,
     required this.equipmentItem,
@@ -26,83 +28,47 @@ class EquipmentItemCard extends StatefulWidget {
   final Function(EquipmentItem)? onTap;
   final Function(EquipmentItem)? onLongPress;
 
-  @override
-  State<EquipmentItemCard> createState() => _EquipmentItemCardState();
-}
-
-class _EquipmentItemCardState extends State<EquipmentItemCard> {
   static final _cardBackgroundUrl = CloudinaryAssets.url(
     CloudinaryAssets.emptyCardSheet,
   );
-  late bool? _isSelected;
-
-  @override
-  void initState() {
-    _isSelected = widget.isSelected;
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant EquipmentItemCard oldWidget) {
-    if (oldWidget.isSelected != widget.isSelected) {
-      setState(() {
-        _isSelected = widget.isSelected;
-      });
-    }
-    super.didUpdateWidget(oldWidget);
-  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (_isSelected != null) {
-          setState(() {
-            _isSelected = !_isSelected!;
-          });
-        }
-        Future.delayed(
-          Duration(milliseconds: 300),
-          () => widget.onTap?.call(widget.equipmentItem),
-        );
-      },
-      onLongPress: widget.onLongPress != null
-          ? () => widget.onLongPress!(widget.equipmentItem)
+      onTap: () => onTap?.call(equipmentItem),
+      onLongPress: onLongPress != null
+          ? () => onLongPress!(equipmentItem)
           : null,
       child: RepaintBoundary(
         child: Stack(
           children: [
-            CachedSvg(
-              url: _cardBackgroundUrl,
-              width: widget.size,
-              height: widget.size,
-            ),
+            CachedSvg(url: _cardBackgroundUrl, width: size, height: size),
             Align(
               alignment: Alignment.center,
               child: SizedBox(
-                height: widget.size,
-                width: widget.size,
+                height: size,
+                width: size,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Spacer(),
                     CachedSvg(
-                      url: widget.equipmentItem.equipType!.imagePath,
-                      height: widget.size / 1.8,
-                      width: widget.size,
+                      url: equipmentItem.equipType!.imagePath,
+                      height: size / 1.8,
+                      width: size,
                     ),
                     Spacer(),
                     SizedBox(
-                      height: (widget.size / 6),
+                      height: (size / 6),
                       child: AutoSizeText(
-                        widget.equipmentItem.name ?? "",
+                        equipmentItem.name ?? "",
                         maxFontSize: 24,
                         minFontSize: 4,
                         maxLines: 2,
                         textAlign: TextAlign.center,
                         style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(
                           color:
-                              widget.equipmentItem.rarity?.color ??
+                              equipmentItem.rarity?.color ??
                               KlimmeckGuideTheme.deepNight,
                           fontWeight: FontWeight.w800,
                           shadows: [
@@ -122,14 +88,14 @@ class _EquipmentItemCardState extends State<EquipmentItemCard> {
                 ),
               ),
             ),
-            if (widget.quantity != null && widget.quantity! > 0)
+            if (quantity != null && quantity! > 0)
               Positioned(
                 right: 7,
                 top: 5,
-                child: UsagesPencilCounter(value: widget.quantity!),
+                child: UsagesPencilCounter(value: quantity!),
               ),
-            if (_isSelected != null)
-              CardBookmark(isMarked: _isSelected!, cardSize: widget.size),
+            if (isSelected case final marked?)
+              CardBookmark(isMarked: marked, cardSize: size),
           ],
         ),
       ),
