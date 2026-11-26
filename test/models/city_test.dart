@@ -71,7 +71,7 @@ void main() {
       () {
         final murnborim = City.tryFromJson({
           'id': 'c',
-          'type': 'aarakocraCapital',
+          'type': 'volucriCapital',
           'size': 'capital',
         });
         final thengran = City.tryFromJson({
@@ -85,7 +85,7 @@ void main() {
           'size': 'village',
         });
 
-        expect(murnborim?.type, CityType.aarakocraCapital);
+        expect(murnborim?.type, CityType.volucriCapital);
         expect(murnborim?.size, CitySizeType.capital);
         expect(thengran?.type, CityType.dragonbornCapital);
         expect(thengran?.size, CitySizeType.capital);

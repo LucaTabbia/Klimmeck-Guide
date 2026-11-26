@@ -17,18 +17,15 @@ void main() {
       );
     });
 
-    test(
-      'uses the renamed figures of the two races still named the old way',
-      () {
-        expect(
-          raceFigureUrl(RaceType.tiefling, SexType.male),
-          CloudinaryAssets.url('main/races/infernal_male.svg'),
-        );
-        expect(
-          raceFigureUrl(RaceType.aarakocra, SexType.female),
-          CloudinaryAssets.url('main/races/volucri_female.svg'),
-        );
-      },
-    );
+    test('points at the figures of the two renamed races', () {
+      expect(
+        raceFigureUrl(RaceType.infernal, SexType.male),
+        CloudinaryAssets.url('main/races/infernal_male.svg'),
+      );
+      expect(
+        raceFigureUrl(RaceType.volucri, SexType.female),
+        CloudinaryAssets.url('main/races/volucri_female.svg'),
+      );
+    });
   });
 }

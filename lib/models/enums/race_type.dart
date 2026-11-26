@@ -1,4 +1,14 @@
-enum RaceType { dragonborn, elf, gnome, halfling, halfelf, human, dwarf, tiefling, aarakocra }
+enum RaceType {
+  dragonborn,
+  elf,
+  gnome,
+  halfling,
+  halfelf,
+  human,
+  dwarf,
+  infernal,
+  volucri,
+}
 
 extension RaceTypeExtension on RaceType {
   String get label {
@@ -17,10 +27,10 @@ extension RaceTypeExtension on RaceType {
         return 'Umano';
       case RaceType.dwarf:
         return 'Nano';
-      case RaceType.tiefling:
-        return 'Tiefling';
-      case RaceType.aarakocra:
-        return 'Aarakocra';
+      case RaceType.infernal:
+        return 'Infernale';
+      case RaceType.volucri:
+        return 'Volucre';
     }
   }
 }
