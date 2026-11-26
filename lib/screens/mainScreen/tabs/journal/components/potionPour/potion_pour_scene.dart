@@ -444,30 +444,35 @@ class _PotionPourSceneState extends State<PotionPourScene>
     final figureTop = safeTop + (lane.height - safeTop - figureHeight) / 2;
     return Stack(
       children: [
+        // Un tocco sul compagno rimette la boccetta nella borsa come fuori;
+        // il trascinamento resta allo scorrimento.
         Positioned.fill(
-          child: PageView.builder(
-            key: PotionPourScene.companionsKey,
-            controller: _companionPages,
-            scrollDirection: Axis.vertical,
-            physics: _isCommitted
-                ? const NeverScrollableScrollPhysics()
-                : const PageScrollPhysics(),
-            itemCount: widget.companions.length,
-            onPageChanged: (index) => setState(() => _companionIndex = index),
-            itemBuilder: (_, index) {
-              final companion = widget.companions[index];
-              return Padding(
-                padding: EdgeInsets.only(top: safeTop),
-                child: Center(
-                  child: PotionDrinkerFigure(
-                    key: PotionPourScene.companionKeyOf(companion.petId),
-                    url: enemyPortraitUrl(companion.owned.pet.imagePath),
-                    height: figureHeight,
-                    maxWidth: _figureMaxWidthOf(scene),
+          child: GestureDetector(
+            onTap: _leave,
+            child: PageView.builder(
+              key: PotionPourScene.companionsKey,
+              controller: _companionPages,
+              scrollDirection: Axis.vertical,
+              physics: _isCommitted
+                  ? const NeverScrollableScrollPhysics()
+                  : const PageScrollPhysics(),
+              itemCount: widget.companions.length,
+              onPageChanged: (index) => setState(() => _companionIndex = index),
+              itemBuilder: (_, index) {
+                final companion = widget.companions[index];
+                return Padding(
+                  padding: EdgeInsets.only(top: safeTop),
+                  child: Center(
+                    child: PotionDrinkerFigure(
+                      key: PotionPourScene.companionKeyOf(companion.petId),
+                      url: enemyPortraitUrl(companion.owned.pet.imagePath),
+                      height: figureHeight,
+                      maxWidth: _figureMaxWidthOf(scene),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
         if (_companionIndex > 0)

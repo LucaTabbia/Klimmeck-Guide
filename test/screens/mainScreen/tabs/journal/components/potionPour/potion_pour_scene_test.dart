@@ -459,6 +459,21 @@ void main() {
       expect(find.byType(PotionPourScene), findsNothing);
     });
 
+    testWidgets('a tap on the character or on the companion puts the bottle '
+        'back too', (tester) async {
+      for (final drinker in [
+        PotionPourScene.characterKey,
+        PotionPourScene.companionKeyOf(_worg),
+      ]) {
+        await pumpScene(tester, companions: [fenrir]);
+
+        await tester.tapAt(tester.getCenter(find.byKey(drinker)));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PotionPourScene), findsNothing, reason: '$drinker');
+      }
+    });
+
     testWidgets('while the potion is in flight a tap does not close', (
       tester,
     ) async {
