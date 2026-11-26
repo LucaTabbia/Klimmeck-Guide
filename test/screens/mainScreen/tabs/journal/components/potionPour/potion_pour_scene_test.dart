@@ -220,8 +220,8 @@ void main() {
       expect(find.byKey(PotionPourScene.previousCompanionKey), findsOneWidget);
     });
 
-    testWidgets('the drinkers stand centred on their life bars and on the '
-        'screen height', (tester) async {
+    testWidgets('the drinkers stand centred on their life bars and in the '
+        'height above them', (tester) async {
       await pumpScene(tester, companions: [fenrir]);
 
       final screen = tester.getRect(find.byType(PotionPourScene));
@@ -235,7 +235,10 @@ void main() {
         final figureRect = tester.getRect(find.byKey(figure));
         final barRect = tester.getRect(find.byKey(bar));
         expect(figureRect.center.dx, closeTo(barRect.center.dx, 1));
-        expect(figureRect.center.dy, closeTo(screen.center.dy, 1));
+        expect(
+          figureRect.center.dy,
+          closeTo((screen.top + barRect.top) / 2, 1),
+        );
         expect(figureRect.bottom, lessThanOrEqualTo(barRect.top));
       }
     });
@@ -243,10 +246,9 @@ void main() {
     testWidgets('the arrows overlap neither the companion, its bar nor the '
         'bottle', (tester) async {
       await pumpScene(tester, companions: [fenrir, micio, fenrir]);
-      await tester.fling(
+      await tester.drag(
         find.byKey(PotionPourScene.companionsKey),
-        const Offset(0, -300),
-        1000,
+        const Offset(0, -200),
       );
       await tester.pumpAndSettle();
 
@@ -256,16 +258,20 @@ void main() {
         tester.getRect(find.byKey(PotionPourScene.bottleKey)),
       ];
       final screen = tester.getRect(find.byType(PotionPourScene));
-      for (final arrow in [
-        PotionPourScene.previousCompanionKey,
-        PotionPourScene.nextCompanionKey,
-      ]) {
-        final rect = tester.getRect(find.byKey(arrow));
+      final companion = others.first;
+      final up = tester.getRect(
+        find.byKey(PotionPourScene.previousCompanionKey),
+      );
+      final down = tester.getRect(find.byKey(PotionPourScene.nextCompanionKey));
+      for (final rect in [up, down]) {
         for (final other in others) {
-          expect(rect.overlaps(other), isFalse, reason: '$arrow vs $other');
+          expect(rect.overlaps(other), isFalse, reason: '$rect vs $other');
         }
-        expect(rect.left, greaterThanOrEqualTo(screen.left));
+        expect(rect.center.dx, closeTo(companion.center.dx, 1));
+        expect(rect.top, greaterThanOrEqualTo(screen.top));
       }
+      expect(up.bottom, lessThanOrEqualTo(companion.top));
+      expect(down.top, greaterThanOrEqualTo(companion.bottom));
     });
 
     testWidgets('a single companion shows no arrow', (tester) async {
