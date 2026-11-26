@@ -8,6 +8,7 @@ void main() {
       'greatsword',
       'dagger',
       'axe',
+      'greatAxe',
       'mace',
       'warHammer',
       'spear',
@@ -22,6 +23,7 @@ void main() {
   test('marks the two-handed families like the backend', () {
     expect(EquipSubType.values.where((type) => type.isTwoHanded), [
       EquipSubType.greatsword,
+      EquipSubType.greatAxe,
       EquipSubType.warHammer,
       EquipSubType.spear,
       EquipSubType.bow,
@@ -32,6 +34,7 @@ void main() {
   test('names every family in Italian', () {
     expect(EquipSubType.greatsword.label, 'Spadone');
     expect(EquipSubType.grimoire.label, 'Grimorio');
+    expect(EquipSubType.greatAxe.label, 'Grande ascia');
     expect(EquipSubType.warHammer.label, 'Martello da guerra');
   });
 }

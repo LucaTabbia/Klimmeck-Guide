@@ -5,6 +5,7 @@ enum EquipSubType {
   greatsword(label: 'Spadone', isTwoHanded: true),
   dagger(label: 'Pugnale'),
   axe(label: 'Ascia'),
+  greatAxe(label: 'Grande ascia', isTwoHanded: true),
   mace(label: 'Mazza'),
   warHammer(label: 'Martello da guerra', isTwoHanded: true),
   spear(label: 'Lancia', isTwoHanded: true),
