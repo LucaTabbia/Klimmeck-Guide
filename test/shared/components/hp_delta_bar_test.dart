@@ -101,21 +101,4 @@ void main() {
     expect(value.height, lessThanOrEqualTo(oneLine));
     expect(value.width, lessThanOrEqualTo(80));
   });
-
-  testWidgets('an explicit colour wins over the sense of the change', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      const HpDeltaBar(
-        hp: 8,
-        max: 12,
-        isGain: true,
-        color: KlimmeckGuideTheme.bloodRed,
-      ),
-    );
-
-    expect(_fillColor(tester), KlimmeckGuideTheme.bloodRed);
-    expect(_valueColor(tester), KlimmeckGuideTheme.bloodRed);
-  });
 }

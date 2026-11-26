@@ -11,7 +11,6 @@ class HpDeltaBar extends StatelessWidget {
     required this.max,
     this.isLoss = false,
     this.isGain = false,
-    this.color,
   });
 
   static const Key barKey = ValueKey('hpDeltaBar.bar');
@@ -24,13 +23,9 @@ class HpDeltaBar extends StatelessWidget {
   final bool isLoss;
   final bool isGain;
 
-  /// Inchiostro fisso al posto di quello della perdita o del guadagno.
-  final Color? color;
-
   double get _fraction => max <= 0 ? 0 : (hp / max).clamp(0.0, 1.0);
 
   Color get _ink {
-    if (color case final fixed?) return fixed;
     if (isLoss) return KlimmeckGuideTheme.bloodRed;
     if (isGain) return KlimmeckGuideTheme.healGreen;
     return KlimmeckGuideTheme.darkWood;

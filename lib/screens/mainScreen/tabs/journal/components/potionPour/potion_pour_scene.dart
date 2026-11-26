@@ -543,11 +543,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
               KlimmeckGuideTheme.spacingXs,
             ),
             child: result == null
-                ? HpDeltaBar(
-                    hp: (life ?? 0).toDouble(),
-                    max: max,
-                    color: KlimmeckGuideTheme.bloodRed,
-                  )
+                ? HpDeltaBar(hp: (life ?? 0).toDouble(), max: max)
                 : _filledLife(result, max: max),
           ),
         ),
@@ -555,16 +551,16 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
-  Widget _filledLife(UseItemResult result, {required int max}) =>
-      TweenAnimationBuilder<double>(
-        tween: Tween(
-          begin: result.hpBefore.toDouble(),
-          end: result.hpAfter.toDouble(),
-        ),
-        duration: PotionPourScene.hpAnimationDuration,
-        builder: (_, hp, _) =>
-            HpDeltaBar(hp: hp, max: max, color: KlimmeckGuideTheme.bloodRed),
-      );
+  Widget _filledLife(UseItemResult result, {required int max}) {
+    final before = result.hpBefore.toDouble();
+    final after = result.hpAfter.toDouble();
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: before, end: after),
+      duration: PotionPourScene.hpAnimationDuration,
+      builder: (_, hp, _) =>
+          HpDeltaBar(hp: hp, max: max, isGain: after > before),
+    );
+  }
 
   Widget _characterSide(Size scene) {
     final race = widget.race;

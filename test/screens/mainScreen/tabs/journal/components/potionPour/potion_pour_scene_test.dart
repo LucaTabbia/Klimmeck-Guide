@@ -14,7 +14,6 @@ import 'package:klimmeck_guide/repository/item_use_failure.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
-import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 import 'package:klimmeck_guide/utils/race_figure_url.dart';
 import 'package:mocktail/mocktail.dart';
@@ -305,23 +304,6 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(PotionPourScene.companionLifeKey), findsNothing);
-    });
-
-    testWidgets('the life bars are red', (tester) async {
-      await pumpScene(tester, companions: [fenrir]);
-
-      for (final bar in [
-        PotionPourScene.characterLifeKey,
-        PotionPourScene.companionLifeKey,
-      ]) {
-        final life = tester.widget<HpDeltaBar>(
-          find.descendant(
-            of: find.byKey(bar),
-            matching: find.byType(HpDeltaBar),
-          ),
-        );
-        expect(life.color, KlimmeckGuideTheme.bloodRed);
-      }
     });
 
     testWidgets('one companion life bar follows the scroll', (tester) async {
