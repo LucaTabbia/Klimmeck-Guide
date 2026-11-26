@@ -443,7 +443,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     alignment: alignment,
     child: IgnorePointer(
       child: Padding(
-        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingSm),
+        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingXl),
         child: RotationTransition(
           key: key,
           turns: AlwaysStoppedAnimation(turns),
