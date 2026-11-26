@@ -5,10 +5,18 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../helpers/test_app.dart';
 
-Future<void> _pump(WidgetTester tester, HpDeltaBar bar) async {
+Future<void> _pump(
+  WidgetTester tester,
+  HpDeltaBar bar, {
+  double width = 300,
+}) async {
   await tester.pumpWidget(
     buildTestApp(
-      home: Scaffold(body: SizedBox(width: 300, child: bar)),
+      home: Scaffold(
+        body: Center(
+          child: SizedBox(width: width, child: bar),
+        ),
+      ),
     ),
   );
 }
@@ -79,5 +87,18 @@ void main() {
 
     await _pump(tester, const HpDeltaBar(hp: -5, max: 1200));
     expect(_fill(tester).widthFactor, 0);
+  });
+
+  testWidgets('in a narrow strip the numbers stay on one line and shrink', (
+    tester,
+  ) async {
+    await _pump(tester, const HpDeltaBar(hp: 31515, max: 40000));
+    final oneLine = tester.getSize(find.byKey(HpDeltaBar.valueKey)).height;
+
+    await _pump(tester, const HpDeltaBar(hp: 31515, max: 40000), width: 80);
+
+    final value = tester.getRect(find.byKey(HpDeltaBar.valueKey));
+    expect(value.height, lessThanOrEqualTo(oneLine));
+    expect(value.width, lessThanOrEqualTo(80));
   });
 }
