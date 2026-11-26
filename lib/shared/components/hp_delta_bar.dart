@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 /// Barra della vita del foglio esiti (Phase 9 D-02): riempimento e numeri
-/// nell'inchiostro della perdita, del guadagno o neutro.
+/// nell'inchiostro della perdita, del guadagno o neutro; i numeri restano su
+/// una riga e rimpiccioliscono quando lo spazio non basta.
 class HpDeltaBar extends StatelessWidget {
   const HpDeltaBar({
     super.key,
@@ -60,10 +61,14 @@ class HpDeltaBar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: KlimmeckGuideTheme.spacingXs),
-        Text(
-          '${hp.round()} / $max',
-          key: valueKey,
-          style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(color: _ink),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '${hp.round()} / $max',
+            key: valueKey,
+            maxLines: 1,
+            style: KlimmeckGuideTheme.instance.bodyLarge.copyWith(color: _ink),
+          ),
         ),
       ],
     );

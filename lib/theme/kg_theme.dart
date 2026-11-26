@@ -66,6 +66,13 @@ class KlimmeckGuideTheme {
   /// Inchiostro dei guadagni di vita sul foglio esiti (Phase 9 D-02), provvisorio (D-19).
   static const Color healGreen = Color(0xFF2E6B30);
 
+  /// Liquido della boccetta del versamento, uno per rarità (Phase 26 D-03).
+  static const Color potionCommon = Color(0xFFC81E28);
+  static const Color potionUncommon = Color(0xFF2E9E4A);
+  static const Color potionRare = Color(0xFF2C6FD1);
+  static const Color potionUltrarare = Color(0xFF8A3FD1);
+  static const Color potionLegendary = Color(0xFFE0A21C);
+
   // Color Scheme
   static const ColorScheme colorScheme = ColorScheme(
     brightness: Brightness.light,

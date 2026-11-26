@@ -24,6 +24,7 @@ class ItemRow extends StatelessWidget {
     this.isDisabled = false,
     this.statusLine,
     this.readerInnkeeperInjuries = const [],
+    this.readerInjuries = const [],
   });
 
   static const EdgeInsets padding = EdgeInsets.symmetric(
@@ -50,13 +51,21 @@ class ItemRow extends StatelessWidget {
   /// la riga di catalogo.
   final List<InjuryType> readerInnkeeperInjuries;
 
+  /// Ferite di chi legge: quelle che l'oggetto cura in verde dentro
+  /// «Cura: …» (Phase 26). Vuota = la riga di catalogo.
+  final List<InjuryType> readerInjuries;
+
   @override
   Widget build(BuildContext context) {
     final lootItem = assetItem.asLoot;
     final effectLine = lootItem == null ? null : itemEffectLabel(lootItem);
     final healedInjuries = lootItem == null
         ? const <HealedInjuryLabel>[]
-        : healedInjuryLabels(lootItem, beyondCure: readerInnkeeperInjuries);
+        : healedInjuryLabels(
+            lootItem,
+            beyondCure: readerInnkeeperInjuries,
+            readerInjuries: readerInjuries,
+          );
     final recovery = lootItem == null ? null : recoveryLine(lootItem.recovery);
     return Padding(
       padding: padding,

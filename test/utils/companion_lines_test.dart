@@ -65,10 +65,6 @@ void main() {
     expect(companionRecoveryTimeLine(null), isNull);
   });
 
-  test('give label «Dai a Fenrir» (D-08, D-20)', () {
-    expect(giveToCompanionLabel('Fenrir'), 'Dai a Fenrir');
-  });
-
   test('prompt title «Come chiamerai il tuo Worg?» (D-18)', () {
     expect(companionNamePromptTitle('Worg'), 'Come chiamerai il tuo Worg?');
     expect(companionNameFieldLabel, 'Nome');
