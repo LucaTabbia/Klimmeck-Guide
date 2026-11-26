@@ -195,7 +195,7 @@ void main() {
     }
     await gesture.up();
     for (var i = 0; i < 600; i++) {
-      if (find.byKey(PotionPourScene.hpKey).evaluate().isNotEmpty) break;
+      if (find.byKey(PotionPourScene.outcomeKey).evaluate().isNotEmpty) break;
       if (find.byType(PotionPourScene).evaluate().isEmpty) break;
       await tester.pump(const Duration(milliseconds: 16));
     }
@@ -572,7 +572,7 @@ void main() {
       await tapAndSettle(tester, _card(_herb));
       await pourToCharacter(tester);
 
-      expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
+      expect(find.byKey(PotionPourScene.outcomeKey), findsOneWidget);
       expect(find.text('Guarite: contusione'), findsOneWidget);
 
       await tapAway(tester);
@@ -581,7 +581,7 @@ void main() {
       await tapAndSettle(tester, _card(_herb));
 
       expect(find.byType(PotionPourScene), findsOneWidget);
-      expect(find.byKey(PotionPourScene.hpKey), findsNothing);
+      expect(find.byKey(PotionPourScene.outcomeKey), findsNothing);
       verify(() => itemUse.useItem(_herb)).called(1);
       verifyNever(
         () => notices.publishNotice(any(), dedupKey: any(named: 'dedupKey')),

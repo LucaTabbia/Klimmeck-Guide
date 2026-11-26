@@ -66,6 +66,7 @@ class PotionPourScene extends StatefulWidget {
     required this.item,
     required this.race,
     required this.sex,
+    required this.lifePoints,
     required this.maxLifePoints,
     this.companions = const [],
     this.readerInnkeeperInjuries = const [],
@@ -74,6 +75,9 @@ class PotionPourScene extends StatefulWidget {
   final LootItem item;
   final RaceType? race;
   final SexType? sex;
+
+  /// Vita del personaggio letta all'apertura, per la sua barra.
+  final int? lifePoints;
 
   /// Vita massima del personaggio letta all'apertura: l'esito non la porta.
   final int? maxLifePoints;
@@ -92,7 +96,9 @@ class PotionPourScene extends StatefulWidget {
   );
   static const Key nextCompanionKey = ValueKey('potionPour.nextCompanion');
   static const Key detailsKey = ValueKey('potionPour.details');
-  static const Key hpKey = ValueKey('potionPour.hp');
+  static const Key characterLifeKey = ValueKey('potionPour.characterLife');
+  static const Key companionLifeKey = ValueKey('potionPour.companionLife');
+  static const Key outcomeKey = ValueKey('potionPour.outcome');
   static const Key healedKey = ValueKey('potionPour.healed');
   static Key companionKeyOf(String petId) =>
       ValueKey('potionPour.companion.$petId');
@@ -112,6 +118,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     with SingleTickerProviderStateMixin {
   static const double _bottleHeightShare = 0.62;
   static const double _arrowSize = 40;
+  static const double _lifeBarWidthShare = 0.7;
   static const double _sideShare = 0.3;
   static const double _fullTiltShare = 0.26;
   static const double _dragLimitShare = 0.3;
@@ -397,43 +404,102 @@ class _PotionPourSceneState extends State<PotionPourScene>
     top: 0,
     bottom: 0,
     width: scene.width * _sideShare,
-    child: Stack(
+    child: Column(
       children: [
-        Positioned.fill(
-          child: PageView.builder(
-            key: PotionPourScene.companionsKey,
-            controller: _companionPages,
-            scrollDirection: Axis.vertical,
-            physics: _isCommitted
-                ? const NeverScrollableScrollPhysics()
-                : const PageScrollPhysics(),
-            itemCount: widget.companions.length,
-            onPageChanged: (index) => setState(() => _companionIndex = index),
-            itemBuilder: (_, index) {
-              final companion = widget.companions[index];
-              return PotionDrinkerFigure(
-                key: PotionPourScene.companionKeyOf(companion.petId),
-                url: enemyPortraitUrl(companion.owned.pet.imagePath),
-                standsOnLeft: true,
-              );
-            },
-          ),
-        ),
-        if (_companionIndex > 0)
-          _companionArrow(
-            key: PotionPourScene.previousCompanionKey,
-            alignment: Alignment.topCenter,
-            turns: 0.5,
-          ),
-        if (_companionIndex < widget.companions.length - 1)
-          _companionArrow(
-            key: PotionPourScene.nextCompanionKey,
-            alignment: Alignment.bottomCenter,
-            turns: 0,
-          ),
+        Expanded(child: _companionPager()),
+        _companionLife(),
       ],
     ),
   );
+
+  Widget _companionPager() => Stack(
+    children: [
+      Positioned.fill(
+        child: PageView.builder(
+          key: PotionPourScene.companionsKey,
+          controller: _companionPages,
+          scrollDirection: Axis.vertical,
+          physics: _isCommitted
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          itemCount: widget.companions.length,
+          onPageChanged: (index) => setState(() => _companionIndex = index),
+          itemBuilder: (_, index) {
+            final companion = widget.companions[index];
+            return PotionDrinkerFigure(
+              key: PotionPourScene.companionKeyOf(companion.petId),
+              url: enemyPortraitUrl(companion.owned.pet.imagePath),
+              standsOnLeft: true,
+            );
+          },
+        ),
+      ),
+      if (_companionIndex > 0)
+        _companionArrow(
+          key: PotionPourScene.previousCompanionKey,
+          alignment: Alignment.topCenter,
+          turns: 0.5,
+        ),
+      if (_companionIndex < widget.companions.length - 1)
+        _companionArrow(
+          key: PotionPourScene.nextCompanionKey,
+          alignment: Alignment.bottomCenter,
+          turns: 0,
+        ),
+    ],
+  );
+
+  /// Una sola barra per i compagni: segue quello a schermo.
+  Widget _companionLife() {
+    final companion = widget.companions[_companionIndex];
+    final drunk = _outcomeOf(context.read<PotionCubit>().state);
+    return _lifeBar(
+      key: PotionPourScene.companionLifeKey,
+      life: companion.life,
+      max: companion.maxLifePoints,
+      result: drunk?.targetPetId == companion.petId ? drunk?.result : null,
+    );
+  }
+
+  /// La vita di chi beve, fissa sotto la sua figura; all'esito si riempie
+  /// fino alla vita servita dal backend.
+  Widget _lifeBar({
+    required Key key,
+    required int? life,
+    required int? max,
+    required UseItemResult? result,
+  }) {
+    if (max == null || max <= 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: KlimmeckGuideTheme.spacingMd),
+      child: FractionallySizedBox(
+        key: key,
+        widthFactor: _lifeBarWidthShare,
+        child: result == null
+            ? HpDeltaBar(
+                hp: (life ?? 0).toDouble(),
+                max: max,
+                valueShadows: KlimmeckGuideTheme.bordersForText,
+              )
+            : _filledLife(result, max: max),
+      ),
+    );
+  }
+
+  Widget _filledLife(UseItemResult result, {required int max}) {
+    final before = result.hpBefore.toDouble();
+    final after = result.hpAfter.toDouble();
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: before, end: after),
+      duration: PotionPourScene.hpAnimationDuration,
+      builder: (_, hp, _) => HpDeltaBar(
+        hp: hp,
+        max: max,
+        isGain: after > before,
+        valueShadows: KlimmeckGuideTheme.bordersForText,
+      ),
+    );
+  }
 
   Widget _companionArrow({
     required Key key,
@@ -461,16 +527,33 @@ class _PotionPourSceneState extends State<PotionPourScene>
   Widget _characterSide(Size scene) {
     final race = widget.race;
     final sex = widget.sex;
+    final drunk = _outcomeOf(context.read<PotionCubit>().state);
     return Positioned(
       right: 0,
       top: 0,
       bottom: 0,
       width: scene.width * _sideShare,
       child: IgnorePointer(
-        child: PotionDrinkerFigure(
-          key: PotionPourScene.characterKey,
-          url: race == null || sex == null ? null : raceFigureUrl(race, sex),
-          standsOnLeft: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: PotionDrinkerFigure(
+                key: PotionPourScene.characterKey,
+                url: race == null || sex == null
+                    ? null
+                    : raceFigureUrl(race, sex),
+                standsOnLeft: false,
+              ),
+            ),
+            _lifeBar(
+              key: PotionPourScene.characterLifeKey,
+              life: widget.lifePoints,
+              max: widget.maxLifePoints,
+              result: drunk != null && drunk.targetPetId == null
+                  ? drunk.result
+                  : null,
+            ),
+          ],
         ),
       ),
     );
@@ -513,18 +596,15 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
+  /// All'esito la barra di chi ha bevuto si riempie; al centro restano le
+  /// ferite guarite (solo il personaggio ne ha) e la lore sbloccata.
   Widget? _outcome(BuildContext context, PotionDrunk? drunk) {
     if (drunk == null) return null;
-    final textTheme = Theme.of(context).textTheme;
-    final lineStyle = textTheme.bodyMedium?.copyWith(
+    final lineStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       color: KlimmeckGuideTheme.parchment,
       shadows: KlimmeckGuideTheme.bordersForText,
     );
-    final targetPetId = drunk.targetPetId;
-    final max = targetPetId == null
-        ? widget.maxLifePoints
-        : _companionMaxOf(targetPetId);
-    final healed = targetPetId == null
+    final healed = drunk.targetPetId == null
         ? healedLine(drunk.result.injuriesHealed)
         : null;
     return Positioned(
@@ -532,55 +612,26 @@ class _PotionPourSceneState extends State<PotionPourScene>
       right: 0,
       bottom: KlimmeckGuideTheme.spacingMd,
       child: IgnorePointer(
-        child: Center(
-          child: SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.4,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ?_hpBar(drunk.result, max: max),
-                if (healed != null)
-                  Text(
-                    healed,
-                    key: PotionPourScene.healedKey,
-                    textAlign: TextAlign.center,
-                    style: lineStyle,
-                  ),
-                for (final lore in drunk.result.loreUnlocked)
-                  Text(
-                    loreUnlockedLine(lore),
-                    key: PotionPourScene.loreKeyOf(lore.id),
-                    textAlign: TextAlign.center,
-                    style: lineStyle,
-                  ),
-              ],
-            ),
-          ),
+        child: Column(
+          key: PotionPourScene.outcomeKey,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (healed != null)
+              Text(
+                healed,
+                key: PotionPourScene.healedKey,
+                textAlign: TextAlign.center,
+                style: lineStyle,
+              ),
+            for (final lore in drunk.result.loreUnlocked)
+              Text(
+                loreUnlockedLine(lore),
+                key: PotionPourScene.loreKeyOf(lore.id),
+                textAlign: TextAlign.center,
+                style: lineStyle,
+              ),
+          ],
         ),
-      ),
-    );
-  }
-
-  int? _companionMaxOf(String petId) {
-    for (final companion in widget.companions) {
-      if (companion.petId == petId) return companion.maxLifePoints;
-    }
-    return null;
-  }
-
-  Widget? _hpBar(UseItemResult result, {required int? max}) {
-    if (max == null || max <= 0) return null;
-    final before = result.hpBefore.toDouble();
-    final after = result.hpAfter.toDouble();
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: before, end: after),
-      duration: PotionPourScene.hpAnimationDuration,
-      builder: (_, hp, _) => HpDeltaBar(
-        key: PotionPourScene.hpKey,
-        hp: hp,
-        max: max,
-        isGain: after > before,
-        valueShadows: KlimmeckGuideTheme.bordersForText,
       ),
     );
   }

@@ -33,7 +33,7 @@ const String _cat = 'pet-cat';
 class _MockPotionRecoveryCubit extends MockCubit<PotionRecoveryState>
     implements PotionRecoveryCubit {}
 
-CompanionPotionTarget _target(String id, {String? name}) =>
+CompanionPotionTarget _target(String id, {String? name, int life = 40}) =>
     CompanionPotionTarget(
       owned: OwnedPet.tryFromJson(
         ownedPetJson(
@@ -42,14 +42,17 @@ CompanionPotionTarget _target(String id, {String? name}) =>
           name: name,
         ),
       )!,
-      life: 40,
+      life: life,
       maxLifePoints: 100,
     );
+
+Finder _lifeText(Key bar, String value) =>
+    find.descendant(of: find.byKey(bar), matching: find.text(value));
 
 void main() {
   final herbs = LootItem.fromJson(healPotionJson());
   final fenrir = _target(_worg, name: 'Fenrir');
-  final micio = _target(_cat, name: 'Micio');
+  final micio = _target(_cat, name: 'Micio', life: 70);
 
   late MockPotionCubit cubit;
   late _MockPotionRecoveryCubit recovery;
@@ -101,6 +104,7 @@ void main() {
                     item: herbs,
                     race: RaceType.elf,
                     sex: SexType.female,
+                    lifePoints: 4,
                     maxLifePoints: 12,
                     companions: companions,
                   ),
@@ -149,7 +153,10 @@ void main() {
   /// Fa avanzare i frame finché la boccetta vuota mostra l'esito.
   Future<void> pumpUntilOutcome(WidgetTester tester) async {
     for (var i = 0; i < 600; i++) {
-      if (find.byKey(PotionPourScene.hpKey).evaluate().isNotEmpty) return;
+      if (find.byKey(PotionPourScene.outcomeKey).evaluate().isNotEmpty) {
+        await tester.pump(PotionPourScene.hpAnimationDuration);
+        return;
+      }
       await tester.pump(const Duration(milliseconds: 16));
     }
   }
@@ -219,6 +226,50 @@ void main() {
 
       expect(find.byKey(PotionPourScene.nextCompanionKey), findsNothing);
       expect(find.byKey(PotionPourScene.previousCompanionKey), findsNothing);
+    });
+
+    testWidgets('a life bar stands under the character', (tester) async {
+      await pumpScene(tester);
+
+      expect(
+        _lifeText(PotionPourScene.characterLifeKey, '4 / 12'),
+        findsOneWidget,
+      );
+      expect(find.byKey(PotionPourScene.companionLifeKey), findsNothing);
+    });
+
+    testWidgets('one companion life bar follows the scroll', (tester) async {
+      await pumpScene(tester, companions: [fenrir, micio]);
+
+      expect(
+        _lifeText(PotionPourScene.companionLifeKey, '40 / 100'),
+        findsOneWidget,
+      );
+
+      await tester.fling(
+        find.byKey(PotionPourScene.companionsKey),
+        const Offset(0, -300),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(PotionPourScene.companionLifeKey), findsOneWidget);
+      expect(
+        _lifeText(PotionPourScene.companionLifeKey, '70 / 100'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a character who must still wait has no life bar', (
+      tester,
+    ) async {
+      await pumpScene(
+        tester,
+        characterWait: const Duration(minutes: 5),
+        companions: [fenrir],
+      );
+
+      expect(find.byKey(PotionPourScene.characterLifeKey), findsNothing);
     });
 
     testWidgets('with no companion the left side is empty', (tester) async {
@@ -370,15 +421,43 @@ void main() {
 
       expect(
         find.ancestor(
-          of: find.byKey(PotionPourScene.hpKey),
+          of: find.byKey(PotionPourScene.outcomeKey),
           matching: find.byType(Material),
         ),
         findsWidgets,
       );
-      final value = tester.widget<Text>(find.byKey(HpDeltaBar.valueKey));
+      final value = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(PotionPourScene.characterLifeKey),
+          matching: find.byKey(HpDeltaBar.valueKey),
+        ),
+      );
       expect(value.style?.shadows, KlimmeckGuideTheme.bordersForText);
       final healed = tester.widget<Text>(find.byKey(PotionPourScene.healedKey));
       expect(healed.style?.shadows, KlimmeckGuideTheme.bordersForText);
+    });
+
+    testWidgets("a companion's potion fills the companion bar", (tester) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      final gesture = await dragAndHold(tester, -420);
+      await gesture.up();
+      await emit(
+        tester,
+        PotionDrunk(
+          herbs.id,
+          UseItemResult.fromJson(useItemResultJson()),
+          targetPetId: _worg,
+          targetName: 'Fenrir',
+        ),
+      );
+      await pumpUntilOutcome(tester);
+
+      expect(
+        _lifeText(PotionPourScene.companionLifeKey, '8 / 100'),
+        findsOneWidget,
+      );
+      expect(find.byKey(PotionPourScene.healedKey), findsNothing);
     });
 
     testWidgets('the outcome closes by itself a little after the life bar '
@@ -386,7 +465,7 @@ void main() {
       await pumpScene(tester);
 
       await pourAndDrink(tester);
-      expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
+      expect(find.byKey(PotionPourScene.outcomeKey), findsOneWidget);
 
       await tester.pump(PotionPourScene.outcomeCloseDelay);
       await tester.pumpAndSettle();
@@ -406,7 +485,10 @@ void main() {
       );
       await pumpUntilOutcome(tester);
 
-      expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
+      expect(
+        _lifeText(PotionPourScene.characterLifeKey, '8 / 12'),
+        findsOneWidget,
+      );
       expect(find.byKey(PotionPourScene.healedKey), findsOneWidget);
 
       await tester.tapAt(const Offset(20, 20));

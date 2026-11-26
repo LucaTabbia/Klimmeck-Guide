@@ -289,7 +289,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
       character.status?.innkeeperInjuries ?? const [];
 
   /// La scena del versamento vive sul navigator radice, sopra la shell
-  /// (Phase 26): i cubit le arrivano per valore, razza, sesso, vita massima e
+  /// (Phase 26): i cubit le arrivano per valore, razza, sesso, vita e
   /// compagni che possono bere per parametro (letti all'apertura).
   void _confirmDrink(
     BuildContext context,
@@ -308,6 +308,7 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
           item: potion,
           race: character.infos?.race,
           sex: character.infos?.sex,
+          lifePoints: character.status?.currentLifePoints,
           maxLifePoints: character.status?.maxLifePoints,
           companions: targets,
           readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
