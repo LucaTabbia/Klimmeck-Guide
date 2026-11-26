@@ -101,6 +101,17 @@ void main() {
       expect(simulation.slosh.abs(), lessThan(0.01));
     });
 
+    test('is settled only while upright and still', () {
+      final simulation = _simulation();
+      expect(simulation.isSettled, isTrue);
+      simulation.aim(0.5);
+      _run(simulation, const Duration(milliseconds: 100));
+      expect(simulation.isSettled, isFalse);
+      simulation.aim(0);
+      _run(simulation, const Duration(seconds: 5));
+      expect(simulation.isSettled, isTrue);
+    });
+
     test('the level reads the current tilt and fill', () {
       final simulation = _simulation()..aim(math.pi / 4);
       _run(simulation, const Duration(seconds: 1));

@@ -57,6 +57,18 @@ class PourSimulation {
 
   bool get isEmpty => fill <= 0;
 
+  static const double _settledTolerance = 1e-3;
+
+  /// Dritta e immobile, pelo calmo: niente da animare.
+  bool get isSettled =>
+      _aim == 0 &&
+      [
+        angle,
+        _angularVelocity,
+        slosh,
+        _sloshVelocity,
+      ].every((value) => value.abs() < _settledTolerance);
+
   LiquidLevel get level => _geometry.levelOf(angle: angle, fill: fill);
 
   /// Dove il dito vuole la boccetta; dopo la prima goccia non conta più.

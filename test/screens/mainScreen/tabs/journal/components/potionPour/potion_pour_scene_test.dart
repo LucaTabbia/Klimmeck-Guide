@@ -1,0 +1,338 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
+import 'package:klimmeck_guide/models/enums/race_type.dart';
+import 'package:klimmeck_guide/models/enums/sex_type.dart';
+import 'package:klimmeck_guide/models/loot_item.dart';
+import 'package:klimmeck_guide/models/owned_pet.dart';
+import 'package:klimmeck_guide/models/use_item_result.dart';
+import 'package:klimmeck_guide/repository/item_use_failure.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
+import 'package:klimmeck_guide/utils/race_figure_url.dart';
+import 'package:mocktail/mocktail.dart';
+
+import '../../../../../../helpers/fixtures/potion_fixtures.dart';
+import '../../../../../../helpers/fixtures/shop_fixtures.dart';
+import '../../../../../../helpers/landscape.dart';
+import '../../../../../../helpers/mocks.dart';
+import '../../../../../../helpers/svg_cache_seed.dart';
+import '../../../../../../helpers/test_app.dart';
+
+const Key _openKey = ValueKey('test.openPourScene');
+const String _worg = 'pet-worg';
+const String _cat = 'pet-cat';
+
+class _MockPotionRecoveryCubit extends MockCubit<PotionRecoveryState>
+    implements PotionRecoveryCubit {}
+
+CompanionPotionTarget _target(String id, {String? name}) =>
+    CompanionPotionTarget(
+      owned: OwnedPet.tryFromJson(
+        ownedPetJson(
+          pet: petJson(id: id, name: 'Worg', maxLifePoints: 100),
+          currentLifePoints: 40,
+          name: name,
+        ),
+      )!,
+      life: 40,
+      maxLifePoints: 100,
+    );
+
+void main() {
+  final herbs = LootItem.fromJson(healPotionJson());
+  final fenrir = _target(_worg, name: 'Fenrir');
+  final micio = _target(_cat, name: 'Micio');
+
+  late MockPotionCubit cubit;
+  late _MockPotionRecoveryCubit recovery;
+  late StreamController<PotionState> states;
+
+  setUp(() {
+    cubit = MockPotionCubit();
+    recovery = _MockPotionRecoveryCubit();
+    states = StreamController<PotionState>.broadcast();
+    addTearDown(states.close);
+    when(() => cubit.drink(any())).thenAnswer((_) async {});
+    when(
+      () => cubit.give(
+        any(),
+        petId: any(named: 'petId'),
+        targetName: any(named: 'targetName'),
+      ),
+    ).thenAnswer((_) async {});
+    seedSvgCache(const ['main/races/elf_female.svg']);
+  });
+
+  Future<void> pumpScene(
+    WidgetTester tester, {
+    PotionState state = const PotionIdle(),
+    List<CompanionPotionTarget> companions = const [],
+    Duration? characterWait,
+  }) async {
+    useLandscapePhone(tester);
+    whenListen(cubit, states.stream, initialState: state);
+    whenListen(
+      recovery,
+      const Stream<PotionRecoveryState>.empty(),
+      initialState: PotionRecoveryState(characterWait),
+    );
+    await tester.pumpWidget(
+      buildTestApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              key: _openKey,
+              onPressed: () => Navigator.of(context).push(
+                potionPourRoute(
+                  potionCubit: cubit,
+                  recoveryCubit: recovery,
+                  scene: PotionPourScene(
+                    item: herbs,
+                    race: RaceType.elf,
+                    sex: SexType.female,
+                    maxLifePoints: 12,
+                    companions: companions,
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(_openKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+
+  Future<void> emit(WidgetTester tester, PotionState state) async {
+    when(() => cubit.state).thenReturn(state);
+    states.add(state);
+    await tester.pump();
+  }
+
+  /// Trascina la boccetta di [dx] e la tiene lì per [hold].
+  Future<TestGesture> dragAndHold(
+    WidgetTester tester,
+    double dx, {
+    Duration hold = const Duration(milliseconds: 1500),
+  }) async {
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(PotionPourScene.bottleKey)),
+    );
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(Offset(dx / 10, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    for (
+      var t = Duration.zero;
+      t < hold;
+      t += const Duration(milliseconds: 16)
+    ) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    return gesture;
+  }
+
+  group('drinkers', () {
+    testWidgets('the character stands on the right with the race figure', (
+      tester,
+    ) async {
+      await pumpScene(tester);
+
+      final figure = find.byKey(PotionPourScene.characterKey);
+      expect(figure, findsOneWidget);
+      expect(
+        tester.getCenter(figure).dx,
+        greaterThan(tester.getCenter(find.byKey(PotionPourScene.bottleKey)).dx),
+      );
+      expect(
+        tester.widget<PotionDrinkerFigure>(figure).url,
+        raceFigureUrl(RaceType.elf, SexType.female),
+      );
+    });
+
+    testWidgets('a character who must still wait is not shown', (tester) async {
+      await pumpScene(
+        tester,
+        characterWait: const Duration(minutes: 5),
+        companions: [fenrir],
+      );
+
+      expect(find.byKey(PotionPourScene.characterKey), findsNothing);
+    });
+
+    testWidgets('the companions stand on the left, one at a time', (
+      tester,
+    ) async {
+      await pumpScene(tester, companions: [fenrir, micio]);
+
+      final first = find.byKey(PotionPourScene.companionKeyOf(_worg));
+      expect(first, findsOneWidget);
+      expect(
+        tester.getCenter(first).dx,
+        lessThan(tester.getCenter(find.byKey(PotionPourScene.bottleKey)).dx),
+      );
+      expect(find.byKey(PotionPourScene.companionKeyOf(_cat)), findsNothing);
+    });
+
+    testWidgets('with no companion the left side is empty', (tester) async {
+      await pumpScene(tester);
+
+      expect(find.byKey(PotionPourScene.companionsKey), findsNothing);
+    });
+  });
+
+  group('pour', () {
+    testWidgets('tilting toward the character pours it into him once', (
+      tester,
+    ) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      final gesture = await dragAndHold(tester, 420);
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 1));
+
+      verify(() => cubit.drink(herbs.id)).called(1);
+      verifyNever(
+        () => cubit.give(
+          any(),
+          petId: any(named: 'petId'),
+          targetName: any(named: 'targetName'),
+        ),
+      );
+    });
+
+    testWidgets('tilting toward the companion gives it the potion', (
+      tester,
+    ) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      final gesture = await dragAndHold(tester, -420);
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 1));
+
+      verify(
+        () => cubit.give(herbs.id, petId: _worg, targetName: 'Fenrir'),
+      ).called(1);
+      verifyNever(() => cubit.drink(any()));
+    });
+
+    testWidgets('the companion scrolled into view is the one who drinks', (
+      tester,
+    ) async {
+      await pumpScene(tester, companions: [fenrir, micio]);
+
+      await tester.fling(
+        find.byKey(PotionPourScene.companionsKey),
+        const Offset(0, -300),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(PotionPourScene.companionKeyOf(_cat)), findsOneWidget);
+
+      final gesture = await dragAndHold(tester, -420);
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 1));
+
+      verify(
+        () => cubit.give(herbs.id, petId: _cat, targetName: 'Micio'),
+      ).called(1);
+    });
+
+    testWidgets('a small tilt released before the first drop pours nothing', (
+      tester,
+    ) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      final gesture = await dragAndHold(
+        tester,
+        60,
+        hold: const Duration(milliseconds: 300),
+      );
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 2));
+
+      verifyNever(() => cubit.drink(any()));
+      expect(find.byKey(PotionPourScene.bottleKey), findsOneWidget);
+    });
+
+    testWidgets('toward an empty side the bottle never pours', (tester) async {
+      await pumpScene(
+        tester,
+        characterWait: const Duration(minutes: 5),
+        companions: [fenrir],
+      );
+
+      final gesture = await dragAndHold(tester, 420);
+      await gesture.up();
+      await tester.pump(const Duration(seconds: 1));
+
+      verifyNever(() => cubit.drink(any()));
+    });
+  });
+
+  group('leaving', () {
+    testWidgets('a tap away from the bottle puts it back', (tester) async {
+      await pumpScene(tester);
+
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PotionPourScene), findsNothing);
+    });
+
+    testWidgets('while the potion is in flight a tap does not close', (
+      tester,
+    ) async {
+      await pumpScene(tester, state: PotionDrinking(herbs.id));
+
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(PotionPourScene), findsOneWidget);
+    });
+
+    testWidgets('a refusal closes the scene', (tester) async {
+      await pumpScene(tester);
+
+      await emit(
+        tester,
+        PotionRefused(herbs.id, ItemUseFailure.unknown, sequence: 1),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PotionPourScene), findsNothing);
+    });
+  });
+
+  group('outcome', () {
+    testWidgets('once the bottle is empty the life bar fills and a tap '
+        'closes', (tester) async {
+      await pumpScene(tester);
+
+      final gesture = await dragAndHold(tester, 420);
+      await gesture.up();
+      await emit(
+        tester,
+        PotionDrunk(herbs.id, UseItemResult.fromJson(useItemResultJson())),
+      );
+      for (var i = 0; i < 400; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+
+      expect(find.byKey(PotionPourScene.hpKey), findsOneWidget);
+      expect(find.byKey(PotionPourScene.healedKey), findsOneWidget);
+
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+      expect(find.byType(PotionPourScene), findsNothing);
+    });
+  });
+}
