@@ -3,12 +3,12 @@ import 'package:klimmeck_guide/models/enums/slot_type.dart';
 import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/utils/equip_request.dart';
+import 'package:klimmeck_guide/utils/equipment_copies.dart';
 
-EquipmentItem _dagger() => EquipmentItem.fromJson({
-  'id': 'e-dagger',
-  'name': 'Pugnale',
-  'equipType': 'weapon',
-  'equipSubType': 'dagger',
+final _shield = EquipmentItem.fromJson(const {
+  'id': 'e-shield',
+  'name': 'Scudo anti-fulmine',
+  'equipType': 'shield',
 });
 
 Equipment _wearing(Map<String, EquipmentItem> slots) => Equipment.fromJson({
@@ -18,82 +18,63 @@ Equipment _wearing(Map<String, EquipmentItem> slots) => Equipment.fromJson({
 void main() {
   const characterId = 'c-1';
 
-  test('equips a piece not worn in the selected slot', () {
-    final request = equipRequestFor(
+  test('a spare copy goes into the selected slot and takes its mark', () {
+    final tap = copyTapFor(
       characterId: characterId,
-      item: _dagger(),
-      selectedSlot: SlotType.leftHand,
+      copy: EquipmentCopy(item: _shield, index: 1),
+      selectedSlot: SlotType.rightHand,
       worn: _wearing({}),
-      ownedCopies: 1,
     );
 
-    expect(request?.toJson(), {
+    expect(tap?.request?.toJson(), {
       'id': characterId,
-      'itemId': 'e-dagger',
-      'slotType': 'leftHand',
+      'itemId': 'e-shield',
+      'slotType': 'rightHand',
     });
-  });
-
-  test('equips a second copy in the other hand', () {
-    final request = equipRequestFor(
-      characterId: characterId,
-      item: _dagger(),
-      selectedSlot: SlotType.rightHand,
-      worn: _wearing({'leftHand': _dagger()}),
-      ownedCopies: 2,
-    );
-
-    expect(request?.toJson()['itemId'], 'e-dagger');
-    expect(request?.slotType, SlotType.rightHand);
-  });
-
-  test('takes the only copy off when no spare copy is left', () {
-    final request = equipRequestFor(
-      characterId: characterId,
-      item: _dagger(),
-      selectedSlot: SlotType.rightHand,
-      worn: _wearing({'leftHand': _dagger()}),
-      ownedCopies: 1,
-    );
-
-    expect(request?.toJson()['itemId'], isNull);
-    expect(request?.slotType, SlotType.leftHand);
-  });
-
-  test('takes the piece off the selected slot that wears it', () {
-    final request = equipRequestFor(
-      characterId: characterId,
-      item: _dagger(),
-      selectedSlot: SlotType.rightHand,
-      worn: _wearing({'leftHand': _dagger(), 'rightHand': _dagger()}),
-      ownedCopies: 2,
-    );
-
-    expect(request?.toJson()['itemId'], isNull);
-    expect(request?.slotType, SlotType.rightHand);
-  });
-
-  test('takes a worn piece off when no slot is selected', () {
-    final request = equipRequestFor(
-      characterId: characterId,
-      item: _dagger(),
-      selectedSlot: null,
-      worn: _wearing({'rightHand': _dagger()}),
-      ownedCopies: 1,
-    );
-
-    expect(request?.toJson()['itemId'], isNull);
-    expect(request?.slotType, SlotType.rightHand);
-  });
-
-  test('asks nothing for a piece not worn and no slot selected', () {
     expect(
-      equipRequestFor(
+      tap?.applyTo(const CopyMarks()),
+      const CopyMarks().marking(SlotType.rightHand, 1),
+    );
+  });
+
+  test('a worn copy comes off its slot and drops its mark', () {
+    final tap = copyTapFor(
+      characterId: characterId,
+      copy: EquipmentCopy(item: _shield, index: 0, wornIn: SlotType.leftHand),
+      selectedSlot: null,
+      worn: _wearing({'leftHand': _shield}),
+    );
+
+    expect(tap?.request?.toJson()['itemId'], isNull);
+    expect(tap?.request?.slotType, SlotType.leftHand);
+    expect(
+      tap?.applyTo(const CopyMarks().marking(SlotType.leftHand, 0)),
+      const CopyMarks(),
+    );
+  });
+
+  test('a spare copy of the piece already in the slot only moves the mark', () {
+    final tap = copyTapFor(
+      characterId: characterId,
+      copy: EquipmentCopy(item: _shield, index: 0),
+      selectedSlot: SlotType.rightHand,
+      worn: _wearing({'rightHand': _shield}),
+    );
+
+    expect(tap?.request, isNull);
+    expect(
+      tap?.applyTo(const CopyMarks().marking(SlotType.rightHand, 1)),
+      const CopyMarks().marking(SlotType.rightHand, 0),
+    );
+  });
+
+  test('asks nothing for a spare copy with no slot selected', () {
+    expect(
+      copyTapFor(
         characterId: characterId,
-        item: _dagger(),
+        copy: EquipmentCopy(item: _shield, index: 0),
         selectedSlot: null,
         worn: _wearing({}),
-        ownedCopies: 1,
       ),
       isNull,
     );
