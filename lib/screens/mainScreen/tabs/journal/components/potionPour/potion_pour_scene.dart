@@ -411,13 +411,15 @@ class _PotionPourSceneState extends State<PotionPourScene>
   double _figureMaxWidthOf(Size scene) =>
       scene.width * _sideShare - 2 * _arrowSlot;
 
+  /// Le due colonne partono sotto la barra di stato del sistema.
+  ///
   /// I compagni scorrono in verticale nello spazio sopra la loro barra; la
   /// freccia della Mappa, centrata sulla figura, sta sopra la testa se c'è un
   /// compagno prima e sotto i piedi se ce n'è uno dopo. Non si toccano: si
   /// scorre.
   Widget _companionsSide(Size scene) => Positioned(
     left: 0,
-    top: 0,
+    top: MediaQuery.paddingOf(context).top,
     bottom: 0,
     width: scene.width * _sideShare,
     child: Column(
@@ -566,7 +568,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     final drunk = _outcomeOf(context.read<PotionCubit>().state);
     return Positioned(
       right: 0,
-      top: 0,
+      top: MediaQuery.paddingOf(context).top,
       bottom: 0,
       width: scene.width * _sideShare,
       child: IgnorePointer(

@@ -274,6 +274,21 @@ void main() {
       expect(down.top, greaterThanOrEqualTo(companion.bottom));
     });
 
+    testWidgets('the arrow above stays below the status bar', (tester) async {
+      tester.view.padding = const FakeViewPadding(top: 90);
+      await pumpScene(tester, companions: [fenrir, micio, fenrir]);
+      await tester.drag(
+        find.byKey(PotionPourScene.companionsKey),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+
+      final up = tester.getRect(
+        find.byKey(PotionPourScene.previousCompanionKey),
+      );
+      expect(up.top, greaterThanOrEqualTo(30));
+    });
+
     testWidgets('a single companion shows no arrow', (tester) async {
       await pumpScene(tester, companions: [fenrir]);
 
