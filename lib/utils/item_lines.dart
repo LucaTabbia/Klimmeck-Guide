@@ -96,8 +96,8 @@ String? weaponKindLine(EquipmentItem item) {
   return subType.isTwoHanded ? 'Arma: $family, a due mani' : 'Arma: $family';
 }
 
-/// Riga della scheda di una copia indossata: dice in quale slot sta.
-String wornInLine(SlotType slot) => 'Indossato: ${slot.label.toLowerCase()}';
+/// Riga della scheda di una copia equipaggiata: dice in quale slot sta.
+String wornInLine(SlotType slot) => 'Equipaggiato: ${slot.label.toLowerCase()}';
 
 const String healedInjuriesPrefix = 'Cura: ';
 const String healedInjuriesSeparator = ', ';

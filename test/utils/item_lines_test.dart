@@ -55,7 +55,7 @@ EquipmentItem _jewel(EquipType equipType, List<AccessoryUseType>? uses) =>
 
 void main() {
   test('wornInLine names the slot that wears the copy', () {
-    expect(wornInLine(SlotType.leftHand), 'Indossato: mano sinistra');
+    expect(wornInLine(SlotType.leftHand), 'Equipaggiato: mano sinistra');
   });
 
   group('itemEffectLabel', () {
