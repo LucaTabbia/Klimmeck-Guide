@@ -312,24 +312,29 @@ class _PotionPourSceneState extends State<PotionPourScene>
         if (_canCharacterDrink) _characterSide(scene),
         Positioned.fill(
           child: IgnorePointer(
-            child: CustomPaint(
-              painter: PotionBottlePainter(
-                images: _images,
-                center: center,
-                boxSize: bottleSize,
-                angle: simulation.angle,
-                level: simulation.level,
-                slosh: simulation.slosh,
-                wavePhase: simulation.wavePhase,
-                isPouring:
-                    _isCommitted &&
-                    !simulation.isEmpty &&
-                    simulation.level.isSpilling,
-                corkLift: _corkLift,
-                liquidColor: potionLiquidColorOf(widget.item.rarity),
-                name: widget.item.name ?? '',
-                nameStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: KlimmeckGuideTheme.darkWood,
+            // Il multiply del liquido non accetta l'opacità ereditata dalla
+            // dissolvenza della route: Impeller la vuole su un layer suo.
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: PotionBottlePainter(
+                  images: _images,
+                  center: center,
+                  boxSize: bottleSize,
+                  angle: simulation.angle,
+                  level: simulation.level,
+                  slosh: simulation.slosh,
+                  wavePhase: simulation.wavePhase,
+                  isPouring:
+                      _isCommitted &&
+                      !simulation.isEmpty &&
+                      simulation.level.isSpilling,
+                  isCorked: !_isCorkFlying,
+                  corkLift: _corkLift,
+                  liquidColor: potionLiquidColorOf(widget.item.rarity),
+                  name: widget.item.name ?? '',
+                  nameStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    color: KlimmeckGuideTheme.darkWood,
+                  ),
                 ),
               ),
             ),

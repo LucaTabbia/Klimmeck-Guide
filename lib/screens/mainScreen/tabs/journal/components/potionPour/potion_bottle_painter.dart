@@ -21,6 +21,7 @@ class PotionBottlePainter extends CustomPainter {
     required this.slosh,
     required this.wavePhase,
     required this.isPouring,
+    required this.isCorked,
     required this.corkLift,
     required this.liquidColor,
     required this.name,
@@ -35,6 +36,10 @@ class PotionBottlePainter extends CustomPainter {
   final double slosh;
   final double wavePhase;
   final bool isPouring;
+
+  /// A riposo la boccetta è il disegno tappato; al primo movimento diventa
+  /// quella aperta col tappo a parte, che salta via.
+  final bool isCorked;
 
   /// 0 = tappo al suo posto, 1 = tappo volato via.
   final double corkLift;
@@ -55,11 +60,11 @@ class PotionBottlePainter extends CustomPainter {
     canvas.translate(center.dx, center.dy);
     canvas.rotate(angle);
     canvas.translate(-_pivot.dx, -_pivot.dy);
-    _drawImage(canvas, images?.glass);
+    _drawImage(canvas, isCorked ? images?.corkedGlass : images?.glass);
     _drawLiquid(canvas);
-    _drawImage(canvas, images?.overlay);
+    _drawImage(canvas, isCorked ? images?.corkedOverlay : images?.overlay);
     _drawName(canvas);
-    _drawCork(canvas);
+    if (!isCorked) _drawCork(canvas);
     canvas.restore();
     if (isPouring) _drawStream(canvas, size);
   }
