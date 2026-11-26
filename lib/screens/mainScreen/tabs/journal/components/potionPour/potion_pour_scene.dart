@@ -390,7 +390,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
-  /// I compagni scorrono in verticale; la freccia della Dropdown dice se ce
+  /// I compagni scorrono in verticale; la freccia della Mappa dice se ce
   /// n'è uno sopra o sotto. Le frecce non si toccano: si scorre.
   Widget _companionsSide(Size scene) => Positioned(
     left: 0,
@@ -450,7 +450,7 @@ class _PotionPourSceneState extends State<PotionPourScene>
           child: SizedBox.square(
             dimension: _arrowSize,
             child: CachedSvg(
-              url: CloudinaryAssets.url(CloudinaryAssets.arrowDown),
+              url: CloudinaryAssets.url(CloudinaryAssets.arrowMap),
             ),
           ),
         ),

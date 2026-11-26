@@ -70,7 +70,7 @@ void main() {
     ).thenAnswer((_) async {});
     seedSvgCache(const [
       'main/races/elf_female.svg',
-      CloudinaryAssets.arrowDown,
+      CloudinaryAssets.arrowMap,
     ]);
   });
 
