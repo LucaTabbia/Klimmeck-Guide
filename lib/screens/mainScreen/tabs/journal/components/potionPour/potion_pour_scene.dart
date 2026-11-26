@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/config/potion_bottle_geometry.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/enums/injury_type.dart';
@@ -13,6 +14,7 @@ import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/use_item_result.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/healed_injuries_text.dart';
 import 'package:klimmeck_guide/shared/components/hp_delta_bar.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
@@ -85,6 +87,10 @@ class PotionPourScene extends StatefulWidget {
   static const Key bottleKey = ValueKey('potionPour.bottle');
   static const Key characterKey = ValueKey('potionPour.character');
   static const Key companionsKey = ValueKey('potionPour.companions');
+  static const Key previousCompanionKey = ValueKey(
+    'potionPour.previousCompanion',
+  );
+  static const Key nextCompanionKey = ValueKey('potionPour.nextCompanion');
   static const Key detailsKey = ValueKey('potionPour.details');
   static const Key hpKey = ValueKey('potionPour.hp');
   static const Key healedKey = ValueKey('potionPour.healed');
@@ -105,6 +111,7 @@ class PotionPourScene extends StatefulWidget {
 class _PotionPourSceneState extends State<PotionPourScene>
     with SingleTickerProviderStateMixin {
   static const double _bottleHeightShare = 0.62;
+  static const double _arrowSize = 40;
   static const double _sideShare = 0.3;
   static const double _fullTiltShare = 0.26;
   static const double _dragLimitShare = 0.3;
@@ -383,28 +390,71 @@ class _PotionPourSceneState extends State<PotionPourScene>
     );
   }
 
+  /// I compagni scorrono in verticale; la freccia della Dropdown dice se ce
+  /// n'è uno sopra o sotto. Le frecce non si toccano: si scorre.
   Widget _companionsSide(Size scene) => Positioned(
     left: 0,
     top: 0,
     bottom: 0,
     width: scene.width * _sideShare,
-    child: PageView.builder(
-      key: PotionPourScene.companionsKey,
-      controller: _companionPages,
-      scrollDirection: Axis.vertical,
-      physics: _isCommitted
-          ? const NeverScrollableScrollPhysics()
-          : const PageScrollPhysics(),
-      itemCount: widget.companions.length,
-      onPageChanged: (index) => _companionIndex = index,
-      itemBuilder: (_, index) {
-        final companion = widget.companions[index];
-        return PotionDrinkerFigure(
-          key: PotionPourScene.companionKeyOf(companion.petId),
-          url: enemyPortraitUrl(companion.owned.pet.imagePath),
-          standsOnLeft: true,
-        );
-      },
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: PageView.builder(
+            key: PotionPourScene.companionsKey,
+            controller: _companionPages,
+            scrollDirection: Axis.vertical,
+            physics: _isCommitted
+                ? const NeverScrollableScrollPhysics()
+                : const PageScrollPhysics(),
+            itemCount: widget.companions.length,
+            onPageChanged: (index) => setState(() => _companionIndex = index),
+            itemBuilder: (_, index) {
+              final companion = widget.companions[index];
+              return PotionDrinkerFigure(
+                key: PotionPourScene.companionKeyOf(companion.petId),
+                url: enemyPortraitUrl(companion.owned.pet.imagePath),
+                standsOnLeft: true,
+              );
+            },
+          ),
+        ),
+        if (_companionIndex > 0)
+          _companionArrow(
+            key: PotionPourScene.previousCompanionKey,
+            alignment: Alignment.topCenter,
+            turns: 0.5,
+          ),
+        if (_companionIndex < widget.companions.length - 1)
+          _companionArrow(
+            key: PotionPourScene.nextCompanionKey,
+            alignment: Alignment.bottomCenter,
+            turns: 0,
+          ),
+      ],
+    ),
+  );
+
+  Widget _companionArrow({
+    required Key key,
+    required Alignment alignment,
+    required double turns,
+  }) => Align(
+    alignment: alignment,
+    child: IgnorePointer(
+      child: Padding(
+        padding: const EdgeInsets.all(KlimmeckGuideTheme.spacingSm),
+        child: RotationTransition(
+          key: key,
+          turns: AlwaysStoppedAnimation(turns),
+          child: SizedBox.square(
+            dimension: _arrowSize,
+            child: CachedSvg(
+              url: CloudinaryAssets.url(CloudinaryAssets.arrowDown),
+            ),
+          ),
+        ),
+      ),
     ),
   );
 

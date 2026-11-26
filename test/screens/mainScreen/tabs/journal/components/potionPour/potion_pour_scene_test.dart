@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/companion/companion_potion_target.dart';
 import 'package:klimmeck_guide/models/enums/race_type.dart';
 import 'package:klimmeck_guide/models/enums/sex_type.dart';
@@ -67,7 +68,10 @@ void main() {
         targetName: any(named: 'targetName'),
       ),
     ).thenAnswer((_) async {});
-    seedSvgCache(const ['main/races/elf_female.svg']);
+    seedSvgCache(const [
+      'main/races/elf_female.svg',
+      CloudinaryAssets.arrowDown,
+    ]);
   });
 
   Future<void> pumpScene(
@@ -190,6 +194,31 @@ void main() {
         lessThan(tester.getCenter(find.byKey(PotionPourScene.bottleKey)).dx),
       );
       expect(find.byKey(PotionPourScene.companionKeyOf(_cat)), findsNothing);
+    });
+
+    testWidgets('an arrow down tells there is a next companion, an arrow up '
+        'a previous one', (tester) async {
+      await pumpScene(tester, companions: [fenrir, micio]);
+
+      expect(find.byKey(PotionPourScene.nextCompanionKey), findsOneWidget);
+      expect(find.byKey(PotionPourScene.previousCompanionKey), findsNothing);
+
+      await tester.fling(
+        find.byKey(PotionPourScene.companionsKey),
+        const Offset(0, -300),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(PotionPourScene.nextCompanionKey), findsNothing);
+      expect(find.byKey(PotionPourScene.previousCompanionKey), findsOneWidget);
+    });
+
+    testWidgets('a single companion shows no arrow', (tester) async {
+      await pumpScene(tester, companions: [fenrir]);
+
+      expect(find.byKey(PotionPourScene.nextCompanionKey), findsNothing);
+      expect(find.byKey(PotionPourScene.previousCompanionKey), findsNothing);
     });
 
     testWidgets('with no companion the left side is empty', (tester) async {
