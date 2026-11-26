@@ -15,13 +15,12 @@ import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/repository/services/time/server_clock_service.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionVitalityCubit/companion_vitality_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potion_sheet.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/components/potionPour/potion_pour_scene.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionCubit/potion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/potionRecoveryCubit/potion_recovery_cubit.dart';
 import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/shared/components/items_filter.dart';
-import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/utils/filter_values.dart';
 import 'package:klimmeck_guide/utils/item_lines.dart';
 import 'package:klimmeck_guide/utils/mission_lines.dart';
@@ -289,9 +288,9 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
   List<InjuryType> _innkeeperInjuriesOf(Character character) =>
       character.status?.innkeeperInjuries ?? const [];
 
-  /// Il foglio vive sul navigator radice, fuori dai provider della shell: i
-  /// cubit gli arrivano per valore, la vita massima e i compagni che possono
-  /// bere per parametro (letti all'apertura).
+  /// La scena del versamento vive sul navigator radice, sopra la shell
+  /// (Phase 26): i cubit le arrivano per valore, razza, sesso, vita massima e
+  /// compagni che possono bere per parametro (letti all'apertura).
   void _confirmDrink(
     BuildContext context,
     Character character,
@@ -301,27 +300,17 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     final potionCubit = context.read<PotionCubit>()..reset();
     final recoveryCubit = context.read<PotionRecoveryCubit>();
     HapticFeedback.lightImpact();
-    showModalBottomSheet<void>(
-      useSafeArea: false,
-      isScrollControlled: true,
-      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
-      backgroundColor: Colors.transparent,
-      context: context,
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider<PotionCubit>.value(value: potionCubit),
-          BlocProvider<PotionRecoveryCubit>.value(value: recoveryCubit),
-        ],
-        child: NotificationListener<DraggableScrollableNotification>(
-          onNotification: (_) => potionCubit.state is PotionDrinking,
-          child: PaperSheetModal(
-            child: PotionSheet(
-              item: potion,
-              maxLifePoints: character.status?.maxLifePoints,
-              targets: targets,
-              readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
-            ),
-          ),
+    Navigator.of(context, rootNavigator: true).push(
+      potionPourRoute(
+        potionCubit: potionCubit,
+        recoveryCubit: recoveryCubit,
+        scene: PotionPourScene(
+          item: potion,
+          race: character.infos?.race,
+          sex: character.infos?.sex,
+          maxLifePoints: character.status?.maxLifePoints,
+          companions: targets,
+          readerInnkeeperInjuries: _innkeeperInjuriesOf(character),
         ),
       ),
     );

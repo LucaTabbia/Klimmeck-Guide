@@ -38,8 +38,6 @@ String? companionRecoveryTimeLine(Duration? recovery) {
   return 'Recupero completo: ${formatGameDuration(recovery)}';
 }
 
-String giveToCompanionLabel(String name) => 'Dai a $name';
-
 /// Senza specie servita il titolo resta una frase (D-18).
 String companionNamePromptTitle(String species) {
   final subject = species.trim().isEmpty ? 'compagno' : species.trim();

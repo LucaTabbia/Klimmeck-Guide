@@ -191,12 +191,12 @@ class _PotionPourSceneState extends State<PotionPourScene>
   /// torna sulla boccetta.
   bool _isAtRest(PourSimulation simulation) {
     final isCorkMoving = _isCorkFlying && _corkLift < 1;
-    final isPouring = _isCommitted && !simulation.isEmpty;
+    if (simulation.isEmpty) return !isCorkMoving;
     return !_isDragging &&
         !isCorkMoving &&
-        !isPouring &&
+        !_isCommitted &&
         _drag.distance < 0.5 &&
-        (simulation.isSettled || simulation.isEmpty);
+        simulation.isSettled;
   }
 
   void _startTicking() {
