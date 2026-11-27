@@ -318,6 +318,11 @@ Plans:
 **Depends on:** Phase 18 (Journal potions), Phase 22 (companion potions)
 **Scope**: decisions D-01..D-13 of `26-CONTEXT.md` (decided in conversation on 2026-11-25; lean GSD phase, no research, no UI-SPEC, no plan files, iterative on the device with hot reload) plus the amendments of the device UAT of 2026-11-25/26 recorded in the same file. No BE phase.
 
+
+### Shop redesign (out of GSD, 2026-11-27)
+
+Device-driven review round on `feat/shop-redesign` (PR #64), same method as the layout review in `docs/rules/workflow.md`: shopkeeper scenes on one recomposed background, receipt and draggable purse with the coins on its tag, sheets that open before their lists scroll, multi-select pinned filters (shop, Journal, spellbook), only the coins held, pencil-stroke numbers and checks, half-width settings buttons. No BE change.
+
 ---
 
 _Roadmap created: 2026-04-10_ · _v1.0 Core Loop archived: 2026-11-10_ · _v1.1 Healing & Models started: 2026-11-10_
