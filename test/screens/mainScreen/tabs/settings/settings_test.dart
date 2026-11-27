@@ -181,6 +181,44 @@ void main() {
     },
   );
 
+  testWidgets('every button takes half of the dropdown content, all aligned', (
+    tester,
+  ) async {
+    givenSessionRole(RoleType.innkeeper);
+    await pumpSettings(tester, loadedAldo());
+    await openEverySection(tester);
+
+    Rect buttonOf(String label) => tester.getRect(
+      find.ancestor(
+        of: find.text(label),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is ButtonStyleButton,
+        ),
+      ),
+    );
+    final insideDropdown = buttonOf('Elimina personaggio');
+    final content = tester.getRect(
+      find
+          .ancestor(
+            of: find.text('Elimina personaggio'),
+            matching: find.byType(Column),
+          )
+          .first,
+    );
+    expect(insideDropdown.width, closeTo(content.width / 2, 1));
+    expect(insideDropdown.center.dx, closeTo(content.center.dx, 1));
+
+    for (final label in ['Apri la Locanda', 'Elimina un account', 'Esci']) {
+      final button = buttonOf(label);
+      expect(button.width, closeTo(insideDropdown.width, 1), reason: label);
+      expect(
+        button.center.dx,
+        closeTo(insideDropdown.center.dx, 1),
+        reason: label,
+      );
+    }
+  });
+
   testWidgets('an adventurer sees no «Locanda» section', (tester) async {
     await pumpSettings(tester, loadedAldo());
 

@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/repository/services/auth/auth_token_service.dart'
 import 'package:klimmeck_guide/screens/auth/cubit/auth_cubit.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/innkeeper/innkeeper_panel_route.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/half_width_button.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/player_account_deletion_dialog.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/settings_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/playerAccountDeletionCubit/player_account_deletion_cubit.dart';
@@ -30,13 +31,15 @@ class InnkeeperSection extends StatelessWidget {
   Widget _buildSection(BuildContext context) => SettingsSection(
     title: title,
     children: [
-      ElevatedButton(
-        style: KlimmeckGuideTheme.primaryButtonStyle,
-        onPressed: () => openInnkeeperPanel(context),
-        child: Text(
-          openLabel,
-          style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-            color: KlimmeckGuideTheme.parchment,
+      HalfWidthButton(
+        child: ElevatedButton(
+          style: KlimmeckGuideTheme.primaryButtonStyle,
+          onPressed: () => openInnkeeperPanel(context),
+          child: Text(
+            openLabel,
+            style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+              color: KlimmeckGuideTheme.parchment,
+            ),
           ),
         ),
       ),
@@ -55,16 +58,18 @@ class _PlayerAccountDeletionEntry extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       const SizedBox(height: KlimmeckGuideTheme.spacingMd),
-      OutlinedButton(
-        style: KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
-        onPressed: () => showPlayerAccountDeletionDialog(
-          context,
-          context.read<PlayerAccountDeletionCubit>(),
-        ),
-        child: Text(
-          PlayerAccountDeletionDialog.title,
-          style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-            color: KlimmeckGuideTheme.bloodRed,
+      HalfWidthButton(
+        child: OutlinedButton(
+          style: KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
+          onPressed: () => showPlayerAccountDeletionDialog(
+            context,
+            context.read<PlayerAccountDeletionCubit>(),
+          ),
+          child: Text(
+            PlayerAccountDeletionDialog.title,
+            style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+              color: KlimmeckGuideTheme.bloodRed,
+            ),
           ),
         ),
       ),

@@ -60,6 +60,9 @@ class KlimmeckGuideTheme {
   static const Color deepNight = Color(0xFF1E1B18);
   static const Color mysticBlue = Color(0xFF4682B4);
   static const Color darkWood = Color(0xFF3E2C1C);
+
+  /// Ombra di contatto degli oggetti appoggiati sul bancone del negozio.
+  static const Color counterShadow = Color(0xCC1E1B18);
   static const Color paleSilver = Color(0xFFD4D4DC);
   static const Color bloodRed = Color(0xFF9B1C1C);
 
@@ -234,12 +237,15 @@ class KlimmeckGuideTheme {
 
   static Color _switchTrackColor(Set<WidgetState> states) {
     if (states.contains(WidgetState.disabled)) return parchment;
-    if (states.contains(WidgetState.selected)) return darkBronze;
+    if (states.contains(WidgetState.selected)) return deepNight;
     return parchment;
   }
 
-  static Color _switchTrackOutlineColor(Set<WidgetState> states) =>
-      states.contains(WidgetState.disabled) ? paleSilver : darkBronze;
+  static Color _switchTrackOutlineColor(Set<WidgetState> states) {
+    if (states.contains(WidgetState.disabled)) return paleSilver;
+    if (states.contains(WidgetState.selected)) return deepNight;
+    return darkBronze;
+  }
 
   /// Conferme distruttive e "Esci" (D-06): pieno, rosso sangue.
   static final ButtonStyle destructiveButtonStyle = ElevatedButton.styleFrom(
