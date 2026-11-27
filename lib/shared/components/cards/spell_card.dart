@@ -68,12 +68,11 @@ class SpellCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (usages != null)
-              Positioned(
-                right: 7,
-                bottom: 0,
-                child: UsagesPencilCounter(value: usages!),
-              ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: UsagesPencilCounter(value: usages),
+            ),
             if (isMarked != null)
               CardBookmark(isMarked: isMarked!, cardSize: size),
           ],

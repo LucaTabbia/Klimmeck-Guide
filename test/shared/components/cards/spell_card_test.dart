@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/spell_origin.dart';
 import 'package:klimmeck_guide/models/spell.dart';
-import 'package:klimmeck_guide/shared/components/animated_pencil_text.dart';
+import 'package:klimmeck_guide/shared/components/pencil_text.dart';
 import 'package:klimmeck_guide/shared/components/bookmark_ribbon.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/spell_card.dart';
@@ -155,7 +155,7 @@ void main() {
       expect(find.text('Dardo di fuoco'), findsOneWidget);
       expect(find.text('12'), findsOneWidget);
       expect(find.byType(BookmarkRibbon), findsNothing);
-      expect(find.byType(AnimatedPencilText), findsNothing);
+      expect(find.byType(PencilText), findsNothing);
     });
 
     testWidgets('a zero power is not shown', (tester) async {
@@ -210,9 +210,7 @@ void main() {
   testWidgets('a slot card shows the usages counter', (tester) async {
     await _pump(tester, _fireDart, usages: 2);
 
-    final counter = tester.widget<AnimatedPencilText>(
-      find.byType(AnimatedPencilText),
-    );
+    final counter = tester.widget<PencilText>(find.byType(PencilText));
     expect(counter.text, '2');
     final shared = tester.widget<UsagesPencilCounter>(
       find.byType(UsagesPencilCounter),

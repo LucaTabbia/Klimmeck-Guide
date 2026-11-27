@@ -86,6 +86,9 @@ class CloudinaryAssets {
   static const String pencil = 'v1761320846/pencil_wpysez.svg';
   static const String rubber = 'v1761320949/rubber_bnonlz.svg';
 
+  /// Spunta sulle carte scelte nel negozio (i compagni del carrello).
+  static const String check = 'v1795778243/check_ijlk32.svg';
+
   // ============== Menu ==============
   static const String map = 'v1757660699/map_tl5hyy.svg';
   static const String mirror = 'v1757660698/mirror_bhcd8f.svg';
