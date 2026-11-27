@@ -1,31 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/config/companion_care.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
 import 'package:klimmeck_guide/models/coins.dart';
+import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/quest/board_policy.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
-import 'package:klimmeck_guide/repository/transaction_failure.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/coins_pouch.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/counter_shadow.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_pool_loader.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_notice.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/utils/poke_streak.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/utils/shopkeeper_mood.dart';
 import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 
 import '../../../../models/character/character.dart';
 import '../../../../shared/components/cached_svg.dart';
-import '../../../../shared/components/coins_display.dart';
 import '../../../../shared/components/popup/companion_details_route.dart';
 import '../../../../shared/components/popup/equipment_info_display.dart';
-import '../../../../theme/kg_theme.dart';
 import '../../characterCubit/character_cubit.dart';
 import 'components/shop_modal.dart';
 import 'components/transaction_message_bubble.dart';
@@ -42,6 +46,9 @@ class Shop extends StatefulWidget {
   /// Chiede un nome per ogni compagno comprato (D-18); spento fino al gate.
   final bool isCompanionNamingEnabled;
 
+  /// Zona toccabile sopra il negoziante.
+  static const Key shopkeeperKey = ValueKey('shopkeeper');
+
   @override
   State<Shop> createState() => _ShopState();
 }
@@ -50,14 +57,17 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   TradeSelection _toBuy = const TradeSelection();
   TradeSelection _toSell = const TradeSelection();
 
-  /// Compagni della transazione in volo, presi alla firma: il personaggio
+  /// Compagni della transazione in volo, presi alla consegna della
+  /// sacchetta: il personaggio
   /// aggiornato può arrivare prima della risposta e togliere dal carrello i
   /// compagni appena comprati.
   List<Pet> _petsInFlight = const [];
 
-  bool? _isAdd;
-  bool _showTransactionMessage = false;
-  String _transactionMessage = "";
+  final PokeStreak _pokes = PokeStreak();
+
+  /// Dieci tocchi di fila e il negoziante sbotta per qualche secondo.
+  bool _isAnnoyed = false;
+  Timer? _annoyedTimer;
 
   late AnimationController _animationController;
 
@@ -71,46 +81,21 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     super.initState();
   }
 
+  /// Le scene del negoziante cambiano a ogni passo della transazione: già
+  /// decodificate, lo sfondo non lampeggia.
   @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final mood in ShopkeeperMood.values) {
+      precacheImage(AssetImage(mood.background), context);
+    }
   }
 
-  Widget _buildCoinsDisplay() {
-    return BlocSelector<CharacterCubit, CharacterState, Coins?>(
-      selector: (state) {
-        if (state is CharacterLoaded) {
-          return state.character.status?.coins;
-        }
-        return null;
-      },
-      builder: (context, coins) {
-        return Positioned(
-          top: 50,
-          right: 50,
-          child: Stack(
-            children: [
-              CachedSvg(
-                url:
-                    "https://res.cloudinary.com/dzuhywp53/image/upload/v1761306735/emptySatchel_aqvk1y.svg",
-                height: MediaQuery.of(context).size.height / 2,
-                width: MediaQuery.of(context).size.width / 6,
-              ),
-              Positioned(
-                top: 35,
-                left: MediaQuery.of(context).size.width / 12,
-                child: CoinsDisplay(
-                  coins: coins,
-                  height: MediaQuery.of(context).size.height / 4,
-                  color: KlimmeckGuideTheme.parchment,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  @override
+  void dispose() {
+    _annoyedTimer?.cancel();
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _onSelect(TradeSelection selection, bool isBuy) {
@@ -123,20 +108,27 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     });
   }
 
-  /// Comprare non equipaggia mai (D-08): i compagni viaggiano solo in
-  /// `petAssets` del lato giusto.
-  void _onConfirm(Coins total, bool isTotalPositive, Character character) {
+  /// La sacchetta consegnata paga il carrello; una borsa che non basta la
+  /// rifiuta il negoziante senza chiedere al server. Comprare non equipaggia
+  /// mai (D-08): i compagni viaggiano solo in `petAssets` del lato giusto.
+  void _pay(Character character) {
+    final transactionCubit = context.read<TransactionCubit>();
+    final balance = TradeBalance.of(bought: _toBuy, sold: _toSell);
+    final purse = character.status?.coins ?? const Coins();
+    if (!balance.isAffordableWith(purse)) {
+      transactionCubit.refuseInsufficientFunds();
+      return;
+    }
     _petsInFlight = _toBuy.pets;
-    context.read<TransactionCubit>().doTransaction(
+    transactionCubit.doTransaction(
       buildTransactionRequest(
         characterId: character.id,
         bought: _toBuy,
         sold: _toSell,
-        total: total,
-        isTotalPositive: isTotalPositive,
+        total: balance.total,
+        isTotalPositive: balance.isTotalPositive,
       ),
     );
-    Navigator.pop(context);
   }
 
   /// Il foglio d'acquisto legge il pool dal vivo (D-03): aperto durante il
@@ -192,6 +184,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
     items: character.assets?.ownedItems ?? const [],
     pets: _ownedPetsOf(character),
     equippedPetId: character.assets?.pet?.id,
+    wornEquipment: character.assets?.wornEquipment,
     petNames: character.assets?.chosenPetNames ?? const {},
   );
 
@@ -210,7 +203,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        bool? isAddLocal = _isAdd;
+        /// Matita e gomma ripartono spente a ogni apertura del foglio.
+        bool? isAddLocal;
         EquipmentItem? selectedEquipmentLocal;
 
         return StatefulBuilder(
@@ -224,6 +218,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                       items: stock.items,
                       pets: stock.pets,
                       equippedPetId: stock.equippedPetId,
+                      wornEquipment: stock.wornEquipment,
                       petNames: stock.petNames,
                       onCompanionInfo: _showCompanionDetails,
                       selection: isBuy ? _toBuy : _toSell,
@@ -241,10 +236,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                 ),
                 EditPencilRubber(
                   isAdd: isAddLocal,
-                  onToggle: (newIsAdd) {
-                    setModalState(() => isAddLocal = newIsAdd);
-                    setState(() => _isAdd = newIsAdd);
-                  },
+                  onToggle: (newIsAdd) =>
+                      setModalState(() => isAddLocal = newIsAdd),
                 ),
                 EquipmentInfoSheetDisplay(
                   selectedEquipment: selectedEquipmentLocal,
@@ -268,7 +261,7 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        bool? isAddLocal = _isAdd;
+        bool? isAddLocal;
         EquipmentItem? selectedEquipmentLocal;
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -278,8 +271,6 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                   child: TransactionModal(
                     toBuy: _toBuy,
                     toSell: _toSell,
-                    onConfirm: (total, isTotalPositive) =>
-                        _onConfirm(total, isTotalPositive, character),
                     onChanged: (selection, isBuy) {
                       _onSelect(selection, isBuy);
                       if (_toBuy.isEmpty && _toSell.isEmpty) {
@@ -299,10 +290,8 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
                 ),
                 EditPencilRubber(
                   isAdd: isAddLocal,
-                  onToggle: (newIsAdd) {
-                    setModalState(() => isAddLocal = newIsAdd);
-                    setState(() => _isAdd = newIsAdd);
-                  },
+                  onToggle: (newIsAdd) =>
+                      setModalState(() => isAddLocal = newIsAdd),
                 ),
                 EquipmentInfoSheetDisplay(
                   selectedEquipment: selectedEquipmentLocal,
@@ -314,12 +303,6 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
         );
       },
     );
-  }
-
-  void _showRefusal(TransactionFailure failure) {
-    final line = shopkeeperRefusalLine(failure);
-    _showTransactionMessage = line != null;
-    _transactionMessage = line ?? '';
   }
 
   /// Solo il pool della città del marker (D-03): uno stato di un'altra città
@@ -340,30 +323,16 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
   Widget _buildPage() {
     return BlocListener<TransactionCubit, TransactionState>(
       listener: (context, state) {
-        if (state is TransactionInitial) {
-          setState(() => _showTransactionMessage = false);
-        }
-        if (state is TransactionLoading) {
-          setState(() {
-            _showTransactionMessage = true;
-            _transactionMessage = "Controllo che sia tutto in ordine";
-          });
-        }
         if (state is TransactionDone) {
           final bought = _petsInFlight;
           _petsInFlight = const [];
           setState(() {
             _toBuy = const TradeSelection();
             _toSell = const TradeSelection();
-            _transactionMessage =
-                "Sempre felice di fare affari! Posso esserle ancora utile?";
           });
           _askNamesAfterFrame(bought);
         }
-        if (state is TransactionError) {
-          _petsInFlight = const [];
-          setState(() => _showRefusal(state.failure));
-        }
+        if (state is TransactionError) _petsInFlight = const [];
       },
       child: MultiBlocListener(
         listeners: [
@@ -457,75 +426,220 @@ class _ShopState extends State<Shop> with SingleTickerProviderStateMixin {
         if (character == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: Image.asset(
-                'assets/images/shopBackground.png',
-                fit: BoxFit.cover,
+        return BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, transactionState) => Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              _buildScene(transactionState),
+              _buildShopkeeper(transactionState),
+              if (_lineOf(transactionState) case final line?)
+                TransactionMessageBubble(message: line),
+              _buildCounter(character, transactionState),
+              if (_isPurseOnCounter(transactionState)) _buildPouch(character),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildScene(TransactionState transactionState) {
+    final size = MediaQuery.of(context).size;
+    return SizedBox(
+      width: size.width,
+      height: size.height,
+      child: Image.asset(
+        _moodOf(transactionState).background,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      ),
+    );
+  }
+
+  /// La stizza vale solo a bottega ferma: una transazione in corso parla
+  /// per sé.
+  bool _showsAnnoyance(TransactionState state) =>
+      _isAnnoyed && state is TransactionInitial;
+
+  ShopkeeperMood _moodOf(TransactionState state) => _showsAnnoyance(state)
+      ? ShopkeeperMood.puzzled
+      : shopkeeperMoodFor(state);
+
+  String? _lineOf(TransactionState state) =>
+      _showsAnnoyance(state) ? annoyedLine : shopkeeperLineFor(state);
+
+  Widget _buildShopkeeper(TransactionState transactionState) {
+    final size = MediaQuery.of(context).size;
+    return Positioned(
+      left: size.width * 0.4,
+      top: size.height * 0.18,
+      width: size.width * 0.2,
+      height: size.height * 0.6,
+      child: GestureDetector(
+        key: Shop.shopkeeperKey,
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _pokeShopkeeper(transactionState),
+      ),
+    );
+  }
+
+  void _pokeShopkeeper(TransactionState transactionState) {
+    if (transactionState is! TransactionInitial) return;
+    if (!_pokes.poke(DateTime.now())) return;
+    setState(() => _isAnnoyed = true);
+    _annoyedTimer?.cancel();
+    _annoyedTimer = Timer(TransactionCubit.defaultResetDelay, () {
+      if (mounted) setState(() => _isAnnoyed = false);
+    });
+  }
+
+  /// Il borsello resta sul bancone tranne quando è in mano al negoziante:
+  /// mentre conta le monete e nella scena contenta.
+  bool _isPurseOnCounter(TransactionState transactionState) =>
+      transactionState is! TransactionLoading &&
+      transactionState is! TransactionDone;
+
+  bool get _hasCart => !_toBuy.isEmpty || !_toSell.isEmpty;
+
+  /// Listino, ricevuta e zaino appoggiati sul bancone, ognuno con la sua
+  /// ombra di contatto: i riquadri degli SVG hanno margini trasparenti, per
+  /// questo le misure partono dalla base disegnata dentro il riquadro.
+  Widget _buildCounter(Character character, TransactionState transactionState) {
+    final size = MediaQuery.of(context).size;
+    // Mentre il negoziante conta, la ricevuta è già nelle sue mani.
+    final showsReceipt = _hasCart && transactionState is! TransactionLoading;
+    final priceListSide = size.height * 0.57;
+    final priceListLeft = size.width * 0.06;
+    final priceListBottom = size.height * 0.01 + 10;
+    final backpackSide = size.height * 0.6;
+    final backpackRight = size.width * 0.04;
+    final backpackBottom = size.height * 0.03;
+    final receiptLength = _receiptLength(size);
+    final receiptBottom = size.height * 0.05 - 3;
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          _shadowUnder(
+            centerX: priceListLeft + priceListSide / 2,
+            baseFromBottom: priceListBottom + priceListSide * 0.06,
+            width: priceListSide * 0.8,
+          ),
+          Positioned(
+            left: priceListLeft,
+            bottom: priceListBottom,
+            child: GestureDetector(
+              onTap: () => _openBuySheet(character),
+              child: CachedSvg(
+                width: priceListSide,
+                height: priceListSide,
+                url: CloudinaryAssets.url(CloudinaryAssets.buy),
               ),
             ),
-            if (_showTransactionMessage)
-              TransactionMessageBubble(message: _transactionMessage),
-
-            _buildCoinsDisplay(),
-
+          ),
+          if (showsReceipt) ...[
             Positioned(
-              bottom: -10,
-              child: Center(
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height / 1.5,
-                  width: MediaQuery.of(context).size.width / 1.2,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Spacer(flex: 2),
-                      GestureDetector(
-                        onTap: () => _openBuySheet(character),
-                        child: CachedSvg(
-                          width: MediaQuery.of(context).size.width / 3.3,
-                          height: MediaQuery.of(context).size.height / 1.7,
-                          url:
-                              "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660789/buy_pqj7e9.svg",
-                        ),
-                      ),
-                      const Spacer(),
-                      if (!_toBuy.isEmpty || !_toSell.isEmpty)
-                        GestureDetector(
-                          onTap: () => _showModalTransaction(character),
-                          child: CachedSvg(
-                            height: MediaQuery.of(context).size.height / 3.2,
-                            width: MediaQuery.of(context).size.width / 6,
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1757683133/completeTransaction_kptwjx.svg",
-                          ),
-                        )
-                      else
-                        SizedBox(width: MediaQuery.of(context).size.width / 6),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => _openSellSheet(character),
-                        child: SizedBox(
-                          child: CachedSvg(
-                            width: MediaQuery.of(context).size.width / 3,
-                            height: MediaQuery.of(context).size.height / 2.3,
-                            url:
-                                "https://res.cloudinary.com/dzuhywp53/image/upload/v1757660787/sell_x0fw5i.svg",
-                          ),
-                        ),
-                      ),
-                      const Spacer(flex: 4),
-                    ],
-                  ),
-                ),
+              left: (size.width - receiptLength) / 2,
+              bottom: receiptBottom,
+              child: GestureDetector(
+                onTap: () => _showModalTransaction(character),
+                child: _buildReceipt(size),
               ),
             ),
           ],
-        );
-      },
+          _shadowUnder(
+            centerX: size.width - backpackRight - backpackSide * 0.5,
+            baseFromBottom: backpackBottom + backpackSide * 0.13,
+            width: backpackSide * 0.95,
+          ),
+          Positioned(
+            right: backpackRight,
+            bottom: backpackBottom,
+            child: GestureDetector(
+              onTap: () => _openSellSheet(character),
+              child: CachedSvg(
+                width: backpackSide,
+                height: backpackSide,
+                url: CloudinaryAssets.url(CloudinaryAssets.sell),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ombra schiacciata centrata sulla base di un oggetto, a [baseFromBottom]
+  /// dal fondo dello schermo.
+  Widget _shadowUnder({
+    required double centerX,
+    required double baseFromBottom,
+    required double width,
+  }) {
+    final height = width * 0.2;
+    return Positioned(
+      left: centerX - width / 2,
+      bottom: baseFromBottom - height * 0.7,
+      child: CounterShadow(width: width, height: height),
+    );
+  }
+
+  /// Leggera rotazione della ricevuta, come un foglio posato a mano.
+  static const double _receiptTilt = 0.12;
+
+  double _receiptLength(Size size) => size.height / 3.8 - 10;
+
+  /// La ricevuta giace di traverso sul bancone, appena inclinata, con
+  /// l'ombra del foglio che la segue. Il foglio è stretto in un
+  /// riquadro quadrato: si ritaglia la sua colonna e i margini trasparenti
+  /// sbordano senza spingere i vicini.
+  Widget _buildReceipt(Size size) {
+    final length = _receiptLength(size);
+    return Transform.rotate(
+      angle: _receiptTilt,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          PaperShadow(
+            width: length * 0.9,
+            height: length * 0.34,
+            strength: 0.85,
+          ),
+          RotatedBox(
+            quarterTurns: 3,
+            child: SizedBox(
+              width: length * 0.42,
+              height: length,
+              child: OverflowBox(
+                maxWidth: double.infinity,
+                child: CachedSvg(
+                  height: length,
+                  url: CloudinaryAssets.url(CloudinaryAssets.receipt),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Il borsello sporge dall'angolo del bancone con il saldo sul cartellino;
+  /// con un carrello da pagare il negoziante lo prende all'altezza del petto,
+  /// al centro della scena.
+  Widget _buildPouch(Character character) {
+    final size = MediaQuery.of(context).size;
+    final pouchSide = size.height * 0.6;
+    return Positioned(
+      right: -pouchSide * 0.25,
+      bottom: -pouchSide * 0.25,
+      child: CoinsPouch(
+        width: pouchSide,
+        height: pouchSide,
+        shopkeeper: Offset(size.width / 2, size.height * 0.55),
+        purse: character.status?.coins,
+        onDelivered: _hasCart ? () => _pay(character) : null,
+      ),
     );
   }
 }
@@ -537,6 +651,7 @@ class _SheetStock {
     this.items = const [],
     this.pets = const [],
     this.equippedPetId,
+    this.wornEquipment,
     this.petNames = const {},
   });
 
@@ -544,5 +659,6 @@ class _SheetStock {
   final List<AssetQuantity> items;
   final List<Pet> pets;
   final String? equippedPetId;
+  final Equipment? wornEquipment;
   final Map<String, String> petNames;
 }

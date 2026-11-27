@@ -70,8 +70,6 @@ class CloudinaryAssets {
   /// Stessa freccia col bordo più spesso, per la Mappa (UAT 2026-11-14).
   static const String arrowMap = 'v1794671761/arrowMap_ucuc2f.svg';
   static const String healEffect = 'v1757660480/healEffect_jc9bsg.svg';
-  static const String completeTransaction =
-      'v1757683133/completeTransaction_kptwjx.svg';
 
   // ============== Coins ==============
   static const String goldCoin = 'v1761328247/goldCoin_newd9b.svg';
@@ -79,15 +77,20 @@ class CloudinaryAssets {
   static const String copperCoin = 'v1761328274/copperCoin_hgiilc.svg';
 
   // ============== Shop ==============
-  static const String emptySatchel = 'v1761306735/emptySatchel_aqvk1y.svg';
-  static const String buy = 'v1757660789/buy_pqj7e9.svg';
-  static const String sell = 'v1757660787/sell_x0fw5i.svg';
-  static const String comicBalloon = 'v1761422762/comic_balloon_grteoq.svg';
-  static const String pencil = 'v1761320846/pencil_wpysez.svg';
-  static const String rubber = 'v1761320949/rubber_bnonlz.svg';
+  static const String buy = 'v1795774647/main/shop/buy.svg';
+  static const String sell = 'v1795774650/main/shop/sell.svg';
+
+  /// Ricevuta sul bancone: apre la lista del carrello col totale.
+  static const String receipt = 'v1795771696/main/shop/receipt.svg';
+
+  /// Sacchetta di monete da trascinare al negoziante per pagare.
+  static const String coinsPouch = 'v1795789354/main/shop/coinsPouch.svg';
 
   /// Spunta sulle carte scelte nel negozio (i compagni del carrello).
   static const String check = 'v1795778243/check_ijlk32.svg';
+  static const String comicBalloon = 'v1761422762/comic_balloon_grteoq.svg';
+  static const String pencil = 'v1761320846/pencil_wpysez.svg';
+  static const String rubber = 'v1761320949/rubber_bnonlz.svg';
 
   // ============== Menu ==============
   static const String map = 'v1757660699/map_tl5hyy.svg';

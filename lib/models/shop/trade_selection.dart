@@ -102,6 +102,34 @@ class TradeSelection extends Equatable {
   List<Object?> get props => [assets, pets];
 }
 
+/// Saldo del carrello: quanto vale la differenza tra vendita e acquisto e da
+/// che parte pende.
+class TradeBalance extends Equatable {
+  const TradeBalance({required this.total, required this.isTotalPositive});
+
+  factory TradeBalance.of({
+    required TradeSelection bought,
+    required TradeSelection sold,
+  }) {
+    final cost = bought.total(isBuy: true).toCopper();
+    final earning = sold.total(isBuy: false).toCopper();
+    return TradeBalance(
+      total: Coins.fromCopper((earning - cost).abs()),
+      isTotalPositive: earning > cost,
+    );
+  }
+
+  final Coins total;
+  final bool isTotalPositive;
+
+  /// Un saldo positivo non chiede monete (D-14).
+  bool isAffordableWith(Coins purse) =>
+      isTotalPositive || purse.canAfford(total);
+
+  @override
+  List<Object?> get props => [total, isTotalPositive];
+}
+
 /// Compagni acquistabili: il pool meno quelli già posseduti (D-08); nessun
 /// altro filtro (regola 4).
 List<Pet> purchasablePets(List<Pet> pool, List<Pet> owned) {

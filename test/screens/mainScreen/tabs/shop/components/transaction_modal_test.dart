@@ -9,6 +9,7 @@ import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
+import 'package:klimmeck_guide/shared/components/coins_display.dart';
 import 'package:klimmeck_guide/shared/components/companion_row.dart';
 
 import '../../../../../helpers/fixtures/shop_fixtures.dart';
@@ -53,17 +54,8 @@ Finder _companionIn(String dropdownKey) => find.descendant(
   matching: find.byType(CompanionRow),
 );
 
-Finder get _signatureLine => find.byWidgetPredicate(
-  (widget) => widget is GestureDetector && widget.child is Stack,
-);
-
-Finder get _redCross => find.byWidgetPredicate(
-  (widget) =>
-      widget is CustomPaint &&
-      widget.painter?.runtimeType.toString() == '_RedXPainter',
-);
-
-typedef _Confirmation = ({Coins total, bool isTotalPositive});
+Coins? _totalOf(WidgetTester tester) =>
+    tester.widget<CoinsDisplay>(find.byKey(TransactionModal.totalKey)).coins;
 
 typedef _Change = ({TradeSelection selection, bool isBuy});
 
@@ -81,7 +73,7 @@ void main() {
 
   final changes = <_Change>[];
 
-  Future<List<_Confirmation>> pumpTransaction(
+  Future<void> pumpTransaction(
     WidgetTester tester, {
     required Character character,
     TradeSelection toBuy = const TradeSelection(),
@@ -89,7 +81,6 @@ void main() {
     bool? isAdd,
     void Function(Pet pet, String? name)? onCompanionInfo,
   }) async {
-    final confirmations = <_Confirmation>[];
     changes.clear();
     useLandscapePhone(tester);
     await tester.pumpWidget(
@@ -101,10 +92,6 @@ void main() {
               child: TransactionModal(
                 toBuy: toBuy,
                 toSell: toSell,
-                onConfirm: (total, isTotalPositive) => confirmations.add((
-                  total: total,
-                  isTotalPositive: isTotalPositive,
-                )),
                 onChanged: (selection, isBuy) =>
                     changes.add((selection: selection, isBuy: isBuy)),
                 character: character,
@@ -118,7 +105,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    return confirmations;
   }
 
   Future<void> open(WidgetTester tester, String section) async {
@@ -126,45 +112,40 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> sign(WidgetTester tester) async {
-    await tester.ensureVisible(_signatureLine);
-    await tester.pumpAndSettle();
-    await tester.tap(_signatureLine);
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
-  }
+  testWidgets('the receipt asks for no signature', (tester) async {
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(gold: 2)),
+      toBuy: TradeSelection(assets: [_sword]),
+    );
 
-  testWidgets(
-    'a net-positive sale is signable with a wallet below the gain (D-14)',
-    (tester) async {
-      final confirmations = await pumpTransaction(
-        tester,
-        character: _characterWith(coinsJson(silver: 10)),
-        toSell: TradeSelection(assets: [_swordSoldFor(coinsJson(silver: 50))]),
-      );
+    expect(find.textContaining('Firma'), findsNothing);
+  });
 
-      expect(_redCross, findsNothing);
-      await sign(tester);
-
-      expect(confirmations, [
-        (total: const Coins(silver: 50), isTotalPositive: true),
-      ]);
-    },
-  );
-
-  testWidgets('a purchase above the wallet is refused with the red cross', (
+  testWidgets('a net-positive sale reads a gain under the lists (D-14)', (
     tester,
   ) async {
-    final confirmations = await pumpTransaction(
+    await pumpTransaction(
+      tester,
+      character: _characterWith(coinsJson(silver: 10)),
+      toSell: TradeSelection(assets: [_swordSoldFor(coinsJson(silver: 50))]),
+    );
+
+    expect(_totalOf(tester), const Coins(silver: 50));
+    expect(find.text('+'), findsOneWidget);
+  });
+
+  testWidgets('a purchase above the wallet still reads its cost', (
+    tester,
+  ) async {
+    await pumpTransaction(
       tester,
       character: _characterWith(coinsJson(silver: 10)),
       toBuy: TradeSelection(assets: [_sword]),
     );
 
-    expect(_redCross, findsOneWidget);
-    await sign(tester);
-
-    expect(confirmations, isEmpty);
+    expect(_totalOf(tester), const Coins(silver: 30));
+    expect(find.text('-'), findsOneWidget);
   });
 
   testWidgets('lists the companions to buy under Acquisto (D-07)', (
@@ -197,16 +178,13 @@ void main() {
   });
 
   testWidgets('includes companion prices in the total (D-07)', (tester) async {
-    final confirmations = await pumpTransaction(
+    await pumpTransaction(
       tester,
       character: _characterWith(coinsJson(gold: 2)),
       toBuy: TradeSelection(assets: [_sword], pets: [_horse]),
     );
-    await sign(tester);
 
-    expect(confirmations, [
-      (total: const Coins(gold: 1, silver: 30), isTotalPositive: false),
-    ]);
+    expect(_totalOf(tester), const Coins(gold: 1, silver: 30));
   });
 
   testWidgets('the rubber removes a companion from the selection (D-07)', (

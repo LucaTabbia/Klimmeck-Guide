@@ -133,14 +133,17 @@ void main() {
       },
     );
 
-    test('missing coins read «Non ti bastano le monete»', () {
-      expect(
-        shopkeeperRefusalLine(TransactionFailure.insufficientFunds),
-        'Non ti bastano le monete',
-      );
-    });
+    test(
+      'missing coins read «Vuoi truffarmi? Non hai soldi a sufficienza!»',
+      () {
+        expect(
+          shopkeeperRefusalLine(TransactionFailure.insufficientFunds),
+          'Vuoi truffarmi? Non hai soldi a sufficienza!',
+        );
+      },
+    );
 
-    test("every other refusal keeps today's generic line", () {
+    test('every other refusal reads the generic line', () {
       for (final failure in [
         TransactionFailure.totalMismatch,
         TransactionFailure.unknown,
@@ -152,7 +155,10 @@ void main() {
           reason: failure.name,
         );
       }
-      expect(genericRefusalLine, 'Hmmm... Qualcosa non mi torna. Riproviamo?');
+      expect(
+        genericRefusalLine,
+        'Qualcosa non mi torna... Fammi controllare di nuovo',
+      );
     });
   });
 }

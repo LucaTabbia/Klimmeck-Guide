@@ -28,7 +28,8 @@ KGNotification? transactionNoticeFor(
   _ => null,
 };
 
-const String genericRefusalLine = 'Hmmm... Qualcosa non mi torna. Riproviamo?';
+const String genericRefusalLine =
+    'Qualcosa non mi torna... Fammi controllare di nuovo';
 
 /// Riga del fumetto del negoziante per ogni rifiuto (D-05, D-06); null solo
 /// per i rifiuti fuori città e in prigione, che sono banner (Phase 9 D-16,
@@ -41,6 +42,7 @@ String? shopkeeperRefusalLine(TransactionFailure failure) => switch (failure) {
   TransactionFailure.itemNotInShop => 'Questa merce non la tratto',
   TransactionFailure.petAlreadyOwned => 'Hai già questo compagno',
   TransactionFailure.petNotOwned => 'Questo compagno non è più tuo',
-  TransactionFailure.insufficientFunds => 'Non ti bastano le monete',
+  TransactionFailure.insufficientFunds =>
+    'Vuoi truffarmi? Non hai soldi a sufficienza!',
   _ => genericRefusalLine,
 };

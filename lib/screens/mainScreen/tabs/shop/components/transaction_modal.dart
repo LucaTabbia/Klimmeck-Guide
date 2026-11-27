@@ -10,17 +10,15 @@ import 'package:klimmeck_guide/shared/components/companion_row.dart';
 import 'package:klimmeck_guide/shared/components/item_row.dart';
 import 'package:klimmeck_guide/theme/kg_theme.dart';
 
-import '../../../../../models/coins.dart';
 import '../../../../../models/enums/column_layout_type.dart';
-import '../../../../../shared/components/animated_pencil_text.dart';
 import '../../../../../shared/components/dropdown.dart';
+import '../../../../../shared/components/modal/paper_sheet_modal.dart';
 
 class TransactionModal extends StatefulWidget {
   const TransactionModal({
     super.key,
     required this.toBuy,
     required this.toSell,
-    required this.onConfirm,
     required this.onChanged,
     required this.character,
     this.isAdd,
@@ -30,7 +28,6 @@ class TransactionModal extends StatefulWidget {
 
   final TradeSelection toBuy;
   final TradeSelection toSell;
-  final void Function(Coins total, bool isTotalPositive) onConfirm;
   final void Function(TradeSelection selection, bool isBuy) onChanged;
   final Character character;
   final bool? isAdd;
@@ -39,16 +36,20 @@ class TransactionModal extends StatefulWidget {
   /// Tocco prolungato su un compagno del carrello: apre il dettaglio (D-35).
   final void Function(Pet pet, String? name)? onCompanionInfo;
 
+  static const Key totalKey = ValueKey('receipt_total');
+
   @override
   State<TransactionModal> createState() => _TransactionModalState();
 }
 
 class _TransactionModalState extends State<TransactionModal> {
-  static const double _reservedHeight = 180 + 110 + 43;
+  static const double _topMargin = 40;
+  static const double _totalRowHeight = 60;
+  static const double _reservedHeight =
+      _topMargin + PaperSheetModal.contentBottomMargin + _totalRowHeight + 43;
 
   bool isBuyOpen = false;
   bool isSellOpen = false;
-  bool _showSignature = false;
 
   late TradeSelection _toBuy;
   late TradeSelection _toSell;
@@ -67,16 +68,9 @@ class _TransactionModalState extends State<TransactionModal> {
   @override
   Widget build(BuildContext context) {
     final itemSize = (MediaQuery.of(context).size.width - 200) / 5;
-    final totalBuy = _toBuy.total(isBuy: true);
-    final totalSell = _toSell.total(isBuy: false);
-    final bool isPositive = totalSell > totalBuy;
-    final int diffCopper = (totalSell.toCopper() - totalBuy.toCopper()).abs();
-    final Coins total = Coins.fromCopper(diffCopper);
+    final balance = TradeBalance.of(bought: _toBuy, sold: _toSell);
+    final isPositive = balance.isTotalPositive;
     final String sign = isPositive ? "+" : "-";
-
-    /// Un saldo positivo non chiede monete: si firma sempre (D-14).
-    final canAfford =
-        isPositive || widget.character.status!.coins!.canAfford(total);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -85,7 +79,7 @@ class _TransactionModalState extends State<TransactionModal> {
             : constraints.maxHeight - _reservedHeight;
         return Column(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: _topMargin),
             Dropdown(
               key: const ValueKey('buy_dropdown'),
               sectionName: "Acquisto",
@@ -148,7 +142,8 @@ class _TransactionModalState extends State<TransactionModal> {
                           ),
                           Expanded(
                             child: CoinsDisplay(
-                              coins: total,
+                              key: TransactionModal.totalKey,
+                              coins: balance.total,
                               height: 50,
                               layout: CoinLayoutType.row,
                             ),
@@ -160,67 +155,7 @@ class _TransactionModalState extends State<TransactionModal> {
                 ),
               ),
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3,
-                  height: 50,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: AutoSizeText(
-                      "Firma dell'acquirente:",
-                      style: KlimmeckGuideTheme.instance.specialText,
-                    ),
-                  ),
-                ),
-                Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    if (canAfford && !_showSignature) {
-                      setState(() {
-                        _showSignature = !_showSignature;
-                      });
-                      Future.delayed(const Duration(milliseconds: 400), () {
-                        widget.onConfirm(total, isPositive);
-                      });
-                    }
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        height: 50,
-                        width: MediaQuery.of(context).size.width / 3,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: KlimmeckGuideTheme.darkBronze,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_showSignature)
-                        SizedBox(
-                          height: 50,
-                          width: MediaQuery.of(context).size.width / 3,
-                          child: AnimatedPencilText(
-                            key: ValueKey(
-                              "signature_${widget.character.infos!.name!}",
-                            ),
-                            text: widget.character.infos!.name!,
-                          ),
-                        ),
-                      if (!canAfford)
-                        Positioned.fill(
-                          child: CustomPaint(painter: _RedXPainter()),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 140),
+            const SizedBox(height: PaperSheetModal.contentBottomMargin),
           ],
         );
       },
@@ -305,20 +240,4 @@ class _TransactionModalState extends State<TransactionModal> {
     });
     widget.onChanged(selection, isBuy);
   }
-}
-
-class _RedXPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.redAccent
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(Offset(0, 0), Offset(size.width, size.height), paint);
-    canvas.drawLine(Offset(size.width, 0), Offset(0, size.height), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
