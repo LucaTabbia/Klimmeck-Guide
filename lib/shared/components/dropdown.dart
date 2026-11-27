@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/modal/paper_sheet_modal.dart';
 
 import '../../theme/kg_theme.dart';
 
@@ -108,6 +109,7 @@ class Dropdown extends StatefulWidget {
     this.onToggle,
     this.maxHeight,
     this.badge,
+    this.pinned,
   });
 
   final String sectionName;
@@ -118,6 +120,18 @@ class Dropdown extends StatefulWidget {
 
   /// Segnale accanto al nome: la sezione contiene una novità.
   final Widget? badge;
+
+  /// Riga fissa sotto la testata (per esempio i filtri): resta ferma mentre
+  /// il contenuto scorre.
+  final Widget? pinned;
+
+  /// Rientro del contenuto sotto la testata: chi sta fuori dalla tendina lo
+  /// usa per allinearsi.
+  static const EdgeInsets contentPadding = EdgeInsets.only(
+    left: 10,
+    top: 10,
+    bottom: 10,
+  );
 
   @override
   State<Dropdown> createState() => _DropdownState();
@@ -176,30 +190,66 @@ class _DropdownState extends State<Dropdown>
             badge: widget.badge,
           ),
         ),
-        widget.maxHeight != null
-            ? AnimatedContainer(
-                height: _isOpen ? widget.maxHeight! - 43 : 0,
-                duration: const Duration(milliseconds: 250),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
-                  child: SingleChildScrollView(child: widget.data),
-                ),
-              )
-            : ClipRect(
-                child: SizeTransition(
-                  sizeFactor: _sizeFactor,
-                  axisAlignment: -1,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 10,
-                      top: 10,
-                      bottom: 10,
-                    ),
-                    child: widget.data,
-                  ),
-                ),
-              ),
+        if (widget.maxHeight case final maxHeight?)
+          _buildScrollingContent(maxHeight)
+        else
+          ClipRect(
+            child: SizeTransition(
+              sizeFactor: _sizeFactor,
+              axisAlignment: -1,
+              child: _buildContent(),
+            ),
+          ),
       ],
+    );
+  }
+
+  static const double _headerHeight = 43;
+
+  Widget _buildContent() {
+    final pinned = widget.pinned;
+    return Padding(
+      padding: Dropdown.contentPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [?pinned, widget.data],
+      ),
+    );
+  }
+
+  /// La riga fissa resta sotto la testata; solo il contenuto scorre, fino
+  /// alla riga. Aprendosi e richiudendosi il contenuto resta alla sua altezza
+  /// piena e viene ritagliato: niente sbordi a metà animazione.
+  Widget _buildScrollingContent(double maxHeight) {
+    final pinned = widget.pinned;
+    final height = maxHeight - _headerHeight;
+    return AnimatedContainer(
+      height: _isOpen ? height : 0,
+      duration: const Duration(milliseconds: 250),
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        minHeight: height,
+        maxHeight: height,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (pinned != null)
+              Padding(
+                padding: EdgeInsets.only(left: Dropdown.contentPadding.left),
+                child: pinned,
+              ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: PaperSheetScope.listPhysicsOf(context),
+                padding: Dropdown.contentPadding,
+                child: widget.data,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

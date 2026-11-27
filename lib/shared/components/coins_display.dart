@@ -7,6 +7,7 @@ import 'package:klimmeck_guide/theme/kg_theme.dart';
 
 import '../../models/enums/column_layout_type.dart';
 
+/// Prezzo o somma in monete: mostra solo i tagli che contiene.
 class CoinsDisplay extends StatelessWidget {
   const CoinsDisplay({
     super.key,
@@ -78,33 +79,18 @@ class CoinsDisplay extends StatelessWidget {
     final double iconSize = isRowLayout ? height : (height / 3) - 5;
 
     final List<Widget> coinItems = [
-      _buildCoinItem(
-        context,
-        coins?.gold.toString() ?? "0",
-        CloudinaryAssets.url(CloudinaryAssets.goldCoin),
-        iconSize,
-        color,
-        isRowLayout,
-      ),
-      _buildCoinItem(
-        context,
-        coins?.silver.toString() ?? "0",
-        CloudinaryAssets.url(CloudinaryAssets.silverCoin),
-        iconSize,
-        color,
-        isRowLayout,
-      ),
-      _buildCoinItem(
-        context,
-        coins?.copper.toString() ?? "0",
-        CloudinaryAssets.url(CloudinaryAssets.copperCoin),
-        iconSize,
-        color,
-        isRowLayout,
-      ),
+      for (final (count, asset) in shownCoinsOf(coins))
+        _buildCoinItem(
+          context,
+          count.toString(),
+          CloudinaryAssets.url(asset),
+          iconSize,
+          color,
+          isRowLayout,
+        ),
     ];
 
-    if (isRowLayout) {  
+    if (isRowLayout) {
       return SizedBox(
         height: height,
         child: Row(
@@ -126,4 +112,18 @@ class CoinsDisplay extends StatelessWidget {
       );
     }
   }
+}
+
+/// Tagli da mostrare per [coins], con l'asset di ciascuno: solo quelli
+/// presenti; nessuna moneta legge un solo rame a zero.
+List<(int, String)> shownCoinsOf(Coins? coins) {
+  final shown = [
+    if (coins?.gold case final gold? when gold > 0)
+      (gold, CloudinaryAssets.goldCoin),
+    if (coins?.silver case final silver? when silver > 0)
+      (silver, CloudinaryAssets.silverCoin),
+    if (coins?.copper case final copper? when copper > 0)
+      (copper, CloudinaryAssets.copperCoin),
+  ];
+  return shown.isEmpty ? [(0, CloudinaryAssets.copperCoin)] : shown;
 }

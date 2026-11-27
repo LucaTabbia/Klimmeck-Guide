@@ -6,8 +6,10 @@ import 'package:klimmeck_guide/screens/innkeeper/innkeeper_access.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/accountDeletionCubit/account_deletion_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/account_deletion_messages.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/character_deletion_messages.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/half_width_button.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/components/settings_section.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/settings/deletionCubit/character_deletion_cubit.dart';
+import 'package:klimmeck_guide/shared/components/dropdown.dart';
 import 'package:klimmeck_guide/shared/components/modal/delete_account_confirmation_dialog.dart';
 import 'package:klimmeck_guide/shared/components/modal/delete_character_confirmation_dialog.dart';
 import 'package:klimmeck_guide/shared/components/modal/logout_confirmation_dialog.dart';
@@ -62,13 +64,18 @@ class _AccountSectionState extends State<AccountSection> {
           ),
         ),
         const SizedBox(height: KlimmeckGuideTheme.spacingLg),
-        ElevatedButton(
-          style: KlimmeckGuideTheme.destructiveButtonStyle,
-          onPressed: isLocked ? null : _logOut,
-          child: Text(
-            'Esci',
-            style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
-              color: KlimmeckGuideTheme.parchment,
+        Padding(
+          padding: EdgeInsets.only(left: Dropdown.contentPadding.left),
+          child: HalfWidthButton(
+            child: ElevatedButton(
+              style: KlimmeckGuideTheme.destructiveButtonStyle,
+              onPressed: isLocked ? null : _logOut,
+              child: Text(
+                'Esci',
+                style: KlimmeckGuideTheme.instance.bodyMedium.copyWith(
+                  color: KlimmeckGuideTheme.parchment,
+                ),
+              ),
             ),
           ),
         ),
@@ -153,7 +160,9 @@ class _DestructiveOutlinedButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(
+  Widget build(BuildContext context) => HalfWidthButton(child: _buildButton());
+
+  Widget _buildButton() => OutlinedButton(
     style: KlimmeckGuideTheme.destructiveOutlinedButtonStyle,
     onPressed: isBusy ? null : onPressed,
     child: isBusy

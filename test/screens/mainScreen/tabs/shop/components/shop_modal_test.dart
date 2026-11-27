@@ -4,6 +4,7 @@ import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
 import 'package:klimmeck_guide/models/enums/effect_type.dart';
 import 'package:klimmeck_guide/models/enums/equip_type.dart';
+import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/pet.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
@@ -57,6 +58,10 @@ final _worg = Pet.fromJson(
   petJson(id: 'pet-worg', name: 'Worg', speedModifier: null),
 );
 
+/// Altezza del foglio vero: la pergamena di `PaperSheetModal` mostra il 92%
+/// della larghezza dello schermo (780 px logici).
+const double _sheetHeight = 780 * 0.92;
+
 typedef _InfoRequest = ({Pet pet, String? name});
 
 const _companions = ValueKey('companions_dropdown');
@@ -65,8 +70,8 @@ Finder _companionRow(Pet pet) => find.byKey(ValueKey('shop-pet-${pet.id}'));
 
 Finder _filterOf<T>() => find.byType(ItemsFilter<T>);
 
-T? _currentOf<T>(WidgetTester tester) =>
-    tester.widget<ItemsFilter<T>>(_filterOf<T>()).current;
+Set<T> _selectedOf<T>(WidgetTester tester) =>
+    tester.widget<ItemsFilter<T>>(_filterOf<T>()).selected;
 
 Finder _chip<T>(String imagePath) => find.descendant(
   of: _filterOf<T>(),
@@ -98,6 +103,7 @@ void main() {
     bool isBuy = true,
     bool? isAdd,
     String? equippedPetId,
+    Equipment? wornEquipment,
     Map<String, String> petNames = const {},
     void Function(Pet pet, String? name)? onCompanionInfo,
     void Function(TradeSelection)? onSelect,
@@ -106,18 +112,24 @@ void main() {
     await tester.pumpWidget(
       buildTestApp(
         home: Scaffold(
-          body: ShopModal(
-            equipments: equipments,
-            items: items,
-            pets: pets,
-            selection: const TradeSelection(),
-            onSelect: onSelect ?? (TradeSelection _) {},
-            isBuy: isBuy,
-            isAdd: isAdd,
-            onEquipmentInfo: (_) {},
-            equippedPetId: equippedPetId,
-            petNames: petNames,
-            onCompanionInfo: onCompanionInfo,
+          body: SingleChildScrollView(
+            child: SizedBox(
+              height: _sheetHeight,
+              child: ShopModal(
+                equipments: equipments,
+                items: items,
+                pets: pets,
+                selection: const TradeSelection(),
+                onSelect: onSelect ?? (TradeSelection _) {},
+                isBuy: isBuy,
+                isAdd: isAdd,
+                onEquipmentInfo: (_) {},
+                equippedPetId: equippedPetId,
+                wornEquipment: wornEquipment,
+                petNames: petNames,
+                onCompanionInfo: onCompanionInfo,
+              ),
+            ),
           ),
         ),
       ),
@@ -233,40 +245,57 @@ void main() {
     },
   );
 
-  testWidgets('a vanished effect falls back to «Tutti» for good (WR-02)', (
+  testWidgets('a vanished effect leaves the filters for good (WR-02)', (
     tester,
   ) async {
     await pumpShop(tester, items: [_potion, _bread]);
     await tapAndSettle(tester, find.text('Oggetti'));
     await tapAndSettle(tester, _chip<EffectType>(EffectType.hunger.imagePath));
-    expect(_currentOf<EffectType>(tester), EffectType.hunger);
+    expect(_selectedOf<EffectType>(tester), {EffectType.hunger});
 
     await pumpShop(tester, items: [_potion]);
 
-    expect(_currentOf<EffectType>(tester), isNull);
+    expect(_selectedOf<EffectType>(tester), isEmpty);
 
     await pumpShop(tester, items: [_potion, _bread]);
 
-    expect(_currentOf<EffectType>(tester), isNull);
+    expect(_selectedOf<EffectType>(tester), isEmpty);
     expect(find.text('Oggetto l-heal'), findsOneWidget);
     expect(find.text('Oggetto l-food'), findsOneWidget);
   });
 
-  testWidgets('a vanished equip type falls back to «Tutti» for good (WR-02)', (
+  testWidgets('a vanished equip type leaves the filters for good (WR-02)', (
     tester,
   ) async {
     await pumpShop(tester, equipments: [_helm, _boots]);
     await tapAndSettle(tester, find.text('Armatura'));
     await tapAndSettle(tester, _chip<EquipType>(EquipType.boots.imagePath));
-    expect(_currentOf<EquipType>(tester), EquipType.boots);
+    expect(_selectedOf<EquipType>(tester), {EquipType.boots});
 
     await pumpShop(tester, equipments: [_helm]);
 
-    expect(_currentOf<EquipType>(tester), isNull);
+    expect(_selectedOf<EquipType>(tester), isEmpty);
 
     await pumpShop(tester, equipments: [_helm, _boots]);
 
-    expect(_currentOf<EquipType>(tester), isNull);
+    expect(_selectedOf<EquipType>(tester), isEmpty);
+    expect(find.text('Equipaggiamento e-helm'), findsOneWidget);
+    expect(find.text('Equipaggiamento e-boots'), findsOneWidget);
+  });
+
+  testWidgets('with no chip lit every equipment shows, each chip adds its '
+      'type (D-23)', (tester) async {
+    await pumpShop(tester, equipments: [_helm, _boots]);
+    await tapAndSettle(tester, find.text('Armatura'));
+    expect(find.text('Tutti'), findsNothing);
+    expect(find.text('Equipaggiamento e-helm'), findsOneWidget);
+    expect(find.text('Equipaggiamento e-boots'), findsOneWidget);
+
+    await tapAndSettle(tester, _chip<EquipType>(EquipType.boots.imagePath));
+    expect(find.text('Equipaggiamento e-helm'), findsNothing);
+    expect(find.text('Equipaggiamento e-boots'), findsOneWidget);
+
+    await tapAndSettle(tester, _chip<EquipType>(EquipType.helm.imagePath));
     expect(find.text('Equipaggiamento e-helm'), findsOneWidget);
     expect(find.text('Equipaggiamento e-boots'), findsOneWidget);
   });
@@ -302,6 +331,34 @@ void main() {
     await pumpShop(tester, items: [_potion]);
 
     expect(find.byKey(_companions), findsNothing);
+  });
+
+  testWidgets('the sell sheet marks the worn equipment with the red bookmark', (
+    tester,
+  ) async {
+    await pumpShop(
+      tester,
+      equipments: [_helm, _boots],
+      isBuy: false,
+      wornEquipment: Equipment(
+        head: _helm.item!.asEquipment,
+        chest: null,
+        arms: null,
+        legs: null,
+        feet: null,
+        leftHand: null,
+        rightHand: null,
+        firstAccessory: null,
+        secondAccessory: null,
+      ),
+    );
+    await tapAndSettle(tester, find.text('Armatura'));
+
+    ItemRow rowOf(String id) => tester
+        .widgetList<ItemRow>(find.byType(ItemRow))
+        .firstWhere((row) => row.assetItem.id == id);
+    expect(rowOf('e-helm').isSelected, isTrue);
+    expect(rowOf('e-boots').isSelected, isNull);
   });
 
   testWidgets('the sell sheet marks the equipped companion (D-07)', (

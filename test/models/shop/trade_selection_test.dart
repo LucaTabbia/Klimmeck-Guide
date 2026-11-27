@@ -44,6 +44,64 @@ void main() {
     });
   });
 
+  group('TradeBalance', () {
+    final buySword = const TradeSelection().withAssets([_sword]);
+    final sellHorse = const TradeSelection().addPet(_horse);
+
+    test('buying only costs the buy total', () {
+      final balance = TradeBalance.of(
+        bought: buySword,
+        sold: const TradeSelection(),
+      );
+
+      expect(balance.total.toCopper(), buySword.total(isBuy: true).toCopper());
+      expect(balance.isTotalPositive, isFalse);
+    });
+
+    test('selling only earns the sell total', () {
+      final balance = TradeBalance.of(
+        bought: const TradeSelection(),
+        sold: sellHorse,
+      );
+
+      expect(
+        balance.total.toCopper(),
+        sellHorse.total(isBuy: false).toCopper(),
+      );
+      expect(balance.isTotalPositive, isTrue);
+    });
+
+    test('the total is the gap between the two sides', () {
+      final balance = TradeBalance.of(bought: buySword, sold: sellHorse);
+      final gap =
+          buySword.total(isBuy: true).toCopper() -
+          sellHorse.total(isBuy: false).toCopper();
+
+      expect(balance.total.toCopper(), gap.abs());
+      expect(balance.isTotalPositive, gap < 0);
+    });
+
+    test('a purse pays a cost it covers and nothing more', () {
+      final balance = TradeBalance.of(
+        bought: buySword,
+        sold: const TradeSelection(),
+      );
+      final cost = balance.total.toCopper();
+
+      expect(balance.isAffordableWith(Coins.fromCopper(cost)), isTrue);
+      expect(balance.isAffordableWith(Coins.fromCopper(cost - 1)), isFalse);
+    });
+
+    test('a positive balance never asks for coins (D-14)', () {
+      final balance = TradeBalance.of(
+        bought: const TradeSelection(),
+        sold: sellHorse,
+      );
+
+      expect(balance.isAffordableWith(const Coins()), isTrue);
+    });
+  });
+
   group('pets and assets', () {
     test('addPet adds a pet once (quantity is always 1, D-15)', () {
       final selection = const TradeSelection().addPet(_horse).addPet(_horse);

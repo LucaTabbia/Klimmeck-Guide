@@ -88,12 +88,13 @@ class EquipmentItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (quantity != null && quantity! > 0)
-              Positioned(
-                right: 7,
-                top: 5,
-                child: UsagesPencilCounter(value: quantity!),
+            Positioned(
+              right: 0,
+              top: 5,
+              child: UsagesPencilCounter(
+                value: (quantity ?? 0) > 0 ? quantity : null,
               ),
+            ),
             if (isSelected case final marked?)
               CardBookmark(isMarked: marked, cardSize: size),
           ],

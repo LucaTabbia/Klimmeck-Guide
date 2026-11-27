@@ -65,26 +65,47 @@ void main() {
     });
   });
 
-  group('retainedFilterSelection', () {
-    test('a present selection survives', () {
+  group('retainedFilterSelections', () {
+    test('the present types of the selection survive', () {
       expect(
-        retainedFilterSelection(UseType.attack, [
-          UseType.attack,
-          UseType.defense,
-        ]),
+        retainedFilterSelections(
+          {UseType.attack, UseType.control},
+          [UseType.attack, UseType.defense],
+        ),
+        {UseType.attack},
+      );
+    });
+
+    test('an empty selection stays empty: every row shows', () {
+      expect(retainedFilterSelections(<UseType>{}, [UseType.attack]), isEmpty);
+    });
+  });
+
+  group('matchesFilterSelection', () {
+    test('an empty selection lets every value through, even untyped ones', () {
+      expect(matchesFilterSelection(<UseType>{}, UseType.attack), isTrue);
+      expect(matchesFilterSelection(<UseType>{}, null), isTrue);
+    });
+
+    test('a selection lets through only its types', () {
+      const selected = {UseType.attack, UseType.defense};
+
+      expect(matchesFilterSelection(selected, UseType.defense), isTrue);
+      expect(matchesFilterSelection(selected, UseType.control), isFalse);
+      expect(matchesFilterSelection(selected, null), isFalse);
+    });
+  });
+
+  group('toggledFilterSelection', () {
+    test('a type not selected joins the selection', () {
+      expect(toggledFilterSelection({UseType.attack}, UseType.defense), {
         UseType.attack,
-      );
+        UseType.defense,
+      });
     });
 
-    test('a vanished selection falls back to «Tutti»', () {
-      expect(
-        retainedFilterSelection(UseType.control, [UseType.attack]),
-        isNull,
-      );
-    });
-
-    test('«Tutti» stays «Tutti»', () {
-      expect(retainedFilterSelection<UseType>(null, [UseType.attack]), isNull);
+    test('a selected type leaves the selection', () {
+      expect(toggledFilterSelection({UseType.attack}, UseType.attack), isEmpty);
     });
   });
 

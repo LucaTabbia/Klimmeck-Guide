@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/enums/rarity_type.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/cards/card_label.dart';
 import 'package:klimmeck_guide/shared/components/cards/companion_card.dart';
 import 'package:klimmeck_guide/shared/components/coins_display.dart';
@@ -45,9 +46,84 @@ void main() {
       CloudinaryAssets.silverCoin,
       CloudinaryAssets.copperCoin,
       CloudinaryAssets.emptyCardSheet,
+      CloudinaryAssets.check,
       _horseImage,
     ]),
   );
+
+  Finder checkMark() => find.byWidgetPredicate(
+    (widget) =>
+        widget is CachedSvg &&
+        widget.url == CloudinaryAssets.url(CloudinaryAssets.check),
+  );
+
+  testWidgets(
+    'a selected companion wears the check at the top right of its card, '
+    'never a gold background',
+    (tester) async {
+      await _pump(
+        tester,
+        CompanionRow(pet: _horse, size: _rowSize, isSelected: true),
+      );
+
+      expect(checkMark(), findsOneWidget);
+      final card = tester.getRect(find.byType(CompanionCard));
+      final check = tester.getRect(checkMark());
+      expect(check.center.dx, greaterThan(card.center.dx));
+      expect(check.center.dy, lessThan(card.center.dy));
+      expect(check.width, greaterThanOrEqualTo(_rowSize * 0.4));
+      expect(
+        tester
+            .widgetList<Container>(find.byType(Container))
+            .where(
+              (box) =>
+                  box.color == KlimmeckGuideTheme.primaryGold.withAlpha(100),
+            ),
+        isEmpty,
+      );
+    },
+  );
+
+  testWidgets('the coins sit as far from the card as in the item rows', (
+    tester,
+  ) async {
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+
+    expect(
+      tester.getTopLeft(find.byType(CoinsDisplay)).dx -
+          tester.getTopRight(find.byType(CompanionCard)).dx,
+      8,
+    );
+  });
+
+  testWidgets('an unselected companion shows no check', (tester) async {
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+
+    expect(checkMark(), findsNothing);
+  });
+
+  testWidgets('an equipped companion carries the red bookmark on its card', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      CompanionRow(pet: _horse, size: _rowSize, isEquipped: true),
+    );
+
+    expect(
+      tester.widget<CompanionCard>(find.byType(CompanionCard)).isMarked,
+      isTrue,
+    );
+  });
+
+  testWidgets('a companion not equipped carries no bookmark', (tester) async {
+    await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));
+
+    expect(
+      tester.widget<CompanionCard>(find.byType(CompanionCard)).isMarked,
+      isNull,
+    );
+  });
 
   testWidgets('shows the name and the buy price (D-07)', (tester) async {
     await _pump(tester, CompanionRow(pet: _horse, size: _rowSize));

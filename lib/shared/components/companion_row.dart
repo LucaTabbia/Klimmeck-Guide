@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:klimmeck_guide/shared/components/written_check.dart';
 
 import '../../models/pet.dart';
 import '../../theme/kg_theme.dart';
@@ -36,24 +37,26 @@ class CompanionRow extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
+  static const double _checkShare = 0.4;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       onLongPress: companionDetailsGesture(pet, onLongPress),
-      child: Container(
-        color: isSelected
-            ? KlimmeckGuideTheme.primaryGold.withAlpha(100)
-            : null,
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
         child: Row(
           children: [
-            CompanionCard(pet: pet, size: size, name: name),
+            _buildCard(),
             if (showCoins)
-              CoinsDisplay(
-                coins: isBuy ? pet.buyPrice : pet.sellPrice,
-                height: size,
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: CoinsDisplay(
+                  coins: isBuy ? pet.buyPrice : pet.sellPrice,
+                  height: size,
+                ),
               ),
             Expanded(
               child: Padding(
@@ -64,6 +67,30 @@ class CompanionRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// Il segnalibro rosso del Diario segna il compagno al fianco; la spunta,
+  /// grande e sopra a tutto nell'angolo in alto a destra, quello scelto.
+  Widget _buildCard() {
+    final checkSide = size * _checkShare;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CompanionCard(
+          pet: pet,
+          size: size,
+          name: name,
+          isMarked: isEquipped ? true : null,
+        ),
+        Positioned(
+          right: -checkSide * 0.2,
+          top: -checkSide * 0.2,
+          child: IgnorePointer(
+            child: WrittenCheck(isShown: isSelected, side: checkSide),
+          ),
+        ),
+      ],
     );
   }
 

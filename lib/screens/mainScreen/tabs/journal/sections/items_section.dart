@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -81,7 +82,7 @@ class _ItemsSectionBody extends StatefulWidget {
 
 class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
   /// Selezione dei chip: stato di vista locale, mai persistito né inviato (D-22).
-  EffectType? _selectedEffect;
+  Set<EffectType> _selectedEffects = const {};
 
   @override
   void initState() {
@@ -103,14 +104,16 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
     _dropVanishedEffectFilter(state);
   }
 
-  /// Un effetto sparito dagli oggetti riporta i chip a «Tutti» (D-23).
+  /// Un effetto sparito dagli oggetti esce dai filtri (D-23).
   void _dropVanishedEffectFilter(CharacterState state) {
     if (state is! CharacterLoaded) return;
-    final retained = retainedFilterSelection(
-      _selectedEffect,
+    final retained = retainedFilterSelections(
+      _selectedEffects,
       presentEffectTypes(_ownedItemsOf(state.character)),
     );
-    if (retained != _selectedEffect) setState(() => _selectedEffect = retained);
+    if (!setEquals(retained, _selectedEffects)) {
+      setState(() => _selectedEffects = retained);
+    }
   }
 
   @override
@@ -135,28 +138,29 @@ class _ItemsSectionBodyState extends State<_ItemsSectionBody> {
   Widget _buildSection(Character character, Set<String> newItemIds) {
     final ownedItems = _ownedItemsOf(character);
     final effectTypes = presentEffectTypes(ownedItems);
-    final selectedEffect = retainedFilterSelection(
-      _selectedEffect,
+    final selectedEffects = retainedFilterSelections(
+      _selectedEffects,
       effectTypes,
     );
-    final shownItems = selectedEffect == null
-        ? ownedItems
-        : ownedItems.where(
-            (owned) => owned.item?.asLoot?.effect == selectedEffect,
-          );
+    final shownItems = ownedItems.where(
+      (owned) =>
+          matchesFilterSelection(selectedEffects, owned.item?.asLoot?.effect),
+    );
     return Dropdown(
       sectionName: 'Oggetti',
       badge: newItemIds.isEmpty ? null : const NewEntrySigil(),
+      pinned: effectTypes.isEmpty
+          ? null
+          : ItemsFilter<EffectType>(
+              values: effectTypes,
+              selected: selectedEffects,
+              onChanged: (selected) =>
+                  setState(() => _selectedEffects = selected),
+              getImage: (effect) => effect.imagePath,
+            ),
       data: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (effectTypes.isNotEmpty)
-            ItemsFilter<EffectType>(
-              values: effectTypes,
-              current: selectedEffect,
-              onTap: (effect) => setState(() => _selectedEffect = effect),
-              getImage: (effect) => effect.imagePath,
-            ),
           BlocBuilder<CompanionVitalityCubit, CompanionVitalityState>(
             builder: (context, vitalities) =>
                 BlocBuilder<PotionRecoveryCubit, PotionRecoveryState>(

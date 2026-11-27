@@ -30,8 +30,14 @@ void main() {
   Matcher errorWith(TransactionFailure failure) => isA<TransactionError>()
       .having((state) => state.failure, 'failure', failure);
 
-  TransactionCubit buildCubit({Duration resetDelay = Duration.zero}) =>
-      TransactionCubit(graphQl, resetDelay: resetDelay);
+  TransactionCubit buildCubit({
+    Duration resetDelay = Duration.zero,
+    Duration minimumLoading = Duration.zero,
+  }) => TransactionCubit(
+    graphQl,
+    resetDelay: resetDelay,
+    minimumLoading: minimumLoading,
+  );
 
   setUp(() {
     graphQl = MockKlimmeckGraphQl();
@@ -44,6 +50,108 @@ void main() {
     expect(cubit.resetDelay, const Duration(seconds: 4));
     cubit.close();
   });
+
+  test('the shopkeeper counts the coins for at least two seconds', () {
+    final cubit = TransactionCubit(graphQl);
+
+    expect(cubit.minimumLoading, const Duration(seconds: 2));
+    cubit.close();
+  });
+
+  group('minimum loading', () {
+    TransactionState stateAfter(
+      FakeAsync async,
+      TransactionCubit cubit,
+      Duration elapsed,
+    ) {
+      async.elapse(elapsed);
+      return cubit.state;
+    }
+
+    test('a quick success stays Loading until the minimum has passed', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.doTransaction(request),
+        ).thenAnswer((_) async => 'ok');
+        final cubit = buildCubit(
+          resetDelay: const Duration(seconds: 4),
+          minimumLoading: const Duration(seconds: 2),
+        );
+
+        cubit.doTransaction(request);
+
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 1999)),
+          isA<TransactionLoading>(),
+        );
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 1)),
+          isA<TransactionDone>(),
+        );
+        cubit.close();
+      });
+    });
+
+    test('a quick refusal stays Loading until the minimum has passed', () {
+      fakeAsync((async) {
+        when(
+          () => graphQl.doTransaction(request),
+        ).thenThrow(codedException('ITEM_NOT_IN_SHOP'));
+        final cubit = buildCubit(
+          resetDelay: const Duration(seconds: 4),
+          minimumLoading: const Duration(seconds: 2),
+        );
+
+        cubit.doTransaction(request);
+
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 1999)),
+          isA<TransactionLoading>(),
+        );
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 1)),
+          errorWith(TransactionFailure.itemNotInShop),
+        );
+        cubit.close();
+      });
+    });
+
+    test('a slow reply is not delayed further', () {
+      fakeAsync((async) {
+        when(() => graphQl.doTransaction(request)).thenAnswer(
+          (_) => Future.delayed(const Duration(seconds: 3), () => 'ok'),
+        );
+        final cubit = buildCubit(
+          resetDelay: const Duration(seconds: 4),
+          minimumLoading: const Duration(seconds: 2),
+        );
+
+        cubit.doTransaction(request);
+
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 2999)),
+          isA<TransactionLoading>(),
+        );
+        expect(
+          stateAfter(async, cubit, const Duration(milliseconds: 1)),
+          isA<TransactionDone>(),
+        );
+        cubit.close();
+      });
+    });
+  });
+
+  blocTest<TransactionCubit, TransactionState>(
+    'a purse too light is refused without asking the server',
+    build: buildCubit,
+    act: (cubit) => cubit.refuseInsufficientFunds(),
+    wait: const Duration(milliseconds: 1),
+    expect: () => [
+      errorWith(TransactionFailure.insufficientFunds),
+      isA<TransactionInitial>(),
+    ],
+    verify: (_) => verifyZeroInteractions(graphQl),
+  );
 
   blocTest<TransactionCubit, TransactionState>(
     'emits [Loading, Done, Initial] when the transaction succeeds',
@@ -151,7 +259,7 @@ void main() {
       final cubit = buildCubit(resetDelay: const Duration(seconds: 4));
 
       cubit.doTransaction(request);
-      async.flushMicrotasks();
+      async.elapse(Duration.zero);
       expect(async.pendingTimers, hasLength(1));
 
       cubit.close();

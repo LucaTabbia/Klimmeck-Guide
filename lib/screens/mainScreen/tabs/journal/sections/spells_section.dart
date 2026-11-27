@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -84,7 +85,7 @@ class _SpellsSectionBody extends StatefulWidget {
 
 class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
   /// Selezione dei chip: stato di vista locale, mai persistito né inviato (D-22).
-  UseType? _useTypeFilter;
+  Set<UseType> _useTypeFilter = const {};
 
   @override
   void initState() {
@@ -106,17 +107,19 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
     if (state is CharacterLoaded) _dropVanishedUseTypeFilter(state.character);
   }
 
-  void _selectUseType(UseType? useType) =>
-      setState(() => _useTypeFilter = useType);
+  void _selectUseTypes(Set<UseType> useTypes) =>
+      setState(() => _useTypeFilter = useTypes);
 
-  /// Un tipo sparito dalle magie conosciute riporta i chip a «Tutti» (D-23).
+  /// Un tipo sparito dalle magie conosciute esce dai filtri (D-23).
   void _dropVanishedUseTypeFilter(Character character) {
     final useTypes = presentFilterValues(
       UseType.values,
       Spellbook.of(character).entries.map((entry) => entry.spell.useType),
     );
-    final retained = retainedFilterSelection(_useTypeFilter, useTypes);
-    if (retained != _useTypeFilter) setState(() => _useTypeFilter = retained);
+    final retained = retainedFilterSelections(_useTypeFilter, useTypes);
+    if (!setEquals(retained, _useTypeFilter)) {
+      setState(() => _useTypeFilter = retained);
+    }
   }
 
   @override
@@ -168,7 +171,7 @@ class _SpellsSectionBodyState extends State<_SpellsSectionBody> {
             ? null
             : (spellId: outcome.spellId, sequence: outcome.sequence),
         useTypeFilter: _useTypeFilter,
-        onUseTypeFilterChanged: _selectUseType,
+        onUseTypeFilterChanged: _selectUseTypes,
         newSpellIds: newSpellIds,
       ),
     );

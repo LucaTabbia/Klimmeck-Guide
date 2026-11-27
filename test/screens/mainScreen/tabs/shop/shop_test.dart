@@ -11,15 +11,19 @@ import 'package:klimmeck_guide/models/city.dart';
 import 'package:klimmeck_guide/models/city_shop.dart';
 import 'package:klimmeck_guide/models/coins.dart';
 import 'package:klimmeck_guide/models/pet.dart';
+import 'package:klimmeck_guide/models/request/transaction_request.dart';
 import 'package:klimmeck_guide/models/shop/trade_selection.dart';
 import 'package:klimmeck_guide/repository/cache/svg_cache.dart';
 import 'package:klimmeck_guide/screens/mainScreen/characterCubit/character_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/journal/companionNameCubit/companion_name_cubit.dart';
+import 'package:klimmeck_guide/repository/transaction_failure.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/coins_pouch.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/edit_pencil_rubber.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/shop_modal.dart';
-import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/components/transaction_modal.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shop.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/shopCubit/shop_cubit.dart';
 import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/transactionCubit/transaction_cubit.dart';
+import 'package:klimmeck_guide/screens/mainScreen/tabs/shop/utils/shopkeeper_mood.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
 import 'package:klimmeck_guide/shared/components/popup/companion_name_sheet.dart';
 import 'package:mocktail/mocktail.dart';
@@ -105,6 +109,19 @@ Finder _cell(String asset) => find.byWidgetPredicate(
   (widget) => widget is CachedSvg && widget.url == '$_cloudinary$asset',
 );
 
+Finder _sceneOf(ShopkeeperMood mood) => find.byWidgetPredicate(
+  (widget) =>
+      widget is Image &&
+      widget.image is AssetImage &&
+      (widget.image as AssetImage).assetName == mood.background,
+);
+
+void _deliverPouch(WidgetTester tester) =>
+    tester.widget<CoinsPouch>(find.byType(CoinsPouch)).onDelivered!();
+
+CoinsPouch _pouchOf(WidgetTester tester) =>
+    tester.widget<CoinsPouch>(find.byType(CoinsPouch));
+
 /// Le celle del negozio usano URL completi: senza cache `CachedSvg` va in rete.
 void _seedShopCells() {
   final svg =
@@ -115,8 +132,8 @@ void _seedShopCells() {
   for (final asset in [
     CloudinaryAssets.buy,
     CloudinaryAssets.sell,
-    CloudinaryAssets.emptySatchel,
-    CloudinaryAssets.completeTransaction,
+    CloudinaryAssets.receipt,
+    CloudinaryAssets.coinsPouch,
   ]) {
     SvgCache().add('$_cloudinary$asset', svg);
   }
@@ -280,7 +297,7 @@ void main() {
   });
 
   group('selection against the owned pets (WR-02)', () {
-    Finder completeCell() => _cell(CloudinaryAssets.completeTransaction);
+    Finder completeCell() => _cell(CloudinaryAssets.receipt);
 
     Future<void> selectPet(WidgetTester tester, {required String cell}) async {
       await tapAndSettle(tester, _cell(cell));
@@ -387,10 +404,7 @@ void main() {
       tester.widget<ShopModal>(find.byType(ShopModal)).onSelect(selection);
       Navigator.of(tester.element(find.byType(ShopModal))).pop();
       await tester.pumpAndSettle();
-      await tapAndSettle(tester, _cell(CloudinaryAssets.completeTransaction));
-      tester
-          .widget<TransactionModal>(find.byType(TransactionModal))
-          .onConfirm(const Coins(gold: 2), false);
+      _deliverPouch(tester);
       await tester.pumpAndSettle();
       if (arrivingFirst != null) {
         when(() => characterCubit.state).thenReturn(arrivingFirst);
@@ -470,5 +484,237 @@ void main() {
       expect(prompt(), findsNothing);
       verifyNever(() => companionNameCubit.reset());
     });
+  });
+
+  group('paying with the coins pouch', () {
+    late StreamController<TransactionState> transactionStates;
+
+    setUp(() {
+      transactionStates = StreamController<TransactionState>.broadcast();
+      addTearDown(transactionStates.close);
+      whenListen(
+        transactionCubit,
+        transactionStates.stream,
+        initialState: TransactionInitial(),
+      );
+      when(
+        () => transactionCubit.doTransaction(any()),
+      ).thenAnswer((_) async {});
+      when(() => transactionCubit.refuseInsufficientFunds()).thenReturn(null);
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _swordPool);
+    });
+
+    Future<void> pumpTallShop(WidgetTester tester) async {
+      await pumpShop(tester, physicalSize: const Size(2340, 1440));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> putSwordInCart(WidgetTester tester) async {
+      await tapAndSettle(tester, _cell(CloudinaryAssets.buy));
+      tester
+          .widget<ShopModal>(find.byType(ShopModal))
+          .onSelect(TradeSelection(assets: [_swordPool.equipment.first]));
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> emitTransaction(
+      WidgetTester tester,
+      TransactionState state,
+    ) async {
+      transactionStates.add(state);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'the purse always lies on the counter with its coins on the tag, and '
+      'pays only with a cart',
+      (tester) async {
+        when(() => characterCubit.state).thenReturn(_payingCharacterInCity());
+        await pumpTallShop(tester);
+
+        expect(find.byType(CoinsPouch), findsOneWidget);
+        expect(_pouchOf(tester).purse, const Coins(gold: 10));
+        expect(_pouchOf(tester).onDelivered, isNull);
+
+        await putSwordInCart(tester);
+
+        expect(_pouchOf(tester).onDelivered, isNotNull);
+      },
+    );
+
+    testWidgets('the pouch leaves the counter while the pleased shopkeeper '
+        'holds it', (tester) async {
+      await pumpTallShop(tester);
+
+      await emitTransaction(tester, TransactionDone());
+
+      expect(find.byType(CoinsPouch), findsNothing);
+    });
+
+    testWidgets('a pouch heavy enough sends the transaction', (tester) async {
+      when(() => characterCubit.state).thenReturn(_payingCharacterInCity());
+      await pumpTallShop(tester);
+      await putSwordInCart(tester);
+
+      _deliverPouch(tester);
+
+      final request =
+          verify(
+                () => transactionCubit.doTransaction(captureAny()),
+              ).captured.single
+              as TransactionRequest;
+      expect(request.isTotalPositive, isFalse);
+      expect(request.total, const Coins(silver: 30));
+      verifyNever(() => transactionCubit.refuseInsufficientFunds());
+    });
+
+    testWidgets('a pouch too light is refused without asking the server', (
+      tester,
+    ) async {
+      await pumpTallShop(tester);
+      await putSwordInCart(tester);
+
+      _deliverPouch(tester);
+
+      verify(() => transactionCubit.refuseInsufficientFunds()).called(1);
+      verifyNever(() => transactionCubit.doTransaction(any()));
+    });
+
+    testWidgets('the receipt leaves the counter while the shopkeeper counts', (
+      tester,
+    ) async {
+      await pumpTallShop(tester);
+      await putSwordInCart(tester);
+      expect(_cell(CloudinaryAssets.receipt), findsOneWidget);
+
+      await emitTransaction(tester, TransactionLoading());
+
+      expect(_cell(CloudinaryAssets.receipt), findsNothing);
+    });
+
+    testWidgets('the pouch leaves the counter while the shopkeeper counts', (
+      tester,
+    ) async {
+      await pumpTallShop(tester);
+      await putSwordInCart(tester);
+
+      await emitTransaction(tester, TransactionLoading());
+
+      expect(find.byType(CoinsPouch), findsNothing);
+    });
+
+    testWidgets('the shop scene and the bubble follow the shopkeeper mood', (
+      tester,
+    ) async {
+      await pumpTallShop(tester);
+      expect(_sceneOf(ShopkeeperMood.welcoming), findsOneWidget);
+
+      await emitTransaction(tester, TransactionLoading());
+      expect(_sceneOf(ShopkeeperMood.counting), findsOneWidget);
+      expect(find.text(countingLine), findsOneWidget);
+
+      await emitTransaction(tester, TransactionDone());
+      expect(_sceneOf(ShopkeeperMood.pleased), findsOneWidget);
+      expect(find.text(dealDoneLine), findsOneWidget);
+
+      await emitTransaction(
+        tester,
+        TransactionError(TransactionFailure.insufficientFunds),
+      );
+      expect(_sceneOf(ShopkeeperMood.angry), findsOneWidget);
+      expect(
+        find.text('Vuoi truffarmi? Non hai soldi a sufficienza!'),
+        findsOneWidget,
+      );
+
+      await emitTransaction(
+        tester,
+        TransactionError(TransactionFailure.connection),
+      );
+      expect(_sceneOf(ShopkeeperMood.puzzled), findsOneWidget);
+
+      await emitTransaction(tester, TransactionInitial());
+      expect(_sceneOf(ShopkeeperMood.welcoming), findsOneWidget);
+      expect(find.text(dealDoneLine), findsNothing);
+    });
+  });
+
+  group('poking the shopkeeper', () {
+    Future<void> poke(WidgetTester tester, int times) async {
+      for (var i = 0; i < times; i++) {
+        await tester.tap(find.byKey(Shop.shopkeeperKey));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('ten pokes in a row make him snap for a few seconds', (
+      tester,
+    ) async {
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _swordPool);
+      await pumpShop(tester, physicalSize: const Size(2340, 1440));
+      await tester.pumpAndSettle();
+
+      await poke(tester, 10);
+
+      expect(_sceneOf(ShopkeeperMood.puzzled), findsOneWidget);
+      expect(find.text(annoyedLine), findsOneWidget);
+
+      await tester.pump(TransactionCubit.defaultResetDelay);
+
+      expect(_sceneOf(ShopkeeperMood.welcoming), findsOneWidget);
+      expect(find.text(annoyedLine), findsNothing);
+    });
+
+    testWidgets('nine pokes leave him calm', (tester) async {
+      when(
+        () => graphQl.getCityShop('city-1'),
+      ).thenAnswer((_) async => _swordPool);
+      await pumpShop(tester, physicalSize: const Size(2340, 1440));
+      await tester.pumpAndSettle();
+
+      await poke(tester, 9);
+
+      expect(_sceneOf(ShopkeeperMood.welcoming), findsOneWidget);
+      expect(find.text(annoyedLine), findsNothing);
+    });
+  });
+
+  testWidgets('pencil and rubber start switched off at every opening', (
+    tester,
+  ) async {
+    when(
+      () => graphQl.getCityShop('city-1'),
+    ).thenAnswer((_) async => _swordPool);
+    await pumpShop(tester);
+    await tester.pumpAndSettle();
+
+    for (final cell in [CloudinaryAssets.buy, CloudinaryAssets.sell]) {
+      await tapAndSettle(tester, _cell(cell));
+      tester
+          .widget<EditPencilRubber>(find.byType(EditPencilRubber))
+          .onToggle(true);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<EditPencilRubber>(find.byType(EditPencilRubber)).isAdd,
+        isTrue,
+      );
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+
+      await tapAndSettle(tester, _cell(cell));
+
+      expect(
+        tester.widget<EditPencilRubber>(find.byType(EditPencilRubber)).isAdd,
+        isNull,
+        reason: cell,
+      );
+      Navigator.of(tester.element(find.byType(ShopModal))).pop();
+      await tester.pumpAndSettle();
+    }
   });
 }

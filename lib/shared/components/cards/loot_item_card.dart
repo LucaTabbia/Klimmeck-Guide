@@ -2,8 +2,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/config/cloudinary_assets.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
-import 'package:klimmeck_guide/shared/components/animated_pencil_text.dart';
 import 'package:klimmeck_guide/shared/components/cached_svg.dart';
+import 'package:klimmeck_guide/shared/components/usages_pencil_counter.dart';
 
 import '../../../theme/kg_theme.dart';
 
@@ -16,7 +16,9 @@ class LootItemCard extends StatelessWidget {
     this.quantity,
   });
 
-  static final _cardBackgroundUrl = CloudinaryAssets.url(CloudinaryAssets.emptyCardSheet);
+  static final _cardBackgroundUrl = CloudinaryAssets.url(
+    CloudinaryAssets.emptyCardSheet,
+  );
 
   final Function(LootItem)? onTap;
   final LootItem lootItem;
@@ -49,7 +51,8 @@ class LootItemCard extends StatelessWidget {
                   Spacer(),
                   _buildTextSection(
                     text: lootItem.name ?? "",
-                    color: lootItem.rarity?.color ?? KlimmeckGuideTheme.deepNight,
+                    color:
+                        lootItem.rarity?.color ?? KlimmeckGuideTheme.deepNight,
                   ),
                   Spacer(),
                   if (lootItem.power != null && lootItem.power != 0)
@@ -58,64 +61,19 @@ class LootItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (quantity != null && quantity! > 0)
-              Positioned(
-                right: 7,
-                top: 5,
-                child: SizedBox(
-                  height: 50,
-                  width: 25,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                            final fadeIn = CurvedAnimation(
-                              parent: animation,
-                              curve: const Interval(
-                                0.3,
-                                1.0,
-                                curve: Curves.easeOut,
-                              ),
-                            );
-
-                            final scaleIn = Tween<double>(
-                              begin: 1.2,
-                              end: 1.0,
-                            ).animate(fadeIn);
-
-                            return FadeTransition(
-                              opacity: fadeIn,
-                              child: ScaleTransition(
-                                scale: scaleIn,
-                                child: child,
-                              ),
-                            );
-                          },
-                      layoutBuilder: (currentChild, previousChildren) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      child: AnimatedPencilText(
-                        key: ValueKey<int>(quantity!),
-                        text: quantity!.toString(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            Positioned(
+              right: 0,
+              top: 5,
+              child: UsagesPencilCounter(value: _shownQuantity),
+            ),
           ],
         ),
       ),
     );
   }
+
+  /// Quantità scritta a matita sulla carta; nessuna copia, nessun numero.
+  int? get _shownQuantity => (quantity ?? 0) > 0 ? quantity : null;
 
   Widget _buildTextSection({required String text, Color? color}) {
     return Padding(

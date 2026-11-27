@@ -65,9 +65,6 @@ Finder _chip(EffectType effect) => find.descendant(
   ),
 );
 
-Finder _allChip() =>
-    find.descendant(of: _effectFilter(), matching: find.text('Tutti'));
-
 void main() {
   late MockCharacterCubit characterCubit;
   late MockSpellsCubit spellsCubit;
@@ -136,42 +133,48 @@ void main() {
 
     expect(_effectFilter(), findsOneWidget);
     expect(_filter(tester).values, [EffectType.heal, EffectType.hunger]);
-    expect(_filter(tester).current, isNull);
+    expect(_filter(tester).selected, isEmpty);
     expectDescriptions(potion: true, bread: true, stone: true);
     expect(find.text('Cura: 12'), findsOneWidget);
     expect(find.text('Sazietà: 5'), findsOneWidget);
   });
 
-  testWidgets('a chip filters the rows, «Tutti» restores them', (tester) async {
+  testWidgets('a chip filters the rows, a second adds its type, unlit they '
+      'all return (D-23)', (tester) async {
     await pumpItems(tester);
+    expect(find.text('Tutti'), findsNothing);
 
     await tapAndSettle(tester, _chip(EffectType.heal));
 
-    expect(_filter(tester).current, EffectType.heal);
+    expect(_filter(tester).selected, {EffectType.heal});
     expectDescriptions(potion: true, bread: false, stone: false);
 
-    await tapAndSettle(tester, _allChip());
+    await tapAndSettle(tester, _chip(EffectType.hunger));
 
-    expect(_filter(tester).current, isNull);
+    expect(_filter(tester).selected, {EffectType.heal, EffectType.hunger});
+    expectDescriptions(potion: true, bread: true, stone: false);
+
+    await tapAndSettle(tester, _chip(EffectType.heal));
+    await tapAndSettle(tester, _chip(EffectType.hunger));
+
+    expect(_filter(tester).selected, isEmpty);
     expectDescriptions(potion: true, bread: true, stone: true);
   });
 
-  testWidgets('a vanished effect falls back to «Tutti» for good', (
-    tester,
-  ) async {
+  testWidgets('a vanished effect leaves the filters for good', (tester) async {
     await pumpItems(tester);
     await tapAndSettle(tester, _chip(EffectType.hunger));
     expectDescriptions(potion: false, bread: true, stone: false);
 
     await emitCharacter(tester, [_potion, _stone]);
 
-    expect(_filter(tester).current, isNull);
+    expect(_filter(tester).selected, isEmpty);
     expect(_filter(tester).values, [EffectType.heal]);
     expectDescriptions(potion: true, bread: false, stone: true);
 
     await emitCharacter(tester, [_potion, _bread, _stone]);
 
-    expect(_filter(tester).current, isNull);
+    expect(_filter(tester).selected, isEmpty);
     expectDescriptions(potion: true, bread: true, stone: true);
   });
 
@@ -187,7 +190,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(_filter(tester).current, isNull);
+    expect(_filter(tester).selected, isEmpty);
     expectDescriptions(potion: true, bread: true, stone: true);
   });
 

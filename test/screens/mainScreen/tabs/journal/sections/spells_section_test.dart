@@ -117,9 +117,6 @@ Finder _chip(UseType useType) => find.descendant(
   ),
 );
 
-Finder _allChip() =>
-    find.descendant(of: _useTypeFilter(), matching: find.text('Tutti'));
-
 const _lineOfB = 'Usi: 3 · Recupero: 2 h · Attacco: Fuoco 12';
 
 void main() {
@@ -460,7 +457,7 @@ void main() {
   });
 
   group('use-type filter', () {
-    testWidgets('a chip filters the known rows, «Tutti» restores them', (
+    testWidgets('a chip filters the known rows, unlit again they all return', (
       tester,
     ) async {
       useCharacter(_mixedUseTypesCharacter());
@@ -474,7 +471,7 @@ void main() {
       expect(_row('c'), findsNothing);
       expect(_slot('b'), findsOneWidget);
 
-      await tapAndSettle(tester, _allChip());
+      await tapAndSettle(tester, _chip(UseType.attack));
       await tester.pumpAndSettle();
 
       for (final letter in ['a', 'b', 'c']) {
@@ -505,7 +502,7 @@ void main() {
       expect(_row('a'), findsOneWidget);
       expect(_row('c'), findsOneWidget);
       final filter = tester.widget<ItemsFilter<UseType>>(_useTypeFilter());
-      expect(filter.current, isNull);
+      expect(filter.selected, isEmpty);
       expect(filter.values, [UseType.attack]);
 
       await emitCharacter(tester, _mixedUseTypesCharacter());

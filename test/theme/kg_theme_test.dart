@@ -87,20 +87,20 @@ void main() {
       expect(thumb.resolve(disabledOn), KlimmeckGuideTheme.paleSilver);
     });
 
-    testWidgets('track is bronze on, parchment otherwise', (tester) async {
+    testWidgets('track is black on, parchment otherwise', (tester) async {
       init();
       final track = switches.trackColor!;
-      expect(track.resolve(on), KlimmeckGuideTheme.darkBronze);
+      expect(track.resolve(on), KlimmeckGuideTheme.deepNight);
       expect(track.resolve(off), KlimmeckGuideTheme.parchment);
       expect(track.resolve(disabled), KlimmeckGuideTheme.parchment);
     });
 
-    testWidgets('track outline is bronze, silver when disabled', (
+    testWidgets('track outline is black on, bronze off, silver disabled', (
       tester,
     ) async {
       init();
       final outline = switches.trackOutlineColor!;
-      expect(outline.resolve(on), KlimmeckGuideTheme.darkBronze);
+      expect(outline.resolve(on), KlimmeckGuideTheme.deepNight);
       expect(outline.resolve(off), KlimmeckGuideTheme.darkBronze);
       expect(outline.resolve(disabled), KlimmeckGuideTheme.paleSilver);
     });
