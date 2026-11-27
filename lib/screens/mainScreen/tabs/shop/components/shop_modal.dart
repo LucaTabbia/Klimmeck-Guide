@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:klimmeck_guide/models/asset_item.dart';
 import 'package:klimmeck_guide/models/asset_quantity.dart';
+import 'package:klimmeck_guide/models/equipment.dart';
 import 'package:klimmeck_guide/models/equipment_item.dart';
 import 'package:klimmeck_guide/models/loot_item.dart';
 import 'package:klimmeck_guide/models/pet.dart';
@@ -16,6 +17,7 @@ import 'package:klimmeck_guide/utils/filter_values.dart';
 import '../../../../../models/enums/effect_type.dart';
 import '../../../../../models/enums/equip_type.dart';
 import '../../../../../shared/components/dropdown.dart';
+import '../../../../../shared/components/modal/paper_sheet_modal.dart';
 
 class ShopModal extends StatefulWidget {
   const ShopModal({
@@ -29,6 +31,7 @@ class ShopModal extends StatefulWidget {
     required this.isAdd,
     required this.onEquipmentInfo,
     this.equippedPetId,
+    this.wornEquipment,
     this.petNames = const {},
     this.onCompanionInfo,
   });
@@ -45,6 +48,9 @@ class ShopModal extends StatefulWidget {
   /// Solo sul lato vendita: il compagno al fianco del personaggio (D-07).
   final String? equippedPetId;
 
+  /// Solo sul lato vendita: gli equipaggiamenti indossati dal personaggio.
+  final Equipment? wornEquipment;
+
   /// Solo sul lato vendita: nome scelto per id del compagno (D-20, Pitfall 9).
   final Map<String, String> petNames;
 
@@ -56,13 +62,15 @@ class ShopModal extends StatefulWidget {
 }
 
 class _ShopModalState extends State<ShopModal> {
-  static const double _fixedHeight = 180;
+  static const double _topMargin = 40;
+  static const double _fixedHeight =
+      _topMargin + PaperSheetModal.contentBottomMargin;
   static const double _headerHeight = 43;
 
   late TradeSelection _selection;
 
-  EquipType? selectedEquipFilter;
-  EffectType? selectedEffectFilter;
+  Set<EquipType> _equipFilter = const {};
+  Set<EffectType> _effectFilter = const {};
 
   bool isEquipOpen = false;
   bool isItemOpen = false;
@@ -74,16 +82,16 @@ class _ShopModalState extends State<ShopModal> {
     _selection = widget.selection;
   }
 
-  /// Un tipo sparito dalle liste riporta i chip a «Tutti» per sempre (D-23).
+  /// Un tipo sparito dalle liste esce dai filtri per sempre (D-23).
   @override
   void didUpdateWidget(ShopModal oldWidget) {
     super.didUpdateWidget(oldWidget);
-    selectedEquipFilter = retainedFilterSelection(
-      selectedEquipFilter,
+    _equipFilter = retainedFilterSelections(
+      _equipFilter,
       presentEquipTypes(widget.equipments),
     );
-    selectedEffectFilter = retainedFilterSelection(
-      selectedEffectFilter,
+    _effectFilter = retainedFilterSelections(
+      _effectFilter,
       presentEffectTypes(widget.items),
     );
   }
@@ -93,27 +101,24 @@ class _ShopModalState extends State<ShopModal> {
     final itemSize = (MediaQuery.of(context).size.width - 200) / 5;
 
     final equipTypes = presentEquipTypes(widget.equipments);
-    final equipFilter = retainedFilterSelection(
-      selectedEquipFilter,
-      equipTypes,
-    );
+    final equipFilter = retainedFilterSelections(_equipFilter, equipTypes);
     final effectTypes = presentEffectTypes(widget.items);
-    final effectFilter = retainedFilterSelection(
-      selectedEffectFilter,
-      effectTypes,
-    );
+    final effectFilter = retainedFilterSelections(_effectFilter, effectTypes);
 
-    final filteredEquipments = equipFilter == null
-        ? widget.equipments
-        : widget.equipments
-              .where((e) => e.item?.asEquipment?.equipType == equipFilter)
-              .toList();
+    final filteredEquipments = widget.equipments
+        .where(
+          (e) => matchesFilterSelection(
+            equipFilter,
+            e.item?.asEquipment?.equipType,
+          ),
+        )
+        .toList();
 
-    final filteredItems = effectFilter == null
-        ? widget.items
-        : widget.items
-              .where((i) => i.item?.asLoot?.effect == effectFilter)
-              .toList();
+    final filteredItems = widget.items
+        .where(
+          (i) => matchesFilterSelection(effectFilter, i.item?.asLoot?.effect),
+        )
+        .toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -121,7 +126,7 @@ class _ShopModalState extends State<ShopModal> {
           children: [
             Column(
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: _topMargin),
                 Dropdown(
                   key: const ValueKey('armor_dropdown'),
                   sectionName: "Armatura",
@@ -129,17 +134,18 @@ class _ShopModalState extends State<ShopModal> {
                   onToggle: () => setState(() {
                     isEquipOpen = !isEquipOpen;
                   }),
+                  pinned: equipTypes.isEmpty
+                      ? null
+                      : ItemsFilter<EquipType>(
+                          values: equipTypes,
+                          selected: equipFilter,
+                          onChanged: (selected) =>
+                              setState(() => _equipFilter = selected),
+                          getImage: (value) => value.imagePath,
+                        ),
                   data: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (equipTypes.isNotEmpty)
-                        ItemsFilter<EquipType>(
-                          values: equipTypes,
-                          current: equipFilter,
-                          onTap: (value) =>
-                              setState(() => selectedEquipFilter = value),
-                          getImage: (value) => value.imagePath,
-                        ),
                       ...List.generate(filteredEquipments.length, (index) {
                         final selectedAsset = _selection.assets
                             .firstWhereOrNull(
@@ -156,6 +162,9 @@ class _ShopModalState extends State<ShopModal> {
                           onLongTap: (selectedEquip) =>
                               widget.onEquipmentInfo(selectedEquip),
                           quantity: selectedAsset?.quantity,
+                          isSelected: _isWorn(filteredEquipments[index])
+                              ? true
+                              : null,
                           onSelect: (item) => _onSelect(
                             item as EquipmentItem,
                             widget.isAdd,
@@ -173,17 +182,18 @@ class _ShopModalState extends State<ShopModal> {
                   onToggle: () => setState(() {
                     isItemOpen = !isItemOpen;
                   }),
+                  pinned: effectTypes.isEmpty
+                      ? null
+                      : ItemsFilter<EffectType>(
+                          values: effectTypes,
+                          selected: effectFilter,
+                          onChanged: (selected) =>
+                              setState(() => _effectFilter = selected),
+                          getImage: (value) => value.imagePath,
+                        ),
                   data: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (effectTypes.isNotEmpty)
-                        ItemsFilter<EffectType>(
-                          values: effectTypes,
-                          current: effectFilter,
-                          onTap: (value) =>
-                              setState(() => selectedEffectFilter = value),
-                          getImage: (value) => value.imagePath,
-                        ),
                       ...List.generate(filteredItems.length, (index) {
                         final selectedAsset = _selection.assets
                             .firstWhereOrNull(
@@ -220,13 +230,20 @@ class _ShopModalState extends State<ShopModal> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 140),
+                const SizedBox(height: PaperSheetModal.contentBottomMargin),
               ],
             ),
           ],
         );
       },
     );
+  }
+
+  /// Il segnalibro rosso del Diario segna gli equipaggiamenti indossati.
+  bool _isWorn(AssetQuantity owned) {
+    final id = owned.item?.id;
+    if (id == null) return false;
+    return widget.wornEquipment?.slotsWearing(id).isNotEmpty ?? false;
   }
 
   Widget _buildCompanionRow(Pet pet, double size) {

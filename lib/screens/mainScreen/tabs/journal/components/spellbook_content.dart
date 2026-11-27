@@ -36,9 +36,9 @@ class SpellbookContent extends StatelessWidget {
   final ValueChanged<Spell> onShowDetails;
   final SpellResistSignal? resistSignal;
 
-  /// Tipo d'uso scelto nei chip; null = «Tutti» (D-22).
-  final UseType? useTypeFilter;
-  final ValueChanged<UseType?> onUseTypeFilterChanged;
+  /// Tipi d'uso accesi nei chip; nessuno = tutte le magie (D-22).
+  final Set<UseType> useTypeFilter;
+  final ValueChanged<Set<UseType>> onUseTypeFilterChanged;
 
   /// Magie imparate e non ancora viste: portano il sigillo.
   final Set<String> newSpellIds;
@@ -46,7 +46,7 @@ class SpellbookContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final useTypes = _presentUseTypes();
-    final filter = retainedFilterSelection(useTypeFilter, useTypes);
+    final filter = retainedFilterSelections(useTypeFilter, useTypes);
     return Padding(
       padding: const EdgeInsets.only(right: 20),
       child: Column(
@@ -67,8 +67,8 @@ class SpellbookContent extends StatelessWidget {
           if (useTypes.isNotEmpty)
             ItemsFilter<UseType>(
               values: useTypes,
-              current: filter,
-              onTap: onUseTypeFilterChanged,
+              selected: filter,
+              onChanged: onUseTypeFilterChanged,
               getImage: (useType) => useType.imagePath,
             ),
           for (final entry in _entriesOf(filter)) _buildRow(entry),
@@ -83,9 +83,8 @@ class SpellbookContent extends StatelessWidget {
   );
 
   /// Il filtro tocca solo la lista: la riga degli slot resta intera (D-22).
-  Iterable<SpellbookEntry> _entriesOf(UseType? filter) => filter == null
-      ? spellbook.entries
-      : spellbook.entries.where((entry) => entry.spell.useType == filter);
+  Iterable<SpellbookEntry> _entriesOf(Set<UseType> filter) => spellbook.entries
+      .where((entry) => matchesFilterSelection(filter, entry.spell.useType));
 
   Widget _buildRow(SpellbookEntry entry) {
     final spell = entry.spell;

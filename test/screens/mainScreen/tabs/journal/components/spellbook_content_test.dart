@@ -61,7 +61,7 @@ Spellbook _mixedUseTypes() => Spellbook.of(
 class _Gestures {
   final toggles = <String>[];
   final details = <Spell>[];
-  final useTypeFilters = <UseType?>[];
+  final useTypeFilters = <Set<UseType>>[];
 }
 
 Future<_Gestures> _pump(
@@ -69,7 +69,7 @@ Future<_Gestures> _pump(
   Spellbook spellbook, {
   Map<String, SpellRecoveryStatus> recoveries = const {},
   SpellResistSignal? resistSignal,
-  UseType? useTypeFilter,
+  Set<UseType> useTypeFilter = const {},
   _Gestures? gestures,
 }) async {
   final recorded = gestures ?? _Gestures();
@@ -110,9 +110,6 @@ Finder _chip(UseType useType) => find.descendant(
     (widget) => widget is CachedSvg && widget.url == useType.imagePath,
   ),
 );
-
-Finder _allChip() =>
-    find.descendant(of: _useTypeFilter(), matching: find.text('Tutti'));
 
 SpellCard _rowCard(WidgetTester tester, String letter) => tester.widget(
   find.descendant(of: _row(letter), matching: find.byType(SpellCard)),
@@ -289,7 +286,7 @@ void main() {
 
       expect(_useTypeFilter(), findsOneWidget);
       expect(_filterOf(tester).values, [UseType.defense, UseType.attack]);
-      expect(_filterOf(tester).current, isNull);
+      expect(_filterOf(tester).selected, isEmpty);
       for (final letter in ['a', 'b', 'c']) {
         expect(_row(letter), findsOneWidget);
       }
@@ -298,7 +295,7 @@ void main() {
     testWidgets('a selected type hides the other rows, never the slots', (
       tester,
     ) async {
-      await _pump(tester, _mixedUseTypes(), useTypeFilter: UseType.attack);
+      await _pump(tester, _mixedUseTypes(), useTypeFilter: {UseType.attack});
       await tester.pumpAndSettle();
 
       expect(_row('a'), findsOneWidget);
@@ -308,29 +305,33 @@ void main() {
       expect(_slotBoxes(), findsNWidgets(2));
     });
 
-    testWidgets('a type not present falls back to «Tutti»', (tester) async {
-      await _pump(tester, _mixedUseTypes(), useTypeFilter: UseType.control);
+    testWidgets('a type not present leaves the filters', (tester) async {
+      await _pump(tester, _mixedUseTypes(), useTypeFilter: {UseType.control});
       await tester.pumpAndSettle();
 
-      expect(_filterOf(tester).current, isNull);
+      expect(_filterOf(tester).selected, isEmpty);
       for (final letter in ['a', 'b', 'c']) {
         expect(_row(letter), findsOneWidget);
       }
     });
 
-    testWidgets('chip taps report the chosen type, «Tutti» reports null', (
+    testWidgets('a chip tap reports the selection with its type added', (
       tester,
     ) async {
-      final gestures = await _pump(tester, _mixedUseTypes());
+      final gestures = await _pump(
+        tester,
+        _mixedUseTypes(),
+        useTypeFilter: {UseType.attack},
+      );
       await tester.pumpAndSettle();
+      expect(find.text('Tutti'), findsNothing);
 
       await tester.tap(_chip(UseType.defense));
       await tester.pump();
-      expect(gestures.useTypeFilters, [UseType.defense]);
 
-      await tester.tap(_allChip());
-      await tester.pump();
-      expect(gestures.useTypeFilters.last, isNull);
+      expect(gestures.useTypeFilters, [
+        {UseType.attack, UseType.defense},
+      ]);
       expect(gestures.toggles, isEmpty);
     });
 
